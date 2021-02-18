@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:iconSpaceReserved="false"
+        app:key="hide_keyboard_on_scroll_up"
+        app:title="@string/fragment_settings_general_hide_keyboard_on_scroll_up_title" />
+
+</PreferenceScreen>

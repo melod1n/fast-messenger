@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ru.melod1n.project.vkm.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    app:contentInsetStart="0dp"
+    app:layout_collapseMode="pin">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/toolbar_background_ripple"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/toolbarNavigation"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:gravity="center">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/toolbarNavigationIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:clickable="false"
+                android:focusable="false"
+                tools:src="@drawable/ic_search"
+                tools:tint="?android:textColorPrimary" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/toolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_toStartOf="@+id/toolbarAvatar"
+            android:layout_toEndOf="@+id/toolbarNavigation"
+            android:clickable="false"
+            android:focusable="false"
+            android:fontFamily="@font/google_sans_medium"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="?colorAccent"
+            tools:text="Some title" />
+
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/toolbarAvatar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="12dp"
+            android:src="?colorAccent"
+            app:roundAsCircle="true" />
+
+    </RelativeLayout>
+
+</ru.melod1n.project.vkm.widget.Toolbar>

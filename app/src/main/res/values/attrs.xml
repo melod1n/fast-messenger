@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="itemTitleColor" format="color" />
+
+    <declare-styleable name="CircleImageView">
+        <attr name="radius" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="BoundedView">
+        <attr name="bounded_width" format="dimension" />
+        <attr name="bounded_height" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="WrapTextView">
+        <attr name="fixWrap" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="NoItemsView">
+        <attr name="noItemsText" format="string" />
+        <attr name="noItemsTextColor" format="color" />
+        <attr name="noItemsImage" format="color|reference" />
+        <attr name="noItemsImageTint" format="color" />
+        <attr name="isVisibleByDefault" format="boolean" />
+    </declare-styleable>
+
+</resources>

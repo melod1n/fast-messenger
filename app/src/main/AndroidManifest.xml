@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ru.melod1n.project.vkm">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".common.AppGlobal"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".activity.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".service.LongPollService"
+            android:enabled="true" />
+
+        <activity android:name=".activity.MessagesActivity" />
+
+        <activity
+            android:name=".activity.StartActivity"
+            android:theme="@style/AppTheme.Start" />
+
+        <activity
+            android:name=".activity.LoginActivity"
+            android:label="@string/activity_login" />
+
+        <activity android:name=".activity.DropUserDataActivity" />
+
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:label="@string/navigation_settings" />
+
+        <activity android:name=".activity.UpdateActivity" />
+
+        <receiver
+            android:name=".receiver.MinuteReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.ACTION_TIME_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+    </application>
+
+</manifest>

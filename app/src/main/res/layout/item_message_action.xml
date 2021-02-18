@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/messageAction"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:textAppearance="?android:textAppearanceSmall"
+    android:textColor="?colorAccent"
+    android:visibility="invisible"
+    tools:text="Some action"
+    tools:visibility="visible" />

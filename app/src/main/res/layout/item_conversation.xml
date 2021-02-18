@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/conversationRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:visibility="invisible"
+    tools:visibility="visible">
+
+    <LinearLayout
+        android:id="@+id/conversationContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="6dp"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="6dp">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0">
+
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/conversationAvatar"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="bottom|end"
+                app:fadeDuration="150"
+                app:roundAsCircle="true"
+                tools:src="?colorAccent" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/conversationUserOnline"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="3dp"
+                tools:src="@drawable/ic_online_pc" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/conversationType"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="4dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="0dp"
+                    android:tint="?itemTitleColor"
+                    tools:src="@drawable/ic_dialog_type_conversation" />
+
+                <TextView
+                    android:id="@+id/conversationTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:fontFamily="@font/tt_commons_medium"
+                    android:singleLine="true"
+                    android:textColor="?itemTitleColor"
+                    android:textSize="20sp"
+                    tools:text="Unidevs" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
+                android:minHeight="26dp"
+                android:orientation="horizontal">
+
+                <com.facebook.drawee.view.SimpleDraweeView
+                    android:id="@+id/conversationUserAvatar"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="top"
+                    android:layout_marginEnd="4dp"
+                    app:fadeDuration="150"
+                    app:roundAsCircle="true"
+                    tools:src="?colorAccent"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/conversationText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="4dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:singleLine="true"
+                    android:textColor="?android:textColorPrimary"
+                    tools:text="Message" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:minHeight="50dp"
+            android:orientation="vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp">
+
+            <ru.melod1n.project.vkm.widget.CircleImageView
+                android:id="@+id/conversationOut"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:src="?colorAccent"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+            <TextView
+                android:id="@+id/conversationCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_conversations_counter_background"
+                android:backgroundTint="?colorAccent"
+                android:backgroundTintMode="multiply"
+                android:gravity="center"
+                android:minWidth="25dp"
+                android:minHeight="20dp"
+                android:padding="4dp"
+                android:textColor="?android:textColorPrimaryInverse"
+                android:textSize="12sp"
+                tools:text="12"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/conversationDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:maxLines="1"
+                android:minWidth="30dp"
+                android:textColor="?android:textColorSecondary"
+                android:textSize="12sp"
+                tools:text="сейчас" />
+
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

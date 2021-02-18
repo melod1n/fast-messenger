@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceScreen
+        app:icon="@drawable/ic_edit"
+        app:key="general"
+        app:title="@string/prefs_general" />
+
+    <PreferenceScreen
+        app:icon="@drawable/ic_palette_swatch_outline"
+        app:key="appearance"
+        app:title="@string/prefs_appearance" />
+
+    <PreferenceScreen
+        app:icon="@drawable/ic_account_circle_outline"
+        app:key="account"
+        app:title="@string/prefs_account" />
+
+    <PreferenceScreen
+        app:icon="@drawable/ic_info_outline"
+        app:key="about"
+        app:title="@string/prefs_about" />
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_outline_bug_report_24"
+        android:title="@string/prefs_debug"
+        app:key="debug" />
+
+</PreferenceScreen>

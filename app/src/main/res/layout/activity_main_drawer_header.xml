@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:id="@+id/headerRoot"
+    android:layout_height="80dp">
+
+    <ru.melod1n.project.vkm.widget.CircleImageView
+        android:id="@+id/headerAvatar"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="14dp"
+        android:src="?colorAccent" />
+
+    <TextView
+        android:id="@+id/headerName"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignTop="@+id/headerAvatar"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_toEndOf="@+id/headerAvatar"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="@string/drawer_name_surname"
+        android:textColor="?android:textColorPrimary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/headerStatus"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignStart="@+id/headerName"
+        android:layout_alignBottom="@+id/headerAvatar"
+        android:layout_marginEnd="14dp"
+        android:layout_toEndOf="@+id/headerAvatar"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="@string/drawer_status"
+        android:textColor="?android:textColorSecondary" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:background="?dividerHorizontal" />
+
+</RelativeLayout>

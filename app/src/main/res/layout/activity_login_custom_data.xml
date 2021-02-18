@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/customDataUserId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/user_id"
+        android:inputType="number"
+        android:singleLine="true" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/customDataToken"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/token"
+        android:singleLine="true" />
+
+</LinearLayout>

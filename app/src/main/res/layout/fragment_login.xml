@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/loginRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/loginCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:minWidth="340dp"
+        app:cardCornerRadius="9dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/fast_logo_border_color"
+        app:strokeWidth="2dp">
+
+        <LinearLayout
+            android:id="@+id/loginCardLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/loginLogoText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/google_sans_regular"
+                android:text="@string/fast_messenger"
+                android:textColor="@color/login_secondary_color"
+                android:textSize="21sp" />
+
+            <FrameLayout
+                android:id="@+id/loginLogoContainer"
+                android:layout_width="166dp"
+                android:layout_height="166dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/ic_logo_fast_border">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/loginLogoImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_fast_lightning" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/loginEmailContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/loginEmailImage"
+                    style="@style/AppTheme.Login.EditText.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_email" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/loginEmailEditText"
+                    style="@style/AppTheme.Login.EditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:hint="@string/email_login_hint"
+                    android:inputType="textEmailAddress" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/loginPasswordContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/loginPasswordImage"
+                    style="@style/AppTheme.Login.EditText.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_key" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/loginPasswordEditText"
+                    style="@style/AppTheme.Login.EditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:hint="@string/password_login_hint"
+                    android:inputType="textPassword" />
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/loginAuthorize"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/google_sans_regular"
+                android:letterSpacing="0"
+                android:paddingStart="36dp"
+                android:paddingEnd="36dp"
+                android:text="@string/log_in"
+                android:textColor="@color/login_button_text_color"
+                android:textSize="14sp"
+                app:backgroundTint="?colorAccent"
+                app:cornerRadius="50dp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</RelativeLayout>

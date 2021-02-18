@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="attachments">
+        <item>@string/message_attachment_audio</item>
+        <item>@string/message_attachment_doc</item>
+        <item>@string/message_attachment_gift</item>
+        <item>@string/message_attachment_graffiti</item>
+        <item>@string/message_attachment_link</item>
+        <item>@string/message_attachment_photo</item>
+        <item>@string/message_attachment_poll</item>
+        <item>@string/message_attachment_sticker</item>
+        <item>@string/message_attachment_video</item>
+        <item>@string/message_attachment_voice</item>
+    </string-array>
+
+    <string-array name="conversations_type_entries">
+        <item>Minimal</item>
+        <item>Normal</item>
+        <item>Extended</item>
+    </string-array>
+
+    <string-array name="conversations_type_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="theme_entries">
+        <item>@string/theme_light</item>
+        <item>@string/theme_dark</item>
+        <item>@string/theme_power_saving</item>
+        <item>@string/theme_system</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+    </string-array>
+</resources>
