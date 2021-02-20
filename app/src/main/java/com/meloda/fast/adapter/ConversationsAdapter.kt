@@ -107,6 +107,7 @@ class ConversationsAdapter(
 
     inner class ConversationHolder(v: View) : BaseHolder(v) {
 
+        private var attachments: ImageView = v.findViewById(R.id.conversationTextAttachment)
         private var text: TextView = v.findViewById(R.id.conversationText)
         private var title: TextView = v.findViewById(R.id.conversationTitle)
         private var avatar: ImageView = v.findViewById(R.id.conversationAvatar)
@@ -317,10 +318,11 @@ class ConversationsAdapter(
         }
 
         private fun prepareAttachments(lastMessage: VKMessage) {
-            text.apply {
-                compoundDrawablePadding = 0
-                setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null)
-            }
+//            text.apply {
+//                compoundDrawablePadding = 0
+//                setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null)
+//            }
+            attachments.isVisible = false
 
             if (lastMessage.action == null) {
                 when {
@@ -345,17 +347,21 @@ class ConversationsAdapter(
 
                         val attachmentDrawable =
                             VKUtil.getAttachmentDrawable(context, lastMessage.attachments)
+                        text.text = span
 
-                        text.apply {
-                            text = span
-                            setCompoundDrawablesRelativeWithIntrinsicBounds(
-                                attachmentDrawable,
-                                null,
-                                null,
-                                null
-                            )
-                            compoundDrawablePadding = 8
-                        }
+                        attachments.isVisible = true
+                        attachments.setImageDrawable(attachmentDrawable)
+
+//                        text.apply {
+//                            text = span
+//                            setCompoundDrawablesRelativeWithIntrinsicBounds(
+//                                attachmentDrawable,
+//                                null,
+//                                null,
+//                                null
+//                            )
+//                            compoundDrawablePadding = 8
+//                        }
                     }
                     lastMessage.fwdMessages.isNotEmpty() -> {
                         val fwdText = VKUtil.getFwdText(context, lastMessage.getForwardedMessages())
