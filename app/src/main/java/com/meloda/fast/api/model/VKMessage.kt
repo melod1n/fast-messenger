@@ -2,6 +2,7 @@ package com.meloda.fast.api.model
 
 import android.util.ArrayMap
 import androidx.room.*
+import com.meloda.fast.api.util.VKUtil
 import com.meloda.fast.database.dao.converters.ArrayListToByteArrayConverter
 import com.meloda.fast.database.dao.converters.ForwardedConverter
 import org.json.JSONObject
@@ -125,7 +126,9 @@ open class VKMessage() : VKModel() {
         fromId = o.optInt("from_id", -1)
         editTime = o.optInt("edit_time", -1)
         isOut = o.optInt("out") == 1
-        text = o.optString("text")
+
+        text = VKUtil.prepareMessageText(o.optString("text"))
+
         randomId = o.optInt("random_id", -1)
         conversationMessageId = o.optInt("conversation_message_id", -1)
         isImportant = o.optBoolean("important")

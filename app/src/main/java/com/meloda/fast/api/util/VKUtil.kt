@@ -80,8 +80,46 @@ object VKUtil {
         return values
     }
 
-    fun matchMentions(text: String): String {
-        return text
+    fun prepareMessageText(message: String): String {
+        if (message.isEmpty()) return message
+
+        var newText = message
+
+        val mentions = hashMapOf<String, String>()
+
+        var startFrom = 0
+
+        while (true) {
+            val leftBracketIndex = newText.indexOf('[', startFrom)
+            val verticalLineIndex = newText.indexOf('|', startFrom)
+            val rightBracketIndex = newText.indexOf(']', startFrom)
+
+            if (leftBracketIndex == -1 ||
+                verticalLineIndex == -1 ||
+                rightBracketIndex == -1
+            ) {
+                break
+            }
+
+            val id = newText.substring(leftBracketIndex + 1, verticalLineIndex)
+
+            if (!id.matches(Regex("^id(\\d+)\$")) || rightBracketIndex - verticalLineIndex < 2) {
+                break
+            }
+
+            val text = newText.substring(verticalLineIndex + 1, rightBracketIndex)
+
+            val str = "[$id|$text]"
+
+            mentions[str] = text
+            startFrom = rightBracketIndex + 1
+        }
+
+        mentions.forEach {
+            newText = newText.replace(it.key, it.value)
+        }
+
+        return newText
     }
 
 //    fun removeTime(date: Date): Long {

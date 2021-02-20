@@ -74,7 +74,7 @@ class FragmentConversations : BaseFragment(), ConversationsView {
 
     private fun prepareToolbar() {
         initToolbar(R.id.toolbar)
-        toolbar.title = getString(R.string.navigation_conversations)
+        toolbar.title = getString(R.string.navigation_chats)
         setProfileAvatar()
 
         TaskManager.addOnEventListener(object : TaskManager.OnEventListener {

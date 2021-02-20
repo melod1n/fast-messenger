@@ -9,7 +9,7 @@
     <item
         android:id="@+id/navigationConversations"
         android:icon="@drawable/ic_message_outline"
-        android:title="@string/navigation_conversations" />
+        android:title="@string/navigation_chats" />
 
     <item
         android:id="@+id/navigationImportant"

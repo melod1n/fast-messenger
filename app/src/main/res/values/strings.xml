@@ -38,7 +38,7 @@
     <string name="activity_login">Login</string>
 
     <string name="navigation_search">Search</string>
-    <string name="navigation_conversations">Conversations</string>
+    <string name="navigation_chats">Chats</string>
     <string name="navigation_friends">Friends</string>
     <string name="navigation_important">Important</string>
     <string name="navigation_settings">Settings</string>

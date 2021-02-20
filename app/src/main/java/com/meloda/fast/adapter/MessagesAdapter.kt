@@ -392,7 +392,7 @@ class MessagesAdapter(
                     if (message.isOutbox()) R.attr.messageOutTextColor else R.attr.messageInTextColor
                 )
             )
-            text.text = VKUtil.matchMentions(message.text)
+            text.text = message.text
         }
 
         fun prepareDate(message: VKMessage, date: TextView) {
