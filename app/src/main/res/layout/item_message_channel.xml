@@ -7,7 +7,7 @@
     android:gravity="start"
     android:orientation="vertical">
 
-    <ru.melod1n.project.vkm.widget.BoundedLinearLayout
+    <com.meloda.fast.widget.BoundedLinearLayout
         android:id="@+id/messageBubble"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -21,7 +21,7 @@
         android:paddingTop="4dp"
         android:paddingBottom="4dp">
 
-        <ru.melod1n.project.vkm.widget.CircleImageView
+        <com.meloda.fast.widget.CircleImageView
             android:id="@+id/messageAvatar"
             android:layout_width="35dp"
             android:layout_height="35dp"

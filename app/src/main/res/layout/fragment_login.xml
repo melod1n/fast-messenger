@@ -11,10 +11,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:minWidth="340dp"
+        android:minWidth="380dp"
         app:cardCornerRadius="9dp"
         app:cardElevation="0dp"
-        app:strokeColor="@color/fast_logo_border_color"
+        app:strokeColor="?dividerHorizontal"
         app:strokeWidth="2dp">
 
         <LinearLayout
@@ -33,12 +33,12 @@
                 android:fontFamily="@font/google_sans_regular"
                 android:text="@string/fast_messenger"
                 android:textColor="@color/login_secondary_color"
-                android:textSize="21sp" />
+                android:textSize="26sp" />
 
             <FrameLayout
                 android:id="@+id/loginLogoContainer"
-                android:layout_width="166dp"
-                android:layout_height="166dp"
+                android:layout_width="176dp"
+                android:layout_height="176dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/ic_logo_fast_border">
@@ -48,7 +48,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_fast_lightning" />
+                    android:src="@drawable/ic_fast_lightning"
+                    app:tint="?colorAccent" />
 
             </FrameLayout>
 
@@ -70,7 +71,6 @@
                     android:id="@+id/loginEmailEditText"
                     style="@style/AppTheme.Login.EditText"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
                     android:hint="@string/email_login_hint"
                     android:inputType="textEmailAddress" />
 
@@ -94,7 +94,6 @@
                     android:id="@+id/loginPasswordEditText"
                     style="@style/AppTheme.Login.EditText"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
                     android:hint="@string/password_login_hint"
                     android:inputType="textPassword" />
 
@@ -104,7 +103,7 @@
                 android:id="@+id/loginAuthorize"
                 style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="52dp"
+                android:layout_height="60dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="12dp"
                 android:fontFamily="@font/google_sans_regular"

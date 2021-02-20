@@ -19,7 +19,7 @@
         app:contentInsetStart="0dp"
         app:contentInsetStartWithNavigation="0dp">
 
-        <ru.melod1n.project.vkm.widget.CircleImageView
+        <com.meloda.fast.widget.CircleImageView
             android:id="@+id/chatAvatar"
             android:layout_width="45dp"
             android:layout_height="45dp"
@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:singleLine="true"
                 android:textAppearance="?android:textAppearanceSmall"
-                android:textColor="?android:textColorSecondary"
+                android:textColor="?textColorSecondary"
                 tools:text="Offline"
                 tools:visibility="visible" />
 

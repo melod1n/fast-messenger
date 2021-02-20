@@ -3,12 +3,13 @@
     <color name="primary">#ffffff</color>
     <color name="primaryDark">#ffffff</color>
     <color name="accent">#4284F4</color>
-    <color name="navigationBar">#E4E4E4</color>
+    <color name="navigationBar">#ffffff</color>
     <color name="background">#ffffff</color>
 
-    <color name="color_control_normal">@color/accent</color>
+    <color name="divider">#E0E0E0</color>
 
-    <color name="divider">#e6e6e6</color>
+    <color name="textSecondary">#99000000</color>
+
 
     <color name="text_secondary_100_alpha">#ff000000</color>
     <color name="text_secondary_87_alpha">#DE000000</color>
@@ -23,6 +24,29 @@
     <color name="fast_logo_border_color">#F5F5F5</color>
 
     <color name="login_secondary_color">#5c5c5c</color>
-    <color name="login_edittext_background">#e8e8e8</color>
+    <color name="edittext_filled_background">#e8e8e8</color>
     <color name="login_button_text_color">#ffffff</color>
+
+    <color name="conversationTitle">@color/accent</color>
+
+    <color name="message_in">#ffffff</color>
+    <color name="message_out">#000000</color>
+
+
+    <!-- Dark Theme Colors -->
+
+    <color name="dark_primary">#000000</color>
+    <color name="dark_primaryDark">#000000</color>
+    <color name="dark_accent">#63ACFF</color>
+    <color name="dark_navigationBar">#000000</color>
+    <color name="dark_background">#000000</color>
+
+    <color name="dark_divider">#292929</color>
+
+    <color name="dark_textSecondary">#99FFFFFF</color>
+
+    <color name="dark_edittext_filled_background">#272727</color>
+
+    <color name="dark_message_in">#000000</color>
+    <color name="dark_message_out">#ffffff</color>
 </resources>

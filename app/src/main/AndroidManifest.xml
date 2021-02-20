@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ru.melod1n.project.vkm">
+    package="com.meloda.fast">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".common.AppGlobal"
+        android:name="com.meloda.fast.common.AppGlobal"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity">
+        <activity android:name="com.meloda.fast.activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -21,29 +21,29 @@
         </activity>
 
         <service
-            android:name=".service.LongPollService"
+            android:name="com.meloda.fast.service.LongPollService"
             android:enabled="true" />
 
-        <activity android:name=".activity.MessagesActivity" />
+        <activity android:name="com.meloda.fast.activity.MessagesActivity" />
 
         <activity
-            android:name=".activity.StartActivity"
+            android:name="com.meloda.fast.activity.StartActivity"
             android:theme="@style/AppTheme.Start" />
 
         <activity
-            android:name=".activity.LoginActivity"
+            android:name="com.meloda.fast.activity.LoginActivity"
             android:label="@string/activity_login" />
 
-        <activity android:name=".activity.DropUserDataActivity" />
+        <activity android:name="com.meloda.fast.activity.DropUserDataActivity" />
 
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name="com.meloda.fast.activity.SettingsActivity"
             android:label="@string/navigation_settings" />
 
-        <activity android:name=".activity.UpdateActivity" />
+        <activity android:name="com.meloda.fast.activity.UpdateActivity" />
 
         <receiver
-            android:name=".receiver.MinuteReceiver"
+            android:name="com.meloda.fast.receiver.MinuteReceiver"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.ACTION_TIME_CHANGED" />

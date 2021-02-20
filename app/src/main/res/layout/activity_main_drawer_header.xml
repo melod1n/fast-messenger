@@ -4,7 +4,7 @@
     android:id="@+id/headerRoot"
     android:layout_height="80dp">
 
-    <ru.melod1n.project.vkm.widget.CircleImageView
+    <com.meloda.fast.widget.CircleImageView
         android:id="@+id/headerAvatar"
         android:layout_width="44dp"
         android:layout_height="44dp"

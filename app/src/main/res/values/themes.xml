@@ -11,14 +11,19 @@
         <item name="dialogCornerRadius">12dp</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="itemTitleColor">@color/accent</item>
+        <item name="dividerHorizontal">@color/divider</item>
+        <item name="textColorSecondary">@color/textSecondary</item>
+        <item name="editTextFilledBackgroundColor">@color/edittext_filled_background</item>
+
+        <item name="messageInTextColor">@color/message_in</item>
+        <item name="messageOutTextColor">@color/message_out</item>
 
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
 
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
-
-        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">@color/divider</item>
-
         <item name="android:navigationBarColor">@color/navigationBar</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">@android:color/transparent</item>
+
     </style>
 
     <style name="AppTheme.Start" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
@@ -46,11 +51,12 @@
         <item name="titleTextAppearance">@style/Toolbar.Title</item>
         <item name="android:textSize">24sp</item>
         <item name="android:elevation">3dp</item>
+
         <item name="titleTextColor">?colorAccent</item>
         <item name="android:background">?colorPrimary</item>
     </style>
 
-    <style name="Toolbar.Title" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+    <style name="Toolbar.Title" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textSize">24sp</item>
         <item name="android:fontFamily">@font/tt_commons_medium</item>
     </style>
@@ -70,38 +76,38 @@
     <style name="AppTheme.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert" />
 
     <style name="AppTheme.FullScreenDialog" parent="Theme.MaterialComponents.Light.Dialog.Bridge">
-        <item name="colorPrimaryDark">@color/primaryDark</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="colorPrimary">@color/primaryDark</item>
+        <item name="colorPrimary">?colorPrimary</item>
+        <item name="colorPrimaryDark">?colorPrimaryDark</item>
+        <item name="colorAccent">?colorAccent</item>
         <item name="android:windowIsFloating">false</item>
-        <item name="android:windowBackground">@android:color/white</item>
-        <item name="actionMenuTextColor">@color/accent</item>
+        <item name="android:windowBackground">?android:windowBackground</item>
+        <item name="actionMenuTextColor">?colorAccent</item>
 
-        <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/primaryDark</item>
+        <item name="android:navigationBarColor" tools:targetApi="o_mr1">?colorPrimaryDark</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
-        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">@color/divider</item>
+        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">@android:color/transparent</item>
 
-        <item name="colorControlNormal">@color/color_control_normal</item>
-
+        <item name="colorControlNormal">?colorAccent</item>
         <item name="toolbarStyle">@style/AppTheme.Toolbar</item>
     </style>
 
 
     <style name="AppTheme.Login.EditText" parent="">
-        <item name="android:background">@drawable/ic_login_edittext_background</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:background">@drawable/edittext_filled_background</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
         <item name="android:layout_marginEnd">16dp</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/login_secondary_color</item>
-        <item name="android:textColorHint">@color/login_secondary_color</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?android:textColorPrimary</item>
+        <item name="android:textColorHint">?textColorSecondary</item>
         <item name="fontFamily">@font/google_sans_regular</item>
         <item name="android:singleLine">true</item>
         <item name="android:maxLines">1</item>
     </style>
 
     <style name="AppTheme.Login.EditText.Icon" parent="">
-        <item name="tint">#757575</item>
+        <item name="tint">?textColorSecondary</item>
         <item name="android:layout_marginStart">8dp</item>
         <item name="android:layout_marginEnd">12dp</item>
     </style>

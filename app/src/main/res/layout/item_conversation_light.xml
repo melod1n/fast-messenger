@@ -6,7 +6,7 @@
     android:background="?selectableItemBackground"
     android:padding="12dp">
 
-    <ru.melod1n.project.vkm.widget.CircleImageView
+    <com.meloda.fast.widget.CircleImageView
         android:id="@+id/conversationAvatar"
         android:layout_width="56dp"
         android:layout_height="56dp"
@@ -60,7 +60,7 @@
         android:layout_marginTop="6dp"
         android:layout_marginEnd="12dp">
 
-        <ru.melod1n.project.vkm.widget.CircleImageView
+        <com.meloda.fast.widget.CircleImageView
             android:id="@+id/conversationOut"
             android:layout_width="10dp"
             android:layout_height="10dp"

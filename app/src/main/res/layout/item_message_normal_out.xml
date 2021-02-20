@@ -8,7 +8,7 @@
     android:gravity="end"
     android:orientation="horizontal">
 
-    <ru.melod1n.project.vkm.widget.CircleImageView
+    <com.meloda.fast.widget.CircleImageView
         android:id="@+id/messageAvatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
@@ -32,7 +32,7 @@
         tools:text="10:15"
         tools:visibility="visible" />
 
-    <ru.melod1n.project.vkm.widget.BoundedLinearLayout
+    <com.meloda.fast.widget.BoundedLinearLayout
         android:id="@+id/messageBubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,7 +43,7 @@
         android:minHeight="40dp"
         android:orientation="vertical">
 
-        <ru.melod1n.project.vkm.widget.WrapTextView
+        <com.meloda.fast.widget.WrapTextView
             android:id="@+id/messageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -62,7 +62,7 @@
             app:fixWrap="true"
             tools:text="Some text" />
 
-    </ru.melod1n.project.vkm.widget.BoundedLinearLayout>
+    </com.meloda.fast.widget.BoundedLinearLayout>
 
 
 </LinearLayout>

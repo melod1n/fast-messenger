@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0">
 
-            <ru.melod1n.project.vkm.widget.CircleImageView
+            <com.meloda.fast.widget.CircleImageView
                 android:id="@+id/userAvatar"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
