@@ -16,13 +16,11 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFullscreenDialog
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.extensions.DrawableExtensions.tint
 import com.meloda.fast.extensions.FragmentExtensions.findViewById
 import com.meloda.fast.item.SimpleMenuItem
 import com.meloda.fast.listener.ItemClickListener
-import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.Toolbar
@@ -63,8 +61,7 @@ class AccountDialog : BaseFullscreenDialog(), ItemClickListener {
 
     private fun prepareToolbar() {
         toolbar.navigationIcon = requireContext().drawable(R.drawable.ic_close)
-            .tint(ColorUtils.getColorAccent(requireContext()))
-
+        toolbar.tintNavigationIcon(ColorUtils.getColorAccent(requireContext()))
 
         toolbar.setTitle(R.string.account_dialog_title)
         toolbar.setTitleMode(Toolbar.TitleMode.SIMPLE)

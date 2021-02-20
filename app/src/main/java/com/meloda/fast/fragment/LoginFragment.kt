@@ -10,11 +10,14 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.fragment.ui.presenter.LoginPresenter
 import com.meloda.fast.fragment.ui.view.LoginView
+import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.KeyboardUtils
+import kotlin.math.roundToInt
 
 class LoginFragment : BaseFragment(), LoginView {
 
@@ -23,6 +26,7 @@ class LoginFragment : BaseFragment(), LoginView {
     private lateinit var email: EditText
     private lateinit var password: EditText
     private lateinit var authorize: MaterialButton
+    private lateinit var card: MaterialCardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +52,14 @@ class LoginFragment : BaseFragment(), LoginView {
         email = requireView().findViewById(R.id.loginEmailEditText)
         password = requireView().findViewById(R.id.loginPasswordEditText)
         authorize = requireView().findViewById(R.id.loginAuthorize)
+        card = requireView().findViewById(R.id.loginCard)
     }
 
     override fun prepareViews() {
         prepareEmailEditText()
         preparePasswordEditText()
         prepareAuthorizeButton()
+        prepareCardView()
     }
 
     private fun prepareEmailEditText() {
@@ -65,7 +71,7 @@ class LoginFragment : BaseFragment(), LoginView {
 
         password.setOnEditorActionListener { _, _, event ->
             if (event == null) return@setOnEditorActionListener false
-            return@setOnEditorActionListener if (event.action == EditorInfo.IME_ACTION_DONE ||
+            return@setOnEditorActionListener if (event.action == EditorInfo.IME_ACTION_GO ||
                 (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
             ) {
                 KeyboardUtils.hideKeyboardFrom(password)
@@ -82,6 +88,14 @@ class LoginFragment : BaseFragment(), LoginView {
             val passwordString = password.text.toString().trim()
 
             presenter.login(emailString, passwordString)
+        }
+    }
+
+    private fun prepareCardView() {
+        val width = AndroidUtils.dp(resources.displayMetrics.widthPixels).roundToInt()
+
+        if (width < 380) {
+            card.strokeWidth = 0
         }
     }
 

@@ -31,7 +31,6 @@
                 android:clickable="false"
                 android:focusable="false"
                 android:tint="?android:textColorPrimary"
-                android:tintMode="multiply"
                 tools:src="@drawable/ic_search" />
 
         </LinearLayout>

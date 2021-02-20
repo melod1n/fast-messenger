@@ -24,7 +24,7 @@ import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.extensions.DrawableExtensions.tint
 import com.meloda.fast.fragment.FragmentConversations
 import com.meloda.fast.fragment.FragmentFriends
-import com.meloda.fast.fragment.FragmentSettings
+import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.fragment.LoginFragment
 import com.meloda.fast.listener.OnResponseListener
 import com.meloda.fast.service.LongPollService
@@ -39,7 +39,7 @@ class MainActivity : BaseActivity(),
 
     private lateinit var fragmentConversations: FragmentConversations
     private lateinit var fragmentFriends: FragmentFriends
-    private lateinit var fragmentSettings: FragmentSettings
+    private lateinit var settingsFragment: SettingsFragment
 
     private var selectedId = 0
 
@@ -91,7 +91,7 @@ class MainActivity : BaseActivity(),
     private fun prepareFragments() {
         fragmentConversations = FragmentConversations()
         fragmentFriends = FragmentFriends(UserConfig.userId)
-        fragmentSettings = FragmentSettings()
+        settingsFragment = SettingsFragment()
 
         val containerId = R.id.fragmentContainer
 

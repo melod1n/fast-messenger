@@ -27,7 +27,7 @@ import com.meloda.fast.dialog.ProfileDialog
 import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.extensions.DrawableExtensions.tint
 import com.meloda.fast.extensions.ImageViewExtensions.loadImage
-import com.meloda.fast.fragment.FragmentSettings
+import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.KeyboardUtils
 import com.meloda.fast.util.TextUtils
 import com.meloda.fast.util.ViewUtils
@@ -169,7 +169,7 @@ class MessagesActivity : BaseActivity(), MessagesView {
                 super.onScrolled(recyclerView, dx, dy)
 
                 if (dy < 0 && AppGlobal.inputMethodManager.isAcceptingText && AppGlobal.preferences.getBoolean(
-                        FragmentSettings.KEY_HIDE_KEYBOARD_ON_SCROLL_UP,
+                        SettingsFragment.KEY_HIDE_KEYBOARD_ON_SCROLL_UP,
                         true
                     )
                 ) {

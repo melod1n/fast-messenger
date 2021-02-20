@@ -22,7 +22,7 @@ import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.database.AppDatabase
 import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.fragment.FragmentSettings
+import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.mvp.MvpBase
 import com.microsoft.appcenter.AppCenter
@@ -133,20 +133,21 @@ class AppGlobal : Application() {
         }
     }
 
-    fun applyNightMode(value: String? = null) {
-        val mode = value ?: preferences.getString(FragmentSettings.KEY_THEME, "-1")!!
+    fun applyNightMode(value: String? = null): Int {
+        val mode = value ?: preferences.getString(SettingsFragment.KEY_THEME, "-1")!!
 
         val nightMode = getNightMode(mode.toInt())
 
         val oldNightMode = AppCompatDelegate.getDefaultNightMode()
 
         AppCompatDelegate.setDefaultNightMode(nightMode)
+
+        return nightMode
     }
 
     fun getNightMode(nightMode: Int = -1): Int {
-        return AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         val mode = if (nightMode != -1) nightMode else preferences.getString(
-            FragmentSettings.KEY_THEME,
+            SettingsFragment.KEY_THEME,
             "-1"
         )!!.toInt()
 

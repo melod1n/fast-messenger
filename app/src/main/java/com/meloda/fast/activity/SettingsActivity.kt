@@ -4,10 +4,9 @@ import android.os.Bundle
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.FragmentSwitcher
-import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.extensions.ContextExtensions.drawable
-import com.meloda.fast.extensions.DrawableExtensions.tint
-import com.meloda.fast.fragment.FragmentSettings
+import com.meloda.fast.fragment.SettingsFragment
+import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.widget.Toolbar
 
 class SettingsActivity : BaseActivity() {
@@ -21,12 +20,14 @@ class SettingsActivity : BaseActivity() {
 
         setSupportActionBar(toolbar)
 
-        toolbar.navigationIcon = drawable(R.drawable.ic_arrow_back).tint(color(R.color.accent))
-
         toolbar.setNavigationClickListener { onBackPressed() }
 
+        toolbar.navigationIcon = drawable(R.drawable.ic_arrow_back)
+        toolbar.tintNavigationIcon(ColorUtils.getColorAccent(this))
+
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, FragmentSettings()).commitNow()
+            .replace(R.id.fragmentContainer, SettingsFragment())
+            .commit()
     }
 
     private fun initViews() {
@@ -36,7 +37,7 @@ class SettingsActivity : BaseActivity() {
     override fun onBackPressed() {
         val currentFragment = FragmentSwitcher.getCurrentFragment(supportFragmentManager) ?: return
 
-        if (currentFragment.javaClass == FragmentSettings::class.java && (currentFragment as FragmentSettings).onBackPressed()) {
+        if (currentFragment.javaClass == SettingsFragment::class.java && (currentFragment as SettingsFragment).onBackPressed()) {
             super.onBackPressed()
         }
     }

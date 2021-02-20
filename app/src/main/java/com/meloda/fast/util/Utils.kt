@@ -17,15 +17,6 @@ object Utils {
         return context.getString(R.string.error, t.message.toString())
     }
 
-    fun isDarkTheme(): Boolean {
-        val currentNightMode =
-            AppGlobal.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return when (currentNightMode) {
-            Configuration.UI_MODE_NIGHT_YES -> true
-            else -> false
-        }
-    }
-
     fun serialize(source: Any?): ByteArray? {
         try {
             val bos = BytesOutputStream()

@@ -3,20 +3,19 @@ package com.meloda.fast.fragment
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceScreen
 import com.meloda.fast.R
 import com.meloda.fast.activity.DropUserDataActivity
 import com.meloda.fast.activity.UpdateActivity
-import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.TaskManager
 import com.meloda.fast.extensions.ContextExtensions.color
-import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.util.AndroidUtils
 
-class FragmentSettings : PreferenceFragmentCompat(),
+class SettingsFragment : PreferenceFragmentCompat(),
     Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
 
@@ -40,6 +39,7 @@ class FragmentSettings : PreferenceFragmentCompat(),
     }
 
     private var currentPreferenceLayout = 0
+    private var isRestoringState = false
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.fragment_settings, rootKey)
@@ -49,7 +49,6 @@ class FragmentSettings : PreferenceFragmentCompat(),
 
     private fun init() {
         setTitle()
-        setNavigationIcon()
         setPreferencesFromResource(currentPreferenceLayout, null)
 
         val general = findPreference<Preference>(CATEGORY_GENERAL)
@@ -99,14 +98,6 @@ class FragmentSettings : PreferenceFragmentCompat(),
 
     private val rootLayoutClickListener =
         Preference.OnPreferenceClickListener { changeRootLayout(it) }
-
-    private fun setNavigationIcon() {
-        val drawable =
-            if (currentPreferenceLayout == R.xml.fragment_settings) null
-            else requireContext().drawable(R.drawable.ic_arrow_back)
-
-        drawable?.setTint(requireContext().color(R.color.accent))
-    }
 
     private fun setTitle() {
         var title = R.string.navigation_settings
@@ -189,14 +180,8 @@ class FragmentSettings : PreferenceFragmentCompat(),
                 return true
             }
             KEY_THEME -> {
-                AppGlobal.instance.applyNightMode(newValue as String)
-                (requireActivity() as BaseActivity).apply {
-//                    applyNightMode()
-                    finish()
-                    startActivity(intent)
-//                    recreate()
-                }
-
+                val nightMode = AppGlobal.instance.applyNightMode(newValue as String)
+                (requireActivity() as AppCompatActivity).delegate.localNightMode = nightMode
                 return true
             }
         }

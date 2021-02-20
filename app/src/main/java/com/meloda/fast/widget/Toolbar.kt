@@ -2,6 +2,7 @@ package com.meloda.fast.widget
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -11,6 +12,7 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 import com.facebook.drawee.view.SimpleDraweeView
@@ -83,6 +85,11 @@ class Toolbar : MaterialToolbar {
 
     fun setNavigationVisibility(visible: Boolean) {
         findViewById<View>(R.id.toolbarNavigation).visibility = if (visible) VISIBLE else GONE
+    }
+
+    fun tintNavigationIcon(@ColorInt color: Int) {
+        findViewById<ImageButton>(R.id.toolbarNavigationIcon).imageTintList =
+            ColorStateList.valueOf(color)
     }
 
     fun setAvatarIcon(icon: Drawable?) {

@@ -3,6 +3,7 @@ package com.meloda.fast.util
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
@@ -27,6 +28,15 @@ object AndroidUtils {
     }
 
     fun dp(px: Int) = dp(px.toFloat())
+
+    fun isDarkTheme(): Boolean {
+        val currentNightMode =
+            AppGlobal.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        return when (currentNightMode) {
+            Configuration.UI_MODE_NIGHT_YES -> true
+            else -> false
+        }
+    }
 
     fun hasConnection(): Boolean {
         val network = AppGlobal.connectivityManager.activeNetwork ?: return false
