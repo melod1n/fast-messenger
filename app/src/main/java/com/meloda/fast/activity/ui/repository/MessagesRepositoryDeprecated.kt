@@ -18,7 +18,7 @@ import com.meloda.mvp.MvpOnLoadListener
 import com.meloda.mvp.MvpRepository
 import java.util.*
 
-class MessagesRepository : MvpRepository<VKMessage>() {
+class MessagesRepositoryDeprecated : MvpRepository<VKMessage>() {
 
     fun loadMessages(
         peerId: Int,

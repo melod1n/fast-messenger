@@ -9,7 +9,7 @@ import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.widget.Toolbar
 
-class SettingsActivity : BaseActivity() {
+class SettingsActivityDeprecated : BaseActivity() {
 
     private lateinit var toolbar: Toolbar
 

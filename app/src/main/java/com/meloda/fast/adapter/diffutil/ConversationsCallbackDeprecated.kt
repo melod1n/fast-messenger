@@ -3,7 +3,7 @@ package com.meloda.fast.adapter.diffutil
 import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.api.model.VKConversation
 
-class ConversationsCallback(
+class ConversationsCallbackDeprecated(
     private val oldList: List<VKConversation>,
     private val newList: List<VKConversation>
 ) : DiffUtil.Callback() {

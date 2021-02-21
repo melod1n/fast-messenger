@@ -9,7 +9,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceScreen
 import com.meloda.fast.R
 import com.meloda.fast.activity.DropUserDataActivity
-import com.meloda.fast.activity.UpdateActivity
+import com.meloda.fast.activity.UpdateActivityDeprecated
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.TaskManager
 import com.meloda.fast.extensions.ContextExtensions.color
@@ -171,7 +171,7 @@ class SettingsFragment : PreferenceFragmentCompat(),
     }
 
     private fun openUpdateScreen() {
-        startActivity(Intent(requireContext(), UpdateActivity::class.java))
+        startActivity(Intent(requireContext(), UpdateActivityDeprecated::class.java))
     }
 
     override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {

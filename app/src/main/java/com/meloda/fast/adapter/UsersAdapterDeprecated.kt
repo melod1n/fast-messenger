@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
-import com.meloda.fast.adapter.diffutil.UsersCallback
+import com.meloda.fast.adapter.diffutil.UsersCallbackDeprecated
 import com.meloda.fast.api.model.VKUser
 import com.meloda.fast.api.util.VKUtil
 import com.meloda.fast.base.BaseAdapter
@@ -16,8 +16,8 @@ import com.meloda.fast.base.BaseHolder
 import com.meloda.fast.util.ImageUtils
 import com.meloda.fast.widget.CircleImageView
 
-class UsersAdapter(context: Context, values: ArrayList<VKUser>) :
-    BaseAdapter<VKUser, UsersAdapter.ViewHolder>(context, values) {
+class UsersAdapterDeprecated(context: Context, values: ArrayList<VKUser>) :
+    BaseAdapter<VKUser, UsersAdapterDeprecated.ViewHolder>(context, values) {
 
     var isLoading: Boolean = false
     var currentPosition: Int = 0
@@ -60,7 +60,7 @@ class UsersAdapter(context: Context, values: ArrayList<VKUser>) :
     }
 
     fun notifyChanges(oldList: List<VKUser>, newList: List<VKUser> = values) {
-        val callback = UsersCallback(oldList, newList)
+        val callback = UsersCallbackDeprecated(oldList, newList)
         val diff = DiffUtil.calculateDiff(callback, false)
 
         diff.dispatchUpdatesTo(this)

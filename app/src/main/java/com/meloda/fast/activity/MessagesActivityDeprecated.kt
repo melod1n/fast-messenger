@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.amulyakhare.textdrawable.TextDrawable
 import com.meloda.fast.R
-import com.meloda.fast.activity.ui.presenter.MessagesPresenter
-import com.meloda.fast.activity.ui.view.MessagesView
+import com.meloda.fast.activity.ui.presenter.MessagesPresenterDeprecated
+import com.meloda.fast.activity.ui.view.MessagesViewDeprecated
 import com.meloda.fast.api.model.VKConversation
 import com.meloda.fast.api.model.VKGroup
 import com.meloda.fast.api.model.VKModel
@@ -34,7 +34,7 @@ import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.CircleImageView
 
 
-class MessagesActivity : BaseActivity(), MessagesView {
+class MessagesActivityDeprecated : BaseActivity(), MessagesViewDeprecated {
 
     companion object {
         const val TAG = "MessagesActivity"
@@ -67,7 +67,7 @@ class MessagesActivity : BaseActivity(), MessagesView {
     private var dialogUser: VKUser? = null
     private var dialogGroup: VKGroup? = null
 
-    private lateinit var presenter: MessagesPresenter
+    private lateinit var presenterDeprecated: MessagesPresenterDeprecated
 
     lateinit var recyclerView: RecyclerView
     private lateinit var refreshLayout: SwipeRefreshLayout
@@ -86,7 +86,7 @@ class MessagesActivity : BaseActivity(), MessagesView {
 
     override fun onDestroy() {
         super.onDestroy()
-        presenter.destroy()
+        presenterDeprecated.destroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,8 +101,8 @@ class MessagesActivity : BaseActivity(), MessagesView {
         prepareRecyclerView()
         prepareEditText()
 
-        presenter = MessagesPresenter(this)
-        presenter.setup(peerId, recyclerView)
+        presenterDeprecated = MessagesPresenterDeprecated(this)
+        presenterDeprecated.setup(peerId, recyclerView)
     }
 
     private fun initViews() {
@@ -142,9 +142,9 @@ class MessagesActivity : BaseActivity(), MessagesView {
 
         chatAvatar.loadImage(avatar, placeholder)
 
-        toolbar.setOnClickListener { presenter.openProfile() }
+        toolbar.setOnClickListener { presenterDeprecated.openProfile() }
 
-        chatAvatar.setOnClickListener { presenter.openProfile() }
+        chatAvatar.setOnClickListener { presenterDeprecated.openProfile() }
 
         chatTitle.text = title
 
@@ -209,7 +209,7 @@ class MessagesActivity : BaseActivity(), MessagesView {
             android.R.id.home -> onBackPressed()
 
             R.id.messagesRefresh -> {
-                presenter.updateData()
+                presenterDeprecated.updateData()
             }
         }
 
@@ -237,11 +237,11 @@ class MessagesActivity : BaseActivity(), MessagesView {
                     setImageResource(R.drawable.ic_send)
 
                     setOnClickListener {
-                        presenter.sendMessage(chatMessage.text.toString(), attachments)
+                        presenterDeprecated.sendMessage(chatMessage.text.toString(), attachments)
                     }
 
                     setOnLongClickListener {
-                        presenter.sendMessage(chatMessage.text.toString(), attachments, false)
+                        presenterDeprecated.sendMessage(chatMessage.text.toString(), attachments, false)
                         true
                     }
                 }
@@ -331,7 +331,7 @@ class MessagesActivity : BaseActivity(), MessagesView {
         builder.setTitle(R.string.error_occurred)
         builder.setMessage(R.string.error_loading_message)
         builder.setPositiveButton(R.string.retry) { _, _ ->
-            presenter.loadConversation(peerId)
+            presenterDeprecated.loadConversation(peerId)
         }
         builder.setNegativeButton(R.string.no) { _, _ -> onBackPressed() }
         builder.setCancelable(false)

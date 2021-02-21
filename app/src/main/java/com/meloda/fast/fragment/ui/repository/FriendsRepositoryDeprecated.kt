@@ -10,7 +10,7 @@ import com.meloda.fast.listener.OnResponseListener
 import com.meloda.mvp.MvpOnLoadListener
 import com.meloda.mvp.MvpRepository
 
-class FriendsRepository : MvpRepository<VKUser>() {
+class FriendsRepositoryDeprecated : MvpRepository<VKUser>() {
 
     fun loadFriends(
         userId: Int,

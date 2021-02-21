@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.meloda.fast.R
-import com.meloda.fast.adapter.diffutil.ConversationsCallback
+import com.meloda.fast.adapter.diffutil.ConversationsCallbackDeprecated
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.api.model.VKConversation
@@ -37,10 +37,10 @@ import com.meloda.fast.widget.CircleImageView
 
 
 @Suppress("UNCHECKED_CAST")
-class ConversationsAdapter(
+class ConversationsAdapterDeprecated(
     val recyclerView: RecyclerView,
     values: ArrayList<VKConversation>
-) : BaseAdapter<VKConversation, ConversationsAdapter.ConversationHolder>(
+) : BaseAdapter<VKConversation, ConversationsAdapterDeprecated.ConversationHolder>(
     recyclerView.context,
     values
 ), TaskManager.OnEventListener {
@@ -97,7 +97,7 @@ class ConversationsAdapter(
     }
 
     fun notifyChanges(oldList: List<VKConversation>, newList: List<VKConversation> = values) {
-        val callback = ConversationsCallback(oldList, newList)
+        val callback = ConversationsCallbackDeprecated(oldList, newList)
         val diff = DiffUtil.calculateDiff(callback)
 
         diff.dispatchUpdatesTo(this)
@@ -128,7 +128,7 @@ class ConversationsAdapter(
         fun bind(position: Int, payloads: MutableList<Any>) {
             Log.d(TAG, "bind position: $position")
 
-            val conversation = this@ConversationsAdapter[position]
+            val conversation = this@ConversationsAdapterDeprecated[position]
 
             val lastMessage = conversation.lastMessage
 
@@ -157,7 +157,7 @@ class ConversationsAdapter(
                     if (payloads.isNotEmpty()) {
                         for (payload in payloads) {
                             when (payload) {
-                                ConversationsCallback.CONVERSATION -> {
+                                ConversationsCallbackDeprecated.CONVERSATION -> {
                                     setUserOnline(conversation, peerUser)
                                     prepareUserAvatar(
                                         conversation,
@@ -170,7 +170,7 @@ class ConversationsAdapter(
                                     setIsRead(lastMessage, conversation)
                                     setCounterBackground(conversation)
                                 }
-                                ConversationsCallback.MESSAGE -> {
+                                ConversationsCallbackDeprecated.MESSAGE -> {
                                     prepareUserAvatar(
                                         conversation,
                                         lastMessage,
@@ -181,14 +181,14 @@ class ConversationsAdapter(
                                     setIsRead(lastMessage, conversation)
                                     setDate(lastMessage)
                                 }
-                                ConversationsCallback.GROUP -> {
+                                ConversationsCallbackDeprecated.GROUP -> {
                                     prepareAvatar(dialogTitle, conversation, peerUser, peerGroup)
                                 }
-                                ConversationsCallback.USER -> {
+                                ConversationsCallbackDeprecated.USER -> {
                                     setUserOnline(conversation, peerUser)
                                     prepareAvatar(dialogTitle, conversation, peerUser, peerGroup)
                                 }
-                                ConversationsCallback.EDIT_MESSAGE -> {
+                                ConversationsCallbackDeprecated.EDIT_MESSAGE -> {
                                     prepareUserAvatar(
                                         conversation,
                                         lastMessage,
@@ -199,19 +199,19 @@ class ConversationsAdapter(
                                     setIsRead(lastMessage, conversation)
                                     setDate(lastMessage)
                                 }
-                                ConversationsCallback.DATE -> {
+                                ConversationsCallbackDeprecated.DATE -> {
                                     setDate(lastMessage)
                                 }
-                                ConversationsCallback.ONLINE -> {
+                                ConversationsCallbackDeprecated.ONLINE -> {
                                     setUserOnline(conversation, peerUser)
                                 }
-                                ConversationsCallback.ATTACHMENTS -> {
+                                ConversationsCallbackDeprecated.ATTACHMENTS -> {
                                     prepareAttachments(lastMessage)
                                 }
-                                ConversationsCallback.AVATAR -> {
+                                ConversationsCallbackDeprecated.AVATAR -> {
                                     prepareAvatar(dialogTitle, conversation, peerUser, peerGroup)
                                 }
-                                ConversationsCallback.USER_AVATAR -> {
+                                ConversationsCallbackDeprecated.USER_AVATAR -> {
                                     prepareUserAvatar(
                                         conversation,
                                         lastMessage,
@@ -219,10 +219,10 @@ class ConversationsAdapter(
                                         fromGroup
                                     )
                                 }
-                                ConversationsCallback.READ -> {
+                                ConversationsCallbackDeprecated.READ -> {
                                     setIsRead(lastMessage, conversation)
                                 }
-                                ConversationsCallback.NOTIFICATIONS -> {
+                                ConversationsCallbackDeprecated.NOTIFICATIONS -> {
                                     setCounterBackground(conversation)
                                 }
                             }
@@ -509,7 +509,7 @@ class ConversationsAdapter(
 
         conversation.lastMessage = message
 
-        notifyItemChanged(index, ConversationsCallback.EDIT_MESSAGE)
+        notifyItemChanged(index, ConversationsCallbackDeprecated.EDIT_MESSAGE)
     }
 
     private fun readMessage(peerId: Int, messageId: Int) {
@@ -531,7 +531,7 @@ class ConversationsAdapter(
             conversation.lastMessageId - messageId
         }
 
-        notifyItemChanged(index, ConversationsCallback.READ)
+        notifyItemChanged(index, ConversationsCallbackDeprecated.READ)
     }
 
     @Deprecated("Need to rewrite")
@@ -651,7 +651,7 @@ class ConversationsAdapter(
 
             set(index, conversation)
 
-            AppGlobal.post { notifyItemChanged(index, ConversationsCallback.CONVERSATION) }
+            AppGlobal.post { notifyItemChanged(index, ConversationsCallbackDeprecated.CONVERSATION) }
         }
     }
 
@@ -686,7 +686,7 @@ class ConversationsAdapter(
                 lastMessage = MemoryCache.getMessageById(messageId) ?: return@execute
             }
 
-            AppGlobal.handler.post { notifyItemChanged(index, ConversationsCallback.MESSAGE) }
+            AppGlobal.handler.post { notifyItemChanged(index, ConversationsCallbackDeprecated.MESSAGE) }
         }
     }
 

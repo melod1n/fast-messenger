@@ -8,14 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.meloda.fast.R
-import com.meloda.fast.activity.MessagesActivity
+import com.meloda.fast.activity.MessagesActivityDeprecated
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.base.BaseFragment
@@ -23,18 +22,22 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.TaskManager
 import com.meloda.fast.event.EventInfo
 import com.meloda.fast.extensions.FragmentExtensions.findViewById
-import com.meloda.fast.fragment.ui.presenter.FriendsPresenter
-import com.meloda.fast.fragment.ui.view.FriendsView
+import com.meloda.fast.extensions.FragmentExtensions.runOnUiThread
+import com.meloda.fast.fragment.ui.presenter.ConversationsPresenterDeprecated
+import com.meloda.fast.fragment.ui.view.ConversationsViewDeprecated
+import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.Toolbar
 
-class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView {
 
-    private lateinit var presenter: FriendsPresenter
+@Suppress("UNCHECKED_CAST")
+class FragmentConversationsDeprecated : BaseFragment(), ConversationsViewDeprecated {
+
+    private lateinit var presenterDeprecated: ConversationsPresenterDeprecated
 
     private lateinit var toolbar: Toolbar
-    private lateinit var recyclerView: RecyclerView
     private lateinit var refreshLayout: SwipeRefreshLayout
+    private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
 
     private lateinit var noItemsView: LinearLayout
@@ -45,9 +48,7 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_friends, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_conversations, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         initViews()
@@ -56,8 +57,8 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
         prepareRecyclerView()
         prepareRefreshLayout()
 
-        presenter = FriendsPresenter(this)
-        presenter.setup(userId, recyclerView, refreshLayout)
+        presenterDeprecated = ConversationsPresenterDeprecated(this)
+        presenterDeprecated.setup(recyclerView, refreshLayout)
     }
 
     private fun initViews() {
@@ -73,39 +74,20 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
 
     private fun prepareToolbar() {
         initToolbar(R.id.toolbar)
-        toolbar.title = getString(R.string.navigation_friends)
+        toolbar.title = getString(R.string.navigation_chats)
         setProfileAvatar()
-
-        toolbar.inflateMenu(R.menu.fragment_friends)
 
         TaskManager.addOnEventListener(object : TaskManager.OnEventListener {
             override fun onNewEvent(info: EventInfo<*>) {
                 if (info.key == VKApiKeys.UPDATE_USER) {
-                    val userId = info.data as ArrayList<Int>
+                    val userIds = info.data as ArrayList<Int>
 
-                    if (userId[0] == UserConfig.userId) {
+                    if (userIds.contains(UserConfig.userId)) {
                         setProfileAvatar()
                     }
                 }
             }
         })
-    }
-
-    private fun setProfileAvatar() {
-        TaskManager.execute {
-            AppGlobal.database.users.getById(UserConfig.userId)?.let {
-                if (it.photo100.isNotEmpty()) {
-                    runOnUi {
-                        toolbar.getAvatar().setImageURI(it.photo100)
-                    }
-                }
-            }
-        }
-    }
-
-    override fun onDetach() {
-        presenter.destroy()
-        super.onDetach()
     }
 
     private fun prepareRefreshLayout() {
@@ -118,20 +100,29 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
         val decoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
 
         decoration.setDrawable(
-            ColorDrawable(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.divider
-                )
-            )
+            ColorDrawable(AndroidUtils.getThemeAttrColor(requireContext(), R.attr.dividerHorizontal))
         )
 
+        recyclerView.itemAnimator = null
         recyclerView.addItemDecoration(decoration)
+
         recyclerView.layoutManager = manager
     }
 
+    private fun setProfileAvatar() {
+        TaskManager.execute {
+            AppGlobal.database.users.getById(UserConfig.userId)?.let {
+                if (it.photo100.isNotEmpty()) {
+                    runOnUiThread {
+                        toolbar.getAvatar().setImageURI(it.photo100)
+                    }
+                }
+            }
+        }
+    }
+
     override fun openChat(extras: Bundle) {
-        startActivity(Intent(requireContext(), MessagesActivity::class.java).putExtras(extras))
+        startActivity(Intent(requireContext(), MessagesActivityDeprecated::class.java).putExtras(extras))
     }
 
     override fun showErrorSnackbar(t: Throwable) {
@@ -161,6 +152,7 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
     }
 
     override fun prepareErrorView() {
+
     }
 
     override fun showErrorView() {
@@ -170,7 +162,6 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
     override fun hideErrorView() {
         errorView.isVisible = false
     }
-
 
     override fun showProgressBar() {
         progressBar.isVisible = true
@@ -187,5 +178,4 @@ class FragmentFriends(private val userId: Int = 0) : BaseFragment(), FriendsView
     override fun hideRefreshLayout() {
         refreshLayout.isRefreshing = false
     }
-
 }

@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity">
+        <activity android:name=".activity.MainActivityDeprecated">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,23 +24,19 @@
             android:name=".service.LongPollService"
             android:enabled="true" />
 
-        <activity android:name=".activity.MessagesActivity" />
+        <activity android:name=".activity.MessagesActivityDeprecated" />
 
         <activity
-            android:name=".activity.StartActivity"
-            android:theme="@style/AppTheme.Start" />
-
-        <activity
-            android:name=".activity.LoginActivity"
+            android:name=".activity.LoginActivityDeprecated"
             android:label="@string/activity_login" />
 
         <activity android:name=".activity.DropUserDataActivity" />
 
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".activity.SettingsActivityDeprecated"
             android:label="@string/navigation_settings" />
 
-        <activity android:name=".activity.UpdateActivity" />
+        <activity android:name=".activity.UpdateActivityDeprecated" />
 
         <receiver
             android:name=".receiver.MinuteReceiver"

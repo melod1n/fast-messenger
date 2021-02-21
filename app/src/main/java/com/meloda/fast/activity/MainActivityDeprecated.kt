@@ -22,8 +22,8 @@ import com.meloda.fast.dialog.AccountDialog
 import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.extensions.DrawableExtensions.tint
-import com.meloda.fast.fragment.FragmentConversations
-import com.meloda.fast.fragment.FragmentFriends
+import com.meloda.fast.fragment.FragmentConversationsDeprecated
+import com.meloda.fast.fragment.FragmentFriendsDeprecated
 import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.fragment.LoginFragment
 import com.meloda.fast.listener.OnResponseListener
@@ -33,12 +33,12 @@ import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.Toolbar
 
 
-class MainActivity : BaseActivity(),
+class MainActivityDeprecated : BaseActivity(),
     NavigationView.OnNavigationItemSelectedListener,
     BottomNavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var fragmentConversations: FragmentConversations
-    private lateinit var fragmentFriends: FragmentFriends
+    private lateinit var fragmentConversationsDeprecated: FragmentConversationsDeprecated
+    private lateinit var fragmentFriendsDeprecated: FragmentFriendsDeprecated
     private lateinit var settingsFragment: SettingsFragment
 
     private var selectedId = 0
@@ -57,7 +57,7 @@ class MainActivity : BaseActivity(),
 
         if (UserConfig.isLoggedIn()) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, FragmentConversations())
+                .replace(R.id.fragmentContainer, FragmentConversationsDeprecated())
                 .commit()
         } else {
             bottomBar.isVisible = false
@@ -89,8 +89,8 @@ class MainActivity : BaseActivity(),
     }
 
     private fun prepareFragments() {
-        fragmentConversations = FragmentConversations()
-        fragmentFriends = FragmentFriends(UserConfig.userId)
+        fragmentConversationsDeprecated = FragmentConversationsDeprecated()
+        fragmentFriendsDeprecated = FragmentFriendsDeprecated(UserConfig.userId)
         settingsFragment = SettingsFragment()
 
         val containerId = R.id.fragmentContainer
@@ -98,7 +98,7 @@ class MainActivity : BaseActivity(),
         FragmentSwitcher.addFragments(
             supportFragmentManager,
             containerId,
-            listOf(fragmentConversations)
+            listOf(fragmentConversationsDeprecated)
         )
     }
 
@@ -156,7 +156,7 @@ class MainActivity : BaseActivity(),
             startLongPoll()
             loadProfileInfo()
         } else {
-            openStartScreen()
+
         }
     }
 
@@ -170,15 +170,10 @@ class MainActivity : BaseActivity(),
         startService(Intent(this, LongPollService::class.java))
     }
 
-    private fun openStartScreen() {
-        finish()
-        startActivity(Intent(this, StartActivity::class.java))
-    }
-
     private fun openConversationsScreen() {
         FragmentSwitcher.showFragment(
             supportFragmentManager,
-            fragmentConversations.javaClass.simpleName,
+            fragmentConversationsDeprecated.javaClass.simpleName,
             true
         )
     }
@@ -186,13 +181,13 @@ class MainActivity : BaseActivity(),
     private fun openFriendsScreen() {
         FragmentSwitcher.showFragment(
             supportFragmentManager,
-            fragmentFriends.javaClass.simpleName,
+            fragmentFriendsDeprecated.javaClass.simpleName,
             true
         )
     }
 
     private fun openSettingsScreen() {
-        startActivity(Intent(this, SettingsActivity::class.java))
+        startActivity(Intent(this, SettingsActivityDeprecated::class.java))
     }
 
     private fun loadProfileInfo() {

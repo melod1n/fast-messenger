@@ -2,9 +2,9 @@ package com.meloda.fast.activity.ui.presenter
 
 import androidx.recyclerview.widget.RecyclerView
 import com.meloda.fast.R
-import com.meloda.fast.activity.ui.repository.MessagesRepository
-import com.meloda.fast.activity.ui.view.MessagesView
-import com.meloda.fast.adapter.MessagesAdapter
+import com.meloda.fast.activity.ui.repository.MessagesRepositoryDeprecated
+import com.meloda.fast.activity.ui.view.MessagesViewDeprecated
+import com.meloda.fast.adapter.MessagesAdapterDeprecated
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.api.model.VKConversation
@@ -20,10 +20,10 @@ import com.meloda.mvp.MvpOnLoadListener
 import com.meloda.mvp.MvpPresenter
 import kotlin.random.Random
 
-class MessagesPresenter(viewState: MessagesView) :
-    MvpPresenter<VKMessage, MessagesRepository, MessagesView>(
+class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
+    MvpPresenter<VKMessage, MessagesRepositoryDeprecated, MessagesViewDeprecated>(
         viewState,
-        MessagesRepository::class.java.name
+        MessagesRepositoryDeprecated::class.java.name
     ),
     ItemClickListener,
     ItemLongClickListener,
@@ -33,7 +33,7 @@ class MessagesPresenter(viewState: MessagesView) :
         const val DEFAULT_MESSAGES_COUNT = 30
     }
 
-    private lateinit var adapter: MessagesAdapter
+    private lateinit var adapter: MessagesAdapterDeprecated
     private lateinit var conversation: VKConversation
 
     private var peerId: Int = -1
@@ -65,7 +65,7 @@ class MessagesPresenter(viewState: MessagesView) :
     }
 
     private fun createAdapter() {
-        adapter = MessagesAdapter(context!!, arrayListOf(), conversation).also {
+        adapter = MessagesAdapterDeprecated(context!!, arrayListOf(), conversation).also {
             it.itemClickListener = this
             it.itemLongClickListener = this
         }

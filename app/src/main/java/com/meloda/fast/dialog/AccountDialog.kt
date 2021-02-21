@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.meloda.fast.R
-import com.meloda.fast.activity.SettingsActivity
+import com.meloda.fast.activity.SettingsActivityDeprecated
 import com.meloda.fast.adapter.SimpleItemAdapter
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFullscreenDialog
@@ -99,7 +99,7 @@ class AccountDialog : BaseFullscreenDialog(), ItemClickListener {
     }
 
     private fun openSettingsScreen() {
-        startActivity(Intent(requireContext(), SettingsActivity::class.java))
+        startActivity(Intent(requireContext(), SettingsActivityDeprecated::class.java))
     }
 
     override fun onItemClick(position: Int) {

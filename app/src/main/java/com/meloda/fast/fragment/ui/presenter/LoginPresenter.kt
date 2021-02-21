@@ -11,10 +11,10 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.setFragmentResultListener
 import com.google.android.material.textfield.TextInputEditText
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.activity.MainActivityDeprecated
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.extensions.FragmentExtensions.runOnUiThread
-import com.meloda.fast.fragment.FragmentConversations
+import com.meloda.fast.fragment.FragmentConversationsDeprecated
 import com.meloda.fast.fragment.LoginFragment
 import com.meloda.fast.fragment.ValidationFragment
 import com.meloda.fast.fragment.ui.repository.LoginRepository
@@ -119,12 +119,12 @@ class LoginPresenter(
 
     private fun openMainScreen() {
         fragment.runOnUiThread {
-            (fragment.requireActivity() as MainActivity).bottomBar.isVisible = true
+            (fragment.requireActivity() as MainActivityDeprecated).bottomBar.isVisible = true
 
             fragment.parentFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragmentContainer,
-                    FragmentConversations()
+                    FragmentConversationsDeprecated()
                 ).commit()
         }
     }

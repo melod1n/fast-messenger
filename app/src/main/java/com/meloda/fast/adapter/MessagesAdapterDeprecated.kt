@@ -14,7 +14,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
-import com.meloda.fast.activity.MessagesActivity
+import com.meloda.fast.activity.MessagesActivityDeprecated
 import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.api.model.*
 import com.meloda.fast.api.util.VKUtil
@@ -36,12 +36,12 @@ import kotlin.math.abs
 
 
 @Suppress("UNCHECKED_CAST")
-class MessagesAdapter(
+class MessagesAdapterDeprecated(
     context: Context,
     values: ArrayList<VKMessage>,
     var conversation: VKConversation
 
-) : BaseAdapter<VKMessage, MessagesAdapter.Holder>(context, values),
+) : BaseAdapter<VKMessage, MessagesAdapterDeprecated.Holder>(context, values),
     TaskManager.OnEventListener {
 
     companion object {
@@ -60,7 +60,7 @@ class MessagesAdapter(
         const val TAG = "MessagesAdapter"
     }
 
-    private var recyclerView = (context as MessagesActivity).recyclerView
+    private var recyclerView = (context as MessagesActivityDeprecated).recyclerView
     private var layoutManager = recyclerView.layoutManager as LinearLayoutManager
 
     var isNotCachedValues = false

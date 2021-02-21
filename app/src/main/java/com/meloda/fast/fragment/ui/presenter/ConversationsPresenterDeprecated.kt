@@ -6,16 +6,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.meloda.fast.BuildConfig
-import com.meloda.fast.activity.MessagesActivity
-import com.meloda.fast.adapter.ConversationsAdapter
-import com.meloda.fast.adapter.diffutil.ConversationsCallback
+import com.meloda.fast.activity.MessagesActivityDeprecated
+import com.meloda.fast.adapter.ConversationsAdapterDeprecated
+import com.meloda.fast.adapter.diffutil.ConversationsCallbackDeprecated
 import com.meloda.fast.api.model.VKConversation
 import com.meloda.fast.api.util.VKUtil
 import com.meloda.fast.common.TaskManager
 import com.meloda.fast.common.TimeManager
 import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.fragment.ui.repository.ConversationsRepository
-import com.meloda.fast.fragment.ui.view.ConversationsView
+import com.meloda.fast.fragment.ui.repository.ConversationsRepositoryDeprecated
+import com.meloda.fast.fragment.ui.view.ConversationsViewDeprecated
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.listener.ItemLongClickListener
 import com.meloda.fast.util.AndroidUtils
@@ -24,10 +24,10 @@ import com.meloda.mvp.MvpOnLoadListener
 import com.meloda.mvp.MvpPresenter
 import java.util.*
 
-class ConversationsPresenter(viewState: ConversationsView) :
-    MvpPresenter<VKConversation, ConversationsRepository, ConversationsView>(
+class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
+    MvpPresenter<VKConversation, ConversationsRepositoryDeprecated, ConversationsViewDeprecated>(
         viewState,
-        ConversationsRepository::class.java.name
+        ConversationsRepositoryDeprecated::class.java.name
     ),
     ItemClickListener,
     ItemLongClickListener,
@@ -39,7 +39,7 @@ class ConversationsPresenter(viewState: ConversationsView) :
 
     private var conversationsCount: Int = 0
 
-    private lateinit var adapter: ConversationsAdapter
+    private lateinit var adapter: ConversationsAdapterDeprecated
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var layoutManager: LinearLayoutManager
@@ -194,7 +194,7 @@ class ConversationsPresenter(viewState: ConversationsView) :
     }
 
     private fun createAdapter() {
-        adapter = ConversationsAdapter(recyclerView, arrayListOf()).also {
+        adapter = ConversationsAdapterDeprecated(recyclerView, arrayListOf()).also {
             it.itemClickListener = this
             it.itemLongClickListener = this
         }
@@ -225,7 +225,7 @@ class ConversationsPresenter(viewState: ConversationsView) :
     }
 
     override fun onMinuteChange(currentMinute: Int) {
-        post { adapter.notifyItemRangeChanged(0, adapter.itemCount, ConversationsCallback.DATE) }
+        post { adapter.notifyItemRangeChanged(0, adapter.itemCount, ConversationsCallbackDeprecated.DATE) }
     }
 
     private fun openChat(conversation: VKConversation) {
@@ -234,17 +234,17 @@ class ConversationsPresenter(viewState: ConversationsView) :
             val peerGroup = MemoryCache.getGroupById(conversation.conversationId)
 
             val extras = Bundle().also {
-                it.putInt(MessagesActivity.TAG_EXTRA_ID, conversation.conversationId)
+                it.putInt(MessagesActivityDeprecated.TAG_EXTRA_ID, conversation.conversationId)
                 it.putString(
-                    MessagesActivity.TAG_EXTRA_TITLE,
+                    MessagesActivityDeprecated.TAG_EXTRA_TITLE,
                     VKUtil.getTitle(conversation, peerUser, peerGroup)
                 )
                 it.putString(
-                    MessagesActivity.TAG_EXTRA_AVATAR,
+                    MessagesActivityDeprecated.TAG_EXTRA_AVATAR,
                     VKUtil.getAvatar(conversation, peerUser, peerGroup)
                 )
-                it.putSerializable(MessagesActivity.TAG_EXTRA_USER, peerUser)
-                it.putSerializable(MessagesActivity.TAG_EXTRA_GROUP, peerGroup)
+                it.putSerializable(MessagesActivityDeprecated.TAG_EXTRA_USER, peerUser)
+                it.putSerializable(MessagesActivityDeprecated.TAG_EXTRA_GROUP, peerGroup)
             }
 
             post { viewState.openChat(extras) }

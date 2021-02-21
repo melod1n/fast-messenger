@@ -3,7 +3,7 @@ package com.meloda.fast.base
 import androidx.annotation.IdRes
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.activity.MainActivityDeprecated
 
 abstract class BaseFragment : Fragment() {
 
@@ -11,7 +11,7 @@ abstract class BaseFragment : Fragment() {
         val toolbar: Toolbar = requireView().findViewById(resId)
 
         activity?.let {
-            if (it is MainActivity && toolbar is com.meloda.fast.widget.Toolbar) it.initToolbar(
+            if (it is MainActivityDeprecated && toolbar is com.meloda.fast.widget.Toolbar) it.initToolbar(
                 toolbar
             )
         }

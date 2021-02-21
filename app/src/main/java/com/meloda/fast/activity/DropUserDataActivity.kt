@@ -16,7 +16,7 @@ class DropUserDataActivity : BaseActivity() {
 
         TaskManager.execute { AppGlobal.database.clearAllTables() }
 
-        startActivity(Intent(this, MainActivity::class.java))
+        startActivity(Intent(this, MainActivityDeprecated::class.java))
         finishAffinity()
     }
 

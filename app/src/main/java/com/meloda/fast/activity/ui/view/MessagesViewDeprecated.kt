@@ -3,7 +3,7 @@ package com.meloda.fast.activity.ui.view
 import com.meloda.fast.api.model.VKConversation
 import com.meloda.mvp.MvpView
 
-interface MessagesView : MvpView {
+interface MessagesViewDeprecated : MvpView {
 
     fun showChatPanel()
 

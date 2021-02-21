@@ -8,13 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.meloda.fast.R
-import com.meloda.fast.activity.MessagesActivity
+import com.meloda.fast.activity.MessagesActivityDeprecated
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.base.BaseFragment
@@ -22,22 +23,18 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.TaskManager
 import com.meloda.fast.event.EventInfo
 import com.meloda.fast.extensions.FragmentExtensions.findViewById
-import com.meloda.fast.extensions.FragmentExtensions.runOnUiThread
-import com.meloda.fast.fragment.ui.presenter.ConversationsPresenter
-import com.meloda.fast.fragment.ui.view.ConversationsView
-import com.meloda.fast.util.AndroidUtils
+import com.meloda.fast.fragment.ui.presenter.FriendsPresenterDeprecated
+import com.meloda.fast.fragment.ui.view.FriendsViewDeprecated
 import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.Toolbar
 
+class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(), FriendsViewDeprecated {
 
-@Suppress("UNCHECKED_CAST")
-class FragmentConversations : BaseFragment(), ConversationsView {
-
-    private lateinit var presenter: ConversationsPresenter
+    private lateinit var presenterDeprecated: FriendsPresenterDeprecated
 
     private lateinit var toolbar: Toolbar
-    private lateinit var refreshLayout: SwipeRefreshLayout
     private lateinit var recyclerView: RecyclerView
+    private lateinit var refreshLayout: SwipeRefreshLayout
     private lateinit var progressBar: ProgressBar
 
     private lateinit var noItemsView: LinearLayout
@@ -48,7 +45,9 @@ class FragmentConversations : BaseFragment(), ConversationsView {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.fragment_conversations, container, false)
+    ): View? {
+        return inflater.inflate(R.layout.fragment_friends, container, false)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         initViews()
@@ -57,8 +56,8 @@ class FragmentConversations : BaseFragment(), ConversationsView {
         prepareRecyclerView()
         prepareRefreshLayout()
 
-        presenter = ConversationsPresenter(this)
-        presenter.setup(recyclerView, refreshLayout)
+        presenterDeprecated = FriendsPresenterDeprecated(this)
+        presenterDeprecated.setup(userId, recyclerView, refreshLayout)
     }
 
     private fun initViews() {
@@ -74,20 +73,39 @@ class FragmentConversations : BaseFragment(), ConversationsView {
 
     private fun prepareToolbar() {
         initToolbar(R.id.toolbar)
-        toolbar.title = getString(R.string.navigation_chats)
+        toolbar.title = getString(R.string.navigation_friends)
         setProfileAvatar()
+
+        toolbar.inflateMenu(R.menu.fragment_friends)
 
         TaskManager.addOnEventListener(object : TaskManager.OnEventListener {
             override fun onNewEvent(info: EventInfo<*>) {
                 if (info.key == VKApiKeys.UPDATE_USER) {
-                    val userIds = info.data as ArrayList<Int>
+                    val userId = info.data as ArrayList<Int>
 
-                    if (userIds.contains(UserConfig.userId)) {
+                    if (userId[0] == UserConfig.userId) {
                         setProfileAvatar()
                     }
                 }
             }
         })
+    }
+
+    private fun setProfileAvatar() {
+        TaskManager.execute {
+            AppGlobal.database.users.getById(UserConfig.userId)?.let {
+                if (it.photo100.isNotEmpty()) {
+                    runOnUi {
+                        toolbar.getAvatar().setImageURI(it.photo100)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDetach() {
+        presenterDeprecated.destroy()
+        super.onDetach()
     }
 
     private fun prepareRefreshLayout() {
@@ -100,29 +118,20 @@ class FragmentConversations : BaseFragment(), ConversationsView {
         val decoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
 
         decoration.setDrawable(
-            ColorDrawable(AndroidUtils.getThemeAttrColor(requireContext(), R.attr.dividerHorizontal))
+            ColorDrawable(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.divider
+                )
+            )
         )
 
-        recyclerView.itemAnimator = null
         recyclerView.addItemDecoration(decoration)
-
         recyclerView.layoutManager = manager
     }
 
-    private fun setProfileAvatar() {
-        TaskManager.execute {
-            AppGlobal.database.users.getById(UserConfig.userId)?.let {
-                if (it.photo100.isNotEmpty()) {
-                    runOnUiThread {
-                        toolbar.getAvatar().setImageURI(it.photo100)
-                    }
-                }
-            }
-        }
-    }
-
     override fun openChat(extras: Bundle) {
-        startActivity(Intent(requireContext(), MessagesActivity::class.java).putExtras(extras))
+        startActivity(Intent(requireContext(), MessagesActivityDeprecated::class.java).putExtras(extras))
     }
 
     override fun showErrorSnackbar(t: Throwable) {
@@ -152,7 +161,6 @@ class FragmentConversations : BaseFragment(), ConversationsView {
     }
 
     override fun prepareErrorView() {
-
     }
 
     override fun showErrorView() {
@@ -162,6 +170,7 @@ class FragmentConversations : BaseFragment(), ConversationsView {
     override fun hideErrorView() {
         errorView.isVisible = false
     }
+
 
     override fun showProgressBar() {
         progressBar.isVisible = true
@@ -178,4 +187,5 @@ class FragmentConversations : BaseFragment(), ConversationsView {
     override fun hideRefreshLayout() {
         refreshLayout.isRefreshing = false
     }
+
 }

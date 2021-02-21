@@ -5,21 +5,21 @@ import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.meloda.fast.activity.MessagesActivity
-import com.meloda.fast.adapter.UsersAdapter
+import com.meloda.fast.activity.MessagesActivityDeprecated
+import com.meloda.fast.adapter.UsersAdapterDeprecated
 import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.fragment.ui.repository.FriendsRepository
-import com.meloda.fast.fragment.ui.view.FriendsView
+import com.meloda.fast.fragment.ui.repository.FriendsRepositoryDeprecated
+import com.meloda.fast.fragment.ui.view.FriendsViewDeprecated
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ArrayUtils
 import com.meloda.mvp.MvpOnLoadListener
 import com.meloda.mvp.MvpPresenter
 
-class FriendsPresenter(viewState: FriendsView) :
-    MvpPresenter<VKUser, FriendsRepository, FriendsView>(
+class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
+    MvpPresenter<VKUser, FriendsRepositoryDeprecated, FriendsViewDeprecated>(
         viewState,
-        FriendsRepository::class.java.name
+        FriendsRepositoryDeprecated::class.java.name
     ),
     ItemClickListener {
 
@@ -32,7 +32,7 @@ class FriendsPresenter(viewState: FriendsView) :
     private var userId: Int = 0
     private var friendsCount: Int = 0
 
-    private lateinit var adapter: UsersAdapter
+    private lateinit var adapter: UsersAdapterDeprecated
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var layoutManager: LinearLayoutManager
@@ -51,12 +51,12 @@ class FriendsPresenter(viewState: FriendsView) :
         getCachedFriends(userId, 0, DEFAULT_FRIENDS_COUNT, false, object : MvpOnLoadListener<Any?> {
             override fun onResponse(response: Any?) {
                 setState(if (adapter.isEmpty()) MvpPresenter.ListState.EMPTY_LOADING else ListState.FILLED_LOADING)
-                loadFriends(userId, 0, ConversationsPresenter.DEFAULT_CONVERSATIONS_COUNT)
+                loadFriends(userId, 0, DEFAULT_FRIENDS_COUNT)
             }
 
             override fun onError(t: Throwable) {
                 setState(if (adapter.isEmpty()) ListState.EMPTY_LOADING else ListState.FILLED_LOADING)
-                loadFriends(userId, 0, ConversationsPresenter.DEFAULT_CONVERSATIONS_COUNT)
+                loadFriends(userId, 0, DEFAULT_FRIENDS_COUNT)
             }
         })
     }
@@ -193,7 +193,7 @@ class FriendsPresenter(viewState: FriendsView) :
     }
 
     private fun createAdapter() {
-        adapter = UsersAdapter(context!!, arrayListOf()).also {
+        adapter = UsersAdapterDeprecated(context!!, arrayListOf()).also {
             it.itemClickListener = this
         }
 
@@ -219,9 +219,9 @@ class FriendsPresenter(viewState: FriendsView) :
         val user = adapter[position]
 
         val data = Bundle().apply {
-            putInt(MessagesActivity.TAG_EXTRA_ID, user.userId)
-            putString(MessagesActivity.TAG_EXTRA_TITLE, user.toString())
-            putString(MessagesActivity.TAG_EXTRA_AVATAR, user.photo200)
+            putInt(MessagesActivityDeprecated.TAG_EXTRA_ID, user.userId)
+            putString(MessagesActivityDeprecated.TAG_EXTRA_TITLE, user.toString())
+            putString(MessagesActivityDeprecated.TAG_EXTRA_AVATAR, user.photo200)
         }
     }
 

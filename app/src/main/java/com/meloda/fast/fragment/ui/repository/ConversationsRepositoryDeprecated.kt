@@ -12,7 +12,7 @@ import com.meloda.fast.listener.OnResponseListener
 import com.meloda.mvp.MvpOnLoadListener
 import com.meloda.mvp.MvpRepository
 
-class ConversationsRepository : MvpRepository<VKConversation>() {
+class ConversationsRepositoryDeprecated : MvpRepository<VKConversation>() {
 
     fun loadConversations(
         offset: Int, count: Int,

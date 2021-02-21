@@ -19,7 +19,7 @@ import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.extensions.DrawableExtensions.tint
 import com.meloda.fast.widget.Toolbar
 
-class LoginActivity : BaseActivity() {
+class LoginActivityDeprecated : BaseActivity() {
 
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: ProgressBar
@@ -125,7 +125,7 @@ class LoginActivity : BaseActivity() {
                 UserConfig.save()
 
                 finishAffinity()
-                startActivity(Intent(this, MainActivity::class.java))
+                startActivity(Intent(this, MainActivityDeprecated::class.java))
             }
         } catch (e: Exception) {
             e.printStackTrace()

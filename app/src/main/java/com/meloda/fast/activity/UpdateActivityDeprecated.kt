@@ -36,7 +36,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class UpdateActivity : BaseActivity() {
+class UpdateActivityDeprecated : BaseActivity() {
 
     companion object {
         private const val FILE_BASE_PATH = "file://"
@@ -149,7 +149,7 @@ class UpdateActivity : BaseActivity() {
                 override fun onResponse(response: Any?) {
                     timer.cancel()
 
-                    installUpdate(this@UpdateActivity, file)
+                    installUpdate(this@UpdateActivityDeprecated, file)
 
                     unregisterReceiver(receiver)
 
@@ -218,7 +218,7 @@ class UpdateActivity : BaseActivity() {
                 isChecking = false
                 isNewUpdate = true
 
-                this@UpdateActivity.newUpdate = updateInfo
+                this@UpdateActivityDeprecated.newUpdate = updateInfo
 
                 refreshState()
             }
@@ -227,7 +227,7 @@ class UpdateActivity : BaseActivity() {
                 isNewUpdate = false
                 isChecking = false
 
-                this@UpdateActivity.newUpdate = NewUpdateInfo()
+                this@UpdateActivityDeprecated.newUpdate = NewUpdateInfo()
 
                 refreshState()
             }

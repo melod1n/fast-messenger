@@ -3,9 +3,8 @@ package com.meloda.fast.common
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.meloda.fast.R
-import com.meloda.fast.fragment.FragmentConversations
-import com.meloda.fast.fragment.FragmentFriends
-import com.meloda.fast.fragment.FragmentImportant
+import com.meloda.fast.fragment.FragmentConversationsDeprecated
+import com.meloda.fast.fragment.FragmentFriendsDeprecated
 
 object FragmentSwitcher {
 
@@ -109,9 +108,8 @@ object FragmentSwitcher {
 
     private fun createFragmentByTag(tag: String): Fragment {
         return when (tag) {
-            "FragmentFriends" -> FragmentFriends()
-            "FragmentImportant" -> FragmentImportant()
-            "FragmentConversations" -> FragmentConversations()
+            "FragmentFriends" -> FragmentFriendsDeprecated()
+            "FragmentConversations" -> FragmentConversationsDeprecated()
             else -> Fragment()
         }
     }
