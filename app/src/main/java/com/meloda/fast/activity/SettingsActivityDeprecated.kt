@@ -1,10 +1,10 @@
 package com.meloda.fast.activity
 
 import android.os.Bundle
+import com.meloda.extensions.ContextExtensions.drawable
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.FragmentSwitcher
-import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.widget.Toolbar

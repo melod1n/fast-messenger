@@ -2,10 +2,8 @@ package com.meloda.fast.activity
 
 import android.content.Intent
 import android.os.Bundle
-import com.meloda.fast.api.UserConfig
+import com.meloda.fast.UserConfig
 import com.meloda.fast.base.BaseActivity
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
 
 class DropUserDataActivity : BaseActivity() {
 
@@ -14,9 +12,9 @@ class DropUserDataActivity : BaseActivity() {
 
         UserConfig.clear()
 
-        TaskManager.execute { AppGlobal.database.clearAllTables() }
+//        TaskManager.execute { AppGlobal.database.clearAllTables() }
 
-        startActivity(Intent(this, MainActivityDeprecated::class.java))
+        startActivity(Intent(this, MainActivity::class.java))
         finishAffinity()
     }
 

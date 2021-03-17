@@ -29,6 +29,8 @@
     <string name="message_attachment_voice">Voice message</string>
     <string name="message_attachment_poll">Poll</string>
     <string name="message_attachment_call">Call</string>
+    <string name="message_attachment_wall_post">Wall post</string>
+    <string name="message_attachment_wall_reply">Wall reply</string>
 
     <string name="message_attachment_photos">%d Photos</string>
     <string name="message_attachment_videos">%d Videos</string>

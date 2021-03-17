@@ -11,11 +11,11 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
+import com.meloda.extensions.ContextExtensions.drawable
+import com.meloda.extensions.DrawableExtensions.tint
+import com.meloda.extensions.FloatExtensions.int
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseAdapter
-import com.meloda.fast.extensions.ContextExtensions.drawable
-import com.meloda.fast.extensions.DrawableExtensions.tint
-import com.meloda.fast.extensions.FloatExtensions.int
 import com.meloda.fast.util.AndroidUtils
 
 @Suppress("UNCHECKED_CAST")

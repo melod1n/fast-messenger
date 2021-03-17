@@ -1,9 +1,6 @@
 package com.meloda.fast.adapter
 
 import android.content.Context
-import android.graphics.Typeface
-import android.text.SpannableString
-import android.text.style.StyleSpan
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -12,24 +9,20 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.meloda.concurrent.EventInfo
+import com.meloda.concurrent.TaskManager
+import com.meloda.extensions.FloatExtensions.int
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.activity.MessagesActivityDeprecated
-import com.meloda.fast.api.VKApiKeys
-import com.meloda.fast.api.model.*
-import com.meloda.fast.api.util.VKUtil
 import com.meloda.fast.base.BaseAdapter
 import com.meloda.fast.base.BaseHolder
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.event.EventInfo
-import com.meloda.fast.extensions.FloatExtensions.int
-import com.meloda.fast.listener.OnResponseListener
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.ImageUtils
 import com.meloda.fast.widget.BoundedLinearLayout
 import com.meloda.fast.widget.CircleImageView
+import com.meloda.vksdk.VKApiKeys
+import com.meloda.vksdk.model.*
+import com.meloda.vksdk.util.VKUtil
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -75,23 +68,23 @@ class MessagesAdapterDeprecated(
 
     override fun onNewEvent(info: EventInfo<*>) {
         when (info.key) {
-            VKApiKeys.NEW_MESSAGE -> addMessage(info.data as VKMessage)
+            VKApiKeys.NEW_MESSAGE.name -> addMessage(info.data as VKMessage)
 
-            VKApiKeys.READ_MESSAGE -> readMessage(
+            VKApiKeys.READ_MESSAGE.name -> readMessage(
                 (info.data as Array<Int>)[0],
                 (info.data as Array<Int>)[1]
             )
 
-            VKApiKeys.RESTORE_MESSAGE -> restoreMessage(info.data as VKMessage)
-            VKApiKeys.EDIT_MESSAGE -> editMessage(info.data as VKMessage)
-            VKApiKeys.DELETE_MESSAGE -> deleteMessage(
+            VKApiKeys.RESTORE_MESSAGE.name -> restoreMessage(info.data as VKMessage)
+            VKApiKeys.EDIT_MESSAGE.name -> editMessage(info.data as VKMessage)
+            VKApiKeys.DELETE_MESSAGE.name -> deleteMessage(
                 (info.data as Array<Int>)[0],
                 (info.data as Array<Int>)[1]
             )
 
-            VKApiKeys.UPDATE_MESSAGE -> updateMessage(info.data as Int)
-            VKApiKeys.UPDATE_USER -> updateUser(info.data as ArrayList<Int>)
-            VKApiKeys.UPDATE_GROUP -> updateGroup(info.data as ArrayList<Int>)
+            VKApiKeys.UPDATE_MESSAGE.name -> updateMessage(info.data as Int)
+            VKApiKeys.UPDATE_USER.name -> updateUser(info.data as ArrayList<Int>)
+            VKApiKeys.UPDATE_GROUP.name -> updateGroup(info.data as ArrayList<Int>)
 
             else -> return
         }
@@ -157,12 +150,12 @@ class MessagesAdapterDeprecated(
 
         val message = this[position]
 
-        if (message.isUnreaded()) {
-            TaskManager.readMessage(
-                VKApiKeys.READ_MESSAGE,
-                conversation.conversationId,
-                message.messageId
-            )
+        if (message.isRead.not()) {
+//            TaskManager.readMessage(
+//                VKApiKeys.READ_MESSAGE,
+//                conversation.conversationId,
+//                message.messageId
+//            )
         }
     }
 
@@ -192,10 +185,10 @@ class MessagesAdapterDeprecated(
 
             val avatarString = conversation.photo100
 
-            val placeHolder = VKUtil.getAvatarPlaceholder(context, conversation.title)
+//            val placeHolder = VKUtil.getAvatarPlaceholder(context, conversation.title)
 
-            avatar.setImageDrawable(placeHolder)
-            ImageUtils.loadImage(avatarString, avatar, placeHolder)
+//            avatar.setImageDrawable(placeHolder)
+//            ImageUtils.loadImage(avatarString, avatar, placeHolder)
 
             title.text = conversation.title
 
@@ -216,23 +209,23 @@ class MessagesAdapterDeprecated(
                 val group = searchGroup(message)
 
                 val name =
-                    (if (group == null && !VKGroup.isGroupId(message.fromId)) user?.firstName else group?.name)
+                    (if (group == null && !VKUtil.isGroupId(message.fromId)) user?.firstName else group?.name)
                         ?: "null"
 
-                VKUtil.getActionText(context, message, object : OnResponseListener<String> {
-
-                    override fun onResponse(response: String) {
-                        val actionText = "$name $response"
-
-                        val spannable = SpannableString(actionText)
-                        spannable.setSpan(StyleSpan(Typeface.BOLD), 0, name.length, 0)
-
-                        text.text = spannable
-                    }
-
-                    override fun onError(t: Throwable) {
-                    }
-                })
+//                VKUtil.getActionText(context, message, object : OnResponseListener<String> {
+//
+//                    override fun onResponse(response: String) {
+//                        val actionText = "$name $response"
+//
+//                        val spannable = SpannableString(actionText)
+//                        spannable.setSpan(StyleSpan(Typeface.BOLD), 0, name.length, 0)
+//
+//                        text.text = spannable
+//                    }
+//
+//                    override fun onError(t: Throwable) {
+//                    }
+//                })
 
                 post { text.isVisible = true }
             }
@@ -348,7 +341,7 @@ class MessagesAdapterDeprecated(
                     is VKVideo -> video(message, attachments)
                     is VKLink -> link(message, attachments)
                     is VKAudio -> audio(message, attachments)
-                    is VKDoc -> doc(message, attachments)
+                    is VKDocument -> doc(message, attachments)
                 }
             }
         }
@@ -414,14 +407,14 @@ class MessagesAdapterDeprecated(
         }
 
         fun loadAvatarImage(message: VKMessage, user: VKUser?, group: VKGroup?, avatar: ImageView) {
-            val dialogTitle = VKUtil.getMessageTitle(message, user, group)
-            val avatarPlaceholder = VKUtil.getAvatarPlaceholder(context, dialogTitle)
-
-            avatar.setImageDrawable(avatarPlaceholder)
-
-            val avatarString = VKUtil.getUserAvatar(message, user, group)
-
-            ImageUtils.loadImage(avatarString, avatar, avatarPlaceholder)
+//            val dialogTitle = VKUtil.getMessageTitle(message, user, group)
+//            val avatarPlaceholder = VKUtil.getAvatarPlaceholder(context, dialogTitle)
+//
+//            avatar.setImageDrawable(avatarPlaceholder)
+//
+//            val avatarString = VKUtil.getUserAvatar(message, user, group)
+//
+//            ImageUtils.loadImage(avatarString, avatar, avatarPlaceholder)
         }
 
     }
@@ -436,13 +429,15 @@ class MessagesAdapterDeprecated(
     private fun searchUser(message: VKMessage): VKUser? {
         if (!message.isFromUser()) return null
 
-        return VKUtil.searchUser(message.fromId)
+//        return VKUtil.searchUser(message.fromId)
+        return null
     }
 
     private fun searchGroup(message: VKMessage): VKGroup? {
         if (!message.isFromGroup()) return null
 
-        return VKUtil.searchGroup(message.fromId)
+//        return VKUtil.searchGroup(message.fromId)
+        return null
     }
 
     private fun updateGroup(groupIds: ArrayList<Int>) {
@@ -488,7 +483,7 @@ class MessagesAdapterDeprecated(
         for (i in values.indices) {
             val item = getItem(i)
 
-            if (item.messageId == messageId) {
+            if (item.id == messageId) {
                 index = i
                 break
             }
@@ -496,18 +491,18 @@ class MessagesAdapterDeprecated(
 
         if (index == -1) return
 
-        TaskManager.execute {
-            AppGlobal.database.messages.getById(messageId)?.let {
-                values[index] = it
-
-                post { notifyItemChanged(index) }
-            }
-        }
+//        TaskManager.execute {
+//            AppGlobal.database.messages.getById(messageId)?.let {
+//                values[index] = it
+//
+//                post { notifyItemChanged(index) }
+//            }
+//        }
     }
 
     private fun searchMessagePosition(messageId: Int): Int {
         for (i in values.indices) {
-            if (getItem(i).messageId == messageId) return i
+            if (getItem(i).id == messageId) return i
         }
 
         return -1
@@ -523,7 +518,7 @@ class MessagesAdapterDeprecated(
 
     fun addMessage(message: VKMessage, fromApp: Boolean = false, withScroll: Boolean = false) {
         val randomId = message.randomId
-        if (randomId > 0 && containsRandomId(message.randomId) || message.peerId != conversation.conversationId) return
+        if (randomId > 0 && containsRandomId(message.randomId) || message.peerId != conversation.id) return
 
         add(message)
 
@@ -537,7 +532,7 @@ class MessagesAdapterDeprecated(
     }
 
     private fun readMessage(peerId: Int, messageId: Int) {
-        if (peerId != conversation.conversationId) return
+        if (peerId != conversation.id) return
 
         val index = searchMessagePosition(messageId)
         if (index == -1) return
@@ -548,21 +543,21 @@ class MessagesAdapterDeprecated(
         notifyDataSetChanged()
 
         if (message.isInbox()) {
-            conversation.inRead = messageId
+            conversation.inReadMessageId = messageId
         } else {
-            conversation.outRead = messageId
+            conversation.outReadMessageId = messageId
         }
 
         conversation.unreadCount--
 
-        TaskManager.execute {
-            MemoryCache.put(message)
-            MemoryCache.put(conversation)
-        }
+//        TaskManager.execute {
+//            MemoryCache.put(message)
+//            MemoryCache.put(conversation)
+//        }
     }
 
     fun editMessage(message: VKMessage) {
-        val index = searchMessagePosition(message.messageId)
+        val index = searchMessagePosition(message.id)
         if (index == -1) return
 
         set(index, message)
@@ -570,7 +565,7 @@ class MessagesAdapterDeprecated(
     }
 
     fun deleteMessage(messageId: Int, peerId: Int) {
-        if (peerId != conversation.conversationId) return
+        if (peerId != conversation.id) return
 
         val index = searchMessagePosition(messageId)
         if (index == -1) return
@@ -581,7 +576,7 @@ class MessagesAdapterDeprecated(
 
     //TODO: кривое сообщение
     fun restoreMessage(message: VKMessage) {
-        if (message.peerId != conversation.conversationId) return
+        if (message.peerId != conversation.id) return
 
         updateValues(VKUtil.sortMessagesByDate(values.apply { add(message) }, false))
         notifyDataSetChanged()

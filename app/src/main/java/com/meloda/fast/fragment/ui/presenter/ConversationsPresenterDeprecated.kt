@@ -1,27 +1,22 @@
 package com.meloda.fast.fragment.ui.presenter
 
-import android.os.Bundle
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.meloda.arrayutils.ArrayUtils
 import com.meloda.fast.BuildConfig
-import com.meloda.fast.activity.MessagesActivityDeprecated
 import com.meloda.fast.adapter.ConversationsAdapterDeprecated
 import com.meloda.fast.adapter.diffutil.ConversationsCallbackDeprecated
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.util.VKUtil
-import com.meloda.fast.common.TaskManager
 import com.meloda.fast.common.TimeManager
-import com.meloda.fast.database.MemoryCache
 import com.meloda.fast.fragment.ui.repository.ConversationsRepositoryDeprecated
 import com.meloda.fast.fragment.ui.view.ConversationsViewDeprecated
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.listener.ItemLongClickListener
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.ArrayUtils
-import com.meloda.mvp.MvpOnLoadListener
+import com.meloda.mvp.MvpOnResponseListener
 import com.meloda.mvp.MvpPresenter
+import com.meloda.vksdk.model.VKConversation
 import java.util.*
 
 class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
@@ -89,7 +84,7 @@ class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
                         setState(ListState.FILLED_LOADING)
                         if (AndroidUtils.hasConnection()) {
                             loadConversations(adapter.itemCount, DEFAULT_CONVERSATIONS_COUNT,
-                                object : MvpOnLoadListener<Any?> {
+                                object : MvpOnResponseListener<Any?> {
                                     override fun onResponse(response: Any?) {
                                         recyclerView.scrollToPosition(position)
 
@@ -102,7 +97,7 @@ class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
                                 })
                         } else {
                             getCachedConversations(adapter.itemCount, DEFAULT_CONVERSATIONS_COUNT,
-                                object : MvpOnLoadListener<Any?> {
+                                object : MvpOnResponseListener<Any?> {
                                     override fun onResponse(response: Any?) {
                                         recyclerView.scrollToPosition(position)
 
@@ -130,12 +125,12 @@ class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
     private fun getCachedConversations(
         offset: Int = 0,
         count: Int = DEFAULT_CONVERSATIONS_COUNT,
-        listener: MvpOnLoadListener<Any?>? = null
+        listener: MvpOnResponseListener<Any?>? = null
     ) {
         setState(if (adapter.isEmpty()) ListState.EMPTY_LOADING else ListState.FILLED_LOADING)
 
         repository.getCachedConversations(offset, count,
-            object : MvpOnLoadListener<ArrayList<VKConversation>> {
+            object : MvpOnResponseListener<ArrayList<VKConversation>> {
                 override fun onResponse(response: ArrayList<VKConversation>) {
                     conversationsCount = response.size
 
@@ -159,7 +154,7 @@ class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
     private fun loadConversations(
         offset: Int = 0,
         count: Int = DEFAULT_CONVERSATIONS_COUNT,
-        listener: MvpOnLoadListener<Any?>? = null
+        listener: MvpOnResponseListener<Any?>? = null
     ) {
         if (!AndroidUtils.hasConnection()) {
             setState(if (adapter.isEmpty()) ListState.EMPTY_NO_INTERNET else ListState.FILLED)
@@ -169,7 +164,7 @@ class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
         }
 
         repository.loadConversations(offset, count,
-            object : MvpOnLoadListener<ArrayList<VKConversation>> {
+            object : MvpOnResponseListener<ArrayList<VKConversation>> {
                 override fun onResponse(response: ArrayList<VKConversation>) {
                     conversationsCount = VKConversation.conversationsCount
 
@@ -225,30 +220,36 @@ class ConversationsPresenterDeprecated(viewState: ConversationsViewDeprecated) :
     }
 
     override fun onMinuteChange(currentMinute: Int) {
-        post { adapter.notifyItemRangeChanged(0, adapter.itemCount, ConversationsCallbackDeprecated.DATE) }
+        post {
+            adapter.notifyItemRangeChanged(
+                0,
+                adapter.itemCount,
+                ConversationsCallbackDeprecated.DATE
+            )
+        }
     }
 
     private fun openChat(conversation: VKConversation) {
-        TaskManager.execute {
-            val peerUser = MemoryCache.getUserById(conversation.conversationId)
-            val peerGroup = MemoryCache.getGroupById(conversation.conversationId)
-
-            val extras = Bundle().also {
-                it.putInt(MessagesActivityDeprecated.TAG_EXTRA_ID, conversation.conversationId)
-                it.putString(
-                    MessagesActivityDeprecated.TAG_EXTRA_TITLE,
-                    VKUtil.getTitle(conversation, peerUser, peerGroup)
-                )
-                it.putString(
-                    MessagesActivityDeprecated.TAG_EXTRA_AVATAR,
-                    VKUtil.getAvatar(conversation, peerUser, peerGroup)
-                )
-                it.putSerializable(MessagesActivityDeprecated.TAG_EXTRA_USER, peerUser)
-                it.putSerializable(MessagesActivityDeprecated.TAG_EXTRA_GROUP, peerGroup)
-            }
-
-            post { viewState.openChat(extras) }
-        }
+//        TaskManager.execute {
+//            val peerUser = MemoryCache.getUserById(conversation.conversationId)
+//            val peerGroup = MemoryCache.getGroupById(conversation.conversationId)
+//
+//            val extras = Bundle().also {
+//                it.putInt(MessagesActivityDeprecated.TAG_EXTRA_ID, conversation.conversationId)
+//                it.putString(
+//                    MessagesActivityDeprecated.TAG_EXTRA_TITLE,
+//                    VKUtil.getTitle(conversation, peerUser, peerGroup)
+//                )
+//                it.putString(
+//                    MessagesActivityDeprecated.TAG_EXTRA_AVATAR,
+//                    VKUtil.getAvatar(conversation, peerUser, peerGroup)
+//                )
+//                it.putSerializable(MessagesActivityDeprecated.TAG_EXTRA_USER, peerUser)
+//                it.putSerializable(MessagesActivityDeprecated.TAG_EXTRA_GROUP, peerGroup)
+//            }
+//
+//            post { viewState.openChat(extras) }
+//        }
 
     }
 

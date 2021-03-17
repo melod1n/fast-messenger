@@ -9,16 +9,15 @@ import android.widget.RelativeLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.facebook.imagepipeline.cache.MemoryCache
+import com.meloda.extensions.ContextExtensions.drawable
+import com.meloda.extensions.DrawableExtensions.tint
 import com.meloda.fast.R
+import com.meloda.fast.UserConfig
 import com.meloda.fast.activity.SettingsActivityDeprecated
 import com.meloda.fast.adapter.SimpleItemAdapter
-import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFullscreenDialog
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.extensions.ContextExtensions.drawable
-import com.meloda.fast.extensions.DrawableExtensions.tint
-import com.meloda.fast.extensions.FragmentExtensions.findViewById
 import com.meloda.fast.item.SimpleMenuItem
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.util.ColorUtils
@@ -53,10 +52,10 @@ class AccountDialog : BaseFullscreenDialog(), ItemClickListener {
     }
 
     private fun initViews() {
-        toolbar = findViewById(R.id.toolbar)
-        recyclerView = findViewById(R.id.recyclerView)
-        refreshLayout = findViewById(R.id.refreshLayout)
-        headerRoot = findViewById(R.id.headerRoot)
+        toolbar = requireView().findViewById(R.id.toolbar)
+        recyclerView = requireView().findViewById(R.id.recyclerView)
+        refreshLayout = requireView().findViewById(R.id.refreshLayout)
+        headerRoot = requireView().findViewById(R.id.headerRoot)
     }
 
     private fun prepareToolbar() {
@@ -67,9 +66,9 @@ class AccountDialog : BaseFullscreenDialog(), ItemClickListener {
         toolbar.setTitleMode(Toolbar.TitleMode.SIMPLE)
         toolbar.setNavigationClickListener { dismiss() }
 
-        MemoryCache.getUserById(UserConfig.userId)?.let {
-            AppGlobal.handler.post { ViewUtils.prepareNavigationHeader(headerRoot, it) }
-        }
+//        MemoryCache.getUserById(UserConfig.userId)?.let {
+//            AppGlobal.handler.post { ViewUtils.prepareNavigationHeader(headerRoot, it) }
+//        }
     }
 
     private fun prepareRecyclerView() {

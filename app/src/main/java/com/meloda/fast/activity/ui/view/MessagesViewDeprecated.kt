@@ -1,7 +1,7 @@
 package com.meloda.fast.activity.ui.view
 
-import com.meloda.fast.api.model.VKConversation
 import com.meloda.mvp.MvpView
+import com.meloda.vksdk.model.VKConversation
 
 interface MessagesViewDeprecated : MvpView {
 

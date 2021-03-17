@@ -33,9 +33,6 @@ object ImageUtils {
             .load(image)
             .priority(Picasso.Priority.LOW)
 
-//        if (placeholder != null) picasso.placeholder(placeholder)
-
-
         val target = object : Target {
             override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
 

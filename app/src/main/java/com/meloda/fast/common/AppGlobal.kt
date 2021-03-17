@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.database.sqlite.SQLiteDatabase
 import android.net.ConnectivityManager
 import android.os.Handler
 import android.view.WindowManager
@@ -15,13 +16,12 @@ import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
-import androidx.room.Room
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.database.AppDatabase
-import com.meloda.fast.database.MemoryCache
+import com.meloda.fast.UserConfig
+import com.meloda.fast.database.CacheStorage
+import com.meloda.fast.database.DatabaseHelper
 import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.mvp.MvpBase
@@ -59,8 +59,10 @@ class AppGlobal : Application() {
         lateinit var handler: Handler
         lateinit var resources: Resources
         lateinit var packageName: String
-        lateinit var database: AppDatabase
         lateinit var instance: AppGlobal
+
+        lateinit var dbHelper: DatabaseHelper
+        lateinit var database: SQLiteDatabase
 
         lateinit var packageManager: PackageManager
 
@@ -89,13 +91,12 @@ class AppGlobal : Application() {
 
         Fresco.initialize(this)
 
-        database = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
-            .fallbackToDestructiveMigration()
-            .build()
-
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         handler = Handler(mainLooper)
         locale = Locale.getDefault()
+
+        dbHelper = DatabaseHelper(this)
+        database = dbHelper.writableDatabase
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
@@ -118,19 +119,23 @@ class AppGlobal : Application() {
 
         MvpBase.init(handler)
 
+        logDatabase()
         fillMemoryCache()
 
         applyNightMode()
     }
 
-    private fun fillMemoryCache() {
-        TaskManager.execute {
-            val users = database.users.getAll()
-            val groups = database.groups.getAll()
+    private fun logDatabase() {
+        val users = CacheStorage.usersStorage.getAllValues()
+        val groups = CacheStorage.groupsStorage.getAllValues()
+        val chats = CacheStorage.chatsStorage.getAllValues()
+        val messages = CacheStorage.messagesStorage.getAllValues()
 
-            MemoryCache.appendUsers(users)
-            MemoryCache.appendGroups(groups)
-        }
+        return
+    }
+
+    private fun fillMemoryCache() {
+
     }
 
     fun applyNightMode(value: String? = null): Int {

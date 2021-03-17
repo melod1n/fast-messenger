@@ -14,21 +14,20 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.meloda.concurrent.EventInfo
+import com.meloda.concurrent.TaskManager
 import com.meloda.fast.R
+import com.meloda.fast.UserConfig
 import com.meloda.fast.activity.MessagesActivityDeprecated
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.event.EventInfo
-import com.meloda.fast.extensions.FragmentExtensions.findViewById
 import com.meloda.fast.fragment.ui.presenter.FriendsPresenterDeprecated
 import com.meloda.fast.fragment.ui.view.FriendsViewDeprecated
 import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.Toolbar
+import com.meloda.vksdk.VKApiKeys
 
-class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(), FriendsViewDeprecated {
+class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(),
+    FriendsViewDeprecated {
 
     private lateinit var presenterDeprecated: FriendsPresenterDeprecated
 
@@ -61,14 +60,14 @@ class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(), F
     }
 
     private fun initViews() {
-        toolbar = findViewById(R.id.toolbar)
-        recyclerView = findViewById(R.id.recyclerView)
-        refreshLayout = findViewById(R.id.refreshLayout)
-        progressBar = findViewById(R.id.progressBar)
+        toolbar = requireView().findViewById(R.id.toolbar)
+        recyclerView = requireView().findViewById(R.id.recyclerView)
+        refreshLayout = requireView().findViewById(R.id.refreshLayout)
+        progressBar = requireView().findViewById(R.id.progressBar)
 
-        noItemsView = findViewById(R.id.noItemsView)
-        noInternetView = findViewById(R.id.noInternetView)
-        errorView = findViewById(R.id.errorView)
+        noItemsView = requireView().findViewById(R.id.noItemsView)
+        noInternetView = requireView().findViewById(R.id.noInternetView)
+        errorView = requireView().findViewById(R.id.errorView)
     }
 
     private fun prepareToolbar() {
@@ -80,7 +79,7 @@ class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(), F
 
         TaskManager.addOnEventListener(object : TaskManager.OnEventListener {
             override fun onNewEvent(info: EventInfo<*>) {
-                if (info.key == VKApiKeys.UPDATE_USER) {
+                if (info.key == VKApiKeys.UPDATE_USER.name) {
                     val userId = info.data as ArrayList<Int>
 
                     if (userId[0] == UserConfig.userId) {
@@ -93,13 +92,13 @@ class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(), F
 
     private fun setProfileAvatar() {
         TaskManager.execute {
-            AppGlobal.database.users.getById(UserConfig.userId)?.let {
-                if (it.photo100.isNotEmpty()) {
-                    runOnUi {
-                        toolbar.getAvatar().setImageURI(it.photo100)
-                    }
-                }
-            }
+//            AppGlobal.database.users.getById(UserConfig.userId)?.let {
+//                if (it.photo100.isNotEmpty()) {
+//                    runOnUi {
+//                        toolbar.getAvatar().setImageURI(it.photo100)
+//                    }
+//                }
+//            }
         }
     }
 
@@ -131,7 +130,11 @@ class FragmentFriendsDeprecated(private val userId: Int = 0) : BaseFragment(), F
     }
 
     override fun openChat(extras: Bundle) {
-        startActivity(Intent(requireContext(), MessagesActivityDeprecated::class.java).putExtras(extras))
+        startActivity(
+            Intent(requireContext(), MessagesActivityDeprecated::class.java).putExtras(
+                extras
+            )
+        )
     }
 
     override fun showErrorSnackbar(t: Throwable) {

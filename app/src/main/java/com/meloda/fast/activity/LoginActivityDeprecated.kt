@@ -10,14 +10,14 @@ import android.webkit.*
 import android.widget.ProgressBar
 import androidx.core.view.isVisible
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.meloda.extensions.ContextExtensions.color
+import com.meloda.extensions.ContextExtensions.drawable
+import com.meloda.extensions.DrawableExtensions.tint
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKAuth
+import com.meloda.fast.UserConfig
 import com.meloda.fast.base.BaseActivity
-import com.meloda.fast.extensions.ContextExtensions.color
-import com.meloda.fast.extensions.ContextExtensions.drawable
-import com.meloda.fast.extensions.DrawableExtensions.tint
 import com.meloda.fast.widget.Toolbar
+import com.meloda.vksdk.VKAuth
 
 class LoginActivityDeprecated : BaseActivity() {
 
@@ -125,7 +125,7 @@ class LoginActivityDeprecated : BaseActivity() {
                 UserConfig.save()
 
                 finishAffinity()
-                startActivity(Intent(this, MainActivityDeprecated::class.java))
+                startActivity(Intent(this, MainActivity::class.java))
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -12,6 +12,12 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/arrayutils" />
+            <option value="$PROJECT_DIR$/concurrent" />
+            <option value="$PROJECT_DIR$/extensions" />
+            <option value="$PROJECT_DIR$/mvp" />
+            <option value="$PROJECT_DIR$/netservices" />
+            <option value="$PROJECT_DIR$/vksdk" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

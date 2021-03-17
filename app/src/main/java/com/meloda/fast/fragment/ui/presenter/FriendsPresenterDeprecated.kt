@@ -5,16 +5,16 @@ import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.meloda.arrayutils.ArrayUtils
 import com.meloda.fast.activity.MessagesActivityDeprecated
 import com.meloda.fast.adapter.UsersAdapterDeprecated
-import com.meloda.fast.api.model.VKUser
 import com.meloda.fast.fragment.ui.repository.FriendsRepositoryDeprecated
 import com.meloda.fast.fragment.ui.view.FriendsViewDeprecated
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.ArrayUtils
-import com.meloda.mvp.MvpOnLoadListener
+import com.meloda.mvp.MvpOnResponseListener
 import com.meloda.mvp.MvpPresenter
+import com.meloda.vksdk.model.VKUser
 
 class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
     MvpPresenter<VKUser, FriendsRepositoryDeprecated, FriendsViewDeprecated>(
@@ -48,7 +48,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
 
         createAdapter()
 
-        getCachedFriends(userId, 0, DEFAULT_FRIENDS_COUNT, false, object : MvpOnLoadListener<Any?> {
+        getCachedFriends(userId, 0, DEFAULT_FRIENDS_COUNT, false, object : MvpOnResponseListener<Any?> {
             override fun onResponse(response: Any?) {
                 setState(if (adapter.isEmpty()) MvpPresenter.ListState.EMPTY_LOADING else ListState.FILLED_LOADING)
                 loadFriends(userId, 0, DEFAULT_FRIENDS_COUNT)
@@ -66,7 +66,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
         offset: Int = 0,
         count: Int = DEFAULT_FRIENDS_COUNT,
         onlyOnline: Boolean = false,
-        listener: MvpOnLoadListener<Any?>? = null
+        listener: MvpOnResponseListener<Any?>? = null
     ) {
         setState(if (adapter.isEmpty()) ListState.EMPTY_LOADING else ListState.FILLED_LOADING)
 
@@ -75,7 +75,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
             offset,
             count,
             onlyOnline,
-            object : MvpOnLoadListener<ArrayList<VKUser>> {
+            object : MvpOnResponseListener<ArrayList<VKUser>> {
                 override fun onResponse(response: ArrayList<VKUser>) {
                     val friends = ArrayUtils.cut(response, offset, count)
 
@@ -99,7 +99,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
         offset: Int = 0,
         count: Int = DEFAULT_FRIENDS_COUNT,
         onlyOnline: Boolean = false,
-        listener: MvpOnLoadListener<Any?>? = null
+        listener: MvpOnResponseListener<Any?>? = null
     ) {
         if (!AndroidUtils.hasConnection()) {
             setState(if (adapter.isEmpty()) ListState.EMPTY_NO_INTERNET else ListState.FILLED)
@@ -112,7 +112,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
             userId,
             offset,
             count,
-            object : MvpOnLoadListener<ArrayList<VKUser>> {
+            object : MvpOnResponseListener<ArrayList<VKUser>> {
                 override fun onResponse(response: ArrayList<VKUser>) {
                     friendsCount = VKUser.friendsCount
 
@@ -151,7 +151,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
                                 adapter.itemCount,
                                 DEFAULT_FRIENDS_COUNT,
                                 false,
-                                object : MvpOnLoadListener<Any?> {
+                                object : MvpOnResponseListener<Any?> {
                                     override fun onResponse(response: Any?) {
                                         recyclerView.scrollToPosition(position)
 
@@ -168,7 +168,7 @@ class FriendsPresenterDeprecated(viewState: FriendsViewDeprecated) :
                                 adapter.itemCount,
                                 DEFAULT_FRIENDS_COUNT,
                                 false,
-                                object : MvpOnLoadListener<Any?> {
+                                object : MvpOnResponseListener<Any?> {
                                     override fun onResponse(response: Any?) {
                                         recyclerView.scrollToPosition(position)
 

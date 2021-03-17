@@ -10,8 +10,8 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.os.bundleOf
-import com.meloda.fast.api.VKAuth
 import com.meloda.fast.base.BaseFragment
+import com.meloda.vksdk.VKAuth
 
 
 class ValidationFragment : BaseFragment() {

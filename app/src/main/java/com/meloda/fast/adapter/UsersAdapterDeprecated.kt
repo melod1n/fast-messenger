@@ -9,12 +9,12 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
 import com.meloda.fast.adapter.diffutil.UsersCallbackDeprecated
-import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.api.util.VKUtil
 import com.meloda.fast.base.BaseAdapter
 import com.meloda.fast.base.BaseHolder
 import com.meloda.fast.util.ImageUtils
 import com.meloda.fast.widget.CircleImageView
+import com.meloda.vksdk.model.VKUser
+import com.meloda.vksdk.util.VKUtil
 
 class UsersAdapterDeprecated(context: Context, values: ArrayList<VKUser>) :
     BaseAdapter<VKUser, UsersAdapterDeprecated.ViewHolder>(context, values) {
@@ -41,25 +41,25 @@ class UsersAdapterDeprecated(context: Context, values: ArrayList<VKUser>) :
 
             name.text = user.toString()
 
-            val avatarPlaceholder = VKUtil.getAvatarPlaceholder(context, user.toString())
-            avatar.setImageDrawable(avatarPlaceholder)
+//            val avatarPlaceholder = VKUtil.getAvatarPlaceholder(context, user.toString())
+//            avatar.setImageDrawable(avatarPlaceholder)
 
-            ImageUtils.loadImage(user.photo200, avatar, avatarPlaceholder)
+//            ImageUtils.loadImage(user.photo200, avatar, avatarPlaceholder)
 
             online.isVisible = false
 
-            VKUtil.getUserOnlineIcon(context, user)?.let {
-                online.setImageDrawable(it)
-                online.isVisible = true
-            }
+//            VKUtil.getUserOnlineIcon(context, user)?.let {
+//                online.setImageDrawable(it)
+//                online.isVisible = true
+//            }
 
-            onlineText.text = VKUtil.getUserOnline(user)
+//            onlineText.text = VKUtil.getUserOnline(user)
 
             //TODO: отладить открытие чата
         }
     }
 
-    fun notifyChanges(oldList: List<VKUser>, newList: List<VKUser> = values) {
+    override fun notifyChanges(oldList: List<VKUser>, newList: List<VKUser>) {
         val callback = UsersCallbackDeprecated(oldList, newList)
         val diff = DiffUtil.calculateDiff(callback, false)
 

@@ -1,2 +1,10 @@
+include ':extensions'
+include ':arrayutils'
+include ':concurrent'
+include ':netservices'
+include ':vksdk'
+include ':mvp'
+
 include ':app'
+
 rootProject.name = "Fast"

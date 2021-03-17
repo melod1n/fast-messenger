@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import androidx.recyclerview.widget.RecyclerView
+import com.meloda.arrayutils.ArrayUtils.asArrayList
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.extensions.ArrayExtensions.asArrayList
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.listener.ItemLongClickListener
 import java.io.Serializable
@@ -17,16 +17,16 @@ import java.util.*
 
 
 @Suppress("UNCHECKED_CAST")
-abstract class BaseAdapter<T, VH : BaseHolder>(
+abstract class BaseAdapter<Item, VH : BaseHolder>(
     var context: Context,
-    var values: ArrayList<T> = arrayListOf()
+    var values: ArrayList<Item> = arrayListOf()
 ) : RecyclerView.Adapter<VH>() {
 
     companion object {
         private const val P_ITEMS = "BaseAdapter.values"
     }
 
-    private var cleanValues: ArrayList<T>? = null
+    private var cleanValues: ArrayList<Item>? = null
 
     private var inflater: LayoutInflater = LayoutInflater.from(context)
 
@@ -35,36 +35,36 @@ abstract class BaseAdapter<T, VH : BaseHolder>(
 
     open fun destroy() {}
 
-    open fun getItem(position: Int): T {
+    open fun getItem(position: Int): Item {
         return values[position]
     }
 
-    fun add(position: Int, item: T) {
+    fun add(position: Int, item: Item) {
         values.add(position, item)
         cleanValues?.add(position, item)
     }
 
-    fun add(item: T) {
+    fun add(item: Item) {
         values.add(item)
         cleanValues?.add(item)
     }
 
-    fun addAll(items: List<T>) {
+    fun addAll(items: List<Item>) {
         values.addAll(items)
         cleanValues?.addAll(items)
     }
 
-    fun addAll(position: Int, items: List<T>) {
+    fun addAll(position: Int, items: List<Item>) {
         values.addAll(position, items)
         cleanValues?.addAll(position, items)
     }
 
-    operator fun set(position: Int, item: T) {
+    operator fun set(position: Int, item: Item) {
         values[position] = item
         cleanValues?.set(position, item)
     }
 
-    fun indexOf(item: T): Int {
+    fun indexOf(item: Item): Int {
         return values.indexOf(item)
     }
 
@@ -73,10 +73,12 @@ abstract class BaseAdapter<T, VH : BaseHolder>(
         cleanValues?.removeAt(index)
     }
 
-    fun remove(item: T) {
+    fun remove(item: Item) {
         values.remove(item)
         cleanValues?.remove(item)
     }
+
+    open fun notifyChanges(oldList: List<Item>, newList: List<Item> = values) {}
 
     fun isEmpty() = values.isNullOrEmpty()
 
@@ -86,12 +88,12 @@ abstract class BaseAdapter<T, VH : BaseHolder>(
         return inflater.inflate(resId, viewGroup, false)
     }
 
-    fun updateValues(arrayList: ArrayList<T>) {
+    fun updateValues(arrayList: ArrayList<Item>) {
         values.clear()
         values.addAll(arrayList)
     }
 
-    fun updateValues(list: List<T>) = updateValues(list.asArrayList())
+    fun updateValues(list: List<Item>) = updateValues(list.asArrayList())
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         onBindItemViewHolder(holder, position)
@@ -135,7 +137,7 @@ abstract class BaseAdapter<T, VH : BaseHolder>(
     fun onRestoreInstanceState(state: Parcelable?) {
         if (state is Bundle) {
             if (state.containsKey(P_ITEMS)) {
-                values = state.getSerializable(P_ITEMS) as ArrayList<T>
+                values = state.getSerializable(P_ITEMS) as ArrayList<Item>
             }
         }
     }
@@ -164,11 +166,11 @@ abstract class BaseAdapter<T, VH : BaseHolder>(
         notifyDataSetChanged()
     }
 
-    open fun onQueryItem(item: T, query: String): Boolean {
+    open fun onQueryItem(item: Item, query: String): Boolean {
         return false
     }
 
-    operator fun get(index: Int): T {
+    operator fun get(index: Int): Item {
         return values[index]
     }
 

@@ -4,8 +4,8 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.meloda.extensions.ContextExtensions.color
 import com.meloda.fast.R
-import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
 

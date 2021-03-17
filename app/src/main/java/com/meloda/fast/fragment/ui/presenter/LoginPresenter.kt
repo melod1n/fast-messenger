@@ -11,18 +11,20 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.setFragmentResultListener
 import com.google.android.material.textfield.TextInputEditText
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivityDeprecated
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.extensions.FragmentExtensions.runOnUiThread
-import com.meloda.fast.fragment.FragmentConversationsDeprecated
+import com.meloda.fast.UserConfig
+import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.fragment.ChatsFragment
 import com.meloda.fast.fragment.LoginFragment
 import com.meloda.fast.fragment.ValidationFragment
 import com.meloda.fast.fragment.ui.repository.LoginRepository
 import com.meloda.fast.fragment.ui.view.LoginView
-import com.meloda.mvp.MvpOnLoadListener
+import com.meloda.mvp.MvpOnResponseListener
 import com.meloda.mvp.MvpPresenter
+import com.meloda.vksdk.VKApi
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
+import java.util.*
 
 
 class LoginPresenter(
@@ -51,19 +53,19 @@ class LoginPresenter(
         email: String,
         password: String,
         captcha: String = "",
-        onLoadListener: MvpOnLoadListener<Any?>? = null
+        onResponseListener: MvpOnResponseListener<Any?>? = null
     ) {
         lastEmail = email
         lastPassword = password
 
         repository.login(requireContext(), email, password, captcha,
-            object : MvpOnLoadListener<JSONObject> {
+            object : MvpOnResponseListener<JSONObject> {
                 override fun onResponse(response: JSONObject) {
-                    checkResponse(response, onLoadListener)
+                    checkResponse(response, onResponseListener)
                 }
 
                 override fun onError(t: Throwable) {
-                    onLoadListener?.onError(t)
+                    onResponseListener?.onError(t)
                 }
             })
     }
@@ -71,7 +73,7 @@ class LoginPresenter(
     @Suppress("MoveVariableDeclarationIntoWhen")
     private fun checkResponse(
         response: JSONObject,
-        onLoadListener: MvpOnLoadListener<Any?>? = null
+        onResponseListener: MvpOnResponseListener<Any?>? = null
     ) {
         if (response.has("error")) {
             val errorString = response.optString("error")
@@ -113,18 +115,20 @@ class LoginPresenter(
 
             openMainScreen()
 
-            onLoadListener?.onResponse(null)
+            onResponseListener?.onResponse(null)
         }
     }
 
     private fun openMainScreen() {
         fragment.runOnUiThread {
-            (fragment.requireActivity() as MainActivityDeprecated).bottomBar.isVisible = true
+            VKApi.init(Locale.getDefault().language, UserConfig.token, AppGlobal.handler)
+
+            (fragment.requireActivity() as MainActivity).bottomBar.isVisible = true
 
             fragment.parentFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragmentContainer,
-                    FragmentConversationsDeprecated()
+                    ChatsFragment()
                 ).commit()
         }
     }

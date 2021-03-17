@@ -1,23 +1,21 @@
 package com.meloda.fast.activity.ui.presenter
 
 import androidx.recyclerview.widget.RecyclerView
+import com.meloda.concurrent.EventInfo
+import com.meloda.concurrent.TaskManager
 import com.meloda.fast.R
+import com.meloda.fast.UserConfig
 import com.meloda.fast.activity.ui.repository.MessagesRepositoryDeprecated
 import com.meloda.fast.activity.ui.view.MessagesViewDeprecated
 import com.meloda.fast.adapter.MessagesAdapterDeprecated
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKApiKeys
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.model.VKMessage
-import com.meloda.fast.api.model.VKModel
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.event.EventInfo
 import com.meloda.fast.listener.ItemClickListener
 import com.meloda.fast.listener.ItemLongClickListener
-import com.meloda.mvp.MvpOnLoadListener
+import com.meloda.mvp.MvpOnResponseListener
 import com.meloda.mvp.MvpPresenter
+import com.meloda.vksdk.model.VKConversation
+import com.meloda.vksdk.model.VKMessage
+import com.meloda.vksdk.model.VKModel
 import kotlin.random.Random
 
 class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
@@ -74,7 +72,7 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
     }
 
     private fun getCachedConversation(peerId: Int) {
-        repository.getCachedConversation(peerId, object : MvpOnLoadListener<VKConversation> {
+        repository.getCachedConversation(peerId, object : MvpOnResponseListener<VKConversation> {
             override fun onResponse(response: VKConversation) {
                 conversation = response
 
@@ -82,7 +80,7 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
                 refreshConversation(response)
 
                 getCachedMessages(peerId, 0, DEFAULT_MESSAGES_COUNT,
-                    object : MvpOnLoadListener<Any?> {
+                    object : MvpOnResponseListener<Any?> {
                         override fun onResponse(response: Any?) {
                             loadConversation(peerId)
                             loadMessages(peerId)
@@ -107,7 +105,7 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
             viewState.hideProgressBar()
         }
 
-        repository.loadConversation(peerId, object : MvpOnLoadListener<VKConversation> {
+        repository.loadConversation(peerId, object : MvpOnResponseListener<VKConversation> {
 
             override fun onResponse(response: VKConversation) {
                 conversation = response
@@ -129,7 +127,7 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
 
         repository.getChatInfo(
             conversation,
-            object : MvpOnLoadListener<String> {
+            object : MvpOnResponseListener<String> {
                 override fun onResponse(response: String) {
                     viewState.setChatInfo(response)
                 }
@@ -154,10 +152,10 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
         peerId: Int,
         offset: Int = 0,
         count: Int = DEFAULT_MESSAGES_COUNT,
-        listener: MvpOnLoadListener<Any?>? = null
+        listener: MvpOnResponseListener<Any?>? = null
     ) {
         repository.getCachedMessages(peerId, offset, count,
-            object : MvpOnLoadListener<ArrayList<VKMessage>> {
+            object : MvpOnResponseListener<ArrayList<VKMessage>> {
                 override fun onResponse(response: ArrayList<VKMessage>) {
                     viewState.hideProgressBar()
                     fillAdapter(response, offset)
@@ -177,7 +175,7 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
 
     private fun loadMessages(peerId: Int, offset: Int = 0, count: Int = DEFAULT_MESSAGES_COUNT) {
         repository.loadMessages(peerId, offset, count,
-            object : MvpOnLoadListener<ArrayList<VKMessage>> {
+            object : MvpOnResponseListener<ArrayList<VKMessage>> {
                 override fun onResponse(response: ArrayList<VKMessage>) {
                     fillAdapter(response, offset)
                 }
@@ -237,12 +235,12 @@ class MessagesPresenterDeprecated(viewState: MessagesViewDeprecated) :
 
         adapter.addMessage(message, true, scrollToBottom)
 
-        repository.sendMessage(peerId, text, message.randomId, object : MvpOnLoadListener<Int> {
+        repository.sendMessage(peerId, text, message.randomId, object : MvpOnResponseListener<Int> {
             override fun onResponse(response: Int) {
-                message.messageId = response
+                message.id = response
 
-                TaskManager.execute { MemoryCache.put(message) }
-                TaskManager.loadMessage(VKApiKeys.UPDATE_MESSAGE, response)
+//                TaskManager.execute { MemoryCache.put(message) }
+//                TaskManager.loadMessage(VKApiKeys.UPDATE_MESSAGE, response)
             }
 
             override fun onError(t: Throwable) {

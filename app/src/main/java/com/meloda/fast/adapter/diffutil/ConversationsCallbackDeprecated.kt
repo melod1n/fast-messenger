@@ -1,7 +1,7 @@
 package com.meloda.fast.adapter.diffutil
 
 import androidx.recyclerview.widget.DiffUtil
-import com.meloda.fast.api.model.VKConversation
+import com.meloda.vksdk.model.VKConversation
 
 class ConversationsCallbackDeprecated(
     private val oldList: List<VKConversation>,
@@ -32,7 +32,7 @@ class ConversationsCallbackDeprecated(
         val new = newList[newItemPosition]
 
         if (true) return false
-        return old.conversationId == new.conversationId
+        return old.id == new.id
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
@@ -53,8 +53,8 @@ class ConversationsCallbackDeprecated(
                     old.isDisabledForever == new.isDisabledForever &&
                     old.disabledUntil == new.disabledUntil &&
 
-                    old.inRead == new.inRead &&
-                    old.outRead == new.outRead &&
+                    old.inReadMessageId == new.inReadMessageId &&
+                    old.outReadMessageId == new.outReadMessageId &&
 
                     old.peerUser == new.peerUser &&
                     old.peerGroup == new.peerGroup &&

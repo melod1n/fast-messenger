@@ -13,22 +13,18 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.meloda.concurrent.EventInfo
+import com.meloda.concurrent.TaskManager
 import com.meloda.fast.R
+import com.meloda.fast.UserConfig
 import com.meloda.fast.activity.MessagesActivityDeprecated
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.event.EventInfo
-import com.meloda.fast.extensions.FragmentExtensions.findViewById
-import com.meloda.fast.extensions.FragmentExtensions.runOnUiThread
 import com.meloda.fast.fragment.ui.presenter.ConversationsPresenterDeprecated
 import com.meloda.fast.fragment.ui.view.ConversationsViewDeprecated
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.Toolbar
-
+import com.meloda.vksdk.VKApiKeys
 
 @Suppress("UNCHECKED_CAST")
 class FragmentConversationsDeprecated : BaseFragment(), ConversationsViewDeprecated {
@@ -62,14 +58,14 @@ class FragmentConversationsDeprecated : BaseFragment(), ConversationsViewDepreca
     }
 
     private fun initViews() {
-        toolbar = findViewById(R.id.toolbar)
-        recyclerView = findViewById(R.id.recyclerView)
-        refreshLayout = findViewById(R.id.refreshLayout)
-        progressBar = findViewById(R.id.progressBar)
+        toolbar = requireView().findViewById(R.id.toolbar)
+        recyclerView = requireView().findViewById(R.id.recyclerView)
+        refreshLayout = requireView().findViewById(R.id.refreshLayout)
+        progressBar = requireView().findViewById(R.id.progressBar)
 
-        noItemsView = findViewById(R.id.noItemsView)
-        noInternetView = findViewById(R.id.noInternetView)
-        errorView = findViewById(R.id.errorView)
+        noItemsView = requireView().findViewById(R.id.noItemsView)
+        noInternetView = requireView().findViewById(R.id.noInternetView)
+        errorView = requireView().findViewById(R.id.errorView)
     }
 
     private fun prepareToolbar() {
@@ -79,7 +75,7 @@ class FragmentConversationsDeprecated : BaseFragment(), ConversationsViewDepreca
 
         TaskManager.addOnEventListener(object : TaskManager.OnEventListener {
             override fun onNewEvent(info: EventInfo<*>) {
-                if (info.key == VKApiKeys.UPDATE_USER) {
+                if (info.key == VKApiKeys.UPDATE_USER.name) {
                     val userIds = info.data as ArrayList<Int>
 
                     if (userIds.contains(UserConfig.userId)) {
@@ -100,7 +96,12 @@ class FragmentConversationsDeprecated : BaseFragment(), ConversationsViewDepreca
         val decoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
 
         decoration.setDrawable(
-            ColorDrawable(AndroidUtils.getThemeAttrColor(requireContext(), R.attr.dividerHorizontal))
+            ColorDrawable(
+                AndroidUtils.getThemeAttrColor(
+                    requireContext(),
+                    R.attr.dividerHorizontal
+                )
+            )
         )
 
         recyclerView.itemAnimator = null
@@ -111,18 +112,22 @@ class FragmentConversationsDeprecated : BaseFragment(), ConversationsViewDepreca
 
     private fun setProfileAvatar() {
         TaskManager.execute {
-            AppGlobal.database.users.getById(UserConfig.userId)?.let {
-                if (it.photo100.isNotEmpty()) {
-                    runOnUiThread {
-                        toolbar.getAvatar().setImageURI(it.photo100)
-                    }
-                }
-            }
+//            AppGlobal.database.users.getById(UserConfig.userId)?.let {
+//                if (it.photo100.isNotEmpty()) {
+//                    runOnUiThread {
+//                        toolbar.getAvatar().setImageURI(it.photo100)
+//                    }
+//                }
+//            }
         }
     }
 
     override fun openChat(extras: Bundle) {
-        startActivity(Intent(requireContext(), MessagesActivityDeprecated::class.java).putExtras(extras))
+        startActivity(
+            Intent(requireContext(), MessagesActivityDeprecated::class.java).putExtras(
+                extras
+            )
+        )
     }
 
     override fun showErrorSnackbar(t: Throwable) {

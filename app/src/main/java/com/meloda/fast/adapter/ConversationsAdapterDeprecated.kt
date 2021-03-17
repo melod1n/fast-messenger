@@ -13,27 +13,27 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.meloda.concurrent.EventInfo
+import com.meloda.concurrent.TaskManager
+import com.meloda.extensions.ContextExtensions.color
 import com.meloda.fast.R
+import com.meloda.fast.UserConfig
 import com.meloda.fast.adapter.diffutil.ConversationsCallbackDeprecated
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKApiKeys
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.model.VKGroup
-import com.meloda.fast.api.model.VKMessage
-import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.api.util.VKUtil
 import com.meloda.fast.base.BaseAdapter
 import com.meloda.fast.base.BaseHolder
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.event.EventInfo
-import com.meloda.fast.extensions.ContextExtensions.color
-import com.meloda.fast.listener.OnResponseListener
+import com.meloda.fast.database.CacheStorage
+import com.meloda.fast.util.VKUtils
 import com.meloda.fast.widget.CircleImageView
+import com.meloda.vksdk.OnResponseListener
+import com.meloda.vksdk.VKApiKeys
+import com.meloda.vksdk.model.VKConversation
+import com.meloda.vksdk.model.VKGroup
+import com.meloda.vksdk.model.VKMessage
+import com.meloda.vksdk.model.VKUser
+import com.meloda.vksdk.util.VKUtil
 
 
 @Suppress("UNCHECKED_CAST")
@@ -62,22 +62,22 @@ class ConversationsAdapterDeprecated(
 
     override fun onNewEvent(info: EventInfo<*>) {
         when (info.key) {
-            VKApiKeys.NEW_MESSAGE -> addMessage(info.data as VKMessage)
-            VKApiKeys.EDIT_MESSAGE -> editMessage(info.data as VKMessage)
-            VKApiKeys.RESTORE_MESSAGE -> restoreMessage(info.data as VKMessage)
-            VKApiKeys.READ_MESSAGE -> readMessage(
+            VKApiKeys.NEW_MESSAGE.name -> addMessage(info.data as VKMessage)
+            VKApiKeys.EDIT_MESSAGE.name -> editMessage(info.data as VKMessage)
+            VKApiKeys.RESTORE_MESSAGE.name -> restoreMessage(info.data as VKMessage)
+            VKApiKeys.READ_MESSAGE.name -> readMessage(
                 (info.data as Array<Int>)[0],
                 (info.data as Array<Int>)[1]
             )
-            VKApiKeys.DELETE_MESSAGE -> deleteMessage(
+            VKApiKeys.DELETE_MESSAGE.name -> deleteMessage(
                 (info.data as Array<Int>)[0],
                 (info.data as Array<Int>)[1]
             )
 
-            VKApiKeys.UPDATE_CONVERSATION -> updateConversation(info.data as Int)
-            VKApiKeys.UPDATE_MESSAGE -> updateMessage(info.data as Int)
-            VKApiKeys.UPDATE_USER -> updateUsers(info.data as ArrayList<Int>)
-            VKApiKeys.UPDATE_GROUP -> updateGroups(info.data as ArrayList<Int>)
+            VKApiKeys.UPDATE_CONVERSATION.name -> updateConversation(info.data as Int)
+            VKApiKeys.UPDATE_MESSAGE.name -> updateMessage(info.data as Int)
+            VKApiKeys.UPDATE_USER.name -> updateUsers(info.data as ArrayList<Int>)
+            VKApiKeys.UPDATE_GROUP.name -> updateGroups(info.data as ArrayList<Int>)
 
         }
     }
@@ -94,13 +94,6 @@ class ConversationsAdapterDeprecated(
         currentPosition = position
         initListeners(holder.itemView, position)
         holder.bind(position, payloads)
-    }
-
-    fun notifyChanges(oldList: List<VKConversation>, newList: List<VKConversation> = values) {
-        val callback = ConversationsCallbackDeprecated(oldList, newList)
-        val diff = DiffUtil.calculateDiff(callback)
-
-        diff.dispatchUpdatesTo(this)
     }
 
     fun isLastItem() = currentPosition >= itemCount - 1
@@ -125,25 +118,24 @@ class ConversationsAdapterDeprecated(
             bind(position, mutableListOf())
         }
 
-        fun bind(position: Int, payloads: MutableList<Any>) {
+        override fun bind(position: Int, payloads: MutableList<Any>?) {
             Log.d(TAG, "bind position: $position")
 
-            val conversation = this@ConversationsAdapterDeprecated[position]
-
+            val conversation = getItem(position)
             val lastMessage = conversation.lastMessage
 
             TaskManager.execute {
                 val peerUser: VKUser? =
-                    if (conversation.isUser()) VKUtil.searchUser(conversation.conversationId) else null
+                    if (conversation.isUser()) CacheStorage.usersStorage.getUser(conversation.id) else null
 
                 val peerGroup: VKGroup? =
-                    if (conversation.isGroup()) VKUtil.searchGroup(conversation.conversationId) else null
+                    if (conversation.isGroup()) CacheStorage.groupsStorage.getGroup(conversation.id) else null
 
                 val fromUser: VKUser? =
-                    if (lastMessage.isFromUser()) VKUtil.searchUser(lastMessage.fromId) else null
+                    if (lastMessage.isFromUser()) CacheStorage.usersStorage.getUser(lastMessage.fromId) else null
 
                 val fromGroup: VKGroup? =
-                    if (lastMessage.isFromGroup()) VKUtil.searchGroup(lastMessage.fromId) else null
+                    if (lastMessage.isFromGroup()) CacheStorage.groupsStorage.getGroup(lastMessage.fromId) else null
 
                 conversation.peerUser = peerUser
                 conversation.peerGroup = peerGroup
@@ -154,7 +146,7 @@ class ConversationsAdapterDeprecated(
                 post {
                     val dialogTitle = setTitle(conversation, peerUser, peerGroup)
 
-                    if (payloads.isNotEmpty()) {
+                    if (payloads != null && payloads.isNotEmpty()) {
                         for (payload in payloads) {
                             when (payload) {
                                 ConversationsCallbackDeprecated.CONVERSATION -> {
@@ -264,7 +256,7 @@ class ConversationsAdapterDeprecated(
         }
 
         private fun setUserOnline(conversation: VKConversation, peerUser: VKUser?) {
-            val onlineIcon = VKUtil.getUserOnlineIcon(context, conversation, peerUser)
+            val onlineIcon = VKUtils.getUserOnlineIcon(context, conversation, peerUser)
 
             online.setImageDrawable(onlineIcon)
             online.isVisible = onlineIcon != null
@@ -298,7 +290,7 @@ class ConversationsAdapterDeprecated(
             peerUser: VKUser?,
             peerGroup: VKGroup?
         ) {
-            val dialogAvatarPlaceholder = VKUtil.getAvatarPlaceholder(context, dialogTitle)
+            val dialogAvatarPlaceholder = VKUtils.getAvatarPlaceholder(context, dialogTitle)
 
             avatar.setImageDrawable(dialogAvatarPlaceholder)
 
@@ -310,11 +302,11 @@ class ConversationsAdapterDeprecated(
         }
 
         private fun setDialogType(conversation: VKConversation) {
-            val dDialogType = VKUtil.getDialogType(context, conversation)
-
-            type.setImageDrawable(dDialogType)
+//            val dDialogType = VKUtil.getDialogType(context, conversation)
+//
+//            type.setImageDrawable(dDialogType)
 //            type.isVisible = dDialogType != null
-            type.isVisible = false
+//            type.isVisible = false
         }
 
         private fun prepareAttachments(lastMessage: VKMessage) {
@@ -328,7 +320,7 @@ class ConversationsAdapterDeprecated(
                 when {
                     lastMessage.attachments.isNotEmpty() -> {
                         val attachmentString =
-                            VKUtil.getAttachmentText(context, lastMessage.attachments)
+                            VKUtils.getAttachmentText(context, lastMessage.attachments)
 
                         val attachmentText =
                             if (lastMessage.text.isEmpty()) attachmentString else lastMessage.text
@@ -346,7 +338,7 @@ class ConversationsAdapterDeprecated(
                         }
 
                         val attachmentDrawable =
-                            VKUtil.getAttachmentDrawable(context, lastMessage.attachments)
+                            VKUtils.getAttachmentDrawable(context, lastMessage.attachments)
                         text.text = span
 
                         attachments.isVisible = true
@@ -364,7 +356,8 @@ class ConversationsAdapterDeprecated(
 //                        }
                     }
                     lastMessage.fwdMessages.isNotEmpty() -> {
-                        val fwdText = VKUtil.getFwdText(context, lastMessage.getForwardedMessages())
+                        val fwdText =
+                            VKUtils.getFwdText(context, lastMessage.getForwardedMessages())
                         val span = SpannableString(fwdText).apply {
                             setSpan(ForegroundColorSpan(colorHighlight), 0, fwdText.length, 0)
                         }
@@ -379,7 +372,7 @@ class ConversationsAdapterDeprecated(
                     }
                 }
             } else {
-                VKUtil.getActionText(context, lastMessage,
+                VKUtils.getActionText(context, lastMessage,
                     object : OnResponseListener<String> {
                         override fun onResponse(response: String) {
                             val span = SpannableString(response).apply {
@@ -417,8 +410,8 @@ class ConversationsAdapterDeprecated(
 
         private fun setIsRead(lastMessage: VKMessage, conversation: VKConversation) {
             val isRead =
-                ((lastMessage.isOut && conversation.outRead == conversation.lastMessageId ||
-                        !lastMessage.isOut && conversation.inRead == conversation.lastMessageId) && conversation.lastMessageId == lastMessage.messageId) && conversation.unreadCount == 0
+                ((lastMessage.isOut && conversation.outReadMessageId == conversation.lastMessageId ||
+                        !lastMessage.isOut && conversation.inReadMessageId == conversation.lastMessageId) && conversation.lastMessageId == lastMessage.id) && conversation.unreadCount == 0
 
             if (isRead) {
                 counter.visibility = View.GONE
@@ -437,7 +430,7 @@ class ConversationsAdapterDeprecated(
         }
 
         private fun setDate(lastMessage: VKMessage) {
-            val dateText = VKUtil.getTime(context, lastMessage)
+            val dateText = VKUtils.getTime(context, lastMessage)
             date.text = dateText
         }
 
@@ -461,30 +454,30 @@ class ConversationsAdapterDeprecated(
             add(0, conversation)
             notifyChanges(oldList)
         } else {
-            TaskManager.loadConversation(
-                VKApiKeys.UPDATE_CONVERSATION,
-                message.peerId,
-                null
-            )
+//            TaskManager.loadConversation(
+//                VKApiKeys.UPDATE_CONVERSATION,
+//                message.peerId,
+//                null
+//            )
 
             TaskManager.execute {
-                val cachedConversation = MemoryCache.getConversationById(message.peerId)
-                if (cachedConversation != null) {
-                    add(0, prepareConversation(cachedConversation, message))
-                    post { notifyChanges(oldList) }
-                    return@execute
-                }
+//                val cachedConversation = MemoryCache.getConversationById(message.peerId)
+//                if (cachedConversation != null) {
+//                    add(0, prepareConversation(cachedConversation, message))
+//                    post { notifyChanges(oldList) }
+//                    return@execute
+//                }
 
                 val tempConversations = VKConversation().apply {
-                    conversationId = message.peerId
+                    id = message.peerId
 
                     localId =
-                        if (VKUtil.isChatId(conversationId)) conversationId - 2000000000 else conversationId
+                        if (VKUtil.isChatId(id)) id - 2000000000 else id
                     type =
-                        if (conversationId < 0) VKConversation.TYPE_GROUP else if (conversationId > 2000000000) VKConversation.TYPE_CHAT else VKConversation.TYPE_USER
+                        if (id < 0) VKConversation.Type.GROUP else if (id > 2000000000) VKConversation.Type.CHAT else VKConversation.Type.USER
 
                     lastMessage = message
-                    lastMessageId = message.messageId
+                    lastMessageId = message.id
                 }
 
                 add(0, tempConversations)
@@ -505,7 +498,7 @@ class ConversationsAdapterDeprecated(
 
         val conversation = getItem(index)
 
-        if (conversation.lastMessageId != message.messageId) return
+        if (conversation.lastMessageId != message.id) return
 
         conversation.lastMessage = message
 
@@ -520,9 +513,9 @@ class ConversationsAdapterDeprecated(
         val message = conversation.lastMessage
 
         if (message.isInbox()) {
-            conversation.inRead = messageId
+            conversation.inReadMessageId = messageId
         } else {
-            conversation.outRead = messageId
+            conversation.outReadMessageId = messageId
         }
 
         conversation.unreadCount = if (conversation.lastMessageId == messageId) {
@@ -546,32 +539,32 @@ class ConversationsAdapterDeprecated(
 
         val dialog = oldDialog.clone()
 
-        TaskManager.execute {
-            val cachedMessages = MemoryCache.getMessagesByPeerId(dialog.conversationId)
-            val messages = VKUtil.sortMessagesByDate(ArrayList(cachedMessages), true)
-
-            if (messages.isEmpty()) {
-                MemoryCache.deleteConversation(dialog.conversationId)
-
-                AppGlobal.post {
-                    removeAt(index)
-                    notifyChanges(oldList)
-                }
-            } else {
-                val lastMessage = messages[0]
-
-                dialog.lastMessageId = lastMessage.messageId
-                dialog.lastMessage = lastMessage
-
-                set(index, dialog)
-
-                VKUtil.sortConversationsByDate(values, true)
-
-                AppGlobal.post {
-                    notifyChanges(oldList)
-                }
-            }
-        }
+//        TaskManager.execute {
+//            val cachedMessages = MemoryCache.getMessagesByPeerId(dialog.conversationId)
+//            val messages = VKUtil.sortMessagesByDate(ArrayList(cachedMessages), true)
+//
+//            if (messages.isEmpty()) {
+//                MemoryCache.deleteConversation(dialog.conversationId)
+//
+//                AppGlobal.post {
+//                    removeAt(index)
+//                    notifyChanges(oldList)
+//                }
+//            } else {
+//                val lastMessage = messages[0]
+//
+//                dialog.lastMessageId = lastMessage.messageId
+//                dialog.lastMessage = lastMessage
+//
+//                set(index, dialog)
+//
+//                VKUtil.sortConversationsByDate(values, true)
+//
+//                AppGlobal.post {
+//                    notifyChanges(oldList)
+//                }
+//            }
+//        }
     }
 
     @Deprecated("Message is bad")
@@ -584,27 +577,27 @@ class ConversationsAdapterDeprecated(
 
         val dialog = oldDialog.clone()
 
-        TaskManager.execute {
-            val messages =
-                MemoryCache.getMessagesByPeerId(dialog.conversationId).apply { addMessage(message) }
-
-            VKUtil.sortMessagesByDate(ArrayList(messages), true)
-
-            val lastMessage = messages[0]
-
-            dialog.lastMessageId = lastMessage.messageId
-            dialog.lastMessage = lastMessage
-
-            set(index, dialog)
-
-            VKUtil.sortConversationsByDate(values, true)
-
-            AppGlobal.handler.post {
-                notifyChanges(oldList)
-
+//        TaskManager.execute {
+//            val messages =
+//                MemoryCache.getMessagesByPeerId(dialog.conversationId).apply { addMessage(message) }
+//
+//            VKUtil.sortMessagesByDate(ArrayList(messages), true)
+//
+//            val lastMessage = messages[0]
+//
+//            dialog.lastMessageId = lastMessage.messageId
+//            dialog.lastMessage = lastMessage
+//
+//            set(index, dialog)
+//
+//            VKUtil.sortConversationsByDate(values, true)
+//
+//            AppGlobal.handler.post {
+//                notifyChanges(oldList)
+//
 //                fragmentConversations.presenter.checkListIsEmpty(values)
-            }
-        }
+//            }
+//        }
     }
 
     private fun prepareConversation(
@@ -612,7 +605,7 @@ class ConversationsAdapterDeprecated(
         newMessage: VKMessage
     ): VKConversation {
         conversation.lastMessage = newMessage
-        conversation.lastMessageId = newMessage.messageId
+        conversation.lastMessageId = newMessage.id
 
         if (newMessage.isOut) {
             conversation.unreadCount = 0
@@ -622,7 +615,7 @@ class ConversationsAdapterDeprecated(
         }
 
         if (newMessage.peerId == newMessage.fromId && newMessage.fromId == UserConfig.userId) { //для лс
-            conversation.outRead = newMessage.messageId
+            conversation.outReadMessageId = newMessage.id
         }
 
         return conversation
@@ -630,7 +623,7 @@ class ConversationsAdapterDeprecated(
 
     private fun searchConversationIndex(peerId: Int): Int {
         for (i in values.indices) {
-            if (getItem(i).conversationId == peerId) return i
+            if (getItem(i).id == peerId) return i
         }
         return -1
     }
@@ -646,13 +639,18 @@ class ConversationsAdapterDeprecated(
         val index = searchConversationIndex(peerId)
         if (index == -1) return
 
-        TaskManager.execute {
-            val conversation = MemoryCache.getConversationById(peerId) ?: return@execute
-
-            set(index, conversation)
-
-            AppGlobal.post { notifyItemChanged(index, ConversationsCallbackDeprecated.CONVERSATION) }
-        }
+//        TaskManager.execute {
+//            val conversation = MemoryCache.getConversationById(peerId) ?: return@execute
+//
+//            set(index, conversation)
+//
+//            AppGlobal.post {
+//                notifyItemChanged(
+//                    index,
+//                    ConversationsCallbackDeprecated.CONVERSATION
+//                )
+//            }
+//        }
     }
 
     private fun updateGroups(groupIds: ArrayList<Int>) {
@@ -681,12 +679,17 @@ class ConversationsAdapterDeprecated(
         TaskManager.execute {
             val conversation = getItem(index).clone()
 
-            conversation.apply {
-                lastMessageId = messageId
-                lastMessage = MemoryCache.getMessageById(messageId) ?: return@execute
-            }
+//            conversation.apply {
+//                lastMessageId = messageId
+//                lastMessage = MemoryCache.getMessageById(messageId) ?: return@execute
+//            }
 
-            AppGlobal.handler.post { notifyItemChanged(index, ConversationsCallbackDeprecated.MESSAGE) }
+            AppGlobal.handler.post {
+                notifyItemChanged(
+                    index,
+                    ConversationsCallbackDeprecated.MESSAGE
+                )
+            }
         }
     }
 

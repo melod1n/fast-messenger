@@ -93,12 +93,6 @@ object AndroidUtils {
     }
 
     fun getThemeAttrColor(context: Context, @AttrRes resId: Int): Int {
-//        val typedValue = TypedValue()
-//
-//        context.theme.resolveAttribute(resId, typedValue, true)
-//
-//        return typedValue.data
-
         val typedValue = TypedValue()
         context.theme.resolveAttribute(resId, typedValue, true)
         val colorRes = typedValue.resourceId
@@ -113,18 +107,5 @@ object AndroidUtils {
 
 
     }
-
-    /*
-    TypedValue typedValue = new TypedValue();
-    context.getTheme().resolveAttribute(attributeId, typedValue, true);
-    int colorRes = typedValue.resourceId;
-    int color = -1;
-    try {
-        color = context.getResources().getColor(colorRes);
-    } catch (Resources.NotFoundException e) {
-        Log.w(TAG, "Not found color resource by id: " + colorRes);
-    }
-    return color;
-     */
 
 }

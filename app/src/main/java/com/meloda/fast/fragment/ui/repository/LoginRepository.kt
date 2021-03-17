@@ -6,9 +6,9 @@ import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.meloda.fast.api.VKAuth
-import com.meloda.mvp.MvpOnLoadListener
+import com.meloda.mvp.MvpOnResponseListener
 import com.meloda.mvp.MvpRepository
+import com.meloda.vksdk.VKAuth
 import org.json.JSONObject
 import org.jsoup.Jsoup
 
@@ -19,14 +19,14 @@ class LoginRepository : MvpRepository<Any>() {
         email: String,
         password: String,
         captcha: String,
-        onLoadListener: MvpOnLoadListener<JSONObject>
+        onResponseListener: MvpOnResponseListener<JSONObject>
     ) {
         if (email.trim().isEmpty() || password.trim().isEmpty()) return
         val loadingUrl = VKAuth.getDirectAuthUrl(email, password, captcha)
 
         val webView = createWebView(context)
 
-        webView.addJavascriptInterface(WebViewHandlerInterface(onLoadListener), "HtmlHandler")
+        webView.addJavascriptInterface(WebViewHandlerInterface(onResponseListener), "HtmlHandler")
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 webView.loadUrl(
@@ -58,7 +58,7 @@ class LoginRepository : MvpRepository<Any>() {
         return loginWebView
     }
 
-    private class WebViewHandlerInterface(private var onLoadListener: MvpOnLoadListener<JSONObject>) {
+    private class WebViewHandlerInterface(private var onResponseListener: MvpOnResponseListener<JSONObject>) {
         @JavascriptInterface
         fun handleHtml(html: String?) {
             val doc = Jsoup.parse(html)
@@ -68,7 +68,7 @@ class LoginRepository : MvpRepository<Any>() {
                     .first()
                     .text()
 
-            onLoadListener.onResponse(JSONObject(responseString))
+            onResponseListener.onResponse(JSONObject(responseString))
         }
     }
 }

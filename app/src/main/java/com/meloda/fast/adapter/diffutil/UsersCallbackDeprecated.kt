@@ -1,7 +1,7 @@
 package com.meloda.fast.adapter.diffutil
 
 import androidx.recyclerview.widget.DiffUtil
-import com.meloda.fast.api.model.VKUser
+import com.meloda.vksdk.model.VKUser
 
 class UsersCallbackDeprecated(private val oldList: List<VKUser>, private val newList: List<VKUser>) :
     DiffUtil.Callback() {

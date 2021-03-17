@@ -1,29 +1,26 @@
 package com.meloda.fast.fragment.ui.repository
 
-import com.meloda.fast.api.VKApi
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.model.VKMessage
-import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.api.util.VKUtil
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.database.MemoryCache
-import com.meloda.fast.extensions.ArrayExtensions.asArrayList
-import com.meloda.fast.listener.OnResponseListener
-import com.meloda.mvp.MvpOnLoadListener
+import com.meloda.concurrent.TaskManager
+import com.meloda.mvp.MvpOnResponseListener
 import com.meloda.mvp.MvpRepository
+import com.meloda.vksdk.OnResponseListener
+import com.meloda.vksdk.VKApi
+import com.meloda.vksdk.VKConstants
+import com.meloda.vksdk.model.VKConversation
+import com.meloda.vksdk.model.VKMessage
 
 class ConversationsRepositoryDeprecated : MvpRepository<VKConversation>() {
 
     fun loadConversations(
         offset: Int, count: Int,
-        listener: MvpOnLoadListener<ArrayList<VKConversation>>
+        listener: MvpOnResponseListener<ArrayList<VKConversation>>
     ) {
         TaskManager.execute {
             VKApi.messages()
                 .getConversations()
                 .filter("all")
                 .extended(true)
-                .fields(VKUser.DEFAULT_FIELDS)
+                .fields(VKConstants.USER_FIELDS)
                 .offset(offset)
                 .count(count)
                 .executeArray(VKConversation::class.java,
@@ -32,8 +29,8 @@ class ConversationsRepositoryDeprecated : MvpRepository<VKConversation>() {
                             TaskManager.execute {
                                 cacheLoadedConversations(response)
 
-                                MemoryCache.putUsers(VKConversation.profiles)
-                                MemoryCache.putGroups(VKConversation.groups)
+//                                MemoryCache.putUsers(VKConversation.profiles)
+//                                MemoryCache.putGroups(VKConversation.groups)
 
                                 sendResponse(listener, response)
                             }
@@ -48,18 +45,18 @@ class ConversationsRepositoryDeprecated : MvpRepository<VKConversation>() {
 
     fun getCachedConversations(
         offset: Int, count: Int,
-        listener: MvpOnLoadListener<ArrayList<VKConversation>>
+        listener: MvpOnResponseListener<ArrayList<VKConversation>>
     ) {
         if (true) {
             sendResponse(listener, arrayListOf())
             return
         }
         TaskManager.execute {
-            val conversations = MemoryCache.getConversations().asArrayList()
+//            val conversations = MemoryCache.getConversations().asArrayList()
+//
+//            VKUtil.sortConversationsByDate(conversations, true)
 
-            VKUtil.sortConversationsByDate(conversations, true)
-
-            sendResponse(listener, conversations)
+//            sendResponse(listener, conversations)
         }
     }
 
@@ -68,27 +65,27 @@ class ConversationsRepositoryDeprecated : MvpRepository<VKConversation>() {
             val lastMessage = conversation.lastMessage
 
             when (conversation.type) {
-                VKConversation.TYPE_USER -> {
-                    VKUtil.searchUser(conversation.conversationId)?.let {
-                        conversation.peerUser = it
-                    }
+                VKConversation.Type.USER -> {
+//                    VKUtil.searchUser(conversation.conversationId)?.let {
+//                        conversation.peerUser = it
+//                    }
                 }
 
-                VKConversation.TYPE_GROUP -> {
-                    VKUtil.searchGroup(conversation.conversationId)?.let {
-                        conversation.peerGroup = it
-                    }
+                VKConversation.Type.GROUP -> {
+//                    VKUtil.searchGroup(conversation.conversationId)?.let {
+//                        conversation.peerGroup = it
+//                    }
                 }
             }
 
             if (lastMessage.isFromGroup()) {
-                VKUtil.searchGroup(lastMessage.fromId)?.let {
-                    lastMessage.fromGroup = it
-                }
+//                VKUtil.searchGroup(lastMessage.fromId)?.let {
+//                    lastMessage.fromGroup = it
+//                }
             } else {
-                VKUtil.searchUser(lastMessage.fromId)?.let {
-                    lastMessage.fromUser = it
-                }
+//                VKUtil.searchUser(lastMessage.fromId)?.let {
+//                    lastMessage.fromUser = it
+//                }
             }
         }
     }
@@ -100,7 +97,7 @@ class ConversationsRepositoryDeprecated : MvpRepository<VKConversation>() {
             messages.add(conversation.lastMessage)
         }
 
-        MemoryCache.putMessages(messages)
-        MemoryCache.putConversations(conversations)
+//        MemoryCache.putMessages(messages)
+//        MemoryCache.putConversations(conversations)
     }
 }

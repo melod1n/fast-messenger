@@ -14,24 +14,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.amulyakhare.textdrawable.TextDrawable
+import com.meloda.extensions.ContextExtensions.color
+import com.meloda.extensions.DrawableExtensions.tint
 import com.meloda.fast.R
 import com.meloda.fast.activity.ui.presenter.MessagesPresenterDeprecated
 import com.meloda.fast.activity.ui.view.MessagesViewDeprecated
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.model.VKGroup
-import com.meloda.fast.api.model.VKModel
-import com.meloda.fast.api.model.VKUser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.dialog.ProfileDialog
-import com.meloda.fast.extensions.ContextExtensions.color
-import com.meloda.fast.extensions.DrawableExtensions.tint
-import com.meloda.fast.extensions.ImageViewExtensions.loadImage
 import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.KeyboardUtils
 import com.meloda.fast.util.TextUtils
 import com.meloda.fast.util.ViewUtils
 import com.meloda.fast.widget.CircleImageView
+import com.meloda.vksdk.model.VKConversation
+import com.meloda.vksdk.model.VKGroup
+import com.meloda.vksdk.model.VKModel
+import com.meloda.vksdk.model.VKUser
 
 
 class MessagesActivityDeprecated : BaseActivity(), MessagesViewDeprecated {
@@ -140,7 +139,7 @@ class MessagesActivityDeprecated : BaseActivity(), MessagesViewDeprecated {
 
         chatAvatar.setImageDrawable(placeholder)
 
-        chatAvatar.loadImage(avatar, placeholder)
+//        chatAvatar.loadImage(avatar, placeholder)
 
         toolbar.setOnClickListener { presenterDeprecated.openProfile() }
 

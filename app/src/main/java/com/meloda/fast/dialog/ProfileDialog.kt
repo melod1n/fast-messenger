@@ -12,10 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.meloda.fast.R
 import com.meloda.fast.adapter.SimpleItemAdapter
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.database.MemoryCache
 import com.meloda.fast.item.SimpleMenuItem
+import com.meloda.vksdk.model.VKConversation
+import com.meloda.vksdk.model.VKUser
 
 open class ProfileDialog(
     private val conversation: VKConversation,
@@ -84,16 +83,17 @@ open class ProfileDialog(
 
     private fun getSubtitle(): String {
         return when (conversation.type) {
-            VKConversation.TYPE_CHAT -> getString(
+            VKConversation.Type.CHAT -> getString(
                 R.string.chat_members,
                 conversation.membersCount
             )
-            VKConversation.TYPE_GROUP -> {
-                val group = MemoryCache.getGroupById(conversation.conversationId) ?: return ""
-
-                "@${group.screenName}"
+            VKConversation.Type.GROUP -> {
+//                val group = MemoryCache.getGroupById(conversation.conversationId) ?: return ""
+//
+//                "@${group.screenName}"
+                ""
             }
-            VKConversation.TYPE_USER -> {
+            VKConversation.Type.USER -> {
 //                    val user = MemoryCache.getUserById(conversation.id) ?: return ""
 
                 //TODO: придумать чо делать

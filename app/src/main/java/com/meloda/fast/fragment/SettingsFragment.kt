@@ -7,12 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceScreen
+import com.meloda.concurrent.TaskManager
+import com.meloda.extensions.ContextExtensions.color
 import com.meloda.fast.R
 import com.meloda.fast.activity.DropUserDataActivity
 import com.meloda.fast.activity.UpdateActivityDeprecated
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.TaskManager
-import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.util.AndroidUtils
 
 class SettingsFragment : PreferenceFragmentCompat(),
@@ -162,8 +162,8 @@ class SettingsFragment : PreferenceFragmentCompat(),
         builder.setMessage("Clear cache?")
         builder.setPositiveButton("Yes") { _, _ ->
             TaskManager.execute {
-                AppGlobal.database.users.clear()
-                AppGlobal.database.groups.clear()
+//                AppGlobal.database.users.clear()
+//                AppGlobal.database.groups.clear()
             }
         }
         builder.setNegativeButton("No", null)
