@@ -2,11 +2,11 @@ package com.meloda.fast
 
 import android.util.Log
 import androidx.annotation.WorkerThread
-import com.meloda.concurrent.EventInfo
-import com.meloda.concurrent.TaskManager
-import com.meloda.vksdk.VKApiKeys
-import com.meloda.vksdk.model.VKMessage
-import com.meloda.vksdk.util.VKUtil
+import com.meloda.fast.concurrent.EventInfo
+import com.meloda.fast.concurrent.TaskManager
+import com.meloda.fast.api.VKApiKeys
+import com.meloda.fast.api.model.VKMessage
+import com.meloda.fast.api.util.VKUtil
 import org.json.JSONArray
 
 @Suppress("UNCHECKED_CAST")

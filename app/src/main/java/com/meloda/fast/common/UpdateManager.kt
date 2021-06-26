@@ -2,10 +2,10 @@ package com.meloda.fast.common
 
 import android.util.Log
 import androidx.collection.arrayMapOf
-import com.meloda.concurrent.TaskManager
+import com.meloda.fast.concurrent.TaskManager
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.model.NewUpdateInfo
-import com.meloda.netservices.HttpRequest
+import com.meloda.fast.net.HttpRequest
 import org.json.JSONArray
 import org.json.JSONObject
 

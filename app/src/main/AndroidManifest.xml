@@ -26,20 +26,6 @@
             android:name=".service.LongPollService"
             android:enabled="true" />
 
-        <activity android:name=".activity.MessagesActivityDeprecated" />
-
-        <activity
-            android:name=".activity.LoginActivityDeprecated"
-            android:label="@string/activity_login" />
-
-        <activity android:name=".activity.DropUserDataActivity" />
-
-        <activity
-            android:name=".activity.SettingsActivityDeprecated"
-            android:label="@string/navigation_settings" />
-
-        <activity android:name=".activity.UpdateActivityDeprecated" />
-
         <receiver
             android:name=".receiver.MinuteReceiver"
             android:enabled="true">

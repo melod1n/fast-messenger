@@ -11,11 +11,10 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
-import com.meloda.extensions.ContextExtensions.drawable
-import com.meloda.extensions.DrawableExtensions.tint
-import com.meloda.extensions.FloatExtensions.int
+import com.meloda.fast.extensions.ContextExtensions.drawable
+import com.meloda.fast.extensions.DrawableExtensions.tint
+import com.meloda.fast.extensions.FloatExtensions.int
 import com.meloda.fast.R
-import com.meloda.fast.base.BaseAdapter
 import com.meloda.fast.util.AndroidUtils
 
 @Suppress("UNCHECKED_CAST")
@@ -25,8 +24,6 @@ class NoItemsView @JvmOverloads constructor(
 
     private lateinit var noItemsPicture: ImageView
     private lateinit var noItemsTextView: TextView
-
-    private var recyclerView: RecyclerView? = null
 
     private val textViewParams
         get() = LayoutParams(
@@ -127,16 +124,6 @@ class NoItemsView @JvmOverloads constructor(
 
     fun setNoItemsTextColor(@ColorInt color: Int) {
         noItemsTextView.setTextColor(color)
-    }
-
-    fun syncWith(recyclerView: RecyclerView) {
-        this.recyclerView = recyclerView
-
-        recyclerView.noItemsView = this
-    }
-
-    fun <ITEM, VH, ADAPTER : BaseAdapter<ITEM, VH>> updateState(adapter: ADAPTER) {
-        if (adapter.isEmpty()) show() else hide()
     }
 
     fun show() {

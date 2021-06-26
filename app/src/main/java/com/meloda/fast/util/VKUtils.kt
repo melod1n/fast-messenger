@@ -4,17 +4,16 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
-import com.amulyakhare.textdrawable.TextDrawable
-import com.meloda.concurrent.TaskManager
-import com.meloda.extensions.ContextExtensions.color
-import com.meloda.extensions.ContextExtensions.drawable
-import com.meloda.extensions.DrawableExtensions.tint
-import com.meloda.extensions.StringExtensions.lowerCase
+import com.meloda.fast.concurrent.TaskManager
+import com.meloda.fast.extensions.ContextExtensions.color
+import com.meloda.fast.extensions.ContextExtensions.drawable
+import com.meloda.fast.extensions.DrawableExtensions.tint
+import com.meloda.fast.extensions.StringExtensions.lowerCase
 import com.meloda.fast.R
+import com.meloda.fast.api.model.*
 import com.meloda.fast.common.AppGlobal
-import com.meloda.vksdk.OnResponseListener
-import com.meloda.vksdk.model.*
-import com.meloda.vksdk.util.VKUtil
+import com.meloda.fast.api.OnResponseListener
+import com.meloda.fast.api.util.VKUtil
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -73,14 +72,14 @@ object VKUtils {
         return getUserOnlineIcon(context, null, user)
     }
 
-    fun getAvatarPlaceholder(context: Context, dialogTitle: String): TextDrawable {
-        return TextDrawable.builder().buildRound(
-            if (dialogTitle.isEmpty()) "" else {
-                TextUtils.getFirstLetterFromString(dialogTitle)
-            },
-            context.color(R.color.accent)
-        )
-    }
+    //    fun getAvatarPlaceholder(context: Context, dialogTitle: String): TextDrawable {
+//        return TextDrawable.builder().buildRound(
+//            if (dialogTitle.isEmpty()) "" else {
+//                TextUtils.getFirstLetterFromString(dialogTitle)
+//            },
+//            context.color(R.color.accent)
+//        )
+//    }
 
     @Deprecated("")
     @WorkerThread

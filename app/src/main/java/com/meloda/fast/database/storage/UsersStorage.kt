@@ -25,8 +25,8 @@ import com.meloda.fast.database.DatabaseUtils.TABLE_FRIENDS
 import com.meloda.fast.database.DatabaseUtils.TABLE_USERS
 import com.meloda.fast.database.QueryBuilder
 import com.meloda.fast.database.base.Storage
-import com.meloda.vksdk.model.VKUser
-import com.meloda.vksdk.util.VKUtil
+import com.meloda.fast.api.model.VKUser
+import com.meloda.fast.api.util.VKUtil
 import org.json.JSONObject
 
 @WorkerThread

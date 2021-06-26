@@ -2,32 +2,18 @@ package com.meloda.fast.common
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.app.DownloadManager
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.database.sqlite.SQLiteDatabase
-import android.net.ConnectivityManager
 import android.os.Handler
-import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
-import com.facebook.drawee.backends.pipeline.Fresco
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.UserConfig
-import com.meloda.fast.database.CacheStorage
 import com.meloda.fast.database.DatabaseHelper
-import com.meloda.fast.fragment.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.mvp.MvpBase
-import com.microsoft.appcenter.AppCenter
-import com.microsoft.appcenter.analytics.Analytics
-import com.microsoft.appcenter.crashes.Crashes
 import org.acra.ACRA
 import org.acra.ReportingInteractionMode
 import org.acra.annotation.ReportsCrashes
@@ -46,13 +32,6 @@ import java.util.*
 class AppGlobal : Application() {
 
     companion object {
-        const val APP_CENTER_TOKEN = "c87e410a-d622-4c52-ad7e-7388ab511704"
-
-        lateinit var windowManager: WindowManager
-        lateinit var connectivityManager: ConnectivityManager
-        lateinit var inputMethodManager: InputMethodManager
-        lateinit var clipboardManager: ClipboardManager
-        lateinit var downloadManager: DownloadManager
 
         lateinit var preferences: SharedPreferences
         lateinit var locale: Locale
@@ -82,14 +61,8 @@ class AppGlobal : Application() {
         instance = this
 
         if (!BuildConfig.DEBUG) {
-            AppCenter.start(
-                this, APP_CENTER_TOKEN, Analytics::class.java, Crashes::class.java
-            )
-
             ACRA.init(this)
         }
-
-        Fresco.initialize(this)
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         handler = Handler(mainLooper)
@@ -106,62 +79,10 @@ class AppGlobal : Application() {
         Companion.packageName = packageName
         Companion.packageManager = packageManager
 
-        inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
         screenWidth = AndroidUtils.getDisplayWidth()
         screenHeight = AndroidUtils.getDisplayHeight()
 
         UserConfig.restore()
-
-        MvpBase.init(handler)
-
-        logDatabase()
-        fillMemoryCache()
-
-        applyNightMode()
-    }
-
-    private fun logDatabase() {
-        val users = CacheStorage.usersStorage.getAllValues()
-        val groups = CacheStorage.groupsStorage.getAllValues()
-        val chats = CacheStorage.chatsStorage.getAllValues()
-        val messages = CacheStorage.messagesStorage.getAllValues()
-
-        return
-    }
-
-    private fun fillMemoryCache() {
-
-    }
-
-    fun applyNightMode(value: String? = null): Int {
-        val mode = value ?: preferences.getString(SettingsFragment.KEY_THEME, "-1")!!
-
-        val nightMode = getNightMode(mode.toInt())
-
-        val oldNightMode = AppCompatDelegate.getDefaultNightMode()
-
-        AppCompatDelegate.setDefaultNightMode(nightMode)
-
-        return nightMode
-    }
-
-    fun getNightMode(nightMode: Int = -1): Int {
-        val mode = if (nightMode != -1) nightMode else preferences.getString(
-            SettingsFragment.KEY_THEME,
-            "-1"
-        )!!.toInt()
-
-        return when (mode) {
-            1 -> AppCompatDelegate.MODE_NIGHT_YES
-            2 -> AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
-            3 -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            else -> AppCompatDelegate.MODE_NIGHT_NO
-        }
     }
 
 }

@@ -26,13 +26,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="0">
 
-            <com.facebook.drawee.view.SimpleDraweeView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/conversationAvatar"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:layout_gravity="bottom|end"
-                app:fadeDuration="150"
-                app:roundAsCircle="true"
                 tools:actualImageResource="@color/accent"
                 tools:src="?colorAccent" />
 
@@ -94,14 +92,12 @@
                 android:minHeight="26dp"
                 android:orientation="horizontal">
 
-                <com.facebook.drawee.view.SimpleDraweeView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/conversationUserAvatar"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center_vertical"
                     android:layout_marginStart="6dp"
-                    app:fadeDuration="150"
-                    app:roundAsCircle="true"
                     tools:actualImageResource="@color/accent"
                     tools:src="?colorAccent"
                     tools:visibility="visible" />
@@ -141,7 +137,7 @@
             android:paddingStart="6dp"
             android:paddingEnd="6dp">
 
-            <com.meloda.fast.widget.CircleImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/conversationOut"
                 android:layout_width="10dp"
                 android:layout_height="10dp"

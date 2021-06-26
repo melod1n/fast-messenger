@@ -1,9 +1,9 @@
 package com.meloda.fast.util
 
 import android.content.Context
-import com.meloda.arrayutils.ArrayUtils.isNullOrEmpty
+import com.meloda.fast.util.ArrayUtils.isNullOrEmpty
 import com.meloda.fast.R
-import com.meloda.netservices.io.BytesOutputStream
+import com.meloda.fast.io.BytesOutputStream
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.ObjectInputStream

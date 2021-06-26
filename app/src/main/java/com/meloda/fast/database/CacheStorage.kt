@@ -12,9 +12,9 @@ import com.meloda.fast.database.storage.ChatsStorage
 import com.meloda.fast.database.storage.GroupsStorage
 import com.meloda.fast.database.storage.MessagesStorage
 import com.meloda.fast.database.storage.UsersStorage
-import com.meloda.vksdk.model.VKConversation
-import com.meloda.vksdk.model.VKMessage
-import com.meloda.vksdk.model.VKUser
+import com.meloda.fast.api.model.VKConversation
+import com.meloda.fast.api.model.VKMessage
+import com.meloda.fast.api.model.VKUser
 import java.util.*
 
 object CacheStorage {

@@ -15,7 +15,6 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
-import com.facebook.drawee.view.SimpleDraweeView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.theme.overlay.MaterialThemeOverlay
 import com.meloda.fast.R
@@ -97,7 +96,7 @@ class Toolbar : MaterialToolbar {
     }
 
     fun setAvatarIcon(@DrawableRes resId: Int) {
-        findViewById<SimpleDraweeView>(R.id.toolbarAvatar).setActualImageResource(resId)
+//        findViewById<SimpleDraweeView>(R.id.toolbarAvatar).setActualImageResource(resId)
     }
 
     fun setAvatarClickListener(listener: OnClickListener?) {
@@ -108,9 +107,9 @@ class Toolbar : MaterialToolbar {
         findViewById<View>(R.id.toolbarAvatar).visibility = if (visible) VISIBLE else GONE
     }
 
-    fun getAvatar(): SimpleDraweeView {
-        return findViewById(R.id.toolbarAvatar)
-    }
+//    fun getAvatar(): SimpleDraweeView {
+//        return findViewById(R.id.toolbarAvatar)
+//    }
 
     fun setTitleMode(titleMode: TitleMode) {
         val title = findViewById<TextView>(R.id.toolbarTitle)

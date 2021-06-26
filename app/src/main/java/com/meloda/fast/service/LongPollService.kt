@@ -6,13 +6,13 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.collection.arrayMapOf
-import com.meloda.concurrent.LowThread
 import com.meloda.fast.UserConfig
 import com.meloda.fast.VKLongPollParser
+import com.meloda.fast.api.VKApi
+import com.meloda.fast.api.model.VKLongPollServer
+import com.meloda.fast.concurrent.LowThread
+import com.meloda.fast.net.HttpRequest
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.netservices.HttpRequest
-import com.meloda.vksdk.VKApi
-import com.meloda.vksdk.model.VKLongPollServer
 import org.json.JSONArray
 import org.json.JSONObject
 

@@ -23,9 +23,9 @@ import com.meloda.fast.database.DatabaseKeys.TEXT
 import com.meloda.fast.database.DatabaseUtils.TABLE_MESSAGES
 import com.meloda.fast.database.base.Storage
 import com.meloda.fast.util.Utils
-import com.meloda.vksdk.model.VKMessage
-import com.meloda.vksdk.model.VKMessageAction
-import com.meloda.vksdk.model.VKModel
+import com.meloda.fast.api.model.VKMessage
+import com.meloda.fast.api.model.VKMessageAction
+import com.meloda.fast.api.model.VKModel
 import java.util.stream.Collectors
 
 @WorkerThread

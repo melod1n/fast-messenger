@@ -3,8 +3,6 @@ package com.meloda.fast.common
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.meloda.fast.R
-import com.meloda.fast.fragment.FragmentConversationsDeprecated
-import com.meloda.fast.fragment.FragmentFriendsDeprecated
 
 object FragmentSwitcher {
 
@@ -62,8 +60,7 @@ object FragmentSwitcher {
         val transaction = fragmentManager.beginTransaction()
 
         if (fragmentToShow == null) {
-            fragmentToShow = createFragmentByTag(tag)
-            transaction.add(containerId, fragmentToShow, tag)
+            throw NullPointerException("Required fragment is null")
         } else {
             transaction.show(fragmentToShow)
         }
@@ -104,13 +101,5 @@ object FragmentSwitcher {
         }
 
         transaction.commitNow()
-    }
-
-    private fun createFragmentByTag(tag: String): Fragment {
-        return when (tag) {
-            "FragmentFriends" -> FragmentFriendsDeprecated()
-            "FragmentConversations" -> FragmentConversationsDeprecated()
-            else -> Fragment()
-        }
     }
 }

@@ -1,33 +1,48 @@
 package com.meloda.fast.base
 
-import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
-import com.meloda.extensions.ContextExtensions.color
-import com.meloda.fast.R
-import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.ColorUtils
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import com.google.android.material.snackbar.Snackbar
 
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity, LifecycleOwner {
+
+    constructor() : super()
+
+    constructor(@LayoutRes resId: Int) : super(resId)
+
+    protected lateinit var lifecycleRegistry: LifecycleRegistry
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
-            val navigationBarColor =
-                if (AndroidUtils.isDarkTheme()) {
-                    color(R.color.dark_primaryDark)
-                } else {
-                    ColorUtils.darkenColor(color(R.color.primaryDark))
-                }
-
-            window.navigationBarColor = navigationBarColor
-        }
+        lifecycleRegistry = LifecycleRegistry(this)
+        lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
 
-    fun getRootView(): View {
-        return findViewById(android.R.id.content)
+    override fun onStart() {
+        super.onStart()
+        lifecycleRegistry.currentState = Lifecycle.State.STARTED
     }
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+    }
+
+    val rootView: View? get() = findViewById(android.R.id.content)
+
+    fun requireRootView() = rootView!!
+
+    var errorSnackbar: Snackbar? = null
 
 }

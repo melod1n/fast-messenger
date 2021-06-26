@@ -7,12 +7,11 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
-import com.meloda.extensions.ContextExtensions.color
+import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.R
 import com.meloda.fast.widget.CircleImageView
-import com.meloda.vksdk.model.VKUser
-import com.meloda.vksdk.util.VKUtil
-import com.squareup.picasso.Picasso
+import com.meloda.fast.api.model.VKUser
+import com.meloda.fast.api.util.VKUtil
 
 
 object ViewUtils {
@@ -47,7 +46,7 @@ object ViewUtils {
         val profileAvatar: CircleImageView = view.findViewById(R.id.headerAvatar)
 
         if (AndroidUtils.hasConnection()) {
-            Picasso.get().load(VKUtil.getUserPhoto(user)).into(profileAvatar)
+//            Picasso.get().load(VKUtil.getUserPhoto(user)).into(profileAvatar)
         } else {
             profileAvatar.setImageDrawable(ColorDrawable(view.context.color(R.color.accent)))
         }

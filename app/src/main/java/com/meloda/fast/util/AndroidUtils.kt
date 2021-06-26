@@ -1,10 +1,8 @@
 package com.meloda.fast.util
 
-import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -38,18 +36,20 @@ object AndroidUtils {
         }
     }
 
+    //TODO
     fun hasConnection(): Boolean {
-        val network = AppGlobal.connectivityManager.activeNetwork ?: return false
-        val activeNetwork =
-            AppGlobal.connectivityManager.getNetworkCapabilities(network) ?: return false
-
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-            else -> false
-        }
+        return false
+//        val network = AppGlobal.connectivityManager.activeNetwork ?: return false
+//        val activeNetwork =
+//            AppGlobal.connectivityManager.getNetworkCapabilities(network) ?: return false
+//
+//        return when {
+//            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+//            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+//            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+//            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
+//            else -> false
+//        }
     }
 
     fun getDisplayWidth(): Int {
@@ -88,8 +88,9 @@ object AndroidUtils {
         })
     }
 
+    //TODO
     fun copyText(label: String? = "", text: String) {
-        AppGlobal.clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))
+//        AppGlobal.clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))
     }
 
     fun getThemeAttrColor(context: Context, @AttrRes resId: Int): Int {
