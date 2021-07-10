@@ -1,2 +1,2 @@
-rootProject.name = "Fast"
+rootProject.name = "fast-messenger"
 include(":app")

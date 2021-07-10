@@ -10,32 +10,26 @@ object UserConfig {
 
     const val API_ID = "6964679"
 
-    var token = ""
-    var userId = 0
+    var userId: Int = -1
+        get() = AppGlobal.preferences.getInt(USER_ID, -1)
+        set(value) {
+            field = value
+            AppGlobal.preferences.edit().putInt(USER_ID, value).apply()
+        }
 
-    fun save() {
-        AppGlobal.preferences.edit()
-            .putString(TOKEN, token)
-            .putInt(USER_ID, userId)
-            .apply()
-    }
-
-    fun restore() {
-        token = AppGlobal.preferences.getString(TOKEN, "") ?: ""
-        userId = AppGlobal.preferences.getInt(USER_ID, -1)
-    }
+    var accessToken: String = ""
+        get() = AppGlobal.preferences.getString(TOKEN, "") ?: ""
+        set(value) {
+            field = value
+            AppGlobal.preferences.edit().putString(TOKEN, value).apply()
+        }
 
     fun clear() {
-        token = ""
+        accessToken = ""
         userId = -1
-
-        AppGlobal.preferences.edit()
-            .remove(TOKEN)
-            .remove(USER_ID)
-            .apply()
     }
 
     fun isLoggedIn(): Boolean {
-        return userId > 0 && !TextUtils.isEmpty(token)
+        return userId > 0 && !TextUtils.isEmpty(accessToken)
     }
 }

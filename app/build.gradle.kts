@@ -2,18 +2,26 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-kapt")
+    id("androidx.navigation.safeargs.kotlin")
+    id("dagger.hilt.android.plugin")
 }
 
 android {
-    compileSdkVersion(ConfigData.compileSdkVersion)
-    buildToolsVersion(ConfigData.buildToolsVersion)
+    compileSdkVersion(30)
+    buildToolsVersion("30.0.3")
 
     defaultConfig {
         applicationId = "com.meloda.fast"
-        minSdkVersion(ConfigData.minSdkVersion)
-        targetSdkVersion(ConfigData.targetSdkVersion)
-        versionCode = ConfigData.versionCode
-        versionName = ConfigData.versionName
+        minSdkVersion(23)
+        targetSdkVersion(30)
+        versionCode = 1
+        versionName = "1.0"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+            }
+        }
     }
 
     buildTypes {
@@ -43,53 +51,62 @@ android {
         dataBinding = true
         viewBinding = true
     }
+
 }
 
-java {
-    val kotlinSrcDir = "src/main/kotlin"
-    println(sourceSets.names)
-//    val mainJavaSourceSet: SourceDirectorySet = sourceSets.getByName("main").java
-//    mainJavaSourceSet.srcDir(kotlinSrcDir)
-//    println(mainJavaSourceSet.srcDirs)
+kapt {
+    correctErrorTypes = true
+
+    //use this shit if you don't want to have hilt errors
+    javacOptions {
+        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
+    }
 }
-
-//java.sourceSets.create("src/main/kotlin")
-
-//sourceSets {
-//    main.java.srcDirs += "src/main/kotlin"
-//}
 
 dependencies {
-    implementation(Deps.kotlin)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.20")
 
-    coreLibraryDesugaring(Deps.desugaring)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
 
-    implementation(Deps.appCompat)
-    implementation(Deps.material)
-    implementation(Deps.core)
-    implementation(Deps.preferences)
-    implementation(Deps.swipeRefreshLayout)
-    implementation(Deps.recyclerView)
-    implementation(Deps.cardView)
-    implementation(Deps.fragment)
+    implementation("androidx.appcompat:appcompat:1.4.0-alpha03")
+    implementation("com.google.android.material:material:1.4.0")
+    implementation("androidx.core:core-ktx:1.7.0-alpha01")
+    implementation("androidx.preference:preference-ktx:1.1.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
+    implementation("androidx.recyclerview:recyclerview:1.2.1")
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.5")
 
-    implementation(Deps.coroutineCore)
-    implementation(Deps.coroutineAndroid)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1")
 
-    implementation(Deps.roomRuntime)
-    kapt(Deps.roomCompiler)
+    implementation("androidx.room:room-runtime:2.3.0")
+    kapt("androidx.room:room-compiler:2.3.0")
 
-    implementation(Deps.gson)
-    implementation(Deps.jsoup)
-    implementation(Deps.acra)
+    implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
+    implementation("androidx.navigation:navigation-ui-ktx:2.3.5")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
+
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.google.dagger:hilt-android:2.37")
+    kapt("com.google.dagger:hilt-android-compiler:2.37")
+    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
+
     implementation("com.github.yogacp:android-viewbinding:1.0.2")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifecycle}")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:${Versions.lifecycle}")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:${Versions.lifecycle}")
-    implementation("androidx.lifecycle:lifecycle-common-java8:${Versions.lifecycle}")
+    implementation("io.coil-kt:coil:1.2.2")
 
-    implementation("com.squareup.retrofit2:retrofit:${Versions.retrofit}")
-    implementation("com.squareup.retrofit2:converter-gson:${Versions.retrofit}")
+    implementation("com.google.code.gson:gson:2.8.7")
+    implementation("org.jsoup:jsoup:1.14.1")
+    implementation("ch.acra:acra:4.11.1")
+
 }

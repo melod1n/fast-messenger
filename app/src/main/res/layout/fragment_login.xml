@@ -1,135 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/loginRoot"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/loginRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:orientation="vertical">
 
-        <RelativeLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/loginCard"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:minWidth="380dp"
-                app:cardCornerRadius="9dp"
-                app:cardElevation="0dp"
-                app:strokeColor="?dividerHorizontal"
-                app:strokeWidth="2dp">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:id="@+id/logoContainer"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/ic_logo_fast_border">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/logoImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:padding="42dp"
+                        android:src="@drawable/ic_fast_lightning"
+                        app:tint="?colorAccent" />
+                </FrameLayout>
 
                 <LinearLayout
-                    android:id="@+id/loginCardLayout"
+                    android:id="@+id/loginContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginTop="48dp"
+                    android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/loginLogoText"
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/loginImage"
+                        style="@style/AppTheme.Login.EditText.Icon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="12dp"
-                        android:fontFamily="@font/google_sans_regular"
-                        android:text="@string/fast_messenger"
-                        android:textColor="@color/login_secondary_color"
-                        android:textSize="26sp" />
+                        android:layout_marginTop="16dp"
+                        android:src="@drawable/ic_baseline_account_circle_24"
+                        app:tint="?colorAccent" />
 
-                    <FrameLayout
-                        android:id="@+id/loginLogoContainer"
-                        android:layout_width="176dp"
-                        android:layout_height="176dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/ic_logo_fast_border">
-
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:id="@+id/loginLogoImage"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_fast_lightning"
-                            app:tint="?colorAccent" />
-
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:id="@+id/loginEmailContainer"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/loginLayout"
+                        style="@style/Widget.TextInputLayout.NoError.Dense"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
-                        android:orientation="horizontal">
+                        android:layout_height="wrap_content">
 
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:id="@+id/loginEmailImage"
-                            style="@style/AppTheme.Login.EditText.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/ic_email" />
-
-                        <androidx.appcompat.widget.AppCompatEditText
-                            android:id="@+id/loginEmailEditText"
-                            style="@style/AppTheme.Login.EditText"
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/loginInput"
                             android:layout_width="match_parent"
-                            android:hint="@string/email_login_hint"
+                            android:layout_height="48dp"
+                            android:hint="@string/login_hint"
                             android:imeOptions="actionGo"
-                            android:inputType="textEmailAddress" />
+                            android:inputType="textEmailAddress"
+                            android:textCursorDrawable="@null" />
 
-                    </LinearLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <LinearLayout
-                        android:id="@+id/loginPasswordContainer"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/activity_vertical_margin"
-                        android:orientation="horizontal">
-
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:id="@+id/loginPasswordImage"
-                            style="@style/AppTheme.Login.EditText.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/ic_key" />
-
-                        <androidx.appcompat.widget.AppCompatEditText
-                            android:id="@+id/loginPasswordEditText"
-                            style="@style/AppTheme.Login.EditText"
-                            android:layout_width="match_parent"
-                            android:hint="@string/password_login_hint"
-                            android:inputType="textPassword" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/loginAuthorize"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="60dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="12dp"
-                        android:fontFamily="@font/google_sans_regular"
-                        android:letterSpacing="0"
-                        android:paddingStart="36dp"
-                        android:paddingEnd="36dp"
-                        android:text="@string/log_in"
-                        android:textColor="@color/login_button_text_color"
-                        android:textSize="14sp"
-                        app:backgroundTint="?colorAccent"
-                        app:cornerRadius="50dp" />
 
                 </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
+                <LinearLayout
+                    android:id="@+id/passwordContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:orientation="horizontal">
 
-        </RelativeLayout>
-    </androidx.core.widget.NestedScrollView>
-</androidx.appcompat.widget.LinearLayoutCompat>
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/passwordImage"
+                        style="@style/AppTheme.Login.EditText.Icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:src="@drawable/ic_key"
+                        app:tint="?colorAccent" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/passwordLayout"
+                        style="@style/Widget.TextInputLayout.NoError.Dense"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="?colorAccent">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/passwordInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:hint="@string/password_login_hint"
+                            android:inputType="textPassword"
+                            android:textCursorDrawable="@null" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/authorize"
+                    style="@style/Widget.MaterialButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center_horizontal|bottom"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/google_sans_medium"
+                    android:letterSpacing="0"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/log_in"
+                    android:textColor="?colorAccent"
+                    android:textSize="14sp"
+                    app:backgroundTint="?colorSurface"
+                    app:cornerRadius="50dp"
+                    app:elevation="16dp"
+                    app:icon="@drawable/ic_arrow_end"
+                    app:iconGravity="end"
+                    app:iconTint="?colorAccent"
+                    app:rippleColor="?colorAccent" />
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</layout>

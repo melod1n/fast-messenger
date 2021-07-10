@@ -11,9 +11,9 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
-import com.meloda.fast.UserConfig
 import com.meloda.fast.database.DatabaseHelper
 import com.meloda.fast.util.AndroidUtils
+import dagger.hilt.android.HiltAndroidApp
 import org.acra.ACRA
 import org.acra.ReportingInteractionMode
 import org.acra.annotation.ReportsCrashes
@@ -29,6 +29,7 @@ import java.util.*
     resDialogPositiveButtonText = R.string.send_crash_report,
     resDialogNegativeButtonText = R.string.ok
 )
+@HiltAndroidApp
 class AppGlobal : Application() {
 
     companion object {
@@ -81,8 +82,6 @@ class AppGlobal : Application() {
 
         screenWidth = AndroidUtils.getDisplayWidth()
         screenHeight = AndroidUtils.getDisplayHeight()
-
-        UserConfig.restore()
     }
 
 }

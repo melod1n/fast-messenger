@@ -153,5 +153,6 @@
     <string name="captcha_hint">Captcha</string>
     <string name="input_captcha">Input code from picture</string>
 
+    <string name="login_hint">Login</string>
 
 </resources>

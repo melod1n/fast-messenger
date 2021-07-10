@@ -29,12 +29,12 @@ object VKAuth {
 
     fun getDirectAuthUrl(login: String, password: String, captcha: String = ""): String {
         return "https://oauth.vk.com/token?grant_type=password&" +
-                "client_id=6146827&" +
+                "client_id=${VKConstants.VK_APP_ID}&" +
                 "scope=$settings&" +
-                "client_secret=qVxWRF1CwHERuIrKBnqe&" +
+                "client_secret=${VKConstants.VK_APP_SECRET}&" +
                 "username=$login&" +
                 "password=$password" +
-                (if (captcha.isEmpty()) "" else "&$captcha") +
+                (if (captcha.isBlank()) "" else "&$captcha") +
                 "&v=${VKApi.API_VERSION}"
 //        return "https://oauth.vk.com/token?grant_type=password&" +
 //                "client_id=2274003&" +
@@ -61,20 +61,19 @@ object VKAuth {
                 "v=${URLEncoder.encode(VKApi.API_VERSION, "utf-8")}"
     }
 
-    @Throws(Exception::class)
-    fun parseRedirectUrl(url: String): Array<String> {
-        val accessToken = VKUtil.extractPattern(url, "access_token=(.*?)&")
-        val userId = VKUtil.extractPattern(url, "user_id=(\\d*)")
+    fun parseRedirectUrl(url: String): Pair<String, Int> {
+        val accessToken = VKUtil.extractPattern(url, "access_token=(.*?)&") ?: ""
+        val userId = VKUtil.extractPattern(url, "user_id=(\\d*)")?.toIntOrNull() ?: -1
 
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "access_token=$accessToken")
             Log.i(TAG, "user_id=$userId")
         }
 
-        if (userId == null || userId.isEmpty() || accessToken == null || accessToken.isEmpty()) throw Exception(
-            "Failed to parse redirect url $url"
+        if (accessToken.isEmpty() || userId == -1) throw Exception(
+            "Failed to parse redirect url: $url"
         )
 
-        return arrayOf(accessToken, userId)
+        return accessToken to userId
     }
 }

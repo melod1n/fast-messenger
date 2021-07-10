@@ -1,0 +1,33 @@
+package com.meloda.fast.base
+
+import android.os.Bundle
+import android.view.View
+import androidx.annotation.LayoutRes
+import androidx.lifecycle.lifecycleScope
+import com.meloda.fast.base.viewmodel.BaseVM
+import com.meloda.fast.base.viewmodel.VKEvent
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collect
+
+abstract class BaseVMFragment<VM : BaseVM> : BaseFragment {
+
+    constructor() : super()
+
+    constructor(@LayoutRes resId: Int) : super(resId)
+
+    protected abstract val viewModel: VM
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.tasksEvent.onEach { onEvent(it) }.collect()
+        }
+    }
+
+    protected open fun onEvent(event: VKEvent) {
+        when (event) {
+
+        }
+    }
+
+}
