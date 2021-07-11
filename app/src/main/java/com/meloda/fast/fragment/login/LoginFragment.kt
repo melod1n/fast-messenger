@@ -59,9 +59,6 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         setFragmentResultListener("validation") { _, bundle ->
             lifecycleScope.launch { viewModel.getValidatedData(bundle) }
         }
-
-        binding.loginInput.setText("danil_nikolaev_02@mail.ru")
-        binding.passwordInput.setText("iwanttofuck24")
     }
 
     override fun onEvent(event: VKEvent) {
