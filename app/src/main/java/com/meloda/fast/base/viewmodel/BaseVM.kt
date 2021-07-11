@@ -27,4 +27,7 @@ abstract class BaseVM : ViewModel() {
             )
         }
     }.also { it.invokeOnCompletion { viewModelScope.launch { onEnd?.invoke() } } }
+
+    protected suspend fun <T : VKEvent> sendEvent(event: T) = tasksEventChannel.send(event)
+
 }

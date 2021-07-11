@@ -1,5 +1,6 @@
 package com.meloda.fast.fragment.login
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Gravity
 import android.view.KeyEvent
@@ -7,9 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
+import android.webkit.CookieManager
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -21,11 +24,15 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseVMFragment
+import com.meloda.fast.base.viewmodel.StartProgressEvent
+import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.FragmentLoginBinding
+import com.meloda.fast.fragment.main.MainFragment
 import com.meloda.fast.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.concurrent.schedule
@@ -45,7 +52,7 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.checkUserSession()
+        (parentFragment?.parentFragment as? MainFragment)?.bottomBar?.isVisible = false
 
         prepareViews()
 
@@ -63,14 +70,47 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         when (event) {
             is ShowCaptchaDialog -> showCaptchaDialog(event.captchaImage, event.captchaSid)
             is GoToValidationEvent -> goToValidation(event.redirectUrl)
-            GoToMainEvent -> goToMain()
+            is GoToMainEvent -> goToMain(event.haveAuthorized)
+            StartProgressEvent -> onProgressStarted()
+            StopProgressEvent -> onProgressEnded()
         }
     }
 
+    private fun onProgressStarted() {
+        binding.loginContainer.isVisible = false
+        binding.passwordContainer.isVisible = false
+        binding.auth.isVisible = false
+        binding.progress.isVisible = true
+    }
+
+    private fun onProgressEnded() {
+        binding.loginContainer.isVisible = true
+        binding.passwordContainer.isVisible = true
+        binding.auth.isVisible = true
+        binding.progress.isVisible = false
+    }
+
     private fun prepareViews() {
+        prepareWebView()
         prepareEmailEditText()
         preparePasswordEditText()
         prepareAuthButton()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun prepareWebView() {
+        with(binding.webView) {
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.loadsImagesAutomatically = false
+            settings.userAgentString = "Chrome/41.0.2228.0 Safari/537.36"
+            clearCache(true)
+        }
+
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+        cookieManager.setAcceptCookie(false)
     }
 
     private fun prepareEmailEditText() {
@@ -98,21 +138,30 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
                 (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
             ) {
                 KeyboardUtils.hideKeyboardFrom(binding.passwordInput)
-                binding.authorize.performClick()
+                binding.auth.performClick()
                 true
             } else false
         }
     }
 
     private fun prepareAuthButton() {
-        binding.authorize.setOnClickListener {
+        binding.auth.setOnClickListener {
+            if (binding.progress.isVisible) return@setOnClickListener
+
             val loginString = binding.loginInput.text.toString().trim()
             val passwordString = binding.passwordInput.text.toString().trim()
 
             if (!validateInputData(loginString, passwordString)) return@setOnClickListener
 
-            viewModel.login(requireContext(), loginString, passwordString)
             KeyboardUtils.hideKeyboardFrom(it)
+
+            lifecycleScope.launch {
+                viewModel.login(
+                    binding.webView,
+                    loginString,
+                    passwordString
+                )
+            }
         }
     }
 
@@ -193,17 +242,18 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         builder.setPositiveButton(android.R.string.ok) { _, _ ->
             val captchaCode = captchaCodeEditText.text.toString().trim()
 
-            viewModel.login(
-                requireContext(),
-                lastEmail,
-                lastPassword,
-                "&captcha_sid=$captchaSid&captcha_key=$captchaCode"
-            )
+            lifecycleScope.launch {
+                viewModel.login(
+                    binding.webView,
+                    lastEmail,
+                    lastPassword,
+                    "&captcha_sid=$captchaSid&captcha_key=$captchaCode"
+                )
+            }
         }
 
         builder.setTitle(R.string.input_captcha)
         builder.show()
-
     }
 
     private fun goToValidation(redirectUrl: String) {
@@ -213,8 +263,12 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         )
     }
 
-    private fun goToMain() {
-        findNavController().navigate(R.id.toMain)
+    private fun goToMain(haveAuthorized: Boolean) {
+        lifecycleScope.launch {
+            if (haveAuthorized) delay(500)
+
+            findNavController().navigate(R.id.toMain)
+        }
     }
 
 }

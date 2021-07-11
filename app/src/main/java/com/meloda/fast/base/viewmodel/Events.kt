@@ -6,3 +6,6 @@ data class ShowDialogInfoEvent(
     val positiveBtn: String? = null,
     val negativeBtn: String? = null
 ) : VKEvent()
+
+object StartProgressEvent : VKEvent()
+object StopProgressEvent : VKEvent()

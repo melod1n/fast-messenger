@@ -4,6 +4,7 @@ import android.content.Intent
 import android.util.SparseArray
 import androidx.core.util.forEach
 import androidx.core.util.set
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.meloda.fast.R
+import com.meloda.fast.UserConfig
 
 /**
  * Manages the various graphs needed for a [BottomNavigationView].
@@ -22,7 +24,6 @@ object NavigationExtensions {
     fun BottomNavigationView.setupWithNavController(
         navGraphIds: List<Int>,
         fragmentManager: FragmentManager,
-//    dataManager: DataManager,
         containerId: Int,
         intent: Intent
     ): LiveData<NavController> {
@@ -71,8 +72,7 @@ object NavigationExtensions {
         val firstFragmentTag = graphIdToTagMap[firstFragmentGraphId]
         var isOnFirstFragment = selectedItemTag == firstFragmentTag
 
-        // When a navigation item is selected
-        setOnNavigationItemSelectedListener { item ->
+        setOnItemSelectedListener { item ->
             // Don't do anything if the state is state has already been saved.
             if (fragmentManager.isStateSaved) {
                 false
@@ -81,12 +81,9 @@ object NavigationExtensions {
                     (fragmentManager.findFragmentByTag(selectedItemTag) as NavHostFragment).navController
                 navController.popBackStack(navController.graph.startDestination, false)
                 if (selectedItemTag != graphIdToTagMap[item.itemId]) {
-//                val listCheck = listOf(R.id.contacts, R.id.chats)
-                    val newlySelectedItemTag =
-                        //if (listCheck.contains(item.itemId) && dataManager.token.isBlank()) graphIdToTagMap[R.id.signIn] else
-                        graphIdToTagMap[item.itemId]
+                    val newlySelectedItemTag = //graphIdToTagMap[item.itemId]
+                        if (!UserConfig.isLoggedIn()) graphIdToTagMap[R.id.login] else graphIdToTagMap[item.itemId]
 
-                    // Pop everything above the first fragment (the "fixed start destination")
                     fragmentManager.popBackStack(
                         firstFragmentTag,
                         FragmentManager.POP_BACK_STACK_INCLUSIVE
@@ -128,7 +125,8 @@ object NavigationExtensions {
                 }
             }
         }
-        setOnNavigationItemReselectedListener { item ->
+
+        setOnItemReselectedListener { item ->
             val newlySelectedItemTag = graphIdToTagMap[item.itemId]
             val selectedFragment =
                 fragmentManager.findFragmentByTag(newlySelectedItemTag) as NavHostFragment
@@ -256,6 +254,13 @@ object NavigationExtensions {
         }
         return false
     }
+
+    val FragmentManager.visibleFragments
+        get(): List<Fragment> {
+            val visibleFragments = arrayListOf<Fragment>()
+            fragments.forEach { if (it.isVisible) visibleFragments.add(it) }
+            return visibleFragments
+        }
 
     private fun getFragmentTag(index: Int) = "bottomNavigation#$index"
 }
