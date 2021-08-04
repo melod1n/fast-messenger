@@ -39,7 +39,7 @@ class VKConversation() : VKModel(), Cloneable {
     var isNoSound: Boolean = false
 
     var membersCount: Int = 0
-    var title: String = ""
+    var title: String? = null
 
     var pinnedMessage: VKMessage? = null
 
@@ -84,6 +84,7 @@ class VKConversation() : VKModel(), Cloneable {
         o.optJSONObject("chat_settings")?.let {
             membersCount = it.optInt("members_count")
             title = it.optString("title")
+            if (title?.isBlank() == true) title = null
 
             it.optJSONObject("pinned_message")?.let { pinned ->
                 pinnedMessage = VKMessage(pinned)
@@ -109,13 +110,9 @@ class VKConversation() : VKModel(), Cloneable {
 
     fun isGroup() = type == Type.GROUP
 
-    override fun toString(): String {
-        return title
-    }
+    override fun toString() = title ?: ""
 
-    public override fun clone(): VKConversation {
-        return super.clone() as VKConversation
-    }
+    public override fun clone() = super.clone() as VKConversation
 
     enum class Type(val value: String) {
         NULL("null"),

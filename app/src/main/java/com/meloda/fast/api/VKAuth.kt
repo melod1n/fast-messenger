@@ -27,14 +27,19 @@ object VKAuth {
 
     const val redirectUrl = "https://oauth.vk.com/blank.html"
 
-    fun getDirectAuthUrl(login: String, password: String, captcha: String = ""): String {
+    fun getDirectAuthUrl(
+        login: String,
+        password: String,
+        captchaSid: String? = null,
+        captchaKey: String? = null
+    ): String {
         return "https://oauth.vk.com/token?grant_type=password&" +
                 "client_id=${VKConstants.VK_APP_ID}&" +
                 "scope=$settings&" +
                 "client_secret=${VKConstants.VK_APP_SECRET}&" +
                 "username=$login&" +
                 "password=$password" +
-                (if (captcha.isBlank()) "" else "&$captcha") +
+                (if (captchaSid == null || captchaKey == null) "" else "&captcha_sid=$captchaSid&captcha_key=$captchaKey") +
                 "&v=${VKApi.API_VERSION}"
 //        return "https://oauth.vk.com/token?grant_type=password&" +
 //                "client_id=2274003&" +

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="AppTheme.ActivityAnimation" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/activity_open_enter</item>
         <item name="android:activityOpenExitAnimation">@anim/activity_open_exit</item>
@@ -11,4 +12,17 @@
         <item name="android:windowEnterAnimation">@anim/slide_up</item>
         <item name="android:windowExitAnimation">@anim/slide_down</item>
     </style>
+
+    <style name="CircleImageView">
+        <item name="cornerFamily">rounded</item>
+    </style>
+
+    <style name="CircleImageView.56">
+        <item name="cornerRadius">56dp</item>
+    </style>
+
+    <style name="CircleImageView.24">
+        <item name="cornerRadius">24dp</item>
+    </style>
+
 </resources>

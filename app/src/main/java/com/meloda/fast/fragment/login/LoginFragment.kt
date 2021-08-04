@@ -2,14 +2,11 @@ package com.meloda.fast.fragment.login
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
 import android.webkit.CookieManager
-import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -19,14 +16,15 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import coil.load
-import com.google.android.material.imageview.ShapeableImageView
-import com.google.android.material.textfield.TextInputEditText
+import coil.transform.RoundedCornersTransformation
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseVMFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.fragment.main.MainFragment
 import com.meloda.fast.util.KeyboardUtils
@@ -36,7 +34,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.concurrent.schedule
-import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
@@ -48,6 +45,7 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
     private var lastPassword: String = ""
 
     private var errorTimer: Timer? = null
+    private var captchaInputLayout: TextInputLayout? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -56,20 +54,28 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
 
         prepareViews()
 
+        binding.loginInput.clearFocus()
+
         setFragmentResultListener("validation") { _, bundle ->
             lifecycleScope.launch { viewModel.getValidatedData(bundle) }
         }
+
+//        showCaptchaDialog(
+//            "https://www.vets4pets.com/syssiteassets/species/cat/kitten/tiny-kitten-in-field.jpg?width=1040",
+//            ""
+//        )
     }
 
     override fun onEvent(event: VKEvent) {
         super.onEvent(event)
 
         when (event) {
+            is ShowError -> showErrorSnackbar(event.errorDescription)
             is ShowCaptchaDialog -> showCaptchaDialog(event.captchaImage, event.captchaSid)
             is GoToValidationEvent -> goToValidation(event.redirectUrl)
             is GoToMainEvent -> goToMain(event.haveAuthorized)
             StartProgressEvent -> onProgressStarted()
-            StopProgressEvent -> onProgressEnded()
+            StopProgressEvent -> onProgressStopped()
         }
     }
 
@@ -80,7 +86,7 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         binding.progress.isVisible = true
     }
 
-    private fun onProgressEnded() {
+    private fun onProgressStopped() {
         binding.loginContainer.isVisible = true
         binding.passwordContainer.isVisible = true
         binding.auth.isVisible = true
@@ -150,7 +156,7 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
 
             if (!validateInputData(loginString, passwordString)) return@setOnClickListener
 
-            KeyboardUtils.hideKeyboardFrom(it)
+            KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
 
             lifecycleScope.launch {
                 viewModel.login(
@@ -162,17 +168,27 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         }
     }
 
-    private fun validateInputData(loginString: String, passwordString: String): Boolean {
+    // TODO: 7/27/2021 extract strings to resources
+    private fun validateInputData(
+        loginString: String?,
+        passwordString: String?,
+        captchaCode: String? = null
+    ): Boolean {
         var isValidated = true
 
-        if (loginString.isEmpty()) {
+        if (loginString?.isEmpty() == true) {
             isValidated = false
             setError("Input login", binding.loginLayout)
         }
 
-        if (passwordString.isEmpty()) {
+        if (passwordString?.isEmpty() == true) {
             isValidated = false
             setError("Input password", binding.passwordLayout)
+        }
+
+        if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
+            isValidated = false
+            setError("Input code", captchaInputLayout!!)
         }
 
         return isValidated
@@ -198,59 +214,60 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
     private fun clearErrors() {
         binding.loginLayout.error = ""
         binding.passwordLayout.error = ""
+
+        captchaInputLayout?.error = ""
     }
 
-    // TODO: 7/10/2021 extract layout to resources
     private fun showCaptchaDialog(captchaImage: String, captchaSid: String) {
-        val metrics = resources.displayMetrics
+        val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
+        captchaInputLayout = captchaBinding.captchaLayout
 
-        val width = (metrics.widthPixels / 3.5).roundToInt()
-        val height = metrics.heightPixels / 7
-
-        val image = ShapeableImageView(requireContext()).also {
-            it.layoutParams = ViewGroup.LayoutParams(width, height)
+        captchaBinding.image.load(captchaImage) {
+            crossfade(100)
+            transformations(RoundedCornersTransformation(4f))
         }
 
-        val shapeModel = image.shapeAppearanceModel
-        image.shapeAppearanceModel = shapeModel.withCornerSize { 12f }
-
-        image.load(captchaImage) { crossfade(100) }
-
-        val captchaCodeEditText = TextInputEditText(requireContext())
-        captchaCodeEditText.setHint(R.string.captcha_hint)
-
-        captchaCodeEditText.layoutParams =
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-
         val builder = AlertDialog.Builder(requireContext())
+            .setView(captchaBinding.root)
+            .setCancelable(false)
+            .setTitle(R.string.input_captcha)
 
-        val layout = LinearLayout(requireContext())
+        val dialog = builder.show()
 
-        layout.orientation = LinearLayout.VERTICAL
-        layout.gravity = Gravity.CENTER
-        layout.addView(image)
-        layout.addView(captchaCodeEditText)
+        captchaBinding.ok.setOnClickListener {
+            val captchaCode = captchaBinding.captchaInput.text.toString().trim()
 
-        builder.setView(layout)
-        builder.setNegativeButton(android.R.string.cancel, null)
-        builder.setPositiveButton(android.R.string.ok) { _, _ ->
-            val captchaCode = captchaCodeEditText.text.toString().trim()
+            if (!validateInputData(
+                    loginString = null,
+                    passwordString = null,
+                    captchaCode = captchaCode
+                )
+            ) return@setOnClickListener
+
+            dialog.dismiss()
 
             lifecycleScope.launch {
                 viewModel.login(
-                    binding.webView,
-                    lastEmail,
-                    lastPassword,
-                    "&captcha_sid=$captchaSid&captcha_key=$captchaCode"
+                    webView = binding.webView,
+                    email = lastEmail,
+                    password = lastPassword,
+                    captchaSid = captchaSid,
+                    captchaKey = captchaCode
                 )
             }
         }
+        captchaBinding.cancel.setOnClickListener { dialog.dismiss() }
+    }
 
-        builder.setTitle(R.string.input_captcha)
-        builder.show()
+    private fun showErrorSnackbar(errorDescription: String) {
+        val snackbar = Snackbar.make(
+            requireView(),
+            getString(R.string.error, errorDescription),
+            Snackbar.LENGTH_LONG
+        )
+
+        snackbar.animationMode = Snackbar.ANIMATION_MODE_FADE
+        snackbar.show()
     }
 
     private fun goToValidation(redirectUrl: String) {

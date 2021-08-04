@@ -5,36 +5,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.RecyclerView
-import com.meloda.fast.base.BaseHolder
-import com.meloda.fast.extensions.LiveDataExtensions.add
-import com.meloda.fast.extensions.LiveDataExtensions.addAll
-import com.meloda.fast.extensions.LiveDataExtensions.clear
-import com.meloda.fast.extensions.LiveDataExtensions.get
-import com.meloda.fast.extensions.LiveDataExtensions.isEmpty
-import com.meloda.fast.extensions.LiveDataExtensions.isNotEmpty
-import com.meloda.fast.extensions.LiveDataExtensions.plusAssign
-import com.meloda.fast.extensions.LiveDataExtensions.remove
-import com.meloda.fast.extensions.LiveDataExtensions.removeAll
-import com.meloda.fast.extensions.LiveDataExtensions.removeAt
-import com.meloda.fast.extensions.LiveDataExtensions.set
-import com.meloda.fast.extensions.LiveDataExtensions.size
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 
 @Suppress("UNCHECKED_CAST", "unused", "MemberVisibilityCanBePrivate", "CanBeParameter")
-abstract class BaseAdapter<Item, VH : BaseHolder>(
+abstract class BaseAdapter<Item : BaseItem, VH : BaseHolder>(
     var context: Context,
-    values: ArrayList<Item>
-) : RecyclerView.Adapter<VH>() {
+    values: ArrayList<Item>,
+    diffUtil: DiffUtil.ItemCallback<Item>
+) : ListAdapter<Item, VH>(diffUtil) {
 
-    val cleanValues = MutableLiveData<MutableList<Item>>(arrayListOf())
-    val values = MutableLiveData<MutableList<Item>>(arrayListOf())
-
-    protected var inflater: LayoutInflater = LayoutInflater.from(context)
+    val cleanValues = arrayListOf<Item>()
+    val values = arrayListOf<Item>()
 
     init {
-        this.values.value = values
+        addAll(values)
     }
+
+    protected var inflater: LayoutInflater = LayoutInflater.from(context)
 
     var itemClickListener: OnItemClickListener? = null
     var itemLongClickListener: OnItemLongClickListener? = null
@@ -44,13 +32,13 @@ abstract class BaseAdapter<Item, VH : BaseHolder>(
         itemLongClickListener = null
     }
 
-    open fun getItem(position: Int): Item {
+    override fun getItem(position: Int): Item {
         return values[position]
     }
 
     fun add(position: Int, item: Item) {
-        values.add(item, position)
-        cleanValues.add(item, position)
+        values.add(position, item)
+        cleanValues.add(position, item)
     }
 
     fun add(item: Item) {
@@ -64,8 +52,8 @@ abstract class BaseAdapter<Item, VH : BaseHolder>(
     }
 
     fun addAll(position: Int, items: List<Item>) {
-        values.addAll(items, position)
-        cleanValues.addAll(items, position)
+        values.addAll(position, items)
+        cleanValues.addAll(position, items)
     }
 
     fun removeAll(items: List<Item>) {

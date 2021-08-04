@@ -1,6 +1,7 @@
 package com.meloda.fast.api.util
 
 import androidx.annotation.WorkerThread
+import com.meloda.fast.api.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -27,9 +28,9 @@ object VKUtil {
     }
 
     fun sortMessagesByDate(
-        values: ArrayList<com.meloda.fast.api.model.VKMessage>,
+        values: ArrayList<VKMessage>,
         firstOnTop: Boolean
-    ): ArrayList<com.meloda.fast.api.model.VKMessage> {
+    ): ArrayList<VKMessage> {
         values.sortWith { m1, m2 ->
             val d1 = m1.date
             val d2 = m2.date
@@ -45,9 +46,9 @@ object VKUtil {
     }
 
     fun sortConversationsByDate(
-        values: ArrayList<com.meloda.fast.api.model.VKConversation>,
+        values: ArrayList<VKConversation>,
         firstOnTop: Boolean
-    ): ArrayList<com.meloda.fast.api.model.VKConversation> {
+    ): ArrayList<VKConversation> {
         values.sortWith { c1, c2 ->
             val d1 = c1.lastMessage.date
             val d2 = c2.lastMessage.date
@@ -121,25 +122,29 @@ object VKUtil {
     }
 
 
-    fun getTitle(conversation: com.meloda.fast.api.model.VKConversation, peerUser: com.meloda.fast.api.model.VKUser?, peerGroup: com.meloda.fast.api.model.VKGroup?): String {
+    fun getTitle(
+        conversation: VKConversation,
+        peerUser: VKUser?,
+        peerGroup: VKGroup?
+    ): String {
         return when {
-            conversation.isUser() -> {
-                peerUser?.let { return it.toString() } ?: ""
-            }
+            conversation.isUser() -> peerUser?.let { return it.toString() } ?: ""
 
-            conversation.isGroup() -> {
-                peerGroup?.let { return it.name } ?: ""
-            }
 
-            conversation.isChat() -> {
-                conversation.title
-            }
+            conversation.isGroup() -> peerGroup?.let { return it.name } ?: ""
+
+
+            conversation.isChat() -> conversation.title ?: ""
 
             else -> ""
         }
     }
 
-    fun getMessageTitle(message: com.meloda.fast.api.model.VKMessage, fromUser: com.meloda.fast.api.model.VKUser?, fromGroup: com.meloda.fast.api.model.VKGroup?): String {
+    fun getMessageTitle(
+        message: VKMessage,
+        fromUser: VKUser?,
+        fromGroup: VKGroup?
+    ): String {
         return when {
             message.isFromUser() -> {
                 fromUser?.let { return it.toString() } ?: ""
@@ -153,7 +158,11 @@ object VKUtil {
         }
     }
 
-    fun getAvatar(conversation: com.meloda.fast.api.model.VKConversation, peerUser: com.meloda.fast.api.model.VKUser?, peerGroup: com.meloda.fast.api.model.VKGroup?): String {
+    fun getAvatar(
+        conversation: VKConversation,
+        peerUser: VKUser?,
+        peerGroup: VKGroup?
+    ): String {
         return when {
             conversation.isUser() -> {
                 peerUser?.let { return it.photo200 } ?: ""
@@ -171,7 +180,11 @@ object VKUtil {
         }
     }
 
-    fun getUserAvatar(message: com.meloda.fast.api.model.VKMessage, fromUser: com.meloda.fast.api.model.VKUser?, fromGroup: com.meloda.fast.api.model.VKGroup?): String {
+    fun getUserAvatar(
+        message: VKMessage,
+        fromUser: VKUser?,
+        fromGroup: VKGroup?
+    ): String {
         return when {
             message.isFromUser() -> {
                 fromUser?.let { return it.photo100 } ?: ""
@@ -185,7 +198,7 @@ object VKUtil {
         }
     }
 
-    fun getUserPhoto(user: com.meloda.fast.api.model.VKUser): String {
+    fun getUserPhoto(user: VKUser): String {
         if (user.photo200.isEmpty()) {
             if (user.photo100.isEmpty()) {
                 if (user.photo50.isEmpty()) {
@@ -201,7 +214,7 @@ object VKUtil {
         return ""
     }
 
-    fun getGroupPhoto(group: com.meloda.fast.api.model.VKGroup): String {
+    fun getGroupPhoto(group: VKGroup): String {
         if (group.photo200.isEmpty()) {
             if (group.photo100.isEmpty()) {
                 if (group.photo50.isEmpty()) {
@@ -218,26 +231,26 @@ object VKUtil {
     }
 
 
-    fun parseConversations(array: JSONArray): ArrayList<com.meloda.fast.api.model.VKConversation> {
-        val conversations = arrayListOf<com.meloda.fast.api.model.VKConversation>()
+    fun parseConversations(array: JSONArray): ArrayList<VKConversation> {
+        val conversations = arrayListOf<VKConversation>()
         for (i in 0 until array.length()) {
-            conversations.add(com.meloda.fast.api.model.VKConversation(array.optJSONObject(i)))
+            conversations.add(VKConversation(array.optJSONObject(i)))
         }
 
         return conversations
     }
 
-    fun parseMessages(array: JSONArray): ArrayList<com.meloda.fast.api.model.VKMessage> {
-        val messages = arrayListOf<com.meloda.fast.api.model.VKMessage>()
+    fun parseMessages(array: JSONArray): ArrayList<VKMessage> {
+        val messages = arrayListOf<VKMessage>()
         for (i in 0 until array.length()) {
-            messages.add(com.meloda.fast.api.model.VKMessage(array.optJSONObject(i)))
+            messages.add(VKMessage(array.optJSONObject(i)))
         }
 
         return messages
     }
 
     fun isMessageHasFlag(mask: Int, flagName: String): Boolean {
-        val o: Any? = com.meloda.fast.api.model.VKMessage.flags[flagName]
+        val o: Any? = VKMessage.flags[flagName]
         return if (o != null) { //has flag
             val flag = o as Int
             flag and mask > 0
@@ -248,8 +261,8 @@ object VKUtil {
     //fromUser and fromGroup are null
     @Deprecated("need to rewrite")
     @WorkerThread
-    fun parseLongPollMessage(array: JSONArray): com.meloda.fast.api.model.VKMessage {
-        val message = com.meloda.fast.api.model.VKMessage()
+    fun parseLongPollMessage(array: JSONArray): VKMessage {
+        val message = VKMessage()
 
         val id = array.optInt(1)
         val flags = array.optInt(2)
@@ -276,33 +289,34 @@ object VKUtil {
             }
 
             if (it.has("source_act")) {
-                message.action = com.meloda.fast.api.model.VKMessageAction().also { action ->
-                    action.type = com.meloda.fast.api.model.VKMessageAction.Type.fromString(it.optString("source_act"))
+                message.action = VKMessageAction().also { action ->
+                    action.type =
+                        VKMessageAction.Type.fromString(it.optString("source_act"))
 
                     when (action.type) {
-                        com.meloda.fast.api.model.VKMessageAction.Type.CHAT_CREATE -> {
+                        VKMessageAction.Type.CHAT_CREATE -> {
                             action.text = it.optString("source_text")
                         }
-                        com.meloda.fast.api.model.VKMessageAction.Type.TITLE_UPDATE -> {
+                        VKMessageAction.Type.TITLE_UPDATE -> {
                             action.oldText = it.optString("source_old_text")
                             action.text = it.optString("source_text")
                         }
-                        com.meloda.fast.api.model.VKMessageAction.Type.PIN_MESSAGE -> {
+                        VKMessageAction.Type.PIN_MESSAGE -> {
                             action.memberId = it.optInt("source_mid")
                             action.conversationMessageId = it.optInt("source_chat_local_id")
 
                             it.optJSONObject("source_message")?.let { message ->
-                                action.message = com.meloda.fast.api.model.VKMessage(message)
+                                action.message = VKMessage(message)
                             }
                         }
-                        com.meloda.fast.api.model.VKMessageAction.Type.UNPIN_MESSAGE -> {
+                        VKMessageAction.Type.UNPIN_MESSAGE -> {
                             action.memberId = it.optInt("source_mid")
                             action.conversationMessageId = it.optInt("source_chat_local_id")
                         }
-                        com.meloda.fast.api.model.VKMessageAction.Type.INVITE_USER,
-                        com.meloda.fast.api.model.VKMessageAction.Type.KICK_USER,
-                        com.meloda.fast.api.model.VKMessageAction.Type.SCREENSHOT,
-                        com.meloda.fast.api.model.VKMessageAction.Type.INVITE_USER_BY_CALL -> {
+                        VKMessageAction.Type.INVITE_USER,
+                        VKMessageAction.Type.KICK_USER,
+                        VKMessageAction.Type.SCREENSHOT,
+                        VKMessageAction.Type.INVITE_USER_BY_CALL -> {
                             action.memberId = it.optInt("source_mid")
                         }
                     }

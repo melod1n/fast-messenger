@@ -2,11 +2,13 @@ package com.meloda.fast.common
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.database.sqlite.SQLiteDatabase
 import android.os.Handler
+import android.view.inputmethod.InputMethodManager
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import com.meloda.fast.BuildConfig
@@ -33,6 +35,8 @@ import java.util.*
 class AppGlobal : Application() {
 
     companion object {
+
+        lateinit var inputMethodManager: InputMethodManager
 
         lateinit var preferences: SharedPreferences
         lateinit var locale: Locale
@@ -82,6 +86,8 @@ class AppGlobal : Application() {
 
         screenWidth = AndroidUtils.getDisplayWidth()
         screenHeight = AndroidUtils.getDisplayHeight()
+
+        inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     }
 
 }

@@ -27,6 +27,7 @@
         <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
             @android:color/transparent
         </item>
+
     </style>
 
     <style name="AppTheme.Toolbar" parent="Widget.MaterialComponents.Toolbar.PrimarySurface">
@@ -37,21 +38,15 @@
     </style>
 
     <style name="Toolbar.Title" parent="TextAppearance.MaterialComponents.Body1">
-        <item name="android:textSize">24sp</item>
-        <item name="android:fontFamily">@font/tt_commons_medium</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/accent</item>
+        <item name="android:fontFamily">@font/google_sans_medium</item>
     </style>
 
     <style name="AppTheme.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert" />
 
-    <style name="AppTheme.Login.EditText" parent="">
-        <item name="android:layout_height">52dp</item>
-        <item name="android:background">@drawable/edittext_filled_background</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:layout_marginEnd">16dp</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">?android:textColorPrimary</item>
-        <item name="android:textColorHint">?textColorSecondary</item>
+    <style name="AppTheme.Login.EditText" parent="Widget.Design.TextInputEditText">
+        <item name="android:layout_height">48dp</item>
         <item name="fontFamily">@font/google_sans_regular</item>
         <item name="android:singleLine">true</item>
         <item name="android:maxLines">1</item>

@@ -4,6 +4,7 @@ plugins {
     id("kotlin-kapt")
     id("androidx.navigation.safeargs.kotlin")
     id("dagger.hilt.android.plugin")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -64,7 +65,7 @@ kapt {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.20")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.21")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
 
@@ -103,7 +104,7 @@ dependencies {
 
     implementation("com.github.yogacp:android-viewbinding:1.0.2")
 
-    implementation("io.coil-kt:coil:1.2.2")
+    implementation("io.coil-kt:coil:1.3.0")
 
     implementation("com.google.code.gson:gson:2.8.7")
     implementation("org.jsoup:jsoup:1.14.1")

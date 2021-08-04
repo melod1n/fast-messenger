@@ -1,6 +1,7 @@
 package com.meloda.fast.fragment.login
 
 import android.os.Bundle
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -19,20 +20,21 @@ import org.jsoup.Jsoup
 
 class LoginVM : BaseVM() {
 
-    private var isWebViewPrepared = true
+    private var isWebViewPrepared = false
 
     suspend fun login(
         webView: WebView,
         email: String,
         password: String,
-        captcha: String = ""
+        captchaSid: String? = null,
+        captchaKey: String? = null
     ) {
         sendEvent(StartProgressEvent)
 
-        val urlToGo = VKAuth.getDirectAuthUrl(email, password, captcha)
+        val urlToGo = VKAuth.getDirectAuthUrl(email, password, captchaSid, captchaKey)
 
-        if (isWebViewPrepared) {
-            isWebViewPrepared = false
+        if (!isWebViewPrepared) {
+            isWebViewPrepared = true
 
             webView.addJavascriptInterface(WebViewHandlerInterface(), "HtmlHandler")
 
@@ -52,11 +54,14 @@ class LoginVM : BaseVM() {
     @Suppress("MoveVariableDeclarationIntoWhen")
     private fun checkResponse(response: JSONObject) {
         viewModelScope.launch(Dispatchers.Default) {
-            delay(1500)
-            sendEvent(StopProgressEvent)
-
             if (response.has("error")) {
+                sendEvent(StopProgressEvent)
+
                 val errorString = response.optString("error")
+                val errorDescription = response.optString("error_description")
+
+                // TODO: 7/27/2021 use this with localized resources
+//               val errorType = response.optString("error_type")
 
                 when (errorString) {
                     "need_validation" -> {
@@ -68,10 +73,18 @@ class LoginVM : BaseVM() {
                         val captchaImage = response.optString("captcha_img")
                         val captchaSid = response.optString("captcha_sid")
 
+                        Log.d("CAPTCHA", "captchaImage: $captchaImage")
+
                         tasksEventChannel.send(ShowCaptchaDialog(captchaImage, captchaSid))
+                    }
+                    else -> {
+                        tasksEventChannel.send(ShowError(errorDescription))
                     }
                 }
             } else {
+                delay(1500)
+                sendEvent(StopProgressEvent)
+
                 val userId = response.optInt("user_id", -1)
                 val accessToken = response.optString("access_token")
 
@@ -108,6 +121,7 @@ class LoginVM : BaseVM() {
 
 }
 
+data class ShowError(val errorDescription: String) : VKEvent()
 data class ShowCaptchaDialog(val captchaImage: String, val captchaSid: String) : VKEvent()
 data class GoToValidationEvent(val redirectUrl: String) : VKEvent()
 data class GoToMainEvent(val haveAuthorized: Boolean = true) : VKEvent()
