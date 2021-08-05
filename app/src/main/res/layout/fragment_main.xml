@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_gravity="bottom"
-            app:backgroundTint="?colorPrimary"
+            app:backgroundTint="?colorSurface"
             app:elevation="0.5dp"
             app:itemIconTint="@drawable/navigation_view_items_colors"
             app:itemTextColor="@drawable/navigation_view_items_colors"

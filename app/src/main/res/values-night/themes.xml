@@ -27,7 +27,7 @@
         </item>
     </style>
 
-    <style name="AppTheme.Toolbar" parent="Widget.MaterialComponents.Toolbar.PrimarySurface">
+    <style name="AppTheme.Toolbar" parent="Widget.MaterialComponents.Toolbar.Surface">
         <item name="titleTextAppearance">@style/Toolbar.Title</item>
         <item name="android:textSize">24sp</item>
         <item name="android:elevation">3dp</item>
@@ -56,7 +56,8 @@
         <item name="android:windowBackground">@color/dark_background</item>
         <item name="actionMenuTextColor">?colorAccent</item>
 
-        <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/dark_navigationBar</item>
+        <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/dark_navigationBar
+        </item>
         <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
             @android:color/transparent
         </item>

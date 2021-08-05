@@ -1,0 +1,1 @@
+adb install "D:\Development\Android\fast-messenger\app\build\outputs\apk\debug\app-debug.apk"
