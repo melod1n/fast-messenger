@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.login
+package com.meloda.fast.screens.login
 
 import android.os.Bundle
 import android.util.Log

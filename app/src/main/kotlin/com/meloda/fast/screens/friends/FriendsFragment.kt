@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.friends
+package com.meloda.fast.screens.friends
 
 import android.os.Bundle
 import android.view.View

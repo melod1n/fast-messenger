@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.important
+package com.meloda.fast.screens.important
 
 import android.os.Bundle
 import android.view.View

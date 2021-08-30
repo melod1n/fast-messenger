@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.messages
+package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.base.viewmodel.BaseVM

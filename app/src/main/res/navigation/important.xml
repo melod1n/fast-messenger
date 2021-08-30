@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/importantFragment"
-        android:name="com.meloda.fast.fragment.important.ImportantFragment"
+        android:name="com.meloda.fast.screens.important.ImportantFragment"
         android:label="ImportantFragment"
         tools:layout="@layout/fragment_important" />
 

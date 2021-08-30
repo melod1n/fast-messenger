@@ -1,6 +1,7 @@
-package com.meloda.fast.fragment.login
+package com.meloda.fast.screens.login
 
 import android.annotation.SuppressLint
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -26,7 +27,7 @@ import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
-import com.meloda.fast.fragment.main.MainFragment
+import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -123,6 +124,7 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
     }
 
     private fun preparePasswordEditText() {
+        binding.passwordInput.typeface = Typeface.DEFAULT
         binding.passwordLayout.endIconMode = TextInputLayout.END_ICON_NONE
 
         binding.passwordInput.addTextChangedListener {

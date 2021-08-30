@@ -2,15 +2,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
-        <item name="colorPrimary">@color/dark_primary</item>
-        <item name="colorPrimaryDark">@color/dark_primaryDark</item>
+        <item name="android:statusBarColor">@color/dark_statusBar</item>
+        <item name="android:navigationBarColor">@color/dark_navigationBar</item>
+        <item name="android:windowBackground">@color/dark_background</item>
         <item name="colorAccent">@color/dark_accent</item>
+        <item name="colorAction">@color/dark_action</item>
+        <item name="colorActionRipple">@color/dark_actionRipple</item>
+        <item name="colorActionContentPrimary">@color/dark_actionContentPrimary</item>
+
+
+        <item name="colorPrimary">@color/dark_primary</item>
 
         <item name="toolbarStyle">@style/AppTheme.Toolbar</item>
 
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="dialogCornerRadius">12dp</item>
-        <item name="android:windowBackground">@color/dark_background</item>
         <item name="itemTitleColor">?colorAccent</item>
         <item name="dividerHorizontal">@color/dark_divider</item>
         <item name="textColorSecondary">@color/dark_textSecondary</item>
@@ -21,7 +27,6 @@
 
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
 
-        <item name="android:navigationBarColor">@color/dark_navigationBar</item>
         <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
             @android:color/transparent
         </item>
@@ -50,7 +55,6 @@
 
     <style name="AppTheme.FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog.Bridge">
         <item name="colorPrimary">@color/dark_primary</item>
-        <item name="colorPrimaryDark">@color/dark_primaryDark</item>
         <item name="colorAccent">@color/dark_accent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowBackground">@color/dark_background</item>
@@ -68,7 +72,6 @@
     <style name="AppTheme.ProfileDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
         <item name="colorAccent">@color/dark_accent</item>
         <item name="colorPrimary">@color/dark_primary</item>
-        <item name="colorPrimaryDark">@color/dark_primaryDark</item>
     </style>
 
 </resources>

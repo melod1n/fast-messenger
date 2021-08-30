@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/conversationsFragment"
-        android:name="com.meloda.fast.fragment.messages.ConversationsFragment"
+        android:name="com.meloda.fast.screens.messages.ConversationsFragment"
         android:label="ConversationsFragment"
         tools:layout="@layout/fragment_conversations" />
 

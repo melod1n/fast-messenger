@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.meloda.fast.fragment.main.MainFragment"
+        android:name="com.meloda.fast.screens.main.MainFragment"
         android:label="MainFragment"
         tools:layout="@layout/fragment_main">
 
@@ -19,7 +19,7 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.meloda.fast.fragment.login.LoginFragment"
+        android:name="com.meloda.fast.screens.login.LoginFragment"
         android:label="LoginFragment"
         tools:layout="@layout/fragment_login">
 
@@ -37,7 +37,7 @@
 
     <fragment
         android:id="@+id/validationFragment"
-        android:name="com.meloda.fast.fragment.login.ValidationFragment"
+        android:name="com.meloda.fast.screens.login.ValidationFragment"
         android:label="ValidationFragment"
         tools:layout="@layout/fragment_validation">
 

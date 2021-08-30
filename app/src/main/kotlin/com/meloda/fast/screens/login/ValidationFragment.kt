@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.login
+package com.meloda.fast.screens.login
 
 import android.graphics.Bitmap
 import android.os.Bundle

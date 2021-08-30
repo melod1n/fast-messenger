@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.messages
+package com.meloda.fast.screens.messages
 
 import android.os.Bundle
 import android.view.View

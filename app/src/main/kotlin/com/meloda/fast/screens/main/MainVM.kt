@@ -1,4 +1,4 @@
-package com.meloda.fast.fragment.main
+package com.meloda.fast.screens.main
 
 import com.meloda.fast.base.viewmodel.BaseVM
 

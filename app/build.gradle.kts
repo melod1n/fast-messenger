@@ -8,13 +8,13 @@ plugins {
 }
 
 android {
-    compileSdk = 30
-    buildToolsVersion = "30.0.3"
+    compileSdk = 31
+    buildToolsVersion = "31.0.0"
 
     defaultConfig {
         applicationId = "com.meloda.fast"
         minSdk = 23
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 1
         versionName = "1.0"
 
@@ -65,7 +65,7 @@ kapt {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.30")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
 
@@ -98,16 +98,16 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    implementation("com.google.dagger:hilt-android:2.37")
-    kapt("com.google.dagger:hilt-android-compiler:2.37")
+    implementation("com.google.dagger:hilt-android:2.38.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.38.1")
     implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
 
     implementation("com.github.yogacp:android-viewbinding:1.0.2")
 
-    implementation("io.coil-kt:coil:1.3.0")
+    implementation("io.coil-kt:coil:1.3.2")
 
-    implementation("com.google.code.gson:gson:2.8.7")
-    implementation("org.jsoup:jsoup:1.14.1")
+    implementation("com.google.code.gson:gson:2.8.8")
+    implementation("org.jsoup:jsoup:1.14.2")
     implementation("ch.acra:acra:4.11.1")
 
 }
