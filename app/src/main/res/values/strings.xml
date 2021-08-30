@@ -150,8 +150,11 @@
     <string name="password_login_hint">Password</string>
     <string name="email_login_hint">E-mail or phone number</string>
     <string name="log_in">Log in</string>
-    <string name="captcha_hint">Captcha</string>
+    <string name="captcha_hint">Captcha code</string>
     <string name="input_captcha">Input code from picture</string>
 
+    <string name="login_hint">Login</string>
+
+    <string name="conversations">Conversations</string>
 
 </resources>

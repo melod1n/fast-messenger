@@ -1,43 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawerLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <FrameLayout
-            android:id="@+id/fragmentContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomBar"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_gravity="bottom"
-            android:visibility="gone"
-            app:backgroundTint="?colorPrimary"
-            app:elevation="0.5dp"
-            app:itemIconTint="@drawable/navigation_view_items_colors"
-            app:itemTextColor="@drawable/navigation_view_items_colors"
-            app:labelVisibilityMode="unlabeled"
-            app:menu="@menu/activity_main_bottom" />
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigationView"
-        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:headerLayout="@layout/activity_main_drawer_header"
-        app:itemBackground="@drawable/navigation_view_item_background_selector"
-        app:itemIconTint="@drawable/navigation_view_item_icon_colors"
-        app:itemTextColor="@drawable/navigation_view_item_text_colors"
-        app:menu="@menu/activity_main_drawer" />
+        android:orientation="vertical"
+        tools:context=".MainActivity">
 
-</androidx.drawerlayout.widget.DrawerLayout>
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragmentContainer"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/main" />
+    </LinearLayout>
+</layout>

@@ -63,13 +63,13 @@
             android:gravity="center"
             android:visibility="gone">
 
-            <com.github.rahatarmanahmed.cpv.CircularProgressView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="128dp"
-                app:cpv_animAutostart="true"
-                app:cpv_indeterminate="true"
-                app:cpv_startAngle="0" />
+<!--            <com.github.rahatarmanahmed.cpv.CircularProgressView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_margin="128dp"-->
+<!--                app:cpv_animAutostart="true"-->
+<!--                app:cpv_indeterminate="true"-->
+<!--                app:cpv_startAngle="0" />-->
 
         </LinearLayout>
 

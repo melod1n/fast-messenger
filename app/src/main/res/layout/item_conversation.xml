@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/conversationRoot"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?selectableItemBackground"
@@ -12,7 +12,7 @@
     android:paddingBottom="2dp">
 
     <LinearLayout
-        android:id="@+id/conversationContainer"
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="6dp"
@@ -26,18 +26,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="0">
 
-            <com.facebook.drawee.view.SimpleDraweeView
-                android:id="@+id/conversationAvatar"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/peerAvatar"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:layout_gravity="bottom|end"
-                app:fadeDuration="150"
-                app:roundAsCircle="true"
-                tools:actualImageResource="@color/accent"
+                app:shapeAppearanceOverlay="@style/CircleImageView.56"
                 tools:src="?colorAccent" />
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/conversationUserOnline"
+                android:id="@+id/peerOnline"
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:layout_gravity="bottom|end"
@@ -61,7 +59,7 @@
                 android:orientation="horizontal">
 
                 <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/conversationType"
+                    android:id="@+id/type"
                     android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="4dp"
@@ -72,7 +70,7 @@
                     tools:src="@drawable/ic_dialog_type_conversation" />
 
                 <TextView
-                    android:id="@+id/conversationTitle"
+                    android:id="@+id/title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -94,20 +92,18 @@
                 android:minHeight="26dp"
                 android:orientation="horizontal">
 
-                <com.facebook.drawee.view.SimpleDraweeView
-                    android:id="@+id/conversationUserAvatar"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/fromAvatar"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
                     android:layout_marginStart="6dp"
-                    app:fadeDuration="150"
-                    app:roundAsCircle="true"
-                    tools:actualImageResource="@color/accent"
+                    app:shapeAppearanceOverlay="@style/CircleImageView.24"
                     tools:src="?colorAccent"
                     tools:visibility="visible" />
 
                 <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/conversationTextAttachment"
+                    android:id="@+id/textAttachment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
@@ -118,7 +114,7 @@
                     tools:visibility="visible" />
 
                 <TextView
-                    android:id="@+id/conversationText"
+                    android:id="@+id/text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
@@ -141,8 +137,8 @@
             android:paddingStart="6dp"
             android:paddingEnd="6dp">
 
-            <com.meloda.fast.widget.CircleImageView
-                android:id="@+id/conversationOut"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/out"
                 android:layout_width="10dp"
                 android:layout_height="10dp"
                 android:layout_gravity="bottom"
@@ -155,7 +151,7 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/conversationDate"
+        android:id="@+id/date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|top"
@@ -168,7 +164,7 @@
         tools:text="now" />
 
     <TextView
-        android:id="@+id/conversationCounter"
+        android:id="@+id/counter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"

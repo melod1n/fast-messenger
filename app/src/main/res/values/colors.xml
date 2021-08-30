@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#ffffff</color>
-    <color name="primaryDark">#ffffff</color>
-    <color name="accent">#4284F4</color>
+
+    <color name="statusBar">#ffffff</color>
     <color name="navigationBar">#ffffff</color>
     <color name="background">#ffffff</color>
+    <color name="accent">#4284F4</color>
+    <color name="action">#4E8CF6</color>
+    <color name="actionRipple">#95BBFB</color>
+    <color name="actionContentPrimary">#ffffff</color>
+
+    <color name="primary">@color/accent</color>
 
     <color name="divider">#E0E0E0</color>
 
@@ -35,11 +40,15 @@
 
     <!-- Dark Theme Colors -->
 
-    <color name="dark_primary">#000000</color>
-    <color name="dark_primaryDark">#000000</color>
-    <color name="dark_accent">#63ACFF</color>
+    <color name="dark_statusBar">#000000</color>
     <color name="dark_navigationBar">#000000</color>
     <color name="dark_background">#000000</color>
+    <color name="dark_accent">#63ACFF</color>
+    <color name="dark_action">#56A5FF</color>
+    <color name="dark_actionRipple">#2E90FF</color>
+    <color name="dark_actionContentPrimary">#000000</color>
+
+    <color name="dark_primary">#000000</color>
 
     <color name="dark_divider">#292929</color>
 

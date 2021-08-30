@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/login"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.meloda.fast.screens.login.LoginFragment"
+        android:label="LoginFragment"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/toMain"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/toValidation"
+            app:destination="@id/validationFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/validationFragment"
+        android:name="com.meloda.fast.screens.login.ValidationFragment"
+        android:label="ValidationFragment"
+        tools:layout="@layout/fragment_validation">
+
+        <action
+            android:id="@+id/toLogin"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/validationFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+
+</navigation>
