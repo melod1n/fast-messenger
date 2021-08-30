@@ -1,3 +1,7 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
+val vkSecret: String = gradleLocalProperties(rootDir).getProperty("vk.app.secret")
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -26,8 +30,15 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            buildConfigField("String", "vkSecret", vkSecret)
+        }
+
         getByName("release") {
+            buildConfigField("String", "vkSecret", vkSecret)
+
             isMinifyEnabled = false
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
