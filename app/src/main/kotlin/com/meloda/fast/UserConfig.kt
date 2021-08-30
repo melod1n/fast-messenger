@@ -8,7 +8,7 @@ object UserConfig {
     private const val TOKEN = "token"
     private const val USER_ID = "user_id"
 
-    const val API_ID = "6964679"
+    const val FAST_APP_ID = "6964679"
 
     var userId: Int = -1
         get() = AppGlobal.preferences.getInt(USER_ID, -1)
