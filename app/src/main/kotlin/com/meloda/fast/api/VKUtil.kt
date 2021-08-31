@@ -7,8 +7,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.regex.Pattern
 
+// TODO: 8/31/2021 review
 object VKUtil {
 
     private const val TAG = "VKUtil"
@@ -21,26 +21,6 @@ object VKUtil {
     fun isCaptchaRequired(throwable: Throwable): Boolean {
         if (throwable !is VKException) return false
         return throwable.error == VKErrors.NEED_CAPTCHA
-    }
-
-    fun extractValidationSid(throwable: Throwable): String? {
-        if (throwable !is VKException) return null
-        return throwable.json?.optString("validation_sid")
-    }
-
-    fun extractPattern(string: String, pattern: String): String? {
-        val p = Pattern.compile(pattern)
-        val m = p.matcher(string)
-        return if (!m.find()) null else m.toMatchResult().group(1)
-    }
-
-    private const val pattern_string_profile_id = "^(id)?(\\d{1,10})$"
-
-    private val pattern_profile_id = Pattern.compile(pattern_string_profile_id)
-
-    fun parseProfileId(text: String): String? {
-        val m = pattern_profile_id.matcher(text)
-        return if (!m.find()) null else m.group(2)
     }
 
     fun sortMessagesByDate(
@@ -292,7 +272,7 @@ object VKUtil {
         message.text = text
 
 //        val fromId =
-//            if (isMessageHasFlag(flags, "outbox")) com.meloda.fast.UserConfig.userId
+//            if (isMessageHasFlag(flags, "outbox")) com.meloda.fast.api.UserConfig.userId
 //            else peerId
 
         message.fromId = peerId
@@ -357,7 +337,7 @@ object VKUtil {
         val editTime = array.optInt(10)
         message.editTime = editTime
 
-//        val out = fromId == com.meloda.fast.UserConfig.userId
+//        val out = fromId == com.meloda.fast.api.UserConfig.userId
 //        message.isOut = out
 //
 //        if (message.isFromUser()) {

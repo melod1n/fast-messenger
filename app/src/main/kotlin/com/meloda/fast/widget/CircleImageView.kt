@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.ViewTreeObserver
 import androidx.appcompat.widget.AppCompatImageView
 
+// TODO: 8/31/2021 extend ShapeableImageView and set corners for half of size
 class CircleImageView : AppCompatImageView {
 
     companion object {

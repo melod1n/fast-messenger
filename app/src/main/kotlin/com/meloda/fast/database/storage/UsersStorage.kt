@@ -5,9 +5,10 @@ import android.database.Cursor
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.WorkerThread
-import com.meloda.fast.UserConfig
+import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.model.VKUser
 import com.meloda.fast.database.CacheStorage
-import com.meloda.fast.database.CacheStorage.selectCursor
 import com.meloda.fast.database.DatabaseKeys.DEACTIVATED
 import com.meloda.fast.database.DatabaseKeys.FIRST_NAME
 import com.meloda.fast.database.DatabaseKeys.FRIEND_ID
@@ -25,8 +26,6 @@ import com.meloda.fast.database.DatabaseUtils.TABLE_FRIENDS
 import com.meloda.fast.database.DatabaseUtils.TABLE_USERS
 import com.meloda.fast.database.QueryBuilder
 import com.meloda.fast.database.base.Storage
-import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.api.VKUtil
 import org.json.JSONObject
 
 @WorkerThread
@@ -78,7 +77,7 @@ class UsersStorage : Storage<VKUser>() {
     }
 
     override fun getAllValues(): ArrayList<VKUser> {
-        val cursor = selectCursor(TABLE_USERS)
+        val cursor = CacheStorage.selectCursor(TABLE_USERS)
         val users = ArrayList<VKUser>()
 
         while (cursor.moveToNext()) users.add(parseValue(cursor))

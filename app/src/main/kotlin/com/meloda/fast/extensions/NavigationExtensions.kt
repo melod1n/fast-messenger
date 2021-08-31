@@ -1,8 +1,9 @@
 package com.meloda.fast.extensions
 
 import android.content.Intent
-import android.util.SparseArray
-import androidx.core.util.forEach
+import androidx.collection.SparseArrayCompat
+import androidx.collection.forEach
+import androidx.collection.set
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
@@ -11,7 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.meloda.fast.R
-import com.meloda.fast.UserConfig
+import com.meloda.fast.api.UserConfig
 
 /**
  * Manages the various graphs needed for a [BottomNavigationView].
@@ -28,7 +29,7 @@ object NavigationExtensions {
     ): LiveData<NavController> {
 
         // Map of tags
-        val graphIdToTagMap = SparseArray<String>()
+        val graphIdToTagMap = SparseArrayCompat<String>()
         // Result. Mutable live data with the selected controlled
         val selectedNavController = MutableLiveData<NavController>()
 
@@ -68,7 +69,7 @@ object NavigationExtensions {
 
         // Now connect selecting an item with swapping Fragments
         var selectedItemTag = graphIdToTagMap[this.selectedItemId]
-        val firstFragmentTag = graphIdToTagMap[firstFragmentGraphId]
+        val firstFragmentTag = graphIdToTagMap[firstFragmentGraphId] ?: ""
         var isOnFirstFragment = selectedItemTag == firstFragmentTag
 
         setOnItemSelectedListener { item ->

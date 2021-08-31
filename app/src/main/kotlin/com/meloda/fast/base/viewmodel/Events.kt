@@ -9,3 +9,5 @@ data class ShowDialogInfoEvent(
 
 object StartProgressEvent : VKEvent()
 object StopProgressEvent : VKEvent()
+
+abstract class VKEvent
