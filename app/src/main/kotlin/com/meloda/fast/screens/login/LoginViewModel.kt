@@ -26,13 +26,12 @@ class LoginViewModel @Inject constructor(
     private val repo: AuthRepo
 ) : BaseViewModel() {
 
-    suspend fun login(
+    fun login(
         login: String,
         password: String,
-        twoFa: Boolean = false,
         twoFaCode: String? = null,
         captcha: Pair<String, String>? = null
-    ) {
+    ) = viewModelScope.launch {
         makeJob(
             {
                 repo.auth(
@@ -43,7 +42,7 @@ class LoginViewModel @Inject constructor(
                         username = login,
                         password = password,
                         scope = VKAuth.scope,
-                        twoFaForceSms = twoFa,
+                        twoFaForceSms = true,
                         twoFaCode = twoFaCode,
                         captchaSid = captcha?.first,
                         captchaKey = captcha?.second
@@ -63,13 +62,18 @@ class LoginViewModel @Inject constructor(
             },
             onError = {
                 checkErrors(it)
-
                 if (it !is VKException) return@makeJob
 
                 if (VKUtil.isValidationRequired(it)) {
-                    sendEvent(ValidationRequired(validationSid = it.validationSid))
-                } else if (VKUtil.isCaptchaRequired(it) && it.captcha != null) {
-                    sendEvent(CaptchaRequired(it.captcha!!.first to it.captcha!!.second))
+                    it.validationSid?.let { sid ->
+                        sendEvent(ValidationRequired(validationSid = sid))
+
+                        sendSms(sid)
+                    }
+                } else if (VKUtil.isCaptchaRequired(it)) {
+                    it.captcha?.let { captcha ->
+                        sendEvent(CaptchaRequired(captcha.first to captcha.second))
+                    }
                 }
             },
             onStart = { sendEvent(StartProgressEvent) },
@@ -77,49 +81,12 @@ class LoginViewModel @Inject constructor(
         )
     }
 
-    @Suppress("MoveVariableDeclarationIntoWhen")
-    private fun checkResponse(response: JSONObject) {
-        viewModelScope.launch(Dispatchers.Default) {
-            if (response.has("error")) {
-                sendEvent(StopProgressEvent)
-
-                val errorString = response.optString("error")
-                val errorDescription = response.optString("error_description")
-
-                // TODO: 7/27/2021 use this with localized resources
-//               val errorType = response.optString("error_type")
-
-                when (errorString) {
-                    "need_validation" -> {
-                        val redirectUrl = response.optString("redirect_uri")
-
-                        tasksEventChannel.send(ValidationRequired(redirectUrl))
-                    }
-                    "need_captcha" -> {
-                        val captchaImage = response.optString("captcha_img")
-                        val captchaSid = response.optString("captcha_sid")
-
-                        Log.d("CAPTCHA", "captchaImage: $captchaImage")
-
-                        tasksEventChannel.send(ShowCaptchaDialog(captchaImage, captchaSid))
-                    }
-                    else -> {
-                        tasksEventChannel.send(ShowError(errorDescription))
-                    }
-                }
-            } else {
-                delay(1500)
-                sendEvent(StopProgressEvent)
-
-                val userId = response.optInt("user_id", -1)
-                val accessToken = response.optString("access_token")
-
-                UserConfig.accessToken = accessToken
-                UserConfig.userId = userId
-
-                tasksEventChannel.send(SuccessAuth())
-            }
-        }
+    fun sendSms(validationSid: String) = viewModelScope.launch {
+        makeJob({ repo.sendSms(validationSid) },
+            onAnswer = { sendEvent(CodeSent) },
+            onError = {},
+            onStart = {},
+            onEnd = {})
     }
 
     suspend fun getValidatedData(bundle: Bundle) {
@@ -135,13 +102,10 @@ class LoginViewModel @Inject constructor(
 }
 
 data class ShowError(val errorDescription: String) : VKEvent()
-data class ShowCaptchaDialog(val captchaImage: String, val captchaSid: String) : VKEvent()
 
-data class ValidationRequired(
-    val redirectUrl: String? = null,
-    val validationSid: String? = null
-) : VKEvent()
-
+data class ValidationRequired(val validationSid: String) : VKEvent()
 data class CaptchaRequired(val captcha: Pair<String, String>) : VKEvent()
+
+object CodeSent : VKEvent()
 
 data class SuccessAuth(val haveAuthorized: Boolean = true) : VKEvent()

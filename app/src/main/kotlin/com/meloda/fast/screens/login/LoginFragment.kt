@@ -7,7 +7,6 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
 import androidx.appcompat.app.AlertDialog
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.setFragmentResultListener
@@ -25,6 +24,7 @@ import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.DialogCaptchaBinding
+import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.util.KeyboardUtils
@@ -45,7 +45,9 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
     private var lastPassword: String = ""
 
     private var errorTimer: Timer? = null
+
     private var captchaInputLayout: TextInputLayout? = null
+    private var validationInputLayout: TextInputLayout? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -59,11 +61,6 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
         setFragmentResultListener("validation") { _, bundle ->
             lifecycleScope.launch { viewModel.getValidatedData(bundle) }
         }
-
-//        showCaptchaDialog(
-//            "https://www.vets4pets.com/syssiteassets/species/cat/kitten/tiny-kitten-in-field.jpg?width=1040",
-//            ""
-//        )
     }
 
     override fun onEvent(event: VKEvent) {
@@ -72,8 +69,12 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
         when (event) {
             is ShowError -> showErrorSnackbar(event.errorDescription)
             is CaptchaRequired -> showCaptchaDialog(event.captcha.first, event.captcha.second)
-            is ValidationRequired -> goToValidation()
+
+            CodeSent -> showValidationDialog()
+
+            is ValidationRequired -> showValidationRequired()
             is SuccessAuth -> goToMain(event.haveAuthorized)
+
             StartProgressEvent -> onProgressStarted()
             StopProgressEvent -> onProgressStopped()
         }
@@ -151,19 +152,19 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
 
         KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
 
-        lifecycleScope.launch {
-            viewModel.login(
-                login = loginString,
-                password = passwordString
-            )
-        }
+
+        viewModel.login(
+            login = loginString,
+            password = passwordString
+        )
     }
 
     // TODO: 7/27/2021 extract strings to resources
     private fun validateInputData(
         loginString: String?,
         passwordString: String?,
-        captchaCode: String? = null
+        captchaCode: String? = null,
+        validationCode: String? = null
     ): Boolean {
         var isValidated = true
 
@@ -180,6 +181,11 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
         if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
             isValidated = false
             setError("Input code", captchaInputLayout!!)
+        }
+
+        if (validationCode?.isEmpty() == true && validationInputLayout != null) {
+            isValidated = false
+            setError("Input code", validationInputLayout!!)
         }
 
         return isValidated
@@ -237,15 +243,50 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
 
             dialog.dismiss()
 
-            lifecycleScope.launch {
-                viewModel.login(
-                    login = lastLogin,
-                    password = lastPassword,
-                    captcha = captchaSid to captchaCode
-                )
-            }
+            viewModel.login(
+                login = lastLogin,
+                password = lastPassword,
+                captcha = captchaSid to captchaCode
+            )
         }
         captchaBinding.cancel.setOnClickListener { dialog.dismiss() }
+    }
+
+    private fun showValidationDialog() {
+        val validationBinding = DialogValidationBinding.inflate(layoutInflater, null, false)
+        validationInputLayout = validationBinding.codeLayout
+
+        val builder = AlertDialog.Builder(requireContext())
+            .setView(validationBinding.root)
+            .setCancelable(false)
+            .setTitle(R.string.input_validation_code)
+
+        val dialog = builder.show()
+
+        validationBinding.ok.setOnClickListener {
+            val validationCode = validationBinding.codeInput.text.toString().trim()
+
+            if (!validateInputData(
+                    loginString = null,
+                    passwordString = null,
+                    validationCode = validationCode
+                )
+            ) return@setOnClickListener
+
+            dialog.dismiss()
+
+            viewModel.login(
+                login = lastLogin,
+                password = lastPassword,
+                twoFaCode = validationCode
+            )
+        }
+        validationBinding.cancel.setOnClickListener { dialog.dismiss() }
+    }
+
+    // TODO: 8/31/2021 show snackbar
+    private fun showValidationRequired() {
+
     }
 
     private fun showErrorSnackbar(errorDescription: String) {
@@ -259,19 +300,10 @@ class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
         snackbar.show()
     }
 
-    private fun goToValidation() {
-//        findNavController().navigate(
-//            R.id.toValidation,
-//            bundleOf("redirectUrl" to redirectUrl)
-//        )
-    }
+    private fun goToMain(haveAuthorized: Boolean) = lifecycleScope.launch {
+        if (haveAuthorized) delay(500)
 
-    private fun goToMain(haveAuthorized: Boolean) {
-        lifecycleScope.launch {
-            if (haveAuthorized) delay(500)
-
-            findNavController().navigate(R.id.toMain)
-        }
+        findNavController().navigate(R.id.toMain)
     }
 
 }

@@ -156,5 +156,7 @@
     <string name="login_hint">Login</string>
 
     <string name="conversations">Conversations</string>
+    <string name="code_hint">Code</string>
+    <string name="input_validation_code">Input code from sms</string>
 
 </resources>

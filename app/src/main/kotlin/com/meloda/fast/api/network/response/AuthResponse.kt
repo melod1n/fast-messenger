@@ -11,3 +11,11 @@ data class ResponseAuthDirect(
     @SerializedName("trusted_hash") val twoFaHash: String? = null,
     @SerializedName("validation_sid") val validationSid: String? = null
 ) : Parcelable
+
+@Parcelize
+data class ResponseSendSms(
+    @SerializedName("sid") val validationSid: String?,
+    @SerializedName("delay") val delay: Int?,
+    @SerializedName("validation_type") val validationType: String?,
+    @SerializedName("validation_resend") val validationResend: String?
+) : Parcelable

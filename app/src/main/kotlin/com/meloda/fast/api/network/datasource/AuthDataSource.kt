@@ -7,4 +7,6 @@ class AuthDataSource @Inject constructor(
     private val repo: AuthRepo
 ) : AuthRepo {
     override suspend fun auth(param: Map<String, String?>) = repo.auth(param)
+
+    override suspend fun sendSms(validationSid: String) = repo.sendSms(validationSid)
 }

@@ -7,14 +7,11 @@ class VKException(var url: String = "", var description: String = "", var error:
     IOException(description) {
 
     var captcha: Pair<String, String>? = null
-    var redirectUri: String? = null
-
     var validationSid: String? = null
-
     var json: JSONObject? = null
 
     override fun toString(): String {
-        return "url: $url;\n\nerror: $error; description: $description;"
+        return "error: $error; description: $description;"
     }
 
 }
