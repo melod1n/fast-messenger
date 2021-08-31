@@ -11,7 +11,7 @@ import com.meloda.fast.util.AndroidUtils
 import org.json.JSONArray
 import org.json.JSONObject
 
-// TODO: 8/31/2021 rewrite
+// TODO: 8/31/2021 rewrite, use job
 @Deprecated("Absolutely obsolete")
 class LongPollService : Service() {
     private var thread: Thread? = null
@@ -19,7 +19,6 @@ class LongPollService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-
         running = false
 
 //        thread = LowThread(Updater())

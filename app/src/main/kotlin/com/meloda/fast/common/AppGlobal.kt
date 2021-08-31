@@ -2,11 +2,13 @@ package com.meloda.fast.common
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.database.sqlite.SQLiteDatabase
+import android.net.ConnectivityManager
 import android.os.Handler
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.pm.PackageInfoCompat
@@ -37,6 +39,8 @@ class AppGlobal : Application() {
     companion object {
 
         lateinit var inputMethodManager: InputMethodManager
+        lateinit var connectivityManager: ConnectivityManager
+        lateinit var clipboardManager: ClipboardManager
 
         lateinit var preferences: SharedPreferences
         lateinit var locale: Locale
@@ -84,10 +88,13 @@ class AppGlobal : Application() {
         Companion.packageName = packageName
         Companion.packageManager = packageManager
 
+
         screenWidth = AndroidUtils.getDisplayWidth()
         screenHeight = AndroidUtils.getDisplayHeight()
 
         inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     }
 
 }
