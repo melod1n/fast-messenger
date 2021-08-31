@@ -18,7 +18,7 @@ import com.meloda.fast.database.DatabaseKeys.TYPE
 import com.meloda.fast.database.DatabaseUtils.TABLE_GROUPS
 import com.meloda.fast.database.base.Storage
 import com.meloda.fast.api.model.VKGroup
-import com.meloda.fast.api.util.VKUtil
+import com.meloda.fast.api.VKUtil
 import org.json.JSONObject
 
 class GroupsStorage : Storage<VKGroup>() {

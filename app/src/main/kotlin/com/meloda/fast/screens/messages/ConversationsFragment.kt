@@ -16,9 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class ConversationsFragment : BaseVMFragment<ConversationsVM>(R.layout.fragment_conversations) {
+class ConversationsFragment : BaseVMFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
-    override val viewModel: ConversationsVM by viewModels()
+    override val viewModel: ConversationsViewModel by viewModels()
     private val binding: FragmentConversationsBinding by viewBinding()
 
     private lateinit var adapter: ConversationsAdapter

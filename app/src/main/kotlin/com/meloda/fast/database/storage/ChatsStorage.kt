@@ -26,7 +26,7 @@ import com.meloda.fast.database.DatabaseKeys.UNREAD_COUNT
 import com.meloda.fast.database.DatabaseUtils.TABLE_CHATS
 import com.meloda.fast.database.base.Storage
 import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.util.VKUtil
+import com.meloda.fast.api.VKUtil
 import org.json.JSONObject
 
 @WorkerThread

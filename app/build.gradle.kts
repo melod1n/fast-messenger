@@ -1,3 +1,8 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
+val login: String = gradleLocalProperties(rootDir).getProperty("vklogin")
+val password: String = gradleLocalProperties(rootDir).getProperty("vkpassword")
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -26,6 +31,10 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            buildConfigField("String", "vkLogin", login)
+            buildConfigField("String", "vkPassword", password)
+        }
         getByName("release") {
             isMinifyEnabled = false
 

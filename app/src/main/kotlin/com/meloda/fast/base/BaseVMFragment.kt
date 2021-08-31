@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.lifecycleScope
-import com.meloda.fast.base.viewmodel.BaseVM
+import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VKEvent
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
-abstract class BaseVMFragment<VM : BaseVM> : BaseFragment {
+abstract class BaseVMFragment<VM : BaseViewModel> : BaseFragment {
 
     constructor() : super()
 

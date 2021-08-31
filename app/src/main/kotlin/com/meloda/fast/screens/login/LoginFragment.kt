@@ -1,13 +1,11 @@
 package com.meloda.fast.screens.login
 
-import android.annotation.SuppressLint
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
-import android.webkit.CookieManager
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -20,6 +18,7 @@ import coil.load
 import coil.transform.RoundedCornersTransformation
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
+import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseVMFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
@@ -37,12 +36,12 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
-class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
+class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
 
-    override val viewModel: LoginVM by viewModels()
+    override val viewModel: LoginViewModel by viewModels()
     private val binding: FragmentLoginBinding by viewBinding()
 
-    private var lastEmail: String = ""
+    private var lastLogin: String = ""
     private var lastPassword: String = ""
 
     private var errorTimer: Timer? = null
@@ -72,9 +71,9 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
 
         when (event) {
             is ShowError -> showErrorSnackbar(event.errorDescription)
-            is ShowCaptchaDialog -> showCaptchaDialog(event.captchaImage, event.captchaSid)
-            is GoToValidationEvent -> goToValidation(event.redirectUrl)
-            is GoToMainEvent -> goToMain(event.haveAuthorized)
+            is CaptchaRequired -> showCaptchaDialog(event.captcha.first, event.captcha.second)
+            is ValidationRequired -> goToValidation()
+            is SuccessAuth -> goToMain(event.haveAuthorized)
             StartProgressEvent -> onProgressStarted()
             StopProgressEvent -> onProgressStopped()
         }
@@ -95,26 +94,9 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
     }
 
     private fun prepareViews() {
-        prepareWebView()
         prepareEmailEditText()
         preparePasswordEditText()
         prepareAuthButton()
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun prepareWebView() {
-        with(binding.webView) {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.loadsImagesAutomatically = false
-            settings.userAgentString = "Chrome/41.0.2228.0 Safari/537.36"
-            clearCache(true)
-        }
-
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies(null)
-        cookieManager.flush()
-        cookieManager.setAcceptCookie(false)
     }
 
     private fun prepareEmailEditText() {
@@ -150,23 +132,30 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
     }
 
     private fun prepareAuthButton() {
-        binding.auth.setOnClickListener {
-            if (binding.progress.isVisible) return@setOnClickListener
+        binding.auth.setOnClickListener { validateDataAndAuth() }
+        binding.auth.setOnLongClickListener {
+            validateDataAndAuth(BuildConfig.vkLogin to BuildConfig.vkPassword)
+            true
+        }
+    }
 
-            val loginString = binding.loginInput.text.toString().trim()
-            val passwordString = binding.passwordInput.text.toString().trim()
+    private fun validateDataAndAuth(data: Pair<String, String>? = null) {
+        if (binding.progress.isVisible) return
+        val loginString = data?.first ?: binding.loginInput.text.toString().trim()
+        val passwordString = data?.second ?: binding.passwordInput.text.toString().trim()
 
-            if (!validateInputData(loginString, passwordString)) return@setOnClickListener
+        if (!validateInputData(loginString, passwordString)) return
 
-            KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
+        lastLogin = loginString
+        lastPassword = passwordString
 
-            lifecycleScope.launch {
-                viewModel.login(
-                    binding.webView,
-                    loginString,
-                    passwordString
-                )
-            }
+        KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
+
+        lifecycleScope.launch {
+            viewModel.login(
+                login = loginString,
+                password = passwordString
+            )
         }
     }
 
@@ -220,7 +209,7 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         captchaInputLayout?.error = ""
     }
 
-    private fun showCaptchaDialog(captchaImage: String, captchaSid: String) {
+    private fun showCaptchaDialog(captchaSid: String, captchaImage: String) {
         val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
         captchaInputLayout = captchaBinding.captchaLayout
 
@@ -250,11 +239,9 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
 
             lifecycleScope.launch {
                 viewModel.login(
-                    webView = binding.webView,
-                    email = lastEmail,
+                    login = lastLogin,
                     password = lastPassword,
-                    captchaSid = captchaSid,
-                    captchaKey = captchaCode
+                    captcha = captchaSid to captchaCode
                 )
             }
         }
@@ -272,11 +259,11 @@ class LoginFragment : BaseVMFragment<LoginVM>(R.layout.fragment_login) {
         snackbar.show()
     }
 
-    private fun goToValidation(redirectUrl: String) {
-        findNavController().navigate(
-            R.id.toValidation,
-            bundleOf("redirectUrl" to redirectUrl)
-        )
+    private fun goToValidation() {
+//        findNavController().navigate(
+//            R.id.toValidation,
+//            bundleOf("redirectUrl" to redirectUrl)
+//        )
     }
 
     private fun goToMain(haveAuthorized: Boolean) {

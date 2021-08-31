@@ -13,7 +13,7 @@ import com.meloda.fast.R
 import com.meloda.fast.api.model.*
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.api.OnResponseListener
-import com.meloda.fast.api.util.VKUtil
+import com.meloda.fast.api.VKUtil
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs

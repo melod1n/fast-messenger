@@ -1,4 +1,4 @@
-package com.meloda.fast.api
+package com.meloda.fast.api.network
 
 object ErrorCodes {
     const val UNKNOWN_ERROR = 1
@@ -39,4 +39,13 @@ object ErrorCodes {
     const val INVALID_DOC_ID = 1150
     const val INVALID_DOC_TITLE = 1152
     const val ACCESS_TO_DOC_DENIED = 1153
+}
+
+object VKErrors {
+    const val UNKNOWN = "unknown_error"
+
+    const val NEED_VALIDATION = "need_validation"
+    const val NEED_CAPTCHA = "need_captcha"
+    const val INVALID_REQUEST = "invalid_request"
+
 }

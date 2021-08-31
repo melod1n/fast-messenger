@@ -13,9 +13,9 @@ import com.meloda.fast.extensions.NavigationExtensions.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainFragment : BaseVMFragment<MainVM>(R.layout.fragment_main) {
+class MainFragment : BaseVMFragment<MainViewModel>(R.layout.fragment_main) {
 
-    override val viewModel: MainVM by viewModels()
+    override val viewModel: MainViewModel by viewModels()
     private val binding: FragmentMainBinding by viewBinding()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

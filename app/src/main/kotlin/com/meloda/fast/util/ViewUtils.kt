@@ -11,7 +11,6 @@ import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.R
 import com.meloda.fast.widget.CircleImageView
 import com.meloda.fast.api.model.VKUser
-import com.meloda.fast.api.util.VKUtil
 
 
 object ViewUtils {
