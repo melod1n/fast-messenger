@@ -1,7 +1,8 @@
-package com.meloda.fast.api.util
+package com.meloda.fast.api
 
 import androidx.annotation.WorkerThread
 import com.meloda.fast.api.model.*
+import com.meloda.fast.api.network.VKErrors
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -11,6 +12,21 @@ import java.util.regex.Pattern
 object VKUtil {
 
     private const val TAG = "VKUtil"
+
+    fun isValidationRequired(throwable: Throwable): Boolean {
+        if (throwable !is VKException) return false
+        return throwable.error == VKErrors.NEED_VALIDATION
+    }
+
+    fun isCaptchaRequired(throwable: Throwable): Boolean {
+        if (throwable !is VKException) return false
+        return throwable.error == VKErrors.NEED_CAPTCHA
+    }
+
+    fun extractValidationSid(throwable: Throwable): String? {
+        if (throwable !is VKException) return null
+        return throwable.json?.optString("validation_sid")
+    }
 
     fun extractPattern(string: String, pattern: String): String? {
         val p = Pattern.compile(pattern)

@@ -6,7 +6,7 @@ import com.meloda.fast.concurrent.EventInfo
 import com.meloda.fast.concurrent.TaskManager
 import com.meloda.fast.api.VKApiKeys
 import com.meloda.fast.api.model.VKMessage
-import com.meloda.fast.api.util.VKUtil
+import com.meloda.fast.api.VKUtil
 import org.json.JSONArray
 
 @Suppress("UNCHECKED_CAST")

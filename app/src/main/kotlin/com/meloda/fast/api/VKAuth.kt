@@ -3,14 +3,17 @@ package com.meloda.fast.api
 import android.util.Log
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.UserConfig
-import com.meloda.fast.api.util.VKUtil
 import java.net.URLEncoder
 
 object VKAuth {
 
     private const val TAG = "VKM.VKAuth"
 
-    private const val settings = "notify," +
+    object GrantType {
+        const val PASSWORD = "password"
+    }
+
+    const val scope = "notify," +
             "friends," +
             "photos," +
             "audio," +
@@ -30,17 +33,25 @@ object VKAuth {
     fun getDirectAuthUrl(
         login: String,
         password: String,
-        captchaSid: String? = null,
-        captchaKey: String? = null
-    ) = "https://oauth.vk.com/token?grant_type=password&" +
+        twoFa: Boolean = false,
+        twoFaCode: String = "",
+        captcha: Pair<String, String>? = null
+    ) = "https://oauth.vk.com/token?" +
+            "grant_type=password&" +
             "client_id=${VKConstants.VK_APP_ID}&" +
-            "scope=$settings&" +
             "client_secret=${VKConstants.VK_SECRET}&" +
             "username=$login&" +
-            "password=$password" +
-            (if (captchaSid == null || captchaKey == null) "" else "&captcha_sid=$captchaSid&captcha_key=$captchaKey") +
+            "password=$password&" +
+            "scope=$scope&" +
+            "2fa_supported=1&" +
+            "force_sms=${if (twoFa) "1" else "0"}" +
+            (if (twoFa) "code=$twoFaCode" else "") +
+            (if (captcha == null) "" else "&captcha_sid=${captcha.first}&captcha_key=${captcha.second}") +
             "&v=${URLEncoder.encode(VKApi.API_VERSION, "utf-8")}"
 
+    fun getSendSmsCodeUrl(sid: String) = "https://api.vk.com/method/auth.validatePhone?" +
+            "sid=$sid&" +
+            "&v=${URLEncoder.encode(VKApi.API_VERSION, "utf-8")}"
 
     fun getOAuthUrl(settings: String) = "https://oauth.vk.com/authorize?" +
             "client_id=${UserConfig.FAST_APP_ID}&" +

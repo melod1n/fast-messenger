@@ -1,7 +1,7 @@
 package com.meloda.fast.api.model
 
 import android.util.ArrayMap
-import com.meloda.fast.api.util.VKUtil
+import com.meloda.fast.api.VKUtil
 import org.json.JSONObject
 
 open class VKMessage() : VKModel() {

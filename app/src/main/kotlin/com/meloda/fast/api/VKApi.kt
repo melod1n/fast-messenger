@@ -7,6 +7,7 @@ import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.method.MessageMethodSetter
 import com.meloda.fast.api.method.MethodSetter
 import com.meloda.fast.api.method.UserMethodSetter
+import com.meloda.fast.api.network.ErrorCodes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.json.JSONArray
@@ -55,13 +56,14 @@ object VKApi {
         try {
             checkError(json, url)
         } catch (ex: VKException) {
-            if (ex.code == ErrorCodes.TOO_MANY_REQUESTS) {
-                Timer().schedule(object : TimerTask() {
-                    override fun run() {
-                        execute(url, cls)
-                    }
-                }, 1000)
-            } else throw ex
+            throw ex
+//            if (ex.code == ErrorCodes.TOO_MANY_REQUESTS) {
+//                Timer().schedule(object : TimerTask() {
+//                    override fun run() {
+//                        execute(url, cls)
+//                    }
+//                }, 1000)
+//            } else throw ex
         }
 
         when (cls) {
@@ -282,7 +284,7 @@ object VKApi {
 
             val code = error.optInt("error_code", -1)
             val message = error.optString("error_msg", "")
-            val e = VKException(url, message, code)
+//            val e = VKException(url, message, code)
 
             //TODO: add checking invalid session
             if (code == 5 && message.contains("invalid session")) {
@@ -291,16 +293,16 @@ object VKApi {
 //                })
             }
 
-            if (code == ErrorCodes.CAPTCHA_NEEDED) {
-                e.captchaImg = error.optString("captcha_img")
-                e.captchaSid = error.optString("captcha_sid")
-            }
+//            if (code == ErrorCodes.CAPTCHA_NEEDED) {
+//                e.captchaImg = error.optString("captcha_img")
+//                e.captchaSid = error.optString("captcha_sid")
+//            }
+//
+//            if (code == ErrorCodes.VALIDATION_REQUIRED) {
+//                e.redirectUri = error.optString("redirect_uri")
+//            }
 
-            if (code == ErrorCodes.VALIDATION_REQUIRED) {
-                e.redirectUri = error.optString("redirect_uri")
-            }
-
-            throw e
+//            throw e
         }
     }
 

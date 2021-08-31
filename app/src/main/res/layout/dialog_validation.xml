@@ -9,22 +9,15 @@
         android:orientation="vertical"
         android:padding="@dimen/activity_horizontal_margin">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/image"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:scaleType="fitCenter"
-            tools:src="@tools:sample/backgrounds/scenic" />
-
         <LinearLayout
-            android:id="@+id/captchaContainer"
+            android:id="@+id/codeContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/captchaImage"
+                android:id="@+id/codeImage"
                 style="@style/AppTheme.Login.EditText.Icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -33,17 +26,18 @@
                 app:tint="?colorAccent" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/captchaLayout"
+                android:id="@+id/codeLayout"
                 style="@style/Widget.TextInputLayout.NoError.Dense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/captchaInput"
+                    android:id="@+id/codeInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/captcha_hint"
+                    android:hint="@string/code_hint"
                     android:imeOptions="actionGo"
+                    android:inputType="number"
                     android:lines="1"
                     android:maxLines="1" />
 

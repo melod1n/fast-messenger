@@ -29,7 +29,6 @@ object UserConfig {
         userId = -1
     }
 
-    fun isLoggedIn(): Boolean {
-        return userId > 0 && !TextUtils.isEmpty(accessToken)
-    }
+    fun isLoggedIn() = userId > 0 && accessToken.isNotBlank()
+
 }
