@@ -5,17 +5,13 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.WorkerThread
-import androidx.collection.arrayMapOf
-import com.meloda.fast.UserConfig
-import com.meloda.fast.VKLongPollParser
-import com.meloda.fast.api.VKApi
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VKLongPollServer
-import com.meloda.fast.concurrent.LowThread
-import com.meloda.fast.net.HttpRequest
 import com.meloda.fast.util.AndroidUtils
 import org.json.JSONArray
 import org.json.JSONObject
 
+// TODO: 8/31/2021 rewrite, use job
 @Deprecated("Absolutely obsolete")
 class LongPollService : Service() {
     private var thread: Thread? = null
@@ -23,10 +19,9 @@ class LongPollService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-
         running = false
 
-        thread = LowThread(Updater())
+//        thread = LowThread(Updater())
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -75,8 +70,9 @@ class LongPollService : Service() {
                 }
                 try {
                     if (server == null) {
-                        server = VKApi.messages().getLongPollServer()
-                            .execute(VKLongPollServer::class.java)!![0]
+                        server = null
+//                        server = VKApi.messages().getLongPollServer()
+//                            .execute(VKLongPollServer::class.java)!![0]
                     }
 
                     val response = getResponse(server)
@@ -92,7 +88,7 @@ class LongPollService : Service() {
 
                     Log.i(TAG, "updates: $updates")
 
-                    server.ts = tsResponse
+                    server?.ts = tsResponse
 
                     if (updates.length() != 0) {
                         process(updates)
@@ -110,23 +106,23 @@ class LongPollService : Service() {
         }
 
         @Throws(Exception::class)
-        private fun getResponse(server: VKLongPollServer): JSONObject {
-            val params = arrayMapOf<String, String>()
-            params["act"] = "a_check"
-            params["key"] = server.key
-            params["ts"] = server.ts.toString()
-            params["wait"] = "10"
-            params["mode"] = "490"
-            params["version"] = "9"
-
-            val buffer = HttpRequest["https://" + server.server, params].asString()
-
-            return JSONObject(buffer)
+        private fun getResponse(server: VKLongPollServer?): JSONObject {
+            return JSONObject("")
+//            val params = arrayMapOf<String, String>()
+//            params["act"] = "a_check"
+//            params["key"] = server.key
+//            params["ts"] = server.ts.toString()
+//            params["wait"] = "10"
+//            params["mode"] = "490"
+//            params["version"] = "9"
+//
+//            val buffer = HttpRequest["https://" + server.server, params].asString()
+//
+//            return JSONObject(buffer)
         }
 
         @WorkerThread
         private fun process(updates: JSONArray) {
-            VKLongPollParser.parse(updates)
         }
     }
 

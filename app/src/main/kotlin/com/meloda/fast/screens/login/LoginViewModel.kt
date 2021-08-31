@@ -1,10 +1,8 @@
 package com.meloda.fast.screens.login
 
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.UserConfig
-import com.meloda.fast.api.VKAuth
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.VKUtil
@@ -15,10 +13,7 @@ import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,12 +31,12 @@ class LoginViewModel @Inject constructor(
             {
                 repo.auth(
                     RequestAuthDirect(
-                        grantType = VKAuth.GrantType.PASSWORD,
+                        grantType = VKConstants.Auth.GrantType.PASSWORD,
                         clientId = VKConstants.VK_APP_ID,
                         clientSecret = VKConstants.VK_SECRET,
                         username = login,
                         password = password,
-                        scope = VKAuth.scope,
+                        scope = VKConstants.Auth.SCOPE,
                         twoFaForceSms = true,
                         twoFaCode = twoFaCode,
                         captchaSid = captcha?.first,
@@ -63,6 +58,8 @@ class LoginViewModel @Inject constructor(
             onError = {
                 checkErrors(it)
                 if (it !is VKException) return@makeJob
+
+                twoFaCode?.let { sendEvent(CodeSent) }
 
                 if (VKUtil.isValidationRequired(it)) {
                     it.validationSid?.let { sid ->

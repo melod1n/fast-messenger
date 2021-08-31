@@ -1,6 +1,5 @@
-package com.meloda.fast
+package com.meloda.fast.api
 
-import android.text.TextUtils
 import com.meloda.fast.common.AppGlobal
 
 object UserConfig {

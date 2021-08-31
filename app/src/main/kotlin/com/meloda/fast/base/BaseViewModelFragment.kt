@@ -9,7 +9,7 @@ import com.meloda.fast.base.viewmodel.VKEvent
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
-abstract class BaseVMFragment<VM : BaseViewModel> : BaseFragment {
+abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
 
     constructor() : super()
 

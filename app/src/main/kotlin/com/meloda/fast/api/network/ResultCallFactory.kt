@@ -1,6 +1,5 @@
 package com.meloda.fast.api.network
 
-import android.util.Log
 import com.meloda.fast.api.VKException
 import okhttp3.Request
 import okio.IOException
@@ -76,7 +75,6 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
         private val callback: Callback<Answer<T>>
     ) : Callback<T> {
 
-        // TODO: 8/31/2021 parse VK errors
         override fun onResponse(call: Call<T>, response: Response<T>) {
             val result: Answer<T> = if (response.isSuccessful)
                 Answer.Success(response.body() as T)

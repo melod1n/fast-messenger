@@ -6,14 +6,14 @@ import android.viewbinding.library.fragment.viewBinding
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.meloda.fast.R
-import com.meloda.fast.UserConfig
-import com.meloda.fast.base.BaseVMFragment
+import com.meloda.fast.api.UserConfig
+import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.databinding.FragmentMainBinding
 import com.meloda.fast.extensions.NavigationExtensions.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainFragment : BaseVMFragment<MainViewModel>(R.layout.fragment_main) {
+class MainFragment : BaseViewModelFragment<MainViewModel>(R.layout.fragment_main) {
 
     override val viewModel: MainViewModel by viewModels()
     private val binding: FragmentMainBinding by viewBinding()

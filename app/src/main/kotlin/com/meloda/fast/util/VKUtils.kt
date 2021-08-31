@@ -2,18 +2,15 @@ package com.meloda.fast.util
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
-import com.meloda.fast.concurrent.TaskManager
+import com.meloda.fast.R
+import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.model.*
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.extensions.ContextExtensions.drawable
 import com.meloda.fast.extensions.DrawableExtensions.tint
 import com.meloda.fast.extensions.StringExtensions.lowerCase
-import com.meloda.fast.R
-import com.meloda.fast.api.model.*
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.api.OnResponseListener
-import com.meloda.fast.api.VKUtil
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -81,41 +78,6 @@ object VKUtils {
 //        )
 //    }
 
-    @Deprecated("")
-    @WorkerThread
-    fun searchUser(id: Int, onResponseListener: OnResponseListener<VKUser>? = null): VKUser? {
-        return if (VKUtil.isGroupId(id) || VKUtil.isChatId(id)) {
-            null
-        } else {
-//            MemoryCache.getUserById(id)?.let { return it }
-//
-//            if (BuildConfig.DEBUG) {
-//                Log.d(VKUtil.TAG, "User with id $id not found")
-//            }
-//
-//            TaskManager.loadUser(VKApiKeys.UPDATE_USER, id, onResponseListener)
-
-            return null
-        }
-    }
-
-    @Deprecated("")
-    @WorkerThread
-    fun searchGroup(id: Int, onResponseListener: OnResponseListener<VKGroup>? = null): VKGroup? {
-        return if (!VKUtil.isGroupId(id) || VKUtil.isChatId(id)) {
-            null
-        } else {
-//            MemoryCache.getGroupById(abs(id))?.let { return it }
-//
-//            if (BuildConfig.DEBUG) {
-//                Log.d(VKUtil.TAG, "Group with id $id not found")
-//            }
-//
-//            TaskManager.loadGroup(VKApiKeys.UPDATE_GROUP, abs(id), onResponseListener)
-
-            return null
-        }
-    }
 
     fun getAttachmentText(context: Context, attachments: List<VKModel>): String {
         val resId: Int
@@ -158,7 +120,7 @@ object VKUtils {
                     if (resId == -1) "Unknown attachments" else context.getString(
                         resId,
                         attachments.size
-                    ).toLowerCase(Locale.getDefault())
+                    ).lowerCase()
                 } else {
                     context.getString(R.string.message_attachments_many)
                 }
@@ -226,62 +188,60 @@ object VKUtils {
     @Deprecated("need to rewrite")
     fun getActionText(
         context: Context,
-        lastMessage: VKMessage,
-        onResponseListener: OnResponseListener<String>
+        lastMessage: VKMessage
     ) {
-        TaskManager.execute {
-            lastMessage.action?.let {
-                var result = ""
 
-                when (it.type) {
-                    VKMessageAction.Type.CHAT_CREATE -> result = context.getString(
-                        R.string.message_action_created_chat,
+        lastMessage.action?.let {
+            var result = ""
+
+            when (it.type) {
+                VKMessageAction.Type.CHAT_CREATE -> result = context.getString(
+                    R.string.message_action_created_chat,
+                    ""
+                )
+                VKMessageAction.Type.INVITE_USER -> result =
+                    if (lastMessage.fromId == lastMessage.action!!.memberId) {
+                        context.getString(R.string.message_action_returned_to_chat, "")
+                    } else {
                         ""
-                    )
-                    VKMessageAction.Type.INVITE_USER -> result =
-                        if (lastMessage.fromId == lastMessage.action!!.memberId) {
-                            context.getString(R.string.message_action_returned_to_chat, "")
-                        } else {
-                            ""
 //                            val invited = MemoryCache.getUserById(lastMessage.action!!.memberId)
 //                            context.getString(R.string.message_action_invited_user, invited)
-                        }
-                    VKMessageAction.Type.INVITE_USER_BY_LINK -> result = context.getString(
-                        R.string.message_action_invited_by_link,
+                    }
+                VKMessageAction.Type.INVITE_USER_BY_LINK -> result = context.getString(
+                    R.string.message_action_invited_by_link,
+                    ""
+                )
+                VKMessageAction.Type.KICK_USER -> result =
+                    if (lastMessage.fromId == lastMessage.action!!.memberId) {
+                        context.getString(R.string.message_action_left_from_chat, "")
+                    } else {
                         ""
-                    )
-                    VKMessageAction.Type.KICK_USER -> result =
-                        if (lastMessage.fromId == lastMessage.action!!.memberId) {
-                            context.getString(R.string.message_action_left_from_chat, "")
-                        } else {
-                            ""
 //                            val kicked = MemoryCache.getUserById(lastMessage.action!!.memberId)
 //                            context.getString(R.string.message_action_kicked_user, kicked)
-                        }
-                    VKMessageAction.Type.PHOTO_REMOVE -> result = context.getString(
-                        R.string.message_action_removed_photo,
-                        ""
-                    )
-                    VKMessageAction.Type.PHOTO_UPDATE -> result = context.getString(
-                        R.string.message_action_updated_photo,
-                        ""
-                    )
-                    VKMessageAction.Type.PIN_MESSAGE -> result = context.getString(
-                        R.string.message_action_pinned_message,
-                        ""
-                    )
-                    VKMessageAction.Type.UNPIN_MESSAGE -> result = context.getString(
-                        R.string.message_action_unpinned_message,
-                        ""
-                    )
-                    VKMessageAction.Type.TITLE_UPDATE -> result = context.getString(
-                        R.string.message_action_updated_title,
-                        ""
-                    )
-                }
-
-                AppGlobal.post { onResponseListener.onResponse(result) }
+                    }
+                VKMessageAction.Type.PHOTO_REMOVE -> result = context.getString(
+                    R.string.message_action_removed_photo,
+                    ""
+                )
+                VKMessageAction.Type.PHOTO_UPDATE -> result = context.getString(
+                    R.string.message_action_updated_photo,
+                    ""
+                )
+                VKMessageAction.Type.PIN_MESSAGE -> result = context.getString(
+                    R.string.message_action_pinned_message,
+                    ""
+                )
+                VKMessageAction.Type.UNPIN_MESSAGE -> result = context.getString(
+                    R.string.message_action_unpinned_message,
+                    ""
+                )
+                VKMessageAction.Type.TITLE_UPDATE -> result = context.getString(
+                    R.string.message_action_updated_title,
+                    ""
+                )
             }
+
+
         }
     }
 

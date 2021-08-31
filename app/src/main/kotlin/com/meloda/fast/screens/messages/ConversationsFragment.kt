@@ -6,7 +6,7 @@ import android.viewbinding.library.fragment.viewBinding
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.meloda.fast.R
-import com.meloda.fast.base.BaseVMFragment
+import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
@@ -16,7 +16,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class ConversationsFragment : BaseVMFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
+class ConversationsFragment : BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
     override val viewModel: ConversationsViewModel by viewModels()
     private val binding: FragmentConversationsBinding by viewBinding()

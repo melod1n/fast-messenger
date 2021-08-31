@@ -19,7 +19,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
-import com.meloda.fast.base.BaseVMFragment
+import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
@@ -36,7 +36,7 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
-class LoginFragment : BaseVMFragment<LoginViewModel>(R.layout.fragment_login) {
+class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_login) {
 
     override val viewModel: LoginViewModel by viewModels()
     private val binding: FragmentLoginBinding by viewBinding()
