@@ -35,7 +35,7 @@ object VKAuth {
     ) = "https://oauth.vk.com/token?grant_type=password&" +
             "client_id=${VKConstants.VK_APP_ID}&" +
             "scope=$settings&" +
-            "client_secret=${BuildConfig.vkSecret}&" +
+            "client_secret=${VKConstants.VK_SECRET}&" +
             "username=$login&" +
             "password=$password" +
             (if (captchaSid == null || captchaKey == null) "" else "&captcha_sid=$captchaSid&captcha_key=$captchaKey") +
