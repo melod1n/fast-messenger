@@ -16,7 +16,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class ConversationsFragment : BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
+class ConversationsFragment :
+    BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
     override val viewModel: ConversationsViewModel by viewModels()
     private val binding: FragmentConversationsBinding by viewBinding()
@@ -34,14 +35,15 @@ class ConversationsFragment : BaseViewModelFragment<ConversationsViewModel>(R.la
     override fun onEvent(event: VKEvent) {
         super.onEvent(event)
         when (event) {
-            StartProgressEvent -> onProgressStarted()
-            StopProgressEvent -> onProgressStopped()
+            is ConversationsLoaded -> return
+            is StartProgressEvent -> onProgressStarted()
+            is StopProgressEvent -> onProgressStopped()
         }
     }
 
     private fun onProgressStarted() {
         if (adapter.isEmpty())
-        binding.progressBar.isVisible = true
+            binding.progressBar.isVisible = true
     }
 
     private fun onProgressStopped() {
