@@ -7,27 +7,14 @@ import androidx.room.Query
 import com.meloda.fast.api.model.VkUser
 
 @Dao
-interface UsersDao : KindaDao<VkUser> {
+interface UsersDao {
 
-//    @Insert(onConflict = OnConflictStrategy.REPLACE)
-//    suspend fun insert(values: List<VkUser>)
-
-//    override suspend fun insert(values: List<VkUser>) {
-//        TODO("Not yet implemented")
-//    }
-
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(values: List<VkUser>)
 
     @Query("SELECT * FROM users")
     suspend fun getAll(): List<VkUser>
 
     suspend fun insert(values: Array<out VkUser>) = insert(values.toList())
-
-}
-
-interface KindaDao<T> {
-
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(values: List<T>)
 
 }
