@@ -10,7 +10,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.R
 import com.meloda.fast.widget.CircleImageView
-import com.meloda.fast.api.model.VKUser
+import com.meloda.fast.api.model.oldVKUser
 
 
 object ViewUtils {
@@ -31,7 +31,7 @@ object ViewUtils {
         ).show()
     }
 
-    fun prepareNavigationHeader(view: View, user: VKUser) {
+    fun prepareNavigationHeader(view: View, user: oldVKUser) {
         val profileName = view.findViewById<TextView>(R.id.headerName)
 
         profileName.text = user.toString()

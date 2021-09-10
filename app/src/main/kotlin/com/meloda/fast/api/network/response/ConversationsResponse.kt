@@ -2,8 +2,8 @@ package com.meloda.fast.api.network.response
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.meloda.fast.api.model.BaseVKConversation
-import com.meloda.fast.api.model.BaseVKMessage
+import com.meloda.fast.api.model.base.BaseVkConversation
+import com.meloda.fast.api.model.base.BaseVkMessage
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -16,7 +16,7 @@ data class ConversationsGetResponse(
 
 @Parcelize
 data class ConversationsResponseItems(
-    val conversation: BaseVKConversation,
+    val conversation: BaseVkConversation,
     @SerializedName("last_message")
-    val lastMessage: BaseVKMessage
+    val lastMessage: BaseVkMessage
 ) : Parcelable

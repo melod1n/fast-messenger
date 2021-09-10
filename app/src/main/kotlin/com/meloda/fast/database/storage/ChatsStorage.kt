@@ -25,18 +25,18 @@ import com.meloda.fast.database.DatabaseKeys.TYPE
 import com.meloda.fast.database.DatabaseKeys.UNREAD_COUNT
 import com.meloda.fast.database.DatabaseUtils.TABLE_CHATS
 import com.meloda.fast.database.base.Storage
-import com.meloda.fast.api.model.VKConversation
+import com.meloda.fast.api.model.oldVKConversation
 import com.meloda.fast.api.VKUtil
 import org.json.JSONObject
 
 @WorkerThread
-class ChatsStorage : Storage<VKConversation>() {
+class ChatsStorage : Storage<oldVKConversation>() {
 
     override val tag = "ChatsStorage"
 
-    override fun getAllValues(): ArrayList<VKConversation> {
+    override fun getAllValues(): ArrayList<oldVKConversation> {
         val cursor = CacheStorage.selectCursor(TABLE_CHATS)
-        val conversations = ArrayList<VKConversation>()
+        val conversations = ArrayList<oldVKConversation>()
 
         while (cursor.moveToNext()) conversations.add(parseValue(cursor))
 
@@ -46,7 +46,7 @@ class ChatsStorage : Storage<VKConversation>() {
     }
 
     @WorkerThread
-    override fun insertValues(values: ArrayList<VKConversation>, params: Bundle?) {
+    override fun insertValues(values: ArrayList<oldVKConversation>, params: Bundle?) {
         if (values.isEmpty()) return
 
         database.beginTransaction()
@@ -68,7 +68,7 @@ class ChatsStorage : Storage<VKConversation>() {
     }
 
     @WorkerThread
-    override fun cacheValue(values: ContentValues, value: VKConversation, params: Bundle?) {
+    override fun cacheValue(values: ContentValues, value: oldVKConversation, params: Bundle?) {
         values.put(CONVERSATION_ID, value.id)
         values.put(IS_ALLOWED, value.isAllowed)
         values.put(NOT_ALLOWED_REASON, value.notAllowedReason.value)
@@ -99,12 +99,12 @@ class ChatsStorage : Storage<VKConversation>() {
     }
 
     @WorkerThread
-    override fun parseValue(cursor: Cursor): VKConversation {
-        val conversation = VKConversation()
+    override fun parseValue(cursor: Cursor): oldVKConversation {
+        val conversation = oldVKConversation()
 
         conversation.id = CacheStorage.getInt(cursor, CONVERSATION_ID)
         conversation.isAllowed = CacheStorage.getInt(cursor, IS_ALLOWED) == 1
-        conversation.notAllowedReason = VKConversation.Reason.fromInt(
+        conversation.notAllowedReason = oldVKConversation.Reason.fromInt(
             CacheStorage.getInt(cursor, NOT_ALLOWED_REASON)
         )
         conversation.inReadMessageId = CacheStorage.getInt(cursor, IN_READ_MESSAGE_ID)

@@ -12,7 +12,7 @@ class VKMessageAction() : VKModel() {
 
     var type: Type = Type.NONE
     var memberId = 0
-    var message: VKMessage? = null
+    var message: oldVKMessage? = null
     var conversationMessageId: Int = 0
     var text: String = ""
     var oldText: String = ""

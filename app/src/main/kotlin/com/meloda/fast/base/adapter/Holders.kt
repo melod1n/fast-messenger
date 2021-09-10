@@ -6,7 +6,9 @@ import androidx.viewbinding.ViewBinding
 
 abstract class BaseHolder(v: View) : RecyclerView.ViewHolder(v) {
 
-    open fun bind(position: Int) {}
+    open fun bind(position: Int) {
+        bind(position, null)
+    }
 
     open fun bind(position: Int, payloads: MutableList<Any>?) {}
 

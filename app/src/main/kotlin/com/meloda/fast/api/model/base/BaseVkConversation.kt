@@ -1,11 +1,11 @@
-package com.meloda.fast.api.model
+package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class BaseVKConversation(
+data class BaseVkConversation(
     val peer: Peer,
     @SerializedName("last_message_id")
     val lastMessageId: Int,
@@ -29,7 +29,7 @@ data class BaseVKConversation(
     @SerializedName("can_receive_money")
     val canReceiveMoney: Boolean,
     @SerializedName("chat_settings")
-    val chatSettings: ChatSettings
+    val chatSettings: ChatSettings?
 ) : Parcelable {
 
     @Parcelize

@@ -12,9 +12,9 @@ import com.meloda.fast.database.storage.ChatsStorage
 import com.meloda.fast.database.storage.GroupsStorage
 import com.meloda.fast.database.storage.MessagesStorage
 import com.meloda.fast.database.storage.UsersStorage
-import com.meloda.fast.api.model.VKConversation
-import com.meloda.fast.api.model.VKMessage
-import com.meloda.fast.api.model.VKUser
+import com.meloda.fast.api.model.oldVKConversation
+import com.meloda.fast.api.model.oldVKMessage
+import com.meloda.fast.api.model.oldVKUser
 import java.util.*
 
 object CacheStorage {
@@ -74,22 +74,22 @@ object CacheStorage {
         for (value in values) {
             when (tableName) {
                 TABLE_USERS -> {
-                    usersStorage.cacheValue(contentValues, value as VKUser)
+                    usersStorage.cacheValue(contentValues, value as oldVKUser)
                     break
                 }
                 TABLE_FRIENDS -> {
                     usersStorage.cacheValue(
                         contentValues,
-                        value as VKUser,
+                        value as oldVKUser,
                         Bundle().apply { putBoolean("toFriends", true) })
                     break
                 }
                 TABLE_MESSAGES -> {
-                    messagesStorage.cacheValue(contentValues, value as VKMessage)
+                    messagesStorage.cacheValue(contentValues, value as oldVKMessage)
                     break
                 }
                 TABLE_CHATS -> {
-                    chatsStorage.cacheValue(contentValues, value as VKConversation)
+                    chatsStorage.cacheValue(contentValues, value as oldVKConversation)
                     break
                 }
             }

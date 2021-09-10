@@ -14,6 +14,10 @@ object VKUrls {
         const val get = "$API/messages.getConversations"
     }
 
+    object Users {
+        const val getById = "$API/users.get"
+    }
+
 
 }
 

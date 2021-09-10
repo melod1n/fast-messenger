@@ -17,7 +17,7 @@ import kotlin.math.abs
 
 object VKUtils {
 
-    fun getUserOnline(user: VKUser): String {
+    fun getUserOnline(user: oldVKUser): String {
         val r = AppGlobal.resources
         return if (user.isOnline) {
             if (user.isOnlineMobile) {
@@ -39,8 +39,8 @@ object VKUtils {
 
     fun getUserOnlineIcon(
         context: Context,
-        conversation: VKConversation?,
-        peerUser: VKUser?
+        conversation: oldVKConversation?,
+        peerUser: oldVKUser?
     ): Drawable? {
         return if (conversation != null) {
             if (conversation.isUser() && peerUser != null) {
@@ -65,7 +65,7 @@ object VKUtils {
         }
     }
 
-    fun getUserOnlineIcon(context: Context, user: VKUser): Drawable? {
+    fun getUserOnlineIcon(context: Context, user: oldVKUser): Drawable? {
         return getUserOnlineIcon(context, null, user)
     }
 
@@ -175,7 +175,7 @@ object VKUtils {
         return null
     }
 
-    fun getFwdText(context: Context, forwardedMessages: List<VKMessage>): String {
+    fun getFwdText(context: Context, forwardedMessages: List<oldVKMessage>): String {
         return if (forwardedMessages.isNotEmpty()) {
             if (forwardedMessages.size > 1) {
                 context.getString(R.string.message_fwd_many, forwardedMessages.size).lowerCase()
@@ -188,7 +188,7 @@ object VKUtils {
     @Deprecated("need to rewrite")
     fun getActionText(
         context: Context,
-        lastMessage: VKMessage
+        lastMessage: oldVKMessage
     ) {
 
         lastMessage.action?.let {
@@ -245,7 +245,7 @@ object VKUtils {
         }
     }
 
-    fun getTime(context: Context, lastMessage: VKMessage): String {
+    fun getTime(context: Context, lastMessage: oldVKMessage): String {
         val then = lastMessage.date * 1000L
         val now = System.currentTimeMillis()
 

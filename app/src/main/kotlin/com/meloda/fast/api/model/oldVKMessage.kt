@@ -4,15 +4,15 @@ import android.util.ArrayMap
 import com.meloda.fast.api.VKUtil
 import org.json.JSONObject
 
-open class VKMessage() : VKModel() {
+open class oldVKMessage() : VKModel() {
 
     override val attachmentType = VKAttachments.Type.NONE
 
     companion object {
 
-        var profiles = arrayListOf<VKUser>()
+        var profiles = arrayListOf<oldVKUser>()
         var groups = arrayListOf<VKGroup>()
-        var conversations = arrayListOf<VKConversation>()
+        var conversations = arrayListOf<oldVKConversation>()
 
         const val serialVersionUID: Long = 1L
 
@@ -97,13 +97,13 @@ open class VKMessage() : VKModel() {
 
     var attachments: ArrayList<VKModel> = arrayListOf()
 
-    var fwdMessages: ArrayList<VKMessage> = arrayListOf()
+    var fwdMessages: ArrayList<oldVKMessage> = arrayListOf()
 
-    var replyMessage: VKMessage? = null
+    var replyMessage: oldVKMessage? = null
 
     var action: VKMessageAction? = null
 
-    var fromUser: VKUser? = null
+    var fromUser: oldVKUser? = null
 
     var fromGroup: VKGroup? = null
 
@@ -126,15 +126,15 @@ open class VKMessage() : VKModel() {
         }
 
         o.optJSONArray("fwd_messages")?.let {
-            val fwdMessages = ArrayList<VKMessage>(it.length())
+            val fwdMessages = ArrayList<oldVKMessage>(it.length())
             for (i in 0 until it.length()) {
-                fwdMessages.add(VKMessage(it.optJSONObject(i)))
+                fwdMessages.add(oldVKMessage(it.optJSONObject(i)))
             }
             this.fwdMessages = fwdMessages
         }
 
         o.optJSONObject("reply_message")?.let {
-            replyMessage = VKMessage(it)
+            replyMessage = oldVKMessage(it)
         }
 
         o.optJSONObject("action")?.let {
@@ -142,7 +142,7 @@ open class VKMessage() : VKModel() {
         }
     }
 
-    fun getForwardedMessages() = ArrayList<VKMessage>().apply {
+    fun getForwardedMessages() = ArrayList<oldVKMessage>().apply {
         for (model in fwdMessages) add(model)
     }
 

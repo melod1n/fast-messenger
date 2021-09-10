@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKUtil
-import com.meloda.fast.api.model.VKUser
+import com.meloda.fast.api.model.oldVKUser
 import com.meloda.fast.database.CacheStorage
 import com.meloda.fast.database.DatabaseKeys.DEACTIVATED
 import com.meloda.fast.database.DatabaseKeys.FIRST_NAME
@@ -29,15 +29,15 @@ import com.meloda.fast.database.base.Storage
 import org.json.JSONObject
 
 @WorkerThread
-class UsersStorage : Storage<VKUser>() {
+class UsersStorage : Storage<oldVKUser>() {
 
     override val tag = "UsersStorage"
 
     @WorkerThread
-    fun getUsers(ids: IntArray): ArrayList<VKUser> {
+    fun getUsers(ids: IntArray): ArrayList<oldVKUser> {
         val cursor = CacheStorage.selectCursor(TABLE_USERS, USER_ID, ids)
 
-        val users = ArrayList<VKUser>(cursor.count)
+        val users = ArrayList<oldVKUser>(cursor.count)
         while (cursor.moveToNext()) users.add(parseValue(cursor))
 
         cursor.close()
@@ -45,14 +45,14 @@ class UsersStorage : Storage<VKUser>() {
     }
 
     @WorkerThread
-    fun getUser(userId: Int): VKUser? {
+    fun getUser(userId: Int): oldVKUser? {
         val user = getUsers(intArrayOf(userId))
 
         return if (user.isNotEmpty()) user[0] else null
     }
 
     @WorkerThread
-    fun getFriends(userId: Int, onlyOnline: Boolean = false): ArrayList<VKUser> {
+    fun getFriends(userId: Int, onlyOnline: Boolean = false): ArrayList<oldVKUser> {
         val cursor = QueryBuilder.query()
             .select("*")
             .from(TABLE_FRIENDS)
@@ -61,7 +61,7 @@ class UsersStorage : Storage<VKUser>() {
             .where("friends.${USER_ID} = $userId")
             .asCursor(database)
 
-        val users = ArrayList<VKUser>(cursor.count)
+        val users = ArrayList<oldVKUser>(cursor.count)
 
         while (cursor.moveToNext()) {
             val userOnline = CacheStorage.getInt(cursor, IS_ONLINE) == 1
@@ -76,9 +76,9 @@ class UsersStorage : Storage<VKUser>() {
         return users
     }
 
-    override fun getAllValues(): ArrayList<VKUser> {
+    override fun getAllValues(): ArrayList<oldVKUser> {
         val cursor = CacheStorage.selectCursor(TABLE_USERS)
-        val users = ArrayList<VKUser>()
+        val users = ArrayList<oldVKUser>()
 
         while (cursor.moveToNext()) users.add(parseValue(cursor))
 
@@ -88,7 +88,7 @@ class UsersStorage : Storage<VKUser>() {
     }
 
     @WorkerThread
-    override fun insertValues(values: ArrayList<VKUser>, params: Bundle?) {
+    override fun insertValues(values: ArrayList<oldVKUser>, params: Bundle?) {
         if (values.isEmpty()) return
 
         val toFriends = params?.getBoolean("toFriends") ?: false
@@ -112,7 +112,7 @@ class UsersStorage : Storage<VKUser>() {
     }
 
     @WorkerThread
-    override fun cacheValue(values: ContentValues, value: VKUser, params: Bundle?) {
+    override fun cacheValue(values: ContentValues, value: oldVKUser, params: Bundle?) {
         val toFriends = params?.getBoolean("toFriends") ?: false
 
         if (toFriends) {
@@ -144,8 +144,8 @@ class UsersStorage : Storage<VKUser>() {
     }
 
     @WorkerThread
-    override fun parseValue(cursor: Cursor): VKUser {
-        val user = VKUser()
+    override fun parseValue(cursor: Cursor): oldVKUser {
+        val user = oldVKUser()
 
         user.userId = CacheStorage.getInt(cursor, USER_ID)
         user.firstName = CacheStorage.getString(cursor, FIRST_NAME)

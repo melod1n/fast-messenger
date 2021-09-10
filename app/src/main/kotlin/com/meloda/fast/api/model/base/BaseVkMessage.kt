@@ -1,4 +1,4 @@
-package com.meloda.fast.api.model
+package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
 @Parcelize
-data class BaseVKMessage(
+data class BaseVkMessage(
     val date: Int,
     @SerializedName("from_id")
     val fromId: Int,
@@ -18,7 +18,7 @@ data class BaseVKMessage(
     @SerializedName("conversation_message_id")
     val conversationMessageId: Int,
     @SerializedName("fwd_messages")
-    val fwdMessages: List<BaseVKMessage> = listOf(),
+    val fwdMessages: List<BaseVkMessage> = listOf(),
     val important: Boolean,
     @SerializedName("random_id")
     val randomId: Int,

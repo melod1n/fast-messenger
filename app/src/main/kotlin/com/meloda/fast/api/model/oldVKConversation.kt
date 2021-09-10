@@ -2,14 +2,14 @@ package com.meloda.fast.api.model
 
 import org.json.JSONObject
 
-class VKConversation() : VKModel(), Cloneable {
+class oldVKConversation() : VKModel(), Cloneable {
 
     override val attachmentType = VKAttachments.Type.NONE
 
     companion object {
         const val serialVersionUID: Long = 1L
 
-        var profiles = arrayListOf<VKUser>()
+        var profiles = arrayListOf<oldVKUser>()
         var groups = arrayListOf<VKGroup>()
 
         var conversationsCount: Int = 0
@@ -41,12 +41,12 @@ class VKConversation() : VKModel(), Cloneable {
     var membersCount: Int = 0
     var title: String? = null
 
-    var pinnedMessage: VKMessage? = null
+    var pinnedMessage: oldVKMessage? = null
 
     var intState: Int = 0
     var state: State = State.IN
 
-    var lastMessage: VKMessage = VKMessage()
+    var lastMessage: oldVKMessage = oldVKMessage()
 
     var isGroupChannel: Boolean = false
 
@@ -54,7 +54,7 @@ class VKConversation() : VKModel(), Cloneable {
     var photo100: String = ""
     var photo200: String = ""
 
-    var peerUser: VKUser? = null
+    var peerUser: oldVKUser? = null
 
     var peerGroup: VKGroup? = null
 
@@ -87,7 +87,7 @@ class VKConversation() : VKModel(), Cloneable {
             if (title?.isBlank() == true) title = null
 
             it.optJSONObject("pinned_message")?.let { pinned ->
-                pinnedMessage = VKMessage(pinned)
+                pinnedMessage = oldVKMessage(pinned)
             }
 
             state = State.fromString(it.optString("state"))
@@ -112,7 +112,7 @@ class VKConversation() : VKModel(), Cloneable {
 
     override fun toString() = title ?: ""
 
-    public override fun clone() = super.clone() as VKConversation
+    public override fun clone() = super.clone() as oldVKConversation
 
     enum class Type(val value: String) {
         NULL("null"),

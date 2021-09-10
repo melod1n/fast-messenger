@@ -2,10 +2,9 @@ package com.meloda.fast.api.network
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.meloda.fast.api.network.datasource.AuthDataSource
-import com.meloda.fast.api.network.datasource.ConversationsDataSource
 import com.meloda.fast.api.network.repo.AuthRepo
 import com.meloda.fast.api.network.repo.ConversationsRepo
+import com.meloda.fast.api.network.repo.UsersRepo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -61,15 +60,11 @@ class VKModules {
         retrofit.create(AuthRepo::class.java)
 
     @Provides
-    fun provideAuthDataSource(repo: AuthRepo): AuthDataSource =
-        AuthDataSource(repo)
-
-    @Provides
     fun provideConversationsRepo(retrofit: Retrofit): ConversationsRepo =
         retrofit.create(ConversationsRepo::class.java)
 
     @Provides
-    fun provideConversationsDataSource(repo: ConversationsRepo): ConversationsDataSource =
-        ConversationsDataSource(repo)
+    fun provideUsersRepo(retrofit: Retrofit): UsersRepo =
+        retrofit.create(UsersRepo::class.java)
 
 }

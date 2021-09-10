@@ -3,7 +3,7 @@ package com.meloda.fast.api.model
 import org.json.JSONArray
 import org.json.JSONObject
 
-open class VKUser() : VKModel() {
+open class oldVKUser() : VKModel() {
 
     override val attachmentType = VKAttachments.Type.NONE
 
@@ -12,11 +12,11 @@ open class VKUser() : VKModel() {
 
         var friendsCount: Int = 0
 
-        fun parse(array: JSONArray): ArrayList<VKUser> {
-            val users = ArrayList<VKUser>()
+        fun parse(array: JSONArray): ArrayList<oldVKUser> {
+            val users = ArrayList<oldVKUser>()
 
             for (i in 0 until array.length()) {
-                users.add(VKUser(array.optJSONObject(i)))
+                users.add(oldVKUser(array.optJSONObject(i)))
             }
 
             return users

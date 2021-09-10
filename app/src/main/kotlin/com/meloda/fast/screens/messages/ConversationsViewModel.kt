@@ -2,11 +2,13 @@ package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.model.BaseVKConversation
-import com.meloda.fast.api.model.BaseVKMessage
+import com.meloda.fast.api.model.base.BaseVkConversation
+import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.network.repo.ConversationsRepo
 import com.meloda.fast.api.network.request.ConversationsGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.StartProgressEvent
+import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,10 +46,10 @@ class ConversationsViewModel @Inject constructor(
                 val i = 0
             },
             onStart = {
-                val i = 0
+                sendEvent(StartProgressEvent)
             },
             onEnd = {
-                val i = 0
+                sendEvent(StopProgressEvent)
             })
     }
 }
@@ -55,6 +57,6 @@ class ConversationsViewModel @Inject constructor(
 data class ConversationsLoaded(
     val count: Int,
     val unreadCount: Int,
-    val messages: List<BaseVKMessage>,
-    val conversations: List<BaseVKConversation>
+    val messages: List<BaseVkMessage>,
+    val conversations: List<BaseVkConversation>
 ) : VKEvent()

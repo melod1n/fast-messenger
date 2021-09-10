@@ -23,22 +23,22 @@ import com.meloda.fast.database.DatabaseKeys.TEXT
 import com.meloda.fast.database.DatabaseUtils.TABLE_MESSAGES
 import com.meloda.fast.database.base.Storage
 import com.meloda.fast.util.Utils
-import com.meloda.fast.api.model.VKMessage
+import com.meloda.fast.api.model.oldVKMessage
 import com.meloda.fast.api.model.VKMessageAction
 import com.meloda.fast.api.model.VKModel
 import java.util.stream.Collectors
 
 @WorkerThread
 @Suppress("UNCHECKED_CAST")
-class MessagesStorage : Storage<VKMessage>() {
+class MessagesStorage : Storage<oldVKMessage>() {
 
     override val tag = "MessagesStorage"
 
     @WorkerThread
-    fun getMessagesHistory(peerId: Int): ArrayList<VKMessage> {
+    fun getMessagesHistory(peerId: Int): ArrayList<oldVKMessage> {
         val cursor = CacheStorage.selectCursor(TABLE_MESSAGES, PEER_ID, peerId)
 
-        val messages = ArrayList<VKMessage>(cursor.count)
+        val messages = ArrayList<oldVKMessage>(cursor.count)
         while (cursor.moveToNext()) messages.add(parseValue(cursor))
 
         cursor.close()
@@ -47,7 +47,7 @@ class MessagesStorage : Storage<VKMessage>() {
     }
 
     @WorkerThread
-    fun getMessageById(messageId: Int): VKMessage? {
+    fun getMessageById(messageId: Int): oldVKMessage? {
         val cursor = CacheStorage.selectCursor(TABLE_MESSAGES, MESSAGE_ID, messageId)
 
         if (cursor.moveToFirst()) {
@@ -60,9 +60,9 @@ class MessagesStorage : Storage<VKMessage>() {
         return null
     }
 
-    override fun getAllValues(): ArrayList<VKMessage> {
+    override fun getAllValues(): ArrayList<oldVKMessage> {
         val cursor = selectCursor(TABLE_MESSAGES)
-        val messages = ArrayList<VKMessage>()
+        val messages = ArrayList<oldVKMessage>()
 
         while (cursor.moveToNext()) messages.add(parseValue(cursor))
 
@@ -72,7 +72,7 @@ class MessagesStorage : Storage<VKMessage>() {
     }
 
     @WorkerThread
-    override fun insertValues(values: ArrayList<VKMessage>, params: Bundle?) {
+    override fun insertValues(values: ArrayList<oldVKMessage>, params: Bundle?) {
         if (values.isEmpty()) return
 
         database.beginTransaction()
@@ -94,7 +94,7 @@ class MessagesStorage : Storage<VKMessage>() {
     }
 
     @WorkerThread
-    override fun cacheValue(values: ContentValues, value: VKMessage, params: Bundle?) {
+    override fun cacheValue(values: ContentValues, value: oldVKMessage, params: Bundle?) {
         values.put(MESSAGE_ID, value.id)
         values.put(DATE, value.date)
         values.put(PEER_ID, value.peerId)
@@ -131,8 +131,8 @@ class MessagesStorage : Storage<VKMessage>() {
     }
 
     @WorkerThread
-    override fun parseValue(cursor: Cursor): VKMessage {
-        val message = VKMessage()
+    override fun parseValue(cursor: Cursor): oldVKMessage {
+        val message = oldVKMessage()
 
         message.id = CacheStorage.getInt(cursor, MESSAGE_ID)
         message.date = CacheStorage.getInt(cursor, DATE)
@@ -162,7 +162,7 @@ class MessagesStorage : Storage<VKMessage>() {
             val ids = arrayListOf<Int>()
             for (s in split) ids.add(s.toInt())
 
-            val fwdMessages = arrayListOf<VKMessage>()
+            val fwdMessages = arrayListOf<oldVKMessage>()
 
             ids.forEach {
                 val fwdMessage = getMessageById(it)

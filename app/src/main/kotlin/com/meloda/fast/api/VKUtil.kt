@@ -24,9 +24,9 @@ object VKUtil {
     }
 
     fun sortMessagesByDate(
-        values: ArrayList<VKMessage>,
+        values: ArrayList<oldVKMessage>,
         firstOnTop: Boolean
-    ): ArrayList<VKMessage> {
+    ): ArrayList<oldVKMessage> {
         values.sortWith { m1, m2 ->
             val d1 = m1.date
             val d2 = m2.date
@@ -42,9 +42,9 @@ object VKUtil {
     }
 
     fun sortConversationsByDate(
-        values: ArrayList<VKConversation>,
+        values: ArrayList<oldVKConversation>,
         firstOnTop: Boolean
-    ): ArrayList<VKConversation> {
+    ): ArrayList<oldVKConversation> {
         values.sortWith { c1, c2 ->
             val d1 = c1.lastMessage.date
             val d2 = c2.lastMessage.date
@@ -119,8 +119,8 @@ object VKUtil {
 
 
     fun getTitle(
-        conversation: VKConversation,
-        peerUser: VKUser?,
+        conversation: oldVKConversation,
+        peerUser: oldVKUser?,
         peerGroup: VKGroup?
     ): String {
         return when {
@@ -137,8 +137,8 @@ object VKUtil {
     }
 
     fun getMessageTitle(
-        message: VKMessage,
-        fromUser: VKUser?,
+        message: oldVKMessage,
+        fromUser: oldVKUser?,
         fromGroup: VKGroup?
     ): String {
         return when {
@@ -155,8 +155,8 @@ object VKUtil {
     }
 
     fun getAvatar(
-        conversation: VKConversation,
-        peerUser: VKUser?,
+        conversation: oldVKConversation,
+        peerUser: oldVKUser?,
         peerGroup: VKGroup?
     ): String {
         return when {
@@ -177,8 +177,8 @@ object VKUtil {
     }
 
     fun getUserAvatar(
-        message: VKMessage,
-        fromUser: VKUser?,
+        message: oldVKMessage,
+        fromUser: oldVKUser?,
         fromGroup: VKGroup?
     ): String {
         return when {
@@ -194,7 +194,7 @@ object VKUtil {
         }
     }
 
-    fun getUserPhoto(user: VKUser): String {
+    fun getUserPhoto(user: oldVKUser): String {
         if (user.photo200.isEmpty()) {
             if (user.photo100.isEmpty()) {
                 if (user.photo50.isEmpty()) {
@@ -227,26 +227,26 @@ object VKUtil {
     }
 
 
-    fun parseConversations(array: JSONArray): ArrayList<VKConversation> {
-        val conversations = arrayListOf<VKConversation>()
+    fun parseConversations(array: JSONArray): ArrayList<oldVKConversation> {
+        val conversations = arrayListOf<oldVKConversation>()
         for (i in 0 until array.length()) {
-            conversations.add(VKConversation(array.optJSONObject(i)))
+            conversations.add(oldVKConversation(array.optJSONObject(i)))
         }
 
         return conversations
     }
 
-    fun parseMessages(array: JSONArray): ArrayList<VKMessage> {
-        val messages = arrayListOf<VKMessage>()
+    fun parseMessages(array: JSONArray): ArrayList<oldVKMessage> {
+        val messages = arrayListOf<oldVKMessage>()
         for (i in 0 until array.length()) {
-            messages.add(VKMessage(array.optJSONObject(i)))
+            messages.add(oldVKMessage(array.optJSONObject(i)))
         }
 
         return messages
     }
 
     fun isMessageHasFlag(mask: Int, flagName: String): Boolean {
-        val o: Any? = VKMessage.flags[flagName]
+        val o: Any? = oldVKMessage.flags[flagName]
         return if (o != null) { //has flag
             val flag = o as Int
             flag and mask > 0
@@ -257,8 +257,8 @@ object VKUtil {
     //fromUser and fromGroup are null
     @Deprecated("need to rewrite")
     @WorkerThread
-    fun parseLongPollMessage(array: JSONArray): VKMessage {
-        val message = VKMessage()
+    fun parseLongPollMessage(array: JSONArray): oldVKMessage {
+        val message = oldVKMessage()
 
         val id = array.optInt(1)
         val flags = array.optInt(2)
@@ -302,7 +302,7 @@ object VKUtil {
                             action.conversationMessageId = it.optInt("source_chat_local_id")
 
                             it.optJSONObject("source_message")?.let { message ->
-                                action.message = VKMessage(message)
+                                action.message = oldVKMessage(message)
                             }
                         }
                         VKMessageAction.Type.UNPIN_MESSAGE -> {

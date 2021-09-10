@@ -6,9 +6,9 @@ class VKLongPollHistory : VKModel() {
 
     override val attachmentType = VKAttachments.Type.NONE
 
-    private val lpMessages: ArrayList<VKMessage>? = null
-    private val messages: ArrayList<VKMessage>? = null
-    private val profiles: ArrayList<VKUser>? = null
+    private val lpMessages: ArrayList<oldVKMessage>? = null
+    private val messages: ArrayList<oldVKMessage>? = null
+    private val profiles: ArrayList<oldVKUser>? = null
     private val groups: ArrayList<VKGroup>? = null //TODO: использовать
 
 }
