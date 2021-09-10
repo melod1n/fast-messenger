@@ -6,7 +6,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.VKUtil
-import com.meloda.fast.api.network.repo.AuthRepo
+import com.meloda.fast.api.datasource.AuthDataSource
 import com.meloda.fast.api.network.request.RequestAuthDirect
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.StartProgressEvent
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repo: AuthRepo
+    private val dataSource: AuthDataSource
 ) : BaseViewModel() {
 
     fun login(
@@ -29,7 +29,7 @@ class LoginViewModel @Inject constructor(
     ) = viewModelScope.launch {
         makeJob(
             {
-                repo.auth(
+                dataSource.auth(
                     RequestAuthDirect(
                         grantType = VKConstants.Auth.GrantType.PASSWORD,
                         clientId = VKConstants.VK_APP_ID,
@@ -41,7 +41,7 @@ class LoginViewModel @Inject constructor(
                         twoFaCode = twoFaCode,
                         captchaSid = captcha?.first,
                         captchaKey = captcha?.second
-                    ).map
+                    )
                 )
             },
             onAnswer = {
@@ -79,7 +79,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun sendSms(validationSid: String) = viewModelScope.launch {
-        makeJob({ repo.sendSms(validationSid) },
+        makeJob({ dataSource.sendSms(validationSid) },
             onAnswer = { sendEvent(CodeSent) },
             onError = {},
             onStart = {},

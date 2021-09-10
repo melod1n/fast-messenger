@@ -2,6 +2,7 @@ package com.meloda.fast.api
 
 import androidx.annotation.WorkerThread
 import com.meloda.fast.api.model.*
+import com.meloda.fast.api.model.old.*
 import com.meloda.fast.api.network.VKErrors
 import org.json.JSONArray
 import org.json.JSONObject

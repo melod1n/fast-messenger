@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
 import com.meloda.fast.api.VKUtil
-import com.meloda.fast.api.model.*
+import com.meloda.fast.api.model.old.*
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.extensions.ContextExtensions.drawable

@@ -10,7 +10,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.extensions.ContextExtensions.color
 import com.meloda.fast.R
 import com.meloda.fast.widget.CircleImageView
-import com.meloda.fast.api.model.oldVKUser
+import com.meloda.fast.api.model.old.oldVKUser
 
 
 object ViewUtils {

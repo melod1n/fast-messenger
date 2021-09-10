@@ -2,6 +2,7 @@ package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.VkUser
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -45,5 +46,11 @@ data class BaseVkUser(
         @SerializedName("app_id")
         val appId: Int?
     ) : Parcelable
+
+    fun asVkUser() = VkUser(
+        id = id,
+        firstName = firstName,
+        lastName = lastName
+    )
 
 }

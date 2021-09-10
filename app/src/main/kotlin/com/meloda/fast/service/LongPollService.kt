@@ -6,7 +6,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.model.VKLongPollServer
+import com.meloda.fast.api.model.old.VKLongPollServer
 import com.meloda.fast.util.AndroidUtils
 import org.json.JSONArray
 import org.json.JSONObject

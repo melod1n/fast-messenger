@@ -1,16 +1,12 @@
 package com.meloda.fast.screens.messages
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.meloda.fast.R
-import com.meloda.fast.api.LoadManager
 import com.meloda.fast.api.model.VkConversation
-import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
@@ -18,9 +14,7 @@ import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-import kotlin.system.measureTimeMillis
 
 @AndroidEntryPoint
 class ConversationsFragment :
@@ -29,9 +23,6 @@ class ConversationsFragment :
     companion object {
         val TAG: String = ConversationsFragment::class.java.name
     }
-
-//    @Inject
-//    lateinit var loadManager: LoadManager
 
     override val viewModel: ConversationsViewModel by viewModels()
     private val binding: FragmentConversationsBinding by viewBinding()
@@ -52,7 +43,7 @@ class ConversationsFragment :
     override fun onEvent(event: VKEvent) {
         super.onEvent(event)
         when (event) {
-            is ConversationsLoaded -> prepareData(event)
+            is ConversationsLoaded -> refreshConversations(event.conversations)
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
         }
@@ -74,7 +65,7 @@ class ConversationsFragment :
     }
 
     private fun prepareRecyclerView() {
-
+        binding.recyclerView.itemAnimator = null
     }
 
     private fun prepareRefreshLayout() {
@@ -100,42 +91,16 @@ class ConversationsFragment :
         }
     }
 
-    private fun prepareData(event: ConversationsLoaded) {
-        val conversations = mutableListOf<VkConversation>()
-
-        val timeInMillis = measureTimeMillis {
-            for (i in event.conversations.indices) {
-                val baseConversation = event.conversations[i]
-                val baseMessage = event.messages[i]
-
-                conversations += VkConversation(
-                    id = baseConversation.peer.id,
-                    title = baseConversation.chatSettings?.title,
-                    lastMessage = VkMessage(
-                        id = baseMessage.id,
-                        text = baseMessage.text,
-                        isOut = baseMessage.out == 1,
-                        peerId = baseMessage.peerId,
-                        fromId = baseMessage.fromId,
-                        date = baseMessage.date
-                    )
-                )
-            }
-        }
-
-        Log.d(TAG, "prepareData: $timeInMillis ms")
-
+    private fun refreshConversations(conversations: List<VkConversation>) {
         fillRecyclerView(conversations)
 
-        lifecycleScope.launch {
-            LoadManager.users.load(listOf(1, 2, 3))
-        }
+        viewModel.loadSomeUsers(listOf(1, 2, 3, 362877006))
     }
 
     private fun fillRecyclerView(values: List<VkConversation>) {
         adapter.values.clear()
         adapter.values += values
-        adapter.notifyDataSetChanged()
+        adapter.notifyItemRangeChanged(0, adapter.itemCount)
     }
 
 }

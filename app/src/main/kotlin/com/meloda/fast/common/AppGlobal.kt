@@ -13,9 +13,11 @@ import android.os.Handler
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
+import androidx.room.Room
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
-import com.meloda.fast.database.DatabaseHelper
+import com.meloda.fast.database.AppDatabase
+import com.meloda.fast.database.old.DatabaseHelper
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.HiltAndroidApp
 import org.acra.ACRA
@@ -49,8 +51,10 @@ class AppGlobal : Application() {
         lateinit var packageName: String
         lateinit var instance: AppGlobal
 
+        lateinit var appDatabase: AppDatabase
+
         lateinit var dbHelper: DatabaseHelper
-        lateinit var database: SQLiteDatabase
+        lateinit var oldDatabase: SQLiteDatabase
 
         lateinit var packageManager: PackageManager
 
@@ -73,12 +77,18 @@ class AppGlobal : Application() {
             ACRA.init(this)
         }
 
+        appDatabase = Room.databaseBuilder(
+            this, AppDatabase::class.java, "cache"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         handler = Handler(mainLooper)
         locale = Locale.getDefault()
 
         dbHelper = DatabaseHelper(this)
-        database = dbHelper.writableDatabase
+        oldDatabase = dbHelper.writableDatabase
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
@@ -87,7 +97,6 @@ class AppGlobal : Application() {
         Companion.resources = resources
         Companion.packageName = packageName
         Companion.packageManager = packageManager
-
 
         screenWidth = AndroidUtils.getDisplayWidth()
         screenHeight = AndroidUtils.getDisplayHeight()

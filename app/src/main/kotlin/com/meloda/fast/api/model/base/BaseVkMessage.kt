@@ -2,6 +2,7 @@ package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.VkMessage
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
@@ -28,6 +29,15 @@ data class BaseVkMessage(
     val payload: String,
     val geo: Geo?
 ) : Parcelable {
+
+    fun asVkMessage() = VkMessage(
+        id = id,
+        text = text,
+        isOut = out == 1,
+        peerId = peerId,
+        fromId = fromId,
+        date = date
+    )
 
     @Parcelize
     data class Geo(
