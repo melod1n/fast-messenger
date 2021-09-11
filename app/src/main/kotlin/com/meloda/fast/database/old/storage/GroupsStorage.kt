@@ -17,19 +17,19 @@ import com.meloda.fast.database.old.DatabaseKeys.SCREEN_NAME
 import com.meloda.fast.database.old.DatabaseKeys.TYPE
 import com.meloda.fast.database.old.DatabaseUtils.TABLE_GROUPS
 import com.meloda.fast.database.old.base.Storage
-import com.meloda.fast.api.model.old.VKGroup
-import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.model.old.oldVKGroup
+import com.meloda.fast.api.oldVKUtil
 import org.json.JSONObject
 
-class GroupsStorage : Storage<VKGroup>() {
+class GroupsStorage : Storage<oldVKGroup>() {
 
     override val tag = "GroupsStorage"
 
     @WorkerThread
-    fun getGroups(ids: IntArray): ArrayList<VKGroup> {
+    fun getGroups(ids: IntArray): ArrayList<oldVKGroup> {
         val cursor = CacheStorage.selectCursor(TABLE_GROUPS, GROUP_ID, ids)
 
-        val groups = ArrayList<VKGroup>(cursor.count)
+        val groups = ArrayList<oldVKGroup>(cursor.count)
         while (cursor.moveToNext()) groups.add(parseValue(cursor))
 
         cursor.close()
@@ -37,15 +37,15 @@ class GroupsStorage : Storage<VKGroup>() {
     }
 
     @WorkerThread
-    fun getGroup(userId: Int): VKGroup? {
+    fun getGroup(userId: Int): oldVKGroup? {
         val group = getGroups(intArrayOf(userId))
 
         return if (group.isNotEmpty()) group[0] else null
     }
 
-    override fun getAllValues(): ArrayList<VKGroup> {
+    override fun getAllValues(): ArrayList<oldVKGroup> {
         val cursor = CacheStorage.selectCursor(TABLE_GROUPS)
-        val groups = ArrayList<VKGroup>()
+        val groups = ArrayList<oldVKGroup>()
 
         while (cursor.moveToNext()) groups.add(parseValue(cursor))
 
@@ -54,7 +54,7 @@ class GroupsStorage : Storage<VKGroup>() {
         return groups
     }
 
-    override fun insertValues(values: ArrayList<VKGroup>, params: Bundle?) {
+    override fun insertValues(values: ArrayList<oldVKGroup>, params: Bundle?) {
         if (values.isEmpty()) return
 
         database.beginTransaction()
@@ -75,7 +75,7 @@ class GroupsStorage : Storage<VKGroup>() {
         Log.d(tag, "Successful cached groups")
     }
 
-    override fun cacheValue(values: ContentValues, value: VKGroup, params: Bundle?) {
+    override fun cacheValue(values: ContentValues, value: oldVKGroup, params: Bundle?) {
         values.put(GROUP_ID, value.id)
         values.put(NAME, value.name)
         values.put(SCREEN_NAME, value.screenName)
@@ -84,22 +84,22 @@ class GroupsStorage : Storage<VKGroup>() {
         values.put(TYPE, value.type.value)
 
         val photos =
-            VKUtil.putPhotosToJson(value.photo50, value.photo100, value.photo200).toString()
+            oldVKUtil.putPhotosToJson(value.photo50, value.photo100, value.photo200).toString()
 
         values.put(PHOTOS, photos)
     }
 
-    override fun parseValue(cursor: Cursor): VKGroup {
-        val group = VKGroup()
+    override fun parseValue(cursor: Cursor): oldVKGroup {
+        val group = oldVKGroup()
 
         group.id = getInt(cursor, GROUP_ID)
         group.name = getString(cursor, NAME)
         group.screenName = getString(cursor, SCREEN_NAME)
         group.isClosed = getInt(cursor, IS_CLOSED) == 1
         group.deactivated = getString(cursor, DEACTIVATED)
-        group.type = VKGroup.Type.fromString(getString(cursor, TYPE))
+        group.type = oldVKGroup.Type.fromString(getString(cursor, TYPE))
 
-        val photos = VKUtil.parseJsonPhotos(JSONObject(getString(cursor, PHOTOS)))
+        val photos = oldVKUtil.parseJsonPhotos(JSONObject(getString(cursor, PHOTOS)))
 
         group.photo50 = photos[0]
         group.photo100 = photos[1]

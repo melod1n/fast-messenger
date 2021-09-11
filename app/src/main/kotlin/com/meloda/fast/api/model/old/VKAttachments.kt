@@ -18,20 +18,20 @@ object VKAttachments {
             val jsonObject = attachment.optJSONObject(type.value) ?: continue
 
             when (type) {
-                Type.PHOTO -> attachments.add(VKPhoto(jsonObject))
-                Type.AUDIO -> attachments.add(VKAudio(jsonObject))
-                Type.VIDEO -> attachments.add(VKVideo(jsonObject))
-                Type.DOCUMENT -> attachments.add(VKDocument(jsonObject))
-                Type.STICKER -> attachments.add(VKSticker(jsonObject))
-                Type.LINK -> attachments.add(VKLink(jsonObject))
-                Type.GIFT -> attachments.add(VKGift(jsonObject))
-                Type.VOICE_MESSAGE -> attachments.add(VKAudioMessage(jsonObject))
-                Type.GRAFFITI -> attachments.add(VKGraffiti(jsonObject))
-                Type.POLL -> attachments.add(VKPoll(jsonObject))
+//                Type.PHOTO -> attachments.add(oldVKPhoto(jsonObject))
+//                Type.AUDIO -> attachments.add(oldVKAudio(jsonObject))
+//                Type.VIDEO -> attachments.add(oldVKVideo(jsonObject))
+//                Type.DOCUMENT -> attachments.add(oldVKDocument(jsonObject))
+//                Type.STICKER -> attachments.add(oldVKSticker(jsonObject))
+//                Type.LINK -> attachments.add(oldVKLink(jsonObject))
+//                Type.GIFT -> attachments.add(VKGift(jsonObject))
+//                Type.VOICE_MESSAGE -> attachments.add(oldVKAudioMessage(jsonObject))
+//                Type.GRAFFITI -> attachments.add(VKGraffiti(jsonObject))
+                Type.POLL -> attachments.add(oldVKPoll(jsonObject))
                 Type.CALL -> attachments.add(VKCall(jsonObject))
-                Type.WALL_POST -> attachments.add(VKWall(jsonObject))
-                Type.WALL_REPLY -> attachments.add(VKComment(jsonObject))
-                Type.GEOLOCATION -> attachments.add(VKGeolocation(jsonObject))
+//                Type.WALL_POST -> attachments.add(VKWall(jsonObject))
+                Type.WALL_REPLY -> attachments.add(oldVKComment(jsonObject))
+//                Type.GEOLOCATION -> attachments.add(oldVKGeolocation(jsonObject))
                 else -> continue
             }
         }

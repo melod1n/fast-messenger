@@ -1,7 +1,7 @@
 package com.meloda.fast.api.model.old
 
 import android.util.ArrayMap
-import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.oldVKUtil
 import org.json.JSONObject
 
 open class oldVKMessage() : VKModel() {
@@ -11,7 +11,7 @@ open class oldVKMessage() : VKModel() {
     companion object {
 
         var profiles = arrayListOf<oldVKUser>()
-        var groups = arrayListOf<VKGroup>()
+        var groups = arrayListOf<oldVKGroup>()
         var conversations = arrayListOf<oldVKConversation>()
 
         const val serialVersionUID: Long = 1L
@@ -101,11 +101,11 @@ open class oldVKMessage() : VKModel() {
 
     var replyMessage: oldVKMessage? = null
 
-    var action: VKMessageAction? = null
+    var action: oldVKMessageAction? = null
 
     var fromUser: oldVKUser? = null
 
-    var fromGroup: VKGroup? = null
+    var fromGroup: oldVKGroup? = null
 
     constructor(o: JSONObject) : this() {
         id = o.optInt("id", -1)
@@ -115,7 +115,7 @@ open class oldVKMessage() : VKModel() {
         editTime = o.optInt("edit_time", -1)
         isOut = o.optInt("out") == 1
 
-        text = VKUtil.prepareMessageText(o.optString("text"))
+        text = oldVKUtil.prepareMessageText(o.optString("text"))
 
         randomId = o.optInt("random_id", -1)
         conversationMessageId = o.optInt("conversation_message_id", -1)
@@ -138,7 +138,7 @@ open class oldVKMessage() : VKModel() {
         }
 
         o.optJSONObject("action")?.let {
-            action = VKMessageAction(it)
+            action = oldVKMessageAction(it)
         }
     }
 

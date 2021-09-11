@@ -1,10 +1,13 @@
 package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.datasource.ConversationsDataSource
 import com.meloda.fast.api.datasource.UsersDataSource
 import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.VkGroup
+import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.request.ConversationsGetRequest
 import com.meloda.fast.api.network.request.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -14,6 +17,7 @@ import com.meloda.fast.base.viewmodel.VKEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,12 +31,27 @@ class ConversationsViewModel @Inject constructor(
             dataSource.getAllChats(
                 ConversationsGetRequest(
                     count = 30,
+//                    offset = 37,
+                    extended = true,
                     fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
                 )
             )
         },
             onAnswer = {
                 it.response?.let { response ->
+                    val profiles = hashMapOf<Int, VkUser>()
+                    response.profiles?.forEach { baseUser ->
+                        baseUser.asVkUser().let { user -> profiles[user.id] = user }
+                    }
+
+                    val groups = hashMapOf<Int, VkGroup>()
+                    response.groups?.forEach { baseGroup ->
+                        baseGroup.asVkGroup().let { group -> groups[group.id] = group }
+                    }
+
+//                    val profiles = response.profiles?.map { profile -> profile.asVkUser() } ?: listOf()
+//                    val groups = response.groups?.map { group -> group.asVkGroup() } ?: listOf()
+
                     sendEvent(
                         ConversationsLoaded(
                             count = response.count,
@@ -41,14 +60,16 @@ class ConversationsViewModel @Inject constructor(
                                 items.conversation.asVkConversation(
                                     items.lastMessage.asVkMessage()
                                 )
-                            }
+                            },
+                            profiles = profiles,
+                            groups = groups
                         )
                     )
                 }
             },
             onError = {
                 val er = it
-                val i = 0
+                throw it
             },
             onStart = {
                 sendEvent(StartProgressEvent)
@@ -58,34 +79,25 @@ class ConversationsViewModel @Inject constructor(
             })
     }
 
-    fun loadSomeUsers(usersIds: List<Int>) = viewModelScope.launch {
+    fun loadProfileUser() = viewModelScope.launch {
         makeJob({
-            usersDataSource.getById(
-                UsersGetRequest(
-                    usersIds = usersIds,
-                    fields = "sex"
-                )
-            )
+            usersDataSource.getById(UsersGetRequest(fields = "online,photo_200"))
         },
             onAnswer = {
-                val argh = it
-                val i = 0
                 it.response?.let { r ->
-                    val users = r.map { user -> user.asVkUser() }
-
+                    val users = r.map { u -> u.asVkUser() }
                     usersDataSource.storeUsers(users)
-                }
-            },
-            onError = {
-                val e = it
-                val i = 0
-            })
 
+                    UserConfig.vkUser = users[0]
+                }
+            })
     }
 }
 
 data class ConversationsLoaded(
     val count: Int,
     val unreadCount: Int,
-    val conversations: List<VkConversation>
+    val conversations: List<VkConversation>,
+    val profiles: HashMap<Int, VkUser>,
+    val groups: HashMap<Int, VkGroup>
 ) : VKEvent()

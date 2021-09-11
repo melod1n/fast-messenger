@@ -50,7 +50,9 @@ data class BaseVkUser(
     fun asVkUser() = VkUser(
         id = id,
         firstName = firstName,
-        lastName = lastName
+        lastName = lastName,
+        online = online == 1,
+        photo200 = photo200
     )
 
 }

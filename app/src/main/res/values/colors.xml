@@ -15,6 +15,10 @@
 
     <color name="textSecondary">#99000000</color>
 
+    <color name="online">#00ff00</color>
+    <color name="date">#212121</color>
+    <color name="message">#000000</color>
+
 
     <color name="text_secondary_100_alpha">#ff000000</color>
     <color name="text_secondary_87_alpha">#DE000000</color>

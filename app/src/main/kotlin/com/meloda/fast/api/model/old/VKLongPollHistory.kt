@@ -9,6 +9,6 @@ class VKLongPollHistory : VKModel() {
     private val lpMessages: ArrayList<oldVKMessage>? = null
     private val messages: ArrayList<oldVKMessage>? = null
     private val profiles: ArrayList<oldVKUser>? = null
-    private val groups: ArrayList<VKGroup>? = null //TODO: использовать
+    private val groups: ArrayList<oldVKGroup>? = null //TODO: использовать
 
 }

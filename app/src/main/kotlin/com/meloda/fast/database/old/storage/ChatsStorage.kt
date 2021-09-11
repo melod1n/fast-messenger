@@ -26,7 +26,7 @@ import com.meloda.fast.database.old.DatabaseKeys.UNREAD_COUNT
 import com.meloda.fast.database.old.DatabaseUtils.TABLE_CHATS
 import com.meloda.fast.database.old.base.Storage
 import com.meloda.fast.api.model.old.oldVKConversation
-import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.oldVKUtil
 import org.json.JSONObject
 
 @WorkerThread
@@ -86,7 +86,7 @@ class ChatsStorage : Storage<oldVKConversation>() {
 
         values.put(
             PHOTOS,
-            VKUtil.putPhotosToJson(
+            oldVKUtil.putPhotosToJson(
                 value.photo50,
                 value.photo100,
                 value.photo200
@@ -130,7 +130,7 @@ class ChatsStorage : Storage<oldVKConversation>() {
         val lastMessage = messagesStorage.getMessageById(conversation.lastMessageId)
         if (lastMessage != null) conversation.lastMessage = lastMessage
 
-        val photos = VKUtil.parseJsonPhotos(JSONObject(CacheStorage.getString(cursor, PHOTOS)))
+        val photos = oldVKUtil.parseJsonPhotos(JSONObject(CacheStorage.getString(cursor, PHOTOS)))
         conversation.photo50 = photos[0]
         conversation.photo100 = photos[1]
         conversation.photo200 = photos[2]

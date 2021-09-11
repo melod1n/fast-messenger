@@ -32,6 +32,8 @@ class ConversationsFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel.loadProfileUser()
+
         prepareViews()
 
         adapter = ConversationsAdapter(requireContext(), mutableListOf())
@@ -43,7 +45,7 @@ class ConversationsFragment :
     override fun onEvent(event: VKEvent) {
         super.onEvent(event)
         when (event) {
-            is ConversationsLoaded -> refreshConversations(event.conversations)
+            is ConversationsLoaded -> refreshConversations(event)
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
         }
@@ -91,10 +93,14 @@ class ConversationsFragment :
         }
     }
 
-    private fun refreshConversations(conversations: List<VkConversation>) {
-        fillRecyclerView(conversations)
+    private fun refreshConversations(event: ConversationsLoaded) {
+//        adapter.profiles.clear()
+        adapter.profiles += event.profiles
 
-        viewModel.loadSomeUsers(listOf(1, 2, 3, 362877006))
+//        adapter.groups.clear()
+        adapter.groups += event.groups
+
+        fillRecyclerView(event.conversations)
     }
 
     private fun fillRecyclerView(values: List<VkConversation>) {

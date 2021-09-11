@@ -8,5 +8,11 @@ data class VkUser(
     @PrimaryKey(autoGenerate = false)
     val id: Int,
     val firstName: String,
-    val lastName: String
-)
+    val lastName: String,
+    val online: Boolean,
+    val photo200: String?
+) {
+
+    override fun toString() = "$firstName $lastName".trim()
+
+}

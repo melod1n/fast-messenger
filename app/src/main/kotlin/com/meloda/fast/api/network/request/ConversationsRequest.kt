@@ -13,4 +13,16 @@ data class ConversationsGetRequest(
     val extended: Boolean? = true,
     @SerializedName("start_message_id")
     val startMessageId: Int? = null
-) : Parcelable
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "fields" to fields,
+            "filter" to filter
+        ).apply {
+            count?.let { this["count"] = it.toString() }
+            offset?.let { this["offset"] = it.toString() }
+            extended?.let { this["extended"] = it.toString() }
+            startMessageId?.let { this["start_message_id"] = it.toString() }
+        }
+}

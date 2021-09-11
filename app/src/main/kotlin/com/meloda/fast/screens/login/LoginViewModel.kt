@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
-import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.oldVKUtil
 import com.meloda.fast.api.datasource.AuthDataSource
 import com.meloda.fast.api.network.request.RequestAuthDirect
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -61,13 +61,13 @@ class LoginViewModel @Inject constructor(
 
                 twoFaCode?.let { sendEvent(CodeSent) }
 
-                if (VKUtil.isValidationRequired(it)) {
+                if (oldVKUtil.isValidationRequired(it)) {
                     it.validationSid?.let { sid ->
                         sendEvent(ValidationRequired(validationSid = sid))
 
                         sendSms(sid)
                     }
-                } else if (VKUtil.isCaptchaRequired(it)) {
+                } else if (oldVKUtil.isCaptchaRequired(it)) {
                     it.captcha?.let { captcha ->
                         sendEvent(CaptchaRequired(captcha.first to captcha.second))
                     }

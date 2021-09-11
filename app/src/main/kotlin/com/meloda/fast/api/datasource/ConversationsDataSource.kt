@@ -11,7 +11,7 @@ class ConversationsDataSource @Inject constructor(
     private val dao: ConversationsDao
 ) {
 
-    suspend fun getAllChats(params: ConversationsGetRequest) = repo.getAllChats(params)
+    suspend fun getAllChats(params: ConversationsGetRequest) = repo.getAllChats(params.map)
 
     suspend fun storeConversations(conversations: List<VkConversation>) = dao.insert(conversations)
 

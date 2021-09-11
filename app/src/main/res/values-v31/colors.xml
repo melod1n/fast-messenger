@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="statusBar">@android:color/system_accent1_10</color>
-    <color name="navigationBar">@android:color/system_accent1_10</color>
-    <color name="background">@android:color/system_accent1_10</color>
+    <color name="statusBar">@android:color/system_neutral1_50</color>
+    <color name="navigationBar">@android:color/system_neutral1_50</color>
+    <color name="background">@android:color/system_neutral1_50</color>
     <color name="accent">@android:color/system_accent1_500</color>
     <color name="action">@android:color/system_accent3_500</color>
     <color name="actionRipple">@android:color/system_accent3_200</color>
     <color name="actionContentPrimary">@android:color/system_accent1_10</color>
 
+    <color name="online">@android:color/system_accent3_200</color>
+    <color name="date">@android:color/system_neutral2_500</color>
+    <color name="message">@android:color/system_neutral1_900</color>
 
-    <color name="primary">@android:color/system_accent1_10</color>
+    <color name="primary">@android:color/system_neutral1_50</color>
 
     <color name="divider">#E0E0E0</color>
 

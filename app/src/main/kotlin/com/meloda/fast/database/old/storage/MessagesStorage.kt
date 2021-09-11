@@ -24,7 +24,7 @@ import com.meloda.fast.database.old.DatabaseUtils.TABLE_MESSAGES
 import com.meloda.fast.database.old.base.Storage
 import com.meloda.fast.util.Utils
 import com.meloda.fast.api.model.old.oldVKMessage
-import com.meloda.fast.api.model.old.VKMessageAction
+import com.meloda.fast.api.model.old.oldVKMessageAction
 import com.meloda.fast.api.model.old.VKModel
 import java.util.stream.Collectors
 
@@ -153,7 +153,7 @@ class MessagesStorage : Storage<oldVKMessage>() {
         if (replyMessage != null) message.replyMessage = replyMessage
 
         val blobAction = Utils.deserialize(CacheStorage.getBlob(cursor, ACTION))
-        if (blobAction != null) message.action = blobAction as VKMessageAction
+        if (blobAction != null) message.action = blobAction as oldVKMessageAction
 
         val stringFwdMessages = CacheStorage.getString(cursor, FWD_MESSAGES)
         if (stringFwdMessages != null) {

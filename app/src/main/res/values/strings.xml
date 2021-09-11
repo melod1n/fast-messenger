@@ -158,5 +158,10 @@
     <string name="conversations">Conversations</string>
     <string name="code_hint">Code</string>
     <string name="input_validation_code">Input code from sms</string>
+    <string name="you_message_prefix">You</string>
+    <string name="message_geo">Geolocation</string>
+    <string name="message_geo_point">Point</string>
+    <string name="forwarded_message">Message</string>
+    <string name="forwarded_messages">Messages</string>
 
 </resources>

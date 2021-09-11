@@ -10,7 +10,7 @@ class oldVKConversation() : VKModel(), Cloneable {
         const val serialVersionUID: Long = 1L
 
         var profiles = arrayListOf<oldVKUser>()
-        var groups = arrayListOf<VKGroup>()
+        var groups = arrayListOf<oldVKGroup>()
 
         var conversationsCount: Int = 0
 
@@ -56,7 +56,7 @@ class oldVKConversation() : VKModel(), Cloneable {
 
     var peerUser: oldVKUser? = null
 
-    var peerGroup: VKGroup? = null
+    var peerGroup: oldVKGroup? = null
 
     constructor(o: JSONObject) : this() {
         inReadMessageId = o.optInt("in_read")

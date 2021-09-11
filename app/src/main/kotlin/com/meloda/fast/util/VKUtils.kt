@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
-import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.oldVKUtil
 import com.meloda.fast.api.model.old.*
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.extensions.ContextExtensions.color
@@ -31,7 +31,7 @@ object VKUtils {
             } else {
                 r.getString(
                     R.string.user_last_seen_at,
-                    VKUtil.getLastSeenTime(user.lastSeen * 1000L)
+                    oldVKUtil.getLastSeenTime(user.lastSeen * 1000L)
                 )
             }
         }
@@ -195,11 +195,11 @@ object VKUtils {
             var result = ""
 
             when (it.type) {
-                VKMessageAction.Type.CHAT_CREATE -> result = context.getString(
+                oldVKMessageAction.Type.CHAT_CREATE -> result = context.getString(
                     R.string.message_action_created_chat,
                     ""
                 )
-                VKMessageAction.Type.INVITE_USER -> result =
+                oldVKMessageAction.Type.INVITE_USER -> result =
                     if (lastMessage.fromId == lastMessage.action!!.memberId) {
                         context.getString(R.string.message_action_returned_to_chat, "")
                     } else {
@@ -207,11 +207,11 @@ object VKUtils {
 //                            val invited = MemoryCache.getUserById(lastMessage.action!!.memberId)
 //                            context.getString(R.string.message_action_invited_user, invited)
                     }
-                VKMessageAction.Type.INVITE_USER_BY_LINK -> result = context.getString(
+                oldVKMessageAction.Type.INVITE_USER_BY_LINK -> result = context.getString(
                     R.string.message_action_invited_by_link,
                     ""
                 )
-                VKMessageAction.Type.KICK_USER -> result =
+                oldVKMessageAction.Type.KICK_USER -> result =
                     if (lastMessage.fromId == lastMessage.action!!.memberId) {
                         context.getString(R.string.message_action_left_from_chat, "")
                     } else {
@@ -219,23 +219,23 @@ object VKUtils {
 //                            val kicked = MemoryCache.getUserById(lastMessage.action!!.memberId)
 //                            context.getString(R.string.message_action_kicked_user, kicked)
                     }
-                VKMessageAction.Type.PHOTO_REMOVE -> result = context.getString(
+                oldVKMessageAction.Type.PHOTO_REMOVE -> result = context.getString(
                     R.string.message_action_removed_photo,
                     ""
                 )
-                VKMessageAction.Type.PHOTO_UPDATE -> result = context.getString(
+                oldVKMessageAction.Type.PHOTO_UPDATE -> result = context.getString(
                     R.string.message_action_updated_photo,
                     ""
                 )
-                VKMessageAction.Type.PIN_MESSAGE -> result = context.getString(
+                oldVKMessageAction.Type.PIN_MESSAGE -> result = context.getString(
                     R.string.message_action_pinned_message,
                     ""
                 )
-                VKMessageAction.Type.UNPIN_MESSAGE -> result = context.getString(
+                oldVKMessageAction.Type.UNPIN_MESSAGE -> result = context.getString(
                     R.string.message_action_unpinned_message,
                     ""
                 )
-                VKMessageAction.Type.TITLE_UPDATE -> result = context.getString(
+                oldVKMessageAction.Type.TITLE_UPDATE -> result = context.getString(
                     R.string.message_action_updated_title,
                     ""
                 )

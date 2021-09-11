@@ -1,186 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?selectableItemBackground"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingTop="2dp"
-    android:paddingBottom="2dp">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
-        android:id="@+id/container"
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="6dp"
-        android:baselineAligned="false"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="6dp">
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginVertical="10dp"
+        android:orientation="horizontal">
 
         <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0">
+            android:layout_width="56dp"
+            android:layout_height="56dp">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/peerAvatar"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="bottom|end"
-                app:shapeAppearanceOverlay="@style/CircleImageView.56"
-                tools:src="?colorAccent" />
+            <com.meloda.fast.widget.CircleImageView
+                android:id="@+id/avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="#ff0000" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/peerOnline"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_gravity="bottom|end"
-                tools:src="@drawable/ic_online_pc" />
+            <FrameLayout
+                android:id="@+id/online"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="end|bottom">
+
+                <com.meloda.fast.widget.CircleImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@color/background" />
+
+                <com.meloda.fast.widget.CircleImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_online_pc"
+                    app:tint="@color/online" />
+
+            </FrameLayout>
+
 
         </FrameLayout>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
-            android:layout_weight="1"
-            android:gravity="center"
+            android:layout_marginStart="24dp"
             android:orientation="vertical">
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:baselineAligned="false"
                 android:orientation="horizontal">
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/type"
-                    android:layout_width="20dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="4dp"
-                    android:paddingStart="2dp"
-                    android:paddingEnd="0dp"
-                    android:tint="@color/conversationTitle"
-                    android:visibility="gone"
-                    tools:src="@drawable/ic_dialog_type_conversation" />
-
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:fontFamily="@font/tt_commons_medium"
-                    android:singleLine="true"
-                    android:textColor="#ff0000"
-                    android:textSize="20sp"
-                    tools:text="Title" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:layout_marginTop="2dp"
-                android:gravity="center_vertical"
-                android:minHeight="26dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/fromAvatar"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="6dp"
-                    app:shapeAppearanceOverlay="@style/CircleImageView.24"
-                    tools:src="?colorAccent"
-                    tools:visibility="visible" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/textAttachment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="1.5dp"
-                    android:tint="?colorAccent"
-                    android:visibility="gone"
-                    tools:src="@drawable/ic_message_attachment_camera"
-                    tools:visibility="visible" />
+                    android:layout_weight="1"
+                    android:fontFamily="@font/google_sans_regular"
+                    android:maxLines="2"
+                    android:textColor="#201A1A"
+                    android:textSize="22sp"
+                    tools:text="Title" />
 
-                <TextView
-                    android:id="@+id/text"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="16dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:singleLine="true"
-                    android:textColor="?android:textColorPrimary"
-                    android:textSize="14sp"
+                    android:layout_marginTop="-4dp"
+                    android:alpha="0.5"
+                    android:fontFamily="@font/roboto_regular"
+                    android:textColor="@color/date"
+                    tools:text="20:00" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.7"
+                    android:fontFamily="@font/roboto_regular"
+                    android:maxLines="2"
+                    android:textColor="@color/message"
+                    android:textSize="16sp"
                     tools:text="Message" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            </LinearLayout>
-        </LinearLayout>
 
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:minHeight="50dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp">
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/out"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="8dp"
-                android:src="?colorAccent"
-                android:visibility="gone"
-                tools:visibility="gone" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-        </FrameLayout>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_margin="8dp"
-        android:gravity="center"
-        android:maxLines="1"
-        android:minWidth="30dp"
-        android:textColor="?android:textColorSecondary"
-        android:textSize="12sp"
-        tools:text="now" />
-
-    <TextView
-        android:id="@+id/counter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="36dp"
-        android:layout_marginEnd="14dp"
-        android:background="@drawable/ic_conversations_counter_background"
-        android:backgroundTint="?colorAccent"
-        android:backgroundTintMode="multiply"
-        android:fontFamily="@font/google_sans_medium"
-        android:gravity="center"
-        android:minWidth="28dp"
-        android:minHeight="28dp"
-        android:padding="6dp"
-        android:textColor="?android:textColorPrimaryInverse"
-        android:textSize="12sp"
-        tools:text="12"
-        tools:visibility="visible" />
-
-</FrameLayout>
+</layout>

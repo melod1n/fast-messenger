@@ -31,12 +31,17 @@ data class BaseVkConversation(
     @SerializedName("can_receive_money")
     val canReceiveMoney: Boolean,
     @SerializedName("chat_settings")
-    val chatSettings: ChatSettings?
+    val chatSettings: ChatSettings?,
+    @SerializedName("call_in_progress")
+    val callInProgress: CallInProgress?
 ) : Parcelable {
 
     fun asVkConversation(lastMessage: VkMessage? = null) = VkConversation(
         id = peer.id,
         title = chatSettings?.title,
+        photo200 = chatSettings?.photo?.photo200,
+        type = peer.type,
+        callInProgress = callInProgress != null
     ).apply { this.lastMessage = lastMessage }
 
     @Parcelize
@@ -83,7 +88,7 @@ data class BaseVkConversation(
         val membersCount: Int,
         @SerializedName("friends_count")
         val friendsCount: Int,
-        val photo: Photo,
+        val photo: Photo?,
         @SerializedName("admin_ids")
         val adminsIds: List<Int>,
         @SerializedName("active_ids")
@@ -93,7 +98,8 @@ data class BaseVkConversation(
         @SerializedName("is_disappearing")
         val isDisappearing: Boolean,
         @SerializedName("is_service")
-        val isService: Boolean
+        val isService: Boolean,
+        val theme: String
     ) : Parcelable {
 
         @Parcelize
@@ -125,13 +131,28 @@ data class BaseVkConversation(
         @Parcelize
         data class Photo(
             @SerializedName("photo_50")
-            val photo50: String,
+            val photo50: String?,
             @SerializedName("photo_100")
-            val photo100: String,
+            val photo100: String?,
             @SerializedName("photo_200")
-            val photo200: String,
+            val photo200: String?,
             @SerializedName("is_default_photo")
             val isDefaultPhoto: Boolean
         ) : Parcelable
+    }
+
+    @Parcelize
+    data class CallInProgress(
+        val participants: Participants,
+        @SerializedName("join_link")
+        val joinLink: String
+    ) : Parcelable {
+
+        @Parcelize
+        data class Participants(
+            val list: List<Int>,
+            val count: Int
+        ) : Parcelable
+
     }
 }

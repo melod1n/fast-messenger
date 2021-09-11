@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKUtil
+import com.meloda.fast.api.oldVKUtil
 import com.meloda.fast.api.model.old.oldVKUser
 import com.meloda.fast.database.old.CacheStorage
 import com.meloda.fast.database.old.DatabaseKeys.DEACTIVATED
@@ -135,7 +135,7 @@ class UsersStorage : Storage<oldVKUser>() {
 
         values.put(
             PHOTOS,
-            VKUtil.putPhotosToJson(
+            oldVKUtil.putPhotosToJson(
                 value.photo50,
                 value.photo100,
                 value.photo200
@@ -159,7 +159,7 @@ class UsersStorage : Storage<oldVKUser>() {
         user.lastSeen = CacheStorage.getInt(cursor, LAST_SEEN)
 
         val photos =
-            VKUtil.parseJsonPhotos(JSONObject(CacheStorage.getString(cursor, PHOTOS)))
+            oldVKUtil.parseJsonPhotos(JSONObject(CacheStorage.getString(cursor, PHOTOS)))
 
         user.photo50 = photos[0]
         user.photo100 = photos[1]

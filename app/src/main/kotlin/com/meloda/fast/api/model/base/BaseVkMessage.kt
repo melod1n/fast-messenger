@@ -2,9 +2,10 @@ package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import kotlinx.parcelize.Parcelize
-import kotlinx.parcelize.RawValue
 
 @Parcelize
 data class BaseVkMessage(
@@ -19,25 +20,36 @@ data class BaseVkMessage(
     @SerializedName("conversation_message_id")
     val conversationMessageId: Int,
     @SerializedName("fwd_messages")
-    val fwdMessages: List<BaseVkMessage> = listOf(),
+    val fwdMessages: List<BaseVkMessage>? = listOf(),
     val important: Boolean,
     @SerializedName("random_id")
     val randomId: Int,
-    val attachments: @RawValue List<Any> = listOf(),
+    val attachments: List<BaseVkAttachmentItem> = listOf(),
     @SerializedName("is_hidden")
     val isHidden: Boolean,
     val payload: String,
-    val geo: Geo?
+    val geo: Geo?,
+    val action: Action?,
+    val ttl: Int
 ) : Parcelable {
 
     fun asVkMessage() = VkMessage(
         id = id,
-        text = text,
+        text = if (text.isBlank()) null else text,
         isOut = out == 1,
         peerId = peerId,
         fromId = fromId,
-        date = date
-    )
+        date = date,
+        action = action?.type,
+        actionMemberId = action?.memberId,
+        actionText = action?.text,
+        actionConversationMessageId = action?.conversationMessageId,
+        actionMessage = action?.message,
+        geoType = geo?.type
+    ).also {
+        it.attachments = VkUtils.parseAttachments(attachments)
+        it.forwards = VkUtils.parseForwards(fwdMessages)
+    }
 
     @Parcelize
     data class Geo(
@@ -53,5 +65,16 @@ data class BaseVkMessage(
         @Parcelize
         data class Place(val country: String, val city: String, val title: String) : Parcelable
     }
+
+    @Parcelize
+    data class Action(
+        val type: String,
+        @SerializedName("member_id")
+        val memberId: Int?,
+        val text: String?,
+        @SerializedName("conversation_message_id")
+        val conversationMessageId: Int?,
+        val message: String?
+    ) : Parcelable
 
 }

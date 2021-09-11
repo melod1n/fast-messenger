@@ -1,5 +1,6 @@
 package com.meloda.fast.api
 
+import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.common.AppGlobal
 
 object UserConfig {
@@ -29,5 +30,7 @@ object UserConfig {
     }
 
     fun isLoggedIn() = userId > 0 && accessToken.isNotBlank()
+
+    var vkUser: VkUser? = null
 
 }

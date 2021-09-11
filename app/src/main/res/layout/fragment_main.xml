@@ -9,14 +9,14 @@
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragmentContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="48dp" />
+            android:layout_height="match_parent" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomBar"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_gravity="bottom"
+            android:visibility="gone"
             app:backgroundTint="?colorSurface"
             app:elevation="0.5dp"
             app:itemIconTint="@drawable/navigation_view_items_colors"

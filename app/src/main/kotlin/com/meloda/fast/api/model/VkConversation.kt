@@ -9,7 +9,15 @@ data class VkConversation(
     @PrimaryKey(autoGenerate = false)
     val id: Int,
     val title: String?,
+    val photo200: String?,
+    val type: String,
+    val callInProgress: Boolean
 ) {
     @Ignore
     var lastMessage: VkMessage? = null
+
+    fun isChat() = type == "chat"
+    fun isUser() = type == "user"
+    fun isGroup() = type == "group"
+
 }
