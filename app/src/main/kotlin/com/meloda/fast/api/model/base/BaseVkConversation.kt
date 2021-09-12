@@ -33,7 +33,9 @@ data class BaseVkConversation(
     @SerializedName("chat_settings")
     val chatSettings: ChatSettings?,
     @SerializedName("call_in_progress")
-    val callInProgress: CallInProgress?
+    val callInProgress: CallInProgress?,
+    @SerializedName("unread_count")
+    val unreadCount: Int?
 ) : Parcelable {
 
     fun asVkConversation(lastMessage: VkMessage? = null) = VkConversation(
@@ -41,7 +43,14 @@ data class BaseVkConversation(
         title = chatSettings?.title,
         photo200 = chatSettings?.photo?.photo200,
         type = peer.type,
-        callInProgress = callInProgress != null
+        callInProgress = callInProgress != null,
+        isPhantom = chatSettings?.isDisappearing == true,
+        lastConversationMessageId = lastConversationMessageId,
+        inRead = inRead,
+        outRead = outRead,
+        isMarkedUnread = isMarkedUnread,
+        lastMessageId = lastMessageId,
+        unreadCount = unreadCount
     ).apply { this.lastMessage = lastMessage }
 
     @Parcelize

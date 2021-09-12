@@ -8,21 +8,25 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_close_exit</item>
     </style>
 
-    <style name="AppTheme.Slide">
-        <item name="android:windowEnterAnimation">@anim/slide_up</item>
-        <item name="android:windowExitAnimation">@anim/slide_down</item>
-    </style>
-
-    <style name="CircleImageView">
+    <style name="RoundedView">
         <item name="cornerFamily">rounded</item>
     </style>
 
-    <style name="CircleImageView.56">
-        <item name="cornerRadius">56dp</item>
+    <style name="RoundedView.56">
+        <item name="cornerSize">15dp</item>
+        <item name="cornerRadius">15dp</item>
     </style>
 
-    <style name="CircleImageView.24">
-        <item name="cornerRadius">24dp</item>
+    <style name="CollapsingToolbarTitle">
+        <item name="fontFamily">@font/google_sans_regular</item>
+        <item name="android:textColor">@color/n1_900</item>
+        <item name="android:textSize">42sp</item>
+    </style>
+
+    <style name="CollapsingToolbarCollapsedTitle">
+        <item name="fontFamily">@font/google_sans_regular</item>
+        <item name="android:textColor">@color/n1_900</item>
+        <item name="android:textSize">20sp</item>
     </style>
 
 </resources>

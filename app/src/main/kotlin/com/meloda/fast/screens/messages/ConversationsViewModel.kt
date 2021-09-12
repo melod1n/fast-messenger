@@ -58,7 +58,7 @@ class ConversationsViewModel @Inject constructor(
                             unreadCount = response.unreadCount ?: 0,
                             conversations = response.items.map { items ->
                                 items.conversation.asVkConversation(
-                                    items.lastMessage.asVkMessage()
+                                    items.lastMessage?.asVkMessage()
                                 )
                             },
                             profiles = profiles,
@@ -88,7 +88,7 @@ class ConversationsViewModel @Inject constructor(
                     val users = r.map { u -> u.asVkUser() }
                     usersDataSource.storeUsers(users)
 
-                    UserConfig.vkUser = users[0]
+                    UserConfig.vkUser.value = users[0]
                 }
             })
     }

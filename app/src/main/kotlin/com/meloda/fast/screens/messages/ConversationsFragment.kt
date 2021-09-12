@@ -5,7 +5,10 @@ import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import coil.load
+import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
@@ -40,6 +43,16 @@ class ConversationsFragment :
         binding.recyclerView.adapter = adapter
 
         viewModel.loadConversations()
+
+        binding.createChat.setOnClickListener {
+            Snackbar.make(it, "Test Snackbar with action", Snackbar.LENGTH_LONG)
+                .setAction("Action") {}.show()
+
+        }
+
+        UserConfig.vkUser.observe(viewLifecycleOwner) {
+            it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
+        }
     }
 
     override fun onEvent(event: VKEvent) {

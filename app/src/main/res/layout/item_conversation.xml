@@ -3,101 +3,223 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginVertical="10dp"
-        android:orientation="horizontal">
+        android:background="?selectableItemBackground"
+        android:orientation="horizontal"
+        android:paddingVertical="4dp">
 
-        <FrameLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp">
-
-            <com.meloda.fast.widget.CircleImageView
-                android:id="@+id/avatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="#ff0000" />
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:backgroundTint="@color/n1_100"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="12dp"
+            tools:background="@drawable/ic_message_unread">
 
             <FrameLayout
-                android:id="@+id/online"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="end|bottom">
+                android:layout_width="56dp"
+                android:layout_height="56dp">
 
                 <com.meloda.fast.widget.CircleImageView
+                    android:id="@+id/avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:src="@tools:sample/avatars"
+                    tools:visibility="gone" />
+
+                <FrameLayout
+                    android:id="@+id/avatarPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@color/n1_50" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_account_circle_cut"
+                        app:tint="@color/n2_500" />
+
+                </FrameLayout>
+
+
+                <FrameLayout
+                    android:id="@+id/service"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@color/background" />
+                    android:layout_gravity="end|top"
+                    android:visibility="gone"
+                    tools:visibility="visible">
 
-                <com.meloda.fast.widget.CircleImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_online_pc"
-                    app:tint="@color/online" />
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_back"
+                        android:backgroundTint="@color/n2_500"
+                        android:elevation="0.5dp" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/phantomIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:elevation="1dp"
+                        android:src="@drawable/ic_phantom"
+                        android:visibility="gone"
+                        app:tint="@color/n2_10"
+                        tools:visibility="visible" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/callIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:elevation="1dp"
+                        android:src="@drawable/ic_attachment_group_call"
+                        android:visibility="gone"
+                        app:tint="@color/n2_0" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/online"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="end|bottom"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@color/n1_50" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_online_pc"
+                        app:tint="@color/a3_200" />
+
+                </FrameLayout>
+
 
             </FrameLayout>
 
-
-        </FrameLayout>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:orientation="vertical">
-
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_marginStart="24dp"
+                android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/title"
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_toStartOf="@+id/date"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/google_sans_regular"
+                            android:maxLines="2"
+                            android:textColor="@color/n1_900"
+                            android:textSize="22sp"
+                            tools:text="Title" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/counter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="-4dp"
+                            android:layout_weight="0"
+                            android:background="@drawable/ic_back"
+                            android:backgroundTint="@color/a1_600"
+                            android:gravity="center"
+                            android:minWidth="18dp"
+                            android:textColor="@color/a1_0"
+                            android:textSize="10sp"
+                            android:visibility="gone"
+                            tools:text="12"
+                            tools:visibility="visible" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="6dp"
+                        android:alpha="0.5"
+                        android:fontFamily="@font/roboto_regular"
+                        android:gravity="end|center_vertical"
+                        android:textColor="@color/n2_500"
+                        tools:text="20:00" />
+
+                </RelativeLayout>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/google_sans_regular"
-                    android:maxLines="2"
-                    android:textColor="#201A1A"
-                    android:textSize="22sp"
-                    tools:text="Title" />
+                    android:orientation="horizontal">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="-4dp"
-                    android:alpha="0.5"
-                    android:fontFamily="@font/roboto_regular"
-                    android:textColor="@color/date"
-                    tools:text="20:00" />
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/textAttachment"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="4dp"
+                        android:src="@drawable/ic_baseline_attach_file_24"
+                        android:visibility="gone"
+                        app:tint="@color/n2_500"
+                        tools:visibility="visible" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/message"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.7"
+                        android:fontFamily="@font/roboto_regular"
+                        android:maxLines="2"
+                        android:textColor="@color/n1_900"
+                        android:textSize="16sp"
+                        tools:text="Message" />
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
 
             </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/message"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:alpha="0.7"
-                    android:fontFamily="@font/roboto_regular"
-                    android:maxLines="2"
-                    android:textColor="@color/message"
-                    android:textSize="16sp"
-                    tools:text="Message" />
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
 
         </androidx.appcompat.widget.LinearLayoutCompat>
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </FrameLayout>
 
 </layout>

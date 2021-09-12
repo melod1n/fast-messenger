@@ -1,167 +1,37 @@
 <resources>
     <string name="app_name" translatable="false">Fast</string>
-    <string name="fast_messenger">Fast Messenger</string>
-
-    <string name="message_action_created_chat">Created chat %s</string>
-    <string name="message_action_invited_user">Invited %s to chat</string>
-    <string name="message_action_kicked_user">Kicked %s from chat</string>
-    <string name="message_action_returned_to_chat">%s Returned to chat</string>
-    <string name="message_action_left_from_chat">%s Left from chat</string>
-    <string name="message_action_updated_photo">%s Updated chat photo</string>
-    <string name="message_action_removed_photo">%s Removed chat photo</string>
-    <string name="message_action_updated_title">%s Updated chat title</string>
-    <string name="message_action_pinned_message">%s Pinned message</string>
-    <string name="message_action_unpinned_message">%s Unpinned message</string>
-    <string name="message_action_invited_by_link">%s Invited by link</string>
-
-    <string name="message_fwd_one">Forwarded message</string>
-    <string name="message_fwd_many">%d Forwarded messages</string>
 
     <string name="message_attachments_many">Attachments</string>
-    <string name="message_attachment_photo">Photo</string>
-    <string name="message_attachment_video">Video</string>
-    <string name="message_attachment_audio">Audio</string>
-    <string name="message_attachment_doc">Document</string>
-    <string name="message_attachment_link">Link</string>
-    <string name="message_attachment_sticker">Sticker</string>
-    <string name="message_attachment_gift">Gift</string>
-    <string name="message_attachment_graffiti">Graffiti</string>
-    <string name="message_attachment_voice">Voice message</string>
-    <string name="message_attachment_poll">Poll</string>
-    <string name="message_attachment_call">Call</string>
-    <string name="message_attachment_wall_post">Wall post</string>
-    <string name="message_attachment_wall_reply">Wall reply</string>
 
-    <string name="message_attachment_photos">%d Photos</string>
-    <string name="message_attachment_videos">%d Videos</string>
-    <string name="message_attachment_audios">%d Audios</string>
-    <string name="message_attachment_docs">%d Documents</string>
-
-    <string name="activity_login">Login</string>
-
-    <string name="navigation_search">Search</string>
     <string name="navigation_chats">Chats</string>
-    <string name="navigation_friends">Friends</string>
-    <string name="navigation_important">Important</string>
-    <string name="navigation_settings">Settings</string>
-
-    <string name="message_date_yesterday">Yesterday</string>
-    <string name="drawer_name_surname">Name Surname</string>
-    <string name="drawer_status">Status</string>
-    <string name="pref_account_logout_title">Logout</string>
-
-    <string name="time_format_now">now</string>
-    <string name="time_format_second">%ds</string>
-    <string name="time_format_minute">%dm</string>
-    <string name="time_format_hour">%dh</string>
-    <string name="time_format_day">%dd</string>
-    <string name="time_format_month">%dmo</string>
-    <string name="time_format_year">%dy</string>
-    <string name="prefs_about_app_version_title">Application version</string>
-    <string name="prefs_about_app_version_summary">Tap to check updates</string>
-    <string name="prefs_about_app_chiefs_title">Application chiefs and helpers</string>
-    <string name="prefs_about">About</string>
-    <string name="prefs_account">Account</string>
-    <string name="chat_message_hint">Type&#8230;</string>
-    <string name="token">Token</string>
-    <string name="custom_data">Custom data</string>
-    <string name="user_id">User Id</string>
-    <string name="prefs_appearance">Appearance</string>
-    <string name="pref_appearance_extended_conversations_title">Conversations type</string>
-    <string name="loading">Loading&#8230;</string>
-
-    <string name="user_online">Online</string>
-    <string name="user_online_mobile">Online from mobile</string>
-    <string name="user_offline">Offline</string>
-    <string name="user_last_seen_at">Last seen at %s</string>
-    <string name="user_last_seen_recently">Last seen recently</string>
-
-    <string name="chat_members">%d members</string>
-
-    <string name="group_channel_members">Channel • %d members</string>
-    <string name="voice_record_tip">Press &amp; hold to record voice</string>
-    <string name="no_connection">No connection</string>
-    <string name="update">Update</string>
-    <string name="project_vkm">Project.VKM</string>
-    <string name="enter">Enter</string>
-    <string name="no_access">No access</string>
-
-    <string name="dialog_is_empty">Dialog is empty</string>
-    <string name="list_is_empty">List is empty</string>
-
-    <string name="update_state_downloading">Downloading&#8230;</string>
-    <string name="update_state_checking">Checking&#8230;</string>
-    <string name="update_state_no_updates">No updates</string>
-    <string name="update_current_version">Current version: %s (%d)</string>
-    <string name="update_last_check_time">Last update check in %s</string>
-    <string name="update_changelog">Changelog: %s</string>
-    <string name="update_check_updates">Check updates</string>
-    <string name="update_state_update_available">Update is available</string>
-    <string name="update_new_version">New version: %s (%d)</string>
-    <string name="update_download">Download</string>
-    <string name="messages_refresh">Refresh</string>
-
-    <string name="today">Today</string>
-    <string name="start_screen_login_settings">Login settings</string>
-    <string name="in_progress_placeholder">In progress</string>
-
-    <string name="yesterday">Yesterday</string>
-
-    <string name="refresh">Refresh</string>
-
-    <string name="edited">Edited</string>
-
-    <string name="conversations_is_empty">No conversations</string>
-    <string name="friends_is_empty">No friends :(</string>
-
-    <string name="prefs_general">General</string>
-    <string name="fragment_settings_general_hide_keyboard_on_scroll_up_title">Hide the keyboard while scrolling up</string>
-    <string name="app_has_been_crashed">App has been crashed</string>
-
-    <string name="theme_light">Light</string>
-    <string name="theme_dark">Dark</string>
-    <string name="theme_power_saving">By power saving</string>
-    <string name="theme_system">By system</string>
-    <string name="pref_appearance_theme_title">Theme</string>
-    <string name="send_crash_report">Send report</string>
-    <string name="ok">OK</string>
-
-    <string name="empty">@null</string>
-    <string name="clear_conversations_cache">Clear conversations cache</string>
-    <string name="action_search">Search</string>
-    <string name="error_occurred">An error has occurred</string>
-    <string name="account_dialog_title">Account</string>
-    <string name="prefs_debug">Debug</string>
-    <string name="prefs_debug_clear_users_groups_cache">Clear users and groups cache</string>
-    <string name="error_obtain_chat_info">Error</string>
-    <string name="error_loading_message">Error loading message. Try again?</string>
-    <string name="retry">Retry</string>
 
     <string name="error">Error: %s</string>
 
-    <string name="no_items_default_text">I can\'t see anything&#8230;</string>
-    <string name="no_internet_default_text">Oops&#8230;</string>
-    <string name="error_default_text">There is something unexpected&#8230;</string>
-
-    <string name="warning">Warning</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="update_unknown_sources_disabled_message">Installing apk\'s is disabled in settings. Open settings screen to enable it?</string>
     <string name="password_login_hint">Password</string>
-    <string name="email_login_hint">E-mail or phone number</string>
+
     <string name="log_in">Log in</string>
+
     <string name="captcha_hint">Captcha code</string>
+
     <string name="input_captcha">Input code from picture</string>
 
     <string name="login_hint">Login</string>
 
-    <string name="conversations">Conversations</string>
     <string name="code_hint">Code</string>
+
     <string name="input_validation_code">Input code from sms</string>
+
     <string name="you_message_prefix">You</string>
+
     <string name="message_geo">Geolocation</string>
+
     <string name="message_geo_point">Point</string>
+
     <string name="forwarded_message">Message</string>
     <string name="forwarded_messages">Messages</string>
+
+    <string name="no_messages">No messages</string>
+
+    <string name="messages_self_destructed">Messages self-destructed</string>
 
 </resources>

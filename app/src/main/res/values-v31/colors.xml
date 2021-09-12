@@ -1,63 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="statusBar">@android:color/system_neutral1_50</color>
-    <color name="navigationBar">@android:color/system_neutral1_50</color>
-    <color name="background">@android:color/system_neutral1_50</color>
-    <color name="accent">@android:color/system_accent1_500</color>
-    <color name="action">@android:color/system_accent3_500</color>
-    <color name="actionRipple">@android:color/system_accent3_200</color>
-    <color name="actionContentPrimary">@android:color/system_accent1_10</color>
+    <color name="a1_0">@android:color/system_accent1_0</color>
+    <color name="a1_500">@android:color/system_accent1_500</color>
+    <color name="a1_600">@android:color/system_accent1_600</color>
 
-    <color name="online">@android:color/system_accent3_200</color>
-    <color name="date">@android:color/system_neutral2_500</color>
-    <color name="message">@android:color/system_neutral1_900</color>
+    <color name="a2_200">@android:color/system_accent2_200</color>
+    <color name="a2_700">@android:color/system_accent2_700</color>
 
-    <color name="primary">@android:color/system_neutral1_50</color>
+    <color name="a3_200">@android:color/system_accent3_200</color>
 
-    <color name="divider">#E0E0E0</color>
+    <color name="n1_50">@android:color/system_neutral1_50</color>
+    <color name="n1_100">@android:color/system_neutral1_100</color>
+    <color name="n1_900">@android:color/system_neutral1_900</color>
 
-    <color name="textSecondary">#99000000</color>
-
-    <color name="text_secondary_100_alpha">#ff000000</color>
-    <color name="text_secondary_87_alpha">#DE000000</color>
-    <color name="text_secondary_60_alpha">#99000000</color>
-
-    <color name="text_secondary_light_100_alpha">#ffffff</color>
-    <color name="text_secondary_light_87_alpha">#DEFFFFFF</color>
-    <color name="text_secondary_light_60_alpha">#99FFFFFF</color>
-
-    <color name="text_secondary_60">#666666</color>
-
-    <color name="fast_logo_border_color">#F5F5F5</color>
-
-    <color name="login_secondary_color">#5c5c5c</color>
-    <color name="edittext_filled_background">#e8e8e8</color>
-    <color name="login_button_text_color">#ffffff</color>
-
-    <color name="conversationTitle">@color/accent</color>
-
-    <color name="message_in">#ffffff</color>
-    <color name="message_out">#000000</color>
-
-
-    <color name="dark_statusBar">@android:color/system_accent1_1000</color>
-    <color name="dark_navigationBar">@android:color/system_accent1_1000</color>
-    <color name="dark_background">@android:color/system_accent1_1000</color>
-    <color name="dark_accent">@android:color/system_accent1_400</color>
-    <color name="dark_action">@android:color/system_accent3_300</color>
-    <color name="dark_actionRipple">@android:color/system_accent3_50</color>
-    <color name="dark_actionContentPrimary">@android:color/system_accent3_1000</color>
-
-    <color name="dark_primary">@android:color/system_accent1_900</color>
-
-    <color name="dark_divider">#292929</color>
-
-    <color name="dark_textSecondary">#99FFFFFF</color>
-
-    <color name="dark_edittext_filled_background">#272727</color>
-
-    <color name="dark_message_in">#000000</color>
-    <color name="dark_message_out">#ffffff</color>
+    <color name="n2_0">@android:color/system_neutral2_0</color>
+    <color name="n2_10">@android:color/system_neutral2_10</color>
+    <color name="n2_500">@android:color/system_neutral2_500</color>
 
 </resources>

@@ -11,7 +11,14 @@ data class VkConversation(
     val title: String?,
     val photo200: String?,
     val type: String,
-    val callInProgress: Boolean
+    val callInProgress: Boolean,
+    val isPhantom: Boolean,
+    val lastConversationMessageId: Int,
+    val inRead: Int,
+    val outRead: Int,
+    val isMarkedUnread: Boolean,
+    val lastMessageId: Int,
+    val unreadCount: Int?
 ) {
     @Ignore
     var lastMessage: VkMessage? = null
@@ -19,5 +26,10 @@ data class VkConversation(
     fun isChat() = type == "chat"
     fun isUser() = type == "user"
     fun isGroup() = type == "group"
+
+    fun isInUnread() = inRead != lastMessageId
+    fun isOutUnread() = outRead != lastMessageId
+
+    fun isUnread() = isInUnread() || isOutUnread()
 
 }

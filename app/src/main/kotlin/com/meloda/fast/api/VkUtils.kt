@@ -1,15 +1,29 @@
 package com.meloda.fast.api
 
 import android.content.Context
+import android.graphics.drawable.Drawable
+import androidx.core.content.ContextCompat
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkGroup
+import com.meloda.fast.api.model.VkGroupCall
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
+import com.meloda.fast.api.network.VKErrors
 
 object VkUtils {
+
+    fun isValidationRequired(throwable: Throwable): Boolean {
+        if (throwable !is VKException) return false
+        return throwable.error == VKErrors.NEED_VALIDATION
+    }
+
+    fun isCaptchaRequired(throwable: Throwable): Boolean {
+        if (throwable !is VKException) return false
+        return throwable.error == VKErrors.NEED_CAPTCHA
+    }
 
     fun parseForwards(baseForwards: List<BaseVkMessage>?): List<VkMessage>? {
         if (baseForwards.isNullOrEmpty()) return null
@@ -112,6 +126,12 @@ object VkUtils {
                     val call = baseAttachment.call ?: continue
                     attachments += VkCall(
                         initiatorId = call.initiatorId
+                    )
+                }
+                BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS -> {
+                    val groupCall = baseAttachment.groupCall ?: continue
+                    attachments += VkGroupCall(
+                        initiatorId = groupCall.initiatorId
                     )
                 }
                 else -> continue
@@ -315,6 +335,52 @@ object VkUtils {
         }
     }
 
+    fun getAttachmentConversationIcon(context: Context, message: VkMessage): Drawable? {
+        message.geoType?.let {
+            return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
+        }
+
+        if (message.attachments.isNullOrEmpty()) return null
+
+        return message.attachments?.let { attachments ->
+            if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
+                getAttachmentTypeByClass(attachments[0])?.let {
+                    getAttachmentIconByType(
+                        context,
+                        it
+                    )
+                }
+            } else {
+                ContextCompat.getDrawable(context, R.drawable.ic_baseline_attach_file_24)
+            }
+        }
+    }
+
+    fun getAttachmentIconByType(
+        context: Context,
+        attachmentType: BaseVkAttachmentItem.AttachmentType
+    ): Drawable? {
+        val resId = when (attachmentType) {
+            BaseVkAttachmentItem.AttachmentType.PHOTO -> R.drawable.ic_attachment_photo
+            BaseVkAttachmentItem.AttachmentType.VIDEO -> R.drawable.ic_attachment_video
+            BaseVkAttachmentItem.AttachmentType.AUDIO -> R.drawable.ic_attachment_audio
+            BaseVkAttachmentItem.AttachmentType.FILE -> R.drawable.ic_attachment_file
+            BaseVkAttachmentItem.AttachmentType.LINK -> R.drawable.ic_attachment_link
+            BaseVkAttachmentItem.AttachmentType.VOICE -> R.drawable.ic_attachment_voice
+            BaseVkAttachmentItem.AttachmentType.MINI_APP -> R.drawable.ic_attachment_mini_app
+            BaseVkAttachmentItem.AttachmentType.STICKER -> R.drawable.ic_attachment_sticker
+            BaseVkAttachmentItem.AttachmentType.GIFT -> R.drawable.ic_attachment_gift
+            BaseVkAttachmentItem.AttachmentType.WALL -> R.drawable.ic_attachment_wall
+            BaseVkAttachmentItem.AttachmentType.GRAFFITI -> R.drawable.ic_attachment_graffiti
+            BaseVkAttachmentItem.AttachmentType.POLL -> R.drawable.ic_attachment_poll
+            BaseVkAttachmentItem.AttachmentType.WALL_REPLY -> R.drawable.ic_attachment_wall_reply
+            BaseVkAttachmentItem.AttachmentType.CALL -> R.drawable.ic_attachment_call
+            BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS -> R.drawable.ic_attachment_group_call
+        }
+
+        return ContextCompat.getDrawable(context, resId)
+    }
+
     fun isAttachmentsHaveOneType(attachments: List<VkAttachment>): Boolean {
         if (attachments.isEmpty()) return true
         if (attachments.size == 1) return true
@@ -344,6 +410,7 @@ object VkUtils {
             is VkPoll -> BaseVkAttachmentItem.AttachmentType.POLL
             is VkWallReply -> BaseVkAttachmentItem.AttachmentType.WALL_REPLY
             is VkCall -> BaseVkAttachmentItem.AttachmentType.CALL
+            is VkGroupCall -> BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS
             else -> null
         }
     }

@@ -22,5 +22,5 @@ data class ConversationsGetResponse(
 data class ConversationsResponseItems(
     val conversation: BaseVkConversation,
     @SerializedName("last_message")
-    val lastMessage: BaseVkMessage
+    val lastMessage: BaseVkMessage?
 ) : Parcelable

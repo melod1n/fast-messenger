@@ -1,8 +1,6 @@
 package com.meloda.fast.screens.messages
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.ViewGroup
@@ -36,12 +34,30 @@ class ConversationsAdapter constructor(
     inner class ItemHolder(binding: ItemConversationBinding) :
         BindingHolder<ItemConversationBinding>(binding) {
 
-        private val dateColor = ContextCompat.getColor(context, R.color.date)
+        private val dateColor = ContextCompat.getColor(context, R.color.n2_500)
         private val youPrefix = context.getString(R.string.you_message_prefix)
 
         override fun bind(position: Int) {
             val conversation = getItem(position)
-            val message = conversation.lastMessage ?: return
+
+            binding.service.isVisible = conversation.isPhantom || conversation.callInProgress
+            binding.callIcon.isVisible = conversation.callInProgress
+            binding.phantomIcon.isVisible = conversation.isPhantom
+
+            val message = if (conversation.lastMessage != null) conversation.lastMessage!!
+            else {
+                binding.title.text = conversation.title
+                val text = context.getString(
+                    if (conversation.isPhantom) R.string.messages_self_destructed
+                    else R.string.no_messages
+                )
+
+                val span = SpannableString(text)
+                span.setSpan(ForegroundColorSpan(dateColor), 0, text.length, 0)
+
+                binding.message.text = span
+                return
+            }
 
             val chatUser: VkUser? = if (conversation.isUser()) {
                 profiles[conversation.id]
@@ -70,8 +86,11 @@ class ConversationsAdapter constructor(
                 else -> null
             }
 
+            binding.avatar.isVisible = avatar != null
+            binding.avatarPlaceholder.isVisible = avatar == null
+
             if (avatar == null) {
-                binding.avatar.setImageDrawable(ColorDrawable(Color.RED))
+                binding.avatar.setImageDrawable(null)
             } else {
                 binding.avatar.load(avatar) { crossfade(200) }
             }
@@ -87,23 +106,38 @@ class ConversationsAdapter constructor(
                 messageGroup = messageGroup
             )
 
-            val attachmentsMessage = VkUtils.getAttachmentConversationText(
-                context = context,
-                message = message
-            )
+            val attachmentIcon =
+                if (message.text == null) null
+                else if (!message.forwards.isNullOrEmpty()) ContextCompat.getDrawable(
+                    context,
+                    if (message.forwards?.size == 1) R.drawable.ic_attachment_forwarded_message
+                    else R.drawable.ic_attachment_forwarded_messages
+                )
+                else VkUtils.getAttachmentConversationIcon(
+                    context = context,
+                    message = message
+                )
 
-            val forwardsMessage = VkUtils.getForwardsConversationText(
+            binding.textAttachment.isVisible = attachmentIcon != null
+            binding.textAttachment.setImageDrawable(attachmentIcon)
+
+            val attachmentText = if (attachmentIcon == null) VkUtils.getAttachmentConversationText(
                 context = context,
                 message = message
-            )
+            ) else null
+
+            val forwardsMessage = if (message.text == null) VkUtils.getForwardsConversationText(
+                context = context,
+                message = message
+            ) else null
 
             val messageText = if (actionMessage != null ||
-                attachmentsMessage != null ||
-                forwardsMessage != null
+                forwardsMessage != null ||
+                attachmentText != null
             ) ""
-            else message.text ?: "no_message"
+            else message.text ?: "[no_message]"
 
-            val coloredMessage = actionMessage ?: attachmentsMessage ?: forwardsMessage ?: ""
+            val coloredMessage = actionMessage ?: attachmentText ?: forwardsMessage ?: ""
 
             var prefix = when {
                 actionMessage != null -> ""
@@ -114,11 +148,11 @@ class ConversationsAdapter constructor(
                 else -> ""
             }
 
-            if (!conversation.isChat() && !message.isOut || conversation.id == UserConfig.userId) prefix =
-                ""
+            if (!conversation.isChat() && !message.isOut || conversation.id == UserConfig.userId)
+                prefix = ""
 
 //            if (conversation.isChat() || message.isOut) {
-            val spanText = "$prefix$coloredMessage $messageText".trim()
+            val spanText = "$prefix$coloredMessage$messageText"
 
             val spanMessage = SpannableString(spanText)
             spanMessage.setSpan(
@@ -135,6 +169,22 @@ class ConversationsAdapter constructor(
                 getItem(position).title ?: chatUser?.toString() ?: chatGroup?.name ?: "..."
 
             binding.date.text = SimpleDateFormat("HH:mm").format(message.date * 1000)
+
+            binding.container.background = if (conversation.isUnread()) ContextCompat.getDrawable(
+                context,
+                R.drawable.ic_message_unread
+            ) else null
+
+
+            binding.counter.isVisible = conversation.isInUnread()
+            if (conversation.isInUnread()) {
+                conversation.unreadCount?.let {
+                    val count = if (it > 999) "${it / 1000}K" else it.toString()
+                    binding.counter.text = count
+                }
+            } else {
+                binding.counter.text = ""
+            }
         }
     }
 

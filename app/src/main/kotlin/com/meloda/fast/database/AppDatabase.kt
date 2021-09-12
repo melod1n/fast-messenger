@@ -18,7 +18,7 @@ import com.meloda.fast.database.dao.UsersDao
         VkUser::class,
         VkGroup::class
     ],
-    version = 8,
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

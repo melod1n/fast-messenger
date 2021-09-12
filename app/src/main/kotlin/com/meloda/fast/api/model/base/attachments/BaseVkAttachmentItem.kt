@@ -24,7 +24,9 @@ data class BaseVkAttachmentItem(
     val poll: BaseVkPoll?,
     @SerializedName("wall_reply")
     val wallReply: BaseVkWallReply?,
-    val call: BaseVkCall?
+    val call: BaseVkCall?,
+    @SerializedName("group_call_in_progress")
+    val groupCall: BaseVkGroupCall?
 ) : Parcelable {
 
     fun getPreparedType() = AttachmentType.parse(type)
@@ -43,7 +45,8 @@ data class BaseVkAttachmentItem(
         GRAFFITI("graffiti"),
         POLL("poll"),
         WALL_REPLY("wall_reply"),
-        CALL("call")
+        CALL("call"),
+        GROUP_CALL_IN_PROGRESS("group_call_in_progress")
         ;
 
         companion object {

@@ -19,8 +19,6 @@
             android:visibility="gone"
             app:backgroundTint="?colorSurface"
             app:elevation="0.5dp"
-            app:itemIconTint="@drawable/navigation_view_items_colors"
-            app:itemTextColor="@drawable/navigation_view_items_colors"
             app:labelVisibilityMode="unlabeled"
             app:menu="@menu/activity_main_bottom" />
 

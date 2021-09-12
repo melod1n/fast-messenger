@@ -1,21 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <attr name="colorAction" format="color" />
-    <attr name="colorActionRipple" format="color" />
-    <attr name="colorActionContentPrimary" format="color" />
-
-    <attr name="itemTitleColor" format="color" />
-
-    <attr name="textColorSecondary" format="color" />
-
-    <attr name="editTextFilledBackgroundColor" format="color" />
-
     <attr name="fullScreenDialogTheme" format="reference" />
-
-    <attr name="messageInTextColor" format="color" />
-    <attr name="messageOutTextColor" format="color" />
-    <attr name="onlineMobileDrawable" format="reference" />
 
     <declare-styleable name="CircleImageView">
         <attr name="radius" format="integer" />

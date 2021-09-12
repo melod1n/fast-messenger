@@ -1,5 +1,6 @@
 package com.meloda.fast.api
 
+import androidx.lifecycle.MutableLiveData
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.common.AppGlobal
 
@@ -31,6 +32,6 @@ object UserConfig {
 
     fun isLoggedIn() = userId > 0 && accessToken.isNotBlank()
 
-    var vkUser: VkUser? = null
+    val vkUser = MutableLiveData<VkUser?>(null)
 
 }

@@ -1,29 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
-        <item name="android:statusBarColor">@color/statusBar</item>
-        <item name="android:navigationBarColor">@color/navigationBar</item>
-        <item name="android:windowBackground">@color/background</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="colorAction">@color/action</item>
-        <item name="colorActionRipple">@color/actionRipple</item>
-        <item name="colorActionContentPrimary">@color/actionContentPrimary</item>
-
-        <item name="colorPrimary">@color/primary</item>
-
-        <item name="toolbarStyle">@style/AppTheme.Toolbar</item>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/n1_50</item>
+        <item name="android:navigationBarColor">@color/n1_50</item>
+        <item name="android:windowBackground">@color/n1_50</item>
+        <item name="colorAccent">@color/a1_500</item>
+        <item name="colorPrimary">@color/n1_50</item>
 
         <item name="android:windowLightStatusBar">true</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="dialogCornerRadius">12dp</item>
-        <item name="itemTitleColor">@color/accent</item>
-        <item name="dividerHorizontal">@color/divider</item>
-        <item name="textColorSecondary">@color/textSecondary</item>
-        <item name="editTextFilledBackgroundColor">@color/edittext_filled_background</item>
-
-        <item name="messageInTextColor">@color/message_in</item>
-        <item name="messageOutTextColor">@color/message_out</item>
 
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
 
@@ -31,73 +18,6 @@
         <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
             @android:color/transparent
         </item>
-
-    </style>
-
-    <style name="AppTheme.Toolbar" parent="Widget.MaterialComponents.Toolbar.Surface">
-        <item name="titleTextAppearance">@style/Toolbar.Title</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:elevation">3dp</item>
-        <item name="titleTextColor">@color/accent</item>
-    </style>
-
-    <style name="Toolbar.Title" parent="TextAppearance.MaterialComponents.Body1">
-        <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/accent</item>
-        <item name="android:fontFamily">@font/google_sans_medium</item>
-    </style>
-
-    <style name="AppTheme.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert" />
-
-    <style name="AppTheme.Login.EditText" parent="Widget.Design.TextInputEditText">
-        <item name="android:layout_height">48dp</item>
-        <item name="fontFamily">@font/google_sans_regular</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:maxLines">1</item>
-    </style>
-
-    <style name="AppTheme.FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog.Bridge">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:windowBackground">@color/background</item>
-        <item name="actionMenuTextColor">?colorAccent</item>
-        <item name="android:windowLightStatusBar">true</item>
-
-        <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/navigationBar</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
-        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
-            @android:color/transparent
-        </item>
-
-        <item name="colorControlNormal">?colorAccent</item>
-    </style>
-
-    <style name="AppTheme.Login.EditText.Icon" parent="">
-        <item name="tint">?textColorSecondary</item>
-        <item name="android:layout_marginStart">8dp</item>
-        <item name="android:layout_marginEnd">12dp</item>
-    </style>
-
-    <style name="AppTheme.ProfileDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
-        <item name="colorAccent">@color/accent</item>
-        <item name="colorPrimary">@color/primary</item>
-        <item name="android:windowLightStatusBar">true</item>
-    </style>
-
-    <style name="Widget.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="errorEnabled">true</item>
-    </style>
-
-    <style name="Widget.TextInputLayout.NoError.Dense" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
-        <item name="errorEnabled">true</item>
-        <item name="hintTextColor">?colorAccent</item>
-        <item name="boxStrokeColor">@drawable/edit_text_box_background</item>
-        <item name="boxStrokeErrorColor">?colorAccent</item>
-        <item name="boxStrokeWidth">2dp</item>
-    </style>
-
-    <style name="Widget.MaterialButton" parent="Widget.MaterialComponents.Button">
 
     </style>
 
