@@ -27,10 +27,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".service.LongPollService"
-            android:enabled="true" />
-
         <receiver
             android:name=".receiver.MinuteReceiver"
             android:enabled="true"

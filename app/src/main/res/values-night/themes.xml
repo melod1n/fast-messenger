@@ -1,77 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
-        <item name="android:statusBarColor">@color/dark_statusBar</item>
-        <item name="android:navigationBarColor">@color/dark_navigationBar</item>
-        <item name="android:windowBackground">@color/dark_background</item>
-        <item name="colorAccent">@color/dark_accent</item>
-        <item name="colorAction">@color/dark_action</item>
-        <item name="colorActionRipple">@color/dark_actionRipple</item>
-        <item name="colorActionContentPrimary">@color/dark_actionContentPrimary</item>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
+        <item name="android:statusBarColor">@color/colorPrimaryVariant</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryVariant</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
+            @android:color/transparent
+        </item>
 
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
 
-        <item name="colorPrimary">@color/dark_primary</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
 
-        <item name="toolbarStyle">@style/AppTheme.Toolbar</item>
+        <item name="android:windowLightStatusBar">true</item>
 
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+
         <item name="dialogCornerRadius">12dp</item>
-        <item name="itemTitleColor">?colorAccent</item>
-        <item name="dividerHorizontal">@color/dark_divider</item>
-        <item name="textColorSecondary">@color/dark_textSecondary</item>
-        <item name="editTextFilledBackgroundColor">@color/dark_edittext_filled_background</item>
-
-        <item name="messageInTextColor">@color/dark_message_in</item>
-        <item name="messageOutTextColor">@color/dark_message_out</item>
-
-        <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
-
-        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
-            @android:color/transparent
-        </item>
     </style>
-
-    <style name="AppTheme.Toolbar" parent="Widget.MaterialComponents.Toolbar.Surface">
-        <item name="titleTextAppearance">@style/Toolbar.Title</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:elevation">3dp</item>
-        <item name="titleTextColor">@color/dark_accent</item>
-    </style>
-
-    <style name="AppTheme.Login.EditText" parent="">
-        <item name="android:layout_height">52dp</item>
-        <item name="android:background">@drawable/edittext_filled_background</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:layout_marginEnd">16dp</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">?android:textColorPrimary</item>
-        <item name="android:textColorHint">?textColorSecondary</item>
-        <item name="fontFamily">@font/google_sans_regular</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:maxLines">1</item>
-    </style>
-
-    <style name="AppTheme.FullScreenDialog" parent="Theme.MaterialComponents.DayNight.Dialog.Bridge">
-        <item name="colorPrimary">@color/dark_primary</item>
-        <item name="colorAccent">@color/dark_accent</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:windowBackground">@color/dark_background</item>
-        <item name="actionMenuTextColor">?colorAccent</item>
-
-        <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/dark_navigationBar
-        </item>
-        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
-            @android:color/transparent
-        </item>
-
-        <item name="colorControlNormal">?colorAccent</item>
-    </style>
-
-    <style name="AppTheme.ProfileDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
-        <item name="colorAccent">@color/dark_accent</item>
-        <item name="colorPrimary">@color/dark_primary</item>
-    </style>
-
 </resources>

@@ -25,7 +25,6 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/captchaImage"
-                style="@style/AppTheme.Login.EditText.Icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -34,7 +33,6 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/captchaLayout"
-                style="@style/Widget.TextInputLayout.NoError.Dense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -65,10 +63,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_weight="1"
+                android:backgroundTint="@color/a1_600"
                 android:text="@android:string/cancel"
-                android:textColor="?colorAction"
-                app:elevation="0dp"
-                app:rippleColor="?colorActionRipple" />
+                app:elevation="0dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/ok"
@@ -76,11 +73,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="?colorAction"
+                android:backgroundTint="@color/a3_200"
                 android:text="@android:string/ok"
-                android:textColor="?colorActionContentPrimary"
-                app:elevation="0dp"
-                app:rippleColor="?colorActionRipple" />
+                app:elevation="0dp" />
 
 
         </LinearLayout>

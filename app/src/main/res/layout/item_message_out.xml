@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end|bottom"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="2.5dp">
+
+        <com.meloda.fast.widget.CircleImageView
+            android:id="@+id/unread"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="20dp"
+            android:src="@color/a3_200" />
+
+        <FrameLayout
+            android:id="@+id/bubbleStroke"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_message_out_background"
+            android:backgroundTint="@color/n2_100"
+            android:padding="1.5dp"
+            tools:ignore="UselessParent">
+
+            <com.meloda.fast.widget.BoundedFrameLayout
+                android:id="@+id/bubble"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/ic_message_out_background"
+                android:backgroundTint="@color/n1_10">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|start"
+                    android:padding="15dp"
+                    android:textColor="@color/n1_800"
+                    tools:text="This is test" />
+
+            </com.meloda.fast.widget.BoundedFrameLayout>
+        </FrameLayout>
+
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</layout>

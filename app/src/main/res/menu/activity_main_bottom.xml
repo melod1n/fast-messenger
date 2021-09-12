@@ -2,18 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@id/friends"
-        android:icon="@drawable/ic_people_outline"
-        android:title="@string/navigation_friends" />
-
-    <item
         android:id="@id/messages"
         android:icon="@drawable/ic_message_outline"
         android:title="@string/navigation_chats" />
-
-    <item
-        android:id="@id/important"
-        android:icon="@drawable/ic_star_border"
-        android:title="@string/navigation_important" />
 
 </menu>

@@ -1,186 +1,256 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?selectableItemBackground"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingTop="2dp"
-    android:paddingBottom="2dp">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
-        android:id="@+id/container"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="6dp"
-        android:baselineAligned="false"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="6dp">
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="4dp"
+        android:orientation="horizontal">
 
-        <FrameLayout
-            android:layout_width="wrap_content"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0">
+            android:layout_marginStart="20dp"
+            android:backgroundTint="@color/n1_100"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="32dp"
+            tools:background="@drawable/ic_message_unread">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/peerAvatar"
+            <FrameLayout
                 android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="bottom|end"
-                app:shapeAppearanceOverlay="@style/CircleImageView.56"
-                tools:src="?colorAccent" />
+                android:layout_height="56dp">
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/peerOnline"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_gravity="bottom|end"
-                tools:src="@drawable/ic_online_pc" />
+                <com.meloda.fast.widget.CircleImageView
+                    android:id="@+id/avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:src="@tools:sample/avatars" />
 
-        </FrameLayout>
+                <FrameLayout
+                    android:id="@+id/avatarPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/placeholderBack"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@color/n1_50" />
 
-            <LinearLayout
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/placeholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_account_circle_cut"
+                        app:tint="@color/n2_500" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/online"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="end|bottom"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@color/n1_50" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_online_pc"
+                        app:tint="?colorSecondary2" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/pin"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="start|top"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_back"
+                        android:backgroundTint="@color/n2_500"
+                        android:elevation="0.5dp" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/pinIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:elevation="1dp"
+                        android:src="@drawable/ic_round_push_pin_24"
+                        app:tint="@color/n2_0" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/service"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="end|top"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_back"
+                        android:backgroundTint="@color/n2_500"
+                        android:elevation="0.5dp" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/phantomIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:elevation="1dp"
+                        android:src="@drawable/ic_phantom"
+                        android:visibility="gone"
+                        app:tint="@color/n2_10"
+                        tools:visibility="visible" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/callIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:elevation="1dp"
+                        android:src="@drawable/ic_attachment_group_call"
+                        android:visibility="gone"
+                        app:tint="@color/n2_0" />
+
+                </FrameLayout>
+            </FrameLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:orientation="horizontal">
+                android:layout_marginStart="24dp"
+                android:orientation="vertical">
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/type"
-                    android:layout_width="20dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="4dp"
-                    android:paddingStart="2dp"
-                    android:paddingEnd="0dp"
-                    android:tint="@color/conversationTitle"
-                    android:visibility="gone"
-                    tools:src="@drawable/ic_dialog_type_conversation" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/title"
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_toStartOf="@+id/date"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/google_sans_regular"
+                            android:maxLines="2"
+                            android:textColor="?textColorPrimary"
+                            android:textSize="22sp"
+                            tools:text="Title" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/counter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="-4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="0"
+                            android:background="@drawable/ic_back"
+                            android:backgroundTint="?colorSecondary3"
+                            android:gravity="center"
+                            android:minWidth="18dp"
+                            android:textColor="?colorOnSecondary3"
+                            android:textSize="10sp"
+                            android:visibility="gone"
+                            tools:text="12"
+                            tools:visibility="visible" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="6dp"
+                        android:alpha="0.5"
+                        android:fontFamily="@font/roboto_regular"
+                        android:gravity="end|center_vertical"
+                        android:textColor="?textColorSecondaryVariant"
+                        tools:text="20:00" />
+
+                </RelativeLayout>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:fontFamily="@font/tt_commons_medium"
-                    android:singleLine="true"
-                    android:textColor="?itemTitleColor"
-                    android:textSize="20sp"
-                    tools:text="Title" />
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
-            </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:layout_marginTop="2dp"
-                android:gravity="center_vertical"
-                android:minHeight="26dp"
-                android:orientation="horizontal">
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/fromAvatar"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="6dp"
-                    app:shapeAppearanceOverlay="@style/CircleImageView.24"
-                    tools:src="?colorAccent"
-                    tools:visibility="visible" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/textAttachment"
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="1.5dp"
-                    android:tint="?colorAccent"
-                    android:visibility="gone"
-                    tools:src="@drawable/ic_message_attachment_camera"
-                    tools:visibility="visible" />
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="16dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:singleLine="true"
-                    android:textColor="?android:textColorPrimary"
-                    android:textSize="14sp"
-                    tools:text="Message" />
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/textAttachment"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="4dp"
+                        android:src="@drawable/ic_baseline_attach_file_24"
+                        android:visibility="gone"
+                        app:tint="?textColorSecondaryVariant"
+                        tools:visibility="visible" />
 
-            </LinearLayout>
-        </LinearLayout>
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/message"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.7"
+                        android:fontFamily="@font/roboto_regular"
+                        android:maxLines="2"
+                        android:textColor="?textColorPrimary"
+                        android:textSize="16sp"
+                        tools:text="Message" />
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
         <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:minHeight="50dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?selectableItemBackground" />
+    </FrameLayout>
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/out"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="8dp"
-                android:src="?colorAccent"
-                android:visibility="gone"
-                tools:visibility="gone" />
-
-        </FrameLayout>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_margin="8dp"
-        android:gravity="center"
-        android:maxLines="1"
-        android:minWidth="30dp"
-        android:textColor="?android:textColorSecondary"
-        android:textSize="12sp"
-        tools:text="now" />
-
-    <TextView
-        android:id="@+id/counter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="36dp"
-        android:layout_marginEnd="14dp"
-        android:background="@drawable/ic_conversations_counter_background"
-        android:backgroundTint="?colorAccent"
-        android:backgroundTintMode="multiply"
-        android:fontFamily="@font/google_sans_medium"
-        android:gravity="center"
-        android:minWidth="28dp"
-        android:minHeight="28dp"
-        android:padding="6dp"
-        android:textColor="?android:textColorPrimaryInverse"
-        android:textSize="12sp"
-        tools:text="12"
-        tools:visibility="visible" />
-
-</FrameLayout>
+</layout>

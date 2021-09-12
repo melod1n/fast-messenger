@@ -10,7 +10,7 @@ class BoundedLinearLayout : LinearLayout {
     private var mBoundedWidth: Int
     private var mBoundedHeight: Int
 
-    constructor(context: Context?) : super(context) {
+    constructor(context: Context) : super(context) {
         mBoundedWidth = 0
         mBoundedHeight = 0
     }
