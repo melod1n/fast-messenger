@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.messages
+package com.meloda.fast.screens.conversations
 
 import android.content.Context
 import android.text.SpannableString
@@ -17,7 +17,7 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BindingHolder
 import com.meloda.fast.databinding.ItemConversationBinding
-import java.text.SimpleDateFormat
+import com.meloda.fast.util.TimeUtils
 
 class ConversationsAdapter constructor(
     context: Context,
@@ -76,9 +76,9 @@ class ConversationsAdapter constructor(
             } else null
 
             val avatar = when {
-                chatUser != null && !chatUser.photo200.isNullOrBlank() -> chatUser.photo200
-                chatGroup != null && !chatGroup.photo200.isNullOrBlank() -> chatGroup.photo200
-                !conversation.photo200.isNullOrBlank() -> conversation.photo200
+                conversation.isUser() && chatUser != null && !chatUser.photo200.isNullOrBlank() -> chatUser.photo200
+                conversation.isGroup() && chatGroup != null && !chatGroup.photo200.isNullOrBlank() -> chatGroup.photo200
+                conversation.isChat() && !conversation.photo200.isNullOrBlank() -> conversation.photo200
                 else -> null
             }
 
@@ -127,11 +127,11 @@ class ConversationsAdapter constructor(
                 message = message
             ) else null
 
-            val messageText = if (actionMessage != null ||
+            val messageText = (if (actionMessage != null ||
                 forwardsMessage != null ||
                 attachmentText != null
             ) ""
-            else message.text ?: "[no_message]"
+            else message.text ?: "[no_message]").run { VkUtils.prepareMessageText(this) }
 
             val coloredMessage = actionMessage ?: attachmentText ?: forwardsMessage ?: ""
 
@@ -165,7 +165,7 @@ class ConversationsAdapter constructor(
             binding.title.text =
                 getItem(position).title ?: chatUser?.toString() ?: chatGroup?.name ?: "..."
 
-            binding.date.text = SimpleDateFormat("HH:mm").format(message.date * 1000)
+            binding.date.text = TimeUtils.getLocalizedTime(context, message.date * 1000L)
 
             binding.container.background = if (conversation.isUnread()) ContextCompat.getDrawable(
                 context,

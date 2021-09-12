@@ -1,10 +1,12 @@
-package com.meloda.fast.screens.messages
+package com.meloda.fast.screens.conversations
 
 import android.os.Bundle
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.R
@@ -17,7 +19,6 @@ import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ConversationsFragment :
@@ -39,7 +40,10 @@ class ConversationsFragment :
 
         prepareViews()
 
-        adapter = ConversationsAdapter(requireContext(), mutableListOf())
+        adapter = ConversationsAdapter(requireContext(), mutableListOf()).also {
+            it.itemClickListener = this::onItemClick
+            it.itemLongClickListener = this::onItemLongClick
+        }
         binding.recyclerView.adapter = adapter
 
         viewModel.loadConversations()
@@ -86,9 +90,7 @@ class ConversationsFragment :
     private fun prepareRefreshLayout() {
         with(binding.refreshLayout) {
             setProgressViewOffset(
-                true,
-                AndroidUtils.px(40).roundToInt(),
-                AndroidUtils.px(96).roundToInt()
+                true, progressViewStartOffset, progressViewEndOffset
             )
             setProgressBackgroundColorSchemeColor(
                 AndroidUtils.getThemeAttrColor(
@@ -107,10 +109,7 @@ class ConversationsFragment :
     }
 
     private fun refreshConversations(event: ConversationsLoaded) {
-//        adapter.profiles.clear()
         adapter.profiles += event.profiles
-
-//        adapter.groups.clear()
         adapter.groups += event.groups
 
         fillRecyclerView(event.conversations)
@@ -120,6 +119,26 @@ class ConversationsFragment :
         adapter.values.clear()
         adapter.values += values
         adapter.notifyItemRangeChanged(0, adapter.itemCount)
+    }
+
+    private fun onItemClick(position: Int) {
+        val conversation = adapter[position]
+        val user = if (conversation.isUser()) adapter.profiles[conversation.id] else null
+        val group = if (conversation.isGroup()) adapter.groups[conversation.id] else null
+
+        findNavController().navigate(
+            R.id.toMessagesHistory,
+            bundleOf(
+                "conversation" to adapter[position],
+                "user" to user,
+                "group" to group
+            )
+        )
+    }
+
+    private fun onItemLongClick(position: Int): Boolean {
+        binding.createChat.performClick()
+        return true
     }
 
 }

@@ -1,106 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:elevation="0dp">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:elevation="0dp"
-            app:collapsedTitleTextAppearance="@style/CollapsingToolbarCollapsedTitle"
-            app:expandedTitleTextAppearance="@style/CollapsingToolbarTitle"
-            app:layout_scrollFlags="scroll|enterAlways|snap"
-            app:title="Messages">
+            app:elevation="0dp">
 
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
+            <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
-                android:layout_height="?actionBarSize"
-                android:background="@color/n1_50"
-                android:elevation="0dp"
-                app:layout_collapseMode="pin"
-                app:menu="@menu/fragment_conversations" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/expandedImage"
-                android:layout_width="match_parent"
-                android:layout_height="140dp"
-                android:elevation="0dp" />
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="30dp"
-                android:orientation="horizontal">
+                android:elevation="0dp"
+                app:collapsedTitleTextAppearance="@style/CollapsingToolbarCollapsedTitle"
+                app:expandedTitleTextAppearance="@style/CollapsingToolbarTitle"
+                app:layout_scrollFlags="scroll|enterAlways|snap"
+                app:title="Messages">
 
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="?selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_search"
-                    android:tint="@color/a1_500" />
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    android:background="@color/n1_50"
+                    android:elevation="0dp"
+                    app:layout_collapseMode="pin"
+                    app:menu="@menu/fragment_conversations" />
 
-                <com.meloda.fast.widget.CircleImageView
-                    android:id="@+id/avatar"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    tools:src="@tools:sample/avatars" />
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/expandedImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    android:elevation="0dp" />
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="30dp"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_search"
+                        android:tint="@color/a1_500" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/avatar"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        tools:src="@tools:sample/avatars" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
 
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
 
-    </com.google.android.material.appbar.AppBarLayout>
+        </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:scrollbars="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_conversation" />
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:scrollbars="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_conversation" />
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/createChat"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_baseline_create_24"
-        app:backgroundTint="@color/a2_200"
-        app:elevation="3dp"
-        app:fabSize="normal"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
-        app:pressedTranslationZ="1dp"
-        app:shapeAppearanceOverlay="@style/RoundedView.56"
-        app:tint="@color/a2_700"
-        tools:ignore="ContentDescription" />
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/createChat"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:src="@drawable/ic_baseline_create_24"
+            app:backgroundTint="@color/a2_200"
+            app:elevation="3dp"
+            app:fabSize="normal"
+            app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+            app:pressedTranslationZ="1dp"
+            app:shapeAppearanceOverlay="@style/RoundedView.56"
+            app:tint="@color/a2_700"
+            tools:ignore="ContentDescription" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

@@ -113,7 +113,7 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
     implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
 
-    implementation("com.github.yogacp:android-viewbinding:1.0.2")
+    implementation("com.github.yogacp:android-viewbinding:1.0.3")
 
     implementation("io.coil-kt:coil:1.3.2")
 

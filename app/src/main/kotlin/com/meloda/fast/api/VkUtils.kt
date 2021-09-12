@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkGroupCall
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
@@ -23,6 +22,12 @@ object VkUtils {
     fun isCaptchaRequired(throwable: Throwable): Boolean {
         if (throwable !is VKException) return false
         return throwable.error == VKErrors.NEED_CAPTCHA
+    }
+
+    fun prepareMessageText(text: String): String {
+        return text
+            .replace("\n", " ")
+            .replace("&amp", "&")
     }
 
     fun parseForwards(baseForwards: List<BaseVkMessage>?): List<VkMessage>? {

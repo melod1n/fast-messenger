@@ -7,8 +7,20 @@
 
     <fragment
         android:id="@+id/conversationsFragment"
-        android:name="com.meloda.fast.screens.messages.ConversationsFragment"
+        android:name="com.meloda.fast.screens.conversations.ConversationsFragment"
         android:label="ConversationsFragment"
-        tools:layout="@layout/fragment_conversations" />
+        tools:layout="@layout/fragment_conversations">
+
+        <action
+            android:id="@+id/toMessagesHistory"
+            app:destination="@+id/messagesHistoryFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/messagesHistoryFragment"
+        android:name="com.meloda.fast.screens.messages.MessagesHistoryFragment"
+        android:label="MessagesHistoryFragment"
+        tools:layout="@layout/fragment_messages_history" />
 
 </navigation>

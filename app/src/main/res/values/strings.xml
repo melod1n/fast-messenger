@@ -34,4 +34,15 @@
 
     <string name="messages_self_destructed">Messages self-destructed</string>
 
+    <string name="yesterday">Yesterday</string>
+
+    <string name="today">Today</string>
+
+    <string name="year_short">Y</string>
+    <string name="month_short">M</string>
+    <string name="week_short">W</string>
+    <string name="day_short">D</string>
+    <string name="time_now">Now</string>
+    <string name="message_input_hint">Start typing here...</string>
+
 </resources>

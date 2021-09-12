@@ -50,7 +50,8 @@ data class BaseVkConversation(
         outRead = outRead,
         isMarkedUnread = isMarkedUnread,
         lastMessageId = lastMessageId,
-        unreadCount = unreadCount
+        unreadCount = unreadCount,
+        membersCount = chatSettings?.membersCount
     ).apply { this.lastMessage = lastMessage }
 
     @Parcelize

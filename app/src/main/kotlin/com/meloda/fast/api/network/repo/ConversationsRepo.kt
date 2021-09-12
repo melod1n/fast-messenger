@@ -11,7 +11,7 @@ import retrofit2.http.POST
 interface ConversationsRepo {
 
     @FormUrlEncoded
-    @POST(VKUrls.Conversations.get)
+    @POST(VKUrls.Conversations.Get)
     suspend fun getAllChats(@FieldMap params: Map<String, String>): Answer<ApiResponse<ConversationsGetResponse>>
 
 }

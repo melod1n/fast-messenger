@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.messages
+package com.meloda.fast.screens.conversations
 
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
@@ -31,7 +31,7 @@ class ConversationsViewModel @Inject constructor(
             dataSource.getAllChats(
                 ConversationsGetRequest(
                     count = 30,
-//                    offset = 37,
+//                    offset = 177,
                     extended = true,
                     fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
                 )
@@ -48,9 +48,6 @@ class ConversationsViewModel @Inject constructor(
                     response.groups?.forEach { baseGroup ->
                         baseGroup.asVkGroup().let { group -> groups[group.id] = group }
                     }
-
-//                    val profiles = response.profiles?.map { profile -> profile.asVkUser() } ?: listOf()
-//                    val groups = response.groups?.map { group -> group.asVkGroup() } ?: listOf()
 
                     sendEvent(
                         ConversationsLoaded(
@@ -71,12 +68,8 @@ class ConversationsViewModel @Inject constructor(
                 val er = it
                 throw it
             },
-            onStart = {
-                sendEvent(StartProgressEvent)
-            },
-            onEnd = {
-                sendEvent(StopProgressEvent)
-            })
+            onStart = { sendEvent(StartProgressEvent) },
+            onEnd = { sendEvent(StopProgressEvent) })
     }
 
     fun loadProfileUser() = viewModelScope.launch {
@@ -96,7 +89,7 @@ class ConversationsViewModel @Inject constructor(
 
 data class ConversationsLoaded(
     val count: Int,
-    val unreadCount: Int,
+    val unreadCount: Int?,
     val conversations: List<VkConversation>,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>

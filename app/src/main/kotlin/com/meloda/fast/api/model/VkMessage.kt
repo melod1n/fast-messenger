@@ -1,40 +1,68 @@
 package com.meloda.fast.api.model
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.meloda.fast.api.model.attachments.VkAttachment
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "messages")
+@Parcelize
 data class VkMessage(
     @PrimaryKey(autoGenerate = false)
     val id: Int,
-    val text: String?,
+    val text: String? = null,
     val isOut: Boolean,
     val peerId: Int,
     val fromId: Int,
     val date: Int,
-    val action: String?,
-    val actionMemberId: Int?,
-    val actionText: String?,
-    val actionConversationMessageId: Int?,
-    val actionMessage: String?,
-    val geoType: String?
-) {
+    val randomId: Int,
+    val action: String? = null,
+    val actionMemberId: Int? = null,
+    val actionText: String? = null,
+    val actionConversationMessageId: Int? = null,
+    val actionMessage: String? = null,
+    val geoType: String? = null
+) : Parcelable {
+
+    @IgnoredOnParcel
     @Ignore
     var forwards: List<VkMessage>? = null
 
+    @IgnoredOnParcel
     @Ignore
     var attachments: List<VkAttachment>? = null
+
+    fun isPeerChat() = peerId > 2_000_000_000
 
     fun isUser() = fromId > 0
 
     fun isGroup() = fromId < 0
 
+    fun isRead(conversation: VkConversation) = conversation.outRead < id
+
     fun getPreparedAction(): Action? {
         if (action == null) return null
         return Action.parse(action)
     }
+
+    fun changeId(id: Int) = VkMessage(
+        id = id,
+        text = text,
+        isOut = isOut,
+        peerId = peerId,
+        fromId = fromId,
+        date = date,
+        randomId = randomId,
+        action = action,
+        actionMemberId = actionMemberId,
+        actionText = actionText,
+        actionConversationMessageId = actionConversationMessageId,
+        actionMessage = actionMessage,
+        geoType = geoType
+    )
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),

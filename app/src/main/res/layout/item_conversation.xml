@@ -6,9 +6,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?selectableItemBackground"
-        android:orientation="horizontal"
-        android:paddingVertical="4dp">
+        android:layout_marginVertical="4dp"
+        android:orientation="horizontal">
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/container"
@@ -30,13 +29,13 @@
                     android:id="@+id/avatar"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    tools:src="@tools:sample/avatars"
-                    tools:visibility="gone" />
+                    tools:src="@tools:sample/avatars" />
 
                 <FrameLayout
                     android:id="@+id/avatarPlaceholder"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
 
                     <com.meloda.fast.widget.CircleImageView
                         android:layout_width="match_parent"
@@ -51,6 +50,28 @@
 
                 </FrameLayout>
 
+                <FrameLayout
+                    android:id="@+id/online"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="end|bottom"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@color/n1_50" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_online_pc"
+                        app:tint="@color/a3_200" />
+
+                </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/service"
@@ -90,31 +111,6 @@
                         app:tint="@color/n2_0" />
 
                 </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/online"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="end|bottom"
-                    android:visibility="gone"
-                    tools:visibility="visible">
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:src="@color/n1_50" />
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_online_pc"
-                        app:tint="@color/a3_200" />
-
-                </FrameLayout>
-
-
             </FrameLayout>
 
             <androidx.appcompat.widget.LinearLayoutCompat
@@ -221,6 +217,11 @@
             </androidx.appcompat.widget.LinearLayoutCompat>
 
         </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?selectableItemBackground" />
     </FrameLayout>
 
 </layout>

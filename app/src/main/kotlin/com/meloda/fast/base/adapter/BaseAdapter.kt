@@ -24,16 +24,22 @@ abstract class BaseAdapter<Item, VH : BaseHolder>(
 
     protected var inflater: LayoutInflater = LayoutInflater.from(context)
 
-    var itemClickListener: OnItemClickListener? = null
-    var itemLongClickListener: OnItemLongClickListener? = null
+    var itemClickListener: ((position: Int) -> Unit) = {}
+    var itemLongClickListener: ((position: Int) -> Boolean) = { false }
 
-    open fun destroy() {
-        itemClickListener = null
-        itemLongClickListener = null
-    }
+    open fun destroy() {}
 
     override fun getItem(position: Int): Item {
         return values[position]
+    }
+
+    fun getOrNull(position: Int): Item? {
+        return if (position >= 0 && position <= values.lastIndex) get(position) else null
+    }
+
+    fun getOrElse(position: Int, defaultValue: (Int) -> Item): Item {
+        return if (position >= 0 && position <= values.lastIndex) get(position)
+        else defaultValue(position)
     }
 
     fun add(position: Int, item: Item) {
@@ -103,26 +109,23 @@ abstract class BaseAdapter<Item, VH : BaseHolder>(
         onBindItemViewHolder(holder, position)
     }
 
+    private fun onBindItemViewHolder(holder: VH, position: Int) {
+        initListeners(holder.itemView, position)
+        holder.bind(position)
+    }
+
     protected fun initListeners(itemView: View, position: Int) {
         if (itemView is AdapterView<*>) return
 
-        itemView.setOnClickListener {
-            itemClickListener?.onItemClick(position)
-        }
-
-        itemView.setOnLongClickListener {
-            itemLongClickListener?.onItemLongClick(position)
-            return@setOnLongClickListener itemClickListener == null
-        }
+        itemView.setOnClickListener { itemClickListener.invoke(position) }
+        itemView.setOnLongClickListener { itemLongClickListener.invoke(position) }
     }
 
     override fun getItemCount(): Int {
         return values.size
     }
 
-    private fun onBindItemViewHolder(holder: VH, position: Int) {
-        initListeners(holder.itemView, position)
-        holder.bind(position)
-    }
+    val lastPosition
+        get() = itemCount - 1
 
 }

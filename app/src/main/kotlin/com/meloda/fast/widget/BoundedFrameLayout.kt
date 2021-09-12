@@ -3,10 +3,10 @@ package com.meloda.fast.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.LinearLayout
+import android.widget.FrameLayout
 import com.meloda.fast.R
 
-class BoundedLinearLayout : LinearLayout {
+class BoundedFrameLayout : FrameLayout {
     private var mBoundedWidth: Int
     private var mBoundedHeight: Int
 
@@ -46,10 +46,12 @@ class BoundedLinearLayout : LinearLayout {
         var widthMeasureSpec = widthMeasureSpec
         var heightMeasureSpec = heightMeasureSpec
         val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
+
         if (mBoundedWidth in 1 until measuredWidth) {
             val measureMode = MeasureSpec.getMode(widthMeasureSpec)
             widthMeasureSpec = MeasureSpec.makeMeasureSpec(mBoundedWidth, measureMode)
         }
+
         // Adjust height as necessary
         val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
         if (mBoundedHeight in 1 until measuredHeight) {
@@ -58,4 +60,5 @@ class BoundedLinearLayout : LinearLayout {
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
+
 }

@@ -11,7 +11,7 @@ import retrofit2.http.POST
 interface UsersRepo {
 
     @FormUrlEncoded
-    @POST(VKUrls.Users.getById)
+    @POST(VKUrls.Users.GetById)
     suspend fun getById(
         @FieldMap params: Map<String, String>?
     ): Answer<ApiResponse<List<BaseVkUser>>>

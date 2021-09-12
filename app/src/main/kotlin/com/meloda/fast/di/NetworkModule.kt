@@ -1,4 +1,4 @@
-package com.meloda.fast.api
+package com.meloda.fast.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -28,7 +28,7 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-class VKModules {
+object NetworkModule {
 
     @Singleton
     @Provides
@@ -76,6 +76,10 @@ class VKModules {
     @Provides
     fun provideUsersRepo(retrofit: Retrofit): UsersRepo =
         retrofit.create(UsersRepo::class.java)
+
+    @Provides
+    fun provideMessagesRepo(retrofit: Retrofit): MessagesRepo =
+        retrofit.create(MessagesRepo::class.java)
 
     @Provides
     @Singleton

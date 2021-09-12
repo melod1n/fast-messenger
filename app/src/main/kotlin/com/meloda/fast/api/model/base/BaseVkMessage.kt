@@ -40,6 +40,7 @@ data class BaseVkMessage(
         peerId = peerId,
         fromId = fromId,
         date = date,
+        randomId = randomId,
         action = action?.type,
         actionMemberId = action?.memberId,
         actionText = action?.text,

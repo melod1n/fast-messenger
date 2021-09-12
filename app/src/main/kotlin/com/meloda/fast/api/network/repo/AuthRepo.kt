@@ -8,10 +8,10 @@ import retrofit2.http.*
 
 interface AuthRepo {
 
-    @GET(VKUrls.Auth.directAuth)
+    @GET(VKUrls.Auth.DirectAuth)
     suspend fun auth(@QueryMap param: Map<String, String?>): Answer<ResponseAuthDirect>
 
-    @GET(VKUrls.Auth.sendSms)
+    @GET(VKUrls.Auth.SendSms)
     suspend fun sendSms(@Query("sid") validationSid: String): Answer<ResponseSendSms>
 
 }

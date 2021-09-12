@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="86dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:itemCount="100"
+                tools:listitem="@layout/item_message_out" />
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <FrameLayout
+            android:id="@+id/toolbarContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:background="@drawable/ic_messages_history_toolbar_gradient_background"
+            android:backgroundTint="@color/n1_50"
+            android:minHeight="140dp">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="30dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="24dp">
+
+                <FrameLayout
+                    android:layout_width="56dp"
+                    android:layout_height="56dp">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/avatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        tools:src="@tools:sample/avatars"
+                        tools:visibility="visible" />
+
+                    <FrameLayout
+                        android:id="@+id/avatarPlaceholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone">
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@color/n1_50" />
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_account_circle_cut"
+                            app:tint="@color/n2_500" />
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/online"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="end|bottom"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@color/n1_50" />
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_online_pc"
+                            app:tint="@color/a3_200" />
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/service"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="end|top"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/ic_back"
+                            android:backgroundTint="@color/n2_500"
+                            android:elevation="0.5dp" />
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:id="@+id/phantomIcon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="center"
+                            android:elevation="1dp"
+                            android:src="@drawable/ic_phantom"
+                            android:visibility="gone"
+                            app:tint="@color/n2_10"
+                            tools:visibility="visible" />
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:id="@+id/callIcon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="center"
+                            android:elevation="1dp"
+                            android:src="@drawable/ic_attachment_group_call"
+                            android:visibility="gone"
+                            app:tint="@color/n2_0" />
+
+                    </FrameLayout>
+                </FrameLayout>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textColor="@color/n1_900"
+                        android:textSize="24sp"
+                        tools:text="@tools:sample/full_names" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.7"
+                        android:textColor="@color/n1_900"
+                        tools:text="Online" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="30dp"
+                android:elevation="2dp"
+                android:enabled="false"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/n1_900"
+                android:visibility="gone"
+                app:chipBackgroundColor="@color/n1_100"
+                app:textEndPadding="12dp"
+                app:textStartPadding="12dp"
+                tools:text="today"
+                tools:visibility="visible" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/ic_message_panel_gradient"
+            android:backgroundTint="@color/n1_50" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/messagePanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_margin="12dp"
+            android:background="@drawable/ic_message_panel_background"
+            android:backgroundTint="@color/a1_0"
+            android:clickable="true"
+            android:elevation="3dp"
+            android:focusable="true"
+            android:minHeight="60dp"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/message"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_marginHorizontal="20dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="@string/message_input_hint" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/attach"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginEnd="18dp"
+                android:background="?selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_baseline_attach_file_24"
+                android:tint="@color/a1_500" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginEnd="20dp"
+                android:background="?selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_round_mic_24"
+                android:tint="@color/a1_500" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</layout>

@@ -1,10 +1,13 @@
 package com.meloda.fast.api.model
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "conversations")
+@Parcelize
 data class VkConversation(
     @PrimaryKey(autoGenerate = false)
     val id: Int,
@@ -18,8 +21,9 @@ data class VkConversation(
     val outRead: Int,
     val isMarkedUnread: Boolean,
     val lastMessageId: Int,
-    val unreadCount: Int?
-) {
+    val unreadCount: Int?,
+    val membersCount: Int?
+) : Parcelable {
     @Ignore
     var lastMessage: VkMessage? = null
 
