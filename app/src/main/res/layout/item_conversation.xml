@@ -19,7 +19,7 @@
             android:orientation="horizontal"
             android:paddingVertical="8dp"
             android:paddingStart="8dp"
-            android:paddingEnd="12dp"
+            android:paddingEnd="32dp"
             tools:background="@drawable/ic_message_unread">
 
             <FrameLayout
@@ -151,6 +151,7 @@
                             android:layout_height="18dp"
                             android:layout_marginStart="8dp"
                             android:layout_marginTop="-4dp"
+                            android:layout_marginEnd="4dp"
                             android:layout_weight="0"
                             android:background="@drawable/ic_back"
                             android:backgroundTint="@color/a1_600"

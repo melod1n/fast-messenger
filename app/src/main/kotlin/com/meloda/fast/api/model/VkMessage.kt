@@ -27,9 +27,9 @@ data class VkMessage(
     @Ignore
     var attachments: List<VkAttachment>? = null
 
-    fun isUser() = id > 0
+    fun isUser() = fromId > 0
 
-    fun isGroup() = id < 0
+    fun isGroup() = fromId < 0
 
     fun getPreparedAction(): Action? {
         if (action == null) return null

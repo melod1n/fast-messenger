@@ -61,22 +61,18 @@ class ConversationsAdapter constructor(
 
             val chatUser: VkUser? = if (conversation.isUser()) {
                 profiles[conversation.id]
-//                profiles.find { it.id == conversation.id }
             } else null
 
             val messageUser: VkUser? = if (message.isUser()) {
                 profiles[message.fromId]
-//                profiles.find { it.id == message.fromId }
             } else null
 
             val chatGroup: VkGroup? = if (conversation.isGroup()) {
                 groups[conversation.id]
-//                groups.find { it.id == conversation.id }
             } else null
 
             val messageGroup: VkGroup? = if (message.isGroup()) {
                 groups[message.fromId]
-//                groups.find { it.id == message.fromId }
             } else null
 
             val avatar = when {
@@ -142,13 +138,14 @@ class ConversationsAdapter constructor(
             var prefix = when {
                 actionMessage != null -> ""
                 message.isOut -> "$youPrefix: "
-                messageUser != null && messageUser.firstName.isNotBlank() -> "${messageUser.firstName}: "
-                messageGroup != null && messageGroup.toString()
-                    .isNotBlank() -> "${messageGroup.name}: "
-                else -> ""
+                else -> {
+                    if (message.isUser() && messageUser != null && messageUser.firstName.isNotBlank()) "${messageUser.firstName}: "
+                    else if (message.isGroup() && messageGroup != null && messageGroup.name.isNotBlank()) "${messageGroup.name}: "
+                    else ""
+                }
             }
 
-            if (!conversation.isChat() && !message.isOut || conversation.id == UserConfig.userId)
+            if ((!conversation.isChat() && !message.isOut) || conversation.id == UserConfig.userId)
                 prefix = ""
 
 //            if (conversation.isChat() || message.isOut) {
