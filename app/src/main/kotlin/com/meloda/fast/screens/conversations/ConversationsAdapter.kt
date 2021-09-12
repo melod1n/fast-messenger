@@ -1,15 +1,19 @@
 package com.meloda.fast.screens.conversations
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.view.setPadding
 import androidx.recyclerview.widget.DiffUtil
 import coil.load
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -76,6 +80,7 @@ class ConversationsAdapter constructor(
             } else null
 
             val avatar = when {
+                conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
                 conversation.isUser() && chatUser != null && !chatUser.photo200.isNullOrBlank() -> chatUser.photo200
                 conversation.isGroup() && chatGroup != null && !chatGroup.photo200.isNullOrBlank() -> chatGroup.photo200
                 conversation.isChat() && !conversation.photo200.isNullOrBlank() -> conversation.photo200
@@ -86,12 +91,35 @@ class ConversationsAdapter constructor(
             binding.avatarPlaceholder.isVisible = avatar == null
 
             if (avatar == null) {
-                binding.avatar.setImageDrawable(null)
+                if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
+                    binding.placeholderBack.setImageDrawable(
+                        ColorDrawable(
+                            ContextCompat.getColor(context, R.color.a1_400)
+                        )
+                    )
+                    binding.placeholder.imageTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.a1_0))
+                    binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
+                    binding.placeholder.setPadding(18)
+                } else {
+                    binding.placeholderBack.setImageDrawable(
+                        ColorDrawable(
+                            ContextCompat.getColor(context, R.color.n1_50)
+                        )
+                    )
+                    binding.placeholder.imageTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.n2_500))
+                    binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
+                    binding.placeholder.setPadding(0)
+                    binding.avatar.setImageDrawable(null)
+                }
             } else {
                 binding.avatar.load(avatar) { crossfade(200) }
             }
 
             binding.online.isVisible = chatUser?.online == true
+
+            binding.pin.isVisible = conversation.isPinned
 
             val actionMessage = VkUtils.getActionConversationText(
                 message = message,
@@ -157,10 +185,8 @@ class ConversationsAdapter constructor(
                 prefix.length + coloredMessage.length,
                 0
             )
+
             binding.message.text = spanMessage
-//            } else {
-//                binding.message.text = messageText
-//            }
 
             binding.title.text =
                 getItem(position).title ?: chatUser?.toString() ?: chatGroup?.name ?: "..."

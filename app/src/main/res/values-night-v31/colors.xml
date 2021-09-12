@@ -2,15 +2,12 @@
 <resources>
 
     <color name="a1_0">@android:color/system_accent1_0</color>
-    <color name="a1_200">@android:color/system_accent1_200</color>
     <color name="a1_400">@android:color/system_accent1_400</color>
     <color name="a1_500">@android:color/system_accent1_500</color>
     <color name="a1_600">@android:color/system_accent1_600</color>
 
-    <color name="a2_100">@android:color/system_accent2_100</color>
     <color name="a2_200">@android:color/system_accent2_200</color>
     <color name="a2_700">@android:color/system_accent2_700</color>
-    <color name="a1_1000">@android:color/system_accent2_1000</color>
 
     <color name="a3_200">@android:color/system_accent3_200</color>
     <color name="a3_700">@android:color/system_accent3_700</color>

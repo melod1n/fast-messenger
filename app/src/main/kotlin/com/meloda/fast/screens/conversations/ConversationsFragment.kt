@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import coil.load
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -19,6 +20,7 @@ import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class ConversationsFragment :
@@ -57,6 +59,19 @@ class ConversationsFragment :
         UserConfig.vkUser.observe(viewLifecycleOwner) {
             it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
         }
+
+        binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+            if (verticalOffset <= -100) {
+                binding.avatarContainer.alpha = 0f
+                return@OnOffsetChangedListener
+            }
+
+            val alpha = 1 - abs(verticalOffset * 0.01).toFloat()
+
+//            println("offset: $verticalOffset; alpha: $alpha")
+
+            binding.avatarContainer.alpha = alpha
+        })
     }
 
     override fun onEvent(event: VKEvent) {

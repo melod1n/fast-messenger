@@ -11,6 +11,7 @@ import kotlinx.parcelize.Parcelize
 data class VkConversation(
     @PrimaryKey(autoGenerate = false)
     val id: Int,
+    val ownerId: Int?,
     val title: String?,
     val photo200: String?,
     val type: String,
@@ -22,7 +23,8 @@ data class VkConversation(
     val isMarkedUnread: Boolean,
     val lastMessageId: Int,
     val unreadCount: Int?,
-    val membersCount: Int?
+    val membersCount: Int?,
+    val isPinned: Boolean
 ) : Parcelable {
     @Ignore
     var lastMessage: VkMessage? = null

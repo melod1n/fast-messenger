@@ -1,13 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <color name="colorBackground">@color/n1_50</color>
+
+    <color name="colorPrimary">@color/colorBackground</color>
+    <color name="colorPrimaryVariant">@color/colorBackground</color>
+    <color name="colorOnPrimary">@color/n1_900</color>
+
+    <color name="colorSecondary">@color/a2_200</color>
+    <color name="colorSecondaryVariant">@color/a2_700</color>
+    <color name="colorOnSecondary">@color/a2_700</color>
+
+    <color name="colorSecondary2">@color/a3_200</color>
+    <color name="colorSecondary2Variant">@color/a3_100</color>
+    <color name="colorOnSecondary2">@color/a3_700</color>
+
+    <color name="colorSecondary3">@color/a1_600</color>
+    <color name="colorSecondary3Variant">@color/a1_500</color>
+    <color name="colorOnSecondary3">@color/a1_0</color>
+
+    <color name="textColorPrimary">@color/n1_900</color>
+    <color name="textColorSecondary">@color/n1_900</color>
+    <color name="textColorSecondaryVariant">@color/n2_500</color>
+
+    <color name="colorSurface">@color/a1_0</color>
+
     <color name="a1_0">#FFFFFF</color>
+    <color name="a1_200">#B1C6FA</color>
+    <color name="a1_400">#4184F5</color>
     <color name="a1_500">#3771DF</color>
     <color name="a1_600">#2559BC</color>
+    <color name="a1_1000">#000000</color>
 
+    <color name="a2_100">#DCE1F7</color>
     <color name="a2_200">#C0C6DA</color>
     <color name="a2_700">#414757</color>
 
+    <color name="a3_100">#F8D6FC</color>
     <color name="a3_200">#DEBAE5</color>
     <color name="a3_700">#583C61</color>
 

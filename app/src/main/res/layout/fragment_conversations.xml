@@ -8,6 +8,7 @@
         android:layout_height="match_parent">
 
         <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:elevation="0dp">
@@ -25,9 +26,9 @@
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="?actionBarSize"
-                    android:background="@color/n1_50"
+                    android:background="?android:windowBackground"
                     android:elevation="0dp"
-                    app:layout_collapseMode="pin"
+                    app:layout_collapseMode="parallax"
                     app:menu="@menu/fragment_conversations" />
 
                 <androidx.appcompat.widget.AppCompatImageView
@@ -37,11 +38,13 @@
                     android:elevation="0dp" />
 
                 <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/avatarContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
                     android:layout_margin="30dp"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    app:layout_collapseParallaxMultiplier="0.5">
 
                     <androidx.appcompat.widget.AppCompatImageButton
                         android:layout_width="30dp"
@@ -49,7 +52,7 @@
                         android:layout_marginEnd="16dp"
                         android:background="?selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_search"
-                        android:tint="@color/a1_500" />
+                        android:tint="?colorSecondary3Variant" />
 
                     <com.meloda.fast.widget.CircleImageView
                         android:id="@+id/avatar"
@@ -96,13 +99,11 @@
             android:layout_gravity="end|bottom"
             android:layout_margin="16dp"
             android:src="@drawable/ic_baseline_create_24"
-            app:backgroundTint="@color/a2_200"
             app:elevation="3dp"
             app:fabSize="normal"
             app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
             app:pressedTranslationZ="1dp"
             app:shapeAppearanceOverlay="@style/RoundedView.56"
-            app:tint="@color/a2_700"
             tools:ignore="ContentDescription" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

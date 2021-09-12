@@ -51,7 +51,9 @@ data class BaseVkConversation(
         isMarkedUnread = isMarkedUnread,
         lastMessageId = lastMessageId,
         unreadCount = unreadCount,
-        membersCount = chatSettings?.membersCount
+        membersCount = chatSettings?.membersCount,
+        ownerId = chatSettings?.ownerId,
+        isPinned = sortId.majorId > 0
     ).apply { this.lastMessage = lastMessage }
 
     @Parcelize

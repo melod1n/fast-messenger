@@ -38,11 +38,13 @@
                     android:visibility="gone">
 
                     <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/placeholderBack"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@color/n1_50" />
 
                     <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/placeholder"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@drawable/ic_account_circle_cut"
@@ -69,7 +71,34 @@
                         android:layout_height="14dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_online_pc"
-                        app:tint="@color/a3_200" />
+                        app:tint="?colorSecondary2" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/pin"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="start|top"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_back"
+                        android:backgroundTint="@color/n2_500"
+                        android:elevation="0.5dp" />
+
+                    <com.meloda.fast.widget.CircleImageView
+                        android:id="@+id/pinIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:elevation="1dp"
+                        android:src="@drawable/ic_round_push_pin_24"
+                        app:tint="@color/n2_0" />
 
                 </FrameLayout>
 
@@ -137,7 +166,7 @@
                             android:layout_weight="1"
                             android:fontFamily="@font/google_sans_regular"
                             android:maxLines="2"
-                            android:textColor="@color/n1_900"
+                            android:textColor="?textColorPrimary"
                             android:textSize="22sp"
                             tools:text="Title" />
 
@@ -150,10 +179,10 @@
                             android:layout_marginEnd="4dp"
                             android:layout_weight="0"
                             android:background="@drawable/ic_back"
-                            android:backgroundTint="@color/a1_600"
+                            android:backgroundTint="?colorSecondary3"
                             android:gravity="center"
                             android:minWidth="18dp"
-                            android:textColor="@color/a1_0"
+                            android:textColor="?colorOnSecondary3"
                             android:textSize="10sp"
                             android:visibility="gone"
                             tools:text="12"
@@ -171,7 +200,7 @@
                         android:alpha="0.5"
                         android:fontFamily="@font/roboto_regular"
                         android:gravity="end|center_vertical"
-                        android:textColor="@color/n2_500"
+                        android:textColor="?textColorSecondaryVariant"
                         tools:text="20:00" />
 
                 </RelativeLayout>
@@ -198,7 +227,7 @@
                         android:layout_marginEnd="4dp"
                         android:src="@drawable/ic_baseline_attach_file_24"
                         android:visibility="gone"
-                        app:tint="@color/n2_500"
+                        app:tint="?textColorSecondaryVariant"
                         tools:visibility="visible" />
 
                     <com.google.android.material.textview.MaterialTextView
@@ -208,7 +237,7 @@
                         android:alpha="0.7"
                         android:fontFamily="@font/roboto_regular"
                         android:maxLines="2"
-                        android:textColor="@color/n1_900"
+                        android:textColor="?textColorPrimary"
                         android:textSize="16sp"
                         tools:text="Message" />
                 </androidx.appcompat.widget.LinearLayoutCompat>

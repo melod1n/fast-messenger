@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <attr name="textColorPrimary" format="color"/>
+    <attr name="textColorSecondary" format="color"/>
+    <attr name="textColorSecondaryVariant" format="color"/>
+
+    <attr name="colorSecondary2" format="color" />
+    <attr name="colorSecondary2Variant" format="color" />
+    <attr name="colorOnSecondary2" format="color" />
+
+    <attr name="colorSecondary3" format="color" />
+    <attr name="colorSecondary3Variant" format="color" />
+    <attr name="colorOnSecondary3" format="color" />
+
     <attr name="fullScreenDialogTheme" format="reference" />
 
     <declare-styleable name="CircleImageView">
