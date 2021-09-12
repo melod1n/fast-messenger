@@ -1,61 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="statusBar">#ffffff</color>
-    <color name="navigationBar">#ffffff</color>
-    <color name="background">#ffffff</color>
-    <color name="accent">#4284F4</color>
-    <color name="action">#4E8CF6</color>
-    <color name="actionRipple">#95BBFB</color>
-    <color name="actionContentPrimary">#ffffff</color>
+    <color name="colorBackground">@color/n1_50</color>
 
-    <color name="primary">@color/accent</color>
+    <color name="colorPrimary">@color/colorBackground</color>
+    <color name="colorPrimaryVariant">@color/colorBackground</color>
+    <color name="colorOnPrimary">@color/n1_900</color>
 
-    <color name="divider">#E0E0E0</color>
+    <color name="colorSecondary">@color/a2_200</color>
+    <color name="colorSecondaryVariant">@color/a2_700</color>
+    <color name="colorOnSecondary">@color/a2_700</color>
 
-    <color name="textSecondary">#99000000</color>
+    <color name="colorSecondary2">@color/a3_200</color>
+    <color name="colorSecondary2Variant">@color/a3_100</color>
+    <color name="colorOnSecondary2">@color/a3_700</color>
 
+    <color name="colorSecondary3">@color/a1_600</color>
+    <color name="colorSecondary3Variant">@color/a1_500</color>
+    <color name="colorOnSecondary3">@color/a1_0</color>
 
-    <color name="text_secondary_100_alpha">#ff000000</color>
-    <color name="text_secondary_87_alpha">#DE000000</color>
-    <color name="text_secondary_60_alpha">#99000000</color>
+    <color name="textColorPrimary">@color/n1_900</color>
+    <color name="textColorSecondary">@color/n1_900</color>
+    <color name="textColorSecondaryVariant">@color/n2_500</color>
 
-    <color name="text_secondary_light_100_alpha">#ffffff</color>
-    <color name="text_secondary_light_87_alpha">#DEFFFFFF</color>
-    <color name="text_secondary_light_60_alpha">#99FFFFFF</color>
+    <color name="colorSurface">@color/a1_0</color>
 
-    <color name="text_secondary_60">#666666</color>
+    <color name="a1_0">#FFFFFF</color>
+    <color name="a1_200">#B1C6FA</color>
+    <color name="a1_400">#4184F5</color>
+    <color name="a1_500">#3771DF</color>
+    <color name="a1_600">#2559BC</color>
+    <color name="a1_1000">#000000</color>
 
-    <color name="fast_logo_border_color">#F5F5F5</color>
+    <color name="a2_100">#DCE1F7</color>
+    <color name="a2_200">#C0C6DA</color>
+    <color name="a2_700">#414757</color>
 
-    <color name="login_secondary_color">#5c5c5c</color>
-    <color name="edittext_filled_background">#e8e8e8</color>
-    <color name="login_button_text_color">#ffffff</color>
+    <color name="a3_100">#F8D6FC</color>
+    <color name="a3_200">#DEBAE5</color>
+    <color name="a3_700">#583C61</color>
 
-    <color name="conversationTitle">@color/accent</color>
+    <color name="n1_10">#FBF9FC</color>
+    <color name="n1_50">#F1F1F1</color>
+    <color name="n1_100">#E2E1E5</color>
+    <color name="n1_800">#303033</color>
+    <color name="n1_900">#1B1B1D</color>
 
-    <color name="message_in">#ffffff</color>
-    <color name="message_out">#000000</color>
+    <color name="n2_0">#FFFFFF</color>
+    <color name="n2_10">#FDFBFE</color>
+    <color name="n2_100">#E0E2EB</color>
+    <color name="n2_500">#74767D</color>
 
-
-    <!-- Dark Theme Colors -->
-
-    <color name="dark_statusBar">#000000</color>
-    <color name="dark_navigationBar">#000000</color>
-    <color name="dark_background">#000000</color>
-    <color name="dark_accent">#63ACFF</color>
-    <color name="dark_action">#56A5FF</color>
-    <color name="dark_actionRipple">#2E90FF</color>
-    <color name="dark_actionContentPrimary">#000000</color>
-
-    <color name="dark_primary">#000000</color>
-
-    <color name="dark_divider">#292929</color>
-
-    <color name="dark_textSecondary">#99FFFFFF</color>
-
-    <color name="dark_edittext_filled_background">#272727</color>
-
-    <color name="dark_message_in">#000000</color>
-    <color name="dark_message_out">#ffffff</color>
 </resources>

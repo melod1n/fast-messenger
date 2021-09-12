@@ -26,7 +26,6 @@ import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
-import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -51,8 +50,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        (parentFragment?.parentFragment as? MainFragment)?.bottomBar?.isVisible = false
 
         prepareViews()
 

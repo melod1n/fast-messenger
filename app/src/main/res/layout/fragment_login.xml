@@ -26,8 +26,7 @@
                     android:id="@+id/logoContainer"
                     android:layout_width="140dp"
                     android:layout_height="140dp"
-                    android:layout_gravity="center_horizontal"
-                    android:background="@drawable/ic_logo_fast_border">
+                    android:layout_gravity="center_horizontal">
 
                     <com.meloda.fast.widget.CircleImageView
                         android:id="@+id/logoImage"
@@ -56,7 +55,6 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/loginImage"
-                        style="@style/AppTheme.Login.EditText.Icon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
@@ -65,7 +63,6 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/loginLayout"
-                        style="@style/Widget.TextInputLayout.NoError.Dense"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:boxStrokeErrorColor="@android:color/transparent">
@@ -91,7 +88,6 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/passwordImage"
-                        style="@style/AppTheme.Login.EditText.Icon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
@@ -100,7 +96,6 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/passwordLayout"
-                        style="@style/Widget.TextInputLayout.NoError.Dense"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:boxStrokeErrorColor="@android:color/transparent"
@@ -122,25 +117,21 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/auth"
-                    style="@style/Widget.MaterialButton"
                     android:layout_width="wrap_content"
                     android:layout_height="60dp"
                     android:layout_gravity="center_horizontal|bottom"
                     android:layout_marginTop="12dp"
+                    android:backgroundTint="@color/a1_600"
                     android:fontFamily="@font/google_sans_medium"
                     android:letterSpacing="0"
                     android:paddingStart="24dp"
                     android:paddingEnd="16dp"
                     android:text="@string/log_in"
-                    android:textColor="?colorActionContentPrimary"
                     android:textSize="14sp"
-                    app:backgroundTint="?colorAction"
                     app:cornerRadius="50dp"
                     app:elevation="16dp"
                     app:icon="@drawable/ic_arrow_end"
-                    app:iconGravity="end"
-                    app:iconTint="?colorActionContentPrimary"
-                    app:rippleColor="?colorActionRipple" />
+                    app:iconGravity="end" />
 
             </LinearLayout>
 

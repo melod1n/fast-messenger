@@ -6,12 +6,21 @@ object VKUrls {
     const val API = "https://api.vk.com/method"
 
     object Auth {
-        const val directAuth = "$OAUTH/token"
-        const val sendSms = "$API/auth.validatePhone"
+        const val DirectAuth = "$OAUTH/token"
+        const val SendSms = "$API/auth.validatePhone"
     }
 
     object Conversations {
-        const val get = "$API/messages.getConversations"
+        const val Get = "$API/messages.getConversations"
+    }
+
+    object Users {
+        const val GetById = "$API/users.get"
+    }
+
+    object Messages {
+        const val GetHistory = "$API/messages.getHistory"
+        const val Send = "$API/messages.send"
     }
 
 

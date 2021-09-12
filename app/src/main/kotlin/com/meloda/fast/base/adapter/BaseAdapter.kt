@@ -8,15 +8,15 @@ import android.widget.AdapterView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 
-@Suppress("UNCHECKED_CAST", "unused", "MemberVisibilityCanBePrivate", "CanBeParameter")
-abstract class BaseAdapter<Item : BaseItem, VH : BaseHolder>(
+@Suppress("MemberVisibilityCanBePrivate", "unused")
+abstract class BaseAdapter<Item, VH : BaseHolder>(
     var context: Context,
-    values: ArrayList<Item>,
+    values: MutableList<Item>,
     diffUtil: DiffUtil.ItemCallback<Item>
 ) : ListAdapter<Item, VH>(diffUtil) {
 
-    val cleanValues = arrayListOf<Item>()
-    val values = arrayListOf<Item>()
+    val cleanValues = mutableListOf<Item>()
+    val values = mutableListOf<Item>()
 
     init {
         addAll(values)
@@ -24,16 +24,22 @@ abstract class BaseAdapter<Item : BaseItem, VH : BaseHolder>(
 
     protected var inflater: LayoutInflater = LayoutInflater.from(context)
 
-    var itemClickListener: OnItemClickListener? = null
-    var itemLongClickListener: OnItemLongClickListener? = null
+    var itemClickListener: ((position: Int) -> Unit) = {}
+    var itemLongClickListener: ((position: Int) -> Boolean) = { false }
 
-    open fun destroy() {
-        itemClickListener = null
-        itemLongClickListener = null
-    }
+    open fun destroy() {}
 
     override fun getItem(position: Int): Item {
         return values[position]
+    }
+
+    fun getOrNull(position: Int): Item? {
+        return if (position >= 0 && position <= values.lastIndex) get(position) else null
+    }
+
+    fun getOrElse(position: Int, defaultValue: (Int) -> Item): Item {
+        return if (position >= 0 && position <= values.lastIndex) get(position)
+        else defaultValue(position)
     }
 
     fun add(position: Int, item: Item) {
@@ -94,39 +100,32 @@ abstract class BaseAdapter<Item : BaseItem, VH : BaseHolder>(
         return inflater.inflate(resId, viewGroup, attachToRoot)
     }
 
-    fun updateValues(arrayList: ArrayList<Item>) {
+    fun updateValues(list: MutableList<Item>) {
         values.clear()
-        values += arrayList
+        values += list
     }
-
-    fun updateValues(list: List<Item>) = updateValues(ArrayList(list))
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         onBindItemViewHolder(holder, position)
     }
 
+    private fun onBindItemViewHolder(holder: VH, position: Int) {
+        initListeners(holder.itemView, position)
+        holder.bind(position)
+    }
+
     protected fun initListeners(itemView: View, position: Int) {
         if (itemView is AdapterView<*>) return
 
-        itemView.setOnClickListener {
-            itemClickListener?.onItemClick(position)
-        }
-
-        itemView.setOnLongClickListener {
-            itemLongClickListener?.onItemLongClick(position)
-            return@setOnLongClickListener itemClickListener == null
-        }
+        itemView.setOnClickListener { itemClickListener.invoke(position) }
+        itemView.setOnLongClickListener { itemLongClickListener.invoke(position) }
     }
 
     override fun getItemCount(): Int {
         return values.size
     }
 
-    val size get() = itemCount
-
-    private fun onBindItemViewHolder(holder: VH, position: Int) {
-        initListeners(holder.itemView, position)
-        holder.bind(position)
-    }
+    val lastPosition
+        get() = itemCount - 1
 
 }

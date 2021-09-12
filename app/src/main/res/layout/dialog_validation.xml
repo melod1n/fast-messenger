@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +17,6 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/codeImage"
-                style="@style/AppTheme.Login.EditText.Icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -27,7 +25,6 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/codeLayout"
-                style="@style/Widget.TextInputLayout.NoError.Dense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -59,10 +56,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_weight="1"
+                android:backgroundTint="@color/n1_900"
                 android:text="@android:string/cancel"
-                android:textColor="?colorAction"
-                app:elevation="0dp"
-                app:rippleColor="?colorActionRipple" />
+                app:elevation="0dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/ok"
@@ -70,11 +66,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="?colorAction"
+                android:backgroundTint="@color/a3_200"
                 android:text="@android:string/ok"
-                android:textColor="?colorActionContentPrimary"
-                app:elevation="0dp"
-                app:rippleColor="?colorActionRipple" />
+                app:elevation="0dp" />
 
 
         </LinearLayout>

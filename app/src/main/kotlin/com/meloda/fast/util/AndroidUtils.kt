@@ -71,8 +71,6 @@ object AndroidUtils {
         }
 
         return color
-
-
     }
 
 }

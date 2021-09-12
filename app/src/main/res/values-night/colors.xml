@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="colorBackground">@color/n1_900</color>
+
+    <color name="colorPrimary">@color/colorBackground</color>
+    <color name="colorPrimaryVariant">@color/colorBackground</color>
+    <color name="colorOnPrimary">@color/n1_900</color>
+
+    <color name="colorSecondary">@color/a2_100</color>
+    <color name="colorSecondaryVariant">@color/a2_700</color>
+    <color name="colorOnSecondary">@color/a2_700</color>
+
+    <color name="textColorPrimary">@color/n1_100</color>
+    <color name="textColorSecondary">@color/n1_100</color>
+
+    <color name="colorSurface">@color/a1_0</color>
+
+</resources>

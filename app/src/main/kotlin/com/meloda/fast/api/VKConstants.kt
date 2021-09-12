@@ -12,6 +12,7 @@ object VKConstants {
     const val VK_APP_ID = "2274003"
     const val VK_SECRET = "hHbZxrka2uZ6jB1inYsH"
 
+    const val FAST_GROUP_ID = -119516304
 
     object Auth {
         const val SCOPE = "notify," +

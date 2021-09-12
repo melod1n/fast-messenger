@@ -29,8 +29,6 @@ class MainFragment : BaseViewModelFragment<MainViewModel>(R.layout.fragment_main
     private fun setupBottomBar() {
         val navGraphIds = listOf(
             R.navigation.messages,
-            R.navigation.friends,
-            R.navigation.important,
             R.navigation.login
         )
 
@@ -44,8 +42,6 @@ class MainFragment : BaseViewModelFragment<MainViewModel>(R.layout.fragment_main
             )
         }
     }
-
-    val bottomBar get() = binding.bottomBar
 
 
 }
