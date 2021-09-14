@@ -9,7 +9,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
@@ -27,34 +26,38 @@ class ConversationsFragment :
     BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
     companion object {
-        val TAG: String = ConversationsFragment::class.java.name
+        const val TAG = "ConversationsFragment"
     }
 
     override val viewModel: ConversationsViewModel by viewModels()
     private val binding: FragmentConversationsBinding by viewBinding()
 
-    private lateinit var adapter: ConversationsAdapter
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        viewModel.loadProfileUser()
-
-        prepareViews()
-
-        adapter = ConversationsAdapter(requireContext(), mutableListOf()).also {
+    private val adapter: ConversationsAdapter by lazy {
+        ConversationsAdapter(
+            requireContext(),
+            mutableListOf(),
+            hashMapOf(),
+            hashMapOf()
+        ).also {
             it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
         }
+    }
+
+    private var isPaused = false
+
+    override fun onPause() {
+        super.onPause()
+        isPaused = true
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        prepareViews()
+
         binding.recyclerView.adapter = adapter
 
-        viewModel.loadConversations()
-
-        binding.createChat.setOnClickListener {
-            Snackbar.make(it, "Test Snackbar with action", Snackbar.LENGTH_LONG)
-                .setAction("Action") {}.show()
-
-        }
+        binding.createChat.setOnClickListener {}
 
         UserConfig.vkUser.observe(viewLifecycleOwner) {
             it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
@@ -68,10 +71,16 @@ class ConversationsFragment :
 
             val alpha = 1 - abs(verticalOffset * 0.01).toFloat()
 
-//            println("offset: $verticalOffset; alpha: $alpha")
-
             binding.avatarContainer.alpha = alpha
         })
+
+        if (isPaused) {
+            isPaused = false
+            return
+        }
+
+        viewModel.loadProfileUser()
+        viewModel.loadConversations()
     }
 
     override fun onEvent(event: VKEvent) {

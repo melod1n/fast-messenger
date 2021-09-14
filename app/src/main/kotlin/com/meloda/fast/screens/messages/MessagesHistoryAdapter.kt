@@ -3,19 +3,22 @@ package com.meloda.fast.screens.messages
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import coil.load
+import com.meloda.fast.R
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.databinding.ItemMessageInBinding
-import com.meloda.fast.databinding.ItemMessageOutBinding
-import com.meloda.fast.databinding.ItemMessageServiceBinding
+import com.meloda.fast.databinding.*
 import com.meloda.fast.util.AndroidUtils
 import kotlin.math.roundToInt
 
@@ -37,6 +40,15 @@ class MessagesHistoryAdapter constructor(
         if (viewType == -1) {
             getItem(position).let {
                 if (it.action != null) viewType = SERVICE
+
+                val attachments = it.attachments ?: return@let
+                if (attachments.isEmpty()) return@let
+                if (VkUtils.isAttachmentsHaveOneType(attachments) &&
+                    attachments[0] is VkPhoto
+                ) {
+                    return if (it.isOut) ATTACHMENT_PHOTOS_OUT else ATTACHMENT_PHOTOS_IN
+                }
+
                 if (it.isOut) viewType = OUTGOING
                 if (!it.isOut) viewType = INCOMING
             }
@@ -52,9 +64,21 @@ class MessagesHistoryAdapter constructor(
         return when (viewType) {
             HEADER -> Header(createEmptyView(60))
             FOOTER -> Footer(createEmptyView(36))
-            SERVICE -> ServiceMessage(ItemMessageServiceBinding.inflate(inflater, parent, false))
-            OUTGOING -> OutgoingMessage(ItemMessageOutBinding.inflate(inflater, parent, false))
-            INCOMING -> IncomingMessage(ItemMessageInBinding.inflate(inflater, parent, false))
+            SERVICE -> ServiceMessage(
+                ItemMessageServiceBinding.inflate(inflater, parent, false)
+            )
+            ATTACHMENT_PHOTOS_IN -> AttachmentPhotosIncoming(
+                ItemMessageAttachmentPhotoInBinding.inflate(inflater, parent, false)
+            )
+            ATTACHMENT_PHOTOS_OUT -> AttachmentPhotosOutgoing(
+                ItemMessageAttachmentPhotoOutBinding.inflate(inflater, parent, false)
+            )
+            OUTGOING -> OutgoingMessage(
+                ItemMessageOutBinding.inflate(inflater, parent, false)
+            )
+            INCOMING -> IncomingMessage(
+                ItemMessageInBinding.inflate(inflater, parent, false)
+            )
             else -> Holder()
         }
     }
@@ -83,12 +107,87 @@ class MessagesHistoryAdapter constructor(
 
     inner class Footer(v: View) : Holder(v)
 
+    inner class AttachmentPhotosIncoming(
+        private val binding: ItemMessageAttachmentPhotoInBinding
+    ) : Holder(binding.root) {
+
+        init {
+            binding.photo.shapeAppearanceModel = binding.photo.shapeAppearanceModel.withCornerSize {
+                AndroidUtils.px(12)
+            }
+        }
+
+        override fun bind(position: Int) {
+            val message = getItem(position)
+
+            val photo = message.attachments?.get(0) as? VkPhoto ?: return
+
+            val size = photo.sizeOfType('m') ?: return
+
+            binding.photo.layoutParams = FrameLayout.LayoutParams(
+                AndroidUtils.px(size.width).roundToInt(),
+                AndroidUtils.px(size.height).roundToInt()
+            )
+
+            binding.photo.load(size.url)
+        }
+
+    }
+
+    inner class AttachmentPhotosOutgoing(
+        private val binding: ItemMessageAttachmentPhotoOutBinding
+    ) : Holder(binding.root) {
+
+        init {
+            binding.photo.shapeAppearanceModel = binding.photo.shapeAppearanceModel.withCornerSize {
+                AndroidUtils.px(12)
+            }
+        }
+
+        override fun bind(position: Int) {
+            val message = getItem(position)
+
+            val photo = message.attachments?.get(0) as? VkPhoto ?: return
+
+            val size = photo.sizeOfType('m') ?: return
+
+            binding.photo.layoutParams = LinearLayoutCompat.LayoutParams(
+                AndroidUtils.px(size.width).roundToInt(),
+                AndroidUtils.px(size.height).roundToInt()
+            )
+
+            binding.photo.load(size.url)
+        }
+
+    }
+
     inner class ServiceMessage(
         private val binding: ItemMessageServiceBinding
     ) : Holder(binding.root) {
 
-        override fun bind(position: Int) {
+        private val youPrefix = context.getString(R.string.you_message_prefix)
 
+        override fun bind(position: Int) {
+            val message = getItem(position)
+
+            val messageUser =
+                if (message.isUser()) profiles[message.fromId]
+                else null
+
+            val messageGroup =
+                if (message.isGroup()) groups[message.fromId]
+                else null
+
+            message.action ?: return
+
+            binding.message.text = VkUtils.getActionMessageText(
+                message = message,
+                youPrefix = youPrefix,
+                profiles = profiles,
+                groups = groups,
+                messageUser = messageUser,
+                messageGroup = messageGroup
+            )
         }
     }
 
@@ -176,11 +275,14 @@ class MessagesHistoryAdapter constructor(
     }
 
     companion object {
-        private const val INCOMING = 1001
-        private const val OUTGOING = 1002
-        private const val SERVICE = 1003
+        private const val SERVICE = 1
         private const val HEADER = 0
         private const val FOOTER = 2
+        private const val INCOMING = 3
+        private const val OUTGOING = 4
+
+        private const val ATTACHMENT_PHOTOS_IN = 101
+        private const val ATTACHMENT_PHOTOS_OUT = 1011
 
         private val COMPARATOR = object : DiffUtil.ItemCallback<VkMessage>() {
             override fun areItemsTheSame(

@@ -24,7 +24,8 @@ data class VkMessage(
     val actionText: String? = null,
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
-    val geoType: String? = null
+    val geoType: String? = null,
+    val important: Boolean = false
 ) : Parcelable {
 
     @IgnoredOnParcel
@@ -61,7 +62,8 @@ data class VkMessage(
         actionText = actionText,
         actionConversationMessageId = actionConversationMessageId,
         actionMessage = actionMessage,
-        geoType = geoType
+        geoType = geoType,
+        important = important
     )
 
     enum class Action(val value: String) {
@@ -78,7 +80,8 @@ data class VkMessage(
 
         // TODO: 9/11/2021 catch this shit
         CHAT_INVITE_USER_BY_CALL("chat_invite_user_by_call"),
-        CHAT_INVITE_USER_BY_CALL_LINK("chat_invite_user_by_call_join_link");
+        CHAT_INVITE_USER_BY_CALL_LINK("chat_invite_user_by_call_join_link"),
+        CHAT_STYLE_UPDATE("conversation_style_update");
 
         companion object {
             fun parse(value: String) = values().first { it.value == value }

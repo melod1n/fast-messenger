@@ -3,13 +3,13 @@ package com.meloda.fast.screens.conversations
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.datasource.ConversationsDataSource
-import com.meloda.fast.api.datasource.UsersDataSource
+import com.meloda.fast.api.network.datasource.ConversationsDataSource
+import com.meloda.fast.api.network.datasource.UsersDataSource
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.request.ConversationsGetRequest
-import com.meloda.fast.api.network.request.UsersGetRequest
+import com.meloda.fast.api.model.request.ConversationsGetRequest
+import com.meloda.fast.api.model.request.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent

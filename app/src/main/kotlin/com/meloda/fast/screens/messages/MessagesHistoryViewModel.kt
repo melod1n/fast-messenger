@@ -1,13 +1,14 @@
 package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.datasource.MessagesDataSource
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.request.MessagesGetHistoryRequest
-import com.meloda.fast.api.network.request.MessagesSendRequest
+import com.meloda.fast.api.model.request.MessagesGetHistoryRequest
+import com.meloda.fast.api.model.request.MessagesMarkAsImportantRequest
+import com.meloda.fast.api.model.request.MessagesSendRequest
+import com.meloda.fast.api.network.datasource.MessagesDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
@@ -109,6 +110,33 @@ class MessagesHistoryViewModel @Inject constructor(
             })
     }
 
+    fun markAsImportant(
+        messagesIds: List<Int>,
+        important: Boolean
+    ) = viewModelScope.launch {
+        makeJob({
+            dataSource.markAsImportant(
+                MessagesMarkAsImportantRequest(
+                    messagesIds = messagesIds,
+                    important = important
+                )
+            )
+        },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+                sendEvent(
+                    MessagesMarkAsImportant(
+                        messagesIds = response,
+                        important = important
+                    )
+                )
+            },
+            onError = {
+                val throwable = it
+                val i = 0
+            })
+    }
+
 }
 
 data class MessagesLoaded(
@@ -117,4 +145,9 @@ data class MessagesLoaded(
     val messages: List<VkMessage>,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>
+) : VKEvent()
+
+data class MessagesMarkAsImportant(
+    val messagesIds: List<Int>,
+    val important: Boolean
 ) : VKEvent()

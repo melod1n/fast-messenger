@@ -46,7 +46,8 @@ data class BaseVkMessage(
         actionText = action?.text,
         actionConversationMessageId = action?.conversationMessageId,
         actionMessage = action?.message,
-        geoType = geo?.type
+        geoType = geo?.type,
+        important = important
     ).also {
         it.attachments = VkUtils.parseAttachments(attachments)
         it.forwards = VkUtils.parseForwards(fwdMessages)

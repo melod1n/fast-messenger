@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
@@ -57,7 +58,10 @@ class MessagesHistoryFragment :
     }
 
     private val adapter: MessagesHistoryAdapter by lazy {
-        MessagesHistoryAdapter(requireContext(), mutableListOf(), conversation)
+        MessagesHistoryAdapter(requireContext(), mutableListOf(), conversation).also {
+            it.itemClickListener = this::onItemClick
+            it.itemLongClickListener = this::onItemLongClick
+        }
     }
 
     private var timestampTimer: Timer? = null
@@ -183,6 +187,7 @@ class MessagesHistoryFragment :
         }
     }
 
+
     private fun performAction() {
         if (action.value == Action.RECORD) {
 
@@ -203,7 +208,7 @@ class MessagesHistoryFragment :
             )
 
             adapter.add(message)
-            adapter.notifyItemRangeInserted(adapter.lastPosition - 1, 1)
+            adapter.notifyDataSetChanged()
             binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
             binding.message.clear()
 
@@ -217,6 +222,7 @@ class MessagesHistoryFragment :
 
     override fun onEvent(event: VKEvent) {
         when (event) {
+            is MessagesMarkAsImportant -> markMessagesAsImportant(event)
             is MessagesLoaded -> refreshMessages(event)
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
@@ -264,6 +270,19 @@ class MessagesHistoryFragment :
         }
     }
 
+    private fun markMessagesAsImportant(event: MessagesMarkAsImportant) {
+        var changed = false
+        for (i in adapter.values.indices) {
+            val message = adapter.values[i]
+            if (event.messagesIds.contains(message.id)) {
+                if (!changed) changed = true
+                adapter.values[i] = message.copy(important = event.important)
+            }
+        }
+
+        if (changed) adapter.notifyDataSetChanged()
+    }
+
     private fun refreshMessages(event: MessagesLoaded) {
         adapter.profiles += event.profiles
         adapter.groups += event.groups
@@ -280,6 +299,32 @@ class MessagesHistoryFragment :
 
         if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
         else binding.recyclerView.scrollToPosition(adapter.lastPosition)
+    }
+
+    private fun onItemClick(position: Int) {
+        val message = adapter.values[position]
+
+        val important = if (message.important) "Unmark as important" else "Mark as important"
+
+        val params = arrayOf(important)
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setItems(params) { _, which ->
+                if (which == 0) {
+                    viewModel.markAsImportant(
+                        messagesIds = listOf(message.id),
+                        important = !message.important
+                    )
+                }
+            }
+
+        dialog.show()
+
+    }
+
+    private fun onItemLongClick(position: Int): Boolean {
+
+        return true
     }
 
 }

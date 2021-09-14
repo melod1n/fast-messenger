@@ -1,7 +1,10 @@
 package com.meloda.fast.api
 
 import android.content.Context
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkGroup
@@ -51,9 +54,7 @@ object VkUtils {
             when (baseAttachment.getPreparedType()) {
                 BaseVkAttachmentItem.AttachmentType.PHOTO -> {
                     val photo = baseAttachment.photo ?: continue
-                    attachments += VkPhoto(
-                        link = photo.sizes[0].url
-                    )
+                    attachments += photo.asVkPhoto()
                 }
                 BaseVkAttachmentItem.AttachmentType.VIDEO -> {
                     val video = baseAttachment.video ?: continue
@@ -206,8 +207,6 @@ object VkUtils {
 
                 val actionUser = profiles?.get(memberId)
                 val actionGroup = groups?.get(memberId)
-//                val actionUser = profiles?.find { it.id == memberId }
-//                val actionGroup = groups?.find { it.id == memberId }
 
                 if (isUser && actionUser == null) return null
                 if (isGroup && actionGroup == null) return null
@@ -233,8 +232,6 @@ object VkUtils {
 
                 val actionUser = profiles?.get(memberId)
                 val actionGroup = groups?.get(memberId)
-//                val actionUser = profiles?.find { it.id == memberId }
-//                val actionGroup = groups?.find { it.id == memberId }
 
                 if (isUser && actionUser == null) return null
                 if (isGroup && actionGroup == null) return null
@@ -302,8 +299,254 @@ object VkUtils {
 
                 "$prefix took a screenshot"
             }
+            VkMessage.Action.CHAT_STYLE_UPDATE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                "$prefix changed chat theme"
+            }
             null -> null
             else -> "[${message.action}]"
+        }
+    }
+
+    fun getActionMessageText(
+        message: VkMessage,
+        youPrefix: String,
+        profiles: HashMap<Int, VkUser>? = null,
+        groups: HashMap<Int, VkGroup>? = null,
+        messageUser: VkUser? = null,
+        messageGroup: VkGroup? = null
+    ): SpannableString? {
+        return when (message.getPreparedAction()) {
+            VkMessage.Action.CHAT_CREATE -> {
+                val text = message.actionText ?: return null
+
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix created «$text»"
+
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                    it.setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        spanText.indexOf(text, startIndex = prefix.length),
+                        text.length, 0
+                    )
+                }
+            }
+            VkMessage.Action.CHAT_TITLE_UPDATE -> {
+                val text = message.actionText ?: return null
+
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix renamed chat to «$text»"
+
+                val startIndex = spanText.indexOf(text)
+
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                    it.setSpan(
+                        StyleSpan(Typeface.BOLD), startIndex, startIndex + text.length, 0
+                    )
+                }
+            }
+            VkMessage.Action.CHAT_PHOTO_UPDATE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix updated the chat photo"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_PHOTO_REMOVE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix deleted the chat photo"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_KICK_USER -> {
+                val memberId = message.actionMemberId ?: return null
+                val isUser = memberId > 0
+                val isGroup = memberId < 0
+
+                val actionUser = profiles?.get(memberId)
+                val actionGroup = groups?.get(memberId)
+
+                if (isUser && actionUser == null) return null
+                if (isGroup && actionGroup == null) return null
+
+                if (memberId == message.fromId) {
+                    val prefix = if (memberId == UserConfig.userId) youPrefix
+                    else actionUser.toString()
+                    val spanText = "$prefix left the chat"
+                    SpannableString(spanText).also {
+                        it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                    }
+                } else {
+                    val prefix =
+                        if (message.fromId == UserConfig.userId) youPrefix
+                        else messageUser?.toString() ?: messageGroup?.toString() ?: "..."
+                    val postfix =
+                        if (memberId == UserConfig.userId) youPrefix.lowercase()
+                        else actionUser.toString()
+
+                    val spanText = "$prefix kicked $postfix"
+                    val startIndex = spanText.indexOf(postfix)
+
+                    SpannableString(spanText).also {
+                        it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                        it.setSpan(
+                            StyleSpan(Typeface.BOLD), startIndex, startIndex + postfix.length, 0
+                        )
+                    }
+                }
+            }
+            VkMessage.Action.CHAT_INVITE_USER -> {
+                val memberId = message.actionMemberId ?: 0
+                val isUser = memberId > 0
+                val isGroup = memberId < 0
+
+                val actionUser = profiles?.get(memberId)
+                val actionGroup = groups?.get(memberId)
+
+                if (isUser && actionUser == null) return null
+                if (isGroup && actionGroup == null) return null
+
+                if (memberId == message.fromId) {
+                    val prefix = if (memberId == UserConfig.userId) youPrefix
+                    else actionUser.toString()
+                    val spanText = "$prefix returned the chat"
+                    SpannableString(spanText).also {
+                        it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                    }
+                } else {
+                    val prefix = if (message.fromId == UserConfig.userId) youPrefix
+                    else messageUser?.toString() ?: messageGroup?.toString() ?: "..."
+                    val postfix =
+                        if (memberId == UserConfig.userId) youPrefix.lowercase()
+                        else actionUser.toString()
+
+                    val spanText = "$prefix invited $postfix"
+                    val startIndex = spanText.indexOf(postfix)
+
+                    SpannableString(spanText).also {
+                        it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                        it.setSpan(
+                            StyleSpan(Typeface.BOLD), startIndex, startIndex + postfix.length, 0
+                        )
+                    }
+                }
+            }
+            VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix joined the chat via link"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix joined the call via link"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_PIN_MESSAGE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val actionMessage = message.actionMessage ?: return null
+
+                val spanText = "$prefix pinned message «$actionMessage»"
+                val startIndex = spanText.indexOf(actionMessage)
+
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                    it.setSpan(
+                        StyleSpan(Typeface.BOLD), startIndex, startIndex + actionMessage.length, 0
+                    )
+                }
+            }
+            VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix unpinned message"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_SCREENSHOT -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix took a screenshot"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_STYLE_UPDATE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText = "$prefix changed chat theme"
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            null -> null
+            else -> SpannableString("[${message.action}]")
         }
     }
 

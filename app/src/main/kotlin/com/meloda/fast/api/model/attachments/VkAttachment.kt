@@ -1,3 +1,5 @@
 package com.meloda.fast.api.model.attachments
 
-abstract class VkAttachment
+import android.os.Parcelable
+
+abstract class VkAttachment : Parcelable

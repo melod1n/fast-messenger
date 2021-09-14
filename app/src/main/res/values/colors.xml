@@ -22,6 +22,7 @@
     <color name="textColorPrimary">@color/n1_900</color>
     <color name="textColorSecondary">@color/n1_900</color>
     <color name="textColorSecondaryVariant">@color/n2_500</color>
+    <color name="textColorService">@color/n2_600</color>
 
     <color name="colorSurface">@color/a1_0</color>
 
@@ -50,5 +51,6 @@
     <color name="n2_10">#FDFBFE</color>
     <color name="n2_100">#E0E2EB</color>
     <color name="n2_500">#74767D</color>
+    <color name="n2_600">#5C5E65</color>
 
 </resources>

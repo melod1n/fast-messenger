@@ -2,10 +2,10 @@ package com.meloda.fast.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.meloda.fast.api.datasource.AuthDataSource
-import com.meloda.fast.api.datasource.ConversationsDataSource
-import com.meloda.fast.api.datasource.MessagesDataSource
-import com.meloda.fast.api.datasource.UsersDataSource
+import com.meloda.fast.api.network.datasource.AuthDataSource
+import com.meloda.fast.api.network.datasource.ConversationsDataSource
+import com.meloda.fast.api.network.datasource.MessagesDataSource
+import com.meloda.fast.api.network.datasource.UsersDataSource
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.repo.AuthRepo

@@ -21,6 +21,7 @@ object VKUrls {
     object Messages {
         const val GetHistory = "$API/messages.getHistory"
         const val Send = "$API/messages.send"
+        const val MarkAsImportant = "$API/messages.markAsImportant"
     }
 
 

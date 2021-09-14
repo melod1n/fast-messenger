@@ -30,6 +30,7 @@
         <item name="textColorPrimary">@color/textColorPrimary</item>
         <item name="textColorSecondary">@color/textColorSecondary</item>
         <item name="textColorSecondaryVariant">@color/textColorSecondaryVariant</item>
+        <item name="textColorService">@color/textColorService</item>
 
         <item name="colorSurface">@color/colorSurface</item>
 

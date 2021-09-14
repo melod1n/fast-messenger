@@ -1,4 +1,4 @@
-package com.meloda.fast.api.network.request
+package com.meloda.fast.api.model.request
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName

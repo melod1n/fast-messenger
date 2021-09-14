@@ -1,9 +1,9 @@
 package com.meloda.fast.api.network.repo
 
 import com.meloda.fast.api.network.VKUrls
-import com.meloda.fast.api.network.response.ResponseAuthDirect
+import com.meloda.fast.api.model.response.ResponseAuthDirect
 import com.meloda.fast.api.network.Answer
-import com.meloda.fast.api.network.response.ResponseSendSms
+import com.meloda.fast.api.model.response.ResponseSendSms
 import retrofit2.http.*
 
 interface AuthRepo {

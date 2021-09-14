@@ -6,8 +6,8 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.datasource.AuthDataSource
-import com.meloda.fast.api.network.request.RequestAuthDirect
+import com.meloda.fast.api.network.datasource.AuthDataSource
+import com.meloda.fast.api.model.request.RequestAuthDirect
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent

@@ -1,7 +1,7 @@
-package com.meloda.fast.api.datasource
+package com.meloda.fast.api.network.datasource
 
 import com.meloda.fast.api.network.repo.AuthRepo
-import com.meloda.fast.api.network.request.RequestAuthDirect
+import com.meloda.fast.api.model.request.RequestAuthDirect
 import javax.inject.Inject
 
 class AuthDataSource @Inject constructor(

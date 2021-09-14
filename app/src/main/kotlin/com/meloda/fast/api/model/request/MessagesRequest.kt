@@ -1,6 +1,7 @@
-package com.meloda.fast.api.network.request
+package com.meloda.fast.api.model.request
 
 import android.os.Parcelable
+import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -54,5 +55,19 @@ data class MessagesSendRequest(
             disableMentions?.let { this["disable_mentions"] = (if (it) 1 else 0).toString() }
             dontParseLinks?.let { this["dont_parse_links"] = (if (it) 1 else 0).toString() }
         }
+}
+
+@Parcelize
+data class MessagesMarkAsImportantRequest(
+    @SerializedName("message_ids")
+    val messagesIds: List<Int>,
+    val important: Boolean
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "message_ids" to messagesIds.joinToString { it.toString() },
+            "important" to (if (important) 1 else 0).toString()
+        )
 
 }

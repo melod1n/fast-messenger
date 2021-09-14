@@ -1,8 +1,8 @@
-package com.meloda.fast.api.datasource
+package com.meloda.fast.api.network.datasource
 
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.network.repo.ConversationsRepo
-import com.meloda.fast.api.network.request.ConversationsGetRequest
+import com.meloda.fast.api.model.request.ConversationsGetRequest
 import com.meloda.fast.database.dao.ConversationsDao
 import javax.inject.Inject
 
