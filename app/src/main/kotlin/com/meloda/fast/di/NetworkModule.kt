@@ -2,16 +2,13 @@ package com.meloda.fast.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.meloda.fast.api.network.AuthInterceptor
+import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.datasource.AuthDataSource
 import com.meloda.fast.api.network.datasource.ConversationsDataSource
 import com.meloda.fast.api.network.datasource.MessagesDataSource
 import com.meloda.fast.api.network.datasource.UsersDataSource
-import com.meloda.fast.api.network.AuthInterceptor
-import com.meloda.fast.api.network.ResultCallFactory
-import com.meloda.fast.api.network.repo.AuthRepo
-import com.meloda.fast.api.network.repo.ConversationsRepo
-import com.meloda.fast.api.network.repo.MessagesRepo
-import com.meloda.fast.api.network.repo.UsersRepo
+import com.meloda.fast.api.network.repo.*
 import com.meloda.fast.database.dao.ConversationsDao
 import com.meloda.fast.database.dao.MessagesDao
 import com.meloda.fast.database.dao.UsersDao
@@ -80,6 +77,10 @@ object NetworkModule {
     @Provides
     fun provideMessagesRepo(retrofit: Retrofit): MessagesRepo =
         retrofit.create(MessagesRepo::class.java)
+
+    @Provides
+    fun provideLongPollRepo(retrofit: Retrofit): LongPollRepo =
+        retrofit.create(LongPollRepo::class.java)
 
     @Provides
     @Singleton

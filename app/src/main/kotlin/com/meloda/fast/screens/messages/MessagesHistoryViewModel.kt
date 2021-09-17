@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -28,10 +29,10 @@ class MessagesHistoryViewModel @Inject constructor(
         makeJob({
             dataSource.getHistory(
                 MessagesGetHistoryRequest(
-                    count = 90,
+                    count = 30,
                     peerId = peerId,
                     extended = true,
-                    fields = "photo_200,sex"
+                    fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
                 )
             )
         },

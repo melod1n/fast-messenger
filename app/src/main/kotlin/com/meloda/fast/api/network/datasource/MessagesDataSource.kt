@@ -1,6 +1,7 @@
 package com.meloda.fast.api.network.datasource
 
 import com.meloda.fast.api.model.request.MessagesGetHistoryRequest
+import com.meloda.fast.api.model.request.MessagesGetLongPollServerRequest
 import com.meloda.fast.api.model.request.MessagesMarkAsImportantRequest
 import com.meloda.fast.api.model.request.MessagesSendRequest
 import com.meloda.fast.api.network.repo.MessagesRepo
@@ -20,5 +21,8 @@ class MessagesDataSource @Inject constructor(
 
     suspend fun markAsImportant(params: MessagesMarkAsImportantRequest) =
         repo.markAsImportant(params.map)
+
+    suspend fun getLongPollServer(params: MessagesGetLongPollServerRequest) =
+        repo.getLongPollServer(params.map)
 
 }

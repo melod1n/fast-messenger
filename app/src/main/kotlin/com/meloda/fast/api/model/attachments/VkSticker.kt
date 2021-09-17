@@ -1,8 +1,23 @@
 package com.meloda.fast.api.model.attachments
 
+import com.meloda.fast.api.model.base.attachments.BaseVkSticker
+import com.meloda.fast.api.model.base.attachments.StickerSize
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class VkSticker(
-    val link: String
-) : VkAttachment()
+    val id: Int,
+    val productId: Int,
+    val images: List<BaseVkSticker.Image>,
+    val backgroundImages: List<BaseVkSticker.Image>
+) : VkAttachment() {
+
+    fun urlForSize(@StickerSize size: Int): String? {
+        for (image in images) {
+            if (image.width == size) return image.url
+        }
+
+        return null
+    }
+
+}

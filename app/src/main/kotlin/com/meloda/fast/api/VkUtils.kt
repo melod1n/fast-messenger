@@ -13,18 +13,18 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
-import com.meloda.fast.api.network.VKErrors
+import com.meloda.fast.api.network.VkErrors
 
 object VkUtils {
 
     fun isValidationRequired(throwable: Throwable): Boolean {
         if (throwable !is VKException) return false
-        return throwable.error == VKErrors.NEED_VALIDATION
+        return throwable.error == VkErrors.NEED_VALIDATION
     }
 
     fun isCaptchaRequired(throwable: Throwable): Boolean {
         if (throwable !is VKException) return false
-        return throwable.error == VKErrors.NEED_CAPTCHA
+        return throwable.error == VkErrors.NEED_CAPTCHA
     }
 
     fun prepareMessageText(text: String): String {
@@ -94,9 +94,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.STICKER -> {
                     val sticker = baseAttachment.sticker ?: continue
-                    attachments += VkSticker(
-                        link = sticker.images[0].url
-                    )
+                    attachments += sticker.asVkSticker()
                 }
                 BaseVkAttachmentItem.AttachmentType.GIFT -> {
                     val gift = baseAttachment.gift ?: continue
@@ -275,9 +273,9 @@ object VkUtils {
                     else -> return null
                 } ?: return null
 
-                val actionMessage = message.actionMessage ?: return null
+                val actionMessage = message.actionMessage
 
-                "$prefix pinned message «$actionMessage»"
+                "$prefix pinned message ${if (actionMessage == null) "" else "«$actionMessage»"}".trim()
             }
             VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
                 val prefix = when {

@@ -52,7 +52,9 @@ data class BaseVkUser(
         firstName = firstName,
         lastName = lastName,
         online = online == 1,
-        photo200 = photo200
+        photo200 = photo200,
+        lastSeen = onlineInfo?.lastSeen,
+        lastSeenStatus = onlineInfo?.status
     )
 
 }

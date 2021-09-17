@@ -25,14 +25,17 @@ data class BaseVkGroup(
     @SerializedName("photo_100")
     val photo100: String?,
     @SerializedName("photo_200")
-    val photo200: String?
+    val photo200: String?,
+    @SerializedName("members_count")
+    val membersCount: Int?
 ) : Parcelable {
 
     fun asVkGroup() = VkGroup(
         id = -id,
         name = name,
         screenName = screenName,
-        photo200 = photo200
+        photo200 = photo200,
+        membersCount = membersCount
     )
 
 }

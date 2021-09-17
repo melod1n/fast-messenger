@@ -6,6 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="end|bottom"
+        android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:paddingVertical="2.5dp">
 
@@ -17,35 +18,46 @@
             android:layout_marginBottom="20dp"
             android:src="@color/a3_200" />
 
-        <FrameLayout
-            android:id="@+id/bubbleStroke"
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/ic_message_out_background"
-            android:backgroundTint="@color/n2_100"
-            android:padding="1.5dp"
-            tools:ignore="UselessParent">
+            android:orientation="vertical">
 
-            <com.meloda.fast.widget.BoundedFrameLayout
-                android:id="@+id/bubble"
+            <Space
+                android:id="@+id/spacer"
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:visibility="gone" />
+
+            <FrameLayout
+                android:id="@+id/bubbleStroke"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@drawable/ic_message_out_background"
-                android:backgroundTint="@color/n1_10">
+                android:background="@drawable/ic_message_out_background_stroke"
+                android:padding="1.5dp"
+                tools:ignore="UselessParent">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/text"
+                <com.meloda.fast.widget.BoundedFrameLayout
+                    android:id="@+id/bubble"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|start"
-                    android:padding="15dp"
-                    android:textColor="@color/n1_800"
-                    tools:text="This is test" />
+                    android:layout_gravity="center"
+                    android:background="@drawable/ic_message_out_background">
 
-            </com.meloda.fast.widget.BoundedFrameLayout>
-        </FrameLayout>
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|start"
+                        android:padding="15dp"
+                        android:textColor="@color/n1_900"
+                        tools:text="This is test" />
 
+                </com.meloda.fast.widget.BoundedFrameLayout>
+            </FrameLayout>
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

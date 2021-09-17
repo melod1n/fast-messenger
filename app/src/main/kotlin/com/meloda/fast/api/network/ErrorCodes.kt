@@ -1,6 +1,6 @@
 package com.meloda.fast.api.network
 
-object ErrorCodes {
+object VkErrorCodes {
     const val UNKNOWN_ERROR = 1
     const val APP_DISABLED = 2
     const val UNKNOWN_METHOD = 3
@@ -41,7 +41,7 @@ object ErrorCodes {
     const val ACCESS_TO_DOC_DENIED = 1153
 }
 
-object VKErrors {
+object VkErrors {
     const val UNKNOWN = "unknown_error"
 
     const val NEED_VALIDATION = "need_validation"

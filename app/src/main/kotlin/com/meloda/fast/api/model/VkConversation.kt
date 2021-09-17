@@ -33,8 +33,8 @@ data class VkConversation(
     fun isUser() = type == "user"
     fun isGroup() = type == "group"
 
-    fun isInUnread() = inRead != lastMessageId
-    fun isOutUnread() = outRead != lastMessageId
+    fun isInUnread() = inRead < lastMessageId
+    fun isOutUnread() = outRead < lastMessageId
 
     fun isUnread() = isInUnread() || isOutUnread()
 

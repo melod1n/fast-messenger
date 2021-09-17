@@ -44,5 +44,11 @@
     <string name="day_short">D</string>
     <string name="time_now">Now</string>
     <string name="message_input_hint">Start typing here...</string>
+    <string name="input_login_hint">Input login</string>
+    <string name="input_password_hint">Input password</string>
+    <string name="input_code_hint">Input code</string>
+    <string name="validation_required">Validation required</string>
+    <string name="unknown_error_occurred">Unknown error occurred</string>
+    <string name="authorization_failed">Authorization failed</string>
 
 </resources>

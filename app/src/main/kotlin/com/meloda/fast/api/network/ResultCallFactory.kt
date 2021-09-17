@@ -1,10 +1,9 @@
 package com.meloda.fast.api.network
 
-import com.meloda.fast.api.VKException
+import com.meloda.fast.api.base.ApiResponse
 import okhttp3.Request
 import okio.IOException
 import okio.Timeout
-import org.json.JSONObject
 import retrofit2.*
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -76,11 +75,16 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
     ) : Callback<T> {
 
         override fun onResponse(call: Call<T>, response: Response<T>) {
-            val result: Answer<T> = if (response.isSuccessful)
-                Answer.Success(response.body() as T)
-            else Answer.Error(IOException(response.errorBody()?.string() ?: ""))
-
-            if (result is Answer.Error) if (checkErrors(call, result)) return
+            val result: Answer<T> =
+                if (response.isSuccessful) {
+                    val baseBody = response.body()
+                    if (baseBody !is ApiResponse<*>) Answer.Success(baseBody as T)
+                    else {
+                        val body = baseBody as ApiResponse<*>
+                        if (body.error != null) Answer.Error(body.error)
+                        else Answer.Success(body as T)
+                    }
+                } else Answer.Error(IOException(response.errorBody()?.string() ?: ""))
 
             callback.onResponse(proxy, Response.success(result))
         }
@@ -90,23 +94,6 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
                 proxy,
                 Response.success(Answer.Error(throwable = error))
             )
-        }
-
-        private fun checkErrors(call: Call<T>, result: Answer.Error): Boolean {
-            val json = JSONObject(result.throwable.message ?: "{}")
-
-            return if (json.has("error")) {
-                val error = json.optString("error", "")
-                val description = json.optString("error_description", "")
-
-                val exception = VKException(
-                    error = error,
-                    description = description,
-                ).also { it.json = json }
-
-                onFailure(call, exception)
-                true
-            } else false
         }
     }
 

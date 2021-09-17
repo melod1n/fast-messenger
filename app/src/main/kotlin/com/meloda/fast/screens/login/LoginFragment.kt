@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
@@ -47,6 +48,11 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
     private var captchaInputLayout: TextInputLayout? = null
     private var validationInputLayout: TextInputLayout? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.unknownErrorDefaultText = getString(R.string.unknown_error_occurred)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -156,7 +162,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         )
     }
 
-    // TODO: 7/27/2021 extract strings to resources
     private fun validateInputData(
         loginString: String?,
         passwordString: String?,
@@ -167,22 +172,22 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
         if (loginString?.isEmpty() == true) {
             isValidated = false
-            setError("Input login", binding.loginLayout)
+            setError(getString(R.string.input_login_hint), binding.loginLayout)
         }
 
         if (passwordString?.isEmpty() == true) {
             isValidated = false
-            setError("Input password", binding.passwordLayout)
+            setError(getString(R.string.input_password_hint), binding.passwordLayout)
         }
 
         if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
             isValidated = false
-            setError("Input code", captchaInputLayout!!)
+            setError(getString(R.string.input_code_hint), captchaInputLayout!!)
         }
 
         if (validationCode?.isEmpty() == true && validationInputLayout != null) {
             isValidated = false
-            setError("Input code", validationInputLayout!!)
+            setError(getString(R.string.input_code_hint), validationInputLayout!!)
         }
 
         return isValidated
@@ -281,9 +286,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         validationBinding.cancel.setOnClickListener { dialog.dismiss() }
     }
 
-    // TODO: 8/31/2021 show snackbar
     private fun showValidationRequired() {
-
+        Toast.makeText(requireContext(), R.string.validation_required, Toast.LENGTH_LONG).show()
     }
 
     private fun showErrorSnackbar(errorDescription: String) {

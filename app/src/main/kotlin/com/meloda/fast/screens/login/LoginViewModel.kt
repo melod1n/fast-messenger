@@ -6,12 +6,9 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.network.datasource.AuthDataSource
 import com.meloda.fast.api.model.request.RequestAuthDirect
-import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
-import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.api.network.datasource.AuthDataSource
+import com.meloda.fast.base.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,6 +17,8 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val dataSource: AuthDataSource
 ) : BaseViewModel() {
+
+    lateinit var unknownErrorDefaultText: String
 
     fun login(
         login: String,
@@ -45,8 +44,8 @@ class LoginViewModel @Inject constructor(
                 )
             },
             onAnswer = {
-                // TODO: 8/31/2021 do something
                 if (it.userId == null || it.accessToken == null) {
+                    sendEvent(ErrorEvent(unknownErrorDefaultText))
                     return@makeJob
                 }
 
@@ -56,7 +55,6 @@ class LoginViewModel @Inject constructor(
                 sendEvent(SuccessAuth(haveAuthorized = true))
             },
             onError = {
-                checkErrors(it)
                 if (it !is VKException) return@makeJob
 
                 twoFaCode?.let { sendEvent(CodeSent) }

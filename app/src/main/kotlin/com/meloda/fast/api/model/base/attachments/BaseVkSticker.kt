@@ -1,7 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
+import androidx.annotation.IntDef
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.attachments.VkSticker
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -18,6 +20,13 @@ data class BaseVkSticker(
     val animations: List<Animation>?
 ) : Parcelable {
 
+    fun asVkSticker() = VkSticker(
+        id = stickerId,
+        productId = productId,
+        images = images,
+        backgroundImages = imagesWithBackground
+    )
+
     @Parcelize
     data class Image(
         val width: Int,
@@ -31,5 +40,7 @@ data class BaseVkSticker(
         val url: String
     ) : Parcelable
 
-
 }
+
+@IntDef(64, 128, 256, 352)
+annotation class StickerSize

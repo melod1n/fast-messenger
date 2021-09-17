@@ -4,9 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.VKException
+import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.Answer
-import com.meloda.fast.api.network.VKErrors
-import com.meloda.fast.util.Utils
+import com.meloda.fast.api.network.VkErrorCodes
+import com.meloda.fast.api.network.VkErrors
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -26,23 +27,32 @@ abstract class BaseViewModel : ViewModel() {
         onStart?.invoke()
         when (val response = job()) {
             is Answer.Success -> onAnswer(response.data)
-            is Answer.Error -> onError?.invoke(response.throwable)
+            is Answer.Error -> {
+                checkErrors(response.throwable)
+                onError?.invoke(response.throwable)
+            }
         }
     }.also { it.invokeOnCompletion { viewModelScope.launch { onEnd?.invoke() } } }
 
     protected suspend fun <T : VKEvent> sendEvent(event: T) = tasksEventChannel.send(event)
 
-    protected suspend fun checkErrors(throwable: Throwable) {
-        // TODO: 8/31/2021 check illegal token
-        if (throwable is VKException) {
+    private suspend fun checkErrors(throwable: Throwable) {
+        if (throwable is ApiError) {
+            when (throwable.errorCode) {
+                VkErrorCodes.USER_AUTHORIZATION_FAILED -> {
+                    sendEvent(IllegalTokenEvent)
+                    return
+                }
+            }
+        } else if (throwable is VKException) {
             when (throwable.error) {
-                VKErrors.NEED_CAPTCHA -> {
+                VkErrors.NEED_CAPTCHA -> {
                     throwable.captcha =
                         (throwable.json?.optString("captcha_sid")
                             ?: "") to (throwable.json?.optString("captcha_img") ?: "")
                     return
                 }
-                VKErrors.NEED_VALIDATION -> {
+                VkErrors.NEED_VALIDATION -> {
                     throwable.validationSid = throwable.json?.optString("validation_sid")
                     return
                 }
@@ -51,7 +61,7 @@ abstract class BaseViewModel : ViewModel() {
             }
         }
 
-        tasksEventChannel.send(ShowDialogInfoEvent(null, Log.getStackTraceString(throwable)))
+        sendEvent(ShowDialogInfoEvent(null, Log.getStackTraceString(throwable)))
     }
 
 }

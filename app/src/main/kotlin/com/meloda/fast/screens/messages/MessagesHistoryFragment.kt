@@ -80,8 +80,15 @@ class MessagesHistoryFragment :
 
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
-            conversation.isUser() -> if (user?.online == true) "Online" else "Last seen at [...]"
-            conversation.isGroup() -> "[Group status]"
+            conversation.isUser() -> when {
+                // TODO: 9/15/2021 user normal time
+                user?.online == true -> "Online"
+                user?.lastSeen != null -> "Last seen at ${
+                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(user?.lastSeen!! * 1000L)
+                }"
+                else -> if (user?.lastSeenStatus != null) "Last seen ${user?.lastSeenStatus!!}" else "Last seen recently"
+            }
+            conversation.isGroup() -> if (group?.membersCount != null) "${group?.membersCount} members" else "Group"
             else -> null
         }
 
@@ -162,7 +169,6 @@ class MessagesHistoryFragment :
         }
 
         action.observe(viewLifecycleOwner) {
-
             binding.action.animate()
                 .scaleX(1.25f)
                 .scaleY(1.25f)
@@ -216,18 +222,19 @@ class MessagesHistoryFragment :
                 peerId = conversation.id,
                 message = messageText,
                 randomId = 0
-            ) { message = message.changeId(it) }
+            ) { message = message.copyMessage(id = it) }
         }
     }
 
     override fun onEvent(event: VKEvent) {
+        super.onEvent(event)
+
         when (event) {
             is MessagesMarkAsImportant -> markMessagesAsImportant(event)
             is MessagesLoaded -> refreshMessages(event)
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
         }
-        super.onEvent(event)
     }
 
     private fun onProgressStarted() {
@@ -276,7 +283,9 @@ class MessagesHistoryFragment :
             val message = adapter.values[i]
             if (event.messagesIds.contains(message.id)) {
                 if (!changed) changed = true
-                adapter.values[i] = message.copy(important = event.important)
+                adapter.values[i] = message.copyMessage(
+                    important = event.important
+                )
             }
         }
 
@@ -303,6 +312,7 @@ class MessagesHistoryFragment :
 
     private fun onItemClick(position: Int) {
         val message = adapter.values[position]
+        if (message.action != null) return
 
         val important = if (message.important) "Unmark as important" else "Mark as important"
 

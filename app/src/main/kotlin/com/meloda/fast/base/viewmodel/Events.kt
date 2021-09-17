@@ -7,6 +7,10 @@ data class ShowDialogInfoEvent(
     val negativeBtn: String? = null
 ) : VKEvent()
 
+data class ErrorEvent(val errorText: String) : VKEvent()
+
+object IllegalTokenEvent : VKEvent()
+
 object StartProgressEvent : VKEvent()
 object StopProgressEvent : VKEvent()
 

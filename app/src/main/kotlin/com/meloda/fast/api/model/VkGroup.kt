@@ -12,8 +12,9 @@ data class VkGroup(
     val id: Int,
     val name: String,
     val screenName: String,
-    val photo200: String?
-): Parcelable {
+    val photo200: String?,
+    val membersCount: Int?
+) : Parcelable {
 
     override fun toString() = name.trim()
 

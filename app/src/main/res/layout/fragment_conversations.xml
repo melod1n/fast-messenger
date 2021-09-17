@@ -14,12 +14,13 @@
             app:elevation="0dp">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsingToolbarLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:elevation="0dp"
                 app:collapsedTitleTextAppearance="@style/CollapsingToolbarCollapsedTitle"
                 app:expandedTitleTextAppearance="@style/CollapsingToolbarTitle"
-                app:layout_scrollFlags="scroll|enterAlways|snap"
+                app:layout_scrollFlags="scroll|enterAlwaysCollapsed|snap"
                 app:title="Messages">
 
                 <com.google.android.material.appbar.MaterialToolbar

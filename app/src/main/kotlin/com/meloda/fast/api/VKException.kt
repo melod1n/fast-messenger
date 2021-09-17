@@ -3,7 +3,12 @@ package com.meloda.fast.api
 import org.json.JSONObject
 import java.io.IOException
 
-class VKException(var url: String = "", var description: String = "", var error: String) :
+open class VKException(
+    var url: String = "",
+    var code: Int = -1,
+    var description: String = "",
+    var error: String
+) :
     IOException(description) {
 
     var captcha: Pair<String, String>? = null

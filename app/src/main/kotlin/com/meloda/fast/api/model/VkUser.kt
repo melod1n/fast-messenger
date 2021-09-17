@@ -13,9 +13,13 @@ data class VkUser(
     val firstName: String,
     val lastName: String,
     val online: Boolean,
-    val photo200: String?
+    val photo200: String?,
+    val lastSeen: Int?,
+    val lastSeenStatus: String?
 ) : Parcelable {
 
-    override fun toString() = "$firstName $lastName".trim()
+    override fun toString() = fullName
+
+    val fullName get() = "$firstName $lastName".trim()
 
 }

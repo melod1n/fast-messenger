@@ -1,10 +1,14 @@
 package com.meloda.fast.screens.messages
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import coil.load
@@ -15,9 +19,9 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkSticker
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
-import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.*
 import com.meloda.fast.util.AndroidUtils
 import kotlin.math.roundToInt
@@ -31,30 +35,31 @@ class MessagesHistoryAdapter constructor(
 ) : BaseAdapter<VkMessage, MessagesHistoryAdapter.Holder>(context, values, COMPARATOR) {
 
     override fun getItemViewType(position: Int): Int {
-        var viewType: Int = when {
-            isPositionHeader(position) -> HEADER
-            isPositionFooter(position) -> FOOTER
-            else -> -1
+        when {
+            isPositionHeader(position) -> return HEADER
+            isPositionFooter(position) -> return FOOTER
         }
 
-        if (viewType == -1) {
-            getItem(position).let {
-                if (it.action != null) viewType = SERVICE
+        getItem(position).let { message ->
+            if (message.action != null) return SERVICE
 
-                val attachments = it.attachments ?: return@let
-                if (attachments.isEmpty()) return@let
+            if (!message.attachments.isNullOrEmpty()) {
+                val attachments = message.attachments ?: return@let
                 if (VkUtils.isAttachmentsHaveOneType(attachments) &&
                     attachments[0] is VkPhoto
-                ) {
-                    return if (it.isOut) ATTACHMENT_PHOTOS_OUT else ATTACHMENT_PHOTOS_IN
-                }
+                ) return if (message.isOut) ATTACHMENT_PHOTOS_OUT
+                else ATTACHMENT_PHOTOS_IN
 
-                if (it.isOut) viewType = OUTGOING
-                if (!it.isOut) viewType = INCOMING
+
+                if (attachments[0] is VkSticker) return if (message.isOut) ATTACHMENT_STICKER_OUT
+                else ATTACHMENT_STICKER_IN
             }
+
+            if (message.isOut) return OUTGOING
+            if (!message.isOut) return INCOMING
         }
 
-        return viewType
+        return -1
     }
 
     private fun isPositionHeader(position: Int) = position == 0
@@ -67,11 +72,17 @@ class MessagesHistoryAdapter constructor(
             SERVICE -> ServiceMessage(
                 ItemMessageServiceBinding.inflate(inflater, parent, false)
             )
+            ATTACHMENT_STICKER_IN -> AttachmentStickerIncoming(
+                ItemMessageAttachmentStickerInBinding.inflate(inflater, parent, false)
+            )
+            ATTACHMENT_STICKER_OUT -> AttachmentStickerOutgoing(
+                ItemMessageAttachmentStickerOutBinding.inflate(inflater, parent, false)
+            )
             ATTACHMENT_PHOTOS_IN -> AttachmentPhotosIncoming(
-                ItemMessageAttachmentPhotoInBinding.inflate(inflater, parent, false)
+                ItemMessageAttachmentPhotosInBinding.inflate(inflater, parent, false)
             )
             ATTACHMENT_PHOTOS_OUT -> AttachmentPhotosOutgoing(
-                ItemMessageAttachmentPhotoOutBinding.inflate(inflater, parent, false)
+                ItemMessageAttachmentPhotosOutBinding.inflate(inflater, parent, false)
             )
             OUTGOING -> OutgoingMessage(
                 ItemMessageOutBinding.inflate(inflater, parent, false)
@@ -79,7 +90,7 @@ class MessagesHistoryAdapter constructor(
             INCOMING -> IncomingMessage(
                 ItemMessageInBinding.inflate(inflater, parent, false)
             )
-            else -> Holder()
+            else -> throw IllegalStateException("Wrong viewType: $viewType")
         }
     }
 
@@ -107,56 +118,126 @@ class MessagesHistoryAdapter constructor(
 
     inner class Footer(v: View) : Holder(v)
 
-    inner class AttachmentPhotosIncoming(
-        private val binding: ItemMessageAttachmentPhotoInBinding
+    inner class IncomingMessage(
+        private val binding: ItemMessageInBinding
     ) : Holder(binding.root) {
 
+        private val backgroundNormal =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_in_background)
+        private val backgroundMiddle =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_in_background_middle)
+
         init {
-            binding.photo.shapeAppearanceModel = binding.photo.shapeAppearanceModel.withCornerSize {
-                AndroidUtils.px(12)
-            }
+            MessagesManager.setRootMaxWidth(binding.bubble)
         }
 
         override fun bind(position: Int) {
             val message = getItem(position)
 
-            val photo = message.attachments?.get(0) as? VkPhoto ?: return
+            val prevMessage = getOrNull(position - 1)
+            val nextMessage = getOrNull(position + 1)
 
-            val size = photo.sizeOfType('m') ?: return
+            binding.unread.isVisible = message.isRead(conversation)
 
-            binding.photo.layoutParams = FrameLayout.LayoutParams(
-                AndroidUtils.px(size.width).roundToInt(),
-                AndroidUtils.px(size.height).roundToInt()
+            binding.bubble.background =
+                if (prevMessage == null || prevMessage.fromId != message.fromId) backgroundNormal
+                else if (prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60) backgroundMiddle
+                else backgroundNormal
+
+            if (!message.isPeerChat()) {
+                binding.title.isVisible = false
+                binding.avatar.isVisible = false
+
+                binding.spacer.isVisible =
+                    !(prevMessage != null && prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60)
+            } else {
+                binding.title.isVisible =
+                    if (prevMessage == null || prevMessage.fromId != message.fromId) message.isPeerChat()
+                    else message.date - prevMessage.date >= 60
+
+                binding.spacer.isVisible = binding.title.isVisible
+
+                binding.avatar.visibility =
+                    if (nextMessage == null || nextMessage.fromId != message.fromId) if (message.isPeerChat()) View.VISIBLE else View.GONE
+                    else if (nextMessage.date - message.date >= 60) View.VISIBLE
+                    else View.INVISIBLE
+            }
+
+            val messageUser: VkUser? = if (message.isUser()) {
+                profiles[message.fromId]
+            } else null
+
+            val messageGroup: VkGroup? = if (message.isGroup()) {
+                groups[message.fromId]
+            } else null
+
+            MessagesManager.loadMessageAvatar(
+                message = message,
+                messageUser = messageUser,
+                messageGroup = messageGroup,
+                imageView = binding.avatar
             )
 
-            binding.photo.load(size.url)
-        }
+            val title = when {
+                message.isUser() && messageUser != null -> messageUser.firstName
+                message.isGroup() && messageGroup != null -> messageGroup.name
+                else -> null
+            }
 
+            binding.title.text = title
+            binding.title.measure(0, 0)
+
+            if (binding.title.isVisible) {
+                binding.bubble.minimumWidth = binding.title.measuredWidth + 60
+            } else {
+                binding.bubble.minimumWidth = 0
+            }
+
+            MessagesManager.setMessageText(
+                message = message,
+                textView = binding.text
+            )
+        }
     }
 
-    inner class AttachmentPhotosOutgoing(
-        private val binding: ItemMessageAttachmentPhotoOutBinding
+    inner class OutgoingMessage(
+        private val binding: ItemMessageOutBinding
     ) : Holder(binding.root) {
 
+        private val backgroundNormal =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_out_background)
+        private val backgroundMiddle =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle)
+        private val backgroundStroke =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_stroke)
+        private val backgroundMiddleStroke =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle_stroke)
+
         init {
-            binding.photo.shapeAppearanceModel = binding.photo.shapeAppearanceModel.withCornerSize {
-                AndroidUtils.px(12)
-            }
+            MessagesManager.setRootMaxWidth(binding.bubble)
         }
 
         override fun bind(position: Int) {
             val message = getItem(position)
 
-            val photo = message.attachments?.get(0) as? VkPhoto ?: return
+            val prevMessage = getOrNull(position - 1)
 
-            val size = photo.sizeOfType('m') ?: return
+            binding.text.text = message.text ?: "[no_message]"
 
-            binding.photo.layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(size.width).roundToInt(),
-                AndroidUtils.px(size.height).roundToInt()
-            )
+            binding.unread.isVisible = message.isRead(conversation)
 
-            binding.photo.load(size.url)
+            binding.spacer.isVisible =
+                !(prevMessage != null && prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60)
+
+            binding.bubble.background =
+                if (prevMessage == null || prevMessage.fromId != message.fromId) backgroundNormal
+                else if (prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60) backgroundMiddle
+                else backgroundNormal
+
+            binding.bubbleStroke.background =
+                if (prevMessage == null || prevMessage.fromId != message.fromId) backgroundStroke
+                else if (prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60) backgroundMiddleStroke
+                else backgroundStroke
         }
 
     }
@@ -166,6 +247,12 @@ class MessagesHistoryAdapter constructor(
     ) : Holder(binding.root) {
 
         private val youPrefix = context.getString(R.string.you_message_prefix)
+
+        init {
+            binding.photo.shapeAppearanceModel.run {
+                withCornerSize { AndroidUtils.px(4) }
+            }
+        }
 
         override fun bind(position: Int) {
             val message = getItem(position)
@@ -188,49 +275,112 @@ class MessagesHistoryAdapter constructor(
                 messageUser = messageUser,
                 messageGroup = messageGroup
             )
+
+            val attachments = message.attachments ?: return
+            attachments[0].let { attachment ->
+                if (attachment !is VkPhoto) return@let
+
+                binding.photo.isVisible = true
+
+                val size = attachment.sizeOfType('m') ?: return@let
+
+                binding.photo.layoutParams = LinearLayoutCompat.LayoutParams(
+                    size.width,
+                    size.height
+                )
+
+                binding.photo.load(size.url) {
+                    crossfade(150)
+                    fallback(ColorDrawable(Color.LTGRAY))
+                }
+            }
         }
     }
 
-    inner class OutgoingMessage(
-        private val binding: ItemMessageOutBinding
+    inner class AttachmentPhotosIncoming(
+        private val binding: ItemMessageAttachmentPhotosInBinding
     ) : Holder(binding.root) {
-
-        init {
-            binding.bubble.maxWidth = (AppGlobal.screenWidth * 0.75).roundToInt()
-        }
 
         override fun bind(position: Int) {
             val message = getItem(position)
 
-            binding.text.text = message.text ?: "[no_message]"
-
-            binding.unread.isVisible = message.isRead(conversation)
+            MessagesManager.loadPhotos(
+                context = context,
+                message = message,
+                binding.photosContainer
+            )
         }
-
     }
 
-    inner class IncomingMessage(
-        private val binding: ItemMessageInBinding
+    inner class AttachmentPhotosOutgoing(
+        private val binding: ItemMessageAttachmentPhotosOutBinding
     ) : Holder(binding.root) {
-
-        init {
-            binding.bubble.maxWidth = (AppGlobal.screenWidth * 0.7).roundToInt()
-        }
 
         override fun bind(position: Int) {
             val message = getItem(position)
 
+            MessagesManager.loadPhotos(
+                context = context,
+                message = message,
+                photosContainer = binding.photosContainer
+            )
+        }
+    }
+
+    inner class AttachmentStickerOutgoing(
+        private val binding: ItemMessageAttachmentStickerOutBinding
+    ) : Holder(binding.root) {
+
+        override fun bind(position: Int) {
+            val message = getItem(position)
             val prevMessage = getOrNull(position - 1)
             val nextMessage = getOrNull(position + 1)
 
-            binding.title.isVisible =
-                if (prevMessage == null || prevMessage.fromId != message.fromId) message.isPeerChat()
-                else message.date - prevMessage.date >= 60
+            if (!message.isPeerChat()) {
+                binding.spacer.isVisible =
+                    !(prevMessage != null && prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60)
+            } else {
+                binding.spacer.isVisible =
+                    if (prevMessage == null || prevMessage.fromId != message.fromId) message.isPeerChat()
+                    else message.date - prevMessage.date >= 60
+            }
 
-            binding.avatar.visibility =
-                if (nextMessage == null || nextMessage.fromId != message.fromId) if (message.isPeerChat()) View.VISIBLE else View.GONE
-                else if (nextMessage.date - message.date >= 60) View.VISIBLE
-                else View.INVISIBLE
+            val sticker = message.attachments?.get(0) as? VkSticker ?: return
+            val url = sticker.urlForSize(352)!!
+
+            binding.photo.layoutParams.also {
+                it.width = 352
+                it.height = 352
+            }
+
+            binding.photo.load(url) { crossfade(150) }
+        }
+    }
+
+    inner class AttachmentStickerIncoming(
+        private val binding: ItemMessageAttachmentStickerInBinding
+    ) : Holder(binding.root) {
+
+        override fun bind(position: Int) {
+            val message = getItem(position)
+            val prevMessage = getOrNull(position - 1)
+            val nextMessage = getOrNull(position + 1)
+
+            if (!message.isPeerChat()) {
+                binding.avatar.isVisible = false
+
+                binding.spacer.isVisible =
+                    !(prevMessage != null && prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60)
+            } else {
+                binding.spacer.isVisible =
+                    if (prevMessage == null || prevMessage.fromId != message.fromId) message.isPeerChat()
+                    else message.date - prevMessage.date >= 60
+
+                binding.avatar.visibility =
+                    if (nextMessage == null || nextMessage.fromId != message.fromId) if (message.isPeerChat()) View.VISIBLE else View.GONE
+                    else if (nextMessage.date - message.date >= 60) View.VISIBLE
+                    else View.INVISIBLE
+            }
 
             val messageUser: VkUser? = if (message.isUser()) {
                 profiles[message.fromId]
@@ -246,24 +396,34 @@ class MessagesHistoryAdapter constructor(
                 else -> null
             }
 
+            binding.avatar.load(avatar) { crossfade(100) }
+
             val title = when {
-                message.isUser() && messageUser != null -> messageUser.firstName
+                message.isUser() && messageUser != null -> messageUser.fullName
                 message.isGroup() && messageGroup != null -> messageGroup.name
                 else -> null
             }
 
-            binding.avatar.load(avatar) { crossfade(100) }
-
-            binding.text.text = message.text ?: "[no_message]"
-
-            binding.title.text = title
-            binding.title.measure(0, 0)
-
-            if (binding.title.isVisible) {
-                binding.bubble.minimumWidth = binding.title.measuredWidth + 60
-            } else {
-                binding.bubble.minimumWidth = 0
+            binding.avatar.setOnLongClickListener {
+                Toast.makeText(context, title, Toast.LENGTH_SHORT).apply {
+                    setGravity(
+                        Gravity.START or Gravity.BOTTOM,
+                        0,
+                        -50
+                    )
+                }.show()
+                true
             }
+
+            val sticker = message.attachments?.get(0) as? VkSticker ?: return
+            val url = sticker.urlForSize(352)!!
+
+            binding.photo.layoutParams.also {
+                it.width = 352
+                it.height = 352
+            }
+
+            binding.photo.load(url) { crossfade(150) }
         }
     }
 
@@ -281,8 +441,11 @@ class MessagesHistoryAdapter constructor(
         private const val INCOMING = 3
         private const val OUTGOING = 4
 
+
         private const val ATTACHMENT_PHOTOS_IN = 101
-        private const val ATTACHMENT_PHOTOS_OUT = 1011
+        private const val ATTACHMENT_PHOTOS_OUT = 102
+        private const val ATTACHMENT_STICKER_IN = 111
+        private const val ATTACHMENT_STICKER_OUT = 112
 
         private val COMPARATOR = object : DiffUtil.ItemCallback<VkMessage>() {
             override fun areItemsTheSame(

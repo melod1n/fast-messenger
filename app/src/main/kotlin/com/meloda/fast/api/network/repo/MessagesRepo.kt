@@ -1,6 +1,7 @@
 package com.meloda.fast.api.network.repo
 
 import com.meloda.fast.api.base.ApiResponse
+import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.model.response.MessagesGetHistoryResponse
 import com.meloda.fast.api.network.Answer
 import com.meloda.fast.api.network.VKUrls
@@ -21,5 +22,9 @@ interface MessagesRepo {
     @FormUrlEncoded
     @POST(VKUrls.Messages.MarkAsImportant)
     suspend fun markAsImportant(@FieldMap params: Map<String, String>): Answer<ApiResponse<List<Int>>>
+
+    @FormUrlEncoded
+    @POST(VKUrls.Messages.GetLongPollServer)
+    suspend fun getLongPollServer(@FieldMap params: Map<String, String>): Answer<ApiResponse<BaseVkLongPoll>>
 
 }

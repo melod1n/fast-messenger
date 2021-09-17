@@ -1,7 +1,6 @@
 package com.meloda.fast.api.model.request
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -59,7 +58,6 @@ data class MessagesSendRequest(
 
 @Parcelize
 data class MessagesMarkAsImportantRequest(
-    @SerializedName("message_ids")
     val messagesIds: List<Int>,
     val important: Boolean
 ) : Parcelable {
@@ -70,4 +68,17 @@ data class MessagesMarkAsImportantRequest(
             "important" to (if (important) 1 else 0).toString()
         )
 
+}
+
+@Parcelize
+data class MessagesGetLongPollServerRequest(
+    val needPts: Boolean,
+    val version: Int
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "need_pts" to (if (needPts) 1 else 0).toString(),
+            "version" to version.toString()
+        )
 }

@@ -88,9 +88,10 @@ class ConversationsAdapter constructor(
             }
 
             binding.avatar.isVisible = avatar != null
-            binding.avatarPlaceholder.isVisible = avatar == null
 
             if (avatar == null) {
+                binding.avatarPlaceholder.isVisible = true
+
                 if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
                     binding.placeholderBack.setImageDrawable(
                         ColorDrawable(
@@ -114,7 +115,13 @@ class ConversationsAdapter constructor(
                     binding.avatar.setImageDrawable(null)
                 }
             } else {
-                binding.avatar.load(avatar) { crossfade(200) }
+                binding.avatar.load(avatar) {
+                    crossfade(200)
+                    target {
+                        binding.avatarPlaceholder.isVisible = false
+                        binding.avatar.setImageDrawable(it)
+                    }
+                }
             }
 
             binding.online.isVisible = chatUser?.online == true
@@ -155,7 +162,8 @@ class ConversationsAdapter constructor(
                 message = message
             ) else null
 
-            val messageText = (if (actionMessage != null ||
+            val messageText = (if (
+                actionMessage != null ||
                 forwardsMessage != null ||
                 attachmentText != null
             ) ""

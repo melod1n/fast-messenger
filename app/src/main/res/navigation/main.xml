@@ -13,7 +13,9 @@
 
         <action
             android:id="@+id/toLogin"
-            app:destination="@id/loginFragment" />
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true" />
 
     </fragment>
 

@@ -21,9 +21,8 @@ class MainFragment : BaseViewModelFragment<MainViewModel>(R.layout.fragment_main
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (savedInstanceState == null) setupBottomBar()
-
         if (!UserConfig.isLoggedIn()) findNavController().navigate(R.id.toLogin)
+        else if (savedInstanceState == null) setupBottomBar()
     }
 
     private fun setupBottomBar() {

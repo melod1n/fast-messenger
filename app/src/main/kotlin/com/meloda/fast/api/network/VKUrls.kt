@@ -22,6 +22,8 @@ object VKUrls {
         const val GetHistory = "$API/messages.getHistory"
         const val Send = "$API/messages.send"
         const val MarkAsImportant = "$API/messages.markAsImportant"
+        const val GetLongPollServer = "$API/messages.getLongPollServer"
+        const val GetLongPollHistory = "$API/messages.getLongPollHistory"
     }
 
 

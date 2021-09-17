@@ -1,10 +1,16 @@
 package com.meloda.fast.base
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.lifecycleScope
+import com.meloda.fast.R
+import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.IllegalTokenEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -24,6 +30,16 @@ abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
         }
     }
 
-    protected open fun onEvent(event: VKEvent) {}
+    protected open fun onEvent(event: VKEvent) {
+        if (event is IllegalTokenEvent) {
+            Toast.makeText(
+                requireContext(), R.string.authorization_failed, Toast.LENGTH_LONG
+            ).show()
+
+            UserConfig.clear()
+            requireActivity().finishAffinity()
+            requireActivity().startActivity(Intent(requireContext(), MainActivity::class.java))
+        }
+    }
 
 }

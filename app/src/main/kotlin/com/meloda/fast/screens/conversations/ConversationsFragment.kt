@@ -45,6 +45,7 @@ class ConversationsFragment :
     }
 
     private var isPaused = false
+    private var isExpanded = true
 
     override fun onPause() {
         super.onPause()
@@ -63,7 +64,9 @@ class ConversationsFragment :
             it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
         }
 
-        binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+        binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+            if (isPaused) return@OnOffsetChangedListener
+
             if (verticalOffset <= -100) {
                 binding.avatarContainer.alpha = 0f
                 return@OnOffsetChangedListener
