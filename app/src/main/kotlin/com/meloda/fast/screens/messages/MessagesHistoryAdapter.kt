@@ -20,10 +20,13 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.api.model.attachments.VkSticker
+import com.meloda.fast.api.model.attachments.VkVideo
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.*
 import com.meloda.fast.util.AndroidUtils
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.roundToInt
 
 class MessagesHistoryAdapter constructor(
@@ -50,6 +53,8 @@ class MessagesHistoryAdapter constructor(
                 ) return if (message.isOut) ATTACHMENT_PHOTOS_OUT
                 else ATTACHMENT_PHOTOS_IN
 
+                if (attachments[0] is VkVideo) return if (message.isOut) ATTACHMENT_VIDEOS_OUT
+                else ATTACHMENT_VIDEOS_IN
 
                 if (attachments[0] is VkSticker) return if (message.isOut) ATTACHMENT_STICKER_OUT
                 else ATTACHMENT_STICKER_IN
@@ -83,6 +88,9 @@ class MessagesHistoryAdapter constructor(
             )
             ATTACHMENT_PHOTOS_OUT -> AttachmentPhotosOutgoing(
                 ItemMessageAttachmentPhotosOutBinding.inflate(inflater, parent, false)
+            )
+            ATTACHMENT_VIDEOS_IN, ATTACHMENT_VIDEOS_OUT -> AttachmentVideosIncoming(
+                ItemMessageAttachmentVideosInBinding.inflate(inflater, parent, false)
             )
             OUTGOING -> OutgoingMessage(
                 ItemMessageOutBinding.inflate(inflater, parent, false)
@@ -215,6 +223,12 @@ class MessagesHistoryAdapter constructor(
 
         init {
             MessagesManager.setRootMaxWidth(binding.bubble)
+
+            binding.bubbleStroke.setOnClickListener { binding.bubble.performClick() }
+
+            binding.bubble.setOnClickListener {
+                binding.time.isVisible = !binding.time.isVisible
+            }
         }
 
         override fun bind(position: Int) {
@@ -238,6 +252,9 @@ class MessagesHistoryAdapter constructor(
                 if (prevMessage == null || prevMessage.fromId != message.fromId) backgroundStroke
                 else if (prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60) backgroundMiddleStroke
                 else backgroundStroke
+
+            binding.time.text =
+                SimpleDateFormat("HH:mm", Locale.getDefault()).format(message.date * 1000L)
         }
 
     }
@@ -303,12 +320,52 @@ class MessagesHistoryAdapter constructor(
 
         override fun bind(position: Int) {
             val message = getItem(position)
+            val prevMessage = getOrNull(position - 1)
+            val nextMessage = getOrNull(position + 1)
+
+            val messageUser =
+                if (message.isUser()) profiles[message.fromId]
+                else null
+
+            val messageGroup =
+                if (message.isGroup()) groups[message.fromId]
+                else null
+
+            MessagesManager.loadMessageAvatar(
+                message = message,
+                messageUser = messageUser,
+                messageGroup = messageGroup,
+                imageView = binding.avatar
+            )
+
+            if (!message.isPeerChat()) {
+                binding.avatar.isVisible = false
+
+                binding.spacer.isVisible =
+                    !(prevMessage != null && prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60)
+            } else {
+                binding.spacer.isVisible =
+                    if (prevMessage == null || prevMessage.fromId != message.fromId) message.isPeerChat()
+                    else message.date - prevMessage.date >= 60
+
+                binding.avatar.visibility =
+                    if (nextMessage == null || nextMessage.fromId != message.fromId) if (message.isPeerChat()) View.VISIBLE else View.GONE
+                    else if (nextMessage.date - message.date >= 60) View.VISIBLE
+                    else View.INVISIBLE
+            }
 
             MessagesManager.loadPhotos(
                 context = context,
                 message = message,
-                binding.photosContainer
+                photosContainer = binding.photosContainer
             )
+
+            MessagesManager.setMessageText(
+                message = message,
+                textView = binding.text
+            )
+
+            binding.bubble.isVisible = binding.text.text.toString().isNotEmpty()
         }
     }
 
@@ -324,7 +381,64 @@ class MessagesHistoryAdapter constructor(
                 message = message,
                 photosContainer = binding.photosContainer
             )
+
         }
+    }
+
+    inner class AttachmentVideosIncoming(
+        private val binding: ItemMessageAttachmentVideosInBinding
+    ) : Holder(binding.root) {
+
+        override fun bind(position: Int) {
+            val message = getItem(position)
+            val prevMessage = getOrNull(position - 1)
+            val nextMessage = getOrNull(position + 1)
+
+            val messageUser =
+                if (message.isUser()) profiles[message.fromId]
+                else null
+
+            val messageGroup =
+                if (message.isGroup()) groups[message.fromId]
+                else null
+
+            MessagesManager.loadMessageAvatar(
+                message = message,
+                messageUser = messageUser,
+                messageGroup = messageGroup,
+                imageView = binding.avatar
+            )
+
+            if (!message.isPeerChat()) {
+                binding.avatar.isVisible = false
+
+                binding.spacer.isVisible =
+                    !(prevMessage != null && prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60)
+            } else {
+                binding.spacer.isVisible =
+                    if (prevMessage == null || prevMessage.fromId != message.fromId) message.isPeerChat()
+                    else message.date - prevMessage.date >= 60
+
+                binding.avatar.visibility =
+                    if (nextMessage == null || nextMessage.fromId != message.fromId) if (message.isPeerChat()) View.VISIBLE else View.GONE
+                    else if (nextMessage.date - message.date >= 60) View.VISIBLE
+                    else View.INVISIBLE
+            }
+
+            MessagesManager.loadVideos(
+                context = context,
+                message = message,
+                videosContainer = binding.videosContainer
+            )
+
+            MessagesManager.setMessageText(
+                message = message,
+                textView = binding.text
+            )
+
+            binding.bubble.isVisible = binding.text.text.toString().isNotEmpty()
+        }
+
     }
 
     inner class AttachmentStickerOutgoing(
@@ -444,8 +558,10 @@ class MessagesHistoryAdapter constructor(
 
         private const val ATTACHMENT_PHOTOS_IN = 101
         private const val ATTACHMENT_PHOTOS_OUT = 102
-        private const val ATTACHMENT_STICKER_IN = 111
-        private const val ATTACHMENT_STICKER_OUT = 112
+        private const val ATTACHMENT_VIDEOS_IN = 111
+        private const val ATTACHMENT_VIDEOS_OUT = 112
+        private const val ATTACHMENT_STICKER_IN = 121
+        private const val ATTACHMENT_STICKER_OUT = 122
 
         private val COMPARATOR = object : DiffUtil.ItemCallback<VkMessage>() {
             override fun areItemsTheSame(

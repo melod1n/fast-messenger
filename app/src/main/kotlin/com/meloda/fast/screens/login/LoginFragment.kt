@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -21,9 +20,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
-import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
@@ -60,10 +57,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         prepareViews()
 
         binding.loginInput.clearFocus()
-
-        setFragmentResultListener("validation") { _, bundle ->
-            lifecycleScope.launch { viewModel.getValidatedData(bundle) }
-        }
     }
 
     override fun onEvent(event: VKEvent) {
@@ -71,15 +64,13 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
         when (event) {
             is ShowError -> showErrorSnackbar(event.errorDescription)
-            is CaptchaRequired -> showCaptchaDialog(event.captcha.first, event.captcha.second)
-
-            CodeSent -> showValidationDialog()
-
-            is ValidationRequired -> showValidationRequired()
+            is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
+            is ValidationEvent -> showValidationRequired(event.sid)
             is SuccessAuth -> goToMain(event.haveAuthorized)
 
-            StartProgressEvent -> onProgressStarted()
-            StopProgressEvent -> onProgressStopped()
+            is CodeSent -> showValidationDialog()
+            is StartProgressEvent -> onProgressStarted()
+            is StopProgressEvent -> onProgressStopped()
         }
     }
 
@@ -286,8 +277,9 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         validationBinding.cancel.setOnClickListener { dialog.dismiss() }
     }
 
-    private fun showValidationRequired() {
+    private fun showValidationRequired(validationSid: String) {
         Toast.makeText(requireContext(), R.string.validation_required, Toast.LENGTH_LONG).show()
+        viewModel.sendSms(validationSid)
     }
 
     private fun showErrorSnackbar(errorDescription: String) {

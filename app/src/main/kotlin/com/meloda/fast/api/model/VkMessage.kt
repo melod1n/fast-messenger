@@ -2,10 +2,8 @@ package com.meloda.fast.api.model
 
 import android.os.Parcelable
 import androidx.room.Entity
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.meloda.fast.api.model.attachments.VkAttachment
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "messages")
@@ -25,16 +23,10 @@ data class VkMessage(
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
     val geoType: String? = null,
-    val important: Boolean = false
-) : Parcelable {
-
-    @IgnoredOnParcel
-    @Ignore
-    var forwards: List<VkMessage>? = null
-
-    @IgnoredOnParcel
-    @Ignore
+    val important: Boolean = false,
+    var forwards: List<VkMessage>? = null,
     var attachments: List<VkAttachment>? = null
+) : Parcelable {
 
     fun isPeerChat() = peerId > 2_000_000_000
 

@@ -54,7 +54,10 @@ data class BaseVkConversation(
         membersCount = chatSettings?.membersCount,
         ownerId = chatSettings?.ownerId,
         isPinned = sortId.majorId > 0
-    ).apply { this.lastMessage = lastMessage }
+    ).apply {
+        this.lastMessage = lastMessage
+        this.pinnedMessage = chatSettings?.pinnedMessage?.asVkMessage()
+    }
 
     @Parcelize
     data class Peer(
@@ -111,7 +114,9 @@ data class BaseVkConversation(
         val isDisappearing: Boolean,
         @SerializedName("is_service")
         val isService: Boolean,
-        val theme: String
+        val theme: String?,
+        @SerializedName("pinned_message")
+        val pinnedMessage: BaseVkMessage?
     ) : Parcelable {
 
         @Parcelize

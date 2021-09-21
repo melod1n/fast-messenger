@@ -24,6 +24,7 @@
     <color name="textColorSecondaryVariant">@color/n2_500</color>
     <color name="textColorService">@color/n2_600</color>
 
+
     <color name="colorSurface">@color/a1_0</color>
 
     <color name="messageOutStrokeColor">@color/n2_100</color>

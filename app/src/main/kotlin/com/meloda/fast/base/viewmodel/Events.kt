@@ -10,6 +10,8 @@ data class ShowDialogInfoEvent(
 data class ErrorEvent(val errorText: String) : VKEvent()
 
 object IllegalTokenEvent : VKEvent()
+data class CaptchaEvent(val sid: String, val image: String) : VKEvent()
+data class ValidationEvent(val sid: String) : VKEvent()
 
 object StartProgressEvent : VKEvent()
 object StopProgressEvent : VKEvent()

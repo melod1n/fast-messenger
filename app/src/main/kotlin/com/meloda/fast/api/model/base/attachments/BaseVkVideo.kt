@@ -2,8 +2,10 @@ package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.attachments.VkVideo
 import kotlinx.parcelize.Parcelize
 
+//not all fields
 @Parcelize
 data class BaseVkVideo(
     val id: Int,
@@ -52,6 +54,12 @@ data class BaseVkVideo(
     val timelineThumbs: TimelineThumbs
     //ads
 ) : BaseVkAttachment() {
+
+    fun asVkVideo() = VkVideo(
+        id = id,
+        images = image,
+        firstFrames = firstFrame
+    )
 
     @Parcelize
     data class Image(

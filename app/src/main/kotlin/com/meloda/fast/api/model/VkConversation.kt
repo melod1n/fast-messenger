@@ -1,8 +1,8 @@
 package com.meloda.fast.api.model
 
 import android.os.Parcelable
+import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
@@ -24,10 +24,14 @@ data class VkConversation(
     val lastMessageId: Int,
     val unreadCount: Int?,
     val membersCount: Int?,
-    val isPinned: Boolean
-) : Parcelable {
-    @Ignore
+    val isPinned: Boolean,
+
+    @Embedded(prefix = "pinnedMessage_")
+    var pinnedMessage: VkMessage? = null,
+
+    @Embedded(prefix = "lastMessage_")
     var lastMessage: VkMessage? = null
+) : Parcelable {
 
     fun isChat() = type == "chat"
     fun isUser() = type == "user"

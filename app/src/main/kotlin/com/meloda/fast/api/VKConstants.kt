@@ -7,7 +7,6 @@ object VKConstants {
     const val USER_FIELDS =
         "photo_50,photo_100,photo_200,status,screen_name,online,online_mobile,last_seen,verified,sex,online_info"
 
-
     const val API_VERSION = "5.132"
     const val VK_APP_ID = "2274003"
     const val VK_SECRET = "hHbZxrka2uZ6jB1inYsH"

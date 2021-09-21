@@ -2,6 +2,7 @@ package com.meloda.fast.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -18,9 +19,10 @@ import com.meloda.fast.database.dao.UsersDao
         VkUser::class,
         VkGroup::class
     ],
-    version = 18,
-    exportSchema = false
+    version = 24,
+    exportSchema = false,
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun conversationsDao(): ConversationsDao

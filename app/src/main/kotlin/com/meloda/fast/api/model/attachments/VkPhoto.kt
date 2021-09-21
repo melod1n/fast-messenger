@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.attachments
 
 import com.meloda.fast.api.model.base.attachments.Size
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -15,6 +16,9 @@ data class VkPhoto(
     val text: String,
     val userId: Int?
 ) : VkAttachment() {
+
+    @IgnoredOnParcel
+    val className: String = this::class.java.name
 
     fun sizeOfType(type: Char): Size? {
         for (size in sizes) {

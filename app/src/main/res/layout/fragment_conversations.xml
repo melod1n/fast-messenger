@@ -20,7 +20,7 @@
                 android:elevation="0dp"
                 app:collapsedTitleTextAppearance="@style/CollapsingToolbarCollapsedTitle"
                 app:expandedTitleTextAppearance="@style/CollapsingToolbarTitle"
-                app:layout_scrollFlags="scroll|enterAlwaysCollapsed|snap"
+                app:layout_scrollFlags="scroll|enterAlways|snap"
                 app:title="Messages">
 
                 <com.google.android.material.appbar.MaterialToolbar

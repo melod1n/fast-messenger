@@ -1,6 +1,5 @@
 package com.meloda.fast.base.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.VKException
@@ -13,6 +12,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel : ViewModel() {
+
+    var unknownErrorDefaultText: String = ""
 
     protected val tasksEventChannel = Channel<VKEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
@@ -30,6 +31,12 @@ abstract class BaseViewModel : ViewModel() {
             is Answer.Error -> {
                 checkErrors(response.throwable)
                 onError?.invoke(response.throwable)
+                    ?: sendEvent(
+                        ErrorEvent(
+                            response.throwable.message
+                                ?: unknownErrorDefaultText
+                        )
+                    )
             }
         }
     }.also { it.invokeOnCompletion { viewModelScope.launch { onEnd?.invoke() } } }
@@ -37,31 +44,32 @@ abstract class BaseViewModel : ViewModel() {
     protected suspend fun <T : VKEvent> sendEvent(event: T) = tasksEventChannel.send(event)
 
     private suspend fun checkErrors(throwable: Throwable) {
-        if (throwable is ApiError) {
-            when (throwable.errorCode) {
-                VkErrorCodes.USER_AUTHORIZATION_FAILED -> {
-                    sendEvent(IllegalTokenEvent)
-                    return
+        when (throwable) {
+            is ApiError -> {
+                when (throwable.errorCode) {
+                    VkErrorCodes.USER_AUTHORIZATION_FAILED -> {
+                        sendEvent(IllegalTokenEvent)
+                    }
                 }
             }
-        } else if (throwable is VKException) {
-            when (throwable.error) {
-                VkErrors.NEED_CAPTCHA -> {
-                    throwable.captcha =
-                        (throwable.json?.optString("captcha_sid")
-                            ?: "") to (throwable.json?.optString("captcha_img") ?: "")
-                    return
+            is VKException -> {
+                when (throwable.error) {
+                    VkErrors.NEED_CAPTCHA -> {
+                        val json = throwable.json ?: return
+                        sendEvent(
+                            CaptchaEvent(
+                                sid = json.optString("captcha_sid"),
+                                image = json.optString("captcha_img")
+                            )
+                        )
+                    }
+                    VkErrors.NEED_VALIDATION -> {
+                        val json = throwable.json ?: return
+                        sendEvent(ValidationEvent(sid = json.optString("validation_sid")))
+                    }
                 }
-                VkErrors.NEED_VALIDATION -> {
-                    throwable.validationSid = throwable.json?.optString("validation_sid")
-                    return
-                }
-
-
             }
         }
-
-        sendEvent(ShowDialogInfoEvent(null, Log.getStackTraceString(throwable)))
     }
 
 }

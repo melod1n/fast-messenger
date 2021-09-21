@@ -1,5 +1,7 @@
 package com.meloda.fast.api.model.attachments
 
 import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-abstract class VkAttachment : Parcelable
+@Parcelize
+open class VkAttachment : Parcelable

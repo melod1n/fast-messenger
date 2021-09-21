@@ -58,6 +58,8 @@ class MessagesHistoryViewModel @Inject constructor(
                     baseMessage.asVkMessage().let { message -> messages[message.id] = message }
                 }
 
+                dataSource.storeMessages(messages.values.toList())
+
                 val conversations = hashMapOf<Int, VkConversation>()
                 response.conversations?.let { baseConversations ->
                     baseConversations.forEach { baseConversation ->

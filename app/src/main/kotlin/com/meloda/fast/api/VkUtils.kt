@@ -27,7 +27,9 @@ object VkUtils {
         return throwable.error == VkErrors.NEED_CAPTCHA
     }
 
-    fun prepareMessageText(text: String): String {
+    fun prepareMessageText(text: String?): String? {
+        if (text == null) return null
+
         return text
             .replace("\n", " ")
             .replace("&amp", "&")
@@ -58,9 +60,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.VIDEO -> {
                     val video = baseAttachment.video ?: continue
-                    attachments += VkVideo(
-                        link = video.player
-                    )
+                    attachments += video.asVkVideo()
                 }
                 BaseVkAttachmentItem.AttachmentType.AUDIO -> {
                     val audio = baseAttachment.audio ?: continue

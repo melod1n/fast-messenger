@@ -1,11 +1,9 @@
 package com.meloda.fast.screens.login
 
-import android.os.Bundle
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
-import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.request.RequestAuthDirect
 import com.meloda.fast.api.network.datasource.AuthDataSource
 import com.meloda.fast.base.viewmodel.*
@@ -17,8 +15,6 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val dataSource: AuthDataSource
 ) : BaseViewModel() {
-
-    lateinit var unknownErrorDefaultText: String
 
     fun login(
         login: String,
@@ -52,24 +48,12 @@ class LoginViewModel @Inject constructor(
                 UserConfig.userId = it.userId
                 UserConfig.accessToken = it.accessToken
 
-                sendEvent(SuccessAuth(haveAuthorized = true))
+                sendEvent(SuccessAuth())
             },
             onError = {
                 if (it !is VKException) return@makeJob
 
                 twoFaCode?.let { sendEvent(CodeSent) }
-
-                if (VkUtils.isValidationRequired(it)) {
-                    it.validationSid?.let { sid ->
-                        sendEvent(ValidationRequired(validationSid = sid))
-
-                        sendSms(sid)
-                    }
-                } else if (VkUtils.isCaptchaRequired(it)) {
-                    it.captcha?.let { captcha ->
-                        sendEvent(CaptchaRequired(captcha.first to captcha.second))
-                    }
-                }
             },
             onStart = { sendEvent(StartProgressEvent) },
             onEnd = { sendEvent(StopProgressEvent) }
@@ -84,22 +68,9 @@ class LoginViewModel @Inject constructor(
             onEnd = {})
     }
 
-    suspend fun getValidatedData(bundle: Bundle) {
-        val accessToken = bundle.getString("token") ?: ""
-        val userId = bundle.getInt("userId")
-
-        UserConfig.accessToken = accessToken
-        UserConfig.userId = userId
-
-        tasksEventChannel.send(SuccessAuth())
-    }
-
 }
 
 data class ShowError(val errorDescription: String) : VKEvent()
-
-data class ValidationRequired(val validationSid: String) : VKEvent()
-data class CaptchaRequired(val captcha: Pair<String, String>) : VKEvent()
 
 object CodeSent : VKEvent()
 

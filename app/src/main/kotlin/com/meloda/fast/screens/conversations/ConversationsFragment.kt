@@ -3,6 +3,7 @@ package com.meloda.fast.screens.conversations
 import android.os.Bundle
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -81,6 +82,8 @@ class ConversationsFragment :
             isPaused = false
             return
         }
+
+        binding.toolbar.overflowIcon = ContextCompat.getDrawable(requireContext(), R.drawable.test)
 
         viewModel.loadProfileUser()
         viewModel.loadConversations()

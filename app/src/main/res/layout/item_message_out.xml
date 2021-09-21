@@ -21,6 +21,7 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
             android:orientation="vertical">
 
             <Space
@@ -57,7 +58,18 @@
             </FrameLayout>
 
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginEnd="12dp"
+                android:textColor="?textColorSecondaryVariant"
+                tools:layout_height="18dp"
+                tools:text="12:00" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
+
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
