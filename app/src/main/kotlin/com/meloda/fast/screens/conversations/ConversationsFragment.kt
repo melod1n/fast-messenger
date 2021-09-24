@@ -6,10 +6,13 @@ import android.viewbinding.library.fragment.viewBinding
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.snackbar.Snackbar
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
@@ -17,9 +20,14 @@ import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.common.AppSettings
+import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -59,7 +67,18 @@ class ConversationsFragment :
 
         binding.recyclerView.adapter = adapter
 
-        binding.createChat.setOnClickListener {}
+        lifecycleScope.launch {
+            requireContext().dataStore.data.map {
+                adapter.isMultilineEnabled = it[AppSettings.keyIsMultilineEnabled] ?: true
+                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+            }.collect { }
+        }
+
+        binding.createChat.setOnClickListener {
+            Snackbar.make(it, "Test snackbar", Snackbar.LENGTH_SHORT)
+                .setAction("Action") {}
+                .show()
+        }
 
         UserConfig.vkUser.observe(viewLifecycleOwner) {
             it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
@@ -87,6 +106,18 @@ class ConversationsFragment :
 
         viewModel.loadProfileUser()
         viewModel.loadConversations()
+
+        binding.avatar.setOnClickListener {
+            lifecycleScope.launch {
+                requireContext().dataStore.edit { settings ->
+                    val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
+                    settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
+
+                    adapter.isMultilineEnabled = !isMultilineEnabled
+                    adapter.notifyItemRangeChanged(0, adapter.itemCount)
+                }
+            }
+        }
     }
 
     override fun onEvent(event: VKEvent) {

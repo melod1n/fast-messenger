@@ -26,7 +26,8 @@
                 android:id="@+id/spacer"
                 android:layout_width="match_parent"
                 android:layout_height="10dp"
-                android:visibility="gone" />
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/title"
@@ -44,12 +45,14 @@
                 android:gravity="bottom"
                 android:orientation="horizontal">
 
-                <com.meloda.fast.widget.BoundedFrameLayout
+                <com.meloda.fast.widget.BoundedLinearLayout
                     android:id="@+id/bubble"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/ic_message_in_background"
                     android:backgroundTint="@color/n2_100"
+                    android:orientation="vertical"
+                    android:padding="15dp"
                     tools:ignore="UselessParent">
 
                     <com.google.android.material.textview.MaterialTextView
@@ -57,11 +60,24 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
-                        android:padding="15dp"
+                        android:autoLink="all"
                         android:textColor="@color/n1_800"
                         tools:text="This" />
 
-                </com.meloda.fast.widget.BoundedFrameLayout>
+                    <Space
+                        android:id="@+id/attachmentSpacer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="5dp"
+                        android:visibility="gone" />
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/attachmentContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone" />
+
+                </com.meloda.fast.widget.BoundedLinearLayout>
 
                 <com.meloda.fast.widget.CircleImageView
                     android:id="@+id/unread"
@@ -72,6 +88,19 @@
                     android:src="@color/a3_200" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="12dp"
+                android:textColor="?textColorSecondaryVariant"
+                android:visibility="gone"
+                tools:layout_height="18dp"
+                tools:text="12:00"
+                tools:visibility="visible" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

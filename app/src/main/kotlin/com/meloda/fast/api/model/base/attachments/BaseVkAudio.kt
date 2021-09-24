@@ -1,7 +1,7 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.attachments.VkAudio
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -12,37 +12,33 @@ data class BaseVkAudio(
     val duration: Int,
     val url: String,
     val date: Int,
-    @SerializedName("owner_id")
-    val ownerId: Int,
-    @SerializedName("access_key")
-    val accessKey: String,
-    @SerializedName("is_explicit")
-    val isExplicit: Boolean,
-    @SerializedName("is_focus_track")
-    val isFocusTrack: Boolean,
-    @SerializedName("is_licensed")
-    val isLicensed: Boolean,
-    @SerializedName("track_code")
-    val trackCode: String,
-    @SerializedName("genre_id")
-    val genreId: Int,
+    val owner_id: Int,
+    val access_key: String,
+    val is_explicit: Boolean,
+    val is_focus_track: Boolean,
+    val is_licensed: Boolean,
+    val track_code: String,
+    val genre_id: Int,
     val album: Album,
-    @SerializedName("short_videos_allowed")
-    val shortVideosAllowed: Boolean,
-    @SerializedName("stories_allowed")
-    val storiesAllowed: Boolean,
-    @SerializedName("stories_cover_allowed")
-    val storiesCoverAllowed: Boolean
+    val short_videos_allowed: Boolean,
+    val stories_allowed: Boolean,
+    val stories_cover_allowed: Boolean
 ) : BaseVkAttachment() {
+
+    fun asVkAudio() = VkAudio(
+        id = id,
+        title = title,
+        artist = artist,
+        url = url,
+        duration = duration
+    )
 
     @Parcelize
     data class Album(
         val id: Int,
         val title: String,
-        @SerializedName("owner_id")
-        val ownerId: Int,
-        @SerializedName("access_key")
-        val accessKey: String,
+        val owner_id: Int,
+        val access_key: String,
         val thumb: Thumb
     ) : Parcelable {
 
@@ -50,22 +46,13 @@ data class BaseVkAudio(
         data class Thumb(
             val width: Int,
             val height: Int,
-            @SerializedName("photo_34")
-            val photo34: String,
-            @SerializedName("photo_68")
-            val photo68: String,
-            @SerializedName("photo_135")
-            val photo135: String,
-            @SerializedName("photo_270")
-            val photo270: String,
-            @SerializedName("photo_300")
-            val photo300: String,
-            @SerializedName("photo_600")
-            val photo600: String,
-            @SerializedName("photo_1200")
-            val photo1200: String
+            val photo_34: String,
+            val photo_68: String,
+            val photo_135: String,
+            val photo_270: String,
+            val photo_300: String,
+            val photo_600: String,
+            val photo_1200: String
         ) : Parcelable
-
     }
-
 }

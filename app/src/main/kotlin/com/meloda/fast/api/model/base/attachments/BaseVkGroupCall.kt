@@ -1,15 +1,12 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkGroupCall(
-    @SerializedName("initiator_id")
-    val initiatorId: Int,
-    @SerializedName("join_link")
-    val joinLink: String,
+    val initiator_id: Int,
+    val join_link: String,
     val participants: Participants
 ) : Parcelable {
 

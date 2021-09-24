@@ -43,7 +43,7 @@
     <string name="week_short">W</string>
     <string name="day_short">D</string>
     <string name="time_now">Now</string>
-    <string name="message_input_hint">Start typing here...</string>
+    <string name="message_input_hint">Start typing here&#8230;</string>
     <string name="input_login_hint">Input login</string>
     <string name="input_password_hint">Input password</string>
     <string name="input_code_hint">Input code</string>
@@ -51,4 +51,62 @@
     <string name="unknown_error_occurred">Unknown error occurred</string>
     <string name="authorization_failed">Authorization failed</string>
 
+
+    <string name="message_action_chat_created">%s created «%s»</string>
+    <string name="message_action_chat_renamed">%s renamed chat to «%s»</string>
+    <string name="message_action_chat_photo_update">%s updated the chat photo</string>
+    <string name="message_action_chat_photo_remove">%s deleted the chat photo</string>
+    <string name="message_action_chat_user_left">%s left the chat</string>
+    <string name="message_action_chat_user_kicked">%s kicked %s</string>
+    <string name="message_action_chat_user_returned">%s returned to chat</string>
+    <string name="message_action_chat_user_invited">%s invited %s</string>
+    <string name="message_action_chat_user_joined_by_link">%s joined the chat via link</string>
+    <string name="message_action_chat_user_joined_by_call_link">%s joined the call via link</string>
+    <string name="message_action_chat_pin_message">%s pinned message</string>
+    <string name="message_action_chat_unpin_message">%s unpinned message</string>
+    <string name="message_action_chat_screenshot">%s took a screenshot</string>
+    <string name="message_action_chat_style_update">%s changed chat theme</string>
+
+
+    <string name="message_attachments_photo_one">Photo</string>
+    <string name="message_attachments_photo_few">%d photos</string>
+    <string name="message_attachments_photo_many">%d photos</string>
+    <string name="message_attachments_photo_other">%d photos</string>
+
+    <string name="message_attachments_video_one">Video</string>
+    <string name="message_attachments_video_few">%d videos</string>
+    <string name="message_attachments_video_many">%d videos</string>
+    <string name="message_attachments_video_other">%d videos</string>
+
+    <string name="message_attachments_audio_one">Audio</string>
+    <string name="message_attachments_audio_few">%d audios</string>
+    <string name="message_attachments_audio_many">%d audios</string>
+    <string name="message_attachments_audio_other">%d audios</string>
+
+    <string name="message_attachments_files_one">File</string>
+    <string name="message_attachments_files_few">%d files</string>
+    <string name="message_attachments_files_many">%d files</string>
+    <string name="message_attachments_files_other">%d files</string>
+
+
+    <string name="message_attachments_voice">Voice message</string>
+    <string name="message_attachments_link">Link</string>
+    <string name="message_attachments_mini_app">Mini App</string>
+    <string name="message_attachments_sticker">Sticker</string>
+    <string name="message_attachments_gift">Gift</string>
+    <string name="message_attachments_wall">Post</string>
+    <string name="message_attachments_graffiti">Graffiti</string>
+    <string name="message_attachments_poll">Poll</string>
+    <string name="message_attachments_wall_reply">Wall comment</string>
+    <string name="message_attachments_call">Call</string>
+    <string name="message_attachments_call_in_progress">Current call</string>
+    <string name="message_attachments_event">Event</string>
+    <string name="message_attachments_curator">Curator</string>
+
+    <string name="file_size_in_bytes">%d bytes</string>
+
+    <string name="post_type_community">Community post</string>
+    <string name="post_type_user">User post</string>
+    <string name="post_type_unknown">Post</string>
+    <string name="message_attachments_story">Story</string>
 </resources>

@@ -5,7 +5,11 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class VkFile(
-    val link: String
+    val id: Int,
+    val title: String,
+    val ext: String,
+    val size: Int,
+    val url: String
 ) : VkAttachment() {
 
     @IgnoredOnParcel

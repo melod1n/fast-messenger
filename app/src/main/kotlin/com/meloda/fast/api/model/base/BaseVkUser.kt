@@ -1,35 +1,24 @@
 package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import com.meloda.fast.api.model.VkUser
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkUser(
     val id: Int,
-    @SerializedName("first_name")
-    val firstName: String,
-    @SerializedName("last_name")
-    val lastName: String,
-    @SerializedName("can_access_closed")
-    val canAccessClosed: Boolean,
-    @SerializedName("is_closed")
-    val isClosed: Boolean,
-    @SerializedName("can_invite_to_chats")
-    val canInviteToChats: Boolean,
+    val first_name: String,
+    val last_name: String,
+    val can_access_closed: Boolean,
+    val is_closed: Boolean,
+    val can_invite_to_chats: Boolean,
     val sex: Int?,
-    @SerializedName("photo_50")
-    val photo50: String?,
-    @SerializedName("photo_100")
-    val photo100: String?,
-    @SerializedName("photo_200")
-    val photo200: String?,
+    val photo_50: String?,
+    val photo_100: String?,
+    val photo_200: String?,
     val online: Int?,
-    @SerializedName("online_info")
-    val onlineInfo: OnlineInfo?,
-    @SerializedName("screen_name")
-    val screenName: String
+    val online_info: OnlineInfo?,
+    val screen_name: String
     //...other fields
 ) : Parcelable {
 
@@ -37,24 +26,20 @@ data class BaseVkUser(
     data class OnlineInfo(
         val visible: Boolean,
         val status: String,
-        @SerializedName("last_seen")
-        val lastSeen: Int?,
-        @SerializedName("is_online")
-        val isOnline: Boolean?,
-        @SerializedName("online_mobile")
-        val isOnlineMobile: Boolean?,
-        @SerializedName("app_id")
-        val appId: Int?
+        val last_seen: Int?,
+        val is_online: Boolean?,
+        val online_mobile: Boolean?,
+        val app_id: Int?
     ) : Parcelable
 
     fun asVkUser() = VkUser(
         id = id,
-        firstName = firstName,
-        lastName = lastName,
+        firstName = first_name,
+        lastName = last_name,
         online = online == 1,
-        photo200 = photo200,
-        lastSeen = onlineInfo?.lastSeen,
-        lastSeenStatus = onlineInfo?.status
+        photo200 = photo_200,
+        lastSeen = online_info?.last_seen,
+        lastSeenStatus = online_info?.status
     )
 
 }

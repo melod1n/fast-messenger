@@ -1,11 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import com.meloda.fast.api.model.attachments.VkVideo
 import kotlinx.parcelize.Parcelize
 
-//not all fields
 @Parcelize
 data class BaseVkVideo(
     val id: Int,
@@ -20,45 +18,30 @@ data class BaseVkVideo(
     val added: Int,
     val type: String,
     val views: Int,
-    @SerializedName("can_comment")
-    val canComment: Int,
-    @SerializedName("can_edit")
-    val canEdit: Int,
-    @SerializedName("can_like")
-    val canLike: Int,
-    @SerializedName("can_repost")
-    val canRepost: Int,
-    @SerializedName("can_subscribe")
-    val canSubscribe: Int,
-    @SerializedName("can_add_to_faves")
-    val canAddToFaves: Int,
-    @SerializedName("can_add")
-    val canAdd: Int,
-    @SerializedName("can_attach_link")
-    val canAttachLink: Int,
-    @SerializedName("access_key")
-    val accessKey: String,
-    @SerializedName("owner_id")
-    val ownerId: Int,
-    @SerializedName("ov_id")
-    val ovId: String,
-    @SerializedName("is_favorite")
-    val isFavorite: Boolean,
-    @SerializedName("track_code")
-    val trackCode: String,
+    val can_comment: Int,
+    val can_edit: Int,
+    val can_like: Int,
+    val can_repost: Int,
+    val can_subscribe: Int,
+    val can_add_to_faves: Int,
+    val can_add: Int,
+    val can_attach_link: Int,
+    val access_key: String,
+    val owner_id: Int,
+    val ov_id: String,
+    val is_favorite: Boolean,
+    val track_code: String,
     val image: List<Image>,
-    @SerializedName("first_frame")
-    val firstFrame: List<FirstFrame>,
+    val first_frame: List<FirstFrame>,
     val files: File,
-    @SerializedName("timeline_thumbs")
-    val timelineThumbs: TimelineThumbs
-    //ads
+    val timeline_thumbs: TimelineThumbs,
+    val ads: Ads
 ) : BaseVkAttachment() {
 
     fun asVkVideo() = VkVideo(
         id = id,
         images = image,
-        firstFrames = firstFrame
+        firstFrames = first_frame
     )
 
     @Parcelize
@@ -66,8 +49,7 @@ data class BaseVkVideo(
         val height: Int,
         val width: Int,
         val url: String,
-        @SerializedName("with_padding")
-        val withPadding: Int
+        val with_padding: Int
     ) : Parcelable
 
     @Parcelize
@@ -86,34 +68,62 @@ data class BaseVkVideo(
         val mp4_1080: String?,
         val mp4_1440: String?,
         val hls: String,
-        @SerializedName("dash_uni")
-        val dashUni: String,
-        @SerializedName("dash_sep")
-        val dashSep: String,
-        @SerializedName("hls_ondemand")
-        val hlsOnDemand: String,
-        @SerializedName("dash_ondemand")
-        val dashOnDemand: String,
-        @SerializedName("failover_host")
-        val failOverHost: String
+        val dash_uni: String,
+        val dash_sep: String,
+        val hls_ondemand: String,
+        val dash_ondemand: String,
+        val failover_host: String
     ) : Parcelable
 
     @Parcelize
     data class TimelineThumbs(
-        @SerializedName("count_per_image")
-        val countPerImage: Int,
-        @SerializedName("count_per_row")
-        val countPerRow: Int,
-        @SerializedName("count_total")
-        val countTotal: Int,
-        @SerializedName("frame_height")
-        val frameHeight: Int,
-        @SerializedName("frame_width")
-        val frameWidth: Float,
+        val count_per_image: Int,
+        val count_per_row: Int,
+        val count_total: Int,
+        val frame_height: Int,
+        val frame_width: Float,
         val links: List<String>,
-        @SerializedName("is_uv")
-        val isUv: Boolean,
+        val is_uv: Boolean,
         val frequency: Int
     ) : Parcelable
+
+    @Parcelize
+    data class Ads(
+        val slot_id: Int,
+        val timeout: Int,
+        val can_play: Int,
+        val params: Params,
+        val sections: List<String>,
+        val midroll_percents: List<Float>
+    ) : Parcelable {
+
+        @Parcelize
+        data class Params(
+            val vk_id: Int,
+            val duration: Int,
+            val video_id: String,
+            val pl: Int,
+            val content_id: String,
+            val lang: Int,
+            val puid1: String,
+            val puid2: Int,
+            val puid3: Int,
+            val puid5: Int,
+            val puid6: Int,
+            val puid7: Int,
+            val puid9: Int,
+            val puid10: Int,
+            val puid12: Int,
+            val puid13: Int,
+            val puid14: Int,
+            val puid15: Int,
+            val puid18: Int,
+            val puid21: Int,
+            val sign: String,
+            val groupId: Int,
+            val vk_catid: Int,
+            val is_xz_video: Int
+        ) : Parcelable
+    }
 
 }

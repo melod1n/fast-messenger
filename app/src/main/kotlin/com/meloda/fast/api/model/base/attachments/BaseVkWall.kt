@@ -1,33 +1,42 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.attachments.VkWall
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkWall(
     val id: Int,
-    @SerializedName("from_id")
-    val fromId: Int,
-    @SerializedName("to_id")
-    val toId: Int,
+    val from_id: Int,
+    val to_id: Int,
     val date: Int,
     val text: String,
     val attachments: List<BaseVkAttachmentItem>?,
-    @SerializedName("post_source")
-    val postSource: PostSource,
+    val post_source: PostSource,
     val comments: Comments,
     val likes: Likes,
     val reposts: Reposts,
     val views: Views,
-    @SerializedName("is_favorite")
-    val isFavorite: Boolean,
+    val is_favorite: Boolean,
     val donut: Donut,
-    @SerializedName("access_key")
-    val accessKey: String,
-    @SerializedName("short_text_rate")
-    val shortTextRate: Double
+    val access_key: String,
+    val short_text_rate: Double
 ) : Parcelable {
+
+    fun asVkWall() = VkWall(
+        id = id,
+        fromId = from_id,
+        toId = to_id,
+        date = date,
+        text = text,
+        attachments = attachments,
+        comments = comments.count,
+        likes = likes.count,
+        reposts = reposts.count,
+        views = views.count,
+        isFavorite = is_favorite,
+        accessKey = access_key
+    )
 
     @Parcelize
     data class PostSource(
@@ -38,28 +47,22 @@ data class BaseVkWall(
     @Parcelize
     data class Comments(
         val count: Int,
-        @SerializedName("can_post")
-        val canPost: Int,
-        @SerializedName("groups_can_post")
-        val groupsCanPost: Boolean
+        val can_post: Int,
+        val groups_can_post: Boolean
     ) : Parcelable
 
     @Parcelize
     data class Likes(
         val count: Int,
-        @SerializedName("user_likes")
-        val userLikes: Int,
-        @SerializedName("can_like")
-        val canLike: Int,
-        @SerializedName("can_publish")
-        val canPublish: Int,
+        val user_likes: Int,
+        val can_like: Int,
+        val can_publish: Int,
     ) : Parcelable
 
     @Parcelize
     data class Reposts(
         val count: Int,
-        @SerializedName("user_reposted")
-        val userReposted: Int
+        val user_reposted: Int
     ) : Parcelable
 
     @Parcelize
@@ -69,8 +72,7 @@ data class BaseVkWall(
 
     @Parcelize
     data class Donut(
-        @SerializedName("is_donut")
-        val isDonut: Boolean
+        val is_donut: Boolean
     ) : Parcelable
 
 }

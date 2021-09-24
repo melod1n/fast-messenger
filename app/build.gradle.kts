@@ -19,7 +19,7 @@ android {
     defaultConfig {
         applicationId = "com.meloda.fast"
         minSdk = 23
-        targetSdk = 31
+        targetSdk = 30
         versionCode = 1
         versionName = "1.0"
 
@@ -75,15 +75,17 @@ kapt {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.30")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
 
     implementation("androidx.work:work-runtime-ktx:2.6.0")
 
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
     implementation("androidx.appcompat:appcompat:1.4.0-alpha03")
     implementation("com.google.android.material:material:1.5.0-alpha03")
-    implementation("androidx.core:core-ktx:1.7.0-alpha02")
+    implementation("androidx.core:core-ktx:1.7.0-beta01")
     implementation("androidx.preference:preference-ktx:1.1.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     implementation("androidx.recyclerview:recyclerview:1.2.1")

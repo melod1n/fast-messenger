@@ -1,7 +1,6 @@
 package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
@@ -10,23 +9,17 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class BaseVkMessage(
     val date: Int,
-    @SerializedName("from_id")
-    val fromId: Int,
+    val from_id: Int,
     val id: Int,
     val out: Int,
-    @SerializedName("peer_id")
-    val peerId: Int,
+    val peer_id: Int,
     val text: String,
-    @SerializedName("conversation_message_id")
-    val conversationMessageId: Int,
-    @SerializedName("fwd_messages")
-    val fwdMessages: List<BaseVkMessage>? = listOf(),
+    val conversation_message_id: Int,
+    val fwd_messages: List<BaseVkMessage>? = listOf(),
     val important: Boolean,
-    @SerializedName("random_id")
-    val randomId: Int,
+    val random_id: Int,
     val attachments: List<BaseVkAttachmentItem> = listOf(),
-    @SerializedName("is_hidden")
-    val isHidden: Boolean,
+    val is_hidden: Boolean,
     val payload: String,
     val geo: Geo?,
     val action: Action?,
@@ -37,20 +30,20 @@ data class BaseVkMessage(
         id = id,
         text = if (text.isBlank()) null else text,
         isOut = out == 1,
-        peerId = peerId,
-        fromId = fromId,
+        peerId = peer_id,
+        fromId = from_id,
         date = date,
-        randomId = randomId,
+        randomId = random_id,
         action = action?.type,
-        actionMemberId = action?.memberId,
+        actionMemberId = action?.member_id,
         actionText = action?.text,
-        actionConversationMessageId = action?.conversationMessageId,
+        actionConversationMessageId = action?.conversation_message_id,
         actionMessage = action?.message,
         geoType = geo?.type,
         important = important
     ).also {
         it.attachments = VkUtils.parseAttachments(attachments)
-        it.forwards = VkUtils.parseForwards(fwdMessages)
+        it.forwards = VkUtils.parseForwards(fwd_messages)
     }
 
     @Parcelize
@@ -71,11 +64,9 @@ data class BaseVkMessage(
     @Parcelize
     data class Action(
         val type: String,
-        @SerializedName("member_id")
-        val memberId: Int?,
+        val member_id: Int?,
         val text: String?,
-        @SerializedName("conversation_message_id")
-        val conversationMessageId: Int?,
+        val conversation_message_id: Int?,
         val message: String?
     ) : Parcelable
 

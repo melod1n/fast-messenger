@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.text.SpannableString
+import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -27,7 +28,8 @@ class ConversationsAdapter constructor(
     context: Context,
     values: MutableList<VkConversation>,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
-    val groups: HashMap<Int, VkGroup> = hashMapOf()
+    val groups: HashMap<Int, VkGroup> = hashMapOf(),
+    var isMultilineEnabled: Boolean = true
 ) : BaseAdapter<VkConversation, ConversationsAdapter.ItemHolder>(
     context, values, COMPARATOR
 ) {
@@ -41,12 +43,22 @@ class ConversationsAdapter constructor(
         private val dateColor = ContextCompat.getColor(context, R.color.n2_500)
         private val youPrefix = context.getString(R.string.you_message_prefix)
 
+        init {
+            binding.title.ellipsize = TextUtils.TruncateAt.END
+            binding.message.ellipsize = TextUtils.TruncateAt.END
+        }
+
         override fun bind(position: Int) {
             val conversation = getItem(position)
 
             binding.service.isVisible = conversation.isPhantom || conversation.callInProgress
             binding.callIcon.isVisible = conversation.callInProgress
             binding.phantomIcon.isVisible = conversation.isPhantom
+
+            val maxLines = if (isMultilineEnabled) 2 else 1
+
+            binding.title.maxLines = maxLines
+            binding.message.maxLines = maxLines
 
             val message = if (conversation.lastMessage != null) conversation.lastMessage!!
             else {
@@ -129,6 +141,7 @@ class ConversationsAdapter constructor(
             binding.pin.isVisible = conversation.isPinned
 
             val actionMessage = VkUtils.getActionConversationText(
+                context = context,
                 message = message,
                 youPrefix = youPrefix,
                 profiles = profiles,

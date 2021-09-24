@@ -64,7 +64,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 response.conversations?.let { baseConversations ->
                     baseConversations.forEach { baseConversation ->
                         baseConversation.asVkConversation(
-                            messages[baseConversation.lastMessageId]
+                            messages[baseConversation.last_message_id]
                         ).let { conversation -> conversations[conversation.id] = conversation }
                     }
                 }

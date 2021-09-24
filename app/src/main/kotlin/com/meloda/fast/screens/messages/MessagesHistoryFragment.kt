@@ -3,6 +3,7 @@ package com.meloda.fast.screens.messages
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.core.view.isVisible
@@ -75,6 +76,9 @@ class MessagesHistoryFragment :
             conversation.isGroup() -> group?.name
             else -> null
         }
+
+        binding.title.ellipsize = TextUtils.TruncateAt.END
+        binding.status.ellipsize = TextUtils.TruncateAt.END
 
         binding.title.text = title ?: "..."
 

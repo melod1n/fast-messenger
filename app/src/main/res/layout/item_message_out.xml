@@ -38,25 +38,38 @@
                 android:padding="1.5dp"
                 tools:ignore="UselessParent">
 
-                <com.meloda.fast.widget.BoundedFrameLayout
+                <com.meloda.fast.widget.BoundedLinearLayout
                     android:id="@+id/bubble"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:background="@drawable/ic_message_out_background">
+                    android:background="@drawable/ic_message_out_background"
+                    android:orientation="vertical"
+                    android:padding="15dp">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical|start"
-                        android:padding="15dp"
                         android:textColor="@color/n1_900"
                         tools:text="This is test" />
 
-                </com.meloda.fast.widget.BoundedFrameLayout>
-            </FrameLayout>
+                    <Space
+                        android:id="@+id/attachmentSpacer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="5dp"
+                        android:visibility="gone" />
 
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/attachmentContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone" />
+
+                </com.meloda.fast.widget.BoundedLinearLayout>
+            </FrameLayout>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/time"
@@ -65,12 +78,11 @@
                 android:layout_gravity="end"
                 android:layout_marginEnd="12dp"
                 android:textColor="?textColorSecondaryVariant"
+                android:visibility="gone"
                 tools:layout_height="18dp"
-                tools:text="12:00" />
+                tools:text="12:00"
+                tools:visibility="visible" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
-
-
     </androidx.appcompat.widget.LinearLayoutCompat>
-
 </layout>

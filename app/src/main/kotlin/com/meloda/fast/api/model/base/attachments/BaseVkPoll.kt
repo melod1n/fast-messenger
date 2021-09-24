@@ -1,7 +1,6 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -11,30 +10,20 @@ data class BaseVkPoll(
     val votes: Int,
     val anonymous: Boolean,
     val closed: Boolean,
-    @SerializedName("end_date")
-    val endDate: Int,
-    @SerializedName("is_board")
-    val isBoard: Boolean,
-    @SerializedName("can_vote")
-    val canVote: Boolean,
-    @SerializedName("can_edit")
-    val canEdit: Boolean,
-    @SerializedName("can_report")
-    val canReport: Boolean,
-    @SerializedName("can_share")
-    val canShare: Boolean,
+    val end_date: Int,
+    val is_board: Boolean,
+    val can_vote: Boolean,
+    val can_edit: Boolean,
+    val can_report: Boolean,
+    val can_share: Boolean,
     val created: Int,
-    @SerializedName("owner_id")
-    val ownerId: Int,
+    val owner_id: Int,
     val question: String,
-    @SerializedName("disable_unvote")
-    val disableUnVote: Boolean,
+    val disable_unvote: Boolean,
     val friends: List<Friend>?,
-    @SerializedName("embed_hash")
-    val embedHash: String,
+    val embed_hash: String,
     val answers: List<Answer>,
-    @SerializedName("author_id")
-    val authorId: Int,
+    val author_id: Int,
     val background: Background?
 ) : Parcelable {
 

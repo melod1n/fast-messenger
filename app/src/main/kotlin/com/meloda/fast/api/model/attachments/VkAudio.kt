@@ -5,7 +5,11 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class VkAudio(
-    val link: String
+    val id: Int,
+    val title: String,
+    val artist: String,
+    val url: String,
+    val duration: Int
 ) : VkAttachment() {
 
     @IgnoredOnParcel

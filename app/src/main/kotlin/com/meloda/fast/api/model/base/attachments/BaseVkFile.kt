@@ -1,14 +1,13 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.attachments.VkFile
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkFile(
     val id: Int,
-    @SerializedName("owner_id")
-    val ownerId: Int,
+    val owner_id: Int,
     val title: String,
     val size: Int,
     val ext: String,
@@ -16,13 +15,18 @@ data class BaseVkFile(
     val type: Int,
     val url: String,
     val preview: Preview?,
-    @SerializedName("is_licensed")
-    val isLicensed: Int,
-    @SerializedName("access_key")
-    val accessKey: String,
-    @SerializedName("web_preview_url")
-    val webPreviewUrl: String?
+    val ic_licensed: Int,
+    val access_key: String,
+    val web_preview_url: String?
 ) : BaseVkAttachment() {
+
+    fun asVkFile() = VkFile(
+        id = id,
+        title = title,
+        ext = ext,
+        url = url,
+        size = size
+    )
 
     @Parcelize
     data class Preview(
@@ -31,15 +35,24 @@ data class BaseVkFile(
     ) : Parcelable {
 
         @Parcelize
-        data class Photo(val sizes: List<Size>) : Parcelable
+        data class Photo(val sizes: List<Size>) : Parcelable {
+
+            @Parcelize
+            data class Size(
+                val height: Int,
+                val width: Int,
+                val type: String,
+                val src: String
+            ) : Parcelable
+
+        }
 
         @Parcelize
         data class Video(
             val src: String,
             val width: Int,
             val height: Int,
-            @SerializedName("file_size")
-            val fileSize: Int
+            val file_size: Int
         ) : Parcelable
 
     }

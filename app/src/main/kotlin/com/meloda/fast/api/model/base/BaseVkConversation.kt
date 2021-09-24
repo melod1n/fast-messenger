@@ -1,90 +1,70 @@
 package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.base.attachments.BaseVkGroupCall
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkConversation(
     val peer: Peer,
-    @SerializedName("last_message_id")
-    val lastMessageId: Int,
-    @SerializedName("in_read")
-    val inRead: Int,
-    @SerializedName("out_read")
-    val outRead: Int,
-    @SerializedName("sort_id")
-    val sortId: SortId,
-    @SerializedName("last_conversation_message_id")
-    val lastConversationMessageId: Int,
-    @SerializedName("is_marked_unread")
-    val isMarkedUnread: Boolean,
+    val last_message_id: Int,
+    val in_read: Int,
+    val out_read: Int,
+    val sort_id: SortId,
+    val last_conversation_message_id: Int,
+    val is_marked_unread: Boolean,
     val important: Boolean,
-    @SerializedName("push_settings")
-    val pushSettings: PushSettings,
-    @SerializedName("can_write")
-    val canWrite: CanWrite,
-    @SerializedName("can_send_money")
-    val canSendMoney: Boolean,
-    @SerializedName("can_receive_money")
-    val canReceiveMoney: Boolean,
-    @SerializedName("chat_settings")
-    val chatSettings: ChatSettings?,
-    @SerializedName("call_in_progress")
-    val callInProgress: CallInProgress?,
-    @SerializedName("unread_count")
-    val unreadCount: Int?
+    val push_settings: PushSettings,
+    val can_write: CanWrite,
+    val can_send_money: Boolean,
+    val can_receive_money: Boolean,
+    val chat_settings: ChatSettings?,
+    val call_in_progress: CallInProgress?,
+    val unread_count: Int?
 ) : Parcelable {
 
     fun asVkConversation(lastMessage: VkMessage? = null) = VkConversation(
         id = peer.id,
-        title = chatSettings?.title,
-        photo200 = chatSettings?.photo?.photo200,
+        title = chat_settings?.title,
+        photo200 = chat_settings?.photo?.photo_200,
         type = peer.type,
-        callInProgress = callInProgress != null,
-        isPhantom = chatSettings?.isDisappearing == true,
-        lastConversationMessageId = lastConversationMessageId,
-        inRead = inRead,
-        outRead = outRead,
-        isMarkedUnread = isMarkedUnread,
-        lastMessageId = lastMessageId,
-        unreadCount = unreadCount,
-        membersCount = chatSettings?.membersCount,
-        ownerId = chatSettings?.ownerId,
-        isPinned = sortId.majorId > 0
+        callInProgress = call_in_progress != null,
+        isPhantom = chat_settings?.is_disappearing == true,
+        lastConversationMessageId = last_conversation_message_id,
+        inRead = in_read,
+        outRead = out_read,
+        isMarkedUnread = is_marked_unread,
+        lastMessageId = last_message_id,
+        unreadCount = unread_count,
+        membersCount = chat_settings?.members_count,
+        ownerId = chat_settings?.owner_id,
+        isPinned = sort_id.major_id > 0
     ).apply {
         this.lastMessage = lastMessage
-        this.pinnedMessage = chatSettings?.pinnedMessage?.asVkMessage()
+        this.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()
     }
 
     @Parcelize
     data class Peer(
         val id: Int,
         val type: String,
-        @SerializedName("local_id")
-        val localId: Int
+        val local_id: Int
     ) : Parcelable
 
     @Parcelize
     data class SortId(
-        @SerializedName("major_id")
-        val majorId: Int,
-        @SerializedName("minor_id")
-        val minorId: Int
+        val major_id: Int,
+        val minor_id: Int
     ) : Parcelable
 
     @Parcelize
     data class PushSettings(
-        @SerializedName("disabled_forever")
-        val disabledForever: Boolean,
-        @SerializedName("no_sound")
-        val noSound: Boolean,
-        @SerializedName("disabled_mentions")
-        val disabledMentions: Boolean,
-        @SerializedName("disabled_mass_mentions")
-        val disabledMassMentions: Boolean
+        val disabled_forever: Boolean,
+        val no_sound: Boolean,
+        val disabled_mentions: Boolean,
+        val disabled_mass_mentions: Boolean
     ) : Parcelable
 
     @Parcelize
@@ -94,75 +74,50 @@ data class BaseVkConversation(
 
     @Parcelize
     data class ChatSettings(
-        @SerializedName("owner_id")
-        val ownerId: Int,
+        val owner_id: Int,
         val title: String,
         val state: String,
         val acl: Acl,
-        @SerializedName("members_count")
-        val membersCount: Int,
-        @SerializedName("friends_count")
-        val friendsCount: Int,
+        val members_count: Int,
+        val friends_count: Int,
         val photo: Photo?,
-        @SerializedName("admin_ids")
-        val adminsIds: List<Int>,
-        @SerializedName("active_ids")
-        val activeIds: List<Int>,
-        @SerializedName("is_group_channel")
-        val isGroupChannel: Boolean,
-        @SerializedName("is_disappearing")
-        val isDisappearing: Boolean,
-        @SerializedName("is_service")
-        val isService: Boolean,
+        val admin_ids: List<Int>,
+        val active_ids: List<Int>,
+        val is_group_channel: Boolean,
+        val is_disappearing: Boolean,
+        val is_service: Boolean,
         val theme: String?,
-        @SerializedName("pinned_message")
-        val pinnedMessage: BaseVkMessage?
+        val pinned_message: BaseVkMessage?
     ) : Parcelable {
 
         @Parcelize
         data class Acl(
-            @SerializedName("can_change_info")
-            val canChangeInfo: Boolean,
-            @SerializedName("can_change_invite_link")
-            val canChangeInviteLink: Boolean,
-            @SerializedName("can_change_pin")
-            val canChangePin: Boolean,
-            @SerializedName("can_invite")
-            val canInvite: Boolean,
-            @SerializedName("can_promote_users")
-            val canPromoteUsers: Boolean,
-            @SerializedName("can_see_invite_link")
-            val canSeeInviteLink: Boolean,
-            @SerializedName("can_moderate")
-            val canModerate: Boolean,
-            @SerializedName("can_copy_chat")
-            val canCopyChat: Boolean,
-            @SerializedName("can_call")
-            val canCall: Boolean,
-            @SerializedName("can_use_mass_mentions")
-            val canUseMassMentions: Boolean,
-            @SerializedName("can_change_style")
-            val canChangeStyle: Boolean
+            val can_change_info: Boolean,
+            val can_change_invite_link: Boolean,
+            val can_change_pin: Boolean,
+            val can_invite: Boolean,
+            val can_promote_users: Boolean,
+            val can_see_invite_link: Boolean,
+            val can_moderate: Boolean,
+            val can_copy_chat: Boolean,
+            val can_call: Boolean,
+            val can_use_mass_mentions: Boolean,
+            val can_change_style: Boolean
         ) : Parcelable
 
         @Parcelize
         data class Photo(
-            @SerializedName("photo_50")
-            val photo50: String?,
-            @SerializedName("photo_100")
-            val photo100: String?,
-            @SerializedName("photo_200")
-            val photo200: String?,
-            @SerializedName("is_default_photo")
-            val isDefaultPhoto: Boolean
+            val photo_50: String?,
+            val photo_100: String?,
+            val photo_200: String?,
+            val is_default_photo: Boolean
         ) : Parcelable
     }
 
     @Parcelize
     data class CallInProgress(
-        val participants: Participants,
-        @SerializedName("join_link")
-        val joinLink: String
+        val participants: BaseVkGroupCall.Participants,
+        val join_link: String
     ) : Parcelable {
 
         @Parcelize

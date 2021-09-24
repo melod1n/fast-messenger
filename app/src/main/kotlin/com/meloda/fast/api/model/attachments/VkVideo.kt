@@ -8,7 +8,7 @@ import kotlinx.parcelize.Parcelize
 data class VkVideo(
     val id: Int,
     val images: List<BaseVkVideo.Image>,
-    val firstFrames: List<BaseVkVideo.FirstFrame>
+    val firstFrames: List<BaseVkVideo.FirstFrame>?
 ) : VkAttachment() {
 
     @IgnoredOnParcel

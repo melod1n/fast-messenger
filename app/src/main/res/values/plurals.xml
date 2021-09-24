@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <plurals name="attachment_photos">
+        <item quantity="one">@string/message_attachments_photo_one</item>
+        <item quantity="few">@string/message_attachments_photo_few</item>
+        <item quantity="many">@string/message_attachments_photo_many</item>
+        <item quantity="other">@string/message_attachments_photo_other</item>
+    </plurals>
+
+    <plurals name="attachment_videos">
+        <item quantity="one">@string/message_attachments_video_one</item>
+        <item quantity="few">@string/message_attachments_video_few</item>
+        <item quantity="many">@string/message_attachments_video_many</item>
+        <item quantity="other">@string/message_attachments_video_other</item>
+    </plurals>
+
+    <plurals name="attachment_audios">
+        <item quantity="one">@string/message_attachments_audio_one</item>
+        <item quantity="few">@string/message_attachments_audio_few</item>
+        <item quantity="many">@string/message_attachments_audio_many</item>
+        <item quantity="other">@string/message_attachments_audio_other</item>
+    </plurals>
+
+    <plurals name="attachment_files">
+        <item quantity="one">@string/message_attachments_files_one</item>
+        <item quantity="few">@string/message_attachments_files_few</item>
+        <item quantity="many">@string/message_attachments_files_many</item>
+        <item quantity="other">@string/message_attachments_files_other</item>
+    </plurals>
+
+</resources>

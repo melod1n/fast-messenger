@@ -2,6 +2,7 @@ package com.meloda.fast.activity
 
 import android.os.Bundle
 import android.viewbinding.library.activity.viewBinding
+import androidx.lifecycle.lifecycleScope
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.databinding.ActivityMainBinding
@@ -14,6 +15,10 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launchWhenStarted {
+
+        }
     }
 
 }

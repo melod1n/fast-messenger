@@ -144,7 +144,7 @@
                         android:id="@+id/title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:singleLine="true"
+                        android:maxLines="1"
                         android:textColor="@color/n1_900"
                         android:textSize="24sp"
                         tools:text="@tools:sample/full_names" />
@@ -154,6 +154,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.7"
+                        android:maxLines="1"
                         android:textColor="@color/n1_900"
                         tools:text="Online" />
 

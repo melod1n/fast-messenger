@@ -10,8 +10,7 @@ data class BaseVkMiniApp(
     val description: String,
     val app: App,
     val images: List<Image>?,
-    @SerializedName("button_text")
-    val buttonText: String
+    val button_text: String
 ) : Parcelable {
 
     @Parcelize

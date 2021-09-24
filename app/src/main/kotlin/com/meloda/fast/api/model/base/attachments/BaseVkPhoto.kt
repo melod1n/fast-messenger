@@ -1,47 +1,43 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import com.meloda.fast.api.model.attachments.VkPhoto
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkPhoto(
-    @SerializedName("album_id")
-    val albumId: Int,
+    val album_id: Int,
     val date: Int,
     val id: Int,
-    @SerializedName("owner_id")
-    val ownerId: Int,
-    @SerializedName("has_tags")
-    val hasTags: Boolean,
-    @SerializedName("access_key")
-    val accessKey: String?,
+    val owner_id: Int,
+    val has_tags: Boolean,
+    val access_key: String?,
     val sizes: List<Size>,
     val text: String,
-    @SerializedName("user_id")
-    val userId: Int?
+    val user_id: Int?,
+    val lat: Double?,
+    val long: Double?,
+    val post_id: Int?
 ) : BaseVkAttachment() {
 
     fun asVkPhoto() = VkPhoto(
-        albumId = albumId,
+        albumId = album_id,
         date = date,
         id = id,
-        ownerId = ownerId,
-        hasTags = hasTags,
-        accessKey = accessKey,
+        ownerId = owner_id,
+        hasTags = has_tags,
+        accessKey = access_key,
         sizes = sizes,
         text = text,
-        userId = userId
+        userId = user_id
     )
 
-}
+    @Parcelize
+    data class Size(
+        val height: Int,
+        val width: Int,
+        val type: String,
+        val url: String
+    ) : Parcelable
 
-@Parcelize
-data class Size(
-    val height: Int,
-    val width: Int,
-    val type: String,
-    @SerializedName("url", alternate = ["src"])
-    val url: String,
-) : Parcelable
+}

@@ -77,18 +77,21 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
     ) : Callback<T> {
 
         override fun onResponse(call: Call<T>, response: Response<T>) {
+            var isVkException = true
+
             val result: Answer<T> =
                 if (response.isSuccessful) {
                     val baseBody = response.body()
                     if (baseBody !is ApiResponse<*>) Answer.Success(baseBody as T)
                     else {
                         val body = baseBody as ApiResponse<*>
-                        if (body.error != null) Answer.Error(body.error)
-                        else Answer.Success(body as T)
+                        if (body.error != null) {
+                            Answer.Error(body.error)
+                        } else Answer.Success(body as T)
                     }
                 } else Answer.Error(IOException(response.errorBody()?.string() ?: ""))
 
-            if (result is Answer.Error) if (checkErrors(call, result)) return
+            if (result is Answer.Error && isVkException) if (checkErrors(call, result)) return
 
 
             callback.onResponse(proxy, Response.success(result))
