@@ -108,7 +108,7 @@ class ConversationsFragment :
         viewModel.loadConversations()
 
         binding.avatar.setOnClickListener {
-            lifecycleScope.launch {
+            lifecycleScope.launchWhenResumed {
                 requireContext().dataStore.edit { settings ->
                     val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
                     settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
