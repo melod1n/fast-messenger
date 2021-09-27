@@ -223,7 +223,7 @@ class AttachmentInflater constructor(
         binding.caption.isVisible = !link.caption.isNullOrBlank()
 
         binding.preview.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(40f)
+            .setAllCornerSizes(AndroidUtils.px(20))
             .build()
             .let {
                 binding.preview.shapeAppearanceModel = it
@@ -282,7 +282,7 @@ class AttachmentInflater constructor(
 
         binding.avatar.isVisible = group != null || user != null
         binding.avatar.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(40f)
+            .setAllCornerSizes(AndroidUtils.px(20))
             .build()
             .let {
                 binding.avatar.shapeAppearanceModel = it

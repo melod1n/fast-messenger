@@ -63,7 +63,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         super.onEvent(event)
 
         when (event) {
-            is ShowError -> showErrorSnackbar(event.errorDescription)
+            is ErrorEvent -> showErrorSnackbar(event.errorText)
             is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationEvent -> showValidationRequired(event.sid)
             is SuccessAuth -> goToMain(event.haveAuthorized)

@@ -30,13 +30,12 @@ abstract class BaseViewModel : ViewModel() {
             is Answer.Success -> onAnswer(response.data)
             is Answer.Error -> {
                 checkErrors(response.throwable)
-                onError?.invoke(response.throwable)
-                    ?: sendEvent(
-                        ErrorEvent(
-                            response.throwable.message
-                                ?: unknownErrorDefaultText
-                        )
+                onError?.invoke(response.throwable) ?: sendEvent(
+                    ErrorEvent(
+                        response.throwable.message
+                            ?: unknownErrorDefaultText
                     )
+                )
             }
         }
     }.also { it.invokeOnCompletion { viewModelScope.launch { onEnd?.invoke() } } }

@@ -53,6 +53,7 @@ class LoginViewModel @Inject constructor(
             onError = {
                 if (it !is VKException) return@makeJob
 
+                // TODO: 9/27/2021 use `delay` parameter
                 twoFaCode?.let { sendEvent(CodeSent) }
             },
             onStart = { sendEvent(StartProgressEvent) },
@@ -69,8 +70,6 @@ class LoginViewModel @Inject constructor(
     }
 
 }
-
-data class ShowError(val errorDescription: String) : VKEvent()
 
 object CodeSent : VKEvent()
 
