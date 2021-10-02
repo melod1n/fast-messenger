@@ -19,7 +19,7 @@ import com.meloda.fast.database.dao.UsersDao
         VkUser::class,
         VkGroup::class
     ],
-    version = 24,
+    version = 25,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

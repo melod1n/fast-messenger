@@ -114,7 +114,7 @@ abstract class BaseAdapter<Item, VH : BaseHolder>(
         holder.bind(position)
     }
 
-    protected fun initListeners(itemView: View, position: Int) {
+    protected open fun initListeners(itemView: View, position: Int) {
         if (itemView is AdapterView<*>) return
 
         itemView.setOnClickListener { itemClickListener.invoke(position) }

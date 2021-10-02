@@ -91,6 +91,7 @@ class MessagesHistoryViewModel @Inject constructor(
         peerId: Int,
         message: String? = null,
         randomId: Int = 0,
+        replyTo: Int? = null,
         setId: ((messageId: Int) -> Unit)? = null
     ) = viewModelScope.launch {
         makeJob(
@@ -99,7 +100,8 @@ class MessagesHistoryViewModel @Inject constructor(
                     MessagesSendRequest(
                         peerId = peerId,
                         randomId = randomId,
-                        message = message
+                        message = message,
+                        replyTo = replyTo
                     )
                 )
             },

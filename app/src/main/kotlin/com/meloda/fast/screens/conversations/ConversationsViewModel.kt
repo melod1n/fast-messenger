@@ -3,13 +3,13 @@ package com.meloda.fast.screens.conversations
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.network.datasource.ConversationsDataSource
-import com.meloda.fast.api.network.datasource.UsersDataSource
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.request.ConversationsGetRequest
 import com.meloda.fast.api.model.request.UsersGetRequest
+import com.meloda.fast.api.network.datasource.ConversationsDataSource
+import com.meloda.fast.api.network.datasource.UsersDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
@@ -26,13 +26,15 @@ class ConversationsViewModel @Inject constructor(
     private val usersDataSource: UsersDataSource
 ) : BaseViewModel() {
 
-    fun loadConversations() = viewModelScope.launch(Dispatchers.Default) {
+    fun loadConversations(
+        offset: Int? = null
+    ) = viewModelScope.launch(Dispatchers.Default) {
         makeJob({
             dataSource.getAllChats(
                 ConversationsGetRequest(
                     count = 30,
-//                    offset = 177,
                     extended = true,
+                    offset = offset,
                     fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
                 )
             )
@@ -52,6 +54,7 @@ class ConversationsViewModel @Inject constructor(
                     sendEvent(
                         ConversationsLoaded(
                             count = response.count,
+                            offset = offset,
                             unreadCount = response.unreadCount ?: 0,
                             conversations = response.items.map { items ->
                                 items.conversation.asVkConversation(
@@ -73,9 +76,7 @@ class ConversationsViewModel @Inject constructor(
     }
 
     fun loadProfileUser() = viewModelScope.launch {
-        makeJob({
-            usersDataSource.getById(UsersGetRequest(fields = "online,photo_200"))
-        },
+        makeJob({ usersDataSource.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
             onAnswer = {
                 it.response?.let { r ->
                     val users = r.map { u -> u.asVkUser() }
@@ -89,6 +90,7 @@ class ConversationsViewModel @Inject constructor(
 
 data class ConversationsLoaded(
     val count: Int,
+    val offset: Int?,
     val unreadCount: Int?,
     val conversations: List<VkConversation>,
     val profiles: HashMap<Int, VkUser>,

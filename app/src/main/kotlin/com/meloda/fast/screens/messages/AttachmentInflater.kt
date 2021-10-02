@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
+// TODO: 9/29/2021 use recyclerview for viewing attachments
 class AttachmentInflater constructor(
     private val context: Context,
     private val container: LinearLayoutCompat,
@@ -94,12 +95,15 @@ class AttachmentInflater constructor(
     }
 
     private fun photo(photo: VkPhoto) {
-        val size = photo.sizeOfType('m') ?: return
+        val size = photo.getSizeOrSmaller('y') ?: return
 
         val newPhoto = ShapeableImageView(context).apply {
             layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(size.width).roundToInt(),
-                AndroidUtils.px(size.height).roundToInt()
+//                ViewGroup.LayoutParams.MATCH_PARENT,
+                size.width,
+                size.height
+//                AndroidUtils.px(size.width).roundToInt(),
+//                AndroidUtils.px(size.height).roundToInt()
             )
 
             shapeAppearanceModel =
@@ -222,14 +226,7 @@ class AttachmentInflater constructor(
         binding.caption.text = link.caption
         binding.caption.isVisible = !link.caption.isNullOrBlank()
 
-        binding.preview.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(AndroidUtils.px(20))
-            .build()
-            .let {
-                binding.preview.shapeAppearanceModel = it
-            }
-
-        link.photo?.sizeOfType('m')?.let {
+        link.photo?.getMaxSize()?.let {
             binding.preview.load(it.url) { crossfade(150) }
             binding.preview.isVisible = true
             return
@@ -245,8 +242,8 @@ class AttachmentInflater constructor(
 
         with(binding.image) {
             layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(180).roundToInt(),
-                AndroidUtils.px(180).roundToInt()
+                AndroidUtils.px(140).roundToInt(),
+                AndroidUtils.px(140).roundToInt()
             )
 
             load(url) { crossfade(150) }

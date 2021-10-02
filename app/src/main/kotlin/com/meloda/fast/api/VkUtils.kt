@@ -42,6 +42,12 @@ object VkUtils {
         return forwards
     }
 
+    fun parseReplyMessage(baseReplyMessage: BaseVkMessage?): VkMessage? {
+        if (baseReplyMessage == null) return null
+
+        return baseReplyMessage.asVkMessage()
+    }
+
     fun parseAttachments(baseAttachments: List<BaseVkAttachmentItem>?): List<VkAttachment>? {
         if (baseAttachments.isNullOrEmpty()) return null
 

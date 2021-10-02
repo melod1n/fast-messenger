@@ -1,25 +1,31 @@
 package com.meloda.fast.screens.conversations
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import coil.load
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
+import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
@@ -29,6 +35,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ConversationsFragment :
@@ -53,6 +60,24 @@ class ConversationsFragment :
         }
     }
 
+    private val avatarPopupMenu: PopupMenu
+        get() =
+            PopupMenu(
+                requireContext(),
+                binding.avatar,
+                Gravity.BOTTOM
+            ).apply {
+                menu.add(getString(R.string.log_out))
+                setOnMenuItemClickListener { item ->
+                    if (item.title == getString(R.string.log_out)) {
+                        showLogOutDialog()
+                        return@setOnMenuItemClickListener true
+                    }
+
+                    false
+                }
+            }
+
     private var isPaused = false
     private var isExpanded = true
 
@@ -74,11 +99,7 @@ class ConversationsFragment :
             }.collect { }
         }
 
-        binding.createChat.setOnClickListener {
-            Snackbar.make(it, "Test snackbar", Snackbar.LENGTH_SHORT)
-                .setAction("Action") {}
-                .show()
-        }
+        binding.createChat.setOnClickListener {}
 
         UserConfig.vkUser.observe(viewLifecycleOwner) {
             it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
@@ -87,28 +108,49 @@ class ConversationsFragment :
         binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
             if (isPaused) return@OnOffsetChangedListener
 
-            if (verticalOffset <= -100) {
-                binding.avatarContainer.alpha = 0f
-                return@OnOffsetChangedListener
-            }
 
-            val alpha = 1 - abs(verticalOffset * 0.01).toFloat()
+//            if (verticalOffset <= -100) {
+//                binding.avatarContainer.alpha = 0f
+//                return@OnOffsetChangedListener
+//            }
 
-            binding.avatarContainer.alpha = alpha
+            // from 0 to -294
+            // from 0 to 29
+
+            // if -147
+            // 30 - value
+
+            var value = 30 - (abs(verticalOffset) * 0.1).roundToInt()
+
+            val bottomPadding = 0
+//                if (verticalOffset > -150) AndroidUtils.px(30).roundToInt()
+//                else (30 + abs(verticalOffset) * 0.1).roundToInt()
+
+            val endPadding = 0
+//                if (verticalOffset > 30) 30
+//                else (abs(verticalOffset) * 0.1).roundToInt()
+
+            binding.avatarContainer.updatePadding(
+                bottom = value,
+                right = endPadding
+            )
+
+
+            println("Fast::ConversationsFragment::onOffset verticalOffset = $verticalOffset; bottomPadding = $value; endPadding = $endPadding")
+
+
+//            binding.avatarContainer.alpha = alpha
         })
-
-        if (isPaused) {
-            isPaused = false
-            return
-        }
 
         binding.toolbar.overflowIcon = ContextCompat.getDrawable(requireContext(), R.drawable.test)
 
-        viewModel.loadProfileUser()
-        viewModel.loadConversations()
 
         binding.avatar.setOnClickListener {
-            lifecycleScope.launchWhenResumed {
+            avatarPopupMenu.show()
+        }
+
+        binding.avatar.setOnLongClickListener {
+            lifecycleScope.launch {
                 requireContext().dataStore.edit { settings ->
                     val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
                     settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
@@ -117,7 +159,30 @@ class ConversationsFragment :
                     adapter.notifyItemRangeChanged(0, adapter.itemCount)
                 }
             }
+            true
         }
+
+        if (isPaused) {
+            isPaused = false
+            return
+        }
+
+        viewModel.loadProfileUser()
+        viewModel.loadConversations()
+    }
+
+    private fun showLogOutDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.confirm)
+            .setMessage(R.string.log_out_confirm)
+            .setPositiveButton(R.string.yes) { _, _ ->
+                UserConfig.clear()
+                AppGlobal.appDatabase.clearAllTables()
+                requireActivity().finishAffinity()
+                requireActivity().startActivity(Intent(requireContext(), MainActivity::class.java))
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
     }
 
     override fun onEvent(event: VKEvent) {

@@ -1,12 +1,15 @@
 package com.meloda.fast.screens.messages
 
-import android.graphics.Color
+import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.view.setPadding
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -16,6 +19,7 @@ import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -26,12 +30,14 @@ import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VKEvent
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.TextViewExtensions.clear
+import com.meloda.fast.extensions.isNotVisible
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class MessagesHistoryFragment :
@@ -60,10 +66,13 @@ class MessagesHistoryFragment :
 
     private val adapter: MessagesHistoryAdapter by lazy {
         MessagesHistoryAdapter(requireContext(), mutableListOf(), conversation).also {
-            it.itemClickListener = this::onItemClick
+            it.onItemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
         }
     }
+
+    private val replyMessage = MutableLiveData<VkMessage?>()
+    private val isAttachmentPanelVisible = MutableLiveData(false)
 
     private var timestampTimer: Timer? = null
 
@@ -98,19 +107,7 @@ class MessagesHistoryFragment :
 
         binding.status.text = status ?: "..."
 
-        val avatar = when {
-            conversation.isChat() -> conversation.photo200
-            conversation.isUser() -> user?.photo200
-            conversation.isGroup() -> group?.photo200
-            else -> null
-        }
-
-        binding.avatar.load(avatar) {
-            crossfade(false)
-            error(ColorDrawable(Color.RED))
-        }
-
-        binding.online.isVisible = user?.online == true
+        prepareAvatar()
 
         prepareViews()
 
@@ -166,8 +163,12 @@ class MessagesHistoryFragment :
         })
 
         binding.message.doAfterTextChanged {
-            val newValue = if (it.toString().isNotBlank()) Action.SEND
-            else Action.RECORD
+            val canSend =
+                it.toString().isNotBlank()
+
+            val newValue =
+                if (canSend) Action.SEND
+                else Action.RECORD
 
             if (action.value != newValue) action.value = newValue
         }
@@ -195,12 +196,117 @@ class MessagesHistoryFragment :
                 else -> return@observe
             }
         }
+
+        isAttachmentPanelVisible.observe(viewLifecycleOwner) {
+            val layoutParams = binding.refreshLayout.layoutParams as CoordinatorLayout.LayoutParams
+            layoutParams.bottomMargin =
+                if (it) (binding.attachmentPanel.height / 1.5).roundToInt() else 0
+        }
+
+        hideAttachmentPanel(duration = 1)
+
+        binding.avatar.setOnClickListener {
+            val isShown = binding.attachmentPanel.isVisible
+
+            if (isShown) {
+                hideAttachmentPanel()
+            } else {
+                showAttachmentPanel()
+            }
+        }
+
+        binding.attachmentPanel.setOnClickListener c@{
+            val message = replyMessage.value ?: return@c
+
+            val index = adapter.values.indexOf(message)
+            if (index == -1) return@c
+
+            binding.recyclerView.smoothScrollToPosition(index)
+        }
+
+        binding.dismissReply.setOnClickListener {
+            if (replyMessage.value != null) replyMessage.value = null
+
+            hideAttachmentPanel()
+        }
     }
 
+    private fun prepareAvatar() {
+        val avatar = when {
+            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
+            conversation.isUser() -> user?.photo200
+            conversation.isGroup() -> group?.photo200
+            conversation.isChat() -> conversation.photo200
+            else -> null
+        }
+
+        binding.avatar.isVisible = avatar != null
+
+        if (avatar == null) {
+            binding.avatarPlaceholder.isVisible = true
+
+            if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
+                binding.placeholderBack.setImageDrawable(
+                    ColorDrawable(
+                        ContextCompat.getColor(requireContext(), R.color.a1_400)
+                    )
+                )
+                binding.placeholder.imageTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.a1_0))
+                binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
+                binding.placeholder.setPadding(18)
+            } else {
+                binding.placeholderBack.setImageDrawable(
+                    ColorDrawable(
+                        ContextCompat.getColor(requireContext(), R.color.n1_50)
+                    )
+                )
+                binding.placeholder.imageTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.n2_500))
+                binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
+                binding.placeholder.setPadding(0)
+                binding.avatar.setImageDrawable(null)
+            }
+        } else {
+            binding.avatar.load(avatar) {
+                crossfade(200)
+                target {
+                    binding.avatarPlaceholder.isVisible = false
+                    binding.avatar.setImageDrawable(it)
+                }
+            }
+        }
+
+        binding.phantomIcon.isVisible = conversation.isPhantom
+        binding.online.isVisible = user?.online == true
+        binding.pin.isVisible = conversation.isPinned
+    }
+
+    private fun showAttachmentPanel(duration: Long = 250) {
+        if (isAttachmentPanelVisible.value == false) isAttachmentPanelVisible.value = true
+
+        binding.attachmentPanel.animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setDuration(duration)
+            .withStartAction { binding.attachmentPanel.isVisible = true }
+            .start()
+    }
+
+    private fun hideAttachmentPanel(duration: Long = 250) {
+        if (isAttachmentPanelVisible.value == true) isAttachmentPanelVisible.value = false
+
+        binding.attachmentPanel.animate()
+            .alpha(0f)
+            .translationY(50f)
+            .setDuration(duration)
+            .withEndAction { binding.attachmentPanel.isVisible = false }
+            .start()
+    }
 
     private fun performAction() {
         if (action.value == Action.RECORD) {
-
+            return
         } else if (action.value == Action.SEND) {
             val messageText = binding.message.text.toString().trim()
             if (messageText.isBlank()) return
@@ -214,18 +320,25 @@ class MessagesHistoryFragment :
                 peerId = conversation.id,
                 fromId = UserConfig.userId,
                 date = (date / 1000).toInt(),
-                randomId = 0
+                randomId = 0,
+                replyMessage = replyMessage.value
             )
 
             adapter.add(message)
-            adapter.notifyDataSetChanged()
+            adapter.notifyItemInserted(adapter.actualSize - 1)
             binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
             binding.message.clear()
+
+            val replyMessage = replyMessage.value
+
+            this.replyMessage.value = null
+            hideAttachmentPanel()
 
             viewModel.sendMessage(
                 peerId = conversation.id,
                 message = messageText,
-                randomId = 0
+                randomId = 0,
+                replyTo = replyMessage?.id
             ) { message = message.copyMessage(id = it) }
         }
     }
@@ -283,17 +396,22 @@ class MessagesHistoryFragment :
 
     private fun markMessagesAsImportant(event: MessagesMarkAsImportant) {
         var changed = false
+        val positions = mutableListOf<Int>()
+
         for (i in adapter.values.indices) {
             val message = adapter.values[i]
             if (event.messagesIds.contains(message.id)) {
                 if (!changed) changed = true
+
+                positions.add(i)
+
                 adapter.values[i] = message.copyMessage(
                     important = event.important
                 )
             }
         }
 
-        if (changed) adapter.notifyDataSetChanged()
+        if (changed) positions.forEach { adapter.notifyItemChanged(it) }
     }
 
     private fun refreshMessages(event: MessagesLoaded) {
@@ -314,21 +432,111 @@ class MessagesHistoryFragment :
         else binding.recyclerView.scrollToPosition(adapter.lastPosition)
     }
 
-    private fun onItemClick(position: Int) {
+    private fun onItemClick(position: Int, view: View) {
         val message = adapter.values[position]
         if (message.action != null) return
 
-        val important = if (message.important) "Unmark as important" else "Mark as important"
+//        val popupMenu = PopupMenu(requireContext(), view)
+//
+//        val reply = popupMenu.menu.add(
+//            getString(R.string.message_context_action_reply)
+//        )
+//
+//        reply.icon =
+//            ContextCompat.getDrawable(
+//                requireContext(),
+//                R.drawable.ic_attachment_wall_reply
+//            )?.constantState?.newDrawable()?.also {
+//                it.setTint(
+//                    ContextCompat.getColor(
+//                        requireContext(),
+//                        R.color.textColorSecondaryVariant
+//                    )
+//                )
+//            }
+//
+//        val important = popupMenu.menu.add(
+//            getString(
+//                if (message.important) R.string.message_context_action_unmark_as_important
+//                else R.string.message_context_action_mark_as_important
+//            )
+//        )
+//
+//        important.icon =
+//            ContextCompat.getDrawable(
+//                requireContext(),
+//                R.drawable.ic_star_border
+//            )?.constantState?.newDrawable()?.also {
+//                it.setTint(
+//                    ContextCompat.getColor(
+//                        requireContext(),
+//                        R.color.textColorSecondaryVariant
+//                    )
+//                )
+//            }
+//
+//        popupMenu.setForceShowIcon(true)
+//        popupMenu.setOnMenuItemClickListener {
+//            when (it) {
+//                reply -> {
+//                    val title = when {
+//                        message.isGroup() && message.group.value != null -> message.group.value?.name
+//                        message.isUser() && message.user.value != null -> message.user.value?.fullName
+//                        else -> null
+//                    }
+//
+//                    if (replyMessage.value != message) replyMessage.value = message
+//
+//                    binding.replyMessageTitle.text = title
+//                    binding.replyMessageText.text = message.text ?: "[no_message]"
+//
+//                    if (binding.attachmentPanel.isNotVisible) binding.avatar.performClick()
+//                    true
+//                }
+//
+//                important -> {
+//                    viewModel.markAsImportant(
+//                        messagesIds = listOf(message.id),
+//                        important = !message.important
+//                    )
+//                    true
+//                }
+//
+//                else -> false
+//            }
+//        }
+//        popupMenu.show()
 
-        val params = arrayOf(important)
+        val reply = getString(R.string.message_context_action_reply)
+
+        val important = getString(
+            if (message.important) R.string.message_context_action_unmark_as_important
+            else R.string.message_context_action_mark_as_important
+        )
+
+        val params = arrayOf(reply, important)
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setItems(params) { _, which ->
-                if (which == 0) {
-                    viewModel.markAsImportant(
+                when (params[which]) {
+                    important -> viewModel.markAsImportant(
                         messagesIds = listOf(message.id),
                         important = !message.important
                     )
+                    reply -> {
+                        val title = when {
+                            message.isGroup() && message.group.value != null -> message.group.value?.name
+                            message.isUser() && message.user.value != null -> message.user.value?.fullName
+                            else -> null
+                        }
+
+                        if (replyMessage.value != message) replyMessage.value = message
+
+                        binding.replyMessageTitle.text = title
+                        binding.replyMessageText.text = message.text ?: "[no_message]"
+
+                        if (binding.attachmentPanel.isNotVisible) binding.avatar.performClick()
+                    }
                 }
             }
 

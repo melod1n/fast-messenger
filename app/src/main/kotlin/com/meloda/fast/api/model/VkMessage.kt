@@ -1,9 +1,12 @@
 package com.meloda.fast.api.model
 
-import android.os.Parcelable
+import androidx.lifecycle.MutableLiveData
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.base.adapter.SelectableItem
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "messages")
@@ -24,9 +27,21 @@ data class VkMessage(
     val actionMessage: String? = null,
     val geoType: String? = null,
     val important: Boolean = false,
+
     var forwards: List<VkMessage>? = null,
-    var attachments: List<VkAttachment>? = null
-) : Parcelable {
+    var attachments: List<VkAttachment>? = null,
+
+//    @Embedded(prefix = "replyMessage_")
+    var replyMessage: VkMessage? = null
+) : SelectableItem() {
+
+    @Ignore
+    @IgnoredOnParcel
+    val user = MutableLiveData<VkUser?>()
+
+    @Ignore
+    @IgnoredOnParcel
+    val group = MutableLiveData<VkGroup?>()
 
     fun isPeerChat() = peerId > 2_000_000_000
 

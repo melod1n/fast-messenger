@@ -9,12 +9,11 @@
         android:orientation="horizontal"
         android:padding="4dp">
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <com.meloda.fast.widget.CircleImageView
             android:id="@+id/preview"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
-            android:scaleType="centerCrop"
             tools:src="@tools:sample/avatars" />
 
         <androidx.appcompat.widget.LinearLayoutCompat

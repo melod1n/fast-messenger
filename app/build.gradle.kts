@@ -7,9 +7,9 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-kapt")
+    id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
     id("dagger.hilt.android.plugin")
-    id("kotlin-parcelize")
 }
 
 android {
@@ -37,6 +37,9 @@ android {
         }
         getByName("release") {
             isMinifyEnabled = false
+
+            buildConfigField("String", "vkLogin", login)
+            buildConfigField("String", "vkPassword", password)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -68,7 +71,7 @@ android {
 kapt {
     correctErrorTypes = true
 
-    //use this shit if you don't want to have hilt errors
+    //use this shit if you don't want have hilt errors
     javacOptions {
         option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
     }
@@ -82,6 +85,8 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.6.0")
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    implementation("androidx.paging:paging-runtime-ktx:3.0.1")
 
     implementation("androidx.appcompat:appcompat:1.4.0-alpha03")
     implementation("com.google.android.material:material:1.5.0-alpha03")

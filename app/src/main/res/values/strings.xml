@@ -109,4 +109,12 @@
     <string name="post_type_user">User post</string>
     <string name="post_type_unknown">Post</string>
     <string name="message_attachments_story">Story</string>
+    <string name="log_out">Log out</string>
+    <string name="confirm">Confirmation</string>
+    <string name="log_out_confirm">Are you really want to log out?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="message_context_action_reply">Reply</string>
+    <string name="message_context_action_mark_as_important">Mark as important</string>
+    <string name="message_context_action_unmark_as_important">Unmark as important</string>
 </resources>

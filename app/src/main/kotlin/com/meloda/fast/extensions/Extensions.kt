@@ -1,6 +1,8 @@
 package com.meloda.fast.extensions
 
 import android.graphics.*
+import android.view.View
+import androidx.core.view.isVisible
 import kotlin.math.min
 
 fun Bitmap.borderedCircularBitmap(
@@ -71,3 +73,5 @@ fun Bitmap.borderedCircularBitmap(
         diameter // height
     )
 }
+
+val View.isNotVisible get() = !isVisible

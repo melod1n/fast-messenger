@@ -7,7 +7,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
@@ -49,21 +48,21 @@
                         android:id="@+id/avatar"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        tools:src="@tools:sample/avatars"
-                        tools:visibility="visible" />
+                        tools:src="@tools:sample/avatars" />
 
                     <FrameLayout
                         android:id="@+id/avatarPlaceholder"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:visibility="gone">
+                        android:layout_height="match_parent">
 
                         <com.meloda.fast.widget.CircleImageView
+                            android:id="@+id/placeholderBack"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:src="@color/n1_50" />
 
                         <com.meloda.fast.widget.CircleImageView
+                            android:id="@+id/placeholder"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:src="@drawable/ic_account_circle_cut"
@@ -90,7 +89,34 @@
                             android:layout_height="14dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_online_pc"
-                            app:tint="@color/a3_200" />
+                            app:tint="?colorSecondary2" />
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/pin"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="start|top"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/ic_back"
+                            android:backgroundTint="@color/n2_500"
+                            android:elevation="0.5dp" />
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:id="@+id/pinIcon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="center"
+                            android:elevation="1dp"
+                            android:src="@drawable/ic_round_push_pin_24"
+                            app:tint="@color/n2_0" />
 
                     </FrameLayout>
 
@@ -182,6 +208,69 @@
 
         </FrameLayout>
 
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/attachmentPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="35dp"
+            android:background="@drawable/ic_chat_attachment_panel_background"
+            android:backgroundTint="@color/n2_100"
+            android:minHeight="105dp"
+            android:orientation="vertical"
+            android:padding="16dp"
+            app:layout_anchor="@+id/messagePanel"
+            app:layout_anchorGravity="center_vertical|top">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/replyMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/replyMessageTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="?textColorPrimary"
+                        app:fontFamily="@font/google_sans_regular"
+                        tools:text="Michael Bae" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/dismissReply"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/ic_image_button_circle_background"
+                        android:backgroundTint="@color/n1_50"
+                        android:src="@drawable/ic_round_close_20"
+                        android:tint="?colorSecondary3" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/replyMessageText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="?textColorPrimary"
+                    android:textSize="16sp"
+                    app:fontFamily="@font/roboto_regular"
+                    tools:text="Short Message." />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="40dp"
@@ -211,7 +300,8 @@
                 android:layout_marginHorizontal="20dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="@string/message_input_hint" />
+                android:hint="@string/message_input_hint"
+                android:singleLine="true" />
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/attach"

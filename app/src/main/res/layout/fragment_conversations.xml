@@ -20,17 +20,8 @@
                 android:elevation="0dp"
                 app:collapsedTitleTextAppearance="@style/CollapsingToolbarCollapsedTitle"
                 app:expandedTitleTextAppearance="@style/CollapsingToolbarTitle"
-                app:layout_scrollFlags="scroll|enterAlways|snap"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
                 app:title="Messages">
-
-                <com.google.android.material.appbar.MaterialToolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?actionBarSize"
-                    android:background="?android:windowBackground"
-                    android:elevation="0dp"
-                    app:layout_collapseMode="parallax"
-                    app:menu="@menu/fragment_conversations" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/expandedImage"
@@ -43,11 +34,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
-                    android:layout_margin="30dp"
                     android:orientation="horizontal"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="30dp"
                     app:layout_collapseParallaxMultiplier="0.5">
 
                     <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/search"
                         android:layout_width="30dp"
                         android:layout_height="30dp"
                         android:layout_marginEnd="16dp"
@@ -63,6 +56,42 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    android:background="?android:windowBackground"
+                    android:elevation="0dp"
+                    app:layout_collapseMode="parallax"
+                    app:menu="@menu/fragment_conversations">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/toolbarAvatarContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="30dp"
+                        android:orientation="horizontal"
+                        app:layout_collapseParallaxMultiplier="0.5">
+
+                        <androidx.appcompat.widget.AppCompatImageButton
+                            android:id="@+id/toolbarSearch"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="?selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_search"
+                            android:tint="?colorSecondary3Variant" />
+
+                        <com.meloda.fast.widget.CircleImageView
+                            android:id="@+id/toolbarAvatar"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            tools:src="@tools:sample/avatars" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                </com.google.android.material.appbar.MaterialToolbar>
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
