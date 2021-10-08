@@ -7,6 +7,8 @@ import java.util.*
 
 object TimeUtils {
 
+    const val ONE_DAY_IN_SECONDS = 86400
+
     fun removeTime(date: Date): Long {
         return Calendar.getInstance().apply {
             time = date

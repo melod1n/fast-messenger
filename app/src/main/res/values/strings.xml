@@ -117,4 +117,8 @@
     <string name="message_context_action_reply">Reply</string>
     <string name="message_context_action_mark_as_important">Mark as important</string>
     <string name="message_context_action_unmark_as_important">Unmark as important</string>
+    <string name="time_format">Time: %s</string>
+    <string name="message_context_action_pin">Pin</string>
+    <string name="message_context_action_unpin">Unpin</string>
+    <string name="message_context_action_edit">Edit</string>
 </resources>

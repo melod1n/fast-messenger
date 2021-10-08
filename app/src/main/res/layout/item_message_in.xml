@@ -70,19 +70,6 @@
                             android:textColor="@color/n1_800"
                             tools:text="This" />
 
-                        <Space
-                            android:id="@+id/attachmentSpacer"
-                            android:layout_width="wrap_content"
-                            android:layout_height="5dp"
-                            android:visibility="gone" />
-
-                        <androidx.appcompat.widget.LinearLayoutCompat
-                            android:id="@+id/attachmentContainer"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="gone" />
-
                     </androidx.appcompat.widget.LinearLayoutCompat>
 
                 </com.meloda.fast.widget.BoundedLinearLayout>
@@ -96,6 +83,20 @@
                     android:src="@color/a3_200" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <Space
+                android:id="@+id/attachmentSpacer"
+                android:layout_width="wrap_content"
+                android:layout_height="5dp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/attachmentContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

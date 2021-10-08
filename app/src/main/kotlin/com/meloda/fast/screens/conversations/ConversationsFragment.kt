@@ -24,7 +24,7 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
-import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.dataStore
@@ -185,7 +185,7 @@ class ConversationsFragment :
             .show()
     }
 
-    override fun onEvent(event: VKEvent) {
+    override fun onEvent(event: VkEvent) {
         super.onEvent(event)
         when (event) {
             is ConversationsLoaded -> refreshConversations(event)

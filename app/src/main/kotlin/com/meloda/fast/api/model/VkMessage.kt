@@ -4,8 +4,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.base.adapter.SelectableItem
+import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -57,6 +59,10 @@ data class VkMessage(
         if (action == null) return null
         return Action.parse(action)
     }
+
+    fun canEdit() =
+        fromId == UserConfig.userId &&
+                (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.ONE_DAY_IN_SECONDS)
 
     fun copyMessage(
         id: Int = this.id,

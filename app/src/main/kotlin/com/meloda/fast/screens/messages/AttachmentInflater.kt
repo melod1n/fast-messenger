@@ -45,6 +45,13 @@ class AttachmentInflater constructor(
     private val playColor = ContextCompat.getColor(context, R.color.a3_700)
     private val playBackgroundColor = ContextCompat.getColor(context, R.color.a3_200)
 
+    var photoClickListener: ((url: String) -> Unit)? = null
+
+    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): AttachmentInflater {
+        this.photoClickListener = unit
+        return this
+    }
+
     fun inflate() {
         if (message.attachments.isNullOrEmpty()) return
         attachments = message.attachments!!
@@ -112,6 +119,12 @@ class AttachmentInflater constructor(
                 }
 
             scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+
+        if (photoClickListener != null) {
+            newPhoto.setOnClickListener { photoClickListener?.invoke(size.url) }
+        } else {
+            newPhoto.setOnClickListener(null)
         }
 
         val spacer = Space(context).also {

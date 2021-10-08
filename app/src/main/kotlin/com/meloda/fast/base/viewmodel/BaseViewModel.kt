@@ -15,7 +15,7 @@ abstract class BaseViewModel : ViewModel() {
 
     var unknownErrorDefaultText: String = ""
 
-    protected val tasksEventChannel = Channel<VKEvent>()
+    protected val tasksEventChannel = Channel<VkEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
 
     protected fun <T> makeJob(
@@ -25,22 +25,35 @@ abstract class BaseViewModel : ViewModel() {
         onEnd: (suspend () -> Unit)? = null,
         onError: (suspend (Throwable) -> Unit)? = null
     ) = viewModelScope.launch {
-        onStart?.invoke()
+        onStart?.invoke() ?: onStart()
         when (val response = job()) {
             is Answer.Success -> onAnswer(response.data)
             is Answer.Error -> {
                 checkErrors(response.throwable)
-                onError?.invoke(response.throwable) ?: sendEvent(
-                    ErrorEvent(
-                        response.throwable.message
-                            ?: unknownErrorDefaultText
-                    )
-                )
+                onError?.invoke(response.throwable) ?: onError(response.throwable)
             }
         }
-    }.also { it.invokeOnCompletion { viewModelScope.launch { onEnd?.invoke() } } }
+    }.also {
+        it.invokeOnCompletion {
+            viewModelScope.launch {
+                onEnd?.invoke() ?: onStop()
+            }
+        }
+    }
 
-    protected suspend fun <T : VKEvent> sendEvent(event: T) = tasksEventChannel.send(event)
+    protected suspend fun onStart() {
+        sendEvent(StartProgressEvent)
+    }
+
+    protected suspend fun onStop() {
+        sendEvent(StopProgressEvent)
+    }
+
+    protected suspend fun onError(throwable: Throwable) {
+        sendEvent(ErrorEvent(throwable.message ?: unknownErrorDefaultText))
+    }
+
+    protected suspend fun <T : VkEvent> sendEvent(event: T) = tasksEventChannel.send(event)
 
     private suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {

@@ -51,26 +51,25 @@ class LoginViewModel @Inject constructor(
                 sendEvent(SuccessAuth())
             },
             onError = {
-                if (it !is VKException) return@makeJob
+                if (it !is VKException) {
+                    onError(it)
+                    return@makeJob
+                }
 
                 // TODO: 9/27/2021 use `delay` parameter
                 twoFaCode?.let { sendEvent(CodeSent) }
-            },
-            onStart = { sendEvent(StartProgressEvent) },
-            onEnd = { sendEvent(StopProgressEvent) }
+            }
         )
     }
 
     fun sendSms(validationSid: String) = viewModelScope.launch {
         makeJob({ dataSource.sendSms(validationSid) },
-            onAnswer = { sendEvent(CodeSent) },
-            onError = {},
-            onStart = {},
-            onEnd = {})
+            onAnswer = { sendEvent(CodeSent) }
+        )
     }
 
 }
 
-object CodeSent : VKEvent()
+object CodeSent : VkEvent()
 
-data class SuccessAuth(val haveAuthorized: Boolean = true) : VKEvent()
+data class SuccessAuth(val haveAuthorized: Boolean = true) : VkEvent()

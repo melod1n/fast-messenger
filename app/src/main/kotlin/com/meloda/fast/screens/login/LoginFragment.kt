@@ -70,7 +70,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         binding.loginInput.clearFocus()
     }
 
-    override fun onEvent(event: VKEvent) {
+    override fun onEvent(event: VkEvent) {
         super.onEvent(event)
 
         when (event) {

@@ -1,6 +1,6 @@
 package com.meloda.fast.api.network
 
-object VKUrls {
+object VkUrls {
 
     const val OAUTH = "https://oauth.vk.com"
     const val API = "https://api.vk.com/method"
@@ -22,6 +22,8 @@ object VKUrls {
         const val GetHistory = "$API/messages.getHistory"
         const val Send = "$API/messages.send"
         const val MarkAsImportant = "$API/messages.markAsImportant"
+        const val Pin = "$API/messages.pin"
+        const val Unpin = "$API/messages.unpin"
         const val GetLongPollServer = "$API/messages.getLongPollServer"
         const val GetLongPollHistory = "$API/messages.getLongPollHistory"
     }

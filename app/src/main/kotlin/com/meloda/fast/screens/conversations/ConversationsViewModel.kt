@@ -11,9 +11,7 @@ import com.meloda.fast.api.model.request.UsersGetRequest
 import com.meloda.fast.api.network.datasource.ConversationsDataSource
 import com.meloda.fast.api.network.datasource.UsersDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
-import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.base.viewmodel.VkEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,13 +64,8 @@ class ConversationsViewModel @Inject constructor(
                         )
                     )
                 }
-            },
-            onError = {
-                val er = it
-                throw it
-            },
-            onStart = { sendEvent(StartProgressEvent) },
-            onEnd = { sendEvent(StopProgressEvent) })
+            }
+        )
     }
 
     fun loadProfileUser() = viewModelScope.launch {
@@ -95,4 +88,4 @@ data class ConversationsLoaded(
     val conversations: List<VkConversation>,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>
-) : VKEvent()
+) : VkEvent()

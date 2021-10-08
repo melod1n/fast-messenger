@@ -219,8 +219,10 @@
             android:minHeight="105dp"
             android:orientation="vertical"
             android:padding="16dp"
+            android:visibility="gone"
             app:layout_anchor="@+id/messagePanel"
-            app:layout_anchorGravity="center_vertical|top">
+            app:layout_anchorGravity="center_vertical|top"
+            tools:visibility="visible">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/replyMessage"
@@ -249,10 +251,9 @@
                         android:id="@+id/dismissReply"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/ic_image_button_circle_background"
-                        android:backgroundTint="@color/n1_50"
+                        android:background="?selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_round_close_20"
-                        android:tint="?colorSecondary3" />
+                        android:tint="@color/n1_800" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 

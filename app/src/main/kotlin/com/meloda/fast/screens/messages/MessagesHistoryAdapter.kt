@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
@@ -16,6 +17,7 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
@@ -35,6 +37,8 @@ class MessagesHistoryAdapter constructor(
     private var highlightTimer: Timer? = null
 
     var onItemClickListener: ((position: Int, view: View) -> Unit)? = null
+
+    var attachmentClickListener: ((attachment: VkAttachment) -> Unit)? = null
 
     override fun getItemViewType(position: Int): Int {
         when {
@@ -123,6 +127,8 @@ class MessagesHistoryAdapter constructor(
                 prevMessage = prevMessage,
                 nextMessage = nextMessage,
 
+                title = binding.title,
+
                 avatar = binding.avatar,
                 bubble = binding.bubble,
                 text = binding.text,
@@ -133,7 +139,9 @@ class MessagesHistoryAdapter constructor(
 
                 profiles = profiles,
                 groups = groups
-            ).prepare()
+            ).setPhotoClickListener {
+                Toast.makeText(context, "Photo url: $it", Toast.LENGTH_LONG).show()
+            }.prepare()
         }
     }
 

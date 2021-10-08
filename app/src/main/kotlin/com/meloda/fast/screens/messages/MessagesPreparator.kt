@@ -9,7 +9,6 @@ import android.widget.Space
 import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import coil.load
 import com.meloda.fast.R
@@ -65,13 +64,16 @@ class MessagesPreparator constructor(
         ContextCompat.getDrawable(context, R.drawable.ic_message_out_background)
     private val backgroundMiddleOut =
         ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle)
-//    private val backgroundStrokeOut =
-//        ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_stroke)
-//    private val backgroundMiddleStrokeOut =
-//        ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle_stroke)
 
     private val rootHighlightedColor =
         ContextCompat.getColor(context, R.color.n2_100)
+
+    private var photoClickListener: ((url: String) -> Unit)? = null
+
+    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): MessagesPreparator {
+        this.photoClickListener = unit
+        return this
+    }
 
     fun prepare() {
         val messageUser: VkUser? = (if (message.isUser()) {
@@ -104,20 +106,24 @@ class MessagesPreparator constructor(
         )
 
         if (message.isPeerChat()) {
-
-            val fromDiffSender = VkUtils.isPreviousMessageFromDifferentSender(prevMessage, message)
+            val prevSenderDiff = VkUtils.isPreviousMessageFromDifferentSender(prevMessage, message)
+            val nextSenderDiff = VkUtils.isPreviousMessageFromDifferentSender(message, nextMessage)
             val fiveMinAgo = VkUtils.isPreviousMessageSentFiveMinutesAgo(prevMessage, message)
 
             val change = (prevMessage?.date ?: 0) - message.date
 
             Log.d(
                 "Fast::MessagesPreparator",
-                "text: ${message.text}; prevText: ${prevMessage?.text}; time change: $change; fromDiffSender: $fromDiffSender; fiveMinAgo: $fiveMinAgo; "
+                "text: ${message.text}; prevText: ${prevMessage?.text}; time change: $change; fromDiffSender: $prevSenderDiff; fiveMinAgo: $fiveMinAgo; "
             )
 
-            title?.isVisible = fromDiffSender || fiveMinAgo
+            title?.isVisible = prevSenderDiff || fiveMinAgo
 
-            avatar?.isInvisible = fromDiffSender && fiveMinAgo
+            avatar?.visibility =
+                if (nextSenderDiff
+                    || (fiveMinAgo && prevSenderDiff)
+                    || (!prevSenderDiff && nextMessage == null)
+                ) View.VISIBLE else View.INVISIBLE
         } else {
             title?.isVisible = false
             avatar?.isVisible = false
@@ -131,7 +137,6 @@ class MessagesPreparator constructor(
             }
 
             title.text = titleString
-            title.measure(0, 0)
         }
     }
 
@@ -164,13 +169,16 @@ class MessagesPreparator constructor(
                 attachmentContainer.removeAllViews()
             } else {
                 attachmentContainer.isVisible = true
+
                 AttachmentInflater(
                     context = context,
                     container = attachmentContainer,
                     message = message,
                     groups = groups,
                     profiles = profiles
-                ).inflate()
+                )
+                    .setPhotoClickListener(photoClickListener)
+                    .inflate()
             }
         }
     }

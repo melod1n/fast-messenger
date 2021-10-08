@@ -71,6 +71,28 @@ data class MessagesMarkAsImportantRequest(
 }
 
 @Parcelize
+data class MessagesPinMessageRequest(
+    val peerId: Int,
+    val messageId: Int? = null,
+    val conversationMessageId: Int? = null
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "peer_id" to peerId.toString()
+        ).apply {
+            messageId?.let { this["message_id"] = it.toString() }
+            conversationMessageId?.let { this["conversation_message_id"] = it.toString() }
+        }
+
+}
+
+@Parcelize
+data class MessagesUnPinMessageRequest(val peerId: Int) : Parcelable {
+    val map get() = mutableMapOf("peer_id" to peerId.toString())
+}
+
+@Parcelize
 data class MessagesGetLongPollServerRequest(
     val needPts: Boolean,
     val version: Int
