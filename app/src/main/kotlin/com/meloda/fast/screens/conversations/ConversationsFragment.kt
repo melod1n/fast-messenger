@@ -31,6 +31,7 @@ import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -172,14 +173,30 @@ class ConversationsFragment :
     }
 
     private fun showLogOutDialog() {
+        val isEasterEgg = UserConfig.userId == UserConfig.userId
+
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.confirm)
-            .setMessage(R.string.log_out_confirm)
-            .setPositiveButton(R.string.yes) { _, _ ->
-                UserConfig.clear()
-                AppGlobal.appDatabase.clearAllTables()
-                requireActivity().finishAffinity()
-                requireActivity().startActivity(Intent(requireContext(), MainActivity::class.java))
+            .setTitle(
+                if (isEasterEgg) "Выйти внаружу?"
+                else getString(R.string.sign_out_confirm_title)
+            )
+            .setMessage(R.string.sign_out_confirm)
+            .setPositiveButton(
+                if (isEasterEgg) "Выйти внаружу"
+                else getString(R.string.action_sign_out)
+            ) { _, _ ->
+                lifecycleScope.launch(Dispatchers.Default) {
+                    UserConfig.clear()
+                    AppGlobal.appDatabase.clearAllTables()
+
+                    requireActivity().finishAffinity()
+                    requireActivity().startActivity(
+                        Intent(
+                            requireContext(),
+                            MainActivity::class.java
+                        )
+                    )
+                }
             }
             .setNegativeButton(R.string.no, null)
             .show()

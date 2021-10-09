@@ -111,7 +111,7 @@
     <string name="message_attachments_story">Story</string>
     <string name="log_out">Log out</string>
     <string name="confirm">Confirmation</string>
-    <string name="log_out_confirm">Are you really want to log out?</string>
+    <string name="sign_out_confirm">Signing out will delete all data related to this account from this device. Continue?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="message_context_action_reply">Reply</string>
@@ -132,4 +132,6 @@
     <string name="action_delete">Delete</string>
     <string name="conversation_context_action_delete">Delete</string>
     <string name="confirm_delete_conversation">Delete the conversation?</string>
+    <string name="action_sign_out">Sign out</string>
+    <string name="sign_out_confirm_title">Sign out</string>
 </resources>
