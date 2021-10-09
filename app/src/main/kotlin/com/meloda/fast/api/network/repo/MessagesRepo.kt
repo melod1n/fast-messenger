@@ -36,4 +36,8 @@ interface MessagesRepo {
     @POST(VkUrls.Messages.Unpin)
     suspend fun unpin(@FieldMap params: Map<String, String>): Answer<ApiResponse<Any>>
 
+    @FormUrlEncoded
+    @POST(VkUrls.Messages.Delete)
+    suspend fun delete(@FieldMap params: Map<String, String>): Answer<ApiResponse<Any>>
+
 }

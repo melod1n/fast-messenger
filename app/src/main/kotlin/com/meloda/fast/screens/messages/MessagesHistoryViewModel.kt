@@ -154,6 +154,26 @@ class MessagesHistoryViewModel @Inject constructor(
             )
         }
     }
+
+    fun deleteMessage(
+        peerId: Int,
+        messagesIds: List<Int>? = null,
+        conversationsMessagesIds: List<Int>? = null,
+        isSpam: Boolean? = null,
+        deleteForAll: Boolean? = null
+    ) = viewModelScope.launch {
+        makeJob({
+            messages.delete(
+                MessagesDeleteRequest(
+                    peerId = peerId,
+                    messagesIds = messagesIds,
+                    conversationsMessagesIds = conversationsMessagesIds,
+                    isSpam = isSpam,
+                    deleteForAll = deleteForAll
+                )
+            )
+        }, onAnswer = { sendEvent(MessagesDelete(messagesIds = messagesIds ?: listOf())) })
+    }
 }
 
 data class MessagesLoaded(
@@ -174,4 +194,8 @@ data class MessagesPin(
 ) : VkEvent()
 
 object MessagesUnpin : VkEvent()
+
+data class MessagesDelete(
+    val messagesIds: List<Int>
+) : VkEvent()
 

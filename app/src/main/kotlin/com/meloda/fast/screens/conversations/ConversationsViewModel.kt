@@ -6,6 +6,7 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.request.ConversationsDeleteRequest
 import com.meloda.fast.api.model.request.ConversationsGetRequest
 import com.meloda.fast.api.model.request.UsersGetRequest
 import com.meloda.fast.api.network.datasource.ConversationsDataSource
@@ -20,15 +21,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
-    private val dataSource: ConversationsDataSource,
-    private val usersDataSource: UsersDataSource
+    private val conversations: ConversationsDataSource,
+    private val users: UsersDataSource
 ) : BaseViewModel() {
 
     fun loadConversations(
         offset: Int? = null
     ) = viewModelScope.launch(Dispatchers.Default) {
         makeJob({
-            dataSource.getAllChats(
+            conversations.get(
                 ConversationsGetRequest(
                     count = 30,
                     extended = true,
@@ -69,15 +70,23 @@ class ConversationsViewModel @Inject constructor(
     }
 
     fun loadProfileUser() = viewModelScope.launch {
-        makeJob({ usersDataSource.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
+        makeJob({ users.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
             onAnswer = {
                 it.response?.let { r ->
                     val users = r.map { u -> u.asVkUser() }
-                    usersDataSource.storeUsers(users)
+                    this@ConversationsViewModel.users.storeUsers(users)
 
                     UserConfig.vkUser.value = users[0]
                 }
             })
+    }
+
+    fun deleteConversation(peerId: Int) = viewModelScope.launch {
+        makeJob({
+            conversations.delete(
+                ConversationsDeleteRequest(peerId)
+            )
+        }, onAnswer = { sendEvent(ConversationsDelete(peerId)) })
     }
 }
 
@@ -89,3 +98,5 @@ data class ConversationsLoaded(
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>
 ) : VkEvent()
+
+data class ConversationsDelete(val peerId: Int) : VkEvent()

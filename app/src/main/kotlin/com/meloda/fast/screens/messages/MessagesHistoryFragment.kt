@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -20,6 +21,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -28,6 +30,7 @@ import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.TextViewExtensions.clear
 import com.meloda.fast.util.AndroidUtils
@@ -65,8 +68,9 @@ class MessagesHistoryFragment :
 
     private val adapter: MessagesHistoryAdapter by lazy {
         MessagesHistoryAdapter(requireContext(), mutableListOf(), conversation).also {
-            it.onItemClickListener = this::onItemClick
+            it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
+            it.avatarLongClickListener = this::onAvatarLongClickListener
         }
     }
 
@@ -316,11 +320,14 @@ class MessagesHistoryFragment :
         super.onEvent(event)
 
         when (event) {
+            is StartProgressEvent -> onProgressStarted()
+            is StopProgressEvent -> onProgressStopped()
+
             is MessagesMarkAsImportant -> markMessagesAsImportant(event)
             is MessagesLoaded -> refreshMessages(event)
             is MessagesPin -> conversation.pinnedMessage = event.message
-            is StartProgressEvent -> onProgressStarted()
-            is StopProgressEvent -> onProgressStopped()
+            is MessagesUnpin -> conversation.pinnedMessage = null
+            is MessagesDelete -> deleteMessages(event)
         }
     }
 
@@ -402,7 +409,23 @@ class MessagesHistoryFragment :
         else binding.recyclerView.scrollToPosition(adapter.lastPosition)
     }
 
-    private fun onItemClick(position: Int, view: View) {
+    private fun onItemClick(position: Int) {
+        showOptionsDialog(position)
+    }
+
+    private fun onItemLongClick(position: Int) = true
+
+    private fun onAvatarLongClickListener(position: Int) {
+        val message = adapter.values[position]
+
+        val messageUser = VkUtils.getMessageUser(message, adapter.profiles)
+        val messageGroup = VkUtils.getMessageGroup(message, adapter.groups)
+
+        val title = VkUtils.getMessageTitle(message, messageUser, messageGroup)
+        Toast.makeText(requireContext(), title, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showOptionsDialog(position: Int) {
         val message = adapter.values[position]
         if (message.action != null) return
 
@@ -412,6 +435,11 @@ class MessagesHistoryFragment :
                 "dd.MM.yyyy, HH:mm:ss",
                 Locale.getDefault()
             ).format(message.date * 1000L)
+        )
+
+        val important = getString(
+            if (message.important) R.string.message_context_action_unmark_as_important
+            else R.string.message_context_action_mark_as_important
         )
 
         val reply = getString(R.string.message_context_action_reply)
@@ -425,27 +453,25 @@ class MessagesHistoryFragment :
 
         val edit = getString(R.string.message_context_action_edit)
 
-        val important = getString(
-            if (message.important) R.string.message_context_action_unmark_as_important
-            else R.string.message_context_action_mark_as_important
+        val delete = getString(R.string.message_context_action_delete)
+
+        val params = mutableListOf(
+            important, reply
         )
 
-        val params = mutableListOf<String>()
-        params.add(reply)
-
         if (conversation.canChangePin) {
-            params.add(pin)
+            params += pin
         }
 
         if (message.canEdit()) {
-            params.add(edit)
+            params += edit
         }
 
-        params.add(important)
+        params += delete
 
         val arrayParams = params.toTypedArray()
 
-        val dialog = MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(time)
             .setItems(arrayParams) { _, which ->
                 when (params[which]) {
@@ -468,16 +494,40 @@ class MessagesHistoryFragment :
                         if (attachmentController.message.value != message)
                             attachmentController.message.value = message
                     }
+                    delete -> showDeleteMessageDialog(message)
                 }
-            }
-
-        dialog.show()
-
+            }.show()
     }
 
-    private fun onItemLongClick(position: Int): Boolean {
+    private fun showDeleteMessageDialog(message: VkMessage) {
+        val binding = DialogMessageDeleteBinding.inflate(layoutInflater, null, false)
 
-        return true
+        binding.check.setText(
+            if (message.isOut) R.string.message_delete_for_all
+            else R.string.message_mark_as_spam
+        )
+
+        binding.check.isEnabled = !message.isOut || message.canEdit()
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.confirm_delete_message)
+            .setView(binding.root)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
+                viewModel.deleteMessage(
+                    peerId = conversation.id,
+                    messagesIds = listOf(message.id),
+                    isSpam = if (message.isOut) null else binding.check.isChecked,
+                    deleteForAll = if (!message.isOut || !message.canEdit()) null else binding.check.isChecked
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteMessages(event: MessagesDelete) {
+        adapter.removeMessagesByIds(event.messagesIds).let {
+            it.forEach { index -> adapter.notifyItemRemoved(index) }
+        }
     }
 
     private inner class AttachmentPanelController {

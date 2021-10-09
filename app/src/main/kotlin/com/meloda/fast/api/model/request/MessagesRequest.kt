@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.request
 
 import android.os.Parcelable
+import com.meloda.fast.api.ApiExtensions.intString
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -20,9 +21,9 @@ data class MessagesGetHistoryRequest(
         ).apply {
             count?.let { this["count"] = it.toString() }
             offset?.let { this["offset"] = it.toString() }
-            extended?.let { this["extended"] = (if (it) 1 else 0).toString() }
+            extended?.let { this["extended"] = it.intString }
             startMessageId?.let { this["start_message_id"] = it.toString() }
-            rev?.let { this["rev"] = (if (it) 1 else 0).toString() }
+            rev?.let { this["rev"] = it.intString }
             fields?.let { this["fields"] = it }
         }
 
@@ -51,8 +52,8 @@ data class MessagesSendRequest(
             lon?.let { this["lon"] = it.toString() }
             replyTo?.let { this["reply_to"] = it.toString() }
             stickerId?.let { this["sticker_id"] = it.toString() }
-            disableMentions?.let { this["disable_mentions"] = (if (it) 1 else 0).toString() }
-            dontParseLinks?.let { this["dont_parse_links"] = (if (it) 1 else 0).toString() }
+            disableMentions?.let { this["disable_mentions"] = it.intString }
+            dontParseLinks?.let { this["dont_parse_links"] = it.intString }
         }
 }
 
@@ -65,10 +66,24 @@ data class MessagesMarkAsImportantRequest(
     val map
         get() = mutableMapOf(
             "message_ids" to messagesIds.joinToString { it.toString() },
-            "important" to (if (important) 1 else 0).toString()
+            "important" to important.intString
         )
 
 }
+
+@Parcelize
+data class MessagesGetLongPollServerRequest(
+    val needPts: Boolean,
+    val version: Int
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "need_pts" to needPts.intString,
+            "version" to version.toString()
+        )
+}
+
 
 @Parcelize
 data class MessagesPinMessageRequest(
@@ -93,14 +108,27 @@ data class MessagesUnPinMessageRequest(val peerId: Int) : Parcelable {
 }
 
 @Parcelize
-data class MessagesGetLongPollServerRequest(
-    val needPts: Boolean,
-    val version: Int
+data class MessagesDeleteRequest(
+    val peerId: Int,
+    val messagesIds: List<Int>? = null,
+    val conversationsMessagesIds: List<Int>? = null,
+    val isSpam: Boolean? = null,
+    val deleteForAll: Boolean? = null
 ) : Parcelable {
 
     val map
         get() = mutableMapOf(
-            "need_pts" to (if (needPts) 1 else 0).toString(),
-            "version" to version.toString()
-        )
+            "peer_id" to peerId.toString()
+        ).apply {
+            isSpam?.let { this["spam"] = it.intString }
+            deleteForAll?.let { this["delete_for_all"] = it.intString }
+            messagesIds?.let {
+                this["message_ids"] = it.joinToString { id -> id.toString() }
+            }
+
+            conversationsMessagesIds?.let {
+                this["conversation_message_ids"] = it.joinToString { id -> id.toString() }
+            }
+        }
+
 }

@@ -76,13 +76,8 @@ class MessagesPreparator constructor(
     }
 
     fun prepare() {
-        val messageUser: VkUser? = (if (message.isUser()) {
-            profiles[message.fromId]
-        } else null).also { message.user.value = it }
-
-        val messageGroup: VkGroup? = (if (message.isGroup()) {
-            groups[message.fromId]
-        } else null).also { message.group.value = it }
+        val messageUser = VkUtils.getMessageUser(message, profiles)
+        val messageGroup = VkUtils.getMessageGroup(message, groups)
 
         prepareRootBackground()
 
@@ -225,11 +220,7 @@ class MessagesPreparator constructor(
         messageGroup: VkGroup? = null
     ) {
         if (avatar != null) {
-            val avatarUrl = when {
-                message.isUser() && messageUser != null && !messageUser.photo200.isNullOrBlank() -> messageUser.photo200
-                message.isGroup() && messageGroup != null && !messageGroup.photo200.isNullOrBlank() -> messageGroup.photo200
-                else -> null
-            }
+            val avatarUrl = VkUtils.getMessageAvatar(message, messageUser, messageGroup)
 
             avatar.load(avatarUrl) { crossfade(100) }
         }

@@ -24,3 +24,8 @@ data class ConversationsGetRequest(
             startMessageId?.let { this["start_message_id"] = it.toString() }
         }
 }
+
+@Parcelize
+data class ConversationsDeleteRequest(val peerId: Int) : Parcelable {
+    val map get() = mapOf("peer_id" to peerId.toString())
+}

@@ -29,6 +29,9 @@ class MessagesDataSource @Inject constructor(
     suspend fun unpin(params: MessagesUnPinMessageRequest) =
         repo.unpin(params.map)
 
+    suspend fun delete(params: MessagesDeleteRequest) =
+        repo.delete(params.map)
+
     suspend fun store(messages: List<VkMessage>) = dao.insert(messages)
 
     suspend fun getCached(peerId: Int) = dao.getByPeerId(peerId)

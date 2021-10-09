@@ -188,9 +188,11 @@ class ConversationsFragment :
     override fun onEvent(event: VkEvent) {
         super.onEvent(event)
         when (event) {
-            is ConversationsLoaded -> refreshConversations(event)
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
+
+            is ConversationsLoaded -> refreshConversations(event)
+            is ConversationsDelete -> deleteConversation(event.peerId)
         }
     }
 
@@ -263,8 +265,40 @@ class ConversationsFragment :
     }
 
     private fun onItemLongClick(position: Int): Boolean {
-        binding.createChat.performClick()
+        showOptionsDialog(position)
         return true
+    }
+
+    private fun showOptionsDialog(position: Int) {
+        val conversation = adapter[position]
+
+        val delete = getString(R.string.conversation_context_action_delete)
+
+        val params = mutableListOf(delete)
+
+        val arrayParams = params.toTypedArray()
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setItems(arrayParams) { _, which ->
+                when (params[which]) {
+                    delete -> showDeleteConversationDialog(conversation.id)
+                }
+            }.show()
+    }
+
+    private fun showDeleteConversationDialog(conversationId: Int) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.confirm_delete_conversation)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
+                viewModel.deleteConversation(conversationId)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteConversation(conversationId: Int) {
+        val index = adapter.removeConversation(conversationId) ?: return
+        adapter.notifyItemRemoved(index)
     }
 
 }

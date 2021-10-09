@@ -12,6 +12,7 @@ object VkUrls {
 
     object Conversations {
         const val Get = "$API/messages.getConversations"
+        const val Delete = "$API/messages.deleteConversation"
     }
 
     object Users {
@@ -22,10 +23,11 @@ object VkUrls {
         const val GetHistory = "$API/messages.getHistory"
         const val Send = "$API/messages.send"
         const val MarkAsImportant = "$API/messages.markAsImportant"
-        const val Pin = "$API/messages.pin"
-        const val Unpin = "$API/messages.unpin"
         const val GetLongPollServer = "$API/messages.getLongPollServer"
         const val GetLongPollHistory = "$API/messages.getLongPollHistory"
+        const val Pin = "$API/messages.pin"
+        const val Unpin = "$API/messages.unpin"
+        const val Delete = "$API/messages.delete"
     }
 
 

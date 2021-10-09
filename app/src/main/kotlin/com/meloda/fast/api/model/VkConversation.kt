@@ -1,9 +1,12 @@
 package com.meloda.fast.api.model
 
 import android.os.Parcelable
+import androidx.lifecycle.MutableLiveData
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "conversations")
@@ -33,6 +36,14 @@ data class VkConversation(
     @Embedded(prefix = "lastMessage_")
     var lastMessage: VkMessage? = null,
 ) : Parcelable {
+
+    @Ignore
+    @IgnoredOnParcel
+    val user = MutableLiveData<VkUser?>()
+
+    @Ignore
+    @IgnoredOnParcel
+    val group = MutableLiveData<VkGroup?>()
 
     fun isChat() = type == "chat"
     fun isUser() = type == "user"

@@ -7,6 +7,7 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
+import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -15,6 +16,64 @@ import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 
 object VkUtils {
+
+    fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+        return (if (!message.isUser()) null
+        else profiles[message.fromId]).also { message.user.value = it }
+    }
+
+    fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
+        return (if (!message.isGroup()) null
+        else groups[message.fromId]).also { message.group.value = it }
+    }
+
+    fun getMessageAvatar(
+        message: VkMessage,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?
+    ): String? {
+        return when {
+            message.isUser() -> messageUser?.photo200
+            message.isGroup() -> messageGroup?.photo200
+            else -> null
+        }
+    }
+
+    fun getMessageTitle(
+        message: VkMessage,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?
+    ): String? {
+        return when {
+            message.isUser() -> messageUser?.fullName
+            message.isGroup() -> messageGroup?.name
+            else -> null
+        }
+    }
+
+    fun getConversationUser(conversation: VkConversation, profiles: Map<Int, VkUser>): VkUser? {
+        return (if (!conversation.isUser()) null
+        else profiles[conversation.id]).also { conversation.user.value = it }
+    }
+
+    fun getConversationGroup(conversation: VkConversation, groups: Map<Int, VkGroup>): VkGroup? {
+        return (if (!conversation.isGroup()) null
+        else groups[conversation.id]).also { conversation.group.value = it }
+    }
+
+    fun getConversationAvatar(
+        conversation: VkConversation,
+        conversationUser: VkUser?,
+        conversationGroup: VkGroup?
+    ): String? {
+        return when {
+            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
+            conversation.isUser() -> conversationUser?.photo200
+            conversation.isGroup() -> conversationGroup?.photo200
+            conversation.isChat() -> conversation.photo200
+            else -> null
+        }
+    }
 
     fun prepareMessageText(text: String, forConversations: Boolean? = null): String {
         return text.apply {

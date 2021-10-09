@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
@@ -17,7 +16,6 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
@@ -34,11 +32,7 @@ class MessagesHistoryAdapter constructor(
     val groups: HashMap<Int, VkGroup> = hashMapOf()
 ) : BaseAdapter<VkMessage, MessagesHistoryAdapter.BasicHolder>(context, values, COMPARATOR) {
 
-    private var highlightTimer: Timer? = null
-
-    var onItemClickListener: ((position: Int, view: View) -> Unit)? = null
-
-    var attachmentClickListener: ((attachment: VkAttachment) -> Unit)? = null
+    var avatarLongClickListener: ((position: Int) -> Unit)? = null
 
     override fun getItemViewType(position: Int): Int {
         when {
@@ -76,11 +70,19 @@ class MessagesHistoryAdapter constructor(
         }
     }
 
-    override fun initListeners(itemView: View, position: Int) {
-        if (itemView is AdapterView<*>) return
+//    override fun initListeners(itemView: View, position: Int) {
+//        if (itemView is AdapterView<*>) return
+//
+//        itemView.setOnClickListener { onItemClickListener?.invoke(position, itemView) }
+//        itemView.setOnLongClickListener { itemLongClickListener.invoke(position) }
+//    }
 
-        itemView.setOnClickListener { onItemClickListener?.invoke(position, itemView) }
-        itemView.setOnLongClickListener { itemLongClickListener.invoke(position) }
+
+    val actualSize get() = values.size
+
+    override fun getItemCount(): Int {
+        if (actualSize == 0) return 2
+        return super.getItemCount() + 2
     }
 
     private fun createEmptyView(size: Int) = View(context).apply {
@@ -142,6 +144,11 @@ class MessagesHistoryAdapter constructor(
             ).setPhotoClickListener {
                 Toast.makeText(context, "Photo url: $it", Toast.LENGTH_LONG).show()
             }.prepare()
+
+            binding.avatar.setOnLongClickListener() {
+                avatarLongClickListener?.invoke(position)
+                true
+            }
         }
     }
 
@@ -230,11 +237,30 @@ class MessagesHistoryAdapter constructor(
         }
     }
 
-    val actualSize get() = values.size
+    fun removeMessageById(id: Int): Int? {
+        for (i in values.indices) {
+            val message = values[i]
+            if (message.id == id) {
+                values.removeAt(i)
+                return i
+            }
+        }
 
-    override fun getItemCount(): Int {
-        if (actualSize == 0) return 2
-        return super.getItemCount() + 2
+        return null
+    }
+
+    fun removeMessagesByIds(ids: List<Int>): List<Int> {
+        val positions = mutableListOf<Int>()
+
+        for (i in values.indices) {
+            val message = values[i]
+            if (ids.contains(message.id)) {
+                values.removeAt(i)
+                positions += i
+            }
+        }
+
+        return positions
     }
 
     companion object {
