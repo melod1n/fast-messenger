@@ -146,4 +146,6 @@
     <string name="message_call_state_cancelled">Cancelled</string>
     <string name="message_call_state_missed">Missed</string>
     <string name="message_call_unknown">Unknown</string>
+    <string name="confirm_pin_message">Pin the message?</string>
+    <string name="confirm_unpin_message">Unpin the message?</string>
 </resources>

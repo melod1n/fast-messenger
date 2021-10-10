@@ -483,11 +483,12 @@ class MessagesHistoryFragment :
                         if (attachmentController.message.value != message)
                             attachmentController.message.value = message
                     }
-                    pin -> viewModel.pinMessage(
-                        peerId = conversation.id,
-                        messageId = message.id,
-                        pin = !isMessageAlreadyPinned
-                    )
+                    pin ->
+                        showPinMessageDialog(
+                            peerId = conversation.id,
+                            messageId = message.id,
+                            pin = !isMessageAlreadyPinned
+                        )
                     edit -> {
                         attachmentController.isEditing = true
 
@@ -497,6 +498,30 @@ class MessagesHistoryFragment :
                     delete -> showDeleteMessageDialog(message)
                 }
             }.show()
+    }
+
+    private fun showPinMessageDialog(
+        peerId: Int,
+        messageId: Int?,
+        pin: Boolean
+    ) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(
+                if (pin) R.string.confirm_pin_message
+                else R.string.confirm_unpin_message
+            )
+            .setPositiveButton(
+                if (pin) R.string.action_pin
+                else R.string.action_unpin
+            ) { _, _ ->
+                viewModel.pinMessage(
+                    peerId = peerId,
+                    messageId = messageId,
+                    pin = pin
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showDeleteMessageDialog(message: VkMessage) {
