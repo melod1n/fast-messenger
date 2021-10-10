@@ -118,7 +118,8 @@ class MessagesPreparator constructor(
             avatar?.visibility =
                 if (nextSenderDiff
                     || (fiveMinAgo && prevSenderDiff)
-                    || (!prevSenderDiff && nextMessage == null)
+                    || !prevSenderDiff
+                    || nextMessage == null
                 ) View.VISIBLE else View.INVISIBLE
         } else {
             title?.isVisible = false
