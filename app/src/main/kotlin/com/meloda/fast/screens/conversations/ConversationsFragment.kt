@@ -103,6 +103,11 @@ class ConversationsFragment :
         binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
             if (isPaused) return@OnOffsetChangedListener
 
+            binding.appBar.animate().translationZ(
+                if (verticalOffset < 0) AndroidUtils.px(3).roundToInt().toFloat()
+                else 0f
+            ).setDuration(50).start()
+
             val padding = AndroidUtils.px(if (verticalOffset <= -100) 10 else 30).roundToInt()
 
             binding.avatarContainer.updatePadding(
@@ -113,7 +118,7 @@ class ConversationsFragment :
             val minusAlpha = (1 - (abs(verticalOffset) * 0.01)).toFloat()
             val plusAlpha = (abs(1 + verticalOffset * 0.01) * 1.01).toFloat()
 
-            println("Fast::ConversationsFragment::onOffset minusAlpha: $minusAlpha; plusAlpha: $plusAlpha")
+            println("Fast::ConversationsFragment::onOffset offset: $verticalOffset; minusAlpha: $minusAlpha; plusAlpha: $plusAlpha")
 
             val alpha: Float = if (verticalOffset <= -100) plusAlpha else minusAlpha
 
