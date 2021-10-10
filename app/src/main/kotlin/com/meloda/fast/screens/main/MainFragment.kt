@@ -42,5 +42,4 @@ class MainFragment : BaseViewModelFragment<MainViewModel>(R.layout.fragment_main
         }
     }
 
-
 }

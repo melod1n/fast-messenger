@@ -9,7 +9,7 @@ data class VkLink(
     val title: String?,
     val caption: String?,
     val photo: VkPhoto?,
-    val target: String,
+    val target: String?,
     val isFavorite: Boolean
 ) : VkAttachment() {
 

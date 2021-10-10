@@ -91,7 +91,7 @@ class ConversationsFragment :
             requireContext().dataStore.data.map {
                 adapter.isMultilineEnabled = it[AppSettings.keyIsMultilineEnabled] ?: true
                 adapter.notifyItemRangeChanged(0, adapter.itemCount)
-            }.collect { }
+            }.collect()
         }
 
         binding.createChat.setOnClickListener {}

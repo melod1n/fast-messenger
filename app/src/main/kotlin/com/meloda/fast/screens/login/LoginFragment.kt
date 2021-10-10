@@ -77,7 +77,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             is ErrorEvent -> showErrorSnackbar(event.errorText)
             is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationEvent -> showValidationRequired(event.sid)
-            is SuccessAuth -> goToMain(event.haveAuthorized)
+            is SuccessAuth -> goToMain(event)
 
             is CodeSent -> showValidationDialog()
             is StartProgressEvent -> onProgressStarted()
@@ -384,8 +384,11 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         snackbar.show()
     }
 
-    private fun goToMain(haveAuthorized: Boolean) = lifecycleScope.launch {
-        if (haveAuthorized) delay(500)
+    private fun goToMain(event: SuccessAuth) = lifecycleScope.launch {
+        UserConfig.userId = event.userId
+        UserConfig.accessToken = event.vkToken
+
+        if (event.haveAuthorized) delay(500)
 
         launchWebView()
 

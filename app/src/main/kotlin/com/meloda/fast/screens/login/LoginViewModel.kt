@@ -1,11 +1,10 @@
 package com.meloda.fast.screens.login
 
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
-import com.meloda.fast.api.network.auth.RequestAuthDirect
 import com.meloda.fast.api.network.auth.AuthDataSource
+import com.meloda.fast.api.network.auth.RequestAuthDirect
 import com.meloda.fast.base.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -45,10 +44,12 @@ class LoginViewModel @Inject constructor(
                     return@makeJob
                 }
 
-                UserConfig.userId = it.userId
-                UserConfig.accessToken = it.accessToken
-
-                sendEvent(SuccessAuth())
+                sendEvent(
+                    SuccessAuth(
+                        userId = it.userId,
+                        vkToken = it.accessToken
+                    )
+                )
             },
             onError = {
                 if (it !is VKException) {
@@ -72,4 +73,8 @@ class LoginViewModel @Inject constructor(
 
 object CodeSent : VkEvent()
 
-data class SuccessAuth(val haveAuthorized: Boolean = true) : VkEvent()
+data class SuccessAuth(
+    val haveAuthorized: Boolean = true,
+    val userId: Int,
+    val vkToken: String
+) : VkEvent()

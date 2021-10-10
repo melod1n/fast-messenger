@@ -1,13 +1,11 @@
 package com.meloda.fast.base
 
 import android.os.Bundle
-import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import com.google.android.material.snackbar.Snackbar
 
 abstract class BaseActivity : AppCompatActivity, LifecycleOwner {
 
@@ -38,11 +36,5 @@ abstract class BaseActivity : AppCompatActivity, LifecycleOwner {
         super.onDestroy()
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
-
-    val rootView: View? get() = findViewById(android.R.id.content)
-
-    fun requireRootView() = rootView!!
-
-    var errorSnackbar: Snackbar? = null
 
 }
