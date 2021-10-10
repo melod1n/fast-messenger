@@ -1,4 +1,4 @@
-package com.meloda.fast.api.network.repo
+package com.meloda.fast.api.network.users
 
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.model.base.BaseVkUser

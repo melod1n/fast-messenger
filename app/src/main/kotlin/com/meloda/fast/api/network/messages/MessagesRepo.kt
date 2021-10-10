@@ -1,9 +1,8 @@
-package com.meloda.fast.api.network.repo
+package com.meloda.fast.api.network.messages
 
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.model.base.BaseVkMessage
-import com.meloda.fast.api.model.response.MessagesGetHistoryResponse
 import com.meloda.fast.api.network.Answer
 import com.meloda.fast.api.network.VkUrls
 import retrofit2.http.FieldMap

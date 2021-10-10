@@ -13,6 +13,9 @@ object VkUrls {
     object Conversations {
         const val Get = "$API/messages.getConversations"
         const val Delete = "$API/messages.deleteConversation"
+        const val Pin = "$API/messages.pinConversation"
+        const val Unpin = "$API/messages.unpinConversation"
+        const val ReorderPinned = "$API/messages.reorderPinnedConversations"
     }
 
     object Users {

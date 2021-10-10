@@ -8,11 +8,9 @@ open class VKException(
     var code: Int = -1,
     var description: String = "",
     var error: String
-) :
-    IOException(description) {
+) : IOException(description) {
 
-    var captcha: Pair<String, String>? = null
-    var validationSid: String? = null
+    // TODO: 10-Oct-21 remove this
     var json: JSONObject? = null
 
     override fun toString(): String {

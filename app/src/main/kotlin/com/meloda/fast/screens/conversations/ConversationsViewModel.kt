@@ -6,11 +6,11 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.request.ConversationsDeleteRequest
-import com.meloda.fast.api.model.request.ConversationsGetRequest
-import com.meloda.fast.api.model.request.UsersGetRequest
-import com.meloda.fast.api.network.datasource.ConversationsDataSource
-import com.meloda.fast.api.network.datasource.UsersDataSource
+import com.meloda.fast.api.network.conversations.ConversationsDataSource
+import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
+import com.meloda.fast.api.network.conversations.ConversationsGetRequest
+import com.meloda.fast.api.network.users.UsersDataSource
+import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +34,7 @@ class ConversationsViewModel @Inject constructor(
                     count = 30,
                     extended = true,
                     offset = offset,
-                    fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
+                    fields = "${VKConstants.ALL_FIELDS}"
                 )
             )
         },

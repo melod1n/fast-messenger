@@ -1,4 +1,4 @@
-package com.meloda.fast.api.model.response
+package com.meloda.fast.api.network.messages
 
 import android.os.Parcelable
 import com.meloda.fast.api.model.base.BaseVkConversation

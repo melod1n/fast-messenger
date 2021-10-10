@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
-import com.meloda.fast.api.model.request.RequestAuthDirect
-import com.meloda.fast.api.network.datasource.AuthDataSource
+import com.meloda.fast.api.network.auth.RequestAuthDirect
+import com.meloda.fast.api.network.auth.AuthDataSource
 import com.meloda.fast.base.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

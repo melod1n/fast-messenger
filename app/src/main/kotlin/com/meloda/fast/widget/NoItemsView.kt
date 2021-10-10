@@ -10,12 +10,11 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
-import com.meloda.fast.extensions.ContextExtensions.drawable
-import com.meloda.fast.extensions.DrawableExtensions.tint
-import com.meloda.fast.extensions.FloatExtensions.int
 import com.meloda.fast.R
 import com.meloda.fast.util.AndroidUtils
+import kotlin.math.roundToInt
 
 @Suppress("UNCHECKED_CAST")
 class NoItemsView @JvmOverloads constructor(
@@ -44,7 +43,7 @@ class NoItemsView @JvmOverloads constructor(
     private fun create() {
         val a = context.obtainStyledAttributes(attrs, R.styleable.NoItemsView)
 
-        minimumWidth = AndroidUtils.px(256).int()
+        minimumWidth = AndroidUtils.px(256).roundToInt()
         minimumHeight = minimumWidth
 
         orientation = VERTICAL
@@ -53,8 +52,8 @@ class NoItemsView @JvmOverloads constructor(
         noItemsPicture = ImageView(context)
 
         val params = imageViewParams
-        params.height = AndroidUtils.px(64).int()
-        params.width = AndroidUtils.px(64).int()
+        params.height = AndroidUtils.px(64).roundToInt()
+        params.width = AndroidUtils.px(64).roundToInt()
 
         noItemsPicture.layoutParams = params
 
@@ -73,10 +72,10 @@ class NoItemsView @JvmOverloads constructor(
         noItemsTextView = TextView(context)
 
         val textParams = textViewParams
-        textParams.width = AndroidUtils.px(256).int()
+        textParams.width = AndroidUtils.px(256).roundToInt()
 
         if (noItemsDrawable != null) {
-            textParams.topMargin = AndroidUtils.px(8).int()
+            textParams.topMargin = AndroidUtils.px(8).roundToInt()
         }
 
         noItemsTextView.layoutParams = textParams
@@ -103,7 +102,7 @@ class NoItemsView @JvmOverloads constructor(
     }
 
     fun setNoItemsImage(@DrawableRes resId: Int) {
-        setNoItemsImage(context.drawable(resId))
+        setNoItemsImage(AppCompatResources.getDrawable(context, resId))
     }
 
     fun setNoItemsImage(drawable: Drawable?) {
@@ -111,7 +110,7 @@ class NoItemsView @JvmOverloads constructor(
     }
 
     fun setNoItemsImageTint(@ColorInt color: Int) {
-        noItemsPicture.drawable.tint(color)
+        noItemsPicture.drawable?.setTint(color)
     }
 
     fun setNoItemsText(@StringRes resId: Int) {

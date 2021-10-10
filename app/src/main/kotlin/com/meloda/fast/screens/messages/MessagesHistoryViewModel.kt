@@ -6,8 +6,7 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.request.*
-import com.meloda.fast.api.network.datasource.MessagesDataSource
+import com.meloda.fast.api.network.messages.*
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +27,7 @@ class MessagesHistoryViewModel @Inject constructor(
                     count = 30,
                     peerId = peerId,
                     extended = true,
-                    fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
+                    fields = VKConstants.ALL_FIELDS
                 )
             )
         },

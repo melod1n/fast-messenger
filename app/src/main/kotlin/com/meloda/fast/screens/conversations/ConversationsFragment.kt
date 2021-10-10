@@ -6,7 +6,6 @@ import android.view.Gravity
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -42,10 +41,6 @@ import kotlin.math.roundToInt
 class ConversationsFragment :
     BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
-    companion object {
-        const val TAG = "ConversationsFragment"
-    }
-
     override val viewModel: ConversationsViewModel by viewModels()
     private val binding: FragmentConversationsBinding by viewBinding()
 
@@ -80,7 +75,6 @@ class ConversationsFragment :
             }
 
     private var isPaused = false
-    private var isExpanded = true
 
     override fun onPause() {
         super.onPause()
@@ -109,46 +103,24 @@ class ConversationsFragment :
         binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
             if (isPaused) return@OnOffsetChangedListener
 
-
-//            if (verticalOffset <= -100) {
-//                binding.avatarContainer.alpha = 0f
-//                return@OnOffsetChangedListener
-//            }
-
-            // from 0 to -294
-            // from 0 to 29
-
-            // if -147
-            // 30 - value
-
-            var value = 30 - (abs(verticalOffset) * 0.1).roundToInt()
-
-            val bottomPadding = 0
-//                if (verticalOffset > -150) AndroidUtils.px(30).roundToInt()
-//                else (30 + abs(verticalOffset) * 0.1).roundToInt()
-
-            val endPadding = 0
-//                if (verticalOffset > 30) 30
-//                else (abs(verticalOffset) * 0.1).roundToInt()
+            val padding = AndroidUtils.px(if (verticalOffset <= -100) 10 else 30).roundToInt()
 
             binding.avatarContainer.updatePadding(
-                bottom = value,
-                right = endPadding
+                bottom = padding,
+                right = padding
             )
 
+            val minusAlpha = (1 - (abs(verticalOffset) * 0.01)).toFloat()
+            val plusAlpha = (abs(1 + verticalOffset * 0.01) * 1.01).toFloat()
 
-            println("Fast::ConversationsFragment::onOffset verticalOffset = $verticalOffset; bottomPadding = $value; endPadding = $endPadding")
+            println("Fast::ConversationsFragment::onOffset minusAlpha: $minusAlpha; plusAlpha: $plusAlpha")
 
+            val alpha: Float = if (verticalOffset <= -100) plusAlpha else minusAlpha
 
-//            binding.avatarContainer.alpha = alpha
+            binding.avatarContainer.alpha = alpha
         })
 
-        binding.toolbar.overflowIcon = ContextCompat.getDrawable(requireContext(), R.drawable.test)
-
-
-        binding.avatar.setOnClickListener {
-            avatarPopupMenu.show()
-        }
+        binding.avatar.setOnClickListener { avatarPopupMenu.show() }
 
         binding.avatar.setOnLongClickListener {
             lifecycleScope.launch {

@@ -1,4 +1,4 @@
-package com.meloda.fast.api.model.request
+package com.meloda.fast.api.network.conversations
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

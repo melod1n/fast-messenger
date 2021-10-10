@@ -1,8 +1,6 @@
-package com.meloda.fast.api.network.datasource
+package com.meloda.fast.api.network.users
 
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.repo.UsersRepo
-import com.meloda.fast.api.model.request.UsersGetRequest
 import com.meloda.fast.database.dao.UsersDao
 import javax.inject.Inject
 

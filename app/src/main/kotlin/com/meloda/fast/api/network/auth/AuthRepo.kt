@@ -1,10 +1,10 @@
-package com.meloda.fast.api.network.repo
+package com.meloda.fast.api.network.auth
 
-import com.meloda.fast.api.network.VkUrls
-import com.meloda.fast.api.model.response.ResponseAuthDirect
 import com.meloda.fast.api.network.Answer
-import com.meloda.fast.api.model.response.ResponseSendSms
-import retrofit2.http.*
+import com.meloda.fast.api.network.VkUrls
+import retrofit2.http.GET
+import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 interface AuthRepo {
 
