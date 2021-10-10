@@ -29,3 +29,13 @@ data class ConversationsGetRequest(
 data class ConversationsDeleteRequest(val peerId: Int) : Parcelable {
     val map get() = mapOf("peer_id" to peerId.toString())
 }
+
+@Parcelize
+data class ConversationsPinRequest(val peerId: Int) : Parcelable {
+    val map get() = mapOf("peer_id" to peerId.toString())
+}
+
+@Parcelize
+data class ConversationsUnpinRequest(val peerId: Int) : Parcelable {
+    val map get() = mapOf("peer_id" to peerId.toString())
+}

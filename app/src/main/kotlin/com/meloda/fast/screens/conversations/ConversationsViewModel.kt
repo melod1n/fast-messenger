@@ -6,9 +6,7 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.conversations.ConversationsDataSource
-import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
-import com.meloda.fast.api.network.conversations.ConversationsGetRequest
+import com.meloda.fast.api.network.conversations.*
 import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -34,7 +32,7 @@ class ConversationsViewModel @Inject constructor(
                     count = 30,
                     extended = true,
                     offset = offset,
-                    fields = "${VKConstants.ALL_FIELDS}"
+                    fields = VKConstants.ALL_FIELDS
                 )
             )
         },
@@ -88,6 +86,23 @@ class ConversationsViewModel @Inject constructor(
             )
         }, onAnswer = { sendEvent(ConversationsDelete(peerId)) })
     }
+
+    fun pinConversation(
+        peerId: Int,
+        pin: Boolean
+    ) = viewModelScope.launch {
+        if (pin) {
+            makeJob(
+                { conversations.pin(ConversationsPinRequest(peerId)) },
+                onAnswer = { sendEvent(ConversationsPin(peerId)) }
+            )
+        } else {
+            makeJob(
+                { conversations.unpin(ConversationsUnpinRequest(peerId)) },
+                onAnswer = { sendEvent(ConversationsUnpin(peerId)) }
+            )
+        }
+    }
 }
 
 data class ConversationsLoaded(
@@ -100,3 +115,7 @@ data class ConversationsLoaded(
 ) : VkEvent()
 
 data class ConversationsDelete(val peerId: Int) : VkEvent()
+
+data class ConversationsPin(val peerId: Int) : VkEvent()
+
+data class ConversationsUnpin(val peerId: Int) : VkEvent()

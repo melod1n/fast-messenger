@@ -13,7 +13,9 @@ class ConversationsDataSource @Inject constructor(
 
     suspend fun delete(params: ConversationsDeleteRequest) = repo.delete(params.map)
 
+    suspend fun pin(params: ConversationsPinRequest) = repo.pin(params.map)
 
+    suspend fun unpin(params: ConversationsUnpinRequest) = repo.unpin(params.map)
 
     suspend fun store(conversations: List<VkConversation>) = dao.insert(conversations)
 

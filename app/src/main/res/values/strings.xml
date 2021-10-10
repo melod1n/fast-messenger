@@ -134,4 +134,10 @@
     <string name="confirm_delete_conversation">Delete the conversation?</string>
     <string name="action_sign_out">Sign out</string>
     <string name="sign_out_confirm_title">Sign out</string>
+    <string name="conversation_context_action_unpin">Unpin</string>
+    <string name="conversation_context_action_pin">Pin</string>
+    <string name="confirm_unpin_conversation">Unpin the conversation?</string>
+    <string name="confirm_pin_conversation">Pin the conversation?</string>
+    <string name="action_pin">Pin</string>
+    <string name="action_unpin">Unpin</string>
 </resources>

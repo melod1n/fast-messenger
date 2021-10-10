@@ -187,6 +187,9 @@ class ConversationsFragment :
 
             is ConversationsLoaded -> refreshConversations(event)
             is ConversationsDelete -> deleteConversation(event.peerId)
+
+            // TODO: 10-Oct-21 remove this and sort conversations list
+            is ConversationsPin, is ConversationsUnpin -> viewModel.loadConversations()
         }
     }
 
@@ -240,13 +243,19 @@ class ConversationsFragment :
     private fun fillRecyclerView(values: List<VkConversation>) {
         adapter.values.clear()
         adapter.values += values
-        adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        adapter.submitList(values)
     }
 
     private fun onItemClick(position: Int) {
         val conversation = adapter[position]
-        val user = if (conversation.isUser()) adapter.profiles[conversation.id] else null
-        val group = if (conversation.isGroup()) adapter.groups[conversation.id] else null
+
+        val user =
+            if (conversation.isUser()) adapter.profiles[conversation.id]
+            else null
+
+        val group =
+            if (conversation.isGroup()) adapter.groups[conversation.id]
+            else null
 
         findNavController().navigate(
             R.id.toMessagesHistory,
@@ -266,15 +275,36 @@ class ConversationsFragment :
     private fun showOptionsDialog(position: Int) {
         val conversation = adapter[position]
 
+        var canPinOneMoreDialog = true
+        if (adapter.itemCount > 4) {
+            val firstFiveDialogs = adapter.values.subList(0, 5)
+            var pinnedCount = 0
+
+            firstFiveDialogs.forEach { if (it.isPinned) pinnedCount++ }
+            if (pinnedCount == 5 && position > 4) {
+                canPinOneMoreDialog = false
+            }
+        }
+
+        val pin = getString(
+            if (conversation.isPinned) R.string.conversation_context_action_unpin
+            else R.string.conversation_context_action_pin
+        )
+
         val delete = getString(R.string.conversation_context_action_delete)
 
-        val params = mutableListOf(delete)
+        val params = mutableListOf<String>()
+
+        if (canPinOneMoreDialog) params += pin
+
+        params += delete
 
         val arrayParams = params.toTypedArray()
 
         MaterialAlertDialogBuilder(requireContext())
             .setItems(arrayParams) { _, which ->
                 when (params[which]) {
+                    pin -> showPinConversationDialog(conversation)
                     delete -> showDeleteConversationDialog(conversation.id)
                 }
             }.show()
@@ -293,6 +323,26 @@ class ConversationsFragment :
     private fun deleteConversation(conversationId: Int) {
         val index = adapter.removeConversation(conversationId) ?: return
         adapter.notifyItemRemoved(index)
+    }
+
+    private fun showPinConversationDialog(conversation: VkConversation) {
+        val isPinned = conversation.isPinned
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(
+                if (isPinned) R.string.confirm_unpin_conversation
+                else R.string.confirm_pin_conversation
+            )
+            .setPositiveButton(
+                if (isPinned) R.string.action_unpin
+                else R.string.action_pin
+            ) { _, _ ->
+                viewModel.pinConversation(
+                    peerId = conversation.id,
+                    pin = !isPinned
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
 }
