@@ -66,6 +66,10 @@ class AttachmentInflater constructor(
             when (val attachment = attachments[0]) {
                 is VkSticker -> return sticker(attachment)
                 is VkWall -> return wall(attachment)
+                is VkVoiceMessage -> return voice(attachment)
+                is VkCall -> return call(attachment)
+                is VkGraffiti -> return graffiti(attachment)
+                is VkGift -> return gift(attachment)
             }
         }
 
@@ -94,8 +98,6 @@ class AttachmentInflater constructor(
                 is VkAudio -> audio(attachment)
                 is VkFile -> file(attachment)
                 is VkLink -> link(attachment)
-                is VkVoiceMessage -> voice(attachment)
-                is VkCall -> call(attachment)
 
                 else -> Log.e(
                     "Attachment inflater",
@@ -368,6 +370,40 @@ class AttachmentInflater constructor(
         if (callState == context.getString(R.string.message_call_unknown)) callState = call.state
 
         binding.state.text = callState
+    }
+
+    private fun graffiti(graffiti: VkGraffiti) {
+        val binding = ItemMessageAttachmentGraffitiBinding.inflate(inflater, container, true)
+
+        val url = graffiti.url
+
+        val heightCoefficient = graffiti.height / AndroidUtils.px(140)
+
+        with(binding.image) {
+            layoutParams = LinearLayoutCompat.LayoutParams(
+                AndroidUtils.px(140).roundToInt(),
+                (graffiti.height / heightCoefficient).roundToInt()
+            )
+
+            load(url) { crossfade(150) }
+        }
+    }
+
+    private fun gift(gift: VkGift) {
+        val binding = ItemMessageAttachmentGiftBinding.inflate(inflater, container, true)
+
+        val url = gift.thumb256 ?: gift.thumb96 ?: gift.thumb48
+
+        with(binding.image) {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize { AndroidUtils.px(12) }
+
+            layoutParams = LinearLayoutCompat.LayoutParams(
+                AndroidUtils.px(140).roundToInt(),
+                AndroidUtils.px(140).roundToInt()
+            )
+
+            load(url) { crossfade(150) }
+        }
     }
 
 }

@@ -150,9 +150,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.GIFT -> {
                     val gift = baseAttachment.gift ?: continue
-                    attachments += VkGift(
-                        link = gift.thumb_48
-                    )
+                    attachments += gift.asVkGift()
                 }
                 BaseVkAttachmentItem.AttachmentType.WALL -> {
                     val wall = baseAttachment.wall ?: continue
@@ -160,9 +158,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.GRAFFITI -> {
                     val graffiti = baseAttachment.graffiti ?: continue
-                    attachments += VkGraffiti(
-                        link = graffiti.url
-                    )
+                    attachments += graffiti.asVkGraffiti()
                 }
                 BaseVkAttachmentItem.AttachmentType.POLL -> {
                     val poll = baseAttachment.poll ?: continue

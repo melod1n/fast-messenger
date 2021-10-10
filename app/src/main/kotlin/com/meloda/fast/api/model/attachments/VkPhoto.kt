@@ -15,7 +15,7 @@ data class VkPhoto(
     val hasTags: Boolean,
     val accessKey: String?,
     val sizes: List<BaseVkPhoto.Size>,
-    val text: String,
+    val text: String?,
     val userId: Int?
 ) : VkAttachment() {
 

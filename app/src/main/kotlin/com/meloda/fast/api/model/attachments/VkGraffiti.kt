@@ -5,7 +5,12 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class VkGraffiti(
-    val link: String
+    val id: Int,
+    val ownerId: Int,
+    val url: String,
+    val width: Int,
+    val height: Int,
+    val accessKey: String
 ) : VkAttachment() {
 
     @IgnoredOnParcel
