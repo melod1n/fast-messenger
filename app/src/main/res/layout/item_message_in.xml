@@ -56,6 +56,7 @@
                     tools:ignore="UselessParent">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/textContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
@@ -71,7 +72,6 @@
                             tools:text="This" />
 
                     </androidx.appcompat.widget.LinearLayoutCompat>
-
                 </com.meloda.fast.widget.BoundedLinearLayout>
 
                 <com.meloda.fast.widget.CircleImageView

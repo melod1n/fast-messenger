@@ -15,9 +15,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isNotEmpty
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
+import androidx.core.view.updatePadding
 import coil.load
 import com.google.android.material.imageview.ShapeableImageView
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -34,6 +36,7 @@ import kotlin.math.roundToInt
 class AttachmentInflater constructor(
     private val context: Context,
     private val container: LinearLayoutCompat,
+    private val textContainer: LinearLayoutCompat,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
     private val groups: Map<Int, VkGroup>
@@ -57,6 +60,7 @@ class AttachmentInflater constructor(
         attachments = message.attachments!!
 
         container.removeAllViews()
+        textContainer.removeAllViews()
 
         if (attachments.size == 1) {
             when (val attachment = attachments[0]) {
@@ -90,7 +94,8 @@ class AttachmentInflater constructor(
                 is VkAudio -> audio(attachment)
                 is VkFile -> file(attachment)
                 is VkLink -> link(attachment)
-                is VkStory -> story(attachment)
+                is VkVoiceMessage -> voice(attachment)
+                is VkCall -> call(attachment)
 
                 else -> Log.e(
                     "Attachment inflater",
@@ -312,8 +317,57 @@ class AttachmentInflater constructor(
         ).format(wall.date * 1000L)
     }
 
-    private fun story(story: VkStory) {
+    private fun voice(voiceMessage: VkVoiceMessage) {
+        val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, textContainer, true)
 
+        if (message.isOut)
+            binding.root.updatePadding(
+                bottom = AndroidUtils.px(5).roundToInt(),
+                left = AndroidUtils.px(6).roundToInt()
+            )
+
+        val waveform = IntArray(voiceMessage.waveform.size)
+        voiceMessage.waveform.forEachIndexed { index, i -> waveform[index] = i }
+
+        binding.waveform.sample = waveform
+        binding.waveform.maxProgress = 100f
+        binding.waveform.progress = 100f
+
+        binding.duration.text = SimpleDateFormat(
+            "mm:ss",
+            Locale.getDefault()
+        ).format(voiceMessage.duration * 1000L)
+    }
+
+    private fun call(call: VkCall) {
+        val binding = ItemMessageAttachmentCallBinding.inflate(inflater, textContainer, true)
+
+        if (message.isOut)
+            binding.root.updatePadding(
+                bottom = AndroidUtils.px(5).roundToInt(),
+                left = AndroidUtils.px(6).roundToInt()
+            )
+
+        val callType =
+            context.getString(
+                if (call.initiatorId == UserConfig.userId) R.string.message_call_type_outgoing
+                else R.string.message_call_type_incoming
+            )
+
+        binding.type.text = callType
+
+        var callState =
+            context.getString(
+                if (call.state == "reached") R.string.message_call_state_ended
+                else if (call.state == "canceled_by_initiator") {
+                    if (call.initiatorId == UserConfig.userId) R.string.message_call_state_cancelled
+                    else R.string.message_call_state_missed
+                } else R.string.message_call_unknown
+            )
+
+        if (callState == context.getString(R.string.message_call_unknown)) callState = call.state
+
+        binding.state.text = callState
     }
 
 }

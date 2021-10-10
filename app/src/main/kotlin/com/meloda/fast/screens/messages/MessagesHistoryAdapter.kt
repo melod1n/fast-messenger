@@ -136,6 +136,8 @@ class MessagesHistoryAdapter constructor(
                 text = binding.text,
                 spacer = binding.spacer,
                 unread = binding.unread,
+
+                textContainer = binding.textContainer,
                 attachmentContainer = binding.attachmentContainer,
                 attachmentSpacer = binding.attachmentSpacer,
 
@@ -172,6 +174,8 @@ class MessagesHistoryAdapter constructor(
                 text = binding.text,
                 spacer = binding.spacer,
                 unread = binding.unread,
+
+                textContainer = binding.textContainer,
                 attachmentContainer = binding.attachmentContainer,
                 attachmentSpacer = binding.attachmentSpacer,
 

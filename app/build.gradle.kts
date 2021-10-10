@@ -82,6 +82,8 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
 
+    implementation("com.github.massoudss:waveformSeekBar:3.1.0")
+
     implementation("androidx.core:core-splashscreen:1.0.0-alpha02")
 
     implementation("androidx.work:work-runtime-ktx:2.6.0")
@@ -100,7 +102,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.6")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2-native-mt")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
 
     implementation("androidx.room:room-ktx:2.3.0")
     implementation("androidx.room:room-runtime:2.3.0")

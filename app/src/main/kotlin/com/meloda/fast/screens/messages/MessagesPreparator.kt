@@ -42,6 +42,7 @@ class MessagesPreparator constructor(
     private val spacer: Space? = null,
     private val unread: ImageView? = null,
     private val time: TextView? = null,
+    private val textContainer: LinearLayoutCompat? = null,
     private val attachmentContainer: LinearLayoutCompat? = null,
     private val attachmentSpacer: Space? = null,
 
@@ -158,7 +159,7 @@ class MessagesPreparator constructor(
     }
 
     private fun prepareAttachments() {
-        if (attachmentContainer != null) {
+        if (attachmentContainer != null && textContainer != null) {
             if (message.attachments.isNullOrEmpty()) {
                 attachmentContainer.isVisible = false
                 attachmentContainer.removeAllViews()
@@ -168,6 +169,7 @@ class MessagesPreparator constructor(
                 AttachmentInflater(
                     context = context,
                     container = attachmentContainer,
+                    textContainer = textContainer,
                     message = message,
                     groups = groups,
                     profiles = profiles

@@ -142,9 +142,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.VOICE -> {
                     val voiceMessage = baseAttachment.voiceMessage ?: continue
-                    attachments += VkVoiceMessage(
-                        link = voiceMessage.link_mp3
-                    )
+                    attachments += voiceMessage.asVkVoiceMessage()
                 }
                 BaseVkAttachmentItem.AttachmentType.STICKER -> {
                     val sticker = baseAttachment.sticker ?: continue
@@ -180,9 +178,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.CALL -> {
                     val call = baseAttachment.call ?: continue
-                    attachments += VkCall(
-                        initiatorId = call.initiator_id
-                    )
+                    attachments += call.asVkCall()
                 }
                 BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS -> {
                     val groupCall = baseAttachment.groupCall ?: continue

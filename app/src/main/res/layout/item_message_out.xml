@@ -38,15 +38,22 @@
                 android:background="@drawable/ic_message_out_background"
                 android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/text"
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/textContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|start"
-                    android:padding="15dp"
-                    android:textColor="@color/n1_900"
-                    tools:text="This is test" />
+                    android:orientation="vertical">
 
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|start"
+                        android:padding="15dp"
+                        android:textColor="@color/n1_900"
+                        tools:text="This is test" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
             </com.meloda.fast.widget.BoundedLinearLayout>
 
             <Space
