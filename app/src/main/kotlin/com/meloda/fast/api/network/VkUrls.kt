@@ -31,6 +31,7 @@ object VkUrls {
         const val Pin = "$API/messages.pin"
         const val Unpin = "$API/messages.unpin"
         const val Delete = "$API/messages.delete"
+        const val Edit = "$API/messages.edit"
     }
 
 

@@ -6,6 +6,7 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.network.messages.*
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -173,6 +174,31 @@ class MessagesHistoryViewModel @Inject constructor(
             )
         }, onAnswer = { sendEvent(MessagesDelete(messagesIds = messagesIds ?: listOf())) })
     }
+
+    fun editMessage(
+        originalMessage: VkMessage,
+        peerId: Int,
+        messageId: Int,
+        message: String? = null,
+        attachments: List<VkAttachment>? = null
+    ) = viewModelScope.launch {
+        makeJob(
+            {
+                messages.edit(
+                    MessagesEditRequest(
+                        peerId = peerId,
+                        messageId = messageId,
+                        message = message,
+                        attachments = attachments
+                    )
+                )
+            },
+            onAnswer = {
+                originalMessage.text = message
+                sendEvent(MessagesEdit(originalMessage))
+            }
+        )
+    }
 }
 
 data class MessagesLoaded(
@@ -198,3 +224,6 @@ data class MessagesDelete(
     val messagesIds: List<Int>
 ) : VkEvent()
 
+data class MessagesEdit(
+    val message: VkMessage
+) : VkEvent()

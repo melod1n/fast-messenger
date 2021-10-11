@@ -26,7 +26,7 @@ data class BaseVkVideo(
     val can_add_to_faves: Int,
     val can_add: Int,
     val can_attach_link: Int,
-    val access_key: String,
+    val access_key: String?,
     val owner_id: Int,
     val ov_id: String,
     val is_favorite: Boolean,
@@ -40,8 +40,10 @@ data class BaseVkVideo(
 
     fun asVkVideo() = VkVideo(
         id = id,
+        ownerId = owner_id,
         images = image,
-        firstFrames = first_frame
+        firstFrames = first_frame,
+        accessKey = access_key
     )
 
     @Parcelize

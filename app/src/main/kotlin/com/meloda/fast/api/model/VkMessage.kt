@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.base.adapter.SelectableItem
 import com.meloda.fast.util.TimeUtils
@@ -15,8 +16,8 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class VkMessage(
     @PrimaryKey(autoGenerate = false)
-    val id: Int,
-    val text: String? = null,
+    var id: Int,
+    var text: String? = null,
     val isOut: Boolean,
     val peerId: Int,
     val fromId: Int,
@@ -28,7 +29,7 @@ data class VkMessage(
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
     val geoType: String? = null,
-    val important: Boolean = false,
+    var important: Boolean = false,
 
     var forwards: List<VkMessage>? = null,
     var attachments: List<VkAttachment>? = null,
@@ -62,42 +63,10 @@ data class VkMessage(
 
     fun canEdit() =
         fromId == UserConfig.userId &&
+                (attachments == null || !VKConstants.restrictedToEditAttachments.contains(
+                    attachments!![0].javaClass
+                )) &&
                 (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.ONE_DAY_IN_SECONDS)
-
-    fun copyMessage(
-        id: Int = this.id,
-        text: String? = this.text,
-        isOut: Boolean = this.isOut,
-        peerId: Int = this.peerId,
-        fromId: Int = this.fromId,
-        date: Int = this.date,
-        randomId: Int = this.randomId,
-        action: String? = this.action,
-        actionMemberId: Int? = this.actionMemberId,
-        actionText: String? = this.actionText,
-        actionConversationMessageId: Int? = this.actionConversationMessageId,
-        actionMessage: String? = this.actionMessage,
-        geoType: String? = this.geoType,
-        important: Boolean = this.important
-    ) = VkMessage(
-        id = id,
-        text = text,
-        isOut = isOut,
-        peerId = peerId,
-        fromId = fromId,
-        date = date,
-        randomId = randomId,
-        action = action,
-        actionMemberId = actionMemberId,
-        actionText = actionText,
-        actionConversationMessageId = actionConversationMessageId,
-        actionMessage = actionMessage,
-        geoType = geoType,
-        important = important
-    ).also {
-        it.attachments = attachments
-        it.forwards = forwards
-    }
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),

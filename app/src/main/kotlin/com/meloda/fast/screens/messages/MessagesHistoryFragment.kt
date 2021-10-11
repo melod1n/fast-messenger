@@ -51,7 +51,7 @@ class MessagesHistoryFragment :
     private val action = MutableLiveData<Action>()
 
     private enum class Action {
-        RECORD, SEND, EDIT
+        RECORD, SEND, EDIT, DELETE
     }
 
     private val user: VkUser? by lazy {
@@ -167,12 +167,11 @@ class MessagesHistoryFragment :
         })
 
         binding.message.doAfterTextChanged {
-            val canSend =
-                it.toString().isNotBlank()
+            val canSend = it.toString().isNotBlank()
 
-            val newValue =
+            val newValue: Action =
                 when {
-                    attachmentController.isEditing -> Action.EDIT
+                    attachmentController.isEditing -> if (it.isNullOrBlank()) Action.DELETE else Action.EDIT
                     canSend -> Action.SEND
                     else -> Action.RECORD
                 }
@@ -203,11 +202,16 @@ class MessagesHistoryFragment :
                 Action.EDIT -> {
                     binding.action.setImageResource(R.drawable.ic_round_done_24)
                 }
+                Action.DELETE -> {
+                    binding.action.setImageResource(R.drawable.ic_trash_can_outline_24)
+                }
                 else -> return@observe
             }
         }
 
         attachmentController.isPanelVisible.observe(viewLifecycleOwner) {
+            if (it) binding.message.setSelection(binding.message.text.toString().length)
+
             val layoutParams = binding.refreshLayout.layoutParams as CoordinatorLayout.LayoutParams
             layoutParams.bottomMargin =
                 if (it) (binding.attachmentPanel.height / 1.5).roundToInt() else 0
@@ -280,39 +284,58 @@ class MessagesHistoryFragment :
     }
 
     private fun performAction() {
-        if (action.value == Action.RECORD) {
-            return
-        } else if (action.value == Action.SEND) {
-            val messageText = binding.message.text.toString().trim()
-            if (messageText.isBlank()) return
+        when (action.value) {
+            Action.RECORD -> {
+            }
+            Action.SEND -> {
+                val messageText = binding.message.text.toString().trim()
+                if (messageText.isBlank()) return
 
-            val date = System.currentTimeMillis()
+                val date = System.currentTimeMillis()
 
-            var message = VkMessage(
-                id = -1,
-                text = messageText,
-                isOut = true,
-                peerId = conversation.id,
-                fromId = UserConfig.userId,
-                date = (date / 1000).toInt(),
-                randomId = 0,
-                replyMessage = attachmentController.message.value
-            )
+                val message = VkMessage(
+                    id = -1,
+                    text = messageText,
+                    isOut = true,
+                    peerId = conversation.id,
+                    fromId = UserConfig.userId,
+                    date = (date / 1000).toInt(),
+                    randomId = 0,
+                    replyMessage = attachmentController.message.value
+                )
 
-            adapter.add(message)
-            adapter.notifyItemInserted(adapter.actualSize - 1)
-            binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
-            binding.message.clear()
+                adapter.add(message)
+                adapter.notifyItemInserted(adapter.actualSize - 1)
+                binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
+                binding.message.clear()
 
-            val replyMessage = attachmentController.message.value
-            attachmentController.message.value = null
+                val replyMessage = attachmentController.message.value
+                attachmentController.message.value = null
 
-            viewModel.sendMessage(
-                peerId = conversation.id,
-                message = messageText,
-                randomId = 0,
-                replyTo = replyMessage?.id
-            ) { message = message.copyMessage(id = it) }
+                viewModel.sendMessage(
+                    peerId = conversation.id,
+                    message = messageText,
+                    randomId = 0,
+                    replyTo = replyMessage?.id
+                ) { message.id = it }
+            }
+            Action.EDIT -> {
+                val message = attachmentController.message.value ?: return
+                val messageText = binding.message.text.toString().trim()
+
+                attachmentController.message.value = null
+
+                viewModel.editMessage(
+                    originalMessage = message,
+                    peerId = conversation.id,
+                    messageId = message.id,
+                    message = messageText,
+                    attachments = message.attachments
+                )
+            }
+            Action.DELETE -> attachmentController.message.value?.let {
+                showDeleteMessageDialog(it)
+            }
         }
     }
 
@@ -328,6 +351,7 @@ class MessagesHistoryFragment :
             is MessagesPin -> conversation.pinnedMessage = event.message
             is MessagesUnpin -> conversation.pinnedMessage = null
             is MessagesDelete -> deleteMessages(event)
+            is MessagesEdit -> editMessage(event)
         }
     }
 
@@ -377,14 +401,13 @@ class MessagesHistoryFragment :
 
         for (i in adapter.values.indices) {
             val message = adapter.values[i]
+            message.important = event.important
             if (event.messagesIds.contains(message.id)) {
                 if (!changed) changed = true
 
                 positions.add(i)
 
-                adapter.values[i] = message.copyMessage(
-                    important = event.important
-                )
+                adapter.values[i] = message
             }
         }
 
@@ -532,17 +555,22 @@ class MessagesHistoryFragment :
             else R.string.message_mark_as_spam
         )
 
-        binding.check.isEnabled = !message.isOut || message.canEdit()
+        binding.check.isEnabled =
+            (conversation.id != UserConfig.userId) && (!message.isOut || message.canEdit())
+
+        if (conversation.id == UserConfig.userId) binding.check.isChecked = true
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.confirm_delete_message)
             .setView(binding.root)
             .setPositiveButton(R.string.action_delete) { _, _ ->
+                attachmentController.message.value = null
+
                 viewModel.deleteMessage(
                     peerId = conversation.id,
                     messagesIds = listOf(message.id),
                     isSpam = if (message.isOut) null else binding.check.isChecked,
-                    deleteForAll = if (!message.isOut || !message.canEdit()) null else binding.check.isChecked
+                    deleteForAll = if (!binding.check.isEnabled) null else binding.check.isChecked
                 )
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -552,6 +580,13 @@ class MessagesHistoryFragment :
     private fun deleteMessages(event: MessagesDelete) {
         adapter.removeMessagesByIds(event.messagesIds).let {
             it.forEach { index -> adapter.notifyItemRemoved(index) }
+        }
+    }
+
+    private fun editMessage(event: MessagesEdit) {
+        adapter.searchMessageIndex(event.message.id)?.let { index ->
+            adapter.values[index] = event.message
+            adapter.notifyItemChanged(index)
         }
     }
 

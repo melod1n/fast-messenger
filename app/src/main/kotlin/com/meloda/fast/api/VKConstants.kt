@@ -1,5 +1,7 @@
 package com.meloda.fast.api
 
+import com.meloda.fast.api.model.attachments.*
+
 object VKConstants {
 
     const val GROUP_FIELDS = "description,members_count,counters,status,verified"
@@ -35,4 +37,15 @@ object VKConstants {
             const val PASSWORD = "password"
         }
     }
+
+    val restrictedToEditAttachments = listOf(
+        VkCall::class.java,
+        VkCurator::class.java,
+        VkEvent::class.java,
+        VkGift::class.java,
+        VkGraffiti::class.java,
+        VkGroupCall::class.java,
+        VkStory::class.java,
+        VkVoiceMessage::class.java
+    )
 }

@@ -39,4 +39,8 @@ interface MessagesRepo {
     @POST(VkUrls.Messages.Delete)
     suspend fun delete(@FieldMap params: Map<String, String>): Answer<ApiResponse<Any>>
 
+    @FormUrlEncoded
+    @POST(VkUrls.Messages.Edit)
+    suspend fun edit(@FieldMap params: Map<String, String>): Answer<ApiResponse<Any>>
+
 }

@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.attachments
 
 import androidx.room.Ignore
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.base.attachments.BaseVkPhoto
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -38,6 +39,14 @@ data class VkPhoto(
 
     @IgnoredOnParcel
     val className: String = this::class.java.name
+
+    override fun asString(withAccessKey: Boolean) = VkUtils.attachmentToString(
+        attachmentClass = this::class.java,
+        id = id,
+        ownerId = ownerId,
+        withAccessKey = withAccessKey,
+        accessKey = accessKey
+    )
 
     fun getMaxSize(): BaseVkPhoto.Size? {
         return getSizeOrSmaller(sizesChars.peek())

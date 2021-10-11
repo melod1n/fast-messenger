@@ -13,7 +13,7 @@ data class BaseVkAudio(
     val url: String,
     val date: Int,
     val owner_id: Int,
-    val access_key: String,
+    val access_key: String?,
     val is_explicit: Boolean,
     val is_focus_track: Boolean,
     val is_licensed: Boolean,
@@ -27,10 +27,12 @@ data class BaseVkAudio(
 
     fun asVkAudio() = VkAudio(
         id = id,
+        ownerId = owner_id,
         title = title,
         artist = artist,
         url = url,
-        duration = duration
+        duration = duration,
+        accessKey = access_key
     )
 
     @Parcelize

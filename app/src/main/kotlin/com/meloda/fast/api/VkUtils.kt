@@ -17,6 +17,30 @@ import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 
 object VkUtils {
 
+    fun <T> attachmentToString(
+        attachmentClass: Class<T>,
+        id: Int,
+        ownerId: Int,
+        withAccessKey: Boolean,
+        accessKey: String?
+    ): String {
+        val type = when (attachmentClass) {
+            VkAudio::class.java -> "audio"
+            VkFile::class.java -> "doc"
+            VkVideo::class.java -> "video"
+            VkPhoto::class.java -> "photo"
+            else -> throw IllegalArgumentException("unknown attachment class: $attachmentClass")
+        }
+
+        val result = StringBuilder(type).append(ownerId).append('_').append(id)
+        if (withAccessKey && !accessKey.isNullOrBlank()) {
+            result.append('_')
+            result.append(accessKey)
+        }
+        return result.toString()
+    }
+
+
     fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
         return (if (!message.isUser()) null
         else profiles[message.fromId]).also { message.user.value = it }

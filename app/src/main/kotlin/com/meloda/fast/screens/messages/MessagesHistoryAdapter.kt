@@ -267,6 +267,15 @@ class MessagesHistoryAdapter constructor(
         return positions
     }
 
+    fun searchMessageIndex(messageId: Int): Int? {
+        for (i in values.indices) {
+            val message = values[i]
+            if (message.id == messageId) return i
+        }
+
+        return null
+    }
+
     companion object {
         private const val SERVICE = 1
         private const val HEADER = 0

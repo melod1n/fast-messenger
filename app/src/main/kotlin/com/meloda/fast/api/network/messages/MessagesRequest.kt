@@ -2,6 +2,7 @@ package com.meloda.fast.api.network.messages
 
 import android.os.Parcelable
 import com.meloda.fast.api.ApiExtensions.intString
+import com.meloda.fast.api.model.attachments.VkAttachment
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -128,6 +129,39 @@ data class MessagesDeleteRequest(
 
             conversationsMessagesIds?.let {
                 this["conversation_message_ids"] = it.joinToString { id -> id.toString() }
+            }
+        }
+}
+
+@Parcelize
+data class MessagesEditRequest(
+    val peerId: Int,
+    val messageId: Int,
+    val message: String? = null,
+    val lat: Float? = null,
+    val lon: Float? = null,
+    val attachments: List<VkAttachment>? = null,
+    val notParseLinks: Boolean = false,
+    val keepSnippets: Boolean = true,
+    val keepForwardedMessages: Boolean = true
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "peer_id" to peerId.toString(),
+            "message_id" to messageId.toString(),
+            "dont_parse_links" to notParseLinks.intString,
+            "keep_snippets" to keepSnippets.intString,
+            "keep_forward_messages" to keepForwardedMessages.intString
+        ).apply {
+            message?.let { this["message"] = it }
+            lat?.let { this["lat"] = it.toString() }
+            lon?.let { this["lon"] = it.toString() }
+            attachments?.let {
+                val attachments =
+                    if (it.isEmpty()) ""
+                    else it.joinToString(separator = ",") { attachment -> attachment.asString() }
+                this["attachment"] = attachments
             }
         }
 

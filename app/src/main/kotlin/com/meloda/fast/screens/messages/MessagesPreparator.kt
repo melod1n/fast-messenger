@@ -213,7 +213,7 @@ class MessagesPreparator constructor(
             } else {
                 text.isVisible = true
                 bubble.isVisible = true
-                text.text = VkUtils.prepareMessageText(message.text)
+                text.text = VkUtils.prepareMessageText(message.text ?: "")
             }
         }
     }
