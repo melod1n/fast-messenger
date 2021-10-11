@@ -153,12 +153,12 @@ class ConversationsAdapter constructor(
             binding.textAttachment.isVisible = attachmentIcon != null
             binding.textAttachment.setImageDrawable(attachmentIcon)
 
-            val attachmentText = if (attachmentIcon == null) VkUtils.getAttachmentConversationText(
+            val attachmentText = if (attachmentIcon == null) VkUtils.getAttachmentText(
                 context = context,
                 message = message
             ) else null
 
-            val forwardsMessage = if (message.text == null) VkUtils.getForwardsConversationText(
+            val forwardsMessage = if (message.text == null) VkUtils.getForwardsText(
                 context = context,
                 message = message
             ) else null
@@ -168,7 +168,7 @@ class ConversationsAdapter constructor(
                 forwardsMessage != null ||
                 attachmentText != null
             ) ""
-            else message.text ?: "[no_message]").run { VkUtils.prepareMessageText(this) }
+            else message.text ?: "").run { VkUtils.prepareMessageText(this) }
 
             val coloredMessage = actionMessage ?: attachmentText ?: forwardsMessage ?: ""
 

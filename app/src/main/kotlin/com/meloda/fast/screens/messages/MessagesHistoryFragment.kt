@@ -618,8 +618,21 @@ class MessagesHistoryFragment :
                 else -> null
             }
 
+            val attachmentText = if (message.text == null) VkUtils.getAttachmentText(
+                context = requireContext(),
+                message = message
+            ) else null
+
+            val forwardsMessage = if (message.text == null) VkUtils.getForwardsText(
+                context = requireContext(),
+                message = message
+            ) else null
+
+            val messageText = forwardsMessage ?: attachmentText
+            ?: (message.text ?: "").run { VkUtils.prepareMessageText(this) }
+
             binding.replyMessageTitle.text = title
-            binding.replyMessageText.text = message.text
+            binding.replyMessageText.text = messageText
 
             if (isEditing) {
                 binding.message.setText(message.text)

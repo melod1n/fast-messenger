@@ -512,7 +512,7 @@ object VkUtils {
         )?.toString()
     }
 
-    fun getForwardsConversationText(context: Context, message: VkMessage): String? {
+    fun getForwardsText(context: Context, message: VkMessage): String? {
         if (message.forwards.isNullOrEmpty()) return null
 
         return message.forwards?.let { forwards ->
@@ -523,7 +523,7 @@ object VkUtils {
         }
     }
 
-    fun getAttachmentConversationText(context: Context, message: VkMessage): String? {
+    fun getAttachmentText(context: Context, message: VkMessage): String? {
         message.geoType?.let {
             return when (it) {
                 "point" -> context.getString(R.string.message_geo_point)
