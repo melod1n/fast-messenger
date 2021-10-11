@@ -7,7 +7,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="4dp">
+        android:padding="6dp">
 
         <com.meloda.fast.widget.CircleImageView
             android:id="@+id/preview"

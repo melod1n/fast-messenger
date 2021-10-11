@@ -241,7 +241,7 @@ class AttachmentInflater constructor(
     }
 
     private fun link(link: VkLink) {
-        val binding = ItemMessageAttachmentLinkBinding.inflate(inflater, container, true)
+        val binding = ItemMessageAttachmentLinkBinding.inflate(inflater, textContainer, true)
 
         binding.title.text = link.title
         binding.title.isVisible = !link.title.isNullOrBlank()
