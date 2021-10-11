@@ -3,17 +3,14 @@ package com.meloda.fast.screens.conversations
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.network.datasource.ConversationsDataSource
-import com.meloda.fast.api.network.datasource.UsersDataSource
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.request.ConversationsGetRequest
-import com.meloda.fast.api.model.request.UsersGetRequest
+import com.meloda.fast.api.network.conversations.*
+import com.meloda.fast.api.network.users.UsersDataSource
+import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
-import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.base.viewmodel.VkEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,18 +19,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
-    private val dataSource: ConversationsDataSource,
-    private val usersDataSource: UsersDataSource
+    private val conversations: ConversationsDataSource,
+    private val users: UsersDataSource
 ) : BaseViewModel() {
 
-    fun loadConversations() = viewModelScope.launch(Dispatchers.Default) {
+    fun loadConversations(
+        offset: Int? = null
+    ) = viewModelScope.launch(Dispatchers.Default) {
         makeJob({
-            dataSource.getAllChats(
+            conversations.get(
                 ConversationsGetRequest(
                     count = 30,
-//                    offset = 177,
                     extended = true,
-                    fields = "${VKConstants.USER_FIELDS},${VKConstants.GROUP_FIELDS}"
+                    offset = offset,
+                    fields = VKConstants.ALL_FIELDS
                 )
             )
         },
@@ -52,6 +51,7 @@ class ConversationsViewModel @Inject constructor(
                     sendEvent(
                         ConversationsLoaded(
                             count = response.count,
+                            offset = offset,
                             unreadCount = response.unreadCount ?: 0,
                             conversations = response.items.map { items ->
                                 items.conversation.asVkConversation(
@@ -63,34 +63,59 @@ class ConversationsViewModel @Inject constructor(
                         )
                     )
                 }
-            },
-            onError = {
-                val er = it
-                throw it
-            },
-            onStart = { sendEvent(StartProgressEvent) },
-            onEnd = { sendEvent(StopProgressEvent) })
+            }
+        )
     }
 
     fun loadProfileUser() = viewModelScope.launch {
-        makeJob({
-            usersDataSource.getById(UsersGetRequest(fields = "online,photo_200"))
-        },
+        makeJob({ users.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
             onAnswer = {
                 it.response?.let { r ->
                     val users = r.map { u -> u.asVkUser() }
-                    usersDataSource.storeUsers(users)
+                    this@ConversationsViewModel.users.storeUsers(users)
 
                     UserConfig.vkUser.value = users[0]
                 }
             })
     }
+
+    fun deleteConversation(peerId: Int) = viewModelScope.launch {
+        makeJob({
+            conversations.delete(
+                ConversationsDeleteRequest(peerId)
+            )
+        }, onAnswer = { sendEvent(ConversationsDelete(peerId)) })
+    }
+
+    fun pinConversation(
+        peerId: Int,
+        pin: Boolean
+    ) = viewModelScope.launch {
+        if (pin) {
+            makeJob(
+                { conversations.pin(ConversationsPinRequest(peerId)) },
+                onAnswer = { sendEvent(ConversationsPin(peerId)) }
+            )
+        } else {
+            makeJob(
+                { conversations.unpin(ConversationsUnpinRequest(peerId)) },
+                onAnswer = { sendEvent(ConversationsUnpin(peerId)) }
+            )
+        }
+    }
 }
 
 data class ConversationsLoaded(
     val count: Int,
+    val offset: Int?,
     val unreadCount: Int?,
     val conversations: List<VkConversation>,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>
-) : VKEvent()
+) : VkEvent()
+
+data class ConversationsDelete(val peerId: Int) : VkEvent()
+
+data class ConversationsPin(val peerId: Int) : VkEvent()
+
+data class ConversationsUnpin(val peerId: Int) : VkEvent()

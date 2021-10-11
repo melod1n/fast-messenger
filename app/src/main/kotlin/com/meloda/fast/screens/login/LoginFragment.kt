@@ -1,11 +1,17 @@
 package com.meloda.fast.screens.login
 
+import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
+import android.webkit.CookieManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -19,6 +25,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.databinding.DialogCaptchaBinding
@@ -29,7 +37,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jsoup.Jsoup
+import java.net.URLEncoder
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
@@ -59,14 +70,14 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         binding.loginInput.clearFocus()
     }
 
-    override fun onEvent(event: VKEvent) {
+    override fun onEvent(event: VkEvent) {
         super.onEvent(event)
 
         when (event) {
-            is ShowError -> showErrorSnackbar(event.errorDescription)
+            is ErrorEvent -> showErrorSnackbar(event.errorText)
             is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationEvent -> showValidationRequired(event.sid)
-            is SuccessAuth -> goToMain(event.haveAuthorized)
+            is SuccessAuth -> goToMain(event)
 
             is CodeSent -> showValidationDialog()
             is StartProgressEvent -> onProgressStarted()
@@ -89,9 +100,89 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun prepareViews() {
+        prepareWebView()
         prepareEmailEditText()
         preparePasswordEditText()
         prepareAuthButton()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun prepareWebView() {
+        with(binding.webView) {
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+
+            clearCache(true)
+            webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView?, url: String, favicon: Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    parseAuthUrl(url)
+                }
+
+                override fun onPageFinished(view: WebView, url: String) {
+                    super.onPageFinished(view, url)
+
+                    val a = Jsoup.parse(url)
+
+                    val b = 0
+                }
+            }
+        }
+
+        CookieManager.getInstance().apply {
+            removeAllCookies(null)
+            flush()
+            setAcceptCookie(true)
+        }
+    }
+
+    private fun launchWebView() {
+        binding.webView.loadUrl(
+            "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
+                    "display=mobile&scope=136297695&" +
+                    "redirect_uri=${
+                        URLEncoder.encode(
+                            "https://oauth.vk.com/blank.html",
+                            Charsets.UTF_8.toString()
+                        )
+                    }&response_type=token&v=${VKConstants.API_VERSION}"
+        )
+    }
+
+    private fun parseAuthUrl(url: String) {
+        if (url.isBlank()) return
+
+        if (url.startsWith("https://oauth.vk.com/blank.html")) {
+            if (url.contains("error")) {
+                Log.e("Fast::Login", "errorUrl: $url")
+                return
+            }
+
+            val authData = parseRedirectUrl(url)
+            if (authData == null) {
+                Log.e("Fast::Login", "errorUrl: $url")
+                return
+            }
+
+            val token = authData.first
+
+            UserConfig.fastToken = token
+        }
+    }
+
+    private fun parseRedirectUrl(url: String): Pair<String, Int>? {
+        val accessToken = extractPattern(url, "access_token=(.*?)&") ?: return null
+        val userId = extractPattern(url, "id=(\\d*)")?.toIntOrNull() ?: return null
+
+        return accessToken to userId
+    }
+
+    private fun extractPattern(string: String, pattern: String): String? {
+        val p = Pattern.compile(pattern)
+        val m = p.matcher(string)
+        return if (m.find()) {
+            m.group(1)
+        } else null
     }
 
     private fun prepareEmailEditText() {
@@ -293,8 +384,13 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         snackbar.show()
     }
 
-    private fun goToMain(haveAuthorized: Boolean) = lifecycleScope.launch {
-        if (haveAuthorized) delay(500)
+    private fun goToMain(event: SuccessAuth) = lifecycleScope.launch {
+        UserConfig.userId = event.userId
+        UserConfig.accessToken = event.vkToken
+
+        if (event.haveAuthorized) delay(500)
+
+        launchWebView()
 
         findNavController().navigate(R.id.toMain)
     }

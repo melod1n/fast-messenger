@@ -6,6 +6,7 @@ import com.meloda.fast.common.AppGlobal
 
 object UserConfig {
 
+    private const val FAST_TOKEN = "fast_token"
     private const val TOKEN = "token"
     private const val USER_ID = "user_id"
 
@@ -25,8 +26,16 @@ object UserConfig {
             AppGlobal.preferences.edit().putString(TOKEN, value).apply()
         }
 
+    var fastToken: String = ""
+        get() = AppGlobal.preferences.getString(FAST_TOKEN, "") ?: ""
+        set(value) {
+            field = value
+            AppGlobal.preferences.edit().putString(FAST_TOKEN, value).apply()
+        }
+
     fun clear() {
         accessToken = ""
+        fastToken = ""
         userId = -1
     }
 

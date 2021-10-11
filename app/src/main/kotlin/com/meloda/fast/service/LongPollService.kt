@@ -1,9 +1,9 @@
 package com.meloda.fast.service
 
 import android.util.Log
-import com.meloda.fast.api.model.request.MessagesGetLongPollServerRequest
-import com.meloda.fast.api.network.datasource.MessagesDataSource
-import com.meloda.fast.api.network.repo.LongPollRepo
+import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
+import com.meloda.fast.api.network.messages.MessagesDataSource
+import com.meloda.fast.api.network.longpoll.LongPollRepo
 import kotlinx.coroutines.*
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext

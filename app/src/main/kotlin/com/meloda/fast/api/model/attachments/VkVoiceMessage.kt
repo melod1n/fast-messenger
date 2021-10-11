@@ -5,9 +5,18 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class VkVoiceMessage(
-    val link: String
+    val id: Int,
+    val ownerId: Int,
+    val duration: Int,
+    val waveform: List<Int>,
+    val linkOgg: String,
+    val linkMp3: String,
+    val accessKey: String,
+    val transcriptState: String,
+    val transcript: String
 ) : VkAttachment() {
 
     @IgnoredOnParcel
     val className: String = this::class.java.name
+
 }

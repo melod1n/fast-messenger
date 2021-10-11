@@ -7,6 +7,7 @@ import android.text.SpannableString
 import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
+import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -15,6 +16,88 @@ import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 
 object VkUtils {
+
+    fun <T> attachmentToString(
+        attachmentClass: Class<T>,
+        id: Int,
+        ownerId: Int,
+        withAccessKey: Boolean,
+        accessKey: String?
+    ): String {
+        val type = when (attachmentClass) {
+            VkAudio::class.java -> "audio"
+            VkFile::class.java -> "doc"
+            VkVideo::class.java -> "video"
+            VkPhoto::class.java -> "photo"
+            else -> throw IllegalArgumentException("unknown attachment class: $attachmentClass")
+        }
+
+        val result = StringBuilder(type).append(ownerId).append('_').append(id)
+        if (withAccessKey && !accessKey.isNullOrBlank()) {
+            result.append('_')
+            result.append(accessKey)
+        }
+        return result.toString()
+    }
+
+
+    fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+        return (if (!message.isUser()) null
+        else profiles[message.fromId]).also { message.user.value = it }
+    }
+
+    fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
+        return (if (!message.isGroup()) null
+        else groups[message.fromId]).also { message.group.value = it }
+    }
+
+    fun getMessageAvatar(
+        message: VkMessage,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?
+    ): String? {
+        return when {
+            message.isUser() -> messageUser?.photo200
+            message.isGroup() -> messageGroup?.photo200
+            else -> null
+        }
+    }
+
+    fun getMessageTitle(
+        message: VkMessage,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?
+    ): String? {
+        return when {
+            message.isUser() -> messageUser?.fullName
+            message.isGroup() -> messageGroup?.name
+            else -> null
+        }
+    }
+
+    fun getConversationUser(conversation: VkConversation, profiles: Map<Int, VkUser>): VkUser? {
+        return (if (!conversation.isUser()) null
+        else profiles[conversation.id]).also { conversation.user.value = it }
+    }
+
+    fun getConversationGroup(conversation: VkConversation, groups: Map<Int, VkGroup>): VkGroup? {
+        return (if (!conversation.isGroup()) null
+        else groups[conversation.id]).also { conversation.group.value = it }
+    }
+
+    fun getConversationAvatar(
+        conversation: VkConversation,
+        conversationUser: VkUser?,
+        conversationGroup: VkGroup?
+    ): String? {
+        return when {
+            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
+            conversation.isUser() -> conversationUser?.photo200
+            conversation.isGroup() -> conversationGroup?.photo200
+            conversation.isChat() -> conversation.photo200
+            else -> null
+        }
+    }
 
     fun prepareMessageText(text: String, forConversations: Boolean? = null): String {
         return text.apply {
@@ -40,6 +123,12 @@ object VkUtils {
         }
 
         return forwards
+    }
+
+    fun parseReplyMessage(baseReplyMessage: BaseVkMessage?): VkMessage? {
+        if (baseReplyMessage == null) return null
+
+        return baseReplyMessage.asVkMessage()
     }
 
     fun parseAttachments(baseAttachments: List<BaseVkAttachmentItem>?): List<VkAttachment>? {
@@ -77,9 +166,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.VOICE -> {
                     val voiceMessage = baseAttachment.voiceMessage ?: continue
-                    attachments += VkVoiceMessage(
-                        link = voiceMessage.link_mp3
-                    )
+                    attachments += voiceMessage.asVkVoiceMessage()
                 }
                 BaseVkAttachmentItem.AttachmentType.STICKER -> {
                     val sticker = baseAttachment.sticker ?: continue
@@ -87,9 +174,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.GIFT -> {
                     val gift = baseAttachment.gift ?: continue
-                    attachments += VkGift(
-                        link = gift.thumb_48
-                    )
+                    attachments += gift.asVkGift()
                 }
                 BaseVkAttachmentItem.AttachmentType.WALL -> {
                     val wall = baseAttachment.wall ?: continue
@@ -97,9 +182,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.GRAFFITI -> {
                     val graffiti = baseAttachment.graffiti ?: continue
-                    attachments += VkGraffiti(
-                        link = graffiti.url
-                    )
+                    attachments += graffiti.asVkGraffiti()
                 }
                 BaseVkAttachmentItem.AttachmentType.POLL -> {
                     val poll = baseAttachment.poll ?: continue
@@ -115,9 +198,7 @@ object VkUtils {
                 }
                 BaseVkAttachmentItem.AttachmentType.CALL -> {
                     val call = baseAttachment.call ?: continue
-                    attachments += VkCall(
-                        initiatorId = call.initiator_id
-                    )
+                    attachments += call.asVkCall()
                 }
                 BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS -> {
                     val groupCall = baseAttachment.groupCall ?: continue

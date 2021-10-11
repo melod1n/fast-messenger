@@ -17,6 +17,7 @@ class AuthInterceptor : Interceptor {
                 builder.addQueryParameter("access_token", URLEncoder.encode(it, "utf-8"))
         }
 
+        // TODO: 9/29/2021 crash on timeout
         return chain.proceed(chain.request().newBuilder().apply { url(builder.build()) }.build())
 
     }

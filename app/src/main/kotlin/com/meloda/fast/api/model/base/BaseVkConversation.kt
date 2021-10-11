@@ -40,7 +40,8 @@ data class BaseVkConversation(
         unreadCount = unread_count,
         membersCount = chat_settings?.members_count,
         ownerId = chat_settings?.owner_id,
-        isPinned = sort_id.major_id > 0
+        isPinned = sort_id.major_id > 0,
+        canChangePin = chat_settings?.acl?.can_change_pin == true
     ).apply {
         this.lastMessage = lastMessage
         this.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()

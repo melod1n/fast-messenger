@@ -5,7 +5,10 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class VkGift(
-    val link: String
+    val id: Int,
+    val thumb256: String?,
+    val thumb96: String?,
+    val thumb48: String
 ) : VkAttachment() {
 
     @IgnoredOnParcel

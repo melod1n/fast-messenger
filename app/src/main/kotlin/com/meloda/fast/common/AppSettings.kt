@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 object AppSettings {
 
     val keyIsMultilineEnabled = booleanPreferencesKey("isMultilineEnabled")
+
 }
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(

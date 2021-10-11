@@ -75,29 +75,17 @@ class ConversationsAdapter constructor(
                 return
             }
 
-            val chatUser: VkUser? = if (conversation.isUser()) {
-                profiles[conversation.id]
-            } else null
+            val conversationUser = VkUtils.getConversationUser(conversation, profiles)
+            val conversationGroup = VkUtils.getConversationGroup(conversation, groups)
 
-            val messageUser: VkUser? = if (message.isUser()) {
-                profiles[message.fromId]
-            } else null
+            val messageUser = VkUtils.getMessageUser(message, profiles)
+            val messageGroup = VkUtils.getMessageGroup(message, groups)
 
-            val chatGroup: VkGroup? = if (conversation.isGroup()) {
-                groups[conversation.id]
-            } else null
-
-            val messageGroup: VkGroup? = if (message.isGroup()) {
-                groups[message.fromId]
-            } else null
-
-            val avatar = when {
-                conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
-                conversation.isUser() && chatUser != null && !chatUser.photo200.isNullOrBlank() -> chatUser.photo200
-                conversation.isGroup() && chatGroup != null && !chatGroup.photo200.isNullOrBlank() -> chatGroup.photo200
-                conversation.isChat() && !conversation.photo200.isNullOrBlank() -> conversation.photo200
-                else -> null
-            }
+            val avatar = VkUtils.getConversationAvatar(
+                conversation = conversation,
+                conversationUser = conversationUser,
+                conversationGroup = conversationGroup
+            )
 
             binding.avatar.isVisible = avatar != null
 
@@ -136,7 +124,7 @@ class ConversationsAdapter constructor(
                 }
             }
 
-            binding.online.isVisible = chatUser?.online == true
+            binding.online.isVisible = conversationUser?.online == true
 
             binding.pin.isVisible = conversation.isPinned
 
@@ -210,7 +198,8 @@ class ConversationsAdapter constructor(
             binding.message.text = spanMessage
 
             binding.title.text =
-                getItem(position).title ?: chatUser?.toString() ?: chatGroup?.name ?: "..."
+                getItem(position).title ?: conversationUser?.toString() ?: conversationGroup?.name
+                        ?: "..."
 
             binding.date.text = TimeUtils.getLocalizedTime(context, message.date * 1000L)
 
@@ -230,6 +219,18 @@ class ConversationsAdapter constructor(
                 binding.counter.text = ""
             }
         }
+    }
+
+    fun removeConversation(conversationId: Int): Int? {
+        for (i in values.indices) {
+            val conversation = values[i]
+            if (conversation.id == conversationId) {
+                values.removeAt(i)
+                return i
+            }
+        }
+
+        return null
     }
 
     companion object {

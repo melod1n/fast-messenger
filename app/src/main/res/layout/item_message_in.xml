@@ -51,32 +51,27 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/ic_message_in_background"
                     android:backgroundTint="@color/n2_100"
+                    android:minWidth="60dp"
                     android:orientation="vertical"
-                    android:padding="15dp"
                     tools:ignore="UselessParent">
 
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:autoLink="all"
-                        android:textColor="@color/n1_800"
-                        tools:text="This" />
-
-                    <Space
-                        android:id="@+id/attachmentSpacer"
-                        android:layout_width="wrap_content"
-                        android:layout_height="5dp"
-                        android:visibility="gone" />
-
                     <androidx.appcompat.widget.LinearLayoutCompat
-                        android:id="@+id/attachmentContainer"
+                        android:id="@+id/textContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone" />
+                        android:orientation="vertical">
 
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:autoLink="all"
+                            android:padding="15dp"
+                            android:textColor="@color/n1_800"
+                            tools:text="This" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
                 </com.meloda.fast.widget.BoundedLinearLayout>
 
                 <com.meloda.fast.widget.CircleImageView
@@ -89,17 +84,18 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/time"
+            <Space
+                android:id="@+id/attachmentSpacer"
+                android:layout_width="wrap_content"
+                android:layout_height="5dp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/attachmentContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:layout_marginStart="12dp"
-                android:textColor="?textColorSecondaryVariant"
-                android:visibility="gone"
-                tools:layout_height="18dp"
-                tools:text="12:00"
-                tools:visibility="visible" />
+                android:orientation="vertical"
+                android:visibility="gone" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>

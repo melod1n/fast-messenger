@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
@@ -29,7 +30,9 @@ class MessagesHistoryAdapter constructor(
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf()
-) : BaseAdapter<VkMessage, MessagesHistoryAdapter.Holder>(context, values, COMPARATOR) {
+) : BaseAdapter<VkMessage, MessagesHistoryAdapter.BasicHolder>(context, values, COMPARATOR) {
+
+    var avatarLongClickListener: ((position: Int) -> Unit)? = null
 
     override fun getItemViewType(position: Int): Int {
         when {
@@ -49,7 +52,7 @@ class MessagesHistoryAdapter constructor(
     private fun isPositionHeader(position: Int) = position == 0
     private fun isPositionFooter(position: Int) = position >= actualSize
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasicHolder {
         return when (viewType) {
             // magick numbers is great!
             HEADER -> Header(createEmptyView(60))
@@ -67,6 +70,21 @@ class MessagesHistoryAdapter constructor(
         }
     }
 
+//    override fun initListeners(itemView: View, position: Int) {
+//        if (itemView is AdapterView<*>) return
+//
+//        itemView.setOnClickListener { onItemClickListener?.invoke(position, itemView) }
+//        itemView.setOnLongClickListener { itemLongClickListener.invoke(position) }
+//    }
+
+
+    val actualSize get() = values.size
+
+    override fun getItemCount(): Int {
+        if (actualSize == 0) return 2
+        return super.getItemCount() + 2
+    }
+
     private fun createEmptyView(size: Int) = View(context).apply {
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -78,22 +96,22 @@ class MessagesHistoryAdapter constructor(
         isFocusable = false
     }
 
-    override fun onBindViewHolder(holder: Holder, position: Int) {
+    override fun onBindViewHolder(holder: BasicHolder, position: Int) {
         if (holder is Header || holder is Footer) return
 
         initListeners(holder.itemView, position)
         holder.bind(position)
     }
 
-    open inner class Holder(v: View = View(context)) : BaseHolder(v)
+    open inner class BasicHolder(v: View = View(context)) : BaseHolder(v)
 
-    inner class Header(v: View) : Holder(v)
+    inner class Header(v: View) : BasicHolder(v)
 
-    inner class Footer(v: View) : Holder(v)
+    inner class Footer(v: View) : BasicHolder(v)
 
     inner class IncomingMessage(
         private val binding: ItemMessageInBinding
-    ) : Holder(binding.root) {
+    ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int) {
             val message = getItem(position)
@@ -103,33 +121,42 @@ class MessagesHistoryAdapter constructor(
 
             MessagesPreparator(
                 context = context,
+
+                root = binding.root,
+
                 conversation = conversation,
                 message = message,
                 prevMessage = prevMessage,
                 nextMessage = nextMessage,
 
+                title = binding.title,
+
                 avatar = binding.avatar,
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                time = binding.time,
                 unread = binding.unread,
+
+                textContainer = binding.textContainer,
                 attachmentContainer = binding.attachmentContainer,
                 attachmentSpacer = binding.attachmentSpacer,
 
                 profiles = profiles,
                 groups = groups
-            ).prepare()
+            ).setPhotoClickListener {
+                Toast.makeText(context, "Photo url: $it", Toast.LENGTH_LONG).show()
+            }.prepare()
+
+            binding.avatar.setOnLongClickListener() {
+                avatarLongClickListener?.invoke(position)
+                true
+            }
         }
     }
 
     inner class OutgoingMessage(
         private val binding: ItemMessageOutBinding
-    ) : Holder(binding.root) {
-
-        init {
-            binding.bubbleStroke.setOnClickListener { binding.bubble.performClick() }
-        }
+    ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int) {
             val message = getItem(position)
@@ -138,16 +165,17 @@ class MessagesHistoryAdapter constructor(
 
             MessagesPreparator(
                 context = context,
+                root = binding.root,
                 conversation = conversation,
                 message = message,
                 prevMessage = prevMessage,
 
                 bubble = binding.bubble,
-                bubbleStroke = binding.bubbleStroke,
                 text = binding.text,
                 spacer = binding.spacer,
-                time = binding.time,
                 unread = binding.unread,
+
+                textContainer = binding.textContainer,
                 attachmentContainer = binding.attachmentContainer,
                 attachmentSpacer = binding.attachmentSpacer,
 
@@ -159,7 +187,7 @@ class MessagesHistoryAdapter constructor(
 
     inner class ServiceMessage(
         private val binding: ItemMessageServiceBinding
-    ) : Holder(binding.root) {
+    ) : BasicHolder(binding.root) {
 
         private val youPrefix = context.getString(R.string.you_message_prefix)
 
@@ -198,7 +226,7 @@ class MessagesHistoryAdapter constructor(
 
                 binding.photo.isVisible = true
 
-                val size = attachment.sizeOfType('m') ?: return@let
+                val size = attachment.getSizeOrSmaller('y') ?: return@let
 
                 binding.photo.layoutParams = LinearLayoutCompat.LayoutParams(
                     size.width,
@@ -213,11 +241,39 @@ class MessagesHistoryAdapter constructor(
         }
     }
 
-    private val actualSize get() = values.size
+    fun removeMessageById(id: Int): Int? {
+        for (i in values.indices) {
+            val message = values[i]
+            if (message.id == id) {
+                values.removeAt(i)
+                return i
+            }
+        }
 
-    override fun getItemCount(): Int {
-        if (actualSize == 0) return 2
-        return super.getItemCount() + 2
+        return null
+    }
+
+    fun removeMessagesByIds(ids: List<Int>): List<Int> {
+        val positions = mutableListOf<Int>()
+
+        for (i in values.indices) {
+            val message = values[i]
+            if (ids.contains(message.id)) {
+                values.removeAt(i)
+                positions += i
+            }
+        }
+
+        return positions
+    }
+
+    fun searchMessageIndex(messageId: Int): Int? {
+        for (i in values.indices) {
+            val message = values[i]
+            if (message.id == messageId) return i
+        }
+
+        return null
     }
 
     companion object {

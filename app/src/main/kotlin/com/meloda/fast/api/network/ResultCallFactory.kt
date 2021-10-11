@@ -1,6 +1,7 @@
 package com.meloda.fast.api.network
 
 import com.meloda.fast.api.VKException
+import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.base.ApiResponse
 import okhttp3.Request
 import okio.IOException
@@ -93,7 +94,6 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
 
             if (result is Answer.Error && isVkException) if (checkErrors(call, result)) return
 
-
             callback.onResponse(proxy, Response.success(result))
         }
 
@@ -105,6 +105,11 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
         }
 
         private fun checkErrors(call: Call<T>, result: Answer.Error): Boolean {
+            if (result.throwable is ApiError) {
+                onFailure(call, result.throwable)
+                return true
+            }
+
             val json = JSONObject(result.throwable.message ?: "{}")
 
             return if (json.has("error")) {

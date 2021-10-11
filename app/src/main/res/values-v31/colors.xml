@@ -9,6 +9,7 @@
 
     <color name="a2_100">@android:color/system_accent2_100</color>
     <color name="a2_200">@android:color/system_accent2_200</color>
+    <color name="a2_300">@android:color/system_accent2_300</color>
     <color name="a2_700">@android:color/system_accent2_700</color>
     <color name="a1_1000">@android:color/system_accent2_1000</color>
 

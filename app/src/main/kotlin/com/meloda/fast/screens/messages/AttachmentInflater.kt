@@ -15,9 +15,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isNotEmpty
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
+import androidx.core.view.updatePadding
 import coil.load
 import com.google.android.material.imageview.ShapeableImageView
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -30,9 +32,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
+// TODO: 9/29/2021 use recyclerview for viewing attachments
 class AttachmentInflater constructor(
     private val context: Context,
     private val container: LinearLayoutCompat,
+    private val textContainer: LinearLayoutCompat,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
     private val groups: Map<Int, VkGroup>
@@ -44,16 +48,28 @@ class AttachmentInflater constructor(
     private val playColor = ContextCompat.getColor(context, R.color.a3_700)
     private val playBackgroundColor = ContextCompat.getColor(context, R.color.a3_200)
 
+    var photoClickListener: ((url: String) -> Unit)? = null
+
+    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): AttachmentInflater {
+        this.photoClickListener = unit
+        return this
+    }
+
     fun inflate() {
         if (message.attachments.isNullOrEmpty()) return
         attachments = message.attachments!!
 
         container.removeAllViews()
+        textContainer.removeAllViews()
 
         if (attachments.size == 1) {
             when (val attachment = attachments[0]) {
                 is VkSticker -> return sticker(attachment)
                 is VkWall -> return wall(attachment)
+                is VkVoiceMessage -> return voice(attachment)
+                is VkCall -> return call(attachment)
+                is VkGraffiti -> return graffiti(attachment)
+                is VkGift -> return gift(attachment)
             }
         }
 
@@ -82,7 +98,6 @@ class AttachmentInflater constructor(
                 is VkAudio -> audio(attachment)
                 is VkFile -> file(attachment)
                 is VkLink -> link(attachment)
-                is VkStory -> story(attachment)
 
                 else -> Log.e(
                     "Attachment inflater",
@@ -94,12 +109,15 @@ class AttachmentInflater constructor(
     }
 
     private fun photo(photo: VkPhoto) {
-        val size = photo.sizeOfType('m') ?: return
+        val size = photo.getSizeOrSmaller('y') ?: return
 
         val newPhoto = ShapeableImageView(context).apply {
             layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(size.width).roundToInt(),
-                AndroidUtils.px(size.height).roundToInt()
+//                ViewGroup.LayoutParams.MATCH_PARENT,
+                size.width,
+                size.height
+//                AndroidUtils.px(size.width).roundToInt(),
+//                AndroidUtils.px(size.height).roundToInt()
             )
 
             shapeAppearanceModel =
@@ -108,6 +126,12 @@ class AttachmentInflater constructor(
                 }
 
             scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+
+        if (photoClickListener != null) {
+            newPhoto.setOnClickListener { photoClickListener?.invoke(size.url) }
+        } else {
+            newPhoto.setOnClickListener(null)
         }
 
         val spacer = Space(context).also {
@@ -222,14 +246,7 @@ class AttachmentInflater constructor(
         binding.caption.text = link.caption
         binding.caption.isVisible = !link.caption.isNullOrBlank()
 
-        binding.preview.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(40f)
-            .build()
-            .let {
-                binding.preview.shapeAppearanceModel = it
-            }
-
-        link.photo?.sizeOfType('m')?.let {
+        link.photo?.getMaxSize()?.let {
             binding.preview.load(it.url) { crossfade(150) }
             binding.preview.isVisible = true
             return
@@ -245,8 +262,8 @@ class AttachmentInflater constructor(
 
         with(binding.image) {
             layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(180).roundToInt(),
-                AndroidUtils.px(180).roundToInt()
+                AndroidUtils.px(140).roundToInt(),
+                AndroidUtils.px(140).roundToInt()
             )
 
             load(url) { crossfade(150) }
@@ -282,7 +299,7 @@ class AttachmentInflater constructor(
 
         binding.avatar.isVisible = group != null || user != null
         binding.avatar.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(40f)
+            .setAllCornerSizes(AndroidUtils.px(20))
             .build()
             .let {
                 binding.avatar.shapeAppearanceModel = it
@@ -302,8 +319,91 @@ class AttachmentInflater constructor(
         ).format(wall.date * 1000L)
     }
 
-    private fun story(story: VkStory) {
+    private fun voice(voiceMessage: VkVoiceMessage) {
+        val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, textContainer, true)
 
+        if (message.isOut)
+            binding.root.updatePadding(
+                bottom = AndroidUtils.px(6).roundToInt(),
+                left = AndroidUtils.px(6).roundToInt()
+            )
+
+        val waveform = IntArray(voiceMessage.waveform.size)
+        voiceMessage.waveform.forEachIndexed { index, i -> waveform[index] = i }
+
+        binding.waveform.sample = waveform
+        binding.waveform.maxProgress = 100f
+        binding.waveform.progress = 100f
+
+        binding.duration.text = SimpleDateFormat(
+            "mm:ss",
+            Locale.getDefault()
+        ).format(voiceMessage.duration * 1000L)
+    }
+
+    private fun call(call: VkCall) {
+        val binding = ItemMessageAttachmentCallBinding.inflate(inflater, textContainer, true)
+
+        if (message.isOut)
+            binding.root.updatePadding(
+                bottom = AndroidUtils.px(5).roundToInt(),
+                left = AndroidUtils.px(6).roundToInt()
+            )
+
+        val callType =
+            context.getString(
+                if (call.initiatorId == UserConfig.userId) R.string.message_call_type_outgoing
+                else R.string.message_call_type_incoming
+            )
+
+        binding.type.text = callType
+
+        var callState =
+            context.getString(
+                if (call.state == "reached") R.string.message_call_state_ended
+                else if (call.state == "canceled_by_initiator") {
+                    if (call.initiatorId == UserConfig.userId) R.string.message_call_state_cancelled
+                    else R.string.message_call_state_missed
+                } else R.string.message_call_unknown
+            )
+
+        if (callState == context.getString(R.string.message_call_unknown)) callState = call.state
+
+        binding.state.text = callState
+    }
+
+    private fun graffiti(graffiti: VkGraffiti) {
+        val binding = ItemMessageAttachmentGraffitiBinding.inflate(inflater, container, true)
+
+        val url = graffiti.url
+
+        val heightCoefficient = graffiti.height / AndroidUtils.px(140)
+
+        with(binding.image) {
+            layoutParams = LinearLayoutCompat.LayoutParams(
+                AndroidUtils.px(140).roundToInt(),
+                (graffiti.height / heightCoefficient).roundToInt()
+            )
+
+            load(url) { crossfade(150) }
+        }
+    }
+
+    private fun gift(gift: VkGift) {
+        val binding = ItemMessageAttachmentGiftBinding.inflate(inflater, container, true)
+
+        val url = gift.thumb256 ?: gift.thumb96 ?: gift.thumb48
+
+        with(binding.image) {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize { AndroidUtils.px(12) }
+
+            layoutParams = LinearLayoutCompat.LayoutParams(
+                AndroidUtils.px(140).roundToInt(),
+                AndroidUtils.px(140).roundToInt()
+            )
+
+            load(url) { crossfade(150) }
+        }
     }
 
 }

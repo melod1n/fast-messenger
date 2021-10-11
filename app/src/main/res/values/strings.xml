@@ -109,4 +109,43 @@
     <string name="post_type_user">User post</string>
     <string name="post_type_unknown">Post</string>
     <string name="message_attachments_story">Story</string>
+    <string name="log_out">Log out</string>
+    <string name="confirm">Confirmation</string>
+    <string name="sign_out_confirm">Signing out will delete all data related to this account from this device. Continue?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="message_context_action_reply">Reply</string>
+    <string name="message_context_action_mark_as_important">Mark as important</string>
+    <string name="message_context_action_unmark_as_important">Unmark as important</string>
+    <string name="time_format">Time: %s</string>
+    <string name="message_context_action_pin">Pin</string>
+    <string name="message_context_action_unpin">Unpin</string>
+    <string name="message_context_action_edit">Edit</string>
+    <string name="message_context_action_delete">Delete</string>
+
+    <string name="confirm_delete_message">Delete the message?</string>
+
+    <string name="message_delete_for_all">Delete for all</string>
+
+    <string name="message_mark_as_spam">Mark as spam</string>
+
+    <string name="action_delete">Delete</string>
+    <string name="conversation_context_action_delete">Delete</string>
+    <string name="confirm_delete_conversation">Delete the conversation?</string>
+    <string name="action_sign_out">Sign out</string>
+    <string name="sign_out_confirm_title">Sign out</string>
+    <string name="conversation_context_action_unpin">Unpin</string>
+    <string name="conversation_context_action_pin">Pin</string>
+    <string name="confirm_unpin_conversation">Unpin the conversation?</string>
+    <string name="confirm_pin_conversation">Pin the conversation?</string>
+    <string name="action_pin">Pin</string>
+    <string name="action_unpin">Unpin</string>
+    <string name="message_call_type_outgoing">Outgoing call</string>
+    <string name="message_call_type_incoming">Incoming call</string>
+    <string name="message_call_state_ended">Ended</string>
+    <string name="message_call_state_cancelled">Cancelled</string>
+    <string name="message_call_state_missed">Missed</string>
+    <string name="message_call_unknown">Unknown</string>
+    <string name="confirm_pin_message">Pin the message?</string>
+    <string name="confirm_unpin_message">Unpin the message?</string>
 </resources>

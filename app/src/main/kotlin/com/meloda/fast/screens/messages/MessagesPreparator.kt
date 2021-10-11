@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.messages
 
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -8,9 +9,7 @@ import android.widget.Space
 import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.core.view.setPadding
 import coil.load
 import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
@@ -20,7 +19,6 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkSticker
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.widget.BoundedLinearLayout
 import java.text.SimpleDateFormat
 import java.util.*
@@ -30,19 +28,21 @@ import kotlin.math.roundToInt
 class MessagesPreparator constructor(
     private val context: Context,
 
+    private val root: View? = null,
+
     private val conversation: VkConversation,
     private val message: VkMessage,
     private val prevMessage: VkMessage? = null,
     private val nextMessage: VkMessage? = null,
 
     private val bubble: BoundedLinearLayout? = null,
-    private val bubbleStroke: View? = null,
     private val text: TextView? = null,
     private val avatar: ImageView? = null,
     private val title: TextView? = null,
     private val spacer: Space? = null,
     private val unread: ImageView? = null,
     private val time: TextView? = null,
+    private val textContainer: LinearLayoutCompat? = null,
     private val attachmentContainer: LinearLayoutCompat? = null,
     private val attachmentSpacer: Space? = null,
 
@@ -65,51 +65,129 @@ class MessagesPreparator constructor(
         ContextCompat.getDrawable(context, R.drawable.ic_message_out_background)
     private val backgroundMiddleOut =
         ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle)
-    private val backgroundStrokeOut =
-        ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_stroke)
-    private val backgroundMiddleStrokeOut =
-        ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle_stroke)
+
+    private val rootHighlightedColor =
+        ContextCompat.getColor(context, R.color.n2_100)
+
+    private var photoClickListener: ((url: String) -> Unit)? = null
+
+    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): MessagesPreparator {
+        this.photoClickListener = unit
+        return this
+    }
 
     fun prepare() {
-        val messageUser: VkUser? = if (message.isUser()) {
-            profiles[message.fromId]
-        } else null
+        val messageUser = VkUtils.getMessageUser(message, profiles)
+        val messageGroup = VkUtils.getMessageGroup(message, groups)
 
-        val messageGroup: VkGroup? = if (message.isGroup()) {
-            groups[message.fromId]
-        } else null
+        prepareRootBackground()
 
+        prepareTime()
+
+        prepareUnreadIndicator()
+
+        prepareSpacer()
+
+        prepareAttachments()
+
+        prepareAttachmentsSpacer()
+
+        prepareBubbleBackground()
+
+        prepareText()
+
+        prepareAvatar(
+            messageUser = messageUser,
+            messageGroup = messageGroup
+        )
+
+        if (message.isPeerChat()) {
+            val prevSenderDiff = VkUtils.isPreviousMessageFromDifferentSender(prevMessage, message)
+            val nextSenderDiff = VkUtils.isPreviousMessageFromDifferentSender(message, nextMessage)
+            val fiveMinAgo = VkUtils.isPreviousMessageSentFiveMinutesAgo(prevMessage, message)
+
+            val change = (prevMessage?.date ?: 0) - message.date
+
+            Log.d(
+                "Fast::MessagesPreparator",
+                "text: ${message.text}; prevText: ${prevMessage?.text}; time change: $change; fromDiffSender: $prevSenderDiff; fiveMinAgo: $fiveMinAgo; "
+            )
+
+            title?.isVisible = prevSenderDiff || fiveMinAgo
+
+            avatar?.visibility =
+                if (nextSenderDiff
+                    || (fiveMinAgo && prevSenderDiff)
+                    || !prevSenderDiff
+                    || nextMessage == null
+                ) View.VISIBLE else View.INVISIBLE
+        } else {
+            title?.isVisible = false
+            avatar?.isVisible = false
+        }
+
+        if (title != null) {
+            val titleString = when {
+                message.isUser() && messageUser != null -> messageUser.firstName
+                message.isGroup() && messageGroup != null -> messageGroup.name
+                else -> null
+            }
+
+            title.text = titleString
+        }
+    }
+
+    private fun prepareRootBackground() {
+        if (root != null) {
+            root.background =
+                if (message.isSelected) ColorDrawable(rootHighlightedColor)
+                else null
+        }
+    }
+
+    private fun prepareTime() {
+        time?.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(message.date * 1000L)
+    }
+
+    private fun prepareUnreadIndicator() {
         if (unread != null) {
             unread.isVisible = message.isRead(conversation)
         }
+    }
 
-        if (bubble != null && time != null) {
-            bubble.setOnClickListener { time.isVisible = !time.isVisible }
-        }
+    private fun prepareSpacer() {
+        spacer?.isVisible = VkUtils.isPreviousMessageSentFiveMinutesAgo(prevMessage, message)
+    }
 
-        if (attachmentContainer != null) {
+    private fun prepareAttachments() {
+        if (attachmentContainer != null && textContainer != null) {
             if (message.attachments.isNullOrEmpty()) {
                 attachmentContainer.isVisible = false
                 attachmentContainer.removeAllViews()
             } else {
                 attachmentContainer.isVisible = true
+
                 AttachmentInflater(
                     context = context,
                     container = attachmentContainer,
+                    textContainer = textContainer,
                     message = message,
                     groups = groups,
                     profiles = profiles
-                ).inflate()
+                )
+                    .setPhotoClickListener(photoClickListener)
+                    .inflate()
             }
         }
+    }
 
+    private fun prepareAttachmentsSpacer() {
+        attachmentSpacer?.isVisible =
+            !message.attachments.isNullOrEmpty() && text?.isVisible == true
+    }
+
+    private fun prepareBubbleBackground() {
         if (bubble != null) {
-            val padding =
-                AndroidUtils.px(if (!message.attachments.isNullOrEmpty()) 4 else 15).roundToInt()
-
-            bubble.setPadding(padding)
-
-
             // TODO: 9/23/2021 use external function
             bubble.background =
                 if (!message.attachments.isNullOrEmpty() && message.attachments!![0] is VkSticker) null
@@ -125,82 +203,29 @@ class MessagesPreparator constructor(
                     }
                 }
         }
+    }
 
-        // TODO: 9/23/2021 use external function
-        bubbleStroke?.background =
-            if (bubble?.background == null) null else {
-                if (prevMessage == null || prevMessage.fromId != message.fromId) backgroundStrokeOut
-                else if (prevMessage.fromId == message.fromId && message.date - prevMessage.date < 60) backgroundMiddleStrokeOut
-                else backgroundStrokeOut
-            }
-
+    private fun prepareText() {
         if (bubble != null && text != null) {
             if (message.text == null) {
                 text.isVisible = false
                 bubble.isVisible = !message.attachments.isNullOrEmpty()
-                bubbleStroke?.isVisible = bubble.isVisible
             } else {
                 text.isVisible = true
                 bubble.isVisible = true
-                bubbleStroke?.isVisible = true
-                text.text = VkUtils.prepareMessageText(message.text)
+                text.text = VkUtils.prepareMessageText(message.text ?: "")
             }
         }
+    }
 
+    private fun prepareAvatar(
+        messageUser: VkUser? = null,
+        messageGroup: VkGroup? = null
+    ) {
         if (avatar != null) {
-            val avatarUrl = when {
-                message.isUser() && messageUser != null && !messageUser.photo200.isNullOrBlank() -> messageUser.photo200
-                message.isGroup() && messageGroup != null && !messageGroup.photo200.isNullOrBlank() -> messageGroup.photo200
-                else -> null
-            }
+            val avatarUrl = VkUtils.getMessageAvatar(message, messageUser, messageGroup)
 
             avatar.load(avatarUrl) { crossfade(100) }
         }
-
-        spacer?.isVisible = VkUtils.isPreviousMessageSentFiveMinutesAgo(prevMessage, message)
-
-        if (message.isPeerChat()) {
-
-            val fromDiffSender = VkUtils.isPreviousMessageFromDifferentSender(prevMessage, message)
-            val fiveMinAgo = VkUtils.isPreviousMessageSentFiveMinutesAgo(prevMessage, message)
-
-            val change = (prevMessage?.date ?: 0) - message.date
-
-            Log.d(
-                "Fast::MessagesPreparator",
-                "text: ${message.text}; prevText: ${prevMessage?.text}; time change: $change; fromDiffSender: $fromDiffSender; fiveMinAgo: $fiveMinAgo; "
-            )
-
-            title?.isVisible = fromDiffSender || fiveMinAgo
-
-            avatar?.isInvisible = fromDiffSender && fiveMinAgo
-        } else {
-            title?.isVisible = false
-            avatar?.isVisible = false
-        }
-
-        if (title != null) {
-            val titleString = when {
-                message.isUser() && messageUser != null -> messageUser.firstName
-                message.isGroup() && messageGroup != null -> messageGroup.name
-                else -> null
-            }
-
-            title.text = titleString
-            title.measure(0, 0)
-
-            if (bubble != null) {
-                if (title.isVisible) {
-                    bubble.minimumWidth = title.measuredWidth + 60
-                } else {
-                    bubble.minimumWidth = 0
-                }
-            }
-        }
-
-        attachmentSpacer?.isVisible =
-            !message.attachments.isNullOrEmpty() && text?.isVisible == true
-
-        time?.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(message.date * 1000L)
     }
 }

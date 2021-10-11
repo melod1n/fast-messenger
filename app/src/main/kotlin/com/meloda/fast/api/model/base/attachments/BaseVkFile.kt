@@ -16,16 +16,18 @@ data class BaseVkFile(
     val url: String,
     val preview: Preview?,
     val ic_licensed: Int,
-    val access_key: String,
+    val access_key: String?,
     val web_preview_url: String?
 ) : BaseVkAttachment() {
 
     fun asVkFile() = VkFile(
         id = id,
+        ownerId = owner_id,
         title = title,
         ext = ext,
         url = url,
-        size = size
+        size = size,
+        accessKey = access_key
     )
 
     @Parcelize

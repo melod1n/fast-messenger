@@ -5,15 +5,15 @@ data class ShowDialogInfoEvent(
     val message: String,
     val positiveBtn: String? = null,
     val negativeBtn: String? = null
-) : VKEvent()
+) : VkEvent()
 
-data class ErrorEvent(val errorText: String) : VKEvent()
+data class ErrorEvent(val errorText: String) : VkEvent()
 
-object IllegalTokenEvent : VKEvent()
-data class CaptchaEvent(val sid: String, val image: String) : VKEvent()
-data class ValidationEvent(val sid: String) : VKEvent()
+object IllegalTokenEvent : VkEvent()
+data class CaptchaEvent(val sid: String, val image: String) : VkEvent()
+data class ValidationEvent(val sid: String) : VkEvent()
 
-object StartProgressEvent : VKEvent()
-object StopProgressEvent : VKEvent()
+object StartProgressEvent : VkEvent()
+object StopProgressEvent : VkEvent()
 
-abstract class VKEvent
+abstract class VkEvent

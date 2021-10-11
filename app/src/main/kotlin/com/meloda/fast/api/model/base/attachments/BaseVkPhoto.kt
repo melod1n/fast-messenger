@@ -13,7 +13,7 @@ data class BaseVkPhoto(
     val has_tags: Boolean,
     val access_key: String?,
     val sizes: List<Size>,
-    val text: String,
+    val text: String?,
     val user_id: Int?,
     val lat: Double?,
     val long: Double?,

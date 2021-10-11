@@ -1,11 +1,10 @@
 package com.meloda.fast.screens.login
 
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
-import com.meloda.fast.api.model.request.RequestAuthDirect
-import com.meloda.fast.api.network.datasource.AuthDataSource
+import com.meloda.fast.api.network.auth.AuthDataSource
+import com.meloda.fast.api.network.auth.RequestAuthDirect
 import com.meloda.fast.base.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -45,33 +44,37 @@ class LoginViewModel @Inject constructor(
                     return@makeJob
                 }
 
-                UserConfig.userId = it.userId
-                UserConfig.accessToken = it.accessToken
-
-                sendEvent(SuccessAuth())
+                sendEvent(
+                    SuccessAuth(
+                        userId = it.userId,
+                        vkToken = it.accessToken
+                    )
+                )
             },
             onError = {
-                if (it !is VKException) return@makeJob
+                if (it !is VKException) {
+                    onError(it)
+                    return@makeJob
+                }
 
+                // TODO: 9/27/2021 use `delay` parameter
                 twoFaCode?.let { sendEvent(CodeSent) }
-            },
-            onStart = { sendEvent(StartProgressEvent) },
-            onEnd = { sendEvent(StopProgressEvent) }
+            }
         )
     }
 
     fun sendSms(validationSid: String) = viewModelScope.launch {
         makeJob({ dataSource.sendSms(validationSid) },
-            onAnswer = { sendEvent(CodeSent) },
-            onError = {},
-            onStart = {},
-            onEnd = {})
+            onAnswer = { sendEvent(CodeSent) }
+        )
     }
 
 }
 
-data class ShowError(val errorDescription: String) : VKEvent()
+object CodeSent : VkEvent()
 
-object CodeSent : VKEvent()
-
-data class SuccessAuth(val haveAuthorized: Boolean = true) : VKEvent()
+data class SuccessAuth(
+    val haveAuthorized: Boolean = true,
+    val userId: Int,
+    val vkToken: String
+) : VkEvent()

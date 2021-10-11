@@ -23,7 +23,8 @@ data class BaseVkMessage(
     val payload: String,
     val geo: Geo?,
     val action: Action?,
-    val ttl: Int
+    val ttl: Int,
+    val reply_message: BaseVkMessage?
 ) : Parcelable {
 
     fun asVkMessage() = VkMessage(
@@ -44,6 +45,7 @@ data class BaseVkMessage(
     ).also {
         it.attachments = VkUtils.parseAttachments(attachments)
         it.forwards = VkUtils.parseForwards(fwd_messages)
+        it.replyMessage = VkUtils.parseReplyMessage(reply_message)
     }
 
     @Parcelize

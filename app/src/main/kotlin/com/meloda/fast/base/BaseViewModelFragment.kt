@@ -11,7 +11,7 @@ import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.IllegalTokenEvent
-import com.meloda.fast.base.viewmodel.VKEvent
+import com.meloda.fast.base.viewmodel.VkEvent
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
@@ -30,7 +30,7 @@ abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
         }
     }
 
-    protected open fun onEvent(event: VKEvent) {
+    protected open fun onEvent(event: VkEvent) {
         if (event is IllegalTokenEvent) {
             Toast.makeText(
                 requireContext(), R.string.authorization_failed, Toast.LENGTH_LONG
