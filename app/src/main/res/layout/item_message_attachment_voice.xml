@@ -28,10 +28,11 @@
 
         <com.masoudss.lib.WaveformSeekBar
             android:id="@+id/waveform"
-            android:layout_width="100dp"
-            android:layout_height="20dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
+            android:layout_weight="1"
             app:wave_background_color="@color/a2_300"
             app:wave_corner_radius="40dp"
             app:wave_gap="2dp"

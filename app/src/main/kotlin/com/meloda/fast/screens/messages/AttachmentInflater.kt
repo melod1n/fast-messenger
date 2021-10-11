@@ -324,7 +324,7 @@ class AttachmentInflater constructor(
 
         if (message.isOut)
             binding.root.updatePadding(
-                bottom = AndroidUtils.px(5).roundToInt(),
+                bottom = AndroidUtils.px(6).roundToInt(),
                 left = AndroidUtils.px(6).roundToInt()
             )
 
