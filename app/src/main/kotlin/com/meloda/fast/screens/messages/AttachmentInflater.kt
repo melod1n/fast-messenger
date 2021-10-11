@@ -60,7 +60,10 @@ class AttachmentInflater constructor(
         attachments = message.attachments!!
 
         container.removeAllViews()
-        textContainer.removeAllViews()
+
+        if (textContainer.childCount > 1) {
+            textContainer.removeViews(1, textContainer.childCount - 1)
+        }
 
         if (attachments.size == 1) {
             when (val attachment = attachments[0]) {

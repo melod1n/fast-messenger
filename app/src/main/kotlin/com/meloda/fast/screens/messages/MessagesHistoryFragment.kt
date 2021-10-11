@@ -619,10 +619,10 @@ class MessagesHistoryFragment :
             }
 
             binding.replyMessageTitle.text = title
-            binding.replyMessageText.text = message.text ?: "[no_message]"
+            binding.replyMessageText.text = message.text
 
             if (isEditing) {
-                binding.message.setText(message.text ?: "[no_message]")
+                binding.message.setText(message.text)
             }
         }
 
