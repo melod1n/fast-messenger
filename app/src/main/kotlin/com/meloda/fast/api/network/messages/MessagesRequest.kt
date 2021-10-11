@@ -139,7 +139,7 @@ data class MessagesEditRequest(
     val messageId: Int,
     val message: String? = null,
     val lat: Float? = null,
-    val lon: Float? = null,
+    val long: Float? = null,
     val attachments: List<VkAttachment>? = null,
     val notParseLinks: Boolean = false,
     val keepSnippets: Boolean = true,
@@ -156,7 +156,7 @@ data class MessagesEditRequest(
         ).apply {
             message?.let { this["message"] = it }
             lat?.let { this["lat"] = it.toString() }
-            lon?.let { this["lon"] = it.toString() }
+            long?.let { this["long"] = it.toString() }
             attachments?.let {
                 val attachments =
                     if (it.isEmpty()) ""

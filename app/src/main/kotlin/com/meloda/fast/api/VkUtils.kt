@@ -29,6 +29,7 @@ object VkUtils {
             VkFile::class.java -> "doc"
             VkVideo::class.java -> "video"
             VkPhoto::class.java -> "photo"
+            VkWall::class.java -> "wall"
             else -> throw IllegalArgumentException("unknown attachment class: $attachmentClass")
         }
 
