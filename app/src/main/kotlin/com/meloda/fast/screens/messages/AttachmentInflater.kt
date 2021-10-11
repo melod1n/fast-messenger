@@ -2,6 +2,7 @@ package com.meloda.fast.screens.messages
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -249,13 +250,21 @@ class AttachmentInflater constructor(
         binding.caption.text = link.caption
         binding.caption.isVisible = !link.caption.isNullOrBlank()
 
-        link.photo?.getMaxSize()?.let {
+        link.photo?.getSizeOrSmaller('y')?.let {
             binding.preview.load(it.url) { crossfade(150) }
-            binding.preview.isVisible = true
+            binding.linkIcon.isVisible = false
             return
         }
 
-        binding.preview.isVisible = false
+        binding.preview.setImageDrawable(
+            ColorDrawable(
+                ContextCompat.getColor(
+                    context,
+                    R.color.a3_200
+                )
+            )
+        )
+        binding.linkIcon.isVisible = true
     }
 
     private fun sticker(sticker: VkSticker) {
@@ -274,7 +283,7 @@ class AttachmentInflater constructor(
     }
 
     private fun wall(wall: VkWall) {
-        val binding = ItemMessageAttachmentWallPostBinding.inflate(inflater, container, true)
+        val binding = ItemMessageAttachmentWallPostBinding.inflate(inflater, textContainer, true)
 
         val group = if (wall.fromId > 0) null else groups[wall.fromId]
         val user = if (wall.fromId < 0) null else profiles[wall.fromId]
@@ -301,12 +310,6 @@ class AttachmentInflater constructor(
         binding.postTitle.isVisible = false
 
         binding.avatar.isVisible = group != null || user != null
-        binding.avatar.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(AndroidUtils.px(20))
-            .build()
-            .let {
-                binding.avatar.shapeAppearanceModel = it
-            }
 
         if (binding.avatar.isVisible) {
             binding.avatar.load(avatar) { crossfade(150) }
