@@ -33,8 +33,6 @@ data class VkMessage(
 
     var forwards: List<VkMessage>? = null,
     var attachments: List<VkAttachment>? = null,
-
-//    @Embedded(prefix = "replyMessage_")
     var replyMessage: VkMessage? = null
 ) : SelectableItem() {
 

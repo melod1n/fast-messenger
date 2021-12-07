@@ -8,11 +8,11 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BaseVkMessage(
+    val id: Int,
+    val peer_id: Int,
     val date: Int,
     val from_id: Int,
-    val id: Int,
     val out: Int,
-    val peer_id: Int,
     val text: String,
     val conversation_message_id: Int,
     val fwd_messages: List<BaseVkMessage>? = listOf(),

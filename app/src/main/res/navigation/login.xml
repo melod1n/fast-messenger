@@ -2,22 +2,12 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/login"
+    android:id="@+id/loginGraph"
     app:startDestination="@id/loginFragment">
 
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.meloda.fast.screens.login.LoginFragment"
         android:label="LoginFragment"
-        tools:layout="@layout/fragment_login">
-
-        <action
-            android:id="@+id/toMain"
-            app:destination="@id/mainFragment"
-            app:popUpTo="@id/loginFragment"
-            app:popUpToInclusive="true" />
-
-    </fragment>
-
-
+        tools:layout="@layout/fragment_login" />
 </navigation>

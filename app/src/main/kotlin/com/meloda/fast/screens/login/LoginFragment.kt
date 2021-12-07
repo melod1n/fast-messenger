@@ -9,9 +9,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
-import android.webkit.CookieManager
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -35,9 +33,7 @@ import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jsoup.Jsoup
 import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
@@ -77,7 +73,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             is ErrorEvent -> showErrorSnackbar(event.errorText)
             is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationEvent -> showValidationRequired(event.sid)
-            is SuccessAuth -> goToMain(event)
+            is SuccessAuth -> launchWebView()
 
             is CodeSent -> showValidationDialog()
             is StartProgressEvent -> onProgressStarted()
@@ -112,6 +108,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
 
+//            addJavascriptInterface(TestJSInterface(), "HtmlViewer")
+
             clearCache(true)
             webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView?, url: String, favicon: Bitmap?) {
@@ -119,13 +117,28 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                     parseAuthUrl(url)
                 }
 
-                override fun onPageFinished(view: WebView, url: String) {
+                override fun onPageFinished(view: WebView, url: String?) {
                     super.onPageFinished(view, url)
+//                    view.loadUrl(
+//                        "javascript:window.HtmlViewer.showHTML" +
+//                                "('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');void(0);"
+//                    )
 
-                    val a = Jsoup.parse(url)
+//                    binding.webView.isVisible = true
 
-                    val b = 0
+//                    lifecycleScope.launch {
+//                        delay(5000)
+//                        view.loadUrl("javascript:document.getElementsByTagName('input')[0].click(); void(0);")
+//                    }
                 }
+
+//                override fun shouldOverrideUrlLoading(
+//                    view: WebView,
+//                    request: WebResourceRequest?
+//                ): Boolean {
+//
+//                    return true
+//                }
             }
         }
 
@@ -136,16 +149,33 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         }
     }
 
+    private inner class TestJSInterface {
+
+        @JavascriptInterface
+        fun showHTML(html: String) {
+            println("Fast::Html::$html")
+        }
+
+    }
+
     private fun launchWebView() {
+        binding.webView.isVisible = true
         binding.webView.loadUrl(
             "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
-                    "display=mobile&scope=136297695&" +
+                    "access_token=${UserConfig.accessToken}&" +
+                    "sdk_package=com.meloda.fast.activity&" +
+                    "sdk_fingerprint=AA88DSADAS8DG8FSA8&" +
+                    "display=page&" +
+                    "revoke=1&" +
+                    "scope=136297695&" +
                     "redirect_uri=${
                         URLEncoder.encode(
                             "https://oauth.vk.com/blank.html",
                             Charsets.UTF_8.toString()
                         )
-                    }&response_type=token&v=${VKConstants.API_VERSION}"
+                    }&" +
+                    "response_type=token&" +
+                    "v=${VKConstants.API_VERSION}"
         )
     }
 
@@ -167,6 +197,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             val token = authData.first
 
             UserConfig.fastToken = token
+
+            goToMain()
         }
     }
 
@@ -205,9 +237,9 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 else TextInputLayout.END_ICON_NONE
         }
 
-        binding.passwordInput.setOnEditorActionListener { _, _, event ->
-            if (event == null) return@setOnEditorActionListener false
-            return@setOnEditorActionListener if (event.action == EditorInfo.IME_ACTION_GO ||
+        binding.passwordInput.setOnEditorActionListener edit@{ _, _, event ->
+            if (event == null) return@edit false
+            return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
                 (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
             ) {
                 KeyboardUtils.hideKeyboardFrom(binding.passwordInput)
@@ -236,7 +268,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         lastPassword = passwordString
 
         KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
-
 
         viewModel.login(
             login = loginString,
@@ -384,15 +415,14 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         snackbar.show()
     }
 
-    private fun goToMain(event: SuccessAuth) = lifecycleScope.launch {
-        UserConfig.userId = event.userId
-        UserConfig.accessToken = event.vkToken
+    private fun goToMain(haveAuthorized: Boolean = true) = lifecycleScope.launch {
+//        if (haveAuthorized) delay(500)
 
-        if (event.haveAuthorized) delay(500)
 
-        launchWebView()
-
-        findNavController().navigate(R.id.toMain)
+        findNavController().navigate(R.id.mainFragment)
+//        findNavController().navigateUp()
+//        findNavController().popBackStack()
+//        findNavController().navigate(R.id.toMainScreen)
     }
 
 }

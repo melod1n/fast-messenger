@@ -15,3 +15,11 @@ data class MessagesGetHistoryResponse(
     val profiles: List<BaseVkUser>?,
     val groups: List<BaseVkGroup>?
 ) : Parcelable
+
+@Parcelize
+data class MessagesGetByIdResponse(
+    val count: Int,
+    val items: List<BaseVkMessage> = listOf(),
+    val profiles: List<BaseVkUser>?,
+    val groups: List<BaseVkGroup>?
+) : Parcelable

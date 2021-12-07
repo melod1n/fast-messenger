@@ -12,10 +12,13 @@ object VKConstants {
     const val ALL_FIELDS = "$USER_FIELDS,$GROUP_FIELDS"
 
     const val API_VERSION = "5.132"
+    const val LP_VERSION = 10
+
     const val VK_APP_ID = "2274003"
     const val VK_SECRET = "hHbZxrka2uZ6jB1inYsH"
 
     const val FAST_GROUP_ID = -119516304
+    const val FAST_APP_ID = "6964679"
 
     object Auth {
         const val SCOPE = "notify," +

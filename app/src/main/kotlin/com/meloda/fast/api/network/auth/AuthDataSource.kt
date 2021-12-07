@@ -6,7 +6,7 @@ class AuthDataSource @Inject constructor(
     private val repo: AuthRepo
 ) {
 
-    suspend fun auth(params: RequestAuthDirect) = repo.auth(params.map)
+    suspend fun auth(params: AuthDirectRequest) = repo.auth(params.map)
 
     suspend fun sendSms(validationSid: String) = repo.sendSms(validationSid)
 

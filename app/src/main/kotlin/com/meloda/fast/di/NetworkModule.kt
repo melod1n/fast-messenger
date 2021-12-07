@@ -2,16 +2,19 @@ package com.meloda.fast.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.meloda.fast.api.LongPollUpdatesParser
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
-import com.meloda.fast.api.network.auth.AuthRepo
+import com.meloda.fast.api.network.account.AccountDataSource
+import com.meloda.fast.api.network.account.AccountRepo
 import com.meloda.fast.api.network.auth.AuthDataSource
+import com.meloda.fast.api.network.auth.AuthRepo
 import com.meloda.fast.api.network.conversations.ConversationsDataSource
 import com.meloda.fast.api.network.conversations.ConversationsRepo
 import com.meloda.fast.api.network.longpoll.LongPollRepo
 import com.meloda.fast.api.network.messages.MessagesDataSource
-import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.messages.MessagesRepo
+import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersRepo
 import com.meloda.fast.database.dao.ConversationsDao
 import com.meloda.fast.database.dao.MessagesDao
@@ -67,22 +70,27 @@ object NetworkModule {
     fun provideAuthInterceptor(): AuthInterceptor = AuthInterceptor()
 
     @Provides
+    @Singleton
     fun provideAuthRepo(retrofit: Retrofit): AuthRepo =
         retrofit.create(AuthRepo::class.java)
 
     @Provides
+    @Singleton
     fun provideConversationsRepo(retrofit: Retrofit): ConversationsRepo =
         retrofit.create(ConversationsRepo::class.java)
 
     @Provides
+    @Singleton
     fun provideUsersRepo(retrofit: Retrofit): UsersRepo =
         retrofit.create(UsersRepo::class.java)
 
     @Provides
+    @Singleton
     fun provideMessagesRepo(retrofit: Retrofit): MessagesRepo =
         retrofit.create(MessagesRepo::class.java)
 
     @Provides
+    @Singleton
     fun provideLongPollRepo(retrofit: Retrofit): LongPollRepo =
         retrofit.create(LongPollRepo::class.java)
 
@@ -109,7 +117,27 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideMessagesDataSource(
-        repo: MessagesRepo,
-        dao: MessagesDao
-    ): MessagesDataSource = MessagesDataSource(repo, dao)
+        messagesRepo: MessagesRepo,
+        messagesDao: MessagesDao,
+        longPollRepo: LongPollRepo
+    ): MessagesDataSource = MessagesDataSource(
+        messagesRepo = messagesRepo,
+        messagesDao = messagesDao,
+        longPollRepo = longPollRepo
+    )
+
+    @Provides
+    @Singleton
+    fun provideLongPollUpdatesParser(messagesDataSource: MessagesDataSource): LongPollUpdatesParser =
+        LongPollUpdatesParser(messagesDataSource)
+
+    @Provides
+    @Singleton
+    fun provideAccountRepo(retrofit: Retrofit): AccountRepo =
+        retrofit.create(AccountRepo::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAccountDataSource(repo: AccountRepo): AccountDataSource =
+        AccountDataSource(repo)
 }

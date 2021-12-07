@@ -19,7 +19,7 @@
         tools:replace="android:allowBackup">
 
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.RootActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -28,6 +28,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.MessagesUpdateService"
+            android:enabled="true"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

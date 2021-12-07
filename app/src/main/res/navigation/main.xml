@@ -2,35 +2,36 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    app:startDestination="@id/mainFragment">
+    android:id="@+id/mainGraph"
+    app:startDestination="@id/startFragment">
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.meloda.fast.screens.start.StartFragment">
+
+        <action
+            android:id="@+id/toMainScreen"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/startFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/toLoginScreen"
+            app:destination="@id/loginGraph" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.meloda.fast.screens.main.MainFragment"
-        android:label="MainFragment"
         tools:layout="@layout/fragment_main">
 
         <action
-            android:id="@+id/toLogin"
-            app:destination="@id/loginFragment"
-            app:popUpTo="@id/mainFragment"
-            app:popUpToInclusive="true" />
+            android:id="@+id/toLoginScreen"
+            app:destination="@id/loginGraph" />
 
     </fragment>
 
-    <fragment
-        android:id="@+id/loginFragment"
-        android:name="com.meloda.fast.screens.login.LoginFragment"
-        android:label="LoginFragment"
-        tools:layout="@layout/fragment_login">
-
-        <action
-            android:id="@+id/toMain"
-            app:destination="@id/mainFragment"
-            app:popUpTo="@id/loginFragment"
-            app:popUpToInclusive="true" />
-
-    </fragment>
+    <include app:graph="@navigation/login" />
 
 </navigation>

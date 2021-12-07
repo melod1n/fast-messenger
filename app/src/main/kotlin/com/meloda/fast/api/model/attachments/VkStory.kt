@@ -7,5 +7,5 @@ data class VkStory(
     val id: Int,
     val ownerId: Int,
     val date: Int,
-    val photo: VkPhoto
+    val photo: VkPhoto?
 ) : VkAttachment()

@@ -1,7 +1,11 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val login: String = gradleLocalProperties(rootDir).getProperty("vklogin")
-val password: String = gradleLocalProperties(rootDir).getProperty("vkpassword")
+val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
+val password: String = gradleLocalProperties(rootDir).getProperty("vkPassword")
+
+val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
+val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
 
 plugins {
     id("com.android.application")
@@ -34,12 +38,18 @@ android {
         getByName("debug") {
             buildConfigField("String", "vkLogin", login)
             buildConfigField("String", "vkPassword", password)
+
+            buildConfigField("String", "sdkPackage", sdkPackage)
+            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
         }
         getByName("release") {
             isMinifyEnabled = false
 
             buildConfigField("String", "vkLogin", login)
             buildConfigField("String", "vkPassword", password)
+
+            buildConfigField("String", "sdkPackage", sdkPackage)
+            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -55,9 +65,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    tasks.withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = JavaVersion.VERSION_1_8.toString()
         }
     }
 
@@ -86,15 +96,15 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.0-alpha02")
 
-    implementation("androidx.work:work-runtime-ktx:2.6.0")
+    implementation("androidx.work:work-runtime-ktx:2.7.0")
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     implementation("androidx.paging:paging-runtime-ktx:3.0.1")
 
-    implementation("androidx.appcompat:appcompat:1.4.0-beta01")
-    implementation("com.google.android.material:material:1.5.0-alpha04")
-    implementation("androidx.core:core-ktx:1.7.0-beta02")
+    implementation("androidx.appcompat:appcompat:1.4.0-rc01")
+    implementation("com.google.android.material:material:1.5.0-alpha05")
+    implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.preference:preference-ktx:1.1.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
@@ -111,11 +121,11 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.3.5")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.4.0")
 
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")

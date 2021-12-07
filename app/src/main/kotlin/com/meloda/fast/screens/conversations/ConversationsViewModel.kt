@@ -1,10 +1,10 @@
 package com.meloda.fast.screens.conversations
 
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.*
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
+import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.conversations.*
 import com.meloda.fast.api.network.users.UsersDataSource
@@ -20,8 +20,23 @@ import javax.inject.Inject
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
     private val conversations: ConversationsDataSource,
-    private val users: UsersDataSource
+    private val users: UsersDataSource,
+    updatesParser: LongPollUpdatesParser
 ) : BaseViewModel() {
+
+    companion object {
+        private const val TAG = "ConversationsViewModel"
+    }
+
+    init {
+        updatesParser.onNewMessage {
+            viewModelScope.launch { handleNewMessage(it) }
+        }
+
+        updatesParser.onMessageEdited {
+            viewModelScope.launch { handleEditedMessage(it) }
+        }
+    }
 
     fun loadConversations(
         offset: Int? = null
@@ -49,7 +64,7 @@ class ConversationsViewModel @Inject constructor(
                     }
 
                     sendEvent(
-                        ConversationsLoaded(
+                        ConversationsLoadedEvent(
                             count = response.count,
                             offset = offset,
                             unreadCount = response.unreadCount ?: 0,
@@ -84,7 +99,7 @@ class ConversationsViewModel @Inject constructor(
             conversations.delete(
                 ConversationsDeleteRequest(peerId)
             )
-        }, onAnswer = { sendEvent(ConversationsDelete(peerId)) })
+        }, onAnswer = { sendEvent(ConversationsDeleteEvent(peerId)) })
     }
 
     fun pinConversation(
@@ -94,18 +109,32 @@ class ConversationsViewModel @Inject constructor(
         if (pin) {
             makeJob(
                 { conversations.pin(ConversationsPinRequest(peerId)) },
-                onAnswer = { sendEvent(ConversationsPin(peerId)) }
+                onAnswer = { sendEvent(ConversationsPinEvent(peerId)) }
             )
         } else {
             makeJob(
                 { conversations.unpin(ConversationsUnpinRequest(peerId)) },
-                onAnswer = { sendEvent(ConversationsUnpin(peerId)) }
+                onAnswer = { sendEvent(ConversationsUnpinEvent(peerId)) }
             )
         }
     }
+
+    private suspend fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+        sendEvent(
+            MessageNewEvent(
+                message = event.message,
+                profiles = event.profiles,
+                groups = event.groups
+            )
+        )
+    }
+
+    private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+        sendEvent(MessageEditEvent(event.message))
+    }
 }
 
-data class ConversationsLoaded(
+data class ConversationsLoadedEvent(
     val count: Int,
     val offset: Int?,
     val unreadCount: Int?,
@@ -114,8 +143,16 @@ data class ConversationsLoaded(
     val groups: HashMap<Int, VkGroup>
 ) : VkEvent()
 
-data class ConversationsDelete(val peerId: Int) : VkEvent()
+data class ConversationsDeleteEvent(val peerId: Int) : VkEvent()
 
-data class ConversationsPin(val peerId: Int) : VkEvent()
+data class ConversationsPinEvent(val peerId: Int) : VkEvent()
 
-data class ConversationsUnpin(val peerId: Int) : VkEvent()
+data class ConversationsUnpinEvent(val peerId: Int) : VkEvent()
+
+data class MessageNewEvent(
+    val message: VkMessage,
+    val profiles: HashMap<Int, VkUser>,
+    val groups: HashMap<Int, VkGroup>
+) : VkEvent()
+
+data class MessageEditEvent(val message: VkMessage) : VkEvent()

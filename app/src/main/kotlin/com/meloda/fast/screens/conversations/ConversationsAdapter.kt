@@ -34,6 +34,8 @@ class ConversationsAdapter constructor(
     context, values, COMPARATOR
 ) {
 
+    var pinnedCount = 0
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         ItemHolder(ItemConversationBinding.inflate(inflater, parent, false))
 
@@ -233,17 +235,27 @@ class ConversationsAdapter constructor(
         return null
     }
 
+    fun searchConversationIndex(conversationId: Int): Int? {
+        for (i in values.indices) {
+            val conversation = values[i]
+
+            if (conversation.id == conversationId) return i
+        }
+
+        return null
+    }
+
     companion object {
         private val COMPARATOR = object : DiffUtil.ItemCallback<VkConversation>() {
             override fun areItemsTheSame(
                 oldItem: VkConversation,
                 newItem: VkConversation
-            ) = false
+            ) = oldItem.id == newItem.id
 
             override fun areContentsTheSame(
                 oldItem: VkConversation,
                 newItem: VkConversation
-            ) = false
+            ) = oldItem == newItem
         }
     }
 

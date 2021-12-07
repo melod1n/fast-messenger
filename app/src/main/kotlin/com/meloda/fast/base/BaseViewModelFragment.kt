@@ -7,7 +7,7 @@ import android.widget.Toast
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.lifecycleScope
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.activity.RootActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.IllegalTokenEvent
@@ -38,7 +38,7 @@ abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
 
             UserConfig.clear()
             requireActivity().finishAffinity()
-            requireActivity().startActivity(Intent(requireContext(), MainActivity::class.java))
+            requireActivity().startActivity(Intent(requireContext(), RootActivity::class.java))
         }
     }
 
