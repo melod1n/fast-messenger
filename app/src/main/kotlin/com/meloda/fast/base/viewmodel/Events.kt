@@ -17,3 +17,7 @@ object StartProgressEvent : VkEvent()
 object StopProgressEvent : VkEvent()
 
 abstract class VkEvent
+
+interface VkEventCallback<in T : Any> {
+    fun onEvent(event: T)
+}

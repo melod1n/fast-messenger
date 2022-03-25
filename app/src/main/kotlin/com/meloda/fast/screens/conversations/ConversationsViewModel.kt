@@ -1,27 +1,48 @@
 package com.meloda.fast.screens.conversations
 
+import android.os.Bundle
 import androidx.lifecycle.viewModelScope
+import com.github.terrakok.cicerone.Router
+import com.meloda.fast.api.LongPollEvent
+import com.meloda.fast.api.LongPollUpdatesParser
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
+import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.conversations.*
 import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
     private val conversations: ConversationsDataSource,
-    private val users: UsersDataSource
+    private val users: UsersDataSource,
+    updatesParser: LongPollUpdatesParser,
+    private val router: Router
 ) : BaseViewModel() {
+
+    companion object {
+        private const val TAG = "ConversationsViewModel"
+    }
+
+    init {
+        updatesParser.onNewMessage {
+            viewModelScope.launch { handleNewMessage(it) }
+        }
+
+        updatesParser.onMessageEdited {
+            viewModelScope.launch { handleEditedMessage(it) }
+        }
+    }
 
     fun loadConversations(
         offset: Int? = null
@@ -49,7 +70,7 @@ class ConversationsViewModel @Inject constructor(
                     }
 
                     sendEvent(
-                        ConversationsLoaded(
+                        ConversationsLoadedEvent(
                             count = response.count,
                             offset = offset,
                             unreadCount = response.unreadCount ?: 0,
@@ -84,7 +105,7 @@ class ConversationsViewModel @Inject constructor(
             conversations.delete(
                 ConversationsDeleteRequest(peerId)
             )
-        }, onAnswer = { sendEvent(ConversationsDelete(peerId)) })
+        }, onAnswer = { sendEvent(ConversationsDeleteEvent(peerId)) })
     }
 
     fun pinConversation(
@@ -94,18 +115,41 @@ class ConversationsViewModel @Inject constructor(
         if (pin) {
             makeJob(
                 { conversations.pin(ConversationsPinRequest(peerId)) },
-                onAnswer = { sendEvent(ConversationsPin(peerId)) }
+                onAnswer = { sendEvent(ConversationsPinEvent(peerId)) }
             )
         } else {
             makeJob(
                 { conversations.unpin(ConversationsUnpinRequest(peerId)) },
-                onAnswer = { sendEvent(ConversationsUnpin(peerId)) }
+                onAnswer = { sendEvent(ConversationsUnpinEvent(peerId)) }
             )
         }
     }
+
+    private suspend fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+        sendEvent(
+            MessagesNewEvent(
+                message = event.message,
+                profiles = event.profiles,
+                groups = event.groups
+            )
+        )
+    }
+
+    private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+        sendEvent(MessagesEditEvent(event.message))
+    }
+
+    fun openRootScreen() {
+        router.exit()
+        router.newRootScreen(Screens.Main())
+    }
+
+    fun openMessagesHistoryScreen(bundle: Bundle) {
+        router.navigateTo(Screens.MessagesHistory(bundle))
+    }
 }
 
-data class ConversationsLoaded(
+data class ConversationsLoadedEvent(
     val count: Int,
     val offset: Int?,
     val unreadCount: Int?,
@@ -114,8 +158,16 @@ data class ConversationsLoaded(
     val groups: HashMap<Int, VkGroup>
 ) : VkEvent()
 
-data class ConversationsDelete(val peerId: Int) : VkEvent()
+data class ConversationsDeleteEvent(val peerId: Int) : VkEvent()
 
-data class ConversationsPin(val peerId: Int) : VkEvent()
+data class ConversationsPinEvent(val peerId: Int) : VkEvent()
 
-data class ConversationsUnpin(val peerId: Int) : VkEvent()
+data class ConversationsUnpinEvent(val peerId: Int) : VkEvent()
+
+data class MessagesNewEvent(
+    val message: VkMessage,
+    val profiles: HashMap<Int, VkUser>,
+    val groups: HashMap<Int, VkGroup>
+) : VkEvent()
+
+data class MessagesEditEvent(val message: VkMessage) : VkEvent()

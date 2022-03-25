@@ -18,7 +18,6 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import coil.load
 import coil.transform.RoundedCornersTransformation
 import com.google.android.material.snackbar.Snackbar
@@ -35,9 +34,7 @@ import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jsoup.Jsoup
 import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
@@ -77,7 +74,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             is ErrorEvent -> showErrorSnackbar(event.errorText)
             is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationEvent -> showValidationRequired(event.sid)
-            is SuccessAuth -> goToMain(event)
+            is SuccessAuth -> launchWebView()
 
             is CodeSent -> showValidationDialog()
             is StartProgressEvent -> onProgressStarted()
@@ -119,12 +116,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                     parseAuthUrl(url)
                 }
 
-                override fun onPageFinished(view: WebView, url: String) {
+                override fun onPageFinished(view: WebView, url: String?) {
                     super.onPageFinished(view, url)
-
-                    val a = Jsoup.parse(url)
-
-                    val b = 0
                 }
             }
         }
@@ -137,15 +130,23 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun launchWebView() {
+        binding.webView.isVisible = true
         binding.webView.loadUrl(
             "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
-                    "display=mobile&scope=136297695&" +
+                    "access_token=${UserConfig.accessToken}&" +
+                    "sdk_package=com.meloda.fast.activity&" +
+                    "sdk_fingerprint=AA88DSADAS8DG8FSA8&" +
+                    "display=page&" +
+                    "revoke=1&" +
+                    "scope=136297695&" +
                     "redirect_uri=${
                         URLEncoder.encode(
                             "https://oauth.vk.com/blank.html",
                             Charsets.UTF_8.toString()
                         )
-                    }&response_type=token&v=${VKConstants.API_VERSION}"
+                    }&" +
+                    "response_type=token&" +
+                    "v=${VKConstants.API_VERSION}"
         )
     }
 
@@ -167,6 +168,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             val token = authData.first
 
             UserConfig.fastToken = token
+
+            viewModel.openPrimaryScreen()
         }
     }
 
@@ -205,9 +208,9 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 else TextInputLayout.END_ICON_NONE
         }
 
-        binding.passwordInput.setOnEditorActionListener { _, _, event ->
-            if (event == null) return@setOnEditorActionListener false
-            return@setOnEditorActionListener if (event.action == EditorInfo.IME_ACTION_GO ||
+        binding.passwordInput.setOnEditorActionListener edit@{ _, _, event ->
+            if (event == null) return@edit false
+            return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
                 (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
             ) {
                 KeyboardUtils.hideKeyboardFrom(binding.passwordInput)
@@ -236,7 +239,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         lastPassword = passwordString
 
         KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
-
 
         viewModel.login(
             login = loginString,
@@ -383,16 +385,4 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         snackbar.animationMode = Snackbar.ANIMATION_MODE_FADE
         snackbar.show()
     }
-
-    private fun goToMain(event: SuccessAuth) = lifecycleScope.launch {
-        UserConfig.userId = event.userId
-        UserConfig.accessToken = event.vkToken
-
-        if (event.haveAuthorized) delay(500)
-
-        launchWebView()
-
-        findNavController().navigate(R.id.toMain)
-    }
-
 }

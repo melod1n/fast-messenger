@@ -1,8 +1,10 @@
 package com.meloda.fast.screens.messages
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -19,88 +21,94 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
-import com.meloda.fast.databinding.*
-import com.meloda.fast.util.AndroidUtils
-import java.util.*
-import kotlin.math.roundToInt
+import com.meloda.fast.databinding.ItemMessageInBinding
+import com.meloda.fast.databinding.ItemMessageOutBinding
+import com.meloda.fast.databinding.ItemMessageServiceBinding
+import com.meloda.fast.extensions.dpToPx
+import com.meloda.fast.model.DataItem
 
 class MessagesHistoryAdapter constructor(
     context: Context,
-    values: MutableList<VkMessage>,
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf()
-) : BaseAdapter<VkMessage, MessagesHistoryAdapter.BasicHolder>(context, values, COMPARATOR) {
+) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(context, Comparator) {
 
     var avatarLongClickListener: ((position: Int) -> Unit)? = null
 
     override fun getItemViewType(position: Int): Int {
-        when {
-            isPositionHeader(position) -> return HEADER
-            isPositionFooter(position) -> return FOOTER
+        return when (val item = getItem(position)) {
+            is VkMessage -> {
+                return when {
+                    item.action != null -> TypeService
+                    item.isOut -> TypeOutgoing
+                    !item.isOut -> TypeIncoming
+                    else -> -1
+                }
+            }
+            is DataItem.Header -> {
+                return TypeHeader
+            }
+            is DataItem.Footer -> {
+                return TypeFooter
+            }
+            else -> -1
         }
-
-        getItem(position).let { message ->
-            if (message.action != null) return SERVICE
-            if (message.isOut) return OUTGOING
-            if (!message.isOut) return INCOMING
-        }
-
-        return -1
     }
-
-    private fun isPositionHeader(position: Int) = position == 0
-    private fun isPositionFooter(position: Int) = position >= actualSize
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasicHolder {
         return when (viewType) {
             // magick numbers is great!
-            HEADER -> Header(createEmptyView(60))
-            FOOTER -> Footer(createEmptyView(36))
-            SERVICE -> ServiceMessage(
+            TypeHeader -> {
+                Header(createEmptyView(60))
+            }
+            TypeFooter -> {
+                Footer(
+                    createEmptyView(
+                        context.resources.getDimensionPixelSize(R.dimen.messages_history_input_panel_height_with_margins)
+                    )
+                )
+            }
+            TypeService -> ServiceMessage(
                 ItemMessageServiceBinding.inflate(inflater, parent, false)
             )
-            OUTGOING -> OutgoingMessage(
+            TypeOutgoing -> OutgoingMessage(
                 ItemMessageOutBinding.inflate(inflater, parent, false)
             )
-            INCOMING -> IncomingMessage(
+            TypeIncoming -> IncomingMessage(
                 ItemMessageInBinding.inflate(inflater, parent, false)
             )
             else -> throw IllegalStateException("Wrong viewType: $viewType")
         }
     }
 
-//    override fun initListeners(itemView: View, position: Int) {
-//        if (itemView is AdapterView<*>) return
-//
-//        itemView.setOnClickListener { onItemClickListener?.invoke(position, itemView) }
-//        itemView.setOnLongClickListener { itemLongClickListener.invoke(position) }
-//    }
+    override fun onBindViewHolder(holder: BasicHolder, position: Int) {
+        if (holder is Header || holder is Footer) {
+            Log.d(
+                "MessagesHistoryAdapter",
+                "onBindViewHolder: index $position, holder is ${holder.javaClass.simpleName}. Skip"
+            )
+            return
+        }
 
+        Log.d(
+            "MessagesHistoryAdapter",
+            "onBindViewHolder: index $position, holder is ${holder.javaClass.simpleName}. Bind"
+        )
 
-    val actualSize get() = values.size
-
-    override fun getItemCount(): Int {
-        if (actualSize == 0) return 2
-        return super.getItemCount() + 2
+        initListeners(holder.itemView, position)
+        holder.bind(position)
     }
 
     private fun createEmptyView(size: Int) = View(context).apply {
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            AndroidUtils.px(size).roundToInt()
+            size
         )
 
         isEnabled = false
         isClickable = false
         isFocusable = false
-    }
-
-    override fun onBindViewHolder(holder: BasicHolder, position: Int) {
-        if (holder is Header || holder is Footer) return
-
-        initListeners(holder.itemView, position)
-        holder.bind(position)
     }
 
     open inner class BasicHolder(v: View = View(context)) : BaseHolder(v)
@@ -114,10 +122,10 @@ class MessagesHistoryAdapter constructor(
     ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int) {
-            val message = getItem(position)
+            val message = getItem(position) as VkMessage
 
-            val prevMessage = getOrNull(position - 1)
-            val nextMessage = getOrNull(position + 1)
+            val prevMessage = getVkMessage(getOrNull(position - 1))
+            val nextMessage = getVkMessage(getOrNull(position + 1))
 
             MessagesPreparator(
                 context = context,
@@ -159,9 +167,8 @@ class MessagesHistoryAdapter constructor(
     ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int) {
-            val message = getItem(position)
-
-            val prevMessage = getOrNull(position - 1)
+            val message = getItem(position) as VkMessage
+            val prevMessage = getVkMessage(getOrNull(position - 1))
 
             MessagesPreparator(
                 context = context,
@@ -192,13 +199,12 @@ class MessagesHistoryAdapter constructor(
         private val youPrefix = context.getString(R.string.you_message_prefix)
 
         init {
-            binding.photo.shapeAppearanceModel.run {
-                withCornerSize { AndroidUtils.px(4) }
-            }
+            binding.photo.shapeAppearanceModel =
+                binding.photo.shapeAppearanceModel.withCornerSize(4.dpToPx().toFloat())
         }
 
         override fun bind(position: Int) {
-            val message = getItem(position)
+            val message = getItem(position) as VkMessage
 
             val messageUser =
                 if (message.isUser()) profiles[message.fromId]
@@ -241,59 +247,56 @@ class MessagesHistoryAdapter constructor(
         }
     }
 
-    fun removeMessageById(id: Int): Int? {
-        for (i in values.indices) {
-            val message = values[i]
-            if (message.id == id) {
-                values.removeAt(i)
-                return i
-            }
+    fun getVkMessage(item: DataItem<*>?): VkMessage? {
+        if (item == null) return null
+        if (item is VkMessage) return item
+
+        return null
+    }
+
+    fun searchMessageIndex(messageId: Int): Int? {
+        for (i in indices) {
+            val message = getItem(i)
+            if (message is VkMessage && message.id == messageId) return i
         }
 
         return null
     }
 
-    fun removeMessagesByIds(ids: List<Int>): List<Int> {
-        val positions = mutableListOf<Int>()
-
-        for (i in values.indices) {
-            val message = values[i]
-            if (ids.contains(message.id)) {
-                values.removeAt(i)
-                positions += i
-            }
-        }
-
-        return positions
-    }
-
-    fun searchMessageIndex(messageId: Int): Int? {
-        for (i in values.indices) {
-            val message = values[i]
-            if (message.id == messageId) return i
+    fun searchMessageById(messageId: Int): VkMessage? {
+        for (i in indices) {
+            val message = getItem(i)
+            if (message is VkMessage && message.id == messageId) return message
         }
 
         return null
     }
 
     companion object {
-        private const val SERVICE = 1
-        private const val HEADER = 0
-        private const val FOOTER = 2
-        private const val INCOMING = 3
-        private const val OUTGOING = 4
+        private const val TypeService = 1
+        private const val TypeHeader = 0
+        private const val TypeFooter = 2
+        private const val TypeIncoming = 3
+        private const val TypeOutgoing = 4
 
-
-        private val COMPARATOR = object : DiffUtil.ItemCallback<VkMessage>() {
+        private val Comparator = object : DiffUtil.ItemCallback<DataItem<Int>>() {
             override fun areItemsTheSame(
-                oldItem: VkMessage,
-                newItem: VkMessage
-            ) = false
+                oldItem: DataItem<Int>,
+                newItem: DataItem<Int>
+            ): Boolean {
+                return if (oldItem is VkMessage && newItem is VkMessage) {
+                    oldItem.id == newItem.id
+                } else {
+                    oldItem is DataItem.Footer && newItem is DataItem.Footer
+                            || oldItem is DataItem.Header && newItem is DataItem.Header
+                }
+            }
 
+            @SuppressLint("DiffUtilEquals")
             override fun areContentsTheSame(
-                oldItem: VkMessage,
-                newItem: VkMessage
-            ) = false
+                oldItem: DataItem<Int>,
+                newItem: DataItem<Int>
+            ): Boolean = oldItem == newItem
         }
     }
 }

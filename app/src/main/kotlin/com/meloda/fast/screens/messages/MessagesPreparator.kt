@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import coil.load
 import com.meloda.fast.R
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -19,6 +20,9 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkSticker
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.extensions.gone
+import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.extensions.visible
 import com.meloda.fast.widget.BoundedLinearLayout
 import java.text.SimpleDateFormat
 import java.util.*
@@ -150,9 +154,7 @@ class MessagesPreparator constructor(
     }
 
     private fun prepareUnreadIndicator() {
-        if (unread != null) {
-            unread.isVisible = message.isRead(conversation)
-        }
+        unread?.toggleVisibility(!message.isRead(conversation))
     }
 
     private fun prepareSpacer() {
@@ -160,12 +162,20 @@ class MessagesPreparator constructor(
     }
 
     private fun prepareAttachments() {
+        attachmentContainer?.removeAllViews()
+
+        textContainer?.let { textContainer ->
+            if (textContainer.childCount > 1) {
+                textContainer.removeViews(1, textContainer.childCount - 1)
+            }
+        }
+
         if (attachmentContainer != null && textContainer != null) {
+
             if (message.attachments.isNullOrEmpty()) {
-                attachmentContainer.isVisible = false
-                attachmentContainer.removeAllViews()
+                attachmentContainer.gone()
             } else {
-                attachmentContainer.isVisible = true
+                attachmentContainer.visible()
 
                 AttachmentInflater(
                     context = context,
@@ -208,11 +218,23 @@ class MessagesPreparator constructor(
     private fun prepareText() {
         if (bubble != null && text != null) {
             if (message.text == null) {
-                text.isVisible = false
-                bubble.isVisible = !message.attachments.isNullOrEmpty()
+                text.gone()
+
+                val hasAttachments = !message.attachments.isNullOrEmpty()
+                var shouldBeVisible = hasAttachments
+                if (hasAttachments) {
+                    for (attachment in message.attachments ?: emptyList()) {
+                        if (VKConstants.separatedFromTextAttachments.contains(attachment.javaClass)) {
+                            shouldBeVisible = false
+                            break
+                        }
+                    }
+                }
+
+                bubble.toggleVisibility(shouldBeVisible)
             } else {
-                text.isVisible = true
-                bubble.isVisible = true
+                text.visible()
+                bubble.visible()
                 text.text = VkUtils.prepareMessageText(message.text ?: "")
             }
         }

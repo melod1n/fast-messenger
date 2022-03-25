@@ -8,9 +8,9 @@ import retrofit2.http.QueryMap
 interface AuthRepo {
 
     @GET(AuthUrls.DirectAuth)
-    suspend fun auth(@QueryMap param: Map<String, String?>): Answer<ResponseAuthDirect>
+    suspend fun auth(@QueryMap param: Map<String, String?>): Answer<AuthDirectResponse>
 
     @GET(AuthUrls.SendSms)
-    suspend fun sendSms(@Query("sid") validationSid: String): Answer<ResponseSendSms>
+    suspend fun sendSms(@Query("sid") validationSid: String): Answer<SendSmsResponse>
 
 }

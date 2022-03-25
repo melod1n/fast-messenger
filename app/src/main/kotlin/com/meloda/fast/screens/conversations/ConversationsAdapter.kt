@@ -8,10 +8,10 @@ import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.util.ObjectsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
 import androidx.recyclerview.widget.DiffUtil
-import coil.load
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -22,26 +22,35 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BindingHolder
 import com.meloda.fast.databinding.ItemConversationBinding
+import com.meloda.fast.extensions.ImageLoader
+import com.meloda.fast.extensions.ImageLoader.clear
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.gone
+import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.extensions.visible
 import com.meloda.fast.util.TimeUtils
 
 class ConversationsAdapter constructor(
     context: Context,
-    values: MutableList<VkConversation>,
+    private val resourceManager: ConversationsResourceManager,
+    var isMultilineEnabled: Boolean = true,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
-    var isMultilineEnabled: Boolean = true
-) : BaseAdapter<VkConversation, ConversationsAdapter.ItemHolder>(
-    context, values, COMPARATOR
-) {
+) : BaseAdapter<VkConversation, ConversationsAdapter.ItemHolder>(context, Comparator) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        ItemHolder(ItemConversationBinding.inflate(inflater, parent, false))
+    var pinnedCount = 0
 
-    inner class ItemHolder(binding: ItemConversationBinding) :
-        BindingHolder<ItemConversationBinding>(binding) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
+        return ItemHolder(
+            ItemConversationBinding.inflate(inflater, parent, false),
+            resourceManager
+        )
+    }
 
-        private val dateColor = ContextCompat.getColor(context, R.color.n2_500)
-        private val youPrefix = context.getString(R.string.you_message_prefix)
+    inner class ItemHolder(
+        binding: ItemConversationBinding,
+        private val resourceManager: ConversationsResourceManager
+    ) : BindingHolder<ItemConversationBinding>(binding) {
 
         init {
             binding.title.ellipsize = TextUtils.TruncateAt.END
@@ -69,7 +78,7 @@ class ConversationsAdapter constructor(
                 )
 
                 val span = SpannableString(text)
-                span.setSpan(ForegroundColorSpan(dateColor), 0, text.length, 0)
+                span.setSpan(ForegroundColorSpan(resourceManager.colorOutline), 0, text.length, 0)
 
                 binding.message.text = span
                 return
@@ -87,51 +96,46 @@ class ConversationsAdapter constructor(
                 conversationGroup = conversationGroup
             )
 
-            binding.avatar.isVisible = avatar != null
+            binding.avatar.toggleVisibility(avatar != null)
 
             if (avatar == null) {
-                binding.avatarPlaceholder.isVisible = true
+                binding.avatarPlaceholder.visible()
 
                 if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
-                    binding.placeholderBack.setImageDrawable(
-                        ColorDrawable(
-                            ContextCompat.getColor(context, R.color.a1_400)
-                        )
+                    binding.placeholderBack.loadWithGlide(
+                        drawable = ColorDrawable(resourceManager.icLauncherColor),
+                        transformations = ImageLoader.userAvatarTransformations
                     )
                     binding.placeholder.imageTintList =
-                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.a1_0))
+                        ColorStateList.valueOf(resourceManager.colorOnPrimary)
                     binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
                     binding.placeholder.setPadding(18)
                 } else {
-                    binding.placeholderBack.setImageDrawable(
-                        ColorDrawable(
-                            ContextCompat.getColor(context, R.color.n1_50)
-                        )
+                    binding.placeholderBack.loadWithGlide(
+                        drawable = ColorDrawable(resourceManager.colorOnUserAvatarAction),
+                        transformations = ImageLoader.userAvatarTransformations
                     )
                     binding.placeholder.imageTintList =
-                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.n2_500))
+                        ColorStateList.valueOf(resourceManager.colorUserAvatarAction)
                     binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
                     binding.placeholder.setPadding(0)
-                    binding.avatar.setImageDrawable(null)
+                    binding.avatar.clear()
                 }
             } else {
-                binding.avatar.load(avatar) {
-                    crossfade(200)
-                    target {
-                        binding.avatarPlaceholder.isVisible = false
-                        binding.avatar.setImageDrawable(it)
-                    }
-                }
+                binding.avatar.loadWithGlide(
+                    url = avatar,
+                    crossFade = true,
+                    onLoadedAction = { binding.avatarPlaceholder.gone() }
+                )
             }
 
-            binding.online.isVisible = conversationUser?.online == true
-
-            binding.pin.isVisible = conversation.isPinned
+            binding.online.toggleVisibility(conversationUser?.online == true)
+            binding.pin.toggleVisibility(conversation.isPinned)
 
             val actionMessage = VkUtils.getActionConversationText(
                 context = context,
                 message = message,
-                youPrefix = youPrefix,
+                youPrefix = resourceManager.youPrefix,
                 profiles = profiles,
                 groups = groups,
                 messageUser = messageUser,
@@ -150,7 +154,7 @@ class ConversationsAdapter constructor(
                     message = message
                 )
 
-            binding.textAttachment.isVisible = attachmentIcon != null
+            binding.textAttachment.toggleVisibility(attachmentIcon != null)
             binding.textAttachment.setImageDrawable(attachmentIcon)
 
             val attachmentText = if (attachmentIcon == null) VkUtils.getAttachmentText(
@@ -174,7 +178,7 @@ class ConversationsAdapter constructor(
 
             var prefix = when {
                 actionMessage != null -> ""
-                message.isOut -> "$youPrefix: "
+                message.isOut -> "${resourceManager.youPrefix}: "
                 else -> {
                     if (message.isUser() && messageUser != null && messageUser.firstName.isNotBlank()) "${messageUser.firstName}: "
                     else if (message.isGroup() && messageGroup != null && messageGroup.name.isNotBlank()) "${messageGroup.name}: "
@@ -190,7 +194,7 @@ class ConversationsAdapter constructor(
 
             val spanMessage = SpannableString(spanText)
             spanMessage.setSpan(
-                ForegroundColorSpan(dateColor), 0,
+                ForegroundColorSpan(resourceManager.colorOutline), 0,
                 prefix.length + coloredMessage.length,
                 0
             )
@@ -208,6 +212,15 @@ class ConversationsAdapter constructor(
                 R.drawable.ic_message_unread
             ) else null
 
+            binding.onlineBorder.setImageDrawable(
+                ColorDrawable(
+                    ContextCompat.getColor(
+                        context,
+                        if (conversation.isUnread()) R.color.colorBackgroundVariant
+                        else R.color.colorBackground
+                    )
+                )
+            )
 
             binding.counter.isVisible = conversation.isInUnread()
             if (conversation.isInUnread()) {
@@ -222,10 +235,10 @@ class ConversationsAdapter constructor(
     }
 
     fun removeConversation(conversationId: Int): Int? {
-        for (i in values.indices) {
-            val conversation = values[i]
+        for (i in indices) {
+            val conversation = getItem(i)
             if (conversation.id == conversationId) {
-                values.removeAt(i)
+                removeAt(i)
                 return i
             }
         }
@@ -233,17 +246,29 @@ class ConversationsAdapter constructor(
         return null
     }
 
+    fun searchConversationIndex(conversationId: Int): Int? {
+        for (i in indices) {
+            val conversation = getItem(i)
+
+            if (conversation.id == conversationId) return i
+        }
+
+        return null
+    }
+
     companion object {
-        private val COMPARATOR = object : DiffUtil.ItemCallback<VkConversation>() {
+        private val Comparator = object : DiffUtil.ItemCallback<VkConversation>() {
             override fun areItemsTheSame(
                 oldItem: VkConversation,
                 newItem: VkConversation
-            ) = false
+            ): Boolean {
+                return oldItem.id == newItem.id
+            }
 
             override fun areContentsTheSame(
                 oldItem: VkConversation,
                 newItem: VkConversation
-            ) = false
+            ) = ObjectsCompat.equals(oldItem, newItem)
         }
     }
 

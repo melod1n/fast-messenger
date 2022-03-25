@@ -1,65 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="6dp">
+
+    <FrameLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp">
+
+        <com.meloda.fast.widget.CircleImageView
+            android:id="@+id/preview"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            tools:src="?colorPrimaryVariant" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/linkIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_round_link_24"
+            app:tint="@color/a3_700" />
+
+    </FrameLayout>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="6dp">
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="8dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
 
-        <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp">
-
-            <com.meloda.fast.widget.CircleImageView
-                android:id="@+id/preview"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                tools:src="@color/a3_200" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/linkIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_round_link_24"
-                app:tint="@color/a3_700" />
-
-        </FrameLayout>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="8dp"
-            android:orientation="vertical">
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?colorOnBackground"
+            android:textSize="18sp"
+            app:fontFamily="@font/google_sans_regular"
+            tools:text="melod1n" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="?textColorPrimary"
-                android:textSize="18sp"
-                app:fontFamily="@font/google_sans_regular"
-                tools:text="melod1n" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:alpha="0.8"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="?textColorPrimary"
-                app:fontFamily="@font/roboto_regular"
-                tools:text="vk.com/melod1n" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.8"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?colorOnBackground"
+            app:fontFamily="@font/roboto_regular"
+            tools:text="vk.com/melod1n" />
     </androidx.appcompat.widget.LinearLayoutCompat>
-
-</layout>
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="a1_0">#FFFFFF</color>
+    <color name="a1_100">#D8E1FC</color>
+    <color name="a1_200">#B1C6FA</color>
+    <color name="a1_400">#598DF7</color>
+    <color name="a1_500">#3771DF</color>
+    <color name="a1_600">#2559BC</color>
+    <color name="a1_700">#194290</color>
+    <color name="a1_800">#0F2D67</color>
+    <color name="a1_900">#061A41</color>
+    <color name="a1_1000">#000000</color>
+
+    <color name="a2_0">#FEFEFE</color>
+    <color name="a2_100">#DCE1F7</color>
+    <color name="a2_200">#C0C6DA</color>
+    <color name="a2_300">#A4ABBF</color>
+    <color name="a2_600">#585E6F</color>
+    <color name="a2_700">#414757</color>
+    <color name="a2_800">#2A3040</color>
+    <color name="a2_900">#151C2B</color>
+
+    <color name="a3_0">#FFFFFF</color>
+    <color name="a3_100">#F8D6FC</color>
+    <color name="a3_200">#DEBAE5</color>
+    <color name="a3_600">#715379</color>
+    <color name="a3_700">#583C61</color>
+    <color name="a3_800">#40254A</color>
+    <color name="a3_900">#2A0F33</color>
+
+    <color name="n1_10">#FBF9FC</color>
+    <color name="n1_50">#F1F1F1</color>
+    <color name="n1_100">#E2E1E5</color>
+    <color name="n1_100_50">#80E2E1E5</color>
+    <color name="n2_200">#C7C6C9</color>
+    <color name="n2_400">#919094</color>
+    <color name="n2_700">#46464A</color>
+    <color name="n1_800">#303033</color>
+    <color name="n1_900">#1B1B1D</color>
+    <color name="n1_900_50">#801B1B1D</color>
+
+    <color name="n2_0">#FFFFFF</color>
+    <color name="n2_10">#FDFBFE</color>
+    <color name="n2_100">#E0E2EB</color>
+    <color name="n2_500">#74767D</color>
+    <color name="n2_600">#5C5E65</color>
+    <color name="n2_800">#2F3037</color>
+
+</resources>

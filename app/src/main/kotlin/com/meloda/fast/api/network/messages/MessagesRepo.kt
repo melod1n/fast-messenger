@@ -42,4 +42,8 @@ interface MessagesRepo {
     @POST(MessagesUrls.Edit)
     suspend fun edit(@FieldMap params: Map<String, String>): Answer<ApiResponse<Any>>
 
+    @FormUrlEncoded
+    @POST(MessagesUrls.GetById)
+    suspend fun getById(@FieldMap params: Map<String, String>): Answer<ApiResponse<MessagesGetByIdResponse>>
+
 }

@@ -13,8 +13,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import com.meloda.fast.R
-import com.meloda.fast.util.AndroidUtils
-import kotlin.math.roundToInt
+import com.meloda.fast.extensions.dpToPx
 
 @Suppress("UNCHECKED_CAST")
 class NoItemsView @JvmOverloads constructor(
@@ -43,7 +42,7 @@ class NoItemsView @JvmOverloads constructor(
     private fun create() {
         val a = context.obtainStyledAttributes(attrs, R.styleable.NoItemsView)
 
-        minimumWidth = AndroidUtils.px(256).roundToInt()
+        minimumWidth = 256.dpToPx()
         minimumHeight = minimumWidth
 
         orientation = VERTICAL
@@ -51,9 +50,12 @@ class NoItemsView @JvmOverloads constructor(
 
         noItemsPicture = ImageView(context)
 
-        val params = imageViewParams
-        params.height = AndroidUtils.px(64).roundToInt()
-        params.width = AndroidUtils.px(64).roundToInt()
+        val imageViewSize = 64.dpToPx()
+
+        val params = imageViewParams.apply {
+            height = imageViewSize
+            width = imageViewSize
+        }
 
         noItemsPicture.layoutParams = params
 
@@ -72,10 +74,10 @@ class NoItemsView @JvmOverloads constructor(
         noItemsTextView = TextView(context)
 
         val textParams = textViewParams
-        textParams.width = AndroidUtils.px(256).roundToInt()
+        textParams.width = 256.dpToPx()
 
         if (noItemsDrawable != null) {
-            textParams.topMargin = AndroidUtils.px(8).roundToInt()
+            textParams.topMargin = 8.dpToPx()
         }
 
         noItemsTextView.layoutParams = textParams

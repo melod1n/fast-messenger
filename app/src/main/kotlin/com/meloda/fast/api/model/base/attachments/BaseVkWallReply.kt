@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
+import com.meloda.fast.api.model.attachments.VkWallReply
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -17,7 +18,6 @@ data class BaseVkWallReply(
     val reply_to_comment: Int?
 ) : Parcelable {
 
-
     @Parcelize
     data class Likes(
         val count: Int,
@@ -25,5 +25,7 @@ data class BaseVkWallReply(
         val user_likes: Int,
         val can_publish: Int
     ) : Parcelable
+
+    fun asVkWallReply() = VkWallReply(id = id)
 
 }

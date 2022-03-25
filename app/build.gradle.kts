@@ -1,14 +1,17 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val login: String = gradleLocalProperties(rootDir).getProperty("vklogin")
-val password: String = gradleLocalProperties(rootDir).getProperty("vkpassword")
+val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
+val password: String = gradleLocalProperties(rootDir).getProperty("vkPassword")
+
+val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
+val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
-    id("androidx.navigation.safeargs.kotlin")
     id("dagger.hilt.android.plugin")
 }
 
@@ -34,12 +37,18 @@ android {
         getByName("debug") {
             buildConfigField("String", "vkLogin", login)
             buildConfigField("String", "vkPassword", password)
+
+            buildConfigField("String", "sdkPackage", sdkPackage)
+            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
         }
         getByName("release") {
             isMinifyEnabled = false
 
             buildConfigField("String", "vkLogin", login)
             buildConfigField("String", "vkPassword", password)
+
+            buildConfigField("String", "sdkPackage", sdkPackage)
+            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -49,23 +58,13 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-
     buildFeatures {
-        dataBinding = true
         viewBinding = true
     }
-
 }
 
 kapt {
@@ -78,44 +77,42 @@ kapt {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
+    // Cicerone - Navigation
+    implementation("com.github.terrakok:cicerone:7.1")
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
 
     implementation("com.github.massoudss:waveformSeekBar:3.1.0")
 
-    implementation("androidx.core:core-splashscreen:1.0.0-alpha02")
+    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
 
-    implementation("androidx.work:work-runtime-ktx:2.6.0")
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("androidx.paging:paging-runtime-ktx:3.0.1")
+    implementation("androidx.paging:paging-runtime-ktx:3.1.1")
 
-    implementation("androidx.appcompat:appcompat:1.4.0-beta01")
-    implementation("com.google.android.material:material:1.5.0-alpha04")
-    implementation("androidx.core:core-ktx:1.7.0-beta02")
-    implementation("androidx.preference:preference-ktx:1.1.1")
+    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("com.google.android.material:material:1.6.0-beta01")
+    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.preference:preference-ktx:1.2.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.fragment:fragment-ktx:1.3.6")
+    implementation("androidx.fragment:fragment-ktx:1.4.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
 
-    implementation("androidx.room:room-ktx:2.3.0")
-    implementation("androidx.room:room-runtime:2.3.0")
-    kapt("androidx.room:room-compiler:2.3.0")
+    implementation("androidx.room:room-ktx:2.4.2")
+    implementation("androidx.room:room-runtime:2.4.2")
+    kapt("androidx.room:room-compiler:2.4.2")
 
-    implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
-    implementation("androidx.navigation:navigation-ui-ktx:2.3.5")
-
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.4.1")
 
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
@@ -124,9 +121,8 @@ dependencies {
 
     implementation("com.google.dagger:hilt-android:2.39.1")
     kapt("com.google.dagger:hilt-android-compiler:2.39.1")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
 
-    implementation("com.github.yogacp:android-viewbinding:1.0.3")
+    implementation("com.github.yogacp:android-viewbinding:1.0.4")
 
     implementation("io.coil-kt:coil:1.4.0")
 
@@ -134,4 +130,6 @@ dependencies {
     implementation("org.jsoup:jsoup:1.14.3")
     implementation("ch.acra:acra:4.11.1")
 
+    implementation("com.github.bumptech.glide:glide:4.13.0")
+    kapt("com.github.bumptech.glide:compiler:4.13.0")
 }

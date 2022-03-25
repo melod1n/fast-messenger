@@ -13,8 +13,8 @@ data class BaseVkVoiceMessage(
     val link_ogg: String,
     val link_mp3: String,
     val access_key: String,
-    val transcript_state: String,
-    val transcript: String
+    val transcript_state: String?,
+    val transcript: String?
 ) : Parcelable {
 
     fun asVkVoiceMessage() = VkVoiceMessage(

@@ -1,45 +1,29 @@
 package com.meloda.fast.screens.main
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
+import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseViewModelFragment
-import com.meloda.fast.databinding.FragmentMainBinding
-import com.meloda.fast.extensions.NavigationExtensions.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainFragment : BaseViewModelFragment<MainViewModel>(R.layout.fragment_main) {
+class MainFragment : BaseViewModelFragment<MainViewModel>() {
 
     override val viewModel: MainViewModel by viewModels()
-    private val binding: FragmentMainBinding by viewBinding()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return View(context)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (!UserConfig.isLoggedIn()) findNavController().navigate(R.id.toLogin)
-        else if (savedInstanceState == null) setupBottomBar()
+        viewModel.checkSession(requireContext())
     }
-
-    private fun setupBottomBar() {
-        val navGraphIds = listOf(
-            R.navigation.messages,
-            R.navigation.login
-        )
-
-        with(binding.bottomBar) {
-            selectedItemId = R.id.messages
-            setupWithNavController(
-                navGraphIds = navGraphIds,
-                fragmentManager = childFragmentManager,
-                containerId = R.id.fragmentContainer,
-                intent = requireActivity().intent
-            )
-        }
-    }
-
 }

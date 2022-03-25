@@ -1,11 +1,11 @@
 package com.meloda.fast.api.model
 
-import android.os.Parcelable
 import androidx.lifecycle.MutableLiveData
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.meloda.fast.model.SelectableItem
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -35,7 +35,7 @@ data class VkConversation(
 
     @Embedded(prefix = "lastMessage_")
     var lastMessage: VkMessage? = null,
-) : Parcelable {
+) : SelectableItem(id) {
 
     @Ignore
     @IgnoredOnParcel

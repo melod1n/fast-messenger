@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
+import com.meloda.fast.api.model.attachments.VkGroupCall
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -15,5 +16,7 @@ data class BaseVkGroupCall(
         val list: List<Int>,
         val count: Int
     ) : Parcelable
+
+    fun asVkGroupCall() = VkGroupCall(initiatorId = initiator_id)
 
 }

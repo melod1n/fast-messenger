@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
+import com.meloda.fast.api.model.attachments.VkPoll
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -55,7 +56,8 @@ data class BaseVkPoll(
             val color: String,
             val position: Double
         ) : Parcelable
-
     }
+
+    fun asVkPoll() = VkPoll(id = id)
 
 }

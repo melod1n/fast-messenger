@@ -30,38 +30,40 @@ data class BaseVkAttachmentItem(
     val groupCall: BaseVkGroupCall?,
     val curator: BaseVkCurator?,
     val event: BaseVkEvent?,
-    val story: BaseVkStory?
+    val story: BaseVkStory?,
+    val widget: BaseVkWidget?
 ) : Parcelable {
 
     fun getPreparedType() = AttachmentType.parse(type)
 
     enum class AttachmentType(var value: String) {
-        UNKNOWN("unknown"),
-        PHOTO("photo"),
-        VIDEO("video"),
-        AUDIO("audio"),
-        FILE("doc"),
-        LINK("link"),
-        VOICE("audio_message"),
-        MINI_APP("mini_app"),
-        STICKER("sticker"),
-        GIFT("gift"),
-        WALL("wall"),
-        GRAFFITI("graffiti"),
-        POLL("poll"),
-        WALL_REPLY("wall_reply"),
-        CALL("call"),
-        GROUP_CALL_IN_PROGRESS("group_call_in_progress"),
-        CURATOR("curator"),
-        EVENT("event"),
-        STORY("story")
+        Unknown("unknown"),
+        Photo("photo"),
+        Video("video"),
+        Audio("audio"),
+        File("doc"),
+        Link("link"),
+        Voice("audio_message"),
+        MiniApp("mini_app"),
+        Sticker("sticker"),
+        Gift("gift"),
+        Wall("wall"),
+        Graffiti("graffiti"),
+        Poll("poll"),
+        WallReply("wall_reply"),
+        Call("call"),
+        GroupCallInProgress("group_call_in_progress"),
+        Curator("curator"),
+        Event("event"),
+        Story("story"),
+        Widget("widget")
         ;
 
         companion object {
-            fun parse(value: String): AttachmentType? {
-                val parsedValue = values().firstOrNull { it.value == value } ?: UNKNOWN
+            fun parse(value: String): AttachmentType {
+                val parsedValue = values().firstOrNull { it.value == value } ?: Unknown
 
-                if (parsedValue == UNKNOWN) {
+                if (parsedValue == Unknown) {
                     Log.e("AttachmentType", "Unknown attachment type: $value")
                 }
 

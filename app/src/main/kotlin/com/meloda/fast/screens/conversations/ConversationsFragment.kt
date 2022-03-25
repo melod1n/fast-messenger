@@ -1,23 +1,16 @@
 package com.meloda.fast.screens.conversations
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import coil.load
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.BaseViewModelFragment
@@ -28,14 +21,16 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.gone
+import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.screens.messages.MessagesHistoryFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ConversationsFragment :
@@ -47,9 +42,7 @@ class ConversationsFragment :
     private val adapter: ConversationsAdapter by lazy {
         ConversationsAdapter(
             requireContext(),
-            mutableListOf(),
-            hashMapOf(),
-            hashMapOf()
+            ConversationsResourceManager(requireContext())
         ).also {
             it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
@@ -74,13 +67,6 @@ class ConversationsFragment :
                 }
             }
 
-    private var isPaused = false
-
-    override fun onPause() {
-        super.onPause()
-        isPaused = true
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prepareViews()
@@ -90,40 +76,15 @@ class ConversationsFragment :
         lifecycleScope.launch {
             requireContext().dataStore.data.map {
                 adapter.isMultilineEnabled = it[AppSettings.keyIsMultilineEnabled] ?: true
-                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+                adapter.refreshList()
             }.collect()
         }
 
         binding.createChat.setOnClickListener {}
 
-        UserConfig.vkUser.observe(viewLifecycleOwner) {
-            it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
+        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
+            user?.run { binding.avatar.loadWithGlide(url = this.photo200, crossFade = true) }
         }
-
-        binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-            if (isPaused) return@OnOffsetChangedListener
-
-            binding.appBar.animate().translationZ(
-                if (verticalOffset < 0) AndroidUtils.px(3).roundToInt().toFloat()
-                else 0f
-            ).setDuration(50).start()
-
-            val padding = AndroidUtils.px(if (verticalOffset <= -100) 10 else 30).roundToInt()
-
-            binding.avatarContainer.updatePadding(
-                bottom = padding,
-                right = padding
-            )
-
-            val minusAlpha = (1 - (abs(verticalOffset) * 0.01)).toFloat()
-            val plusAlpha = (abs(1 + verticalOffset * 0.01) * 1.01).toFloat()
-
-            println("Fast::ConversationsFragment::onOffset offset: $verticalOffset; minusAlpha: $minusAlpha; plusAlpha: $plusAlpha")
-
-            val alpha: Float = if (verticalOffset <= -100) plusAlpha else minusAlpha
-
-            binding.avatarContainer.alpha = alpha
-        })
 
         binding.avatar.setOnClickListener { avatarPopupMenu.show() }
 
@@ -134,15 +95,10 @@ class ConversationsFragment :
                     settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
 
                     adapter.isMultilineEnabled = !isMultilineEnabled
-                    adapter.notifyItemRangeChanged(0, adapter.itemCount)
+                    adapter.refreshList()
                 }
             }
             true
-        }
-
-        if (isPaused) {
-            isPaused = false
-            return
         }
 
         viewModel.loadProfileUser()
@@ -150,7 +106,7 @@ class ConversationsFragment :
     }
 
     private fun showLogOutDialog() {
-        val isEasterEgg = UserConfig.userId == UserConfig.userId
+        val isEasterEgg = UserConfig.userId == 37610580
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
@@ -166,13 +122,7 @@ class ConversationsFragment :
                     UserConfig.clear()
                     AppGlobal.appDatabase.clearAllTables()
 
-                    requireActivity().finishAffinity()
-                    requireActivity().startActivity(
-                        Intent(
-                            requireContext(),
-                            MainActivity::class.java
-                        )
-                    )
+                    viewModel.openRootScreen()
                 }
             }
             .setNegativeButton(R.string.no, null)
@@ -185,21 +135,31 @@ class ConversationsFragment :
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
 
-            is ConversationsLoaded -> refreshConversations(event)
-            is ConversationsDelete -> deleteConversation(event.peerId)
+            is ConversationsLoadedEvent -> refreshConversations(event)
+            is ConversationsDeleteEvent -> deleteConversation(event.peerId)
 
             // TODO: 10-Oct-21 remove this and sort conversations list
-            is ConversationsPin, is ConversationsUnpin -> viewModel.loadConversations()
+            is ConversationsPinEvent -> {
+                adapter.pinnedCount++
+                viewModel.loadConversations()
+            }
+            is ConversationsUnpinEvent -> {
+                adapter.pinnedCount--
+                viewModel.loadConversations()
+            }
+
+            is MessagesNewEvent -> onMessageNew(event)
+            is MessagesEditEvent -> onMessageEdit(event)
         }
     }
 
     private fun onProgressStarted() {
-        binding.progressBar.isVisible = adapter.isEmpty()
+        binding.progressBar.toggleVisibility(adapter.isEmpty())
         binding.refreshLayout.isRefreshing = adapter.isNotEmpty()
     }
 
     private fun onProgressStopped() {
-        binding.progressBar.isVisible = false
+        binding.progressBar.gone()
         binding.refreshLayout.isRefreshing = false
     }
 
@@ -233,16 +193,17 @@ class ConversationsFragment :
         }
     }
 
-    private fun refreshConversations(event: ConversationsLoaded) {
+    private fun refreshConversations(event: ConversationsLoadedEvent) {
         adapter.profiles += event.profiles
         adapter.groups += event.groups
+
+        val pinnedConversations = event.conversations.filter { it.isPinned }
+        adapter.pinnedCount = pinnedConversations.count()
 
         fillRecyclerView(event.conversations)
     }
 
     private fun fillRecyclerView(values: List<VkConversation>) {
-        adapter.values.clear()
-        adapter.values += values
         adapter.submitList(values)
     }
 
@@ -257,12 +218,11 @@ class ConversationsFragment :
             if (conversation.isGroup()) adapter.groups[conversation.id]
             else null
 
-        findNavController().navigate(
-            R.id.toMessagesHistory,
+        viewModel.openMessagesHistoryScreen(
             bundleOf(
-                "conversation" to adapter[position],
-                "user" to user,
-                "group" to group
+                MessagesHistoryFragment.ARG_USER to user,
+                MessagesHistoryFragment.ARG_GROUP to group,
+                MessagesHistoryFragment.ARG_CONVERSATION to conversation
             )
         )
     }
@@ -277,7 +237,7 @@ class ConversationsFragment :
 
         var canPinOneMoreDialog = true
         if (adapter.itemCount > 4) {
-            val firstFiveDialogs = adapter.values.subList(0, 5)
+            val firstFiveDialogs = adapter.currentList.subList(0, 5)
             var pinnedCount = 0
 
             firstFiveDialogs.forEach { if (it.isPinned) pinnedCount++ }
@@ -321,8 +281,7 @@ class ConversationsFragment :
     }
 
     private fun deleteConversation(conversationId: Int) {
-        val index = adapter.removeConversation(conversationId) ?: return
-        adapter.notifyItemRemoved(index)
+        adapter.removeConversation(conversationId)
     }
 
     private fun showPinConversationDialog(conversation: VkConversation) {
@@ -345,4 +304,45 @@ class ConversationsFragment :
             .show()
     }
 
+    private fun onMessageNew(event: MessagesNewEvent) {
+        adapter.profiles += event.profiles
+        adapter.groups += event.groups
+
+        val message = event.message
+
+        val conversationIndex = adapter.searchConversationIndex(message.peerId)
+        if (conversationIndex == null) { // диалога нет в списке
+
+        } else {
+            val conversation = adapter[conversationIndex]
+            conversation.run {
+                lastMessage = message
+                lastMessageId = message.id
+                lastConversationMessageId = -1
+            }
+
+            if (conversation.isPinned) {
+                adapter[conversationIndex] = conversation
+                return
+            }
+
+            adapter.removeConversation(message.peerId) ?: return
+            val toPosition = adapter.pinnedCount
+
+            adapter.add(conversation, toPosition)
+        }
+    }
+
+    private fun onMessageEdit(event: MessagesEditEvent) {
+        val message = event.message
+
+        val conversationIndex = adapter.searchConversationIndex(message.peerId)
+        if (conversationIndex == null) { // диалога нет в списке
+
+        } else {
+            val conversation = adapter[conversationIndex]
+            conversation.lastMessage = message
+            adapter[conversationIndex] = conversation
+        }
+    }
 }

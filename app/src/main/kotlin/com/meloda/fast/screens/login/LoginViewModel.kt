@@ -1,19 +1,29 @@
 package com.meloda.fast.screens.login
 
 import androidx.lifecycle.viewModelScope
+import com.github.terrakok.cicerone.Router
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.network.auth.AuthDataSource
-import com.meloda.fast.api.network.auth.RequestAuthDirect
-import com.meloda.fast.base.viewmodel.*
+import com.meloda.fast.api.network.auth.AuthDirectRequest
+import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.ErrorEvent
+import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val dataSource: AuthDataSource
+    private val dataSource: AuthDataSource,
+    private val router: Router
 ) : BaseViewModel() {
+
+    companion object {
+        private const val TAG = "LoginViewModel"
+    }
 
     fun login(
         login: String,
@@ -24,7 +34,7 @@ class LoginViewModel @Inject constructor(
         makeJob(
             {
                 dataSource.auth(
-                    RequestAuthDirect(
+                    AuthDirectRequest(
                         grantType = VKConstants.Auth.GrantType.PASSWORD,
                         clientId = VKConstants.VK_APP_ID,
                         clientSecret = VKConstants.VK_SECRET,
@@ -44,12 +54,24 @@ class LoginViewModel @Inject constructor(
                     return@makeJob
                 }
 
-                sendEvent(
-                    SuccessAuth(
-                        userId = it.userId,
-                        vkToken = it.accessToken
-                    )
-                )
+                UserConfig.userId = it.userId
+                UserConfig.accessToken = it.accessToken
+
+                sendEvent(SuccessAuth())
+
+                // TODO: 19-Oct-21 do somewhen
+//                makeJob({
+//                    dataSource.authWithApp(
+//                        AuthWithAppRequest(
+//                            accessToken = it.accessToken
+//                        )
+//                    )
+//                }, onAnswer = { kindaAnswer ->
+//                    println("$TAG: AppAuthResponse: $kindaAnswer")
+//                }
+//                )
+
+
             },
             onError = {
                 if (it !is VKException) {
@@ -69,12 +91,14 @@ class LoginViewModel @Inject constructor(
         )
     }
 
+    fun openPrimaryScreen() {
+        router.navigateTo(Screens.Conversations())
+    }
+
 }
 
 object CodeSent : VkEvent()
 
 data class SuccessAuth(
-    val haveAuthorized: Boolean = true,
-    val userId: Int,
-    val vkToken: String
+    val haveAuthorized: Boolean = true
 ) : VkEvent()

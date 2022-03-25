@@ -1,16 +1,21 @@
 package com.meloda.fast.screens.messages
 
+import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.Toast
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
+import androidx.core.view.updateLayoutParams
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -32,7 +37,9 @@ import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
-import com.meloda.fast.extensions.TextViewExtensions.clear
+import com.meloda.fast.extensions.*
+import com.meloda.fast.extensions.ImageLoader.clear
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,9 +48,25 @@ import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.math.roundToInt
 
+
 @AndroidEntryPoint
 class MessagesHistoryFragment :
     BaseViewModelFragment<MessagesHistoryViewModel>(R.layout.fragment_messages_history) {
+
+    companion object {
+        const val ARG_USER: String = "user"
+        const val ARG_GROUP: String = "group"
+        const val ARG_CONVERSATION: String = "conversation"
+
+        private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
+
+        fun newInstance(bundle: Bundle): MessagesHistoryFragment {
+            val fragment = MessagesHistoryFragment()
+            fragment.arguments = bundle
+
+            return fragment
+        }
+    }
 
     override val viewModel: MessagesHistoryViewModel by viewModels()
     private val binding: FragmentMessagesHistoryBinding by viewBinding()
@@ -55,21 +78,20 @@ class MessagesHistoryFragment :
     }
 
     private val user: VkUser? by lazy {
-        requireArguments().getParcelable("user")
+        requireArguments().getParcelable(ARG_USER)
     }
 
     private val group: VkGroup? by lazy {
-        requireArguments().getParcelable("group")
+        requireArguments().getParcelable(ARG_GROUP)
     }
 
     private val conversation: VkConversation by lazy {
-        requireNotNull(requireArguments().getParcelable("conversation"))
+        requireNotNull(requireArguments().getParcelable(ARG_CONVERSATION))
     }
 
     private val adapter: MessagesHistoryAdapter by lazy {
-        MessagesHistoryAdapter(requireContext(), mutableListOf(), conversation).also {
+        MessagesHistoryAdapter(requireContext(), conversation).also {
             it.itemClickListener = this::onItemClick
-            it.itemLongClickListener = this::onItemLongClick
             it.avatarLongClickListener = this::onAvatarLongClickListener
         }
     }
@@ -89,6 +111,8 @@ class MessagesHistoryFragment :
             conversation.isGroup() -> group?.name
             else -> null
         }
+
+        binding.back.setOnClickListener { requireActivity().onBackPressed() }
 
         binding.title.ellipsize = TextUtils.TruncateAt.END
         binding.status.ellipsize = TextUtils.TruncateAt.END
@@ -121,7 +145,7 @@ class MessagesHistoryFragment :
 
         binding.action.setOnClickListener { performAction() }
 
-        binding.recyclerView.addOnLayoutChangeListener { _, i, i2, i3, bottom, i5, i6, i7, oldBottom ->
+        binding.recyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
             if (bottom >= oldBottom) return@addOnLayoutChangeListener
             val lastVisiblePosition =
                 (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
@@ -138,8 +162,8 @@ class MessagesHistoryFragment :
                 val firstPosition =
                     (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
 
-                val message = adapter.getOrNull(firstPosition)
-                message?.let {
+                adapter.getOrNull(firstPosition)?.let {
+                    if (it !is VkMessage) return
                     binding.timestamp.isVisible = true
 
                     val time = "${
@@ -158,7 +182,7 @@ class MessagesHistoryFragment :
 
                     timestampTimer = Timer()
                     timestampTimer?.schedule(2500) {
-                        recyclerView.post { binding.timestamp.isVisible = false }
+                        recyclerView.post { binding.timestamp.gone() }
                     }
                 }
 
@@ -185,6 +209,8 @@ class MessagesHistoryFragment :
                 .scaleY(1.25f)
                 .setDuration(100)
                 .withEndAction {
+                    if (getView() == null) return@withEndAction
+
                     binding.action.animate()
                         .scaleX(1f)
                         .scaleY(1f)
@@ -209,27 +235,48 @@ class MessagesHistoryFragment :
             }
         }
 
-        attachmentController.isPanelVisible.observe(viewLifecycleOwner) {
-            if (it) binding.message.setSelection(binding.message.text.toString().length)
+        attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
+            if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
 
-            val layoutParams = binding.refreshLayout.layoutParams as CoordinatorLayout.LayoutParams
-            layoutParams.bottomMargin =
-                if (it) (binding.attachmentPanel.height / 1.5).roundToInt() else 0
+            val currentMargin =
+                (binding.refreshLayout.layoutParams as CoordinatorLayout.LayoutParams).bottomMargin
+
+            val newMargin =
+                if (isVisible) (binding.attachmentPanel.measuredHeight / 1.5).roundToInt()
+                else 0
+
+            ValueAnimator.ofInt(currentMargin, newMargin).apply {
+                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+                interpolator = LinearInterpolator()
+
+                addUpdateListener { animator ->
+                    if (getView() == null) return@addUpdateListener
+                    val value = animator.animatedValue as Int
+                    binding.refreshLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                        bottomMargin = value
+                    }
+                }
+            }.start()
         }
 
         binding.attachmentPanel.setOnClickListener c@{
             val message = attachmentController.message.value ?: return@c
 
-            val index = adapter.values.indexOf(message)
+            val index = adapter.indexOf(message)
             if (index == -1) return@c
 
-            binding.recyclerView.smoothScrollToPosition(index)
+            binding.recyclerView.scrollToPosition(index)
         }
 
         binding.dismissReply.setOnClickListener {
             if (attachmentController.message.value != null)
                 attachmentController.message.value = null
         }
+    }
+
+    @ColorInt
+    private fun getColor(@ColorRes resId: Int): Int {
+        return ContextCompat.getColor(requireContext(), resId)
     }
 
     private fun prepareAvatar() {
@@ -241,46 +288,49 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-        binding.avatar.isVisible = avatar != null
+        val colorOnPrimary = getColor(R.color.colorOnPrimary)
+        val colorUserAvatarAction = getColor(R.color.colorUserAvatarAction)
+        val colorOnUserAvatarAction = getColor(R.color.colorOnUserAvatarAction)
+
+        val icLauncherColor = getColor(R.color.a1_500)
+
+        binding.avatar.toggleVisibility(avatar != null)
 
         if (avatar == null) {
-            binding.avatarPlaceholder.isVisible = true
+            binding.avatarPlaceholder.visible()
 
             if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
-                binding.placeholderBack.setImageDrawable(
-                    ColorDrawable(
-                        ContextCompat.getColor(requireContext(), R.color.a1_400)
-                    )
+                binding.placeholderBack.loadWithGlide(
+                    drawable = ColorDrawable(icLauncherColor),
+                    transformations = ImageLoader.userAvatarTransformations
                 )
                 binding.placeholder.imageTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.a1_0))
+                    ColorStateList.valueOf(colorOnPrimary)
                 binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
                 binding.placeholder.setPadding(18)
             } else {
-                binding.placeholderBack.setImageDrawable(
-                    ColorDrawable(
-                        ContextCompat.getColor(requireContext(), R.color.n1_50)
-                    )
+                binding.placeholderBack.loadWithGlide(
+                    drawable = ColorDrawable(colorOnUserAvatarAction),
+                    transformations = ImageLoader.userAvatarTransformations
                 )
                 binding.placeholder.imageTintList =
-                    ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.n2_500))
+                    ColorStateList.valueOf(colorUserAvatarAction)
                 binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
                 binding.placeholder.setPadding(0)
-                binding.avatar.setImageDrawable(null)
+                binding.avatar.clear()
             }
         } else {
             binding.avatar.load(avatar) {
                 crossfade(200)
                 target {
-                    binding.avatarPlaceholder.isVisible = false
+                    binding.avatarPlaceholder.gone()
                     binding.avatar.setImageDrawable(it)
                 }
             }
         }
 
-        binding.phantomIcon.isVisible = conversation.isPhantom
-        binding.online.isVisible = user?.online == true
-        binding.pin.isVisible = conversation.isPinned
+        binding.phantomIcon.toggleVisibility(conversation.isPhantom)
+        binding.online.toggleVisibility(user?.online)
     }
 
     private fun performAction() {
@@ -293,8 +343,10 @@ class MessagesHistoryFragment :
 
                 val date = System.currentTimeMillis()
 
+                val messageIndex = adapter.lastPosition
+
                 val message = VkMessage(
-                    id = -1,
+                    id = Int.MAX_VALUE,
                     text = messageText,
                     isOut = true,
                     peerId = conversation.id,
@@ -304,10 +356,10 @@ class MessagesHistoryFragment :
                     replyMessage = attachmentController.message.value
                 )
 
-                adapter.add(message)
-                adapter.notifyItemInserted(adapter.actualSize - 1)
-                binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
-                binding.message.clear()
+                adapter.add(message, beforeFooter = true, commitCallback = {
+                    binding.recyclerView.scrollToPosition(adapter.lastPosition)
+                    binding.message.clear()
+                })
 
                 val replyMessage = attachmentController.message.value
                 attachmentController.message.value = null
@@ -316,8 +368,13 @@ class MessagesHistoryFragment :
                     peerId = conversation.id,
                     message = messageText,
                     randomId = 0,
-                    replyTo = replyMessage?.id
-                ) { message.id = it }
+                    replyTo = replyMessage?.id,
+                    setId = { messageId ->
+                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        messageToUpdate.id = messageId
+                        adapter[messageIndex] = messageToUpdate
+                    }
+                )
             }
             Action.EDIT -> {
                 val message = attachmentController.message.value ?: return
@@ -336,6 +393,7 @@ class MessagesHistoryFragment :
             Action.DELETE -> attachmentController.message.value?.let {
                 showDeleteMessageDialog(it)
             }
+            else -> {}
         }
     }
 
@@ -346,12 +404,12 @@ class MessagesHistoryFragment :
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
 
-            is MessagesMarkAsImportant -> markMessagesAsImportant(event)
-            is MessagesLoaded -> refreshMessages(event)
-            is MessagesPin -> conversation.pinnedMessage = event.message
-            is MessagesUnpin -> conversation.pinnedMessage = null
-            is MessagesDelete -> deleteMessages(event)
-            is MessagesEdit -> editMessage(event)
+            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
+            is MessagesLoadedEvent -> refreshMessages(event)
+            is MessagesPinEvent -> conversation.pinnedMessage = event.message
+            is MessagesUnpinEvent -> conversation.pinnedMessage = null
+            is MessagesDeleteEvent -> deleteMessages(event)
+            is MessagesEditEvent -> editMessage(event)
         }
     }
 
@@ -395,26 +453,24 @@ class MessagesHistoryFragment :
         }
     }
 
-    private fun markMessagesAsImportant(event: MessagesMarkAsImportant) {
+    private fun markMessagesAsImportant(event: MessagesMarkAsImportantEvent) {
         var changed = false
         val positions = mutableListOf<Int>()
 
-        for (i in adapter.values.indices) {
-            val message = adapter.values[i]
+        for (i in adapter.indices) {
+            val message = adapter[i] as VkMessage
             message.important = event.important
             if (event.messagesIds.contains(message.id)) {
                 if (!changed) changed = true
 
                 positions.add(i)
 
-                adapter.values[i] = message
+                adapter[i] = message
             }
         }
-
-        if (changed) positions.forEach { adapter.notifyItemChanged(it) }
     }
 
-    private fun refreshMessages(event: MessagesLoaded) {
+    private fun refreshMessages(event: MessagesLoadedEvent) {
         adapter.profiles += event.profiles
         adapter.groups += event.groups
 
@@ -424,22 +480,23 @@ class MessagesHistoryFragment :
     private fun fillRecyclerView(values: List<VkMessage>) {
         val smoothScroll = adapter.isNotEmpty()
 
-        adapter.values.clear()
-        adapter.values += values.sortedBy { it.date }
-        adapter.notifyItemRangeChanged(0, adapter.itemCount)
-
-        if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
-        else binding.recyclerView.scrollToPosition(adapter.lastPosition)
+        adapter.setItems(
+            values.sortedBy { it.date },
+            withHeader = true,
+            withFooter = true,
+            commitCallback = {
+                if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
+                else binding.recyclerView.scrollToPosition(adapter.lastPosition)
+            }
+        )
     }
 
     private fun onItemClick(position: Int) {
         showOptionsDialog(position)
     }
 
-    private fun onItemLongClick(position: Int) = true
-
     private fun onAvatarLongClickListener(position: Int) {
-        val message = adapter.values[position]
+        val message = adapter[position] as VkMessage
 
         val messageUser = VkUtils.getMessageUser(message, adapter.profiles)
         val messageGroup = VkUtils.getMessageGroup(message, adapter.groups)
@@ -449,7 +506,7 @@ class MessagesHistoryFragment :
     }
 
     private fun showOptionsDialog(position: Int) {
-        val message = adapter.values[position]
+        val message = adapter[position] as VkMessage
         if (message.action != null) return
 
         val time = getString(
@@ -577,16 +634,14 @@ class MessagesHistoryFragment :
             .show()
     }
 
-    private fun deleteMessages(event: MessagesDelete) {
-        adapter.removeMessagesByIds(event.messagesIds).let {
-            it.forEach { index -> adapter.notifyItemRemoved(index) }
-        }
+    private fun deleteMessages(event: MessagesDeleteEvent) {
+        val messagesToDelete = event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
+        adapter.removeAll(messagesToDelete)
     }
 
-    private fun editMessage(event: MessagesEdit) {
+    private fun editMessage(event: MessagesEditEvent) {
         adapter.searchMessageIndex(event.message.id)?.let { index ->
-            adapter.values[index] = event.message
-            adapter.notifyItemChanged(index)
+            adapter[index] = event.message
         }
     }
 
@@ -610,8 +665,6 @@ class MessagesHistoryFragment :
         }
 
         private fun applyMessage(message: VkMessage) {
-            showPanel()
-
             val title = when {
                 message.isGroup() && message.group.value != null -> message.group.value?.name
                 message.isUser() && message.user.value != null -> message.user.value?.fullName
@@ -637,6 +690,8 @@ class MessagesHistoryFragment :
             if (isEditing) {
                 binding.message.setText(message.text)
             }
+
+            showPanel()
         }
 
         private fun clearMessage() {
@@ -651,28 +706,64 @@ class MessagesHistoryFragment :
             }
         }
 
-        private fun showPanel(duration: Long = 250) {
+        private fun showPanel() {
+            binding.attachmentPanel.visible()
+            binding.attachmentPanel.measure(
+                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
+            )
+
             if (attachmentController.isPanelVisible.value == false)
                 attachmentController.isPanelVisible.value = true
 
+            val measuredHeight = binding.attachmentPanel.measuredHeight
+
+            binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                height = 0
+            }
+
             binding.attachmentPanel.animate()
                 .translationY(0f)
-                .alpha(1f)
-                .setDuration(duration)
-                .withStartAction { binding.attachmentPanel.isVisible = true }
+                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
                 .start()
+
+            ValueAnimator.ofInt(0, measuredHeight).apply {
+                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+                interpolator = LinearInterpolator()
+
+                addUpdateListener { animator ->
+                    if (view == null) return@addUpdateListener
+                    val value = animator.animatedValue as Int
+                    binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                        height = value
+                    }
+                }
+            }.start()
         }
 
-        private fun hidePanel(duration: Long = 250) {
+        private fun hidePanel() {
             if (attachmentController.isPanelVisible.value == true)
                 attachmentController.isPanelVisible.value = false
 
+            val currentHeight = binding.attachmentPanel.height
+
             binding.attachmentPanel.animate()
-                .alpha(0f)
-                .translationY(50f)
-                .setDuration(duration)
-                .withEndAction { binding.attachmentPanel.isVisible = false }
+                .translationY(75F)
+                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
                 .start()
+
+            ValueAnimator.ofInt(currentHeight, 0).apply {
+                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+                interpolator = LinearInterpolator()
+
+                addUpdateListener { animator ->
+                    if (view == null) return@addUpdateListener
+                    val value = animator.animatedValue as Int
+
+                    binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                        height = value
+                    }
+                }
+            }.start()
         }
 
     }

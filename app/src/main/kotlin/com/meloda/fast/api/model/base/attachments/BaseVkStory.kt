@@ -17,7 +17,7 @@ data class BaseVkStory(
     val date: Int,
     val expires_at: Int,
     val is_ads: Boolean,
-    val photo: BaseVkPhoto,
+    val photo: BaseVkPhoto?,
     val replies: Replies,
     val is_one_time: Boolean,
     val track_code: String,
@@ -40,7 +40,7 @@ data class BaseVkStory(
         id = id,
         ownerId = owner_id,
         date = date,
-        photo = photo.asVkPhoto()
+        photo = photo?.asVkPhoto()
     )
 
     @Parcelize

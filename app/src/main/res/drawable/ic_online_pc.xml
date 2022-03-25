@@ -9,7 +9,7 @@
             <corners android:radius="50dp" />
             <stroke
                 android:width="2dp"
-                android:color="?android:windowBackground" />
+                android:color="?colorBackground" />
         </shape>
     </item>
 </layer-list>

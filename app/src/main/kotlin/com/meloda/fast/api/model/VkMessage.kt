@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.base.adapter.SelectableItem
+import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -33,10 +33,8 @@ data class VkMessage(
 
     var forwards: List<VkMessage>? = null,
     var attachments: List<VkAttachment>? = null,
-
-//    @Embedded(prefix = "replyMessage_")
     var replyMessage: VkMessage? = null
-) : SelectableItem() {
+) : SelectableItem(id) {
 
     @Ignore
     @IgnoredOnParcel
@@ -53,8 +51,8 @@ data class VkMessage(
     fun isGroup() = fromId < 0
 
     fun isRead(conversation: VkConversation) =
-        if (isOut) conversation.outRead < id
-        else conversation.inRead < id
+        if (isOut) conversation.outRead - id >= 0
+        else conversation.inRead - id >= 0
 
     fun getPreparedAction(): Action? {
         if (action == null) return null

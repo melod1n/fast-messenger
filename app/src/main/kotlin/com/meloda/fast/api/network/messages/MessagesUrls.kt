@@ -13,5 +13,6 @@ object MessagesUrls {
     const val Unpin = "${VkUrls.API}/messages.unpin"
     const val Delete = "${VkUrls.API}/messages.delete"
     const val Edit = "${VkUrls.API}/messages.edit"
+    const val GetById = "${VkUrls.API}/messages.getById"
 
 }

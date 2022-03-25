@@ -40,7 +40,8 @@ data class MessagesSendRequest(
     val replyTo: Int? = null,
     val stickerId: Int? = null,
     val disableMentions: Boolean? = null,
-    val dontParseLinks: Boolean? = null
+    val dontParseLinks: Boolean? = null,
+    val silent: Boolean? = null
 ) : Parcelable {
 
     val map
@@ -55,6 +56,7 @@ data class MessagesSendRequest(
             stickerId?.let { this["sticker_id"] = it.toString() }
             disableMentions?.let { this["disable_mentions"] = it.intString }
             dontParseLinks?.let { this["dont_parse_links"] = it.intString }
+            silent?.let { this["silent"] = it.toString() }
         }
 }
 
@@ -163,6 +165,23 @@ data class MessagesEditRequest(
                     else it.joinToString(separator = ",") { attachment -> attachment.asString() }
                 this["attachment"] = attachments
             }
+        }
+
+}
+
+@Parcelize
+data class MessagesGetByIdRequest(
+    val messagesIds: List<Int>,
+    val extended: Boolean? = null,
+    val fields: String? = null
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "message_ids" to messagesIds.joinToString { it.toString() },
+        ).apply {
+            extended?.let { this["extended"] = it.intString }
+            fields?.let { this["fields"] = it }
         }
 
 }

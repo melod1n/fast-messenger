@@ -17,7 +17,6 @@
         android:testOnly="false"
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup">
-
         <activity
             android:name=".activity.MainActivity"
             android:exported="true"
@@ -28,6 +27,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.MessagesUpdateService"
+            android:enabled="true"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

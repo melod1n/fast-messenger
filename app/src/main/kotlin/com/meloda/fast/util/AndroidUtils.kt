@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.res.Configuration
 import android.net.NetworkCapabilities
-import android.util.DisplayMetrics
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import com.meloda.fast.common.AppGlobal
@@ -12,22 +11,8 @@ import com.meloda.fast.common.AppGlobal
 
 object AndroidUtils {
 
-    fun px(dp: Float): Float {
-        return dp * (AppGlobal.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-    }
-
-    fun px(dp: Int) = px(dp.toFloat())
-
-    fun dp(px: Float): Float {
-        return px / (AppGlobal.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
-    }
-
-    fun dp(px: Int) = dp(px.toFloat())
-
     fun isDarkTheme(): Boolean {
-        val currentNightMode =
-            AppGlobal.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return when (currentNightMode) {
+        return when (AppGlobal.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
             Configuration.UI_MODE_NIGHT_YES -> true
             else -> false
         }

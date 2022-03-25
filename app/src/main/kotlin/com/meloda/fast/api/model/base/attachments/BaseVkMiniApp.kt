@@ -2,6 +2,7 @@ package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.api.model.attachments.VkMiniApp
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -62,5 +63,7 @@ data class BaseVkMiniApp(
         val width: Int,
         val url: String
     ) : Parcelable
+
+    fun asVkMiniApp() = VkMiniApp(link = app.shareUrl)
 
 }

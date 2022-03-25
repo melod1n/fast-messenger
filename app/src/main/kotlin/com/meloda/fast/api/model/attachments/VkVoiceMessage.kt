@@ -12,8 +12,8 @@ data class VkVoiceMessage(
     val linkOgg: String,
     val linkMp3: String,
     val accessKey: String,
-    val transcriptState: String,
-    val transcript: String
+    val transcriptState: String?,
+    val transcript: String?
 ) : VkAttachment() {
 
     @IgnoredOnParcel

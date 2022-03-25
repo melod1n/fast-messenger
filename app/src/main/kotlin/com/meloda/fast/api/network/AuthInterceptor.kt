@@ -2,6 +2,7 @@ package com.meloda.fast.api.network
 
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.network.account.AccountUrls
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.net.URLEncoder
@@ -12,10 +13,12 @@ class AuthInterceptor : Interceptor {
         val builder = chain.request().url.newBuilder()
             .addQueryParameter("v", URLEncoder.encode(VKConstants.API_VERSION, "utf-8"))
 
-        UserConfig.accessToken.let {
-            if (it.isNotBlank())
-                builder.addQueryParameter("access_token", URLEncoder.encode(it, "utf-8"))
-        }
+
+        if (!builder.build().toUrl().toString().contains(AccountUrls.SetOnline))
+            UserConfig.accessToken.let {
+                if (it.isNotBlank())
+                    builder.addQueryParameter("access_token", URLEncoder.encode(it, "utf-8"))
+            }
 
         // TODO: 9/29/2021 crash on timeout
         return chain.proceed(chain.request().newBuilder().apply { url(builder.build()) }.build())

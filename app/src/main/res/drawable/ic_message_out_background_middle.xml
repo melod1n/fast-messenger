@@ -4,9 +4,9 @@
 
     <stroke
         android:width="2dp"
-        android:color="@color/messageOutStrokeColor" />
+        android:color="?colorSurfaceVariant" />
 
-    <solid android:color="@color/messageOutColor" />
+    <solid android:color="?colorSurface" />
 
     <corners
         android:bottomLeftRadius="40dp"
