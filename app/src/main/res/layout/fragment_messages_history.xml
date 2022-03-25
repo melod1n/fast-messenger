@@ -318,6 +318,19 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/unread_counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="94dp"
+        android:src="@drawable/ic_round_keyboard_arrow_down_24"
+        android:visibility="gone"
+        app:fabSize="mini"
+        tools:ignore="ContentDescription"
+        tools:visibility="visible" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

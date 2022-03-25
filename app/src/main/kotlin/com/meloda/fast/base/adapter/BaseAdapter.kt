@@ -1,6 +1,5 @@
 package com.meloda.fast.base.adapter
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -14,7 +13,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Suppress("MemberVisibilityCanBePrivate", "unused", "UNCHECKED_CAST")
-@SuppressLint("NotifyDataSetChanged")
 abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
     var context: Context,
     diffUtil: DiffUtil.ItemCallback<T>,
@@ -35,7 +33,7 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
     }
 
     fun cloneCurrentList(): MutableList<T> {
-        return ArrayList(currentList)
+        return currentList.toMutableList()
     }
 
     open fun destroy() {}
@@ -161,9 +159,8 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
     fun isEmpty() = currentList.isEmpty()
     fun isNotEmpty() = currentList.isNotEmpty()
 
-    @SuppressLint("NotifyDataSetChanged")
     fun refreshList() {
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount)
     }
 
     fun updateCleanList(list: List<T>?) {

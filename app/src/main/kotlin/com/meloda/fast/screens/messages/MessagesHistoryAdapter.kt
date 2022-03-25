@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.util.ObjectsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import coil.load
@@ -247,6 +248,30 @@ class MessagesHistoryAdapter constructor(
         }
     }
 
+    fun containsUnreadMessages(isOutgoingMessages: Boolean = false): Boolean {
+        for (i in indices) {
+            val item = getItem(i)
+            if (item !is VkMessage) continue
+
+            if (item.isOut == isOutgoingMessages && !item.isRead(conversation)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun containsRandomId(randomId: Int): Boolean {
+        if (randomId == 0) return false
+        for (i in indices) {
+            val item = getItem(i)
+            if (item !is VkMessage) continue
+
+            if (item.randomId == randomId) return true
+        }
+
+        return false
+    }
+
     fun getVkMessage(item: DataItem<*>?): VkMessage? {
         if (item == null) return null
         if (item is VkMessage) return item
@@ -287,8 +312,9 @@ class MessagesHistoryAdapter constructor(
                 return if (oldItem is VkMessage && newItem is VkMessage) {
                     oldItem.id == newItem.id
                 } else {
-                    oldItem is DataItem.Footer && newItem is DataItem.Footer
-                            || oldItem is DataItem.Header && newItem is DataItem.Header
+                    oldItem is DataItem.Footer && newItem is DataItem.Footer ||
+                            oldItem is DataItem.Header && newItem is DataItem.Header ||
+                            ObjectsCompat.equals(oldItem, newItem)
                 }
             }
 
@@ -296,7 +322,10 @@ class MessagesHistoryAdapter constructor(
             override fun areContentsTheSame(
                 oldItem: DataItem<Int>,
                 newItem: DataItem<Int>
-            ): Boolean = oldItem == newItem
+            ): Boolean {
+
+                return ObjectsCompat.equals(oldItem, newItem)
+            }
         }
     }
 }

@@ -38,6 +38,10 @@ data class VkMessage(
 
     @Ignore
     @IgnoredOnParcel
+    var lastUpdateTime: Long = -1
+
+    @Ignore
+    @IgnoredOnParcel
     val user = MutableLiveData<VkUser?>()
 
     @Ignore

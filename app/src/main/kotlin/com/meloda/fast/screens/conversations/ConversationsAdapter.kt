@@ -268,7 +268,9 @@ class ConversationsAdapter constructor(
             override fun areContentsTheSame(
                 oldItem: VkConversation,
                 newItem: VkConversation
-            ) = ObjectsCompat.equals(oldItem, newItem)
+            ): Boolean {
+                return ObjectsCompat.equals(oldItem, newItem)
+            }
         }
     }
 

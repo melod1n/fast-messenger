@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
@@ -40,13 +41,16 @@ import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
+import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 
 @AndroidEntryPoint
@@ -157,10 +161,23 @@ class MessagesHistoryFragment :
             }, 25)
         }
 
+        binding.unreadCounter.setOnClickListener {
+            binding.recyclerView.scrollToPosition(adapter.lastPosition)
+        }
+
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val firstPosition =
-                    (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val firstPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
+
+                Log.d(
+                    "MessagesHistoryFragment",
+                    "onScrolled: lastPosition: $lastPosition; adapterLast: ${adapter.lastPosition}; " +
+                            "dy: $dy"
+                )
+
+                setUnreadCounterVisibility(lastPosition, dy)
 
                 adapter.getOrNull(firstPosition)?.let {
                     if (it !is VkMessage) return
@@ -171,7 +188,12 @@ class MessagesHistoryFragment :
                             requireContext(),
                             it.date * 1000L
                         )
-                    }, ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(it.date * 1000L)}"
+                    }, ${
+                        SimpleDateFormat(
+                            "HH:mm",
+                            Locale.getDefault()
+                        ).format(it.date * 1000L)
+                    }"
 
                     binding.timestamp.text = time
 
@@ -352,7 +374,7 @@ class MessagesHistoryFragment :
                     peerId = conversation.id,
                     fromId = UserConfig.userId,
                     date = (date / 1000).toInt(),
-                    randomId = 0,
+                    randomId = Random.nextInt(),
                     replyMessage = attachmentController.message.value
                 )
 
@@ -410,6 +432,8 @@ class MessagesHistoryFragment :
             is MessagesUnpinEvent -> conversation.pinnedMessage = null
             is MessagesDeleteEvent -> deleteMessages(event)
             is MessagesEditEvent -> editMessage(event)
+            is MessagesReadEvent -> readMessages(event)
+            is MessagesNewEvent -> addNewMessage(event)
         }
     }
 
@@ -454,20 +478,17 @@ class MessagesHistoryFragment :
     }
 
     private fun markMessagesAsImportant(event: MessagesMarkAsImportantEvent) {
-        var changed = false
-        val positions = mutableListOf<Int>()
+        val newList = adapter.cloneCurrentList()
 
-        for (i in adapter.indices) {
-            val message = adapter[i] as VkMessage
-            message.important = event.important
+        for (i in newList.indices) {
+            val item = newList[i]
+            val message: VkMessage = (if (item !is VkMessage) null else item) ?: continue
             if (event.messagesIds.contains(message.id)) {
-                if (!changed) changed = true
-
-                positions.add(i)
-
-                adapter[i] = message
+                newList[i] = message.copy(important = event.important)
             }
         }
+
+        adapter.submitList(newList)
     }
 
     private fun refreshMessages(event: MessagesLoadedEvent) {
@@ -635,13 +656,96 @@ class MessagesHistoryFragment :
     }
 
     private fun deleteMessages(event: MessagesDeleteEvent) {
+        if (event.peerId != conversation.id) return
         val messagesToDelete = event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
         adapter.removeAll(messagesToDelete)
     }
 
     private fun editMessage(event: MessagesEditEvent) {
+        if (event.message.peerId != conversation.id) return
         adapter.searchMessageIndex(event.message.id)?.let { index ->
             adapter[index] = event.message
+        }
+    }
+
+    private fun readMessages(event: MessagesReadEvent) {
+        if (event.peerId != conversation.id) return
+
+        val oldOutRead = conversation.outRead
+        val oldInRead = conversation.inRead
+
+        if (event.isOut) {
+            conversation.outRead = event.messageId
+        } else {
+            conversation.inRead = event.messageId
+        }
+
+        val positionsToUpdate = mutableListOf<Int>()
+        val newList = adapter.cloneCurrentList()
+        for (i in newList.indices) {
+            val message = newList[i]
+            if (message !is VkMessage) continue
+
+            if ((message.isOut && conversation.outRead - oldOutRead > 0 && message.id > oldOutRead) ||
+                (!message.isOut && conversation.inRead - oldInRead > 0 && message.id > oldInRead)
+            ) {
+                positionsToUpdate += i
+            }
+        }
+
+        positionsToUpdate.forEach { index ->
+            adapter.notifyItemChanged(index)
+
+            if (binding.unreadCounter.isVisible) {
+                setUnreadCounterVisibility(
+                    (binding.recyclerView.layoutManager as LinearLayoutManager)
+                        .findLastCompletelyVisibleItemPosition()
+                )
+            }
+        }
+    }
+
+    @Suppress("NAME_SHADOWING")
+    private fun setUnreadCounterVisibility(lastCompletelyVisiblePosition: Int, dy: Int? = null) {
+        if (lastCompletelyVisiblePosition >= adapter.lastPosition - 1) {
+            binding.unreadCounter.gone()
+        } else {
+            if (adapter.containsUnreadMessages()) {
+                binding.unreadCounter.visible()
+            } else {
+                if (dy == null) {
+                    binding.unreadCounter.gone()
+                } else {
+                    if (dy > 0) {
+                        if (dy > 60) binding.unreadCounter.visible()
+                    } else {
+                        if (dy < -60) binding.unreadCounter.gone()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun addNewMessage(event: MessagesNewEvent) {
+        if (event.message.peerId != conversation.id) return
+
+        adapter.profiles += event.profiles
+        adapter.groups += event.groups
+
+        if (adapter.containsRandomId(event.message.randomId)) return
+
+        adapter.add(event.message, beforeFooter = true) {
+            if (view == null) return@add
+
+            val lastVisiblePosition =
+                (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+
+            if (abs(lastVisiblePosition - adapter.lastPosition) <= 3) {
+                binding.recyclerView.scrollToPosition(adapter.lastPosition)
+            } else {
+                binding.unreadCounter.visible()
+                // add counter of unread
+            }
         }
     }
 

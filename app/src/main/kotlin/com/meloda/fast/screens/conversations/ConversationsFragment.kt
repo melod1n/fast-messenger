@@ -315,21 +315,24 @@ class ConversationsFragment :
 
         } else {
             val conversation = adapter[conversationIndex]
-            conversation.run {
-                lastMessage = message
-                lastMessageId = message.id
+            val newConversation = conversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
                 lastConversationMessageId = -1
-            }
+            )
 
             if (conversation.isPinned) {
-                adapter[conversationIndex] = conversation
+                adapter[conversationIndex] = newConversation
                 return
             }
 
-            adapter.removeConversation(message.peerId) ?: return
-            val toPosition = adapter.pinnedCount
+            val newList = adapter.cloneCurrentList()
+            newList.removeAt(conversationIndex)
 
-            adapter.add(conversation, toPosition)
+            val toPosition = adapter.pinnedCount
+            newList.add(toPosition, newConversation)
+
+            adapter.submitList(newList)
         }
     }
 
@@ -341,8 +344,11 @@ class ConversationsFragment :
 
         } else {
             val conversation = adapter[conversationIndex]
-            conversation.lastMessage = message
-            adapter[conversationIndex] = conversation
+            adapter[conversationIndex] = conversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
+                lastConversationMessageId = -1
+            )
         }
     }
 }

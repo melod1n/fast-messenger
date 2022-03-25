@@ -12,6 +12,7 @@ import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.network.messages.*
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.screens.conversations.MessagesNewEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,16 +25,48 @@ class MessagesHistoryViewModel @Inject constructor(
 
     init {
         updatesParser.onNewMessage {
-//            viewModelScope.launch { handleNewMessage(it) }
+            viewModelScope.launch { handleNewMessage(it) }
         }
 
         updatesParser.onMessageEdited {
             viewModelScope.launch { handleEditedMessage(it) }
         }
+
+        updatesParser.onMessageIncomingRead {
+            viewModelScope.launch { handleReadIncomingEvent(it) }
+        }
+
+        updatesParser.onMessageOutgoingRead {
+            viewModelScope.launch { handleReadOutgoingEvent(it) }
+        }
+    }
+
+    private suspend fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+        sendEvent(MessagesNewEvent(event.message, event.profiles, event.groups))
     }
 
     private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
-        sendEvent(com.meloda.fast.screens.messages.MessagesEditEvent(event.message))
+        sendEvent(MessagesEditEvent(event.message))
+    }
+
+    private suspend fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
+        sendEvent(
+            MessagesReadEvent(
+                isOut = false,
+                peerId = event.peerId,
+                messageId = event.messageId
+            )
+        )
+    }
+
+    private suspend fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+        sendEvent(
+            MessagesReadEvent(
+                isOut = true,
+                peerId = event.peerId,
+                messageId = event.messageId
+            )
+        )
     }
 
     fun loadHistory(peerId: Int) = viewModelScope.launch {
@@ -66,7 +99,8 @@ class MessagesHistoryViewModel @Inject constructor(
 
                 val hashMessages = hashMapOf<Int, VkMessage>()
                 response.items.forEach { baseMessage ->
-                    baseMessage.asVkMessage().let { message -> hashMessages[message.id] = message }
+                    baseMessage.asVkMessage()
+                        .let { message -> hashMessages[message.id] = message }
                 }
 
                 messages.store(hashMessages.values.toList())
@@ -177,17 +211,26 @@ class MessagesHistoryViewModel @Inject constructor(
         isSpam: Boolean? = null,
         deleteForAll: Boolean? = null
     ) = viewModelScope.launch {
-        makeJob({
-            messages.delete(
-                MessagesDeleteRequest(
-                    peerId = peerId,
-                    messagesIds = messagesIds,
-                    conversationsMessagesIds = conversationsMessagesIds,
-                    isSpam = isSpam,
-                    deleteForAll = deleteForAll
+        makeJob(
+            {
+                messages.delete(
+                    MessagesDeleteRequest(
+                        peerId = peerId,
+                        messagesIds = messagesIds,
+                        conversationsMessagesIds = conversationsMessagesIds,
+                        isSpam = isSpam,
+                        deleteForAll = deleteForAll
+                    )
                 )
-            )
-        }, onAnswer = { sendEvent(MessagesDeleteEvent(messagesIds = messagesIds ?: emptyList())) })
+            },
+            onAnswer = {
+                sendEvent(
+                    MessagesDeleteEvent(
+                        peerId = peerId,
+                        messagesIds = messagesIds ?: emptyList()
+                    )
+                )
+            })
     }
 
     fun editMessage(
@@ -210,7 +253,7 @@ class MessagesHistoryViewModel @Inject constructor(
             },
             onAnswer = {
                 originalMessage.text = message
-                sendEvent(com.meloda.fast.screens.messages.MessagesEditEvent(originalMessage))
+                sendEvent(MessagesEditEvent(originalMessage))
             }
         )
     }
@@ -224,12 +267,19 @@ data class MessagesLoadedEvent(
     val groups: HashMap<Int, VkGroup>
 ) : VkEvent()
 
-data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) : VkEvent()
+data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) :
+    VkEvent()
 
 data class MessagesPinEvent(val message: VkMessage) : VkEvent()
 
 object MessagesUnpinEvent : VkEvent()
 
-data class MessagesDeleteEvent(val messagesIds: List<Int>) : VkEvent()
+data class MessagesDeleteEvent(val peerId: Int, val messagesIds: List<Int>) : VkEvent()
 
 data class MessagesEditEvent(val message: VkMessage) : VkEvent()
+
+data class MessagesReadEvent(
+    val isOut: Boolean,
+    val peerId: Int,
+    val messageId: Int
+) : VkEvent()
