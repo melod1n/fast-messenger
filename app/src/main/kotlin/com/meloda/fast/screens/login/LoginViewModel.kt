@@ -1,19 +1,24 @@
 package com.meloda.fast.screens.login
 
 import androidx.lifecycle.viewModelScope
+import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.network.auth.AuthDataSource
 import com.meloda.fast.api.network.auth.AuthDirectRequest
-import com.meloda.fast.base.viewmodel.*
+import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.ErrorEvent
+import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val dataSource: AuthDataSource
+    private val dataSource: AuthDataSource,
+    private val router: Router
 ) : BaseViewModel() {
 
     companion object {
@@ -84,6 +89,10 @@ class LoginViewModel @Inject constructor(
         makeJob({ dataSource.sendSms(validationSid) },
             onAnswer = { sendEvent(CodeSent) }
         )
+    }
+
+    fun openPrimaryScreen() {
+        router.navigateTo(Screens.Conversations())
     }
 
 }

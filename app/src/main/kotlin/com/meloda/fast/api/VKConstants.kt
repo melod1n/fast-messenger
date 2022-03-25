@@ -49,6 +49,7 @@ object VKConstants {
         VkGraffiti::class.java,
         VkGroupCall::class.java,
         VkStory::class.java,
-        VkVoiceMessage::class.java
+        VkVoiceMessage::class.java,
+        VkWidget::class.java
     )
 }

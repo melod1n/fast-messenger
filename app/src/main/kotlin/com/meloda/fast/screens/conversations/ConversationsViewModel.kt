@@ -1,7 +1,12 @@
 package com.meloda.fast.screens.conversations
 
+import android.os.Bundle
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.*
+import com.github.terrakok.cicerone.Router
+import com.meloda.fast.api.LongPollEvent
+import com.meloda.fast.api.LongPollUpdatesParser
+import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -11,17 +16,18 @@ import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
     private val conversations: ConversationsDataSource,
     private val users: UsersDataSource,
-    updatesParser: LongPollUpdatesParser
+    updatesParser: LongPollUpdatesParser,
+    private val router: Router
 ) : BaseViewModel() {
 
     companion object {
@@ -131,6 +137,15 @@ class ConversationsViewModel @Inject constructor(
 
     private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
         sendEvent(MessageEditEvent(event.message))
+    }
+
+    fun openRootScreen() {
+        router.exit()
+        router.newRootScreen(Screens.Main())
+    }
+
+    fun openMessagesHistoryScreen(bundle: Bundle) {
+        router.navigateTo(Screens.MessagesHistory(bundle))
     }
 }
 

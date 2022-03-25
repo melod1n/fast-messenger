@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <bool name="useLightStatusBar">true</bool>
+    <bool name="useLightNavigationBar">true</bool>
+
+</resources>

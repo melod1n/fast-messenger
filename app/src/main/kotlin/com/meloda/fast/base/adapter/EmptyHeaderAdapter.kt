@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.RecyclerView
+import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.util.AndroidUtils
 import kotlin.math.roundToInt
 
@@ -24,7 +25,7 @@ class EmptyHeaderAdapter(
     private fun generateHeaderView() = View(context).apply {
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            AndroidUtils.px(56).roundToInt()
+            56.dpToPx()
         )
         isClickable = false
         isEnabled = false

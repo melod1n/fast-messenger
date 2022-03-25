@@ -20,21 +20,30 @@ data class VkPhoto(
     val userId: Int?
 ) : VkAttachment() {
 
+    companion object {
+        const val SIZE_TYPE_75 = 's'
+        const val SIZE_TYPE_130 = 'm'
+        const val SIZE_TYPE_604 = 'x'
+        const val SIZE_TYPE_807 = 'y'
+        const val SIZE_TYPE_1080_1024 = 'z'
+        const val SIZE_TYPE_2560_2048 = 'w'
+    }
+
     @Ignore
     @IgnoredOnParcel
     private val sizesChars = Stack<Char>()
 
     init {
-        sizesChars.push('s')
-        sizesChars.push('m')
-        sizesChars.push('x')
+        sizesChars.push(SIZE_TYPE_75)
+        sizesChars.push(SIZE_TYPE_130)
+        sizesChars.push(SIZE_TYPE_604)
         sizesChars.push('o')
         sizesChars.push('p')
         sizesChars.push('q')
         sizesChars.push('r')
-        sizesChars.push('y')
-        sizesChars.push('z')
-        sizesChars.push('w')
+        sizesChars.push(SIZE_TYPE_807)
+        sizesChars.push(SIZE_TYPE_1080_1024)
+        sizesChars.push(SIZE_TYPE_2560_2048)
     }
 
     @IgnoredOnParcel
@@ -61,7 +70,7 @@ data class VkPhoto(
     }
 
     fun getSizeOrSmaller(type: Char): BaseVkPhoto.Size? {
-        val photoStack = sizesChars.clone() as Stack<Char>
+        val photoStack = sizesChars.clone() as Stack<*>
 
         val sizeIndex = photoStack.search(type)
 
@@ -72,7 +81,7 @@ data class VkPhoto(
         }
 
         for (i in 0 until photoStack.size) {
-            val size = getSizeOrNull(photoStack.peek())
+            val size = getSizeOrNull(photoStack.peek() as Char)
 
             if (size == null) {
                 photoStack.pop()

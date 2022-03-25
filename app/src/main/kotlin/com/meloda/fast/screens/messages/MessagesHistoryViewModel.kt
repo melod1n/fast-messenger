@@ -19,9 +19,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private val messages: MessagesDataSource
 ) : BaseViewModel() {
 
-    fun loadHistory(
-        peerId: Int
-    ) = viewModelScope.launch {
+    fun loadHistory(peerId: Int) = viewModelScope.launch {
         makeJob({
             messages.getHistory(
                 MessagesGetHistoryRequest(
@@ -172,7 +170,7 @@ class MessagesHistoryViewModel @Inject constructor(
                     deleteForAll = deleteForAll
                 )
             )
-        }, onAnswer = { sendEvent(MessagesDelete(messagesIds = messagesIds ?: listOf())) })
+        }, onAnswer = { sendEvent(MessagesDelete(messagesIds = messagesIds ?: emptyList())) })
     }
 
     fun editMessage(

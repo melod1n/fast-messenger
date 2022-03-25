@@ -30,7 +30,7 @@ class AppGlobal : Application() {
         lateinit var preferences: SharedPreferences
         lateinit var resources: Resources
         lateinit var packageName: String
-        lateinit var instance: AppGlobal
+        private lateinit var instance: AppGlobal
 
         lateinit var appDatabase: AppDatabase
 
@@ -41,6 +41,8 @@ class AppGlobal : Application() {
 
         var screenWidth = 0
         var screenHeight = 0
+
+        val Instance get() = instance
     }
 
     override fun onCreate() {
@@ -51,9 +53,7 @@ class AppGlobal : Application() {
             ACRA.init(this)
         }
 
-        appDatabase = Room.databaseBuilder(
-            this, AppDatabase::class.java, "cache"
-        )
+        appDatabase = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
             .fallbackToDestructiveMigration()
             .build()
 
@@ -85,10 +85,8 @@ class AppGlobal : Application() {
             "width: $screenWidth; height: $screenHeight; density: $density; diagonal: $diagonal; dpiDensity: $densityDpi; scaledDensity: $densityScaled; xDpi: $xDpi; yDpi: $yDpi"
         )
 
-
         inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     }
-
 }

@@ -2,6 +2,7 @@ package com.meloda.fast.screens.messages
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.Gravity
@@ -12,12 +13,11 @@ import android.widget.ImageView
 import android.widget.Space
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.isNotEmpty
-import androidx.core.view.isVisible
-import androidx.core.view.setPadding
-import androidx.core.view.updatePadding
-import coil.load
+import androidx.core.view.*
+import com.bumptech.glide.Priority
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.imageview.ShapeableImageView
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -27,6 +27,9 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.databinding.*
+import com.meloda.fast.extensions.*
+import com.meloda.fast.extensions.ImageLoader.clear
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.widget.RoundedFrameLayout
 import java.text.SimpleDateFormat
@@ -57,14 +60,14 @@ class AttachmentInflater constructor(
     }
 
     fun inflate() {
-        if (message.attachments.isNullOrEmpty()) return
-        attachments = message.attachments!!
-
         container.removeAllViews()
 
         if (textContainer.childCount > 1) {
             textContainer.removeViews(1, textContainer.childCount - 1)
         }
+
+        if (message.attachments.isNullOrEmpty()) return
+        attachments = message.attachments!!
 
         if (attachments.size == 1) {
             when (val attachment = attachments[0]) {
@@ -74,6 +77,7 @@ class AttachmentInflater constructor(
                 is VkCall -> return call(attachment)
                 is VkGraffiti -> return graffiti(attachment)
                 is VkGift -> return gift(attachment)
+                is VkStory -> return story(attachment)
             }
         }
 
@@ -113,24 +117,73 @@ class AttachmentInflater constructor(
     }
 
     private fun photo(photo: VkPhoto) {
-        val size = photo.getSizeOrSmaller('y') ?: return
+        val size = photo.getSizeOrSmaller(VkPhoto.SIZE_TYPE_807) ?: return
+
+        val colorBackground = ContextCompat.getColor(
+            context,
+            R.color.colorBackground
+        )
+        val colorSecondary = ContextCompat.getColor(
+            context,
+            R.color.colorSecondary
+        )
+
+        val constraintLayout = ConstraintLayout(context).apply {
+            layoutParams = LinearLayoutCompat.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val cornersRadius = 8.dpToPx().toFloat()
+        val photoMargin = 1F.dpToPx()
+
+        val border = ImageView(context).apply {
+            layoutParams = ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT,
+                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+            ).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+            }
+
+            loadWithGlide(
+                drawable = ColorDrawable(colorSecondary),
+                transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius.toInt())),
+                priority = Priority.IMMEDIATE,
+                cacheStrategy = DiskCacheStrategy.NONE
+            )
+        }
+        constraintLayout.addView(border)
 
         val newPhoto = ShapeableImageView(context).apply {
-            layoutParams = LinearLayoutCompat.LayoutParams(
-//                ViewGroup.LayoutParams.MATCH_PARENT,
-                size.width,
-                size.height
-//                AndroidUtils.px(size.width).roundToInt(),
-//                AndroidUtils.px(size.height).roundToInt()
-            )
+            layoutParams = ConstraintLayout.LayoutParams(
+                120.dpToPx(),
+                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+            ).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
 
-            shapeAppearanceModel =
-                shapeAppearanceModel.withCornerSize {
-                    AndroidUtils.px(5)
-                }
+                dimensionRatio = "1:1.75"
+                updateMarginsRelative(
+                    start = photoMargin,
+                    top = photoMargin,
+                    end = photoMargin,
+                    bottom = photoMargin
+                )
+            }
+
+            adjustViewBounds = true
+
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(7.5F.dpToPx().toFloat())
 
             scaleType = ImageView.ScaleType.CENTER_CROP
         }
+        constraintLayout.addView(newPhoto)
 
         if (photoClickListener != null) {
             newPhoto.setOnClickListener { photoClickListener?.invoke(size.url) }
@@ -138,15 +191,14 @@ class AttachmentInflater constructor(
             newPhoto.setOnClickListener(null)
         }
 
-        val spacer = Space(context).also {
-            it.layoutParams = LinearLayoutCompat.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                AndroidUtils.px(5).roundToInt()
-            )
+        val spacer = Space(context).apply {
+            layoutParams =
+                LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 5.dpToPx())
         }
 
-        if (container.isNotEmpty())
+        if (container.isNotEmpty()) {
             container.addView(spacer)
+        }
 
         if (attachments.size == 1) {
             val roundedLayout = RoundedFrameLayout(context).apply {
@@ -156,13 +208,16 @@ class AttachmentInflater constructor(
                 setBottomLeftCornerRadius((if (message.isOut) 40 else 5).toFloat())
             }
 
-            roundedLayout.addView(newPhoto)
+            roundedLayout.addView(constraintLayout)
             container.addView(roundedLayout)
         } else {
-            container.addView(newPhoto)
+            container.addView(constraintLayout)
         }
 
-        newPhoto.load(size.url) { crossfade(100) }
+        newPhoto.loadWithGlide(
+            url = size.url, crossFade = true,
+            placeholderDrawable = ColorDrawable(colorBackground)
+        )
     }
 
     private fun video(video: VkVideo) {
@@ -176,22 +231,17 @@ class AttachmentInflater constructor(
         }
 
         val newPhoto = ShapeableImageView(context).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                AndroidUtils.px(size.width).roundToInt(),
-                AndroidUtils.px(size.height).roundToInt()
-            )
+            layoutParams = FrameLayout.LayoutParams(size.width.dpToPx(), size.height.dpToPx())
 
-            shapeAppearanceModel =
-                shapeAppearanceModel.withCornerSize { AndroidUtils.px(5) }
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(5.dpToPx().toFloat())
             scaleType = ImageView.ScaleType.CENTER_CROP
         }
 
         val play = AppCompatImageView(context).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                AndroidUtils.px(50).roundToInt(),
-                AndroidUtils.px(50).roundToInt()
-            ).also {
-                it.gravity = Gravity.CENTER
+            val playSize = 50.dpToPx()
+
+            layoutParams = FrameLayout.LayoutParams(playSize, playSize).apply {
+                gravity = Gravity.CENTER
             }
 
             backgroundTintList = ColorStateList.valueOf(playBackgroundColor)
@@ -207,10 +257,8 @@ class AttachmentInflater constructor(
         layout.addView(play)
 
         val spacer = Space(context).apply {
-            layoutParams = LinearLayoutCompat.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                AndroidUtils.px(5).roundToInt()
-            )
+            layoutParams =
+                LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 5.dpToPx())
         }
 
         if (container.isNotEmpty())
@@ -218,7 +266,7 @@ class AttachmentInflater constructor(
 
         container.addView(layout)
 
-        newPhoto.load(size.url) { crossfade(100) }
+        newPhoto.loadWithGlide(url = size.url, crossFade = true)
     }
 
     private fun audio(audio: VkAudio) {
@@ -245,14 +293,14 @@ class AttachmentInflater constructor(
         val binding = ItemMessageAttachmentLinkBinding.inflate(inflater, textContainer, true)
 
         binding.title.text = link.title
-        binding.title.isVisible = !link.title.isNullOrBlank()
+        binding.title.toggleVisibility(!link.title.isNullOrBlank())
 
         binding.caption.text = link.caption
-        binding.caption.isVisible = !link.caption.isNullOrBlank()
+        binding.caption.toggleVisibility(!link.caption.isNullOrBlank())
 
-        link.photo?.getSizeOrSmaller('y')?.let {
-            binding.preview.load(it.url) { crossfade(150) }
-            binding.linkIcon.isVisible = false
+        link.photo?.getSizeOrSmaller('y')?.let { size ->
+            binding.preview.loadWithGlide(url = size.url, crossFade = true)
+            binding.linkIcon.gone()
             return
         }
 
@@ -264,7 +312,7 @@ class AttachmentInflater constructor(
                 )
             )
         )
-        binding.linkIcon.isVisible = true
+        binding.linkIcon.visible()
     }
 
     private fun sticker(sticker: VkSticker) {
@@ -272,13 +320,12 @@ class AttachmentInflater constructor(
 
         val url = sticker.urlForSize(352)
 
-        with(binding.image) {
-            layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(140).roundToInt(),
-                AndroidUtils.px(140).roundToInt()
-            )
+        binding.image.run {
+            val size = 140.dpToPx()
 
-            load(url) { crossfade(150) }
+            layoutParams = LinearLayoutCompat.LayoutParams(size, size)
+
+            loadWithGlide(url = url, crossFade = true)
         }
     }
 
@@ -307,14 +354,14 @@ class AttachmentInflater constructor(
         }
 
         binding.postTitle.text = context.getString(postTitleRes)
-        binding.postTitle.isVisible = false
+        binding.postTitle.gone()
 
-        binding.avatar.isVisible = group != null || user != null
+        binding.avatar.toggleVisibility(group != null || user != null)
 
         if (binding.avatar.isVisible) {
-            binding.avatar.load(avatar) { crossfade(150) }
+            binding.avatar.loadWithGlide(url = avatar, crossFade = true)
         } else {
-            binding.avatar.setImageDrawable(null)
+            binding.avatar.clear()
         }
 
         binding.title.text = title
@@ -328,12 +375,13 @@ class AttachmentInflater constructor(
     private fun voice(voiceMessage: VkVoiceMessage) {
         val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, textContainer, true)
 
-        if (message.isOut)
+        if (message.isOut) {
+            val padding = 6.dpToPx()
             binding.root.updatePadding(
-                bottom = AndroidUtils.px(6).roundToInt(),
-                left = AndroidUtils.px(6).roundToInt()
+                bottom = padding,
+                left = padding
             )
-
+        }
         val waveform = IntArray(voiceMessage.waveform.size)
         voiceMessage.waveform.forEachIndexed { index, i -> waveform[index] = i }
 
@@ -352,8 +400,8 @@ class AttachmentInflater constructor(
 
         if (message.isOut)
             binding.root.updatePadding(
-                bottom = AndroidUtils.px(5).roundToInt(),
-                left = AndroidUtils.px(6).roundToInt()
+                bottom = 5.dpToPx(),
+                left = 6.dpToPx()
             )
 
         val callType =
@@ -383,15 +431,17 @@ class AttachmentInflater constructor(
 
         val url = graffiti.url
 
-        val heightCoefficient = graffiti.height / AndroidUtils.px(140)
+        val size = 140.dpToPx()
 
-        with(binding.image) {
+        val heightCoefficient = graffiti.height / size.toFloat()
+
+        binding.image.run {
             layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(140).roundToInt(),
+                size,
                 (graffiti.height / heightCoefficient).roundToInt()
             )
 
-            load(url) { crossfade(150) }
+            loadWithGlide(url = url, crossFade = true)
         }
     }
 
@@ -400,16 +450,72 @@ class AttachmentInflater constructor(
 
         val url = gift.thumb256 ?: gift.thumb96 ?: gift.thumb48
 
-        with(binding.image) {
-            shapeAppearanceModel = shapeAppearanceModel.withCornerSize { AndroidUtils.px(12) }
+        binding.image.run {
+            val size = 140.dpToPx()
 
-            layoutParams = LinearLayoutCompat.LayoutParams(
-                AndroidUtils.px(140).roundToInt(),
-                AndroidUtils.px(140).roundToInt()
-            )
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(12.dpToPx().toFloat())
 
-            load(url) { crossfade(150) }
+            layoutParams = LinearLayoutCompat.LayoutParams(size, size)
+
+            loadWithGlide(url = url, crossFade = true)
         }
     }
 
+    private fun story(story: VkStory) {
+        val binding = ItemMessageAttachmentStoryBinding.inflate(inflater, container, true)
+
+        val photoUrl = story.photo?.getSizeOrSmaller(VkPhoto.SIZE_TYPE_807)?.url
+
+        val dimmerDrawable =
+            ContextCompat.getDrawable(context, R.drawable.ic_message_attachment_story_image_dimmer)
+
+        val cornersRadius = 24.dpToPx()
+
+        binding.caption.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            val margin = cornersRadius / 2
+            updateMarginsRelative(
+                top = margin,
+                start = margin,
+                end = margin,
+                bottom = margin
+            )
+        }
+
+        binding.dimmer.loadWithGlide(
+            drawable = dimmerDrawable,
+            transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius)),
+            priority = Priority.IMMEDIATE,
+            cacheStrategy = DiskCacheStrategy.NONE
+        )
+
+        binding.image.run {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius.toFloat())
+
+            loadWithGlide(
+                url = photoUrl,
+                crossFade = true,
+                placeholderDrawable = ColorDrawable(Color.GRAY)
+            )
+        }
+
+        if (story.ownerId == UserConfig.userId) {
+            binding.caption.text = context.getString(R.string.message_attachment_story_your_story)
+        } else {
+            val storyOwnerUser = if (story.isFromUser()) profiles[story.ownerId] else null
+            val storyOwnerGroup = if (story.isFromGroup()) groups[story.ownerId] else null
+
+            val ownerName = when {
+                storyOwnerUser != null -> storyOwnerUser.fullName
+                storyOwnerGroup != null -> storyOwnerGroup.name
+                else -> null
+            }
+
+            binding.caption.text = context.getString(
+                R.string.message_attachment_story_story_from,
+                ownerName
+            )
+            binding.caption.toggleVisibility(ownerName != null)
+            binding.dimmer.toggleVisibility(binding.caption.isVisible)
+        }
+    }
 }

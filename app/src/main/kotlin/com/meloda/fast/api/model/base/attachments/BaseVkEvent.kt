@@ -10,13 +10,11 @@ data class BaseVkEvent(
     val is_favorite: Boolean,
     val text: String,
     val address: String,
-    val friends: List<Int> = listOf(),
+    val friends: List<Int> = emptyList(),
     val member_status: Int,
     val time: Int
 ) : BaseVkAttachment() {
 
-    fun asVkEvent() = VkEvent(
-        id = id
-    )
+    fun asVkEvent() = VkEvent(id = id)
 
 }

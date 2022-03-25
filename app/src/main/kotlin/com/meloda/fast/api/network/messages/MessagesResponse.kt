@@ -10,7 +10,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class MessagesGetHistoryResponse(
     val count: Int,
-    val items: List<BaseVkMessage> = listOf(),
+    val items: List<BaseVkMessage> = emptyList(),
     val conversations: List<BaseVkConversation>?,
     val profiles: List<BaseVkUser>?,
     val groups: List<BaseVkGroup>?
@@ -19,7 +19,7 @@ data class MessagesGetHistoryResponse(
 @Parcelize
 data class MessagesGetByIdResponse(
     val count: Int,
-    val items: List<BaseVkMessage> = listOf(),
+    val items: List<BaseVkMessage> = emptyList(),
     val profiles: List<BaseVkUser>?,
     val groups: List<BaseVkGroup>?
 ) : Parcelable

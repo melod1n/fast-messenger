@@ -15,10 +15,10 @@ data class BaseVkMessage(
     val out: Int,
     val text: String,
     val conversation_message_id: Int,
-    val fwd_messages: List<BaseVkMessage>? = listOf(),
+    val fwd_messages: List<BaseVkMessage>? = emptyList(),
     val important: Boolean,
     val random_id: Int,
-    val attachments: List<BaseVkAttachmentItem> = listOf(),
+    val attachments: List<BaseVkAttachmentItem> = emptyList(),
     val is_hidden: Boolean,
     val payload: String,
     val geo: Geo?,
@@ -29,7 +29,7 @@ data class BaseVkMessage(
 
     fun asVkMessage() = VkMessage(
         id = id,
-        text = if (text.isBlank()) null else text,
+        text = text.ifBlank { null },
         isOut = out == 1,
         peerId = peer_id,
         fromId = from_id,

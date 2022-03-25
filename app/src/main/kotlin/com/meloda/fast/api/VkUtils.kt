@@ -139,85 +139,81 @@ object VkUtils {
 
         for (baseAttachment in baseAttachments) {
             when (baseAttachment.getPreparedType()) {
-                BaseVkAttachmentItem.AttachmentType.PHOTO -> {
+                BaseVkAttachmentItem.AttachmentType.Photo -> {
                     val photo = baseAttachment.photo ?: continue
                     attachments += photo.asVkPhoto()
                 }
-                BaseVkAttachmentItem.AttachmentType.VIDEO -> {
+                BaseVkAttachmentItem.AttachmentType.Video -> {
                     val video = baseAttachment.video ?: continue
                     attachments += video.asVkVideo()
                 }
-                BaseVkAttachmentItem.AttachmentType.AUDIO -> {
+                BaseVkAttachmentItem.AttachmentType.Audio -> {
                     val audio = baseAttachment.audio ?: continue
                     attachments += audio.asVkAudio()
                 }
-                BaseVkAttachmentItem.AttachmentType.FILE -> {
+                BaseVkAttachmentItem.AttachmentType.File -> {
                     val file = baseAttachment.file ?: continue
                     attachments += file.asVkFile()
                 }
-                BaseVkAttachmentItem.AttachmentType.LINK -> {
+                BaseVkAttachmentItem.AttachmentType.Link -> {
                     val link = baseAttachment.link ?: continue
                     attachments += link.asVkLink()
                 }
-                BaseVkAttachmentItem.AttachmentType.MINI_APP -> {
+                BaseVkAttachmentItem.AttachmentType.MiniApp -> {
                     val miniApp = baseAttachment.miniApp ?: continue
-                    attachments += VkMiniApp(
-                        link = miniApp.app.shareUrl
-                    )
+                    attachments += miniApp.asVkMiniApp()
                 }
-                BaseVkAttachmentItem.AttachmentType.VOICE -> {
+                BaseVkAttachmentItem.AttachmentType.Voice -> {
                     val voiceMessage = baseAttachment.voiceMessage ?: continue
                     attachments += voiceMessage.asVkVoiceMessage()
                 }
-                BaseVkAttachmentItem.AttachmentType.STICKER -> {
+                BaseVkAttachmentItem.AttachmentType.Sticker -> {
                     val sticker = baseAttachment.sticker ?: continue
                     attachments += sticker.asVkSticker()
                 }
-                BaseVkAttachmentItem.AttachmentType.GIFT -> {
+                BaseVkAttachmentItem.AttachmentType.Gift -> {
                     val gift = baseAttachment.gift ?: continue
                     attachments += gift.asVkGift()
                 }
-                BaseVkAttachmentItem.AttachmentType.WALL -> {
+                BaseVkAttachmentItem.AttachmentType.Wall -> {
                     val wall = baseAttachment.wall ?: continue
                     attachments += wall.asVkWall()
                 }
-                BaseVkAttachmentItem.AttachmentType.GRAFFITI -> {
+                BaseVkAttachmentItem.AttachmentType.Graffiti -> {
                     val graffiti = baseAttachment.graffiti ?: continue
                     attachments += graffiti.asVkGraffiti()
                 }
-                BaseVkAttachmentItem.AttachmentType.POLL -> {
+                BaseVkAttachmentItem.AttachmentType.Poll -> {
                     val poll = baseAttachment.poll ?: continue
-                    attachments += VkPoll(
-                        id = poll.id
-                    )
+                    attachments += poll.asVkPoll()
                 }
-                BaseVkAttachmentItem.AttachmentType.WALL_REPLY -> {
+                BaseVkAttachmentItem.AttachmentType.WallReply -> {
                     val wallReply = baseAttachment.wallReply ?: continue
-                    attachments += VkWallReply(
-                        id = wallReply.id
-                    )
+                    attachments += wallReply.asVkWallReply()
                 }
-                BaseVkAttachmentItem.AttachmentType.CALL -> {
+                BaseVkAttachmentItem.AttachmentType.Call -> {
                     val call = baseAttachment.call ?: continue
                     attachments += call.asVkCall()
                 }
-                BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS -> {
+                BaseVkAttachmentItem.AttachmentType.GroupCallInProgress -> {
                     val groupCall = baseAttachment.groupCall ?: continue
-                    attachments += VkGroupCall(
-                        initiatorId = groupCall.initiator_id
-                    )
+                    attachments += groupCall.asVkGroupCall()
                 }
-                BaseVkAttachmentItem.AttachmentType.CURATOR -> {
+                BaseVkAttachmentItem.AttachmentType.Curator -> {
                     val curator = baseAttachment.curator ?: continue
                     attachments += curator.asVkCurator()
                 }
-                BaseVkAttachmentItem.AttachmentType.EVENT -> {
+                BaseVkAttachmentItem.AttachmentType.Event -> {
                     val event = baseAttachment.event ?: continue
                     attachments += event.asVkEvent()
                 }
-                BaseVkAttachmentItem.AttachmentType.STORY -> {
+                BaseVkAttachmentItem.AttachmentType.Story -> {
                     val story = baseAttachment.story ?: continue
                     attachments += story.asVkStory()
+                }
+                BaseVkAttachmentItem.AttachmentType.Widget -> {
+                    val widget = baseAttachment.widget ?: continue
+                    attachments += widget.asVkWidget()
                 }
                 else -> continue
             }
@@ -580,22 +576,22 @@ object VkUtils {
         attachmentType: BaseVkAttachmentItem.AttachmentType
     ): Drawable? {
         val resId = when (attachmentType) {
-            BaseVkAttachmentItem.AttachmentType.PHOTO -> R.drawable.ic_attachment_photo
-            BaseVkAttachmentItem.AttachmentType.VIDEO -> R.drawable.ic_attachment_video
-            BaseVkAttachmentItem.AttachmentType.AUDIO -> R.drawable.ic_attachment_audio
-            BaseVkAttachmentItem.AttachmentType.FILE -> R.drawable.ic_attachment_file
-            BaseVkAttachmentItem.AttachmentType.LINK -> R.drawable.ic_attachment_link
-            BaseVkAttachmentItem.AttachmentType.VOICE -> R.drawable.ic_attachment_voice
-            BaseVkAttachmentItem.AttachmentType.MINI_APP -> R.drawable.ic_attachment_mini_app
-            BaseVkAttachmentItem.AttachmentType.STICKER -> R.drawable.ic_attachment_sticker
-            BaseVkAttachmentItem.AttachmentType.GIFT -> R.drawable.ic_attachment_gift
-            BaseVkAttachmentItem.AttachmentType.WALL -> R.drawable.ic_attachment_wall
-            BaseVkAttachmentItem.AttachmentType.GRAFFITI -> R.drawable.ic_attachment_graffiti
-            BaseVkAttachmentItem.AttachmentType.POLL -> R.drawable.ic_attachment_poll
-            BaseVkAttachmentItem.AttachmentType.WALL_REPLY -> R.drawable.ic_attachment_wall_reply
-            BaseVkAttachmentItem.AttachmentType.CALL -> R.drawable.ic_attachment_call
-            BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS -> R.drawable.ic_attachment_group_call
-            BaseVkAttachmentItem.AttachmentType.STORY -> R.drawable.ic_attachment_story
+            BaseVkAttachmentItem.AttachmentType.Photo -> R.drawable.ic_attachment_photo
+            BaseVkAttachmentItem.AttachmentType.Video -> R.drawable.ic_attachment_video
+            BaseVkAttachmentItem.AttachmentType.Audio -> R.drawable.ic_attachment_audio
+            BaseVkAttachmentItem.AttachmentType.File -> R.drawable.ic_attachment_file
+            BaseVkAttachmentItem.AttachmentType.Link -> R.drawable.ic_attachment_link
+            BaseVkAttachmentItem.AttachmentType.Voice -> R.drawable.ic_attachment_voice
+            BaseVkAttachmentItem.AttachmentType.MiniApp -> R.drawable.ic_attachment_mini_app
+            BaseVkAttachmentItem.AttachmentType.Sticker -> R.drawable.ic_attachment_sticker
+            BaseVkAttachmentItem.AttachmentType.Gift -> R.drawable.ic_attachment_gift
+            BaseVkAttachmentItem.AttachmentType.Wall -> R.drawable.ic_attachment_wall
+            BaseVkAttachmentItem.AttachmentType.Graffiti -> R.drawable.ic_attachment_graffiti
+            BaseVkAttachmentItem.AttachmentType.Poll -> R.drawable.ic_attachment_poll
+            BaseVkAttachmentItem.AttachmentType.WallReply -> R.drawable.ic_attachment_wall_reply
+            BaseVkAttachmentItem.AttachmentType.Call -> R.drawable.ic_attachment_call
+            BaseVkAttachmentItem.AttachmentType.GroupCallInProgress -> R.drawable.ic_attachment_group_call
+            BaseVkAttachmentItem.AttachmentType.Story -> R.drawable.ic_attachment_story
             else -> return null
         }
 
@@ -617,24 +613,25 @@ object VkUtils {
 
     fun getAttachmentTypeByClass(attachment: VkAttachment): BaseVkAttachmentItem.AttachmentType? {
         return when (attachment) {
-            is VkPhoto -> BaseVkAttachmentItem.AttachmentType.PHOTO
-            is VkVideo -> BaseVkAttachmentItem.AttachmentType.VIDEO
-            is VkAudio -> BaseVkAttachmentItem.AttachmentType.AUDIO
-            is VkFile -> BaseVkAttachmentItem.AttachmentType.FILE
-            is VkLink -> BaseVkAttachmentItem.AttachmentType.LINK
-            is VkMiniApp -> BaseVkAttachmentItem.AttachmentType.MINI_APP
-            is VkVoiceMessage -> BaseVkAttachmentItem.AttachmentType.VOICE
-            is VkSticker -> BaseVkAttachmentItem.AttachmentType.STICKER
-            is VkGift -> BaseVkAttachmentItem.AttachmentType.GIFT
-            is VkWall -> BaseVkAttachmentItem.AttachmentType.WALL
-            is VkGraffiti -> BaseVkAttachmentItem.AttachmentType.GRAFFITI
-            is VkPoll -> BaseVkAttachmentItem.AttachmentType.POLL
-            is VkWallReply -> BaseVkAttachmentItem.AttachmentType.WALL_REPLY
-            is VkCall -> BaseVkAttachmentItem.AttachmentType.CALL
-            is VkGroupCall -> BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS
-            is VkEvent -> BaseVkAttachmentItem.AttachmentType.EVENT
-            is VkCurator -> BaseVkAttachmentItem.AttachmentType.CURATOR
-            is VkStory -> BaseVkAttachmentItem.AttachmentType.STORY
+            is VkPhoto -> BaseVkAttachmentItem.AttachmentType.Photo
+            is VkVideo -> BaseVkAttachmentItem.AttachmentType.Video
+            is VkAudio -> BaseVkAttachmentItem.AttachmentType.Audio
+            is VkFile -> BaseVkAttachmentItem.AttachmentType.File
+            is VkLink -> BaseVkAttachmentItem.AttachmentType.Link
+            is VkMiniApp -> BaseVkAttachmentItem.AttachmentType.MiniApp
+            is VkVoiceMessage -> BaseVkAttachmentItem.AttachmentType.Voice
+            is VkSticker -> BaseVkAttachmentItem.AttachmentType.Sticker
+            is VkGift -> BaseVkAttachmentItem.AttachmentType.Gift
+            is VkWall -> BaseVkAttachmentItem.AttachmentType.Wall
+            is VkGraffiti -> BaseVkAttachmentItem.AttachmentType.Graffiti
+            is VkPoll -> BaseVkAttachmentItem.AttachmentType.Poll
+            is VkWallReply -> BaseVkAttachmentItem.AttachmentType.WallReply
+            is VkCall -> BaseVkAttachmentItem.AttachmentType.Call
+            is VkGroupCall -> BaseVkAttachmentItem.AttachmentType.GroupCallInProgress
+            is VkEvent -> BaseVkAttachmentItem.AttachmentType.Event
+            is VkCurator -> BaseVkAttachmentItem.AttachmentType.Curator
+            is VkStory -> BaseVkAttachmentItem.AttachmentType.Story
+            is VkWidget -> BaseVkAttachmentItem.AttachmentType.Widget
             else -> null
         }
     }
@@ -645,42 +642,44 @@ object VkUtils {
         size: Int = 1
     ): String {
         return when (attachmentType) {
-            BaseVkAttachmentItem.AttachmentType.PHOTO ->
+            BaseVkAttachmentItem.AttachmentType.Photo ->
                 context.resources.getQuantityString(R.plurals.attachment_photos, size, size)
-            BaseVkAttachmentItem.AttachmentType.VIDEO ->
+            BaseVkAttachmentItem.AttachmentType.Video ->
                 context.resources.getQuantityString(R.plurals.attachment_videos, size, size)
-            BaseVkAttachmentItem.AttachmentType.AUDIO ->
+            BaseVkAttachmentItem.AttachmentType.Audio ->
                 context.resources.getQuantityString(R.plurals.attachment_audios, size, size)
-            BaseVkAttachmentItem.AttachmentType.FILE ->
+            BaseVkAttachmentItem.AttachmentType.File ->
                 context.resources.getQuantityString(R.plurals.attachment_files, size, size)
-            BaseVkAttachmentItem.AttachmentType.LINK ->
+            BaseVkAttachmentItem.AttachmentType.Link ->
                 context.resources.getString(R.string.message_attachments_link)
-            BaseVkAttachmentItem.AttachmentType.VOICE ->
+            BaseVkAttachmentItem.AttachmentType.Voice ->
                 context.resources.getString(R.string.message_attachments_voice)
-            BaseVkAttachmentItem.AttachmentType.MINI_APP ->
+            BaseVkAttachmentItem.AttachmentType.MiniApp ->
                 context.resources.getString(R.string.message_attachments_mini_app)
-            BaseVkAttachmentItem.AttachmentType.STICKER ->
+            BaseVkAttachmentItem.AttachmentType.Sticker ->
                 context.resources.getString(R.string.message_attachments_sticker)
-            BaseVkAttachmentItem.AttachmentType.GIFT ->
+            BaseVkAttachmentItem.AttachmentType.Gift ->
                 context.resources.getString(R.string.message_attachments_gift)
-            BaseVkAttachmentItem.AttachmentType.WALL ->
+            BaseVkAttachmentItem.AttachmentType.Wall ->
                 context.resources.getString(R.string.message_attachments_wall)
-            BaseVkAttachmentItem.AttachmentType.GRAFFITI ->
+            BaseVkAttachmentItem.AttachmentType.Graffiti ->
                 context.resources.getString(R.string.message_attachments_graffiti)
-            BaseVkAttachmentItem.AttachmentType.POLL ->
+            BaseVkAttachmentItem.AttachmentType.Poll ->
                 context.resources.getString(R.string.message_attachments_poll)
-            BaseVkAttachmentItem.AttachmentType.WALL_REPLY ->
+            BaseVkAttachmentItem.AttachmentType.WallReply ->
                 context.resources.getString(R.string.message_attachments_wall_reply)
-            BaseVkAttachmentItem.AttachmentType.CALL ->
+            BaseVkAttachmentItem.AttachmentType.Call ->
                 context.resources.getString(R.string.message_attachments_call)
-            BaseVkAttachmentItem.AttachmentType.GROUP_CALL_IN_PROGRESS ->
+            BaseVkAttachmentItem.AttachmentType.GroupCallInProgress ->
                 context.resources.getString(R.string.message_attachments_call_in_progress)
-            BaseVkAttachmentItem.AttachmentType.EVENT ->
+            BaseVkAttachmentItem.AttachmentType.Event ->
                 context.resources.getString(R.string.message_attachments_event)
-            BaseVkAttachmentItem.AttachmentType.CURATOR ->
+            BaseVkAttachmentItem.AttachmentType.Curator ->
                 context.resources.getString(R.string.message_attachments_curator)
-            BaseVkAttachmentItem.AttachmentType.STORY ->
+            BaseVkAttachmentItem.AttachmentType.Story ->
                 context.resources.getString(R.string.message_attachments_story)
+            BaseVkAttachmentItem.AttachmentType.Widget ->
+                context.resources.getString(R.string.message_attachments_widget)
             else -> attachmentType.value
         }
     }

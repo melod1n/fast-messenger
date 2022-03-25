@@ -1,146 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/loginRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/loginRoot"
+    <WebView
+        android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:visibility="gone" />
 
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <androidx.core.widget.NestedScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true">
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:id="@+id/logoContainer"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center_horizontal">
+
+                <com.meloda.fast.widget.CircleImageView
+                    android:id="@+id/logoImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:padding="42dp"
+                    android:src="@drawable/ic_fast_lightning"
+                    app:tint="?colorAccent" />
+            </FrameLayout>
+
+            <ProgressBar
+                android:id="@+id/progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <LinearLayout
+                android:id="@+id/loginContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:animateLayoutChanges="true"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginTop="48dp"
+                android:orientation="horizontal">
 
-                <FrameLayout
-                    android:id="@+id/logoContainer"
-                    android:layout_width="140dp"
-                    android:layout_height="140dp"
-                    android:layout_gravity="center_horizontal">
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:id="@+id/logoImage"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:padding="42dp"
-                        android:src="@drawable/ic_fast_lightning"
-                        app:tint="?colorAccent" />
-                </FrameLayout>
-
-                <ProgressBar
-                    android:id="@+id/progress"
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/loginImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="48dp"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/ic_baseline_account_circle_24"
+                    app:tint="?colorAccent" />
 
-                <LinearLayout
-                    android:id="@+id/loginContainer"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/loginLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="48dp"
-                    android:orientation="horizontal">
+                    app:boxStrokeErrorColor="@android:color/transparent">
 
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/loginImage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:src="@drawable/ic_baseline_account_circle_24"
-                        app:tint="?colorAccent" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/loginLayout"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/loginInput"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:boxStrokeErrorColor="@android:color/transparent">
+                        android:layout_height="48dp"
+                        android:hint="@string/login_hint"
+                        android:imeOptions="actionGo"
+                        android:inputType="textEmailAddress" />
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/loginInput"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:hint="@string/login_hint"
-                            android:imeOptions="actionGo"
-                            android:inputType="textEmailAddress" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/passwordContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/activity_vertical_margin"
-                    android:orientation="horizontal">
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/passwordImage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:src="@drawable/ic_key"
-                        app:tint="?colorAccent" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/passwordLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:boxStrokeErrorColor="@android:color/transparent"
-                        app:passwordToggleEnabled="true"
-                        app:passwordToggleTint="?colorAccent">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/passwordInput"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:fontFamily="@font/roboto_regular"
-                            android:hint="@string/password_login_hint"
-                            android:imeOptions="actionGo"
-                            android:typeface="normal" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/auth"
-                    android:layout_width="wrap_content"
-                    android:layout_height="60dp"
-                    android:layout_gravity="center_horizontal|bottom"
-                    android:layout_marginTop="12dp"
-                    android:backgroundTint="@color/a1_600"
-                    android:fontFamily="@font/google_sans_medium"
-                    android:letterSpacing="0"
-                    android:paddingStart="24dp"
-                    android:paddingEnd="16dp"
-                    android:text="@string/log_in"
-                    android:textSize="14sp"
-                    app:cornerRadius="50dp"
-                    app:elevation="16dp"
-                    app:icon="@drawable/ic_arrow_end"
-                    app:iconGravity="end" />
+                </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
 
-        </androidx.core.widget.NestedScrollView>
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</layout>
+            <LinearLayout
+                android:id="@+id/passwordContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/passwordImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/ic_key"
+                    app:tint="?colorAccent" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/passwordLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:boxStrokeErrorColor="@android:color/transparent"
+                    app:passwordToggleEnabled="true"
+                    app:passwordToggleTint="?colorAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/passwordInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:fontFamily="@font/roboto_regular"
+                        android:hint="@string/password_login_hint"
+                        android:imeOptions="actionGo"
+                        android:typeface="normal" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/auth"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="@color/a1_600"
+                android:fontFamily="@font/google_sans_medium"
+                android:letterSpacing="0"
+                android:paddingStart="24dp"
+                android:paddingEnd="16dp"
+                android:text="@string/log_in"
+                android:textSize="14sp"
+                app:cornerRadius="50dp"
+                app:elevation="16dp"
+                app:icon="@drawable/ic_arrow_end"
+                app:iconGravity="end" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -5,17 +5,19 @@ import com.google.gson.Gson
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.attachments.VkAttachment
 import org.json.JSONObject
-import java.util.stream.Collectors
 
+@Suppress("UnnecessaryVariable")
 class Converters {
+
+    private companion object {
+        private const val CACHE_SEPARATOR = "fastkruta228355"
+    }
 
     @TypeConverter
     fun fromListVkMessageToString(messages: List<VkMessage>?): String? {
         if (messages == null) return null
 
-        val string =
-            messages.map { fromVkMessageToString(it)!! }.stream()
-                .collect(Collectors.joining("fastkruta228355"))
+        val string = messages.map { fromVkMessageToString(it)!! }.joinToString { CACHE_SEPARATOR }
 
         return string
     }
@@ -24,9 +26,9 @@ class Converters {
     fun fromStringToListVkMessage(string: String?): List<VkMessage>? {
         if (string == null) return null
 
-        if (string.contains("fastkruta228355")) {
+        if (string.contains(CACHE_SEPARATOR)) {
             val messages =
-                string.split("fastkruta228355").map { fromStringToVkMessage(it)!! }
+                string.split(CACHE_SEPARATOR).map { fromStringToVkMessage(it)!! }
             return messages
         }
 
@@ -55,8 +57,7 @@ class Converters {
         if (attachments == null) return null
 
         val string =
-            attachments.map { fromVkAttachmentToString(it)!! }.stream()
-                .collect(Collectors.joining("fastkruta228355"))
+            attachments.map { fromVkAttachmentToString(it)!! }.joinToString { CACHE_SEPARATOR }
 
         return string
     }
@@ -65,9 +66,9 @@ class Converters {
     fun fromStringToListVkAttachment(string: String?): List<VkAttachment>? {
         if (string == null) return null
 
-        if (string.contains("fastkruta228355")) {
+        if (string.contains(CACHE_SEPARATOR)) {
             val attachments =
-                string.split("fastkruta228355").map { fromStringToVkAttachment(it)!! }
+                string.split(CACHE_SEPARATOR).map { fromStringToVkAttachment(it)!! }
             return attachments
         }
 

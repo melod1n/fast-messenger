@@ -9,14 +9,15 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
-import android.webkit.*
+import android.webkit.CookieManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import coil.load
 import coil.transform.RoundedCornersTransformation
 import com.google.android.material.snackbar.Snackbar
@@ -108,8 +109,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
 
-//            addJavascriptInterface(TestJSInterface(), "HtmlViewer")
-
             clearCache(true)
             webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView?, url: String, favicon: Bitmap?) {
@@ -119,26 +118,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
                 override fun onPageFinished(view: WebView, url: String?) {
                     super.onPageFinished(view, url)
-//                    view.loadUrl(
-//                        "javascript:window.HtmlViewer.showHTML" +
-//                                "('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');void(0);"
-//                    )
-
-//                    binding.webView.isVisible = true
-
-//                    lifecycleScope.launch {
-//                        delay(5000)
-//                        view.loadUrl("javascript:document.getElementsByTagName('input')[0].click(); void(0);")
-//                    }
                 }
-
-//                override fun shouldOverrideUrlLoading(
-//                    view: WebView,
-//                    request: WebResourceRequest?
-//                ): Boolean {
-//
-//                    return true
-//                }
             }
         }
 
@@ -147,15 +127,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             flush()
             setAcceptCookie(true)
         }
-    }
-
-    private inner class TestJSInterface {
-
-        @JavascriptInterface
-        fun showHTML(html: String) {
-            println("Fast::Html::$html")
-        }
-
     }
 
     private fun launchWebView() {
@@ -198,7 +169,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
             UserConfig.fastToken = token
 
-            goToMain()
+            viewModel.openPrimaryScreen()
         }
     }
 
@@ -414,15 +385,4 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         snackbar.animationMode = Snackbar.ANIMATION_MODE_FADE
         snackbar.show()
     }
-
-    private fun goToMain(haveAuthorized: Boolean = true) = lifecycleScope.launch {
-//        if (haveAuthorized) delay(500)
-
-
-        findNavController().navigate(R.id.mainFragment)
-//        findNavController().navigateUp()
-//        findNavController().popBackStack()
-//        findNavController().navigate(R.id.toMainScreen)
-    }
-
 }

@@ -1,26 +1,16 @@
 package com.meloda.fast.screens.conversations
 
-import android.animation.ValueAnimator
-import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.viewbinding.library.fragment.viewBinding
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
-import com.meloda.fast.activity.RootActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.BaseViewModelFragment
@@ -31,7 +21,10 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
-import com.meloda.fast.extensions.dpToPx
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.gone
+import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.screens.messages.MessagesHistoryFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -49,9 +42,7 @@ class ConversationsFragment :
     private val adapter: ConversationsAdapter by lazy {
         ConversationsAdapter(
             requireContext(),
-            mutableListOf(),
-            hashMapOf(),
-            hashMapOf()
+            ConversationsResourceManager(requireContext())
         ).also {
             it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
@@ -76,44 +67,24 @@ class ConversationsFragment :
                 }
             }
 
-    private var isPaused = false
-
-    private var actualAvatarContainerPadding: Int = 0
-    private var isScrollingBottom: Boolean = false
-
-    override fun onPause() {
-        super.onPause()
-        isPaused = true
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prepareViews()
-
-        actualAvatarContainerPadding = binding.avatarContainer.paddingBottom
 
         binding.recyclerView.adapter = adapter
 
         lifecycleScope.launch {
             requireContext().dataStore.data.map {
                 adapter.isMultilineEnabled = it[AppSettings.keyIsMultilineEnabled] ?: true
-                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+                adapter.refreshList()
             }.collect()
         }
 
         binding.createChat.setOnClickListener {}
 
-        UserConfig.vkUser.observe(viewLifecycleOwner) {
-            it?.let { user -> binding.avatar.load(user.photo200) { crossfade(100) } }
+        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
+            user?.run { binding.avatar.loadWithGlide(url = this.photo200, crossFade = true) }
         }
-
-//        binding.appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-//            if (isPaused) return@OnOffsetChangedListener
-//
-//            animateAppBarPaddings(verticalOffset <= -100)
-//        })
-
-        applyScrollListener()
 
         binding.avatar.setOnClickListener { avatarPopupMenu.show() }
 
@@ -124,73 +95,14 @@ class ConversationsFragment :
                     settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
 
                     adapter.isMultilineEnabled = !isMultilineEnabled
-                    adapter.notifyItemRangeChanged(0, adapter.itemCount)
+                    adapter.refreshList()
                 }
             }
             true
         }
 
-        if (isPaused) {
-            isPaused = false
-            return
-        }
-
         viewModel.loadProfileUser()
         viewModel.loadConversations()
-    }
-
-    private fun applyScrollListener() {
-        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-
-                val firstPosition =
-                    (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
-
-                val scrollToBottom = dy > 0
-
-                if (!scrollToBottom && firstPosition > 0) return
-
-                if (isScrollingBottom != scrollToBottom) {
-                    isScrollingBottom = scrollToBottom
-
-                    animateAppBarPaddings(scrollToBottom)
-                }
-            }
-        })
-    }
-
-    private var paddingAnimator: ValueAnimator? = null
-
-    private fun animateAppBarPaddings(scrollToBottom: Boolean, overrideStartPadding: Int? = null) {
-        val startPadding = overrideStartPadding ?: binding.avatarContainer.paddingBottom
-        val endPadding = (if (scrollToBottom) 10 else 30).dpToPx()
-
-        if (paddingAnimator?.isRunning == true) {
-            paddingAnimator?.pause()
-            paddingAnimator = null
-
-            animateAppBarPaddings(scrollToBottom, actualAvatarContainerPadding)
-            return
-        }
-
-        paddingAnimator = ValueAnimator.ofInt(startPadding, endPadding).apply {
-            duration = 150
-            interpolator = AccelerateDecelerateInterpolator()
-
-            addUpdateListener {
-                val padding = it.animatedValue as Int
-
-                this@ConversationsFragment.actualAvatarContainerPadding = padding
-
-                binding.avatarContainer.updatePadding(
-                    bottom = padding,
-                    right = padding
-                )
-            }
-        }
-        paddingAnimator?.start()
     }
 
     private fun showLogOutDialog() {
@@ -210,13 +122,7 @@ class ConversationsFragment :
                     UserConfig.clear()
                     AppGlobal.appDatabase.clearAllTables()
 
-                    requireActivity().finishAffinity()
-                    requireActivity().startActivity(
-                        Intent(
-                            requireContext(),
-                            RootActivity::class.java
-                        )
-                    )
+                    viewModel.openRootScreen()
                 }
             }
             .setNegativeButton(R.string.no, null)
@@ -248,12 +154,12 @@ class ConversationsFragment :
     }
 
     private fun onProgressStarted() {
-        binding.progressBar.isVisible = adapter.isEmpty()
+        binding.progressBar.toggleVisibility(adapter.isEmpty())
         binding.refreshLayout.isRefreshing = adapter.isNotEmpty()
     }
 
     private fun onProgressStopped() {
-        binding.progressBar.isVisible = false
+        binding.progressBar.gone()
         binding.refreshLayout.isRefreshing = false
     }
 
@@ -291,15 +197,13 @@ class ConversationsFragment :
         adapter.profiles += event.profiles
         adapter.groups += event.groups
 
-        fillRecyclerView(event.conversations)
-
         val pinnedConversations = event.conversations.filter { it.isPinned }
         adapter.pinnedCount = pinnedConversations.count()
+
+        fillRecyclerView(event.conversations)
     }
 
     private fun fillRecyclerView(values: List<VkConversation>) {
-        adapter.values.clear()
-        adapter.values += values
         adapter.submitList(values)
     }
 
@@ -314,12 +218,11 @@ class ConversationsFragment :
             if (conversation.isGroup()) adapter.groups[conversation.id]
             else null
 
-        findNavController().navigate(
-            R.id.toMessagesHistory,
+        viewModel.openMessagesHistoryScreen(
             bundleOf(
-                "conversation" to adapter[position],
-                "user" to user,
-                "group" to group
+                MessagesHistoryFragment.ARG_USER to user,
+                MessagesHistoryFragment.ARG_GROUP to group,
+                MessagesHistoryFragment.ARG_CONVERSATION to conversation
             )
         )
     }
@@ -334,7 +237,7 @@ class ConversationsFragment :
 
         var canPinOneMoreDialog = true
         if (adapter.itemCount > 4) {
-            val firstFiveDialogs = adapter.values.subList(0, 5)
+            val firstFiveDialogs = adapter.currentList.subList(0, 5)
             var pinnedCount = 0
 
             firstFiveDialogs.forEach { if (it.isPinned) pinnedCount++ }
@@ -378,8 +281,7 @@ class ConversationsFragment :
     }
 
     private fun deleteConversation(conversationId: Int) {
-        val index = adapter.removeConversation(conversationId) ?: return
-        adapter.notifyItemRemoved(index)
+        adapter.removeConversation(conversationId)
     }
 
     private fun showPinConversationDialog(conversation: VkConversation) {
@@ -412,24 +314,22 @@ class ConversationsFragment :
         if (conversationIndex == null) { // диалога нет в списке
 
         } else {
-            val conversation = adapter[conversationIndex].also {
-                it.lastMessage = message
-                it.lastMessageId = message.id
-                it.lastConversationMessageId = -1
+            val conversation = adapter[conversationIndex]
+            conversation.run {
+                lastMessage = message
+                lastMessageId = message.id
+                lastConversationMessageId = -1
             }
 
             if (conversation.isPinned) {
-                adapter.notifyItemChanged(conversationIndex)
+                adapter[conversationIndex] = conversation
                 return
             }
 
-            val fromPosition = adapter.removeConversation(message.peerId) ?: return
+            adapter.removeConversation(message.peerId) ?: return
             val toPosition = adapter.pinnedCount
 
-            adapter.values.add(toPosition, conversation)
-            adapter.submitList(adapter.values.toMutableList())
-//            adapter.notifyItemMoved(fromPosition, 0)
-//            binding.recyclerView.smoothScrollToPosition(0)
+            adapter.add(conversation, toPosition)
         }
     }
 
@@ -440,11 +340,9 @@ class ConversationsFragment :
         if (conversationIndex == null) { // диалога нет в списке
 
         } else {
-            adapter[conversationIndex].also {
-                it.lastMessage = message
-            }
-
-            adapter.notifyItemChanged(conversationIndex)
+            val conversation = adapter[conversationIndex]
+            conversation.lastMessage = message
+            adapter[conversationIndex] = conversation
         }
     }
 }

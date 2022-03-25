@@ -8,4 +8,10 @@ data class VkStory(
     val ownerId: Int,
     val date: Int,
     val photo: VkPhoto?
-) : VkAttachment()
+) : VkAttachment() {
+
+    fun isFromUser() = ownerId > 0
+
+    fun isFromGroup() = ownerId < 0
+
+}

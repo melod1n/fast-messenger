@@ -102,13 +102,14 @@
     <string name="message_attachments_call_in_progress">Current call</string>
     <string name="message_attachments_event">Event</string>
     <string name="message_attachments_curator">Curator</string>
+    <string name="message_attachments_story">Story</string>
+    <string name="message_attachments_widget">Widget</string>
 
     <string name="file_size_in_bytes">%d bytes</string>
 
     <string name="post_type_community">Community post</string>
     <string name="post_type_user">User post</string>
     <string name="post_type_unknown">Post</string>
-    <string name="message_attachments_story">Story</string>
     <string name="log_out">Log out</string>
     <string name="confirm">Confirmation</string>
     <string name="sign_out_confirm">Signing out will delete all data related to this account from this device. Continue?</string>
@@ -148,4 +149,9 @@
     <string name="message_call_unknown">Unknown</string>
     <string name="confirm_pin_message">Pin the message?</string>
     <string name="confirm_unpin_message">Unpin the message?</string>
+
+    <string name="title_messages">Messages</string>
+
+    <string name="message_attachment_story_your_story">Your story</string>
+    <string name="message_attachment_story_story_from">Story from\n%s</string>
 </resources>

@@ -1,76 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="end|bottom"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="2.5dp">
+
+    <com.meloda.fast.widget.CircleImageView
+        android:id="@+id/unread"
+        android:layout_width="13dp"
+        android:layout_height="13dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="20dp"
+        android:src="?colorPrimaryVariant" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="end|bottom"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="2.5dp">
+        android:animateLayoutChanges="true"
+        android:orientation="vertical">
 
-        <com.meloda.fast.widget.CircleImageView
-            android:id="@+id/unread"
-            android:layout_width="13dp"
-            android:layout_height="13dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="20dp"
-            android:src="@color/a3_200" />
+        <Space
+            android:id="@+id/spacer"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:visibility="gone" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.meloda.fast.widget.BoundedLinearLayout
+            android:id="@+id/bubble"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
+            android:layout_gravity="end"
+            android:background="@drawable/ic_message_out_background"
             android:orientation="vertical">
 
-            <Space
-                android:id="@+id/spacer"
-                android:layout_width="match_parent"
-                android:layout_height="10dp"
-                android:visibility="gone" />
-
-            <com.meloda.fast.widget.BoundedLinearLayout
-                android:id="@+id/bubble"
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/textContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:background="@drawable/ic_message_out_background"
                 android:orientation="vertical">
 
-                <androidx.appcompat.widget.LinearLayoutCompat
-                    android:id="@+id/textContainer"
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_gravity="center_vertical|start"
+                    android:padding="15dp"
+                    android:textColor="?colorOnBackground"
+                    tools:text="This is test" />
 
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical|start"
-                        android:padding="15dp"
-                        android:textColor="@color/n1_900"
-                        tools:text="This is test" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </com.meloda.fast.widget.BoundedLinearLayout>
 
-                </androidx.appcompat.widget.LinearLayoutCompat>
-            </com.meloda.fast.widget.BoundedLinearLayout>
+        <Space
+            android:id="@+id/attachmentSpacer"
+            android:layout_width="wrap_content"
+            android:layout_height="5dp"
+            android:layout_below="@+id/text"
+            android:visibility="gone" />
 
-            <Space
-                android:id="@+id/attachmentSpacer"
-                android:layout_width="wrap_content"
-                android:layout_height="5dp"
-                android:layout_below="@+id/text"
-                android:visibility="gone" />
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/attachmentContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:orientation="vertical"
+            android:visibility="gone" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/attachmentContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:orientation="vertical"
-                android:visibility="gone" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
-</layout>
+</androidx.appcompat.widget.LinearLayoutCompat>

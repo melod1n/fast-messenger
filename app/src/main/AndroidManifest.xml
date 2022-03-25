@@ -17,9 +17,8 @@
         android:testOnly="false"
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup">
-
         <activity
-            android:name=".activity.RootActivity"
+            android:name=".activity.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
