@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import coil.load
 import com.meloda.fast.R
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -217,11 +218,23 @@ class MessagesPreparator constructor(
     private fun prepareText() {
         if (bubble != null && text != null) {
             if (message.text == null) {
-                text.isVisible = false
-                bubble.isVisible = !message.attachments.isNullOrEmpty()
+                text.gone()
+
+                val hasAttachments = !message.attachments.isNullOrEmpty()
+                var shouldBeVisible = hasAttachments
+                if (hasAttachments) {
+                    for (attachment in message.attachments ?: emptyList()) {
+                        if (VKConstants.separatedFromTextAttachments.contains(attachment.javaClass)) {
+                            shouldBeVisible = false
+                            break
+                        }
+                    }
+                }
+
+                bubble.toggleVisibility(shouldBeVisible)
             } else {
-                text.isVisible = true
-                bubble.isVisible = true
+                text.visible()
+                bubble.visible()
                 text.text = VkUtils.prepareMessageText(message.text ?: "")
             }
         }

@@ -1,6 +1,8 @@
 package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
+import com.meloda.fast.api.LongPollEvent
+import com.meloda.fast.api.LongPollUpdatesParser
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -16,8 +18,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MessagesHistoryViewModel @Inject constructor(
-    private val messages: MessagesDataSource
+    private val messages: MessagesDataSource,
+    updatesParser: LongPollUpdatesParser
 ) : BaseViewModel() {
+
+    init {
+        updatesParser.onNewMessage {
+//            viewModelScope.launch { handleNewMessage(it) }
+        }
+
+        updatesParser.onMessageEdited {
+            viewModelScope.launch { handleEditedMessage(it) }
+        }
+    }
+
+    private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+        sendEvent(com.meloda.fast.screens.messages.MessagesEditEvent(event.message))
+    }
 
     fun loadHistory(peerId: Int) = viewModelScope.launch {
         makeJob({
@@ -64,7 +81,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 }
 
                 sendEvent(
-                    MessagesLoaded(
+                    MessagesLoadedEvent(
                         count = response.count,
                         profiles = profiles,
                         groups = groups,
@@ -114,7 +131,7 @@ class MessagesHistoryViewModel @Inject constructor(
             onAnswer = {
                 val response = it.response ?: return@makeJob
                 sendEvent(
-                    MessagesMarkAsImportant(
+                    MessagesMarkAsImportantEvent(
                         messagesIds = response,
                         important = important
                     )
@@ -140,14 +157,14 @@ class MessagesHistoryViewModel @Inject constructor(
             },
                 onAnswer = {
                     val response = it.response ?: return@makeJob
-                    sendEvent(MessagesPin(response.asVkMessage()))
+                    sendEvent(MessagesPinEvent(response.asVkMessage()))
                 }
             )
         } else {
             makeJob({ messages.unpin(MessagesUnPinMessageRequest(peerId = peerId)) },
                 onAnswer = {
                     println("Fast::MessagesHistoryViewModel::unPin::Response::${it.response}")
-                    sendEvent(MessagesUnpin)
+                    sendEvent(MessagesUnpinEvent)
                 }
             )
         }
@@ -170,7 +187,7 @@ class MessagesHistoryViewModel @Inject constructor(
                     deleteForAll = deleteForAll
                 )
             )
-        }, onAnswer = { sendEvent(MessagesDelete(messagesIds = messagesIds ?: emptyList())) })
+        }, onAnswer = { sendEvent(MessagesDeleteEvent(messagesIds = messagesIds ?: emptyList())) })
     }
 
     fun editMessage(
@@ -193,13 +210,13 @@ class MessagesHistoryViewModel @Inject constructor(
             },
             onAnswer = {
                 originalMessage.text = message
-                sendEvent(MessagesEdit(originalMessage))
+                sendEvent(com.meloda.fast.screens.messages.MessagesEditEvent(originalMessage))
             }
         )
     }
 }
 
-data class MessagesLoaded(
+data class MessagesLoadedEvent(
     val count: Int,
     val conversations: HashMap<Int, VkConversation>,
     val messages: List<VkMessage>,
@@ -207,21 +224,12 @@ data class MessagesLoaded(
     val groups: HashMap<Int, VkGroup>
 ) : VkEvent()
 
-data class MessagesMarkAsImportant(
-    val messagesIds: List<Int>,
-    val important: Boolean
-) : VkEvent()
+data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) : VkEvent()
 
-data class MessagesPin(
-    val message: VkMessage
-) : VkEvent()
+data class MessagesPinEvent(val message: VkMessage) : VkEvent()
 
-object MessagesUnpin : VkEvent()
+object MessagesUnpinEvent : VkEvent()
 
-data class MessagesDelete(
-    val messagesIds: List<Int>
-) : VkEvent()
+data class MessagesDeleteEvent(val messagesIds: List<Int>) : VkEvent()
 
-data class MessagesEdit(
-    val message: VkMessage
-) : VkEvent()
+data class MessagesEditEvent(val message: VkMessage) : VkEvent()

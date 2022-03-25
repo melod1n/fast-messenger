@@ -14,4 +14,7 @@ sealed class LongPollEvent {
 
     data class VkMessageEditEvent(val message: VkMessage) : LongPollEvent()
 
+    data class VkMessageReadIncomingEvent(val peerId: Int, val messageId: Int) : LongPollEvent()
+    data class VkMessageReadOutgoingEvent(val peerId: Int, val messageId: Int) : LongPollEvent()
+
 }

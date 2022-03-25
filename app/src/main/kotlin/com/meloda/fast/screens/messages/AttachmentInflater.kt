@@ -1,24 +1,19 @@
 package com.meloda.fast.screens.messages
 
 import android.content.Context
-import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.Space
-import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.*
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.material.imageview.ShapeableImageView
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
@@ -31,7 +26,6 @@ import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.widget.RoundedFrameLayout
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -49,10 +43,18 @@ class AttachmentInflater constructor(
 
     private val inflater = LayoutInflater.from(context)
 
-    private val playColor = ContextCompat.getColor(context, R.color.a3_700)
-    private val playBackgroundColor = ContextCompat.getColor(context, R.color.a3_200)
+    private val colorBackground = ContextCompat.getColor(
+        context,
+        R.color.colorBackground
+    )
+    private val colorSecondary = ContextCompat.getColor(
+        context,
+        R.color.colorSecondary
+    )
 
-    var photoClickListener: ((url: String) -> Unit)? = null
+    private var photoClickListener: ((url: String) -> Unit)? = null
+
+    private val displayMetrics get() = Resources.getSystem().displayMetrics
 
     fun setPhotoClickListener(unit: ((url: String) -> Unit)?): AttachmentInflater {
         this.photoClickListener = unit
@@ -119,77 +121,13 @@ class AttachmentInflater constructor(
     private fun photo(photo: VkPhoto) {
         val size = photo.getSizeOrSmaller(VkPhoto.SIZE_TYPE_807) ?: return
 
-        val colorBackground = ContextCompat.getColor(
-            context,
-            R.color.colorBackground
-        )
-        val colorSecondary = ContextCompat.getColor(
-            context,
-            R.color.colorSecondary
-        )
-
-        val constraintLayout = ConstraintLayout(context).apply {
-            layoutParams = LinearLayoutCompat.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+        val specRatio = size.width.toFloat() / size.height.toFloat()
+        val widthMultiplier: Float = when {
+            specRatio > 1 -> 0.7F
+            specRatio < 1 -> 0.45F
+            else -> 0.35F
         }
-
-        val cornersRadius = 8.dpToPx().toFloat()
-        val photoMargin = 1F.dpToPx()
-
-        val border = ImageView(context).apply {
-            layoutParams = ConstraintLayout.LayoutParams(
-                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT,
-                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
-            ).apply {
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-            }
-
-            loadWithGlide(
-                drawable = ColorDrawable(colorSecondary),
-                transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius.toInt())),
-                priority = Priority.IMMEDIATE,
-                cacheStrategy = DiskCacheStrategy.NONE
-            )
-        }
-        constraintLayout.addView(border)
-
-        val newPhoto = ShapeableImageView(context).apply {
-            layoutParams = ConstraintLayout.LayoutParams(
-                120.dpToPx(),
-                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
-            ).apply {
-                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-
-                dimensionRatio = "1:1.75"
-                updateMarginsRelative(
-                    start = photoMargin,
-                    top = photoMargin,
-                    end = photoMargin,
-                    bottom = photoMargin
-                )
-            }
-
-            adjustViewBounds = true
-
-            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(7.5F.dpToPx().toFloat())
-
-            scaleType = ImageView.ScaleType.CENTER_CROP
-        }
-        constraintLayout.addView(newPhoto)
-
-        if (photoClickListener != null) {
-            newPhoto.setOnClickListener { photoClickListener?.invoke(size.url) }
-        } else {
-            newPhoto.setOnClickListener(null)
-        }
+        val ratio = "${size.width}:${size.height}"
 
         val spacer = Space(context).apply {
             layoutParams =
@@ -200,73 +138,88 @@ class AttachmentInflater constructor(
             container.addView(spacer)
         }
 
-        if (attachments.size == 1) {
-            val roundedLayout = RoundedFrameLayout(context).apply {
-                setTopRightCornerRadius((if (message.isOut) 30 else 40).toFloat())
-                setTopLeftCornerRadius((if (message.isOut) 40 else 30).toFloat())
-                setBottomRightCornerRadius((if (message.isOut) 5 else 40).toFloat())
-                setBottomLeftCornerRadius((if (message.isOut) 40 else 5).toFloat())
+        val binding = ItemMessageAttachmentPhotoBinding.inflate(inflater, container, true)
+
+        val cornersRadius = 8.dpToPx().toFloat()
+
+        binding.border.run {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius)
+
+            updateLayoutParams<ConstraintLayout.LayoutParams> {
+                width = (displayMetrics.widthPixels * widthMultiplier).roundToInt()
+                dimensionRatio = ratio
             }
-
-            roundedLayout.addView(constraintLayout)
-            container.addView(roundedLayout)
-        } else {
-            container.addView(constraintLayout)
-        }
-
-        newPhoto.loadWithGlide(
-            url = size.url, crossFade = true,
-            placeholderDrawable = ColorDrawable(colorBackground)
-        )
-    }
-
-    private fun video(video: VkVideo) {
-        val size = video.images[1]
-
-        val layout = FrameLayout(context).apply {
-            layoutParams = LinearLayoutCompat.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
+            loadWithGlide(
+                drawable = ColorDrawable(colorSecondary),
+                priority = Priority.IMMEDIATE,
+                cacheStrategy = DiskCacheStrategy.NONE
             )
         }
 
-        val newPhoto = ShapeableImageView(context).apply {
-            layoutParams = FrameLayout.LayoutParams(size.width.dpToPx(), size.height.dpToPx())
+        binding.image.run {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
 
-            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(5.dpToPx().toFloat())
-            scaleType = ImageView.ScaleType.CENTER_CROP
-        }
-
-        val play = AppCompatImageView(context).apply {
-            val playSize = 50.dpToPx()
-
-            layoutParams = FrameLayout.LayoutParams(playSize, playSize).apply {
-                gravity = Gravity.CENTER
+            if (photoClickListener != null) {
+                setOnClickListener { photoClickListener?.invoke(size.url) }
+            } else {
+                setOnClickListener(null)
             }
 
-            backgroundTintList = ColorStateList.valueOf(playBackgroundColor)
-            imageTintList = ColorStateList.valueOf(playColor)
-
-            setBackgroundResource(R.drawable.ic_play_button_circle_background)
-            setImageResource(R.drawable.ic_round_play_arrow_24)
-
-            setPadding(12)
+            loadWithGlide(
+                url = size.url,
+                crossFade = true,
+                placeholderDrawable = ColorDrawable(colorBackground),
+                priority = Priority.LOW
+            )
         }
+    }
 
-        layout.addView(newPhoto)
-        layout.addView(play)
-
+    private fun video(video: VkVideo) {
         val spacer = Space(context).apply {
             layoutParams =
                 LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 5.dpToPx())
         }
-
-        if (container.isNotEmpty())
+        if (container.isNotEmpty()) {
             container.addView(spacer)
+        }
 
-        container.addView(layout)
+        val size = video.imageForWidthAtLeast(300) ?: return
+        val binding = ItemMessageAttachmentVideoBinding.inflate(inflater, container, true)
 
-        newPhoto.loadWithGlide(url = size.url, crossFade = true)
+        val specRatio = size.width.toFloat() / size.height.toFloat()
+        val widthMultiplier: Float = when {
+            specRatio > 1 -> 0.7F
+            specRatio < 1 -> 0.45F
+            else -> 0.35F
+        }
+        val ratio = "${size.width}:${size.height}"
+
+        val cornersRadius = 8.dpToPx().toFloat()
+
+        binding.border.run {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius)
+
+            updateLayoutParams<ConstraintLayout.LayoutParams> {
+                width = (displayMetrics.widthPixels * widthMultiplier).roundToInt()
+                dimensionRatio = ratio
+            }
+            loadWithGlide(
+                drawable = ColorDrawable(colorSecondary),
+                priority = Priority.IMMEDIATE,
+                cacheStrategy = DiskCacheStrategy.NONE
+            )
+        }
+
+        binding.image.run {
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
+
+            loadWithGlide(
+                url = size.url,
+                crossFade = true,
+                placeholderDrawable = ColorDrawable(colorBackground),
+                priority = Priority.LOW
+            )
+        }
     }
 
     private fun audio(audio: VkAudio) {

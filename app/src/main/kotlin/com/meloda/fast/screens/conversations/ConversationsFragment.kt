@@ -148,8 +148,8 @@ class ConversationsFragment :
                 viewModel.loadConversations()
             }
 
-            is MessageNewEvent -> onMessageNew(event)
-            is MessageEditEvent -> onMessageEdit(event)
+            is MessagesNewEvent -> onMessageNew(event)
+            is MessagesEditEvent -> onMessageEdit(event)
         }
     }
 
@@ -304,7 +304,7 @@ class ConversationsFragment :
             .show()
     }
 
-    private fun onMessageNew(event: MessageNewEvent) {
+    private fun onMessageNew(event: MessagesNewEvent) {
         adapter.profiles += event.profiles
         adapter.groups += event.groups
 
@@ -333,7 +333,7 @@ class ConversationsFragment :
         }
     }
 
-    private fun onMessageEdit(event: MessageEditEvent) {
+    private fun onMessageEdit(event: MessagesEditEvent) {
         val message = event.message
 
         val conversationIndex = adapter.searchConversationIndex(message.peerId)

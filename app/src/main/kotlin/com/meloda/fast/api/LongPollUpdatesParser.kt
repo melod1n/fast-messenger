@@ -13,6 +13,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+@Suppress("UNCHECKED_CAST")
 class LongPollUpdatesParser(
     private val messagesDataSource: MessagesDataSource
 ) : CoroutineScope {
@@ -91,7 +92,6 @@ class LongPollUpdatesParser(
 
             listenersMap[ApiEvent.MESSAGE_NEW]?.let {
                 it.map { vkEventCallback ->
-                    @Suppress("UNCHECKED_CAST")
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageNewEvent>)
                         .onEvent(newMessageEvent)
                 }
@@ -113,7 +113,6 @@ class LongPollUpdatesParser(
 
             listenersMap[ApiEvent.MESSAGE_EDIT]?.let {
                 it.map { vkEventCallback ->
-                    @Suppress("UNCHECKED_CAST")
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageEditEvent>)
                         .onEvent(editedMessageEvent)
                 }
@@ -122,11 +121,41 @@ class LongPollUpdatesParser(
     }
 
     private fun parseMessageReadIncoming(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        val peerId = event[1].asInt
+        val messageId = event[2].asInt
+
+        launch {
+            listenersMap[ApiEvent.MESSAGE_READ_INCOMING]?.let { listeners ->
+                listeners.map { vkEventCallback ->
+                    (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>)
+                        .onEvent(
+                            LongPollEvent.VkMessageReadIncomingEvent(
+                                peerId = peerId,
+                                messageId = messageId
+                            )
+                        )
+                }
+            }
+        }
     }
 
     private fun parseMessageReadOutgoing(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        val peerId = event[1].asInt
+        val messageId = event[2].asInt
+
+        launch {
+            listenersMap[ApiEvent.MESSAGE_READ_OUTGOING]?.let { listeners ->
+                listeners.map { vkEventCallback ->
+                    (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>)
+                        .onEvent(
+                            LongPollEvent.VkMessageReadOutgoingEvent(
+                                peerId = peerId,
+                                messageId = messageId
+                            )
+                        )
+                }
+            }
+        }
     }
 
     private fun parseFriendOnline(eventType: ApiEvent, event: JsonArray) {
@@ -186,7 +215,6 @@ class LongPollUpdatesParser(
                         else -> null
                     }
 
-                    @Suppress("UNCHECKED_CAST")
                     resumeValue?.let { value -> it.resume(value as T) }
                 }
             }
@@ -199,6 +227,22 @@ class LongPollUpdatesParser(
                 it.add(listener)
             }
         }
+    }
+
+    fun onMessageIncomingRead(listener: VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>) {
+        registerListener(ApiEvent.MESSAGE_READ_INCOMING, listener)
+    }
+
+    fun onMessageIncomingRead(block: (LongPollEvent.VkMessageReadIncomingEvent) -> Unit) {
+        onMessageIncomingRead(assembleEventCallback(block))
+    }
+
+    fun onMessageOutgoingRead(listener: VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>) {
+        registerListener(ApiEvent.MESSAGE_READ_OUTGOING, listener)
+    }
+
+    fun onMessageOutgoingRead(block: (LongPollEvent.VkMessageReadOutgoingEvent) -> Unit) {
+        onMessageOutgoingRead(assembleEventCallback(block))
     }
 
     fun onNewMessage(listener: VkEventCallback<LongPollEvent.VkMessageNewEvent>) {

@@ -41,18 +41,26 @@ data class BaseVkVideo(
     fun asVkVideo() = VkVideo(
         id = id,
         ownerId = owner_id,
-        images = image,
+        images = image.map { it.asVideoImage() },
         firstFrames = first_frame,
         accessKey = access_key
     )
 
     @Parcelize
     data class Image(
-        val height: Int,
         val width: Int,
+        val height: Int,
         val url: String,
-        val with_padding: Int
-    ) : Parcelable
+        val with_padding: Int?
+    ) : Parcelable {
+
+        fun asVideoImage() = VkVideo.VideoImage(
+            width = width,
+            height = height,
+            url = url,
+            withPadding = with_padding == 1
+        )
+    }
 
     @Parcelize
     data class FirstFrame(

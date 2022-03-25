@@ -127,7 +127,7 @@ class ConversationsViewModel @Inject constructor(
 
     private suspend fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
         sendEvent(
-            MessageNewEvent(
+            MessagesNewEvent(
                 message = event.message,
                 profiles = event.profiles,
                 groups = event.groups
@@ -136,7 +136,7 @@ class ConversationsViewModel @Inject constructor(
     }
 
     private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
-        sendEvent(MessageEditEvent(event.message))
+        sendEvent(MessagesEditEvent(event.message))
     }
 
     fun openRootScreen() {
@@ -164,10 +164,10 @@ data class ConversationsPinEvent(val peerId: Int) : VkEvent()
 
 data class ConversationsUnpinEvent(val peerId: Int) : VkEvent()
 
-data class MessageNewEvent(
+data class MessagesNewEvent(
     val message: VkMessage,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>
 ) : VkEvent()
 
-data class MessageEditEvent(val message: VkMessage) : VkEvent()
+data class MessagesEditEvent(val message: VkMessage) : VkEvent()

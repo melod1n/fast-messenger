@@ -48,6 +48,7 @@ import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.math.roundToInt
 
+
 @AndroidEntryPoint
 class MessagesHistoryFragment :
     BaseViewModelFragment<MessagesHistoryViewModel>(R.layout.fragment_messages_history) {
@@ -264,7 +265,7 @@ class MessagesHistoryFragment :
             val index = adapter.indexOf(message)
             if (index == -1) return@c
 
-            binding.recyclerView.smoothScrollToPosition(index)
+            binding.recyclerView.scrollToPosition(index)
         }
 
         binding.dismissReply.setOnClickListener {
@@ -345,7 +346,7 @@ class MessagesHistoryFragment :
                 val messageIndex = adapter.lastPosition
 
                 val message = VkMessage(
-                    id = -1,
+                    id = Int.MAX_VALUE,
                     text = messageText,
                     isOut = true,
                     peerId = conversation.id,
@@ -356,7 +357,7 @@ class MessagesHistoryFragment :
                 )
 
                 adapter.add(message, beforeFooter = true, commitCallback = {
-                    binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
+                    binding.recyclerView.scrollToPosition(adapter.lastPosition)
                     binding.message.clear()
                 })
 
@@ -403,12 +404,12 @@ class MessagesHistoryFragment :
             is StartProgressEvent -> onProgressStarted()
             is StopProgressEvent -> onProgressStopped()
 
-            is MessagesMarkAsImportant -> markMessagesAsImportant(event)
-            is MessagesLoaded -> refreshMessages(event)
-            is MessagesPin -> conversation.pinnedMessage = event.message
-            is MessagesUnpin -> conversation.pinnedMessage = null
-            is MessagesDelete -> deleteMessages(event)
-            is MessagesEdit -> editMessage(event)
+            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
+            is MessagesLoadedEvent -> refreshMessages(event)
+            is MessagesPinEvent -> conversation.pinnedMessage = event.message
+            is MessagesUnpinEvent -> conversation.pinnedMessage = null
+            is MessagesDeleteEvent -> deleteMessages(event)
+            is MessagesEditEvent -> editMessage(event)
         }
     }
 
@@ -452,7 +453,7 @@ class MessagesHistoryFragment :
         }
     }
 
-    private fun markMessagesAsImportant(event: MessagesMarkAsImportant) {
+    private fun markMessagesAsImportant(event: MessagesMarkAsImportantEvent) {
         var changed = false
         val positions = mutableListOf<Int>()
 
@@ -469,7 +470,7 @@ class MessagesHistoryFragment :
         }
     }
 
-    private fun refreshMessages(event: MessagesLoaded) {
+    private fun refreshMessages(event: MessagesLoadedEvent) {
         adapter.profiles += event.profiles
         adapter.groups += event.groups
 
@@ -633,12 +634,12 @@ class MessagesHistoryFragment :
             .show()
     }
 
-    private fun deleteMessages(event: MessagesDelete) {
+    private fun deleteMessages(event: MessagesDeleteEvent) {
         val messagesToDelete = event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
         adapter.removeAll(messagesToDelete)
     }
 
-    private fun editMessage(event: MessagesEdit) {
+    private fun editMessage(event: MessagesEditEvent) {
         adapter.searchMessageIndex(event.message.id)?.let { index ->
             adapter[index] = event.message
         }

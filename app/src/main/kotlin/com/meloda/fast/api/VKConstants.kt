@@ -2,6 +2,7 @@ package com.meloda.fast.api
 
 import com.meloda.fast.api.model.attachments.*
 
+@Suppress("RemoveExplicitTypeArguments")
 object VKConstants {
 
     const val GROUP_FIELDS = "description,members_count,counters,status,verified"
@@ -41,7 +42,7 @@ object VKConstants {
         }
     }
 
-    val restrictedToEditAttachments = listOf(
+    val restrictedToEditAttachments = listOf<Class<out VkAttachment>>(
         VkCall::class.java,
         VkCurator::class.java,
         VkEvent::class.java,
@@ -51,5 +52,23 @@ object VKConstants {
         VkStory::class.java,
         VkVoiceMessage::class.java,
         VkWidget::class.java
+    )
+
+    val separatedFromTextAttachments = listOf<Class<out VkAttachment>>(
+        VkPhoto::class.java,
+        VkVideo::class.java,
+        VkSticker::class.java,
+        VkStory::class.java,
+        VkWidget::class.java,
+        VkGroupCall::class.java,
+        VkGroupCall::class.java,
+        VkCurator::class.java,
+        VkEvent::class.java,
+        VkGift::class.java,
+        VkGraffiti::class.java,
+        VkPoll::class.java,
+        VkWall::class.java,
+        VkWallReply::class.java,
+        VkLink::class.java
     )
 }
