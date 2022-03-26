@@ -5,6 +5,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.model.SelectableItem
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -25,7 +26,7 @@ data class VkConversation(
     var outRead: Int,
     var isMarkedUnread: Boolean,
     var lastMessageId: Int,
-    var unreadCount: Int?,
+    var unreadCount: Int,
     var membersCount: Int?,
     var isPinned: Boolean,
     var canChangePin: Boolean,
@@ -49,9 +50,11 @@ data class VkConversation(
     fun isUser() = type == "user"
     fun isGroup() = type == "group"
 
-    fun isInUnread() = inRead < lastMessageId
-    fun isOutUnread() = outRead < lastMessageId
+    fun isInUnread() = inRead - lastMessageId < 0
+    fun isOutUnread() = outRead - lastMessageId < 0
 
     fun isUnread() = isInUnread() || isOutUnread()
+
+    fun isAccount() = id == UserConfig.userId
 
 }

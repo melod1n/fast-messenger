@@ -146,7 +146,8 @@ class MessagesUpdateService : Service(), CoroutineScope {
                 key = server.key,
                 ts = server.ts,
                 wait = 25,
-                mode = 2 or 8 or 32 or 64 or 128
+                mode = 2 or 8 or 32 or 64 or 128,
+                version = VKConstants.LP_VERSION
             )
         )
 

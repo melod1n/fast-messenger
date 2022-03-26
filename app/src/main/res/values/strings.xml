@@ -154,4 +154,5 @@
 
     <string name="message_attachment_story_your_story">Your story</string>
     <string name="message_attachment_story_story_from">Story from\n%s</string>
+    <string name="favorites">Favorites</string>
 </resources>

@@ -9,7 +9,8 @@ data class LongPollGetUpdatesRequest(
     val key: String,
     val ts: Int,
     val wait: Int,
-    val mode: Int
+    val mode: Int,
+    val version: Int
 ) : Parcelable {
 
     val map
@@ -18,7 +19,8 @@ data class LongPollGetUpdatesRequest(
             "key" to key,
             "ts" to ts.toString(),
             "wait" to wait.toString(),
-            "mode" to mode.toString()
+            "mode" to mode.toString(),
+            "version" to version.toString()
         )
 
 }

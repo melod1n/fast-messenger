@@ -150,6 +150,7 @@ class ConversationsFragment :
 
             is MessagesNewEvent -> onMessageNew(event)
             is MessagesEditEvent -> onMessageEdit(event)
+            is MessagesReadEvent -> onMessageRead(event)
         }
     }
 
@@ -320,6 +321,9 @@ class ConversationsFragment :
                 lastMessageId = message.id,
                 lastConversationMessageId = -1
             )
+            if (!message.isOut) {
+                newConversation.unreadCount += 1
+            }
 
             if (conversation.isPinned) {
                 adapter[conversationIndex] = newConversation
@@ -350,5 +354,19 @@ class ConversationsFragment :
                 lastConversationMessageId = -1
             )
         }
+    }
+
+    private fun onMessageRead(event: MessagesReadEvent) {
+        val conversationIndex = adapter.searchConversationIndex(event.peerId) ?: return
+
+        val newConversation = adapter[conversationIndex].copy()
+
+        if (event.isOut) {
+            newConversation.outRead = event.messageId
+        } else {
+            newConversation.inRead = event.messageId
+        }
+
+        adapter[conversationIndex] = newConversation
     }
 }

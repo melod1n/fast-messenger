@@ -21,6 +21,9 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- TODO: констрейнт + низ рефреша зависит от панели аттачей. -->
+    <!-- Если её нет, то goneMargin. Такое же поведение у фабы -->
+
     <FrameLayout
         android:id="@+id/toolbarContainer"
         android:layout_width="match_parent"
@@ -318,6 +321,14 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/unread_counter"
         android:layout_width="wrap_content"
@@ -329,13 +340,5 @@
         android:visibility="gone"
         app:fabSize="mini"
         tools:ignore="ContentDescription"
-        tools:visibility="visible" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"
         tools:visibility="visible" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

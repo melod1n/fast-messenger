@@ -374,9 +374,11 @@ class MessagesHistoryFragment :
                     peerId = conversation.id,
                     fromId = UserConfig.userId,
                     date = (date / 1000).toInt(),
-                    randomId = Random.nextInt(),
+                    randomId = Random.nextInt(-25000, 25000),
                     replyMessage = attachmentController.message.value
                 )
+
+                Log.d("LongPollUpdatesParser", "newMessageRandomId: ${message.randomId}")
 
                 adapter.add(message, beforeFooter = true, commitCallback = {
                     binding.recyclerView.scrollToPosition(adapter.lastPosition)
@@ -389,7 +391,7 @@ class MessagesHistoryFragment :
                 viewModel.sendMessage(
                     peerId = conversation.id,
                     message = messageText,
-                    randomId = 0,
+                    randomId = message.randomId,
                     replyTo = replyMessage?.id,
                     setId = { messageId ->
                         val messageToUpdate = adapter[messageIndex] as VkMessage
@@ -708,18 +710,18 @@ class MessagesHistoryFragment :
     @Suppress("NAME_SHADOWING")
     private fun setUnreadCounterVisibility(lastCompletelyVisiblePosition: Int, dy: Int? = null) {
         if (lastCompletelyVisiblePosition >= adapter.lastPosition - 1) {
-            binding.unreadCounter.gone()
+            setUnreadCounterVisibility(false)
         } else {
             if (adapter.containsUnreadMessages()) {
-                binding.unreadCounter.visible()
+                setUnreadCounterVisibility(true)
             } else {
                 if (dy == null) {
-                    binding.unreadCounter.gone()
+                    setUnreadCounterVisibility(false)
                 } else {
                     if (dy > 0) {
-                        if (dy > 60) binding.unreadCounter.visible()
+                        if (dy > 60) setUnreadCounterVisibility(true)
                     } else {
-                        if (dy < -60) binding.unreadCounter.gone()
+                        if (dy < -60) setUnreadCounterVisibility(false)
                     }
                 }
             }
@@ -743,10 +745,14 @@ class MessagesHistoryFragment :
             if (abs(lastVisiblePosition - adapter.lastPosition) <= 3) {
                 binding.recyclerView.scrollToPosition(adapter.lastPosition)
             } else {
-                binding.unreadCounter.visible()
+                setUnreadCounterVisibility(true)
                 // add counter of unread
             }
         }
+    }
+
+    private fun setUnreadCounterVisibility(isVisible: Boolean) {
+        binding.unreadCounter.toggleVisibility(isVisible)
     }
 
     private inner class AttachmentPanelController {

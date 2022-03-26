@@ -30,10 +30,6 @@ class ConversationsViewModel @Inject constructor(
     private val router: Router
 ) : BaseViewModel() {
 
-    companion object {
-        private const val TAG = "ConversationsViewModel"
-    }
-
     init {
         updatesParser.onNewMessage {
             viewModelScope.launch { handleNewMessage(it) }
@@ -41,6 +37,14 @@ class ConversationsViewModel @Inject constructor(
 
         updatesParser.onMessageEdited {
             viewModelScope.launch { handleEditedMessage(it) }
+        }
+
+        updatesParser.onMessageIncomingRead {
+            viewModelScope.launch { handleReadIncomingMessage(it) }
+        }
+
+        updatesParser.onMessageOutgoingRead {
+            viewModelScope.launch { handleReadOutgoingMessage(it) }
         }
     }
 
@@ -139,6 +143,14 @@ class ConversationsViewModel @Inject constructor(
         sendEvent(MessagesEditEvent(event.message))
     }
 
+    private suspend fun handleReadIncomingMessage(event: LongPollEvent.VkMessageReadIncomingEvent) {
+        sendEvent(MessagesReadEvent(false, event.peerId, event.messageId))
+    }
+
+    private suspend fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+        sendEvent(MessagesReadEvent(true, event.peerId, event.messageId))
+    }
+
     fun openRootScreen() {
         router.exit()
         router.newRootScreen(Screens.Main())
@@ -171,3 +183,5 @@ data class MessagesNewEvent(
 ) : VkEvent()
 
 data class MessagesEditEvent(val message: VkMessage) : VkEvent()
+
+data class MessagesReadEvent(val isOut: Boolean, val peerId: Int, val messageId: Int) : VkEvent()

@@ -2,7 +2,6 @@ package com.meloda.fast.extensions
 
 import android.animation.ValueAnimator
 import android.content.res.Resources
-import android.os.Build
 import android.os.Parcelable
 import android.util.DisplayMetrics
 import android.util.SparseArray
@@ -11,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.Px
-import androidx.annotation.StyleRes
 import androidx.core.view.children
 
 fun Int.dpToPx(): Int {
@@ -49,6 +47,11 @@ fun View.toggleVisibility(visible: Boolean?, visibilityWhenFalse: Int = View.GON
 
 fun ValueAnimator.startWithIntValues(from: Int, to: Int) {
     setIntValues(from, to)
+    start()
+}
+
+fun ValueAnimator.startWithFloatValues(from: Float, to: Float) {
+    setFloatValues(from, to)
     start()
 }
 

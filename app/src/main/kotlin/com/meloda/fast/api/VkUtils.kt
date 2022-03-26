@@ -92,10 +92,26 @@ object VkUtils {
         conversationGroup: VkGroup?
     ): String? {
         return when {
+            conversation.isAccount() -> null
             conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
             conversation.isUser() -> conversationUser?.photo200
             conversation.isGroup() -> conversationGroup?.photo200
             conversation.isChat() -> conversation.photo200
+            else -> null
+        }
+    }
+
+    fun getConversationTitle(
+        context: Context,
+        conversation: VkConversation,
+        conversationUser: VkUser?,
+        conversationGroup: VkGroup?
+    ): String? {
+        return when {
+            conversation.isAccount() -> context.getString(R.string.favorites)
+            conversation.isChat() -> conversation.title
+            conversation.isUser() -> conversationUser?.fullName
+            conversation.isGroup() -> conversationGroup?.name
             else -> null
         }
     }

@@ -11,12 +11,12 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="16dp"
         android:backgroundTint="?colorBackgroundVariant"
         android:orientation="horizontal"
         android:paddingVertical="8dp"
         android:paddingStart="8dp"
-        android:paddingEnd="32dp"
+        android:paddingEnd="24dp"
         tools:background="@drawable/ic_message_unread">
 
         <FrameLayout
@@ -145,7 +145,7 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
+            android:layout_marginStart="16dp"
             android:orientation="vertical">
 
             <RelativeLayout
@@ -191,6 +191,7 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
+                <!-- TODO: добавлять время после сообщения -->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/date"
                     android:layout_width="wrap_content"
