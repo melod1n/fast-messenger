@@ -36,21 +36,7 @@ android {
         }
     }
 
-//    applicationVariants.all { variant ->
-//        variant.outputs.all {
-//            val outputImpl = this as BaseVariantOutputImpl
-//            val fileName = this.outputFileName
-//                .replace(
-//                    "-debug",
-//                    "-debug-v${defaultConfig.versionName}-vc${defaultConfig.versionCode}"
-//                )
-//            println("output file name: $fileName")
-//            outputImpl.outputFileName = fileName
-//        }
-//
-//        false
-//    }
-
+    // TODO: переделать это дерьмо
     applicationVariants.all(object : Action<ApplicationVariant> {
         override fun execute(variant: ApplicationVariant) {
             println("variant: ${variant}")
