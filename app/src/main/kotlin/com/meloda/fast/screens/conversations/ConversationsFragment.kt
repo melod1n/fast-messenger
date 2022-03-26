@@ -9,6 +9,8 @@ import androidx.core.os.bundleOf
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -197,6 +199,15 @@ class ConversationsFragment :
     private fun refreshConversations(event: ConversationsLoadedEvent) {
         adapter.profiles += event.profiles
         adapter.groups += event.groups
+
+        if (event.avatars != null) {
+            event.avatars.forEach { avatar ->
+                Glide.with(requireContext())
+                    .load(avatar)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .preload(200, 200)
+            }
+        }
 
         val pinnedConversations = event.conversations.filter { it.isPinned }
         adapter.pinnedCount = pinnedConversations.count()

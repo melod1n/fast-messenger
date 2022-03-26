@@ -1,5 +1,8 @@
+import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.api.BaseVariantOutput
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.text.SimpleDateFormat
 
 val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
 val password: String = gradleLocalProperties(rootDir).getProperty("vkPassword")
@@ -32,6 +35,41 @@ android {
             }
         }
     }
+
+//    applicationVariants.all { variant ->
+//        variant.outputs.all {
+//            val outputImpl = this as BaseVariantOutputImpl
+//            val fileName = this.outputFileName
+//                .replace(
+//                    "-debug",
+//                    "-debug-v${defaultConfig.versionName}-vc${defaultConfig.versionCode}"
+//                )
+//            println("output file name: $fileName")
+//            outputImpl.outputFileName = fileName
+//        }
+//
+//        false
+//    }
+
+    applicationVariants.all(object : Action<ApplicationVariant> {
+        override fun execute(variant: ApplicationVariant) {
+            println("variant: ${variant}")
+            variant.outputs.all(object : Action<BaseVariantOutput> {
+                override fun execute(output: BaseVariantOutput) {
+                    val time =
+                        SimpleDateFormat("ddMMyyyy_HHmmss").format(System.currentTimeMillis())
+
+                    val outputImpl = output as BaseVariantOutputImpl
+                    val fileName = output.outputFileName
+                        .replace(
+                            "-debug",
+                            "-debug_v${defaultConfig.versionName}_(${defaultConfig.versionCode})_$time"
+                        )
+                    outputImpl.outputFileName = fileName
+                }
+            })
+        }
+    })
 
     buildTypes {
         getByName("debug") {

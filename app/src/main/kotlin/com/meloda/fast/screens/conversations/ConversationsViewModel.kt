@@ -3,10 +3,7 @@ package com.meloda.fast.screens.conversations
 import android.os.Bundle
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
-import com.meloda.fast.api.LongPollEvent
-import com.meloda.fast.api.LongPollUpdatesParser
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.*
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -73,18 +70,29 @@ class ConversationsViewModel @Inject constructor(
                         baseGroup.asVkGroup().let { group -> groups[group.id] = group }
                     }
 
+                    val conversations = response.items.map { items ->
+                        items.conversation.asVkConversation(
+                            items.lastMessage?.asVkMessage()
+                        )
+                    }
+
+                    val avatars = conversations.mapNotNull { conversation ->
+                        VkUtils.getConversationAvatar(
+                            conversation,
+                            if (conversation.isUser()) profiles[conversation.id] else null,
+                            if (conversation.isGroup()) groups[conversation.id] else null
+                        )
+                    }
+
                     sendEvent(
                         ConversationsLoadedEvent(
                             count = response.count,
                             offset = offset,
                             unreadCount = response.unreadCount ?: 0,
-                            conversations = response.items.map { items ->
-                                items.conversation.asVkConversation(
-                                    items.lastMessage?.asVkMessage()
-                                )
-                            },
+                            conversations = conversations,
                             profiles = profiles,
-                            groups = groups
+                            groups = groups,
+                            avatars = avatars
                         )
                     )
                 }
@@ -167,7 +175,8 @@ data class ConversationsLoadedEvent(
     val unreadCount: Int?,
     val conversations: List<VkConversation>,
     val profiles: HashMap<Int, VkUser>,
-    val groups: HashMap<Int, VkGroup>
+    val groups: HashMap<Int, VkGroup>,
+    val avatars: List<String>? = null
 ) : VkEvent()
 
 data class ConversationsDeleteEvent(val peerId: Int) : VkEvent()
