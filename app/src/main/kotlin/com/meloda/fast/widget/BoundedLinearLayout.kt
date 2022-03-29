@@ -4,23 +4,24 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
+import androidx.core.content.withStyledAttributes
 import com.meloda.fast.R
 
+@SuppressLint("CustomViewStyleable")
 class BoundedLinearLayout : LinearLayout {
-    private var mBoundedWidth: Int
-    private var mBoundedHeight: Int
+    private var mBoundedWidth: Int = 0
+    private var mBoundedHeight: Int = 0
 
     constructor(context: Context) : super(context) {
         mBoundedWidth = 0
         mBoundedHeight = 0
     }
 
-    @SuppressLint("CustomViewStyleable")
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        val a = context.obtainStyledAttributes(attrs, R.styleable.BoundedView)
-        mBoundedWidth = a.getDimensionPixelSize(R.styleable.BoundedView_bounded_width, 0)
-        mBoundedHeight = a.getDimensionPixelSize(R.styleable.BoundedView_bounded_height, 0)
-        a.recycle()
+        context.withStyledAttributes(attrs, R.styleable.BoundedView) {
+            mBoundedWidth = getDimensionPixelSize(R.styleable.BoundedView_bounded_width, 0)
+            mBoundedHeight = getDimensionPixelSize(R.styleable.BoundedView_bounded_height, 0)
+        }
     }
 
     var maxWidth: Int
@@ -42,20 +43,20 @@ class BoundedLinearLayout : LinearLayout {
         }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // Adjust width as necessary
-        var widthMeasureSpec = widthMeasureSpec
-        var heightMeasureSpec = heightMeasureSpec
-        val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
+        var newWidthMeasureSpec = widthMeasureSpec
+        var newHeightMeasureSpec = heightMeasureSpec
+
+        val measuredWidth = MeasureSpec.getSize(newWidthMeasureSpec)
         if (mBoundedWidth in 1 until measuredWidth) {
-            val measureMode = MeasureSpec.getMode(widthMeasureSpec)
-            widthMeasureSpec = MeasureSpec.makeMeasureSpec(mBoundedWidth, measureMode)
+            val measureMode = MeasureSpec.getMode(newWidthMeasureSpec)
+            newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(mBoundedWidth, measureMode)
         }
-        // Adjust height as necessary
-        val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
+
+        val measuredHeight = MeasureSpec.getSize(newHeightMeasureSpec)
         if (mBoundedHeight in 1 until measuredHeight) {
-            val measureMode = MeasureSpec.getMode(heightMeasureSpec)
-            heightMeasureSpec = MeasureSpec.makeMeasureSpec(mBoundedHeight, measureMode)
+            val measureMode = MeasureSpec.getMode(newHeightMeasureSpec)
+            newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(mBoundedHeight, measureMode)
         }
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        super.onMeasure(newWidthMeasureSpec, newHeightMeasureSpec)
     }
 }
