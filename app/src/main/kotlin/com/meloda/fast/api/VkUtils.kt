@@ -261,12 +261,14 @@ object VkUtils {
                 val spanText =
                     context.getString(R.string.message_action_chat_created, prefix, text)
 
+                val startIndex = spanText.indexOf(text, startIndex = prefix.length)
+
                 SpannableString(spanText).also {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                     it.setSpan(
                         StyleSpan(Typeface.BOLD),
-                        spanText.indexOf(text, startIndex = prefix.length),
-                        text.length, 0
+                        startIndex,
+                        startIndex + text.length, 0
                     )
                 }
             }

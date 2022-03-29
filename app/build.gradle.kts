@@ -2,13 +2,16 @@ import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.api.BaseVariantOutput
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import java.text.SimpleDateFormat
 
 val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
 val password: String = gradleLocalProperties(rootDir).getProperty("vkPassword")
 
 val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
+
+val majorVersion = 1
+val minorVersion = 1
+val patchVersion = 1
 
 plugins {
     id("com.android.application")
@@ -27,7 +30,7 @@ android {
         minSdk = 23
         targetSdk = 30
         versionCode = 1
-        versionName = "1.0"
+        versionName = "alpha"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -42,8 +45,7 @@ android {
             println("variant: ${variant}")
             variant.outputs.all(object : Action<BaseVariantOutput> {
                 override fun execute(output: BaseVariantOutput) {
-                    val time =
-                        SimpleDateFormat("ddMMyyyy_HHmmss").format(System.currentTimeMillis())
+                    val time = System.currentTimeMillis() / 1000
 
                     val outputImpl = output as BaseVariantOutputImpl
                     val fileName = output.outputFileName
@@ -64,6 +66,8 @@ android {
 
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
+
+            versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
             isMinifyEnabled = false
@@ -90,6 +94,10 @@ android {
         viewBinding = true
     }
 }
+
+fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
+
+val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 kapt {
     correctErrorTypes = true

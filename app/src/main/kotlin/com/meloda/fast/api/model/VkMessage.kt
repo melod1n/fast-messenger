@@ -38,10 +38,6 @@ data class VkMessage(
 
     @Ignore
     @IgnoredOnParcel
-    var lastUpdateTime: Long = -1
-
-    @Ignore
-    @IgnoredOnParcel
     val user = MutableLiveData<VkUser?>()
 
     @Ignore
@@ -54,9 +50,16 @@ data class VkMessage(
 
     fun isGroup() = fromId < 0
 
+    /*
+        добавить проверку, если предыдущие сообщения непрочитаны и с клиента отправляется сообщение
+        последнее прочитанное сообщение становится предыдущим относительно отправленного
+    */
     fun isRead(conversation: VkConversation) =
-        if (isOut) conversation.outRead - id >= 0
-        else conversation.inRead - id >= 0
+        if (isOut) {
+            conversation.outRead - id >= 0
+        } else {
+            conversation.inRead - id >= 0
+        }
 
     fun getPreparedAction(): Action? {
         if (action == null) return null
