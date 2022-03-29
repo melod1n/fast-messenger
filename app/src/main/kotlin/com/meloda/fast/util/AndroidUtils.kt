@@ -3,6 +3,7 @@ package com.meloda.fast.util
 import android.content.ClipData
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.net.NetworkCapabilities
 import android.util.TypedValue
 import androidx.annotation.AttrRes
@@ -33,11 +34,11 @@ object AndroidUtils {
     }
 
     fun getDisplayWidth(): Int {
-        return AppGlobal.resources.displayMetrics.widthPixels
+        return Resources.getSystem().displayMetrics.widthPixels
     }
 
     fun getDisplayHeight(): Int {
-        return AppGlobal.resources.displayMetrics.heightPixels
+        return Resources.getSystem().displayMetrics.heightPixels
     }
 
     fun copyText(label: String? = "", text: String) {
