@@ -45,13 +45,11 @@ android {
             println("variant: ${variant}")
             variant.outputs.all(object : Action<BaseVariantOutput> {
                 override fun execute(output: BaseVariantOutput) {
-                    val time = System.currentTimeMillis() / 1000
-
                     val outputImpl = output as BaseVariantOutputImpl
                     val fileName = output.outputFileName
                         .replace(
                             "-debug",
-                            "-debug_v${defaultConfig.versionName}_(${defaultConfig.versionCode})_$time"
+                            "-${defaultConfig.versionName}-${getVersionName()}"
                         )
                     outputImpl.outputFileName = fileName
                 }
