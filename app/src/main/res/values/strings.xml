@@ -166,5 +166,5 @@
     <string name="fragment_updates_error_occurred">Error occurred</string>
     <string name="fragment_updates_error_occurred_description">Error: %s</string>
     <string name="warning">Warning</string>
-    <string name="fragment_updates_unknown_sources_disabled_message">Unknown sources installing is disabled in the settings</string>
+    <string name="fragment_updates_unknown_sources_disabled_message">Unknown sources installing is disabled in the settings. Open settings?</string>
 </resources>

@@ -2,10 +2,7 @@ package com.meloda.fast.di
 
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.database.AppDatabase
-import com.meloda.fast.database.dao.ConversationsDao
-import com.meloda.fast.database.dao.GroupsDao
-import com.meloda.fast.database.dao.MessagesDao
-import com.meloda.fast.database.dao.UsersDao
+import com.meloda.fast.database.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,8 +20,8 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideUsersDao(appDatabase: AppDatabase): UsersDao =
-        appDatabase.usersDao()
+    fun provideAccountsDao(appDatabase: AppDatabase): AccountsDao =
+        appDatabase.accountsDao
 
     @Provides
     @Singleton
@@ -35,6 +32,11 @@ object DatabaseModule {
     @Singleton
     fun provideMessagesDao(appDatabase: AppDatabase): MessagesDao =
         appDatabase.messagesDao()
+
+    @Provides
+    @Singleton
+    fun provideUsersDao(appDatabase: AppDatabase): UsersDao =
+        appDatabase.usersDao()
 
     @Provides
     @Singleton

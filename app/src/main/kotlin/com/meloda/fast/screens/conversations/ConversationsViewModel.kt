@@ -3,6 +3,8 @@ package com.meloda.fast.screens.conversations
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.*
+import com.meloda.fast.api.longpoll.LongPollEvent
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage

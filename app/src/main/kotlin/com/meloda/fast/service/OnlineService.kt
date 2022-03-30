@@ -18,10 +18,6 @@ import kotlin.coroutines.CoroutineContext
 @AndroidEntryPoint
 class OnlineService : Service(), CoroutineScope {
 
-    private companion object {
-        private const val TAG = "OnlineService"
-    }
-
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -54,22 +50,31 @@ class OnlineService : Service(), CoroutineScope {
     }
 
     private suspend fun setOnline() {
-        println("$TAG: setOnline()")
-        val response = dataSource.setOnline(
-            AccountSetOnlineRequest(
-                voip = false,
-                accessToken = UserConfig.fastToken
+        val fastToken = UserConfig.fastToken
+
+        if (fastToken == null) {
+            Log.d("OnlineService", "setOnline: fastToken is null")
+            return
+        } else {
+            Log.d("OnlineService", "setOnline()")
+            val response = dataSource.setOnline(
+                AccountSetOnlineRequest(
+                    voip = false,
+                    accessToken = fastToken
+                )
             )
-        )
+            Log.d("OnlineService", "setOnline: response: $response")
+        }
     }
 
     private suspend fun setOffline() {
-        println("$TAG: setOffline()")
+        Log.d("OnlineService", "setOffline()")
         val response = dataSource.setOffline(
             AccountSetOfflineRequest(
                 accessToken = UserConfig.accessToken
             )
         )
+        Log.d("OnlineService", "setOffline: response: $response")
     }
 
 }

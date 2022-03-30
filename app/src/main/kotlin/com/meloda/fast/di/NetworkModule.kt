@@ -2,7 +2,7 @@ package com.meloda.fast.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.meloda.fast.api.LongPollUpdatesParser
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.account.AccountDataSource

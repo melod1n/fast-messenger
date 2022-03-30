@@ -1,17 +1,22 @@
 package com.meloda.fast.activity
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.lifecycleScope
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.github.terrakok.cicerone.androidx.FragmentScreen
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.Screens
 import com.meloda.fast.common.UpdateManager
+import com.meloda.fast.database.dao.AccountsDao
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,6 +41,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     @Inject
     lateinit var updateManager: UpdateManager
 
+    @Inject
+    lateinit var accountsDao: AccountsDao
+
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
         super.onResumeFragments()
@@ -49,11 +57,29 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        initUserConfig()
+
         router.newRootScreen(Screens.Main())
 
         updateManager.checkUpdates { _, item ->
             if (item != null) {
                 router.navigateTo(Screens.Updates())
+            }
+        }
+    }
+
+    private fun initUserConfig() {
+        if (UserConfig.currentUserId == -1) return
+
+        lifecycleScope.launch {
+            val accounts = accountsDao.getAll()
+
+            Log.d("MainActivity", "initUserConfig: accounts: $accounts")
+            if (accounts.isNotEmpty()) {
+                val currentAccount = accounts.find { it.userId == UserConfig.currentUserId }
+                if (currentAccount != null) {
+                    UserConfig.parse(currentAccount)
+                }
             }
         }
     }

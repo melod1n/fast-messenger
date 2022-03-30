@@ -1,8 +1,8 @@
 package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.LongPollEvent
-import com.meloda.fast.api.LongPollUpdatesParser
+import com.meloda.fast.api.longpoll.LongPollEvent
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup

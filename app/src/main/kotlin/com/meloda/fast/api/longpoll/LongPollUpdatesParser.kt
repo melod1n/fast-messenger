@@ -1,7 +1,9 @@
-package com.meloda.fast.api
+package com.meloda.fast.api.longpoll
 
 import android.util.Log
 import com.google.gson.JsonArray
+import com.meloda.fast.api.ApiEvent
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.Answer
@@ -13,19 +15,13 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-@Suppress("UNCHECKED_CAST")
-class LongPollUpdatesParser(
-    private val messagesDataSource: MessagesDataSource
-) : CoroutineScope {
-
-    companion object {
-        private const val TAG = "LongPollUpdatesParser"
-    }
+@Suppress("UNCHECKED_CAST", "MemberVisibilityCanBePrivate")
+class LongPollUpdatesParser(private val messagesDataSource: MessagesDataSource) : CoroutineScope {
 
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.d(TAG, "error: $throwable")
+        Log.d("LongPollUpdatesParser", "error: $throwable")
         throwable.printStackTrace()
     }
 
@@ -36,51 +32,51 @@ class LongPollUpdatesParser(
         mutableMapOf()
 
     fun parseNextUpdate(event: JsonArray) {
-        val eventType: ApiEvent? =
-            try {
-                ApiEvent.parse(event[0].asInt)
-            } catch (e: Exception) {
-                null
-            }
+        val eventId = event[0].asInt
+        val eventType: ApiEvent? = ApiEvent.parse(eventId)
 
-        if (eventType != null) {
-            println("$TAG: $eventType: $event")
-        } else {
-            println("$TAG: unknown event: $event")
+        if (eventType == null) {
+            Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
+            return
         }
 
         when (eventType) {
-            ApiEvent.MESSAGE_SET_FLAGS -> parseMessageSetFlags(eventType, event)
-            ApiEvent.MESSAGE_CLEAR_FLAGS -> parseMessageClearFlags(eventType, event)
-            ApiEvent.MESSAGE_NEW -> parseMessageNew(eventType, event)
-            ApiEvent.MESSAGE_EDIT -> parseMessageEdit(eventType, event)
-            ApiEvent.MESSAGE_READ_INCOMING -> parseMessageReadIncoming(eventType, event)
-            ApiEvent.MESSAGE_READ_OUTGOING -> parseMessageReadOutgoing(eventType, event)
-            ApiEvent.FRIEND_ONLINE -> parseFriendOnline(eventType, event)
-            ApiEvent.FRIEND_OFFLINE -> parseFriendOffline(eventType, event)
-            ApiEvent.MESSAGES_DELETED -> parseMessagesDeleted(eventType, event)
-//            ApiEvent.PIN_UNPIN_CONVERSATION -> TODO()
-//            ApiEvent.TYPING -> TODO()
-//            ApiEvent.VOICE_RECORDING -> TODO()
-//            ApiEvent.PHOTO_UPLOADING -> TODO()
-//            ApiEvent.VIDEO_UPLOADING -> TODO()
-//            ApiEvent.FILE_UPLOADING -> TODO()
-//            ApiEvent.UNREAD_COUNT_UPDATE -> TODO()
+            ApiEvent.MessageSetFlags -> parseMessageSetFlags(eventType, event)
+            ApiEvent.MessageClearFlags -> parseMessageClearFlags(eventType, event)
+            ApiEvent.MessageNew -> parseMessageNew(eventType, event)
+            ApiEvent.MessageEdit -> parseMessageEdit(eventType, event)
+            ApiEvent.MessageReadIncoming -> parseMessageReadIncoming(eventType, event)
+            ApiEvent.MessageReadOutgoing -> parseMessageReadOutgoing(eventType, event)
+            ApiEvent.FriendOnline -> parseFriendOnline(eventType, event)
+            ApiEvent.FriendOffline -> parseFriendOffline(eventType, event)
+            ApiEvent.MessagesDeleted -> parseMessagesDeleted(eventType, event)
+            ApiEvent.PinUnpinConversation -> onNewEvent(eventType, event)
+            ApiEvent.PrivateTyping -> onNewEvent(eventType, event)
+            ApiEvent.ChatTyping -> onNewEvent(eventType, event)
+            ApiEvent.OneMoreTyping -> onNewEvent(eventType, event)
+            ApiEvent.VoiceRecording -> onNewEvent(eventType, event)
+            ApiEvent.PhotoUploading -> onNewEvent(eventType, event)
+            ApiEvent.VideoUploading -> onNewEvent(eventType, event)
+            ApiEvent.FileUploading -> onNewEvent(eventType, event)
+            ApiEvent.UnreadCountUpdate -> onNewEvent(eventType, event)
         }
 
     }
 
+    private fun onNewEvent(eventType: ApiEvent, event: JsonArray) {
+        Log.d("LongPollUpdatesParser", "newEvent: $eventType: $event")
+    }
+
     private fun parseMessageSetFlags(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private fun parseMessageClearFlags(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private fun parseMessageNew(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
-
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
         val messageId = event[1].asInt
 
         launch {
@@ -90,7 +86,7 @@ class LongPollUpdatesParser(
                     messageId
                 )
 
-            listenersMap[ApiEvent.MESSAGE_NEW]?.let {
+            listenersMap[ApiEvent.MessageNew]?.let {
                 it.map { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageNewEvent>)
                         .onEvent(newMessageEvent)
@@ -100,8 +96,7 @@ class LongPollUpdatesParser(
     }
 
     private fun parseMessageEdit(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
-
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
         val messageId = event[1].asInt
 
         launch {
@@ -111,7 +106,7 @@ class LongPollUpdatesParser(
                     messageId
                 )
 
-            listenersMap[ApiEvent.MESSAGE_EDIT]?.let {
+            listenersMap[ApiEvent.MessageEdit]?.let {
                 it.map { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageEditEvent>)
                         .onEvent(editedMessageEvent)
@@ -121,11 +116,12 @@ class LongPollUpdatesParser(
     }
 
     private fun parseMessageReadIncoming(eventType: ApiEvent, event: JsonArray) {
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
         val peerId = event[1].asInt
         val messageId = event[2].asInt
 
         launch {
-            listenersMap[ApiEvent.MESSAGE_READ_INCOMING]?.let { listeners ->
+            listenersMap[ApiEvent.MessageReadIncoming]?.let { listeners ->
                 listeners.map { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>)
                         .onEvent(
@@ -140,11 +136,12 @@ class LongPollUpdatesParser(
     }
 
     private fun parseMessageReadOutgoing(eventType: ApiEvent, event: JsonArray) {
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
         val peerId = event[1].asInt
         val messageId = event[2].asInt
 
         launch {
-            listenersMap[ApiEvent.MESSAGE_READ_OUTGOING]?.let { listeners ->
+            listenersMap[ApiEvent.MessageReadOutgoing]?.let { listeners ->
                 listeners.map { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>)
                         .onEvent(
@@ -159,15 +156,15 @@ class LongPollUpdatesParser(
     }
 
     private fun parseFriendOnline(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private fun parseFriendOffline(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private fun parseMessagesDeleted(eventType: ApiEvent, event: JsonArray) {
-//        println("$TAG: $eventType: $event")
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private suspend fun <T : LongPollEvent> loadNormalMessage(eventType: ApiEvent, messageId: Int) =
@@ -205,13 +202,13 @@ class LongPollUpdatesParser(
                     }
 
                     val resumeValue: LongPollEvent? = when (eventType) {
-                        ApiEvent.MESSAGE_NEW ->
+                        ApiEvent.MessageNew ->
                             LongPollEvent.VkMessageNewEvent(
                                 normalMessage,
                                 profiles,
                                 groups
                             )
-                        ApiEvent.MESSAGE_EDIT -> LongPollEvent.VkMessageEditEvent(normalMessage)
+                        ApiEvent.MessageEdit -> LongPollEvent.VkMessageEditEvent(normalMessage)
                         else -> null
                     }
 
@@ -221,7 +218,7 @@ class LongPollUpdatesParser(
         }
 
 
-    fun <T : Any> registerListener(eventType: ApiEvent, listener: VkEventCallback<T>) {
+    private fun <T : Any> registerListener(eventType: ApiEvent, listener: VkEventCallback<T>) {
         listenersMap.let { map ->
             map[eventType] = (map[eventType] ?: mutableListOf()).also {
                 it.add(listener)
@@ -230,7 +227,7 @@ class LongPollUpdatesParser(
     }
 
     fun onMessageIncomingRead(listener: VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>) {
-        registerListener(ApiEvent.MESSAGE_READ_INCOMING, listener)
+        registerListener(ApiEvent.MessageReadIncoming, listener)
     }
 
     fun onMessageIncomingRead(block: (LongPollEvent.VkMessageReadIncomingEvent) -> Unit) {
@@ -238,7 +235,7 @@ class LongPollUpdatesParser(
     }
 
     fun onMessageOutgoingRead(listener: VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>) {
-        registerListener(ApiEvent.MESSAGE_READ_OUTGOING, listener)
+        registerListener(ApiEvent.MessageReadOutgoing, listener)
     }
 
     fun onMessageOutgoingRead(block: (LongPollEvent.VkMessageReadOutgoingEvent) -> Unit) {
@@ -246,7 +243,7 @@ class LongPollUpdatesParser(
     }
 
     fun onNewMessage(listener: VkEventCallback<LongPollEvent.VkMessageNewEvent>) {
-        registerListener(ApiEvent.MESSAGE_NEW, listener)
+        registerListener(ApiEvent.MessageNew, listener)
     }
 
     fun onNewMessage(block: (LongPollEvent.VkMessageNewEvent) -> Unit) {
@@ -254,7 +251,7 @@ class LongPollUpdatesParser(
     }
 
     fun onMessageEdited(listener: VkEventCallback<LongPollEvent.VkMessageEditEvent>) {
-        registerListener(ApiEvent.MESSAGE_EDIT, listener)
+        registerListener(ApiEvent.MessageEdit, listener)
     }
 
     fun onMessageEdited(block: (LongPollEvent.VkMessageEditEvent) -> Unit) {
@@ -266,9 +263,7 @@ class LongPollUpdatesParser(
     }
 }
 
-internal inline fun <R : Any> assembleEventCallback(
-    crossinline block: (R) -> Unit
-): VkEventCallback<R> {
+internal inline fun <R : Any> assembleEventCallback(crossinline block: (R) -> Unit): VkEventCallback<R> {
     return object : VkEventCallback<R> {
         override fun onEvent(event: R) = block.invoke(event)
     }

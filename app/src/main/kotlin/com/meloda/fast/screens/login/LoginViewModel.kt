@@ -11,6 +11,8 @@ import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.ErrorEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
+import com.meloda.fast.database.dao.AccountsDao
+import com.meloda.fast.model.AppAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,12 +20,11 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val dataSource: AuthDataSource,
-    private val router: Router
+    private val router: Router,
+    private val accounts: AccountsDao
 ) : BaseViewModel() {
 
-    companion object {
-        private const val TAG = "LoginViewModel"
-    }
+    var currentAccount: AppAccount? = null
 
     fun login(
         login: String,
@@ -54,10 +55,16 @@ class LoginViewModel @Inject constructor(
                     return@makeJob
                 }
 
-                UserConfig.userId = it.userId
-                UserConfig.accessToken = it.accessToken
+                currentAccount = AppAccount(
+                    userId = it.userId,
+                    accessToken = it.accessToken,
+                    fastToken = null
+                ).also { account ->
+                    accounts.insert(listOf(account))
+                    UserConfig.parse(account)
+                }
 
-                sendEvent(SuccessAuth())
+                sendEvent(LoginSuccessAuth)
 
                 // TODO: 19-Oct-21 do somewhen
 //                makeJob({
@@ -80,14 +87,14 @@ class LoginViewModel @Inject constructor(
                 }
 
                 // TODO: 9/27/2021 use `delay` parameter
-                twoFaCode?.let { sendEvent(CodeSent) }
-            }
+                twoFaCode?.let { sendEvent(LoginCodeSent) }
+            }, onStart = null, onEnd = null
         )
     }
 
     fun sendSms(validationSid: String) = viewModelScope.launch {
         makeJob({ dataSource.sendSms(validationSid) },
-            onAnswer = { sendEvent(CodeSent) }
+            onAnswer = { sendEvent(LoginCodeSent) }
         )
     }
 
@@ -95,10 +102,12 @@ class LoginViewModel @Inject constructor(
         router.navigateTo(Screens.Conversations())
     }
 
+    fun initUserConfig() {
+        val account = currentAccount ?: return
+        UserConfig.parse(account)
+    }
+
+    object LoginCodeSent : VkEvent()
+    object LoginSuccessAuth : VkEvent()
+
 }
-
-object CodeSent : VkEvent()
-
-data class SuccessAuth(
-    val haveAuthorized: Boolean = true
-) : VkEvent()

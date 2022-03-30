@@ -6,7 +6,7 @@ import android.os.IBinder
 import android.util.Log
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.meloda.fast.api.LongPollUpdatesParser
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.model.base.BaseVkLongPoll

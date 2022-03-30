@@ -32,6 +32,7 @@ import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.extensions.hideKeyboard
+import com.meloda.fast.extensions.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,14 +72,14 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         super.onEvent(event)
 
         when (event) {
+            StartProgressEvent -> onProgressStarted()
+            StopProgressEvent -> onProgressStopped()
             is ErrorEvent -> showErrorSnackbar(event.errorText)
             is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationEvent -> showValidationRequired(event.sid)
-            is SuccessAuth -> launchWebView()
 
-            is CodeSent -> showValidationDialog()
-            is StartProgressEvent -> onProgressStarted()
-            is StopProgressEvent -> onProgressStopped()
+            LoginViewModel.LoginSuccessAuth -> launchWebView()
+            LoginViewModel.LoginCodeSent -> showValidationDialog()
         }
     }
 
@@ -130,7 +131,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun launchWebView() {
-        binding.webView.isVisible = true
+        binding.webView.visible()
         binding.webView.loadUrl(
             "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
                     "access_token=${UserConfig.accessToken}&" +
@@ -165,9 +166,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 return
             }
 
-            val token = authData.first
+            val fastToken = authData.first
 
-            UserConfig.fastToken = token
+            viewModel.currentAccount = viewModel.currentAccount?.copy(fastToken = fastToken)
+            viewModel.initUserConfig()
 
             viewModel.openPrimaryScreen()
         }

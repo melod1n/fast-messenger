@@ -1,4 +1,4 @@
-package com.meloda.fast.api
+package com.meloda.fast.api.longpoll
 
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage

@@ -4,15 +4,15 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.model.AppAccount
 
 @Dao
-interface ConversationsDao {
+interface AccountsDao {
 
-    @Query("SELECT * FROM conversations")
-    suspend fun getAll(): List<VkConversation>
+    @Query("SELECT * FROM accounts")
+    suspend fun getAll(): List<AppAccount>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(values: List<VkConversation>)
+    suspend fun insert(values: List<AppAccount>)
 
 }
