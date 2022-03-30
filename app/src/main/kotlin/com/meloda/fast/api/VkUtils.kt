@@ -44,12 +44,12 @@ object VkUtils {
 
     fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
         return (if (!message.isUser()) null
-        else profiles[message.fromId]).also { message.user.value = it }
+        else profiles[message.fromId]).also { message.user = it }
     }
 
     fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!message.isGroup()) null
-        else groups[message.fromId]).also { message.group.value = it }
+        else groups[message.fromId]).also { message.group = it }
     }
 
     fun getMessageAvatar(

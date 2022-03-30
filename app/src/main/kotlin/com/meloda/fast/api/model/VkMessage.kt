@@ -38,11 +38,11 @@ data class VkMessage(
 
     @Ignore
     @IgnoredOnParcel
-    val user = MutableLiveData<VkUser?>()
+    var user: VkUser? = null
 
     @Ignore
     @IgnoredOnParcel
-    val group = MutableLiveData<VkGroup?>()
+    var group: VkGroup? = null
 
     fun isPeerChat() = peerId > 2_000_000_000
 

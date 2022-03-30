@@ -31,7 +31,7 @@ import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
-import com.meloda.fast.util.KeyboardUtils
+import com.meloda.fast.extensions.hideKeyboard
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -213,7 +213,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
                 (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
             ) {
-                KeyboardUtils.hideKeyboardFrom(binding.passwordInput)
+                binding.passwordInput.hideKeyboard()
                 binding.auth.performClick()
                 true
             } else false
@@ -238,7 +238,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         lastLogin = loginString
         lastPassword = passwordString
 
-        KeyboardUtils.hideKeyboardFrom(requireView().findFocus())
+        requireView().findFocus().hideKeyboard()
 
         viewModel.login(
             login = loginString,

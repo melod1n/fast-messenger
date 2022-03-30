@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -12,7 +11,8 @@ import android.viewbinding.library.fragment.viewBinding
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
-import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -84,7 +84,7 @@ class MessagesHistoryFragment :
     override val viewModel: MessagesHistoryViewModel by viewModels()
     private val binding: FragmentMessagesHistoryBinding by viewBinding()
 
-    private val action = MutableLiveData<Action>()
+    private val actionState = MutableLiveData<Action>()
 
     private enum class Action {
         RECORD, SEND, EDIT, DELETE
@@ -126,9 +126,6 @@ class MessagesHistoryFragment :
         }
 
         binding.back.setOnClickListener { requireActivity().onBackPressed() }
-
-        binding.title.ellipsize = TextUtils.TruncateAt.END
-        binding.status.ellipsize = TextUtils.TruncateAt.END
 
         binding.title.text = title ?: "..."
 
@@ -231,10 +228,10 @@ class MessagesHistoryFragment :
                     else -> Action.RECORD
                 }
 
-            if (action.value != newValue) action.value = newValue
+            if (actionState.value != newValue) actionState.value = newValue
         }
 
-        action.observe(viewLifecycleOwner) {
+        actionState.observe(viewLifecycleOwner) {
             binding.action.animate()
                 .scaleX(1.25f)
                 .scaleY(1.25f)
@@ -269,32 +266,30 @@ class MessagesHistoryFragment :
         attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
             if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
 
-            val currentMargin =
-                (binding.refreshLayout.layoutParams as CoordinatorLayout.LayoutParams).bottomMargin
+            val currentHeight = binding.listAnchor.height
 
-            val newMargin =
+            val newHeight =
                 if (isVisible) (binding.attachmentPanel.measuredHeight / 1.5).roundToInt()
-                else 0
+                else 1
 
-            ValueAnimator.ofInt(currentMargin, newMargin).apply {
+            ValueAnimator.ofInt(currentHeight, newHeight).apply {
                 duration = ATTACHMENT_PANEL_ANIMATION_DURATION
                 interpolator = LinearInterpolator()
 
                 addUpdateListener { animator ->
                     if (getView() == null) return@addUpdateListener
                     val value = animator.animatedValue as Int
-                    binding.refreshLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> {
-                        bottomMargin = value
+
+                    binding.listAnchor.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                        height = value
                     }
                 }
             }.start()
         }
 
-        binding.attachmentPanel.setOnClickListener c@{
-            val message = attachmentController.message.value ?: return@c
-
-            val index = adapter.indexOf(message)
-            if (index == -1) return@c
+        binding.attachmentPanel.setOnClickListener {
+            val message = attachmentController.message.value ?: return@setOnClickListener
+            val index = adapter.searchMessageIndex(message.id) ?: return@setOnClickListener
 
             binding.recyclerView.scrollToPosition(index)
         }
@@ -365,7 +360,7 @@ class MessagesHistoryFragment :
     }
 
     private fun performAction() {
-        when (action.value) {
+        when (actionState.value) {
             Action.RECORD -> {
             }
             Action.SEND -> {
@@ -676,6 +671,7 @@ class MessagesHistoryFragment :
         if (event.message.peerId != conversation.id) return
         adapter.searchMessageIndex(event.message.id)?.let { index ->
             adapter[index] = event.message
+            adapter.notifyItemChanged(index)
         }
     }
 
@@ -728,9 +724,9 @@ class MessagesHistoryFragment :
                     setUnreadCounterVisibility(false)
                 } else {
                     if (dy > 0) {
-                        if (dy > 60) setUnreadCounterVisibility(true)
+                        if (dy > 40) setUnreadCounterVisibility(true)
                     } else {
-                        if (dy < -60) setUnreadCounterVisibility(false)
+                        if (dy < -40) setUnreadCounterVisibility(false)
                     }
                 }
             }
@@ -784,11 +780,15 @@ class MessagesHistoryFragment :
         }
 
         private fun applyMessage(message: VkMessage) {
-            val title = when {
-                message.isGroup() && message.group.value != null -> message.group.value?.name
-                message.isUser() && message.user.value != null -> message.user.value?.fullName
-                else -> null
-            }
+            val messageUser: VkUser? =
+                if (message.isUser()) adapter.profiles[message.fromId]
+                else null
+            val messageGroup: VkGroup? =
+                if (message.isGroup()) adapter.groups[message.fromId]
+                else null
+            val title = VkUtils.getMessageTitle(
+                message, messageUser, messageGroup
+            )
 
             val attachmentText = if (message.text == null) VkUtils.getAttachmentText(
                 context = requireContext(),
@@ -808,6 +808,9 @@ class MessagesHistoryFragment :
 
             if (isEditing) {
                 binding.message.setText(message.text)
+                binding.message.setSelection(message.text?.length ?: 0)
+                binding.message.requestFocusFromTouch()
+                binding.message.showKeyboard()
             }
 
             showPanel()
@@ -836,7 +839,7 @@ class MessagesHistoryFragment :
 
             val measuredHeight = binding.attachmentPanel.measuredHeight
 
-            binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+            binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 height = 0
             }
 
@@ -852,7 +855,12 @@ class MessagesHistoryFragment :
                 addUpdateListener { animator ->
                     if (view == null) return@addUpdateListener
                     val value = animator.animatedValue as Int
-                    binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+
+                    if (value >= 36.dpToPx()) {
+                        binding.attachmentPanel.visible()
+                    }
+
+                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
                         height = value
                     }
                 }
@@ -878,9 +886,17 @@ class MessagesHistoryFragment :
                     if (view == null) return@addUpdateListener
                     val value = animator.animatedValue as Int
 
-                    binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                    if (value <= 36.dpToPx()) {
+                        binding.attachmentPanel.gone()
+                    }
+
+                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
                         height = value
                     }
+                }
+                doOnEnd {
+                    if (view == null) return@doOnEnd
+                    binding.attachmentPanel.gone()
                 }
             }.start()
         }

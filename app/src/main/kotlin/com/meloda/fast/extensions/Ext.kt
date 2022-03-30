@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.annotation.Px
 import androidx.core.view.children
 import androidx.lifecycle.MutableLiveData
+import com.meloda.fast.common.AppGlobal
 
 fun Int.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
@@ -108,4 +109,14 @@ fun isCertainApiOrUpper(apiLevel: Int, block: () -> Unit): Boolean? {
     if (isValid == true) block.invoke()
 
     return isValid
+}
+
+fun View.showKeyboard(flags: Int = 0) {
+    AppGlobal.inputMethodManager.showSoftInput(this, flags)
+}
+
+fun View.hideKeyboard(focusedView: View? = null, flags: Int = 0) {
+    AppGlobal.inputMethodManager.hideSoftInputFromWindow(
+        focusedView?.windowToken ?: this.windowToken, flags
+    )
 }
