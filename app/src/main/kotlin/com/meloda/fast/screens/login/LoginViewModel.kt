@@ -61,6 +61,7 @@ class LoginViewModel @Inject constructor(
                     fastToken = null
                 ).also { account ->
                     accounts.insert(listOf(account))
+                    UserConfig.currentUserId = account.userId
                     UserConfig.parse(account)
                 }
 
@@ -99,11 +100,13 @@ class LoginViewModel @Inject constructor(
     }
 
     fun openPrimaryScreen() {
-        router.navigateTo(Screens.Conversations())
+        router.replaceScreen(Screens.Conversations())
     }
 
-    fun initUserConfig() {
-        val account = currentAccount ?: return
+    fun initUserConfig() = viewModelScope.launch {
+        val account = currentAccount ?: return@launch
+        accounts.insert(listOf(account))
+
         UserConfig.parse(account)
     }
 

@@ -1,8 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
-val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
-val password: String = gradleLocalProperties(rootDir).getProperty("vkPassword")
-
 val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
 
@@ -38,9 +35,6 @@ android {
 
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "vkLogin", login)
-            buildConfigField("String", "vkPassword", password)
-
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
@@ -49,15 +43,11 @@ android {
         getByName("release") {
             isMinifyEnabled = false
 
-            buildConfigField("String", "vkLogin", login)
-            buildConfigField("String", "vkPassword", password)
-
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }

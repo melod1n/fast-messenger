@@ -16,14 +16,14 @@ class MainViewModel @Inject constructor(private val router: Router) : BaseViewMo
 
     fun checkSession(context: Context) {
         if (UserConfig.isLoggedIn()) {
-            router.navigateTo(Screens.Conversations())
+            router.replaceScreen(Screens.Conversations())
 
             context.run {
                 startService(Intent(this, MessagesUpdateService::class.java))
                 startService(Intent(this, OnlineService::class.java))
             }
         } else {
-            router.navigateTo(Screens.Login())
+            router.replaceScreen(Screens.Login())
         }
     }
 

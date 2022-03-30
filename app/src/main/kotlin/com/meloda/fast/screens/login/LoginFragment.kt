@@ -224,10 +224,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
     private fun prepareAuthButton() {
         binding.auth.setOnClickListener { validateDataAndAuth() }
-        binding.auth.setOnLongClickListener {
-            validateDataAndAuth(BuildConfig.vkLogin to BuildConfig.vkPassword)
-            true
-        }
     }
 
     private fun validateDataAndAuth(data: Pair<String, String>? = null) {

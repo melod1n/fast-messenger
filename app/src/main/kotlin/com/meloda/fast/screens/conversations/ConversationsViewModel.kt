@@ -2,7 +2,9 @@ package com.meloda.fast.screens.conversations
 
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
-import com.meloda.fast.api.*
+import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.VkConversation
@@ -161,8 +163,7 @@ class ConversationsViewModel @Inject constructor(
     }
 
     fun openRootScreen() {
-        router.exit()
-        router.newRootScreen(Screens.Main())
+        router.replaceScreen(Screens.Main())
     }
 
     fun openMessagesHistoryScreen(
