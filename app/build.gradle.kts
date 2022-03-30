@@ -1,6 +1,3 @@
-import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.api.BaseVariantOutput
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
@@ -38,24 +35,6 @@ android {
             }
         }
     }
-
-    // TODO: переделать это дерьмо
-    applicationVariants.all(object : Action<ApplicationVariant> {
-        override fun execute(variant: ApplicationVariant) {
-            println("variant: ${variant}")
-            variant.outputs.all(object : Action<BaseVariantOutput> {
-                override fun execute(output: BaseVariantOutput) {
-                    val outputImpl = output as BaseVariantOutputImpl
-                    val fileName = output.outputFileName
-                        .replace(
-                            "-debug",
-                            "-${defaultConfig.versionName}-${getVersionName()}"
-                        )
-                    outputImpl.outputFileName = fileName
-                }
-            })
-        }
-    })
 
     buildTypes {
         getByName("debug") {
