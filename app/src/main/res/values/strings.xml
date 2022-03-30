@@ -155,4 +155,16 @@
     <string name="message_attachment_story_your_story">Your story</string>
     <string name="message_attachment_story_story_from">Story from\n%s</string>
     <string name="favorites">Favorites</string>
+
+    <string name="fragment_updates_check_updates">Check updates</string>
+    <string name="fragment_updates_download_update">Download</string>
+    <string name="fragment_updates_try_again">Try again</string>
+    <string name="fragment_updates_new_version">New version available</string>
+    <string name="fragment_updates_new_version_description">v. %s</string>
+    <string name="fragment_updates_no_updates">No updates</string>
+    <string name="fragment_updates_no_updates_description">Try again later</string>
+    <string name="fragment_updates_error_occurred">Error occurred</string>
+    <string name="fragment_updates_error_occurred_description">Error: %s</string>
+    <string name="warning">Warning</string>
+    <string name="fragment_updates_unknown_sources_disabled_message">Unknown sources installing is disabled in the settings</string>
 </resources>

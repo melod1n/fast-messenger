@@ -2,9 +2,9 @@ package com.meloda.fast.screens.conversations
 
 import android.content.Context
 import com.meloda.fast.R
-import com.meloda.fast.base.ResourceManager
+import com.meloda.fast.base.ResourceProvider
 
-class ConversationsResourceManager(context: Context) : ResourceManager(context) {
+class ConversationsResourceProvider(context: Context) : ResourceProvider(context) {
 
     val colorOutline = getColor(R.color.colorOutline)
     val colorOnPrimary = getColor(R.color.colorOnPrimary)

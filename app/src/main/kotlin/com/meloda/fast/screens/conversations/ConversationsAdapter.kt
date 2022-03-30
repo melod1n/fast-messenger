@@ -32,7 +32,7 @@ import com.meloda.fast.util.TimeUtils
 
 class ConversationsAdapter constructor(
     context: Context,
-    private val resourceManager: ConversationsResourceManager,
+    private val resourceManager: ConversationsResourceProvider,
     var isMultilineEnabled: Boolean = true,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
@@ -49,7 +49,7 @@ class ConversationsAdapter constructor(
 
     inner class ItemHolder(
         binding: ItemConversationBinding,
-        private val resourceManager: ConversationsResourceManager
+        private val resourceManager: ConversationsResourceProvider
     ) : BindingHolder<ItemConversationBinding>(binding) {
 
         init {

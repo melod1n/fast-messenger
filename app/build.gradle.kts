@@ -10,7 +10,7 @@ val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage"
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
 
 val majorVersion = 1
-val minorVersion = 1
+val minorVersion = 2
 val patchVersion = 1
 
 plugins {

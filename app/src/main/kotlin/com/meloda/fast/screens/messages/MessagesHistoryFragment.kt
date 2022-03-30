@@ -14,6 +14,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
 import androidx.core.view.updateLayoutParams
@@ -64,9 +65,17 @@ class MessagesHistoryFragment :
 
         private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
 
-        fun newInstance(bundle: Bundle): MessagesHistoryFragment {
+        fun newInstance(
+            conversation: VkConversation,
+            user: VkUser?,
+            group: VkGroup?
+        ): MessagesHistoryFragment {
             val fragment = MessagesHistoryFragment()
-            fragment.arguments = bundle
+            fragment.arguments = bundleOf(
+                ARG_CONVERSATION to conversation,
+                ARG_USER to user,
+                ARG_GROUP to group
+            )
 
             return fragment
         }

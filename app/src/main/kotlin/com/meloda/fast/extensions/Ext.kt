@@ -2,6 +2,7 @@ package com.meloda.fast.extensions
 
 import android.animation.ValueAnimator
 import android.content.res.Resources
+import android.os.Build
 import android.os.Parcelable
 import android.util.DisplayMetrics
 import android.util.SparseArray
@@ -11,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.Px
 import androidx.core.view.children
+import androidx.lifecycle.MutableLiveData
 
 fun Int.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
@@ -87,4 +89,23 @@ fun ImageView.toggleVisibilityIfHasContent(visibilityWhenFalse: Int = View.GONE)
 @JvmOverloads
 fun TextView.toggleVisibilityIfHasContent(visibilityWhenFalse: Int = View.GONE) {
     visibility = if (!text.isNullOrEmpty()) View.VISIBLE else visibilityWhenFalse
+}
+
+fun <T> MutableLiveData<T>.setIfNotEquals(item: T) {
+    if (this.value != item) this.value = item
+}
+
+fun <T> MutableLiveData<T>.requireValue(): T {
+    return this.value!!
+}
+
+fun isApi26OrUpper(block: () -> Unit): Boolean? = isCertainApiOrUpper(Build.VERSION_CODES.O, block)
+
+fun isCertainApiOrUpper(apiLevel: Int, block: () -> Unit): Boolean? {
+    val isValid =
+        if (Build.VERSION.SDK_INT >= apiLevel) true
+        else null
+    if (isValid == true) block.invoke()
+
+    return isValid
 }

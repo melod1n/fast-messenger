@@ -5,7 +5,6 @@ import android.view.Gravity
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.os.bundleOf
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +25,6 @@ import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.toggleVisibility
-import com.meloda.fast.screens.messages.MessagesHistoryFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +42,7 @@ class ConversationsFragment :
     private val adapter: ConversationsAdapter by lazy {
         ConversationsAdapter(
             requireContext(),
-            ConversationsResourceManager(requireContext())
+            ConversationsResourceProvider(requireContext())
         ).also {
             it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
@@ -230,13 +228,7 @@ class ConversationsFragment :
             if (conversation.isGroup()) adapter.groups[conversation.id]
             else null
 
-        viewModel.openMessagesHistoryScreen(
-            bundleOf(
-                MessagesHistoryFragment.ARG_USER to user,
-                MessagesHistoryFragment.ARG_GROUP to group,
-                MessagesHistoryFragment.ARG_CONVERSATION to conversation
-            )
-        )
+        viewModel.openMessagesHistoryScreen(conversation, user, group)
     }
 
     private fun onItemLongClick(position: Int): Boolean {

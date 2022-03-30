@@ -10,6 +10,7 @@ import com.github.terrakok.cicerone.androidx.FragmentScreen
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.Screens
+import com.meloda.fast.common.UpdateManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -23,10 +24,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             currentFragment: Fragment?,
             nextFragment: Fragment
         ) {
-//            fragmentTransaction.setCustomAnimations(
-//                R.anim.activity_open_enter, R.anim.activity_close_exit,
-//                R.anim.activity_close_enter, R.anim.activity_open_exit
-//            )
         }
     }
 
@@ -35,6 +32,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     @Inject
     lateinit var router: Router
+
+    @Inject
+    lateinit var updateManager: UpdateManager
 
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
@@ -50,5 +50,11 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         super.onCreate(savedInstanceState)
 
         router.newRootScreen(Screens.Main())
+
+        updateManager.checkUpdates { _, item ->
+            if (item != null) {
+                router.navigateTo(Screens.Updates())
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.Answer
 import com.meloda.fast.api.network.VkErrorCodes
 import com.meloda.fast.api.network.VkErrors
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ abstract class BaseViewModel : ViewModel() {
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
         onError: (suspend (Throwable) -> Unit)? = null
-    ) = viewModelScope.launch {
+    ): Job = viewModelScope.launch {
         onStart?.invoke() ?: onStart()
         when (val response = job()) {
             is Answer.Success -> onAnswer(response.data)

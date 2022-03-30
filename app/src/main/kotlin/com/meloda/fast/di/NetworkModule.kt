@@ -14,8 +14,10 @@ import com.meloda.fast.api.network.conversations.ConversationsRepo
 import com.meloda.fast.api.network.longpoll.LongPollRepo
 import com.meloda.fast.api.network.messages.MessagesDataSource
 import com.meloda.fast.api.network.messages.MessagesRepo
+import com.meloda.fast.api.network.ota.OtaRepo
 import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersRepo
+import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.database.dao.ConversationsDao
 import com.meloda.fast.database.dao.MessagesDao
 import com.meloda.fast.database.dao.UsersDao
@@ -140,4 +142,14 @@ object NetworkModule {
     @Singleton
     fun provideAccountDataSource(repo: AccountRepo): AccountDataSource =
         AccountDataSource(repo)
+
+    @Provides
+    @Singleton
+    fun provideOtaRepo(retrofit: Retrofit): OtaRepo =
+        retrofit.create(OtaRepo::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUpdateManager(otaRepo: OtaRepo): UpdateManager =
+        UpdateManager(otaRepo)
 }

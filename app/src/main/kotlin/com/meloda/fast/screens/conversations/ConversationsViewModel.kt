@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.conversations
 
-import android.os.Bundle
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.*
@@ -164,8 +163,12 @@ class ConversationsViewModel @Inject constructor(
         router.newRootScreen(Screens.Main())
     }
 
-    fun openMessagesHistoryScreen(bundle: Bundle) {
-        router.navigateTo(Screens.MessagesHistory(bundle))
+    fun openMessagesHistoryScreen(
+        conversation: VkConversation,
+        user: VkUser?,
+        group: VkGroup?
+    ) {
+        router.navigateTo(Screens.MessagesHistory(conversation, user, group))
     }
 }
 

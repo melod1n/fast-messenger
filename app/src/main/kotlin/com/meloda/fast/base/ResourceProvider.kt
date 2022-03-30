@@ -8,7 +8,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 
-abstract class ResourceManager(protected val context: Context) {
+abstract class ResourceProvider(protected val context: Context) {
 
     protected fun getString(@StringRes resId: Int): String {
         return context.getString(resId)
