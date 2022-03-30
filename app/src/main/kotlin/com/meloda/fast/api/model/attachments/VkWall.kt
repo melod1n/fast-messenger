@@ -12,12 +12,12 @@ data class VkWall(
     val date: Int,
     val text: String,
     val attachments: List<BaseVkAttachmentItem>?,
-    val comments: Int,
-    val likes: Int,
-    val reposts: Int,
-    val views: Int,
+    val comments: Int?,
+    val likes: Int?,
+    val reposts: Int?,
+    val views: Int?,
     val isFavorite: Boolean,
-    val accessKey: String
+    val accessKey: String?
 ) : VkAttachment() {
 
     @IgnoredOnParcel

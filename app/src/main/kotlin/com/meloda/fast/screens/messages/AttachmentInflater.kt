@@ -28,6 +28,7 @@ import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.util.AndroidUtils
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 // TODO: 9/29/2021 use recyclerview for viewing attachments
