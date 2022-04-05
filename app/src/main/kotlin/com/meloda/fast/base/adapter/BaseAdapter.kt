@@ -198,4 +198,30 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
     }
 
     val lastPosition get() = currentList.lastIndex
+
+    open fun filter(query: String) {
+        if (cleanList.isEmpty()) {
+            cleanList.addAll(cloneCurrentList())
+        }
+
+        val newList = mutableListOf<T>()
+
+        setItems(emptyList(), commitCallback = {
+            if (query.isEmpty()) {
+                newList.addAll(cleanList)
+            } else {
+                for (item in cleanList) {
+                    if (onQueryItem(item, query)) {
+                        newList.add(item)
+                    }
+                }
+            }
+
+            setItems(newList)
+        })
+    }
+
+    open fun onQueryItem(item: T, query: String): Boolean {
+        return false
+    }
 }
