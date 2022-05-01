@@ -17,7 +17,7 @@ class ConversationsResourceProvider(context: Context) : ResourceProvider(context
 
     val youPrefix = getString(R.string.you_message_prefix)
 
-    val conversationUnreadBackground = getDrawable(R.drawable.ic_message_unread)
+    val conversationUnreadBackground get() = getDrawable(R.drawable.ic_message_unread)
 
     val iconForwardedMessages = getDrawable(R.drawable.ic_attachment_forwarded_messages)
     val iconForwardedMessage = getDrawable(R.drawable.ic_attachment_forwarded_message)

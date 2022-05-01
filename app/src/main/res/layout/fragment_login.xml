@@ -69,12 +69,13 @@
                     android:id="@+id/loginLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     app:boxStrokeErrorColor="@android:color/transparent">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/loginInput"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:hint="@string/login_hint"
                         android:imeOptions="actionGo"
                         android:inputType="textEmailAddress" />
@@ -102,6 +103,7 @@
                     android:id="@+id/passwordLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     app:boxStrokeErrorColor="@android:color/transparent"
                     app:passwordToggleEnabled="true"
                     app:passwordToggleTint="?colorAccent">
@@ -109,7 +111,7 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/passwordInput"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:fontFamily="@font/roboto_regular"
                         android:hint="@string/password_login_hint"
                         android:imeOptions="actionGo"

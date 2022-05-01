@@ -22,7 +22,6 @@ import coil.load
 import coil.transform.RoundedCornersTransformation
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
-import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -32,10 +31,13 @@ import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.extensions.hideKeyboard
+import com.meloda.fast.extensions.invisible
 import com.meloda.fast.extensions.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
@@ -117,8 +119,19 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                     parseAuthUrl(url)
                 }
 
-                override fun onPageFinished(view: WebView, url: String?) {
+                override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
+
+                    lifecycleScope.launch {
+//                        delay(500)
+                        withContext(Dispatchers.Main) {
+                            view.loadUrl("javascript:document.getElementsByClassName(\"button\")[0].click()")
+                        }
+                    }
+
+                    if (url.contains("oauth.vk.com/authorize?")) {
+
+                    }
                 }
             }
         }
@@ -131,24 +144,25 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun launchWebView() {
-        binding.webView.visible()
-        binding.webView.loadUrl(
-            "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
-                    "access_token=${UserConfig.accessToken}&" +
-                    "sdk_package=com.meloda.fast.activity&" +
-                    "sdk_fingerprint=AA88DSADAS8DG8FSA8&" +
-                    "display=page&" +
-                    "revoke=1&" +
-                    "scope=136297695&" +
-                    "redirect_uri=${
-                        URLEncoder.encode(
-                            "https://oauth.vk.com/blank.html",
-                            Charsets.UTF_8.toString()
-                        )
-                    }&" +
-                    "response_type=token&" +
-                    "v=${VKConstants.API_VERSION}"
-        )
+        val urlToLoad = "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
+                "access_token=${UserConfig.accessToken}&" +
+                "sdk_package=com.meloda.fast.activity&" +
+                "sdk_fingerprint=AA88DSADAS8DG8FSA8&" +
+                "display=page&" +
+                "revoke=1&" +
+                "scope=136297695&" +
+                "redirect_uri=${
+                    URLEncoder.encode(
+                        "https://oauth.vk.com/blank.html",
+                        Charsets.UTF_8.toString()
+                    )
+                }&" +
+                "response_type=token&" +
+                "v=${VKConstants.API_VERSION}"
+
+        binding.progress.visible()
+        binding.webView.invisible()
+        binding.webView.loadUrl(urlToLoad)
     }
 
     private fun parseAuthUrl(url: String) {
