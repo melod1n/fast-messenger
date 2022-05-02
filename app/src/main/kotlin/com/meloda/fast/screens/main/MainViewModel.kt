@@ -2,6 +2,7 @@ package com.meloda.fast.screens.main
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -15,6 +16,14 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(private val router: Router) : BaseViewModel() {
 
     fun checkSession(context: Context) {
+        val currentUserId = UserConfig.currentUserId
+        val userId = UserConfig.userId
+        val accessToken = UserConfig.accessToken
+
+        Log.d(
+            "MainViewModel",
+            "checkSession: currentUserId: $currentUserId; userId: $userId; accessToken: $accessToken"
+        )
         if (UserConfig.isLoggedIn()) {
             router.replaceScreen(Screens.Conversations())
 

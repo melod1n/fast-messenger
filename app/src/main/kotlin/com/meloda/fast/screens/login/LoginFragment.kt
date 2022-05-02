@@ -123,14 +123,9 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                     super.onPageFinished(view, url)
 
                     lifecycleScope.launch {
-//                        delay(500)
                         withContext(Dispatchers.Main) {
                             view.loadUrl("javascript:document.getElementsByClassName(\"button\")[0].click()")
                         }
-                    }
-
-                    if (url.contains("oauth.vk.com/authorize?")) {
-
                     }
                 }
             }
@@ -160,8 +155,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 "response_type=token&" +
                 "v=${VKConstants.API_VERSION}"
 
-        binding.progress.visible()
-        binding.webView.invisible()
         binding.webView.loadUrl(urlToLoad)
     }
 

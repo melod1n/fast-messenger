@@ -100,17 +100,6 @@ fun <T> MutableLiveData<T>.requireValue(): T {
     return this.value!!
 }
 
-fun isApi26OrUpper(block: () -> Unit): Boolean? = isCertainApiOrUpper(Build.VERSION_CODES.O, block)
-
-fun isCertainApiOrUpper(apiLevel: Int, block: () -> Unit): Boolean? {
-    val isValid =
-        if (Build.VERSION.SDK_INT >= apiLevel) true
-        else null
-    if (isValid == true) block.invoke()
-
-    return isValid
-}
-
 fun View.showKeyboard(flags: Int = 0) {
     AppGlobal.inputMethodManager.showSoftInput(this, flags)
 }

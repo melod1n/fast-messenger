@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
@@ -39,6 +41,7 @@ import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
+import com.meloda.fast.databinding.ToolbarMenuItemAvatarBinding
 import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
@@ -116,6 +119,29 @@ class MessagesHistoryFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+
+        val menu = binding.toolbar.menu
+        val itemProfile = menu.findItem(R.id.profile_icon)
+
+        val avatarItemBinding = ToolbarMenuItemAvatarBinding.inflate(
+            layoutInflater, null, false
+        )
+
+        itemProfile.actionView = avatarItemBinding.root
+
+        val avatar = when {
+            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
+            conversation.isUser() -> user?.photo200
+            conversation.isGroup() -> group?.photo200
+            conversation.isChat() -> conversation.photo200
+            else -> null
+        }
+        avatarItemBinding.avatar.loadWithGlide(
+            url = avatar,
+            transformations = ImageLoader.userAvatarTransformations
+        )
+
         attachmentController = AttachmentPanelController().init()
 
         val title = when {
@@ -124,6 +150,8 @@ class MessagesHistoryFragment :
             conversation.isGroup() -> group?.name
             else -> null
         }
+
+        binding.toolbar.title = title ?: "..."
 
         binding.back.setOnClickListener { requireActivity().onBackPressed() }
 
@@ -142,6 +170,8 @@ class MessagesHistoryFragment :
             conversation.isGroup() -> if (group?.membersCount != null) "${group?.membersCount} members" else "Group"
             else -> null
         }
+
+        binding.toolbar.subtitle = status ?: "..."
 
         binding.status.text = status ?: "..."
 

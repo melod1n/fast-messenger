@@ -41,7 +41,9 @@ object UserConfig {
         userId = -1
     }
 
-    fun isLoggedIn() = currentUserId > 0 && userId > 0 && accessToken.isNotBlank()
+    fun isLoggedIn(): Boolean {
+        return currentUserId > 0 && userId > 0 && accessToken.isNotBlank()
+    }
 
     val vkUser = MutableLiveData<VkUser?>(null)
 

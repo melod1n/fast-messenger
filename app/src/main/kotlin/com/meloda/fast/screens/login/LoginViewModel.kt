@@ -100,7 +100,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun openPrimaryScreen() {
-        router.replaceScreen(Screens.Conversations())
+        router.replaceScreen(Screens.Main())
     }
 
     fun initUserConfig() = viewModelScope.launch {

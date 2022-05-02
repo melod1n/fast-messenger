@@ -41,11 +41,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            app:menu="@menu/fragment_messages_history"
+            app:navigationIcon="@drawable/ic_round_arrow_back_24"
+            app:navigationIconTint="?colorOnBackground"
+            app:subtitleCentered="true"
+            app:titleCentered="true"
+            tools:title="@tools:sample/full_names" />
+
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="56dp"
             android:orientation="horizontal"
             android:paddingStart="12dp"
+            android:visibility="gone"
             android:paddingTop="18dp"
             android:paddingEnd="30dp"
             android:paddingBottom="24dp">

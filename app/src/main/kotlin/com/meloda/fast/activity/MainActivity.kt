@@ -57,9 +57,11 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        initUserConfig()
-
-        router.newRootScreen(Screens.Main())
+        if (UserConfig.currentUserId == -1) {
+            openMainScreen()
+        } else {
+            initUserConfig()
+        }
 
         updateManager.checkUpdates { _, item ->
             if (item != null) {
@@ -80,7 +82,13 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 if (currentAccount != null) {
                     UserConfig.parse(currentAccount)
                 }
+
+                openMainScreen()
             }
         }
+    }
+
+    private fun openMainScreen() {
+        router.newRootScreen(Screens.Main())
     }
 }
