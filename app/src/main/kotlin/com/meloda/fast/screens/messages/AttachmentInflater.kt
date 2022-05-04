@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Space
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -28,7 +29,6 @@ import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.util.AndroidUtils
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 // TODO: 9/29/2021 use recyclerview for viewing attachments
@@ -110,13 +110,23 @@ class AttachmentInflater constructor(
                 is VkFile -> file(attachment)
                 is VkLink -> link(attachment)
 
-                else -> Log.e(
-                    "Attachment inflater",
-                    "Unknown attachment type: ${attachment.javaClass.name}"
-                )
+                else -> unknown(attachment)
             }
         }
 
+    }
+
+    private fun unknown(attachment: VkAttachment) {
+        val attachmentType = attachment.javaClass.name
+        Log.e(
+            "Attachment inflater",
+            "Unknown attachment type: $attachmentType"
+        )
+
+        val textView = AppCompatTextView(context)
+        textView.text = attachmentType
+
+        textContainer.addView(textView)
     }
 
     private fun photo(photo: VkPhoto) {
@@ -244,7 +254,9 @@ class AttachmentInflater constructor(
     }
 
     private fun link(link: VkLink) {
-        val binding = ItemMessageAttachmentLinkBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentLinkBinding.inflate(
+            inflater, container, true
+        )
 
         binding.title.text = link.title
         binding.title.toggleVisibility(!link.title.isNullOrBlank())

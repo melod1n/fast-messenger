@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -23,7 +25,9 @@ import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.addAvatarMenuItem
 import com.meloda.fast.extensions.gone
+import com.meloda.fast.extensions.tintMenuItemIcons
 import com.meloda.fast.extensions.toggleVisibility
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,8 +57,8 @@ class ConversationsFragment :
         get() =
             PopupMenu(
                 requireContext(),
-                binding.avatar,
-                Gravity.BOTTOM
+                binding.toolbar,
+                Gravity.BOTTOM or Gravity.END
             ).apply {
                 menu.add(getString(R.string.log_out))
                 setOnMenuItemClickListener { item ->
@@ -82,23 +86,38 @@ class ConversationsFragment :
 
         binding.createChat.setOnClickListener {}
 
+        binding.toolbar.tintMenuItemIcons(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.colorPrimary
+            )
+        )
+
+        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
+
         UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
-            user?.run { binding.avatar.loadWithGlide(url = this.photo200, crossFade = true) }
+            user?.run {
+                avatarMenuItem.actionView.findViewById<ImageView>(R.id.avatar)
+                    .loadWithGlide(
+                        url = this.photo200, crossFade = true, asCircle = true
+                    )
+            }
         }
 
-        binding.avatar.setOnClickListener { avatarPopupMenu.show() }
+        avatarMenuItem.actionView.run {
+            setOnClickListener { avatarPopupMenu.show() }
+            setOnLongClickListener {
+                lifecycleScope.launch {
+                    requireContext().dataStore.edit { settings ->
+                        val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
+                        settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
 
-        binding.avatar.setOnLongClickListener {
-            lifecycleScope.launch {
-                requireContext().dataStore.edit { settings ->
-                    val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
-                    settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
-
-                    adapter.isMultilineEnabled = !isMultilineEnabled
-                    adapter.refreshList()
+                        adapter.isMultilineEnabled = !isMultilineEnabled
+                        adapter.refreshList()
+                    }
                 }
+                true
             }
-            true
         }
 
         viewModel.loadProfileUser()

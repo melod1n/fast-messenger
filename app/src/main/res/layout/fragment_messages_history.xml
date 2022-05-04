@@ -45,11 +45,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            app:menu="@menu/fragment_messages_history"
             app:navigationIcon="@drawable/ic_round_arrow_back_24"
             app:navigationIconTint="?colorOnBackground"
             app:subtitleCentered="true"
             app:titleCentered="true"
+            tools:subtitle="Last seen at 05.26.21, 17:55"
             tools:title="@tools:sample/full_names" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
@@ -359,7 +359,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginEnd="20dp"
+            android:layout_marginEnd="16dp"
             android:background="?selectableItemBackgroundBorderless"
             android:padding="6dp"
             android:src="@drawable/ic_round_mic_24"

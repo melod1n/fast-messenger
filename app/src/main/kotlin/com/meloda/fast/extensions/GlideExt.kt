@@ -37,6 +37,7 @@ object ImageLoader {
         errorDrawable: Drawable = placeholderDrawable,
         crossFade: Boolean = false,
         crossFadeDuration: Int = 200,
+        asCircle: Boolean = false,
         transformations: List<TypeTransformations> = emptyList(),
         onLoadedAction: (() -> Unit)? = null,
         onFailedAction: (() -> Unit)? = null,
@@ -63,6 +64,14 @@ object ImageLoader {
 
         if (crossFade) {
             builder = builder.transition(withCrossFade(crossFadeDuration))
+        }
+
+        if (asCircle) {
+            builder = builder.apply(
+                TypeTransformations.createRequestOptions(
+                    listOf(TypeTransformations.CircleCrop)
+                )
+            )
         }
 
         builder.into(this)
