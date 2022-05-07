@@ -108,6 +108,7 @@
     <string name="message_attachments_curator">Curator</string>
     <string name="message_attachments_story">Story</string>
     <string name="message_attachments_widget">Widget</string>
+    <string name="message_attachments_place">Place</string>
 
     <string name="file_size_in_bytes">%d bytes</string>
 

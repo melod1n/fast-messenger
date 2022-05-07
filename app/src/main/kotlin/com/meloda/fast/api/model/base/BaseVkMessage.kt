@@ -40,7 +40,7 @@ data class BaseVkMessage(
         actionText = action?.text,
         actionConversationMessageId = action?.conversation_message_id,
         actionMessage = action?.message,
-        geoType = geo?.type,
+        geo = geo,
         important = important
     ).also {
         it.attachments = VkUtils.parseAttachments(attachments)
@@ -54,7 +54,6 @@ data class BaseVkMessage(
         val coordinates: Coordinates,
         val place: Place
     ) : Parcelable {
-
 
         @Parcelize
         data class Coordinates(val latitude: Float, val longitude: Float) : Parcelable

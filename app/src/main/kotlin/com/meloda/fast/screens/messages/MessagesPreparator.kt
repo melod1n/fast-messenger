@@ -179,7 +179,12 @@ class MessagesPreparator constructor(
         }
 
         if (attachmentContainer != null && textContainer != null && replyContainer != null) {
-            if (message.attachments.isNullOrEmpty() && !message.hasReply()) {
+            if (
+                !message.hasAttachments() &&
+                !message.hasReply() &&
+                !message.hasForwards() &&
+                !message.hasGeo()
+            ) {
                 attachmentContainer.gone()
                 replyContainer.gone()
             } else {

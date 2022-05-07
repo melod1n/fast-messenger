@@ -1,11 +1,10 @@
 package com.meloda.fast.api.model
 
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.PrimaryKey
+import androidx.room.*
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -13,7 +12,7 @@ import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "messages")
 @Parcelize
-data class VkMessage(
+data class VkMessage constructor(
     @PrimaryKey(autoGenerate = false)
     var id: Int,
     var text: String? = null,
@@ -27,12 +26,14 @@ data class VkMessage(
     val actionText: String? = null,
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
-    val geoType: String? = null,
+
     var important: Boolean = false,
 
     var forwards: List<VkMessage>? = null,
     var attachments: List<VkAttachment>? = null,
-    var replyMessage: VkMessage? = null
+    var replyMessage: VkMessage? = null,
+
+    val geo: BaseVkMessage.Geo? = null,
 ) : SelectableItem(id) {
 
     @Ignore
@@ -72,7 +73,13 @@ data class VkMessage(
                 )) &&
                 (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.ONE_DAY_IN_SECONDS)
 
+    fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
+
     fun hasReply(): Boolean = replyMessage != null
+
+    fun hasForwards(): Boolean = !forwards.isNullOrEmpty()
+
+    fun hasGeo(): Boolean = geo != null
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),

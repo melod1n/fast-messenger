@@ -538,8 +538,8 @@ object VkUtils {
     }
 
     fun getAttachmentText(context: Context, message: VkMessage): String? {
-        message.geoType?.let {
-            return when (it) {
+        message.geo?.let {
+            return when (it.type) {
                 "point" -> context.getString(R.string.message_geo_point)
                 else -> context.getString(R.string.message_geo)
             }
@@ -569,14 +569,11 @@ object VkUtils {
     }
 
     fun getAttachmentConversationIcon(context: Context, message: VkMessage): Drawable? {
-        message.geoType?.let {
-            return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
-        }
-
-        if (message.attachments.isNullOrEmpty()) return null
-
         return message.attachments?.let { attachments ->
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
+                message.geo?.let {
+                    return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
+                }
                 getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentIconByType(
                         context,

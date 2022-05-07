@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.base.BaseVkMessage
 import org.json.JSONObject
 
 @Suppress("UnnecessaryVariable")
@@ -11,6 +12,24 @@ class Converters {
 
     private companion object {
         private const val CACHE_SEPARATOR = "fastkruta228355"
+    }
+
+    @TypeConverter
+    fun fromGeoToString(geo: BaseVkMessage.Geo?): String? {
+        if (geo == null) return null
+
+        val string = Gson().toJson(geo)
+
+        return string
+    }
+
+    @TypeConverter
+    fun fromStringToGeo(string: String?): BaseVkMessage.Geo? {
+        if (string == null) return null
+
+        val geo = Gson().fromJson(string, BaseVkMessage.Geo::class.java)
+
+        return geo
     }
 
     @TypeConverter
@@ -49,7 +68,9 @@ class Converters {
     fun fromStringToVkMessage(string: String?): VkMessage? {
         if (string == null) return null
 
-        return Gson().fromJson(string, VkMessage::class.java)
+        val message = Gson().fromJson(string, VkMessage::class.java)
+
+        return message
     }
 
     @TypeConverter
@@ -82,7 +103,9 @@ class Converters {
     fun fromVkAttachmentToString(attachment: VkAttachment?): String? {
         if (attachment == null) return null
 
-        return Gson().toJson(attachment)
+        val string = Gson().toJson(attachment)
+
+        return string
     }
 
     @TypeConverter
@@ -91,6 +114,8 @@ class Converters {
 
         val className = JSONObject(string).optString("className")
 
-        return Gson().fromJson(string, Class.forName(className)) as VkAttachment?
+        val attachment = Gson().fromJson(string, Class.forName(className)) as? VkAttachment?
+
+        return attachment
     }
 }

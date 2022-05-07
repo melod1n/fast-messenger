@@ -23,6 +23,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.databinding.*
 import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
@@ -80,6 +81,10 @@ class AttachmentInflater constructor(
 
         if (message.hasReply()) {
             reply(requireNotNull(message.replyMessage))
+        }
+
+        if (message.hasGeo()) {
+            geo(requireNotNull(message.geo))
         }
 
         if (message.attachments.isNullOrEmpty()) return
@@ -172,6 +177,13 @@ class AttachmentInflater constructor(
 
         val title = VkUtils.getMessageTitle(replyMessage, fromUser, fromGroup)
         binding.title.text = title ?: "..."
+    }
+
+    private fun geo(geo: BaseVkMessage.Geo) {
+        val binding = ItemMessageAttachmentGeoBinding.inflate(inflater, container, true)
+
+        binding.location.text = geo.place.title
+        binding.location.toggleVisibilityIfHasContent()
     }
 
     private fun photo(photo: VkPhoto) {

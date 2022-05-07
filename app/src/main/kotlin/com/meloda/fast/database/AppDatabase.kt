@@ -18,7 +18,7 @@ import com.meloda.fast.model.AppAccount
         VkUser::class,
         VkGroup::class
     ],
-    version = 30,
+    version = 31,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
