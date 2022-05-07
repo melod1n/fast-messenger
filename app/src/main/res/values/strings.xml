@@ -156,6 +156,7 @@
     <string name="confirm_unpin_message">Unpin the message?</string>
 
     <string name="title_messages">Messages</string>
+    <string name="title_forwarded_messages">Forwarded messages</string>
 
     <string name="message_attachment_story_your_story">Your story</string>
     <string name="message_attachment_story_story_from">Story from\n%s</string>

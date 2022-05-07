@@ -77,6 +77,7 @@ class MessagesPreparator constructor(
 
     private var photoClickListener: ((url: String) -> Unit)? = null
     private var replyClickListener: ((replyMessage: VkMessage) -> Unit)? = null
+    private var forwardsClickListener: ((forwards: List<VkMessage>) -> Unit)? = null
 
     fun withPhotoClickListener(block: ((url: String) -> Unit)?): MessagesPreparator {
         this.photoClickListener = block
@@ -85,6 +86,11 @@ class MessagesPreparator constructor(
 
     fun withReplyClickListener(block: ((replyMessage: VkMessage) -> Unit)?): MessagesPreparator {
         this.replyClickListener = block
+        return this
+    }
+
+    fun withForwardsClickListener(block: ((forwards: List<VkMessage>) -> Unit)?): MessagesPreparator {
+        this.forwardsClickListener = block
         return this
     }
 
@@ -202,6 +208,7 @@ class MessagesPreparator constructor(
                 )
                     .withPhotoClickListener(photoClickListener)
                     .withReplyClickListener(replyClickListener)
+                    .withForwardsClickListener(forwardsClickListener)
                     .inflate()
             }
         }

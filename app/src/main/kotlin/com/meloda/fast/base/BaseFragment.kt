@@ -28,4 +28,15 @@ abstract class BaseFragment : Fragment {
         }
     }
 
+    val activityRouter
+        get() = run {
+            if (requireActivity() is MainActivity) {
+                (requireActivity() as MainActivity).router
+            } else {
+                null
+            }
+        }
+
+    fun requireActivityRouter() = requireNotNull(activityRouter)
+
 }

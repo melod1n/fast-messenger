@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.messages
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -29,14 +30,35 @@ import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.model.DataItem
 
 class MessagesHistoryAdapter constructor(
-    val fragment: MessagesHistoryFragment,
+    context: Context,
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf()
 ) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(
-    fragment.requireContext(),
+    context,
     Comparator
 ) {
+
+    constructor(
+        fragment: MessagesHistoryFragment,
+        conversation: VkConversation,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ) : this(fragment.requireContext(), conversation, profiles, groups) {
+        this.messagesHistoryFragment = fragment
+    }
+
+    constructor(
+        fragment: ForwardedMessagesFragment,
+        conversation: VkConversation,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ) : this(fragment.requireContext(), conversation, profiles, groups) {
+        this.forwardedMessagesFragment = fragment
+    }
+
+    private var messagesHistoryFragment: MessagesHistoryFragment? = null
+    private var forwardedMessagesFragment: ForwardedMessagesFragment? = null
 
     var avatarLongClickListener: ((position: Int) -> Unit)? = null
 
@@ -156,13 +178,24 @@ class MessagesHistoryAdapter constructor(
 
                 profiles = profiles,
                 groups = groups
-            ).withPhotoClickListener {
-                Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
-                    fragment.requireActivity().startActivity(this)
+            )
+                .withPhotoClickListener {
+                    Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
+                        context.startActivity(this)
+                    }
                 }
-            }.withReplyClickListener {
-                fragment.scrollToMessage(it.id)
-            }
+                .withReplyClickListener {
+                    messagesHistoryFragment?.scrollToMessage(it.id)
+                    forwardedMessagesFragment?.scrollToMessage(it.id)
+                }
+                .withForwardsClickListener { messages ->
+                    messagesHistoryFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                    forwardedMessagesFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                }
                 .prepare()
 
             binding.avatar.setOnLongClickListener {

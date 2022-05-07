@@ -58,6 +58,7 @@ class AttachmentInflater constructor(
 
     private var photoClickListener: ((url: String) -> Unit)? = null
     private var replyClickListener: ((replyMessage: VkMessage) -> Unit)? = null
+    private var forwardsClickListener: ((forwards: List<VkMessage>) -> Unit)? = null
 
     private val displayMetrics get() = Resources.getSystem().displayMetrics
 
@@ -71,6 +72,11 @@ class AttachmentInflater constructor(
         return this
     }
 
+    fun withForwardsClickListener(block: ((forwards: List<VkMessage>) -> Unit)?): AttachmentInflater {
+        this.forwardsClickListener = block
+        return this
+    }
+
     fun inflate() {
         container.removeAllViews()
         replyContainer.removeAllViews()
@@ -81,6 +87,10 @@ class AttachmentInflater constructor(
 
         if (message.hasReply()) {
             reply(requireNotNull(message.replyMessage))
+        }
+
+        if (message.hasForwards()) {
+            forwards(requireNotNull(message.forwards))
         }
 
         if (message.hasGeo()) {
@@ -177,6 +187,12 @@ class AttachmentInflater constructor(
 
         val title = VkUtils.getMessageTitle(replyMessage, fromUser, fromGroup)
         binding.title.text = title ?: "..."
+    }
+
+    private fun forwards(forwards: List<VkMessage>) {
+        val binding = ItemMessageAttachmentForwardsBinding.inflate(inflater, container, true)
+
+        binding.root.setOnClickListener { forwardsClickListener?.invoke(forwards) }
     }
 
     private fun geo(geo: BaseVkMessage.Geo) {
@@ -353,7 +369,7 @@ class AttachmentInflater constructor(
     }
 
     private fun wall(wall: VkWall) {
-        val binding = ItemMessageAttachmentWallPostBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentWallPostBinding.inflate(inflater, container, true)
 
         val group = if (wall.fromId > 0) null else groups[wall.fromId]
         val user = if (wall.fromId < 0) null else profiles[wall.fromId]

@@ -30,6 +30,7 @@ import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.*
@@ -858,7 +859,17 @@ class MessagesHistoryFragment :
                 }
             }.start()
         }
+    }
 
+    fun openForwardsScreen(
+        conversation: VkConversation,
+        messages: List<VkMessage>,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ) {
+        requireActivityRouter().navigateTo(
+            Screens.ForwardedMessages(conversation, messages, profiles, groups)
+        )
     }
 
 }
