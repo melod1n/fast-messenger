@@ -574,6 +574,9 @@ object VkUtils {
                 message.geo?.let {
                     return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
                 }
+
+                if (attachments.isEmpty()) return null
+
                 getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentIconByType(
                         context,
