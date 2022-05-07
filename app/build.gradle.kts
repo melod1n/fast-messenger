@@ -5,7 +5,7 @@ val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFing
 
 val majorVersion = 1
 val minorVersion = 4
-val patchVersion = 5
+val patchVersion = 6
 
 plugins {
     id("com.android.application")

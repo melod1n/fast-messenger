@@ -50,6 +50,8 @@
 
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="alertDialogStyle">@style/AppTheme.Alert</item>
+
+        <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
     </style>
 
     <style name="AppTheme" parent="Base.V21.AppTheme" />
