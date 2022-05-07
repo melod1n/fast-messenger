@@ -37,6 +37,8 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
             val fragment = UpdatesFragment()
             if (updateItem != null) {
                 fragment.arguments = bundleOf(ARG_UPDATE_ITEM to updateItem)
+            } else {
+                fragment.arguments = Bundle()
             }
 
             return fragment
@@ -67,6 +69,12 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         } else {
             viewModel.checkUpdates()
         }
+
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+
+        binding.changelog.setOnClickListener {
+            showChangelogAlert()
+        }
     }
 
     private fun refreshState(state: UpdateState) {
@@ -78,6 +86,9 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         )
         binding.progress.toggleVisibility(
             viewModel.updateState.value == UpdateState.Loading
+        )
+        binding.changelog.toggleVisibility(
+            viewModel.updateState.value == UpdateState.NewUpdate
         )
 
         when (state) {
@@ -214,5 +225,20 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         )
 
         requireContext().startActivity(installIntent)
+    }
+
+    private fun showChangelogAlert() {
+        val version = viewModel.currentItem.value?.version
+        val changelog = viewModel.currentItem.value?.changelogs?.get(version)
+
+        val messageText =
+            if (changelog.isNullOrBlank()) getString(R.string.fragment_updates_changelog_none)
+            else changelog
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.fragment_updates_changelog)
+            .setMessage(messageText)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 }

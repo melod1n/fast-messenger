@@ -24,7 +24,7 @@ class UpdateManager(private val repo: OtaRepo) {
                     is Answer.Success -> {
                         val item = response.data
 
-                        if (AppGlobal.versionName.split('_')[1] != item.version) {
+                        if (AppGlobal.versionName.split('_').getOrNull(1) != item.version) {
                             newUpdate.setIfNotEquals(item)
                             block.invoke(null, item)
                         } else {

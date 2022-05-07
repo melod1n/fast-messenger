@@ -5,7 +5,7 @@ val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFing
 
 val majorVersion = 1
 val minorVersion = 4
-val patchVersion = 4
+val patchVersion = 5
 
 plugins {
     id("com.android.application")
@@ -128,9 +128,16 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("org.jsoup:jsoup:1.14.3")
-    implementation("ch.acra:acra:4.11.1")
 
     implementation("com.github.bumptech.glide:glide:4.13.0")
     kapt("com.github.bumptech.glide:compiler:4.13.0")
     implementation(kotlin("reflect"))
+
+    val acraVersion = "5.9.3"
+
+    implementation("ch.acra:acra-http:$acraVersion")
+    implementation("ch.acra:acra-mail:$acraVersion")
+    implementation("ch.acra:acra-core:$acraVersion")
+    implementation("ch.acra:acra-dialog:$acraVersion")
+    implementation("ch.acra:acra-notification:$acraVersion")
 }

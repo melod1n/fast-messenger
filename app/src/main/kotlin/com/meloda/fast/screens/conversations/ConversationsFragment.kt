@@ -27,6 +27,7 @@ import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.AppSettings
+import com.meloda.fast.common.Screens
 import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
@@ -65,14 +66,20 @@ class ConversationsFragment :
                 binding.toolbar,
                 Gravity.BOTTOM or Gravity.END
             ).apply {
+                menu.add("Settings")
                 menu.add(getString(R.string.log_out))
                 setOnMenuItemClickListener { item ->
-                    if (item.title == getString(R.string.log_out)) {
-                        showLogOutDialog()
-                        return@setOnMenuItemClickListener true
+                    return@setOnMenuItemClickListener when (item.title) {
+                        getString(R.string.log_out) -> {
+                            showLogOutDialog()
+                            true
+                        }
+                        "Settings" -> {
+                            requireActivityRouter().navigateTo(Screens.Settings())
+                            true
+                        }
+                        else -> false
                     }
-
-                    false
                 }
             }
 
