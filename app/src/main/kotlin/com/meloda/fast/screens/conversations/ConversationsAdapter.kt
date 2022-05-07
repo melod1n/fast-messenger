@@ -75,20 +75,26 @@ class ConversationsAdapter constructor(
             binding.title.maxLines = maxLines
             binding.message.maxLines = maxLines
 
-            val message = if (conversation.lastMessage != null) conversation.lastMessage!!
-            else {
-                binding.title.text = conversation.title
-                val text = context.getString(
-                    if (conversation.isPhantom) R.string.messages_self_destructed
-                    else R.string.no_messages
-                )
+            val message =
+                if (conversation.lastMessage != null) requireNotNull(conversation.lastMessage)
+                else {
+                    binding.title.text = conversation.title
+                    val text = context.getString(
+                        if (conversation.isPhantom) R.string.messages_self_destructed
+                        else R.string.no_messages
+                    )
 
-                val span = SpannableString(text)
-                span.setSpan(ForegroundColorSpan(resourceManager.colorOutline), 0, text.length, 0)
+                    val span = SpannableString(text)
+                    span.setSpan(
+                        ForegroundColorSpan(resourceManager.colorOutline),
+                        0,
+                        text.length,
+                        0
+                    )
 
-                binding.message.text = span
-                return
-            }
+                    binding.message.text = span
+                    return
+                }
 
             val conversationUser = VkUtils.getConversationUser(conversation, profiles)
             val conversationGroup = VkUtils.getConversationGroup(conversation, groups)

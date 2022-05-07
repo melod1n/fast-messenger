@@ -1,6 +1,5 @@
 package com.meloda.fast.api.model
 
-import androidx.lifecycle.MutableLiveData
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
@@ -72,6 +71,8 @@ data class VkMessage(
                     attachments!![0].javaClass
                 )) &&
                 (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.ONE_DAY_IN_SECONDS)
+
+    fun hasReply(): Boolean = replyMessage != null
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),

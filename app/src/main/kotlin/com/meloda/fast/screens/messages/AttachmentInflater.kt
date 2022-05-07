@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Space
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
@@ -36,6 +37,7 @@ class AttachmentInflater constructor(
     private val context: Context,
     private val container: LinearLayoutCompat,
     private val textContainer: LinearLayoutCompat,
+    private val replyContainer: FrameLayout,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
     private val groups: Map<Int, VkGroup>
@@ -54,23 +56,34 @@ class AttachmentInflater constructor(
     )
 
     private var photoClickListener: ((url: String) -> Unit)? = null
+    private var replyClickListener: ((replyMessage: VkMessage) -> Unit)? = null
 
     private val displayMetrics get() = Resources.getSystem().displayMetrics
 
-    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): AttachmentInflater {
-        this.photoClickListener = unit
+    fun withPhotoClickListener(block: ((url: String) -> Unit)?): AttachmentInflater {
+        this.photoClickListener = block
+        return this
+    }
+
+    fun withReplyClickListener(block: ((replyMessage: VkMessage) -> Unit)?): AttachmentInflater {
+        this.replyClickListener = block
         return this
     }
 
     fun inflate() {
         container.removeAllViews()
+        replyContainer.removeAllViews()
 
         if (textContainer.childCount > 1) {
             textContainer.removeViews(1, textContainer.childCount - 1)
         }
 
+        if (message.hasReply()) {
+            reply(requireNotNull(message.replyMessage))
+        }
+
         if (message.attachments.isNullOrEmpty()) return
-        attachments = message.attachments!!
+        attachments = requireNotNull(message.attachments)
 
         if (attachments.size == 1) {
             when (val attachment = attachments[0]) {
@@ -113,7 +126,6 @@ class AttachmentInflater constructor(
                 else -> unknown(attachment)
             }
         }
-
     }
 
     private fun unknown(attachment: VkAttachment) {
@@ -127,6 +139,39 @@ class AttachmentInflater constructor(
         textView.text = attachmentType
 
         textContainer.addView(textView)
+    }
+
+    private fun reply(replyMessage: VkMessage) {
+        val binding = ItemMessageAttachmentReplyBinding.inflate(inflater, replyContainer, true)
+        binding.root.setOnClickListener { replyClickListener?.invoke(replyMessage) }
+
+
+        val attachmentText = VkUtils.getAttachmentText(
+            context = context,
+            message = replyMessage
+        )
+
+        val forwardsMessage = if (replyMessage.text == null) VkUtils.getForwardsText(
+            context = context,
+            message = replyMessage
+        ) else null
+
+        val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text ?: "...").run {
+            VkUtils.prepareMessageText(this)
+        }
+
+        binding.text.text = messageText
+
+        val fromUser: VkUser? =
+            if (replyMessage.isUser()) profiles[replyMessage.fromId]
+            else null
+
+        val fromGroup: VkGroup? =
+            if (replyMessage.isGroup()) groups[replyMessage.fromId]
+            else null
+
+        val title = VkUtils.getMessageTitle(replyMessage, fromUser, fromGroup)
+        binding.title.text = title ?: "..."
     }
 
     private fun photo(photo: VkPhoto) {

@@ -1,13 +1,13 @@
 package com.meloda.fast.screens.messages
 
 import android.annotation.SuppressLint
-import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.util.ObjectsCompat
 import androidx.core.view.isVisible
@@ -29,11 +29,14 @@ import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.model.DataItem
 
 class MessagesHistoryAdapter constructor(
-    context: Context,
+    val fragment: MessagesHistoryFragment,
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf()
-) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(context, Comparator) {
+) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(
+    fragment.requireContext(),
+    Comparator
+) {
 
     var avatarLongClickListener: ((position: Int) -> Unit)? = null
 
@@ -87,14 +90,14 @@ class MessagesHistoryAdapter constructor(
         if (holder is Header || holder is Footer) {
             Log.d(
                 "MessagesHistoryAdapter",
-                "onBindViewHolder: index $position, holder is ${holder.javaClass.simpleName}. Skip"
+                "onBindViewHolder: index $position, holder: ${holder.javaClass.simpleName}. Skip"
             )
             return
         }
 
         Log.d(
             "MessagesHistoryAdapter",
-            "onBindViewHolder: index $position, holder is ${holder.javaClass.simpleName}. Bind"
+            "onBindViewHolder: index $position, holder: ${holder.javaClass.simpleName}. Bind"
         )
 
         initListeners(holder.itemView, position)
@@ -147,16 +150,22 @@ class MessagesHistoryAdapter constructor(
                 unread = binding.unread,
 
                 textContainer = binding.textContainer,
+                replyContainer = binding.replyContainer,
                 attachmentContainer = binding.attachmentContainer,
                 attachmentSpacer = binding.attachmentSpacer,
 
                 profiles = profiles,
                 groups = groups
-            ).setPhotoClickListener {
-                Toast.makeText(context, "Photo url: $it", Toast.LENGTH_LONG).show()
-            }.prepare()
+            ).withPhotoClickListener {
+                Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
+                    fragment.requireActivity().startActivity(this)
+                }
+            }.withReplyClickListener {
+                fragment.scrollToMessage(it.id)
+            }
+                .prepare()
 
-            binding.avatar.setOnLongClickListener() {
+            binding.avatar.setOnLongClickListener {
                 avatarLongClickListener?.invoke(position)
                 true
             }
@@ -184,6 +193,7 @@ class MessagesHistoryAdapter constructor(
                 unread = binding.unread,
 
                 textContainer = binding.textContainer,
+                replyContainer = binding.replyContainer,
                 attachmentContainer = binding.attachmentContainer,
                 attachmentSpacer = binding.attachmentSpacer,
 

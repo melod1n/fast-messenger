@@ -4,7 +4,7 @@ val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage"
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
 
 val majorVersion = 1
-val minorVersion = 3
+val minorVersion = 4
 val patchVersion = 1
 
 plugins {
@@ -92,7 +92,7 @@ dependencies {
     implementation("androidx.paging:paging-runtime-ktx:3.1.1")
 
     implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("com.google.android.material:material:1.6.0-beta01")
+    implementation("com.google.android.material:material:1.7.0-alpha01")
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.preference:preference-ktx:1.2.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
@@ -115,6 +115,7 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
+
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 

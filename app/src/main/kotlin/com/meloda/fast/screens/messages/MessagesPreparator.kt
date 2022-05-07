@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Space
 import android.widget.TextView
@@ -47,6 +48,7 @@ class MessagesPreparator constructor(
     private val unread: ImageView? = null,
     private val time: TextView? = null,
     private val textContainer: LinearLayoutCompat? = null,
+    private val replyContainer: FrameLayout? = null,
     private val attachmentContainer: LinearLayoutCompat? = null,
     private val attachmentSpacer: Space? = null,
 
@@ -74,9 +76,15 @@ class MessagesPreparator constructor(
         ContextCompat.getColor(context, R.color.n2_100)
 
     private var photoClickListener: ((url: String) -> Unit)? = null
+    private var replyClickListener: ((replyMessage: VkMessage) -> Unit)? = null
 
-    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): MessagesPreparator {
-        this.photoClickListener = unit
+    fun withPhotoClickListener(block: ((url: String) -> Unit)?): MessagesPreparator {
+        this.photoClickListener = block
+        return this
+    }
+
+    fun withReplyClickListener(block: ((replyMessage: VkMessage) -> Unit)?): MessagesPreparator {
+        this.replyClickListener = block
         return this
     }
 
@@ -170,22 +178,25 @@ class MessagesPreparator constructor(
             }
         }
 
-        if (attachmentContainer != null && textContainer != null) {
-
-            if (message.attachments.isNullOrEmpty()) {
+        if (attachmentContainer != null && textContainer != null && replyContainer != null) {
+            if (message.attachments.isNullOrEmpty() && !message.hasReply()) {
                 attachmentContainer.gone()
+                replyContainer.gone()
             } else {
+                replyContainer.visible()
                 attachmentContainer.visible()
 
                 AttachmentInflater(
                     context = context,
                     container = attachmentContainer,
                     textContainer = textContainer,
+                    replyContainer = replyContainer,
                     message = message,
                     groups = groups,
                     profiles = profiles
                 )
-                    .setPhotoClickListener(photoClickListener)
+                    .withPhotoClickListener(photoClickListener)
+                    .withReplyClickListener(replyClickListener)
                     .inflate()
             }
         }

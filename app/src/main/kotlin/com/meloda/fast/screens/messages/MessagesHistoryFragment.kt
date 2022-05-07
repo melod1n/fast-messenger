@@ -1,8 +1,6 @@
 package com.meloda.fast.screens.messages
 
 import android.animation.ValueAnimator
-import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,25 +8,19 @@ import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.animation.doOnEnd
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.view.setPadding
 import androidx.core.view.updateLayoutParams
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -41,7 +33,6 @@ import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.clear
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.util.AndroidUtils
@@ -53,7 +44,6 @@ import kotlin.concurrent.schedule
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
-
 
 @AndroidEntryPoint
 class MessagesHistoryFragment :
@@ -104,7 +94,7 @@ class MessagesHistoryFragment :
     }
 
     private val adapter: MessagesHistoryAdapter by lazy {
-        MessagesHistoryAdapter(requireContext(), conversation).also {
+        MessagesHistoryAdapter(this, conversation).also {
             it.itemClickListener = this::onItemClick
             it.avatarLongClickListener = this::onAvatarLongClickListener
         }
@@ -113,6 +103,10 @@ class MessagesHistoryFragment :
     private var timestampTimer: Timer? = null
 
     private lateinit var attachmentController: AttachmentPanelController
+
+    init {
+        shouldNavBarShown = false
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -130,10 +124,6 @@ class MessagesHistoryFragment :
 
         binding.toolbar.title = title ?: "..."
 
-        binding.back.setOnClickListener { requireActivity().onBackPressed() }
-
-        binding.title.text = title ?: "..."
-
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
             conversation.isUser() -> when {
@@ -149,8 +139,6 @@ class MessagesHistoryFragment :
         }
 
         binding.toolbar.subtitle = status ?: "..."
-
-        binding.status.text = status ?: "..."
 
         prepareAvatar()
 
@@ -178,17 +166,19 @@ class MessagesHistoryFragment :
             binding.recyclerView.scrollToPosition(adapter.lastPosition)
         }
 
+        binding.recyclerView.setItemViewCacheSize(30)
+
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 val firstPosition = layoutManager.findFirstVisibleItemPosition()
                 val lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
-                Log.d(
-                    "MessagesHistoryFragment",
-                    "onScrolled: lastPosition: $lastPosition; adapterLast: ${adapter.lastPosition}; " +
-                            "dy: $dy"
-                )
+//                Log.d(
+//                    "MessagesHistoryFragment",
+//                    "onScrolled: lastPosition: $lastPosition; adapterLast: ${adapter.lastPosition}; " +
+//                            "dy: $dy"
+//                )
 
                 setUnreadCounterVisibility(lastPosition, dy)
 
@@ -307,68 +297,24 @@ class MessagesHistoryFragment :
         }
     }
 
-    @ColorInt
-    private fun getColor(@ColorRes resId: Int): Int {
-        return ContextCompat.getColor(requireContext(), resId)
+    fun scrollToMessage(messageId: Int) {
+        adapter.searchMessageIndex(messageId)?.let { index ->
+            binding.recyclerView.scrollToPosition(index)
+        }
     }
 
     private fun prepareAvatar() {
         val avatar = when {
-//            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
             conversation.isUser() -> user?.photo200
             conversation.isGroup() -> group?.photo200
             conversation.isChat() -> conversation.photo200
             else -> null
         }
 
-        val colorOnPrimary = getColor(R.color.colorOnPrimary)
-        val colorUserAvatarAction = getColor(R.color.colorUserAvatarAction)
-        val colorOnUserAvatarAction = getColor(R.color.colorOnUserAvatarAction)
-
-        val icLauncherColor = getColor(R.color.a1_500)
-
-        binding.avatar.toggleVisibility(avatar != null)
-
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
         val avatarImageView: ImageView = avatarMenuItem.actionView.findViewById(R.id.avatar)
 
         avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
-
-        if (avatar == null) {
-            binding.avatarPlaceholder.visible()
-
-            if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
-                binding.placeholderBack.loadWithGlide(
-                    drawable = ColorDrawable(icLauncherColor),
-                    transformations = ImageLoader.userAvatarTransformations
-                )
-                binding.placeholder.imageTintList =
-                    ColorStateList.valueOf(colorOnPrimary)
-                binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
-                binding.placeholder.setPadding(18)
-            } else {
-                binding.placeholderBack.loadWithGlide(
-                    drawable = ColorDrawable(colorOnUserAvatarAction),
-                    transformations = ImageLoader.userAvatarTransformations
-                )
-                binding.placeholder.imageTintList =
-                    ColorStateList.valueOf(colorUserAvatarAction)
-                binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
-                binding.placeholder.setPadding(0)
-                binding.avatar.clear()
-            }
-        } else {
-            binding.avatar.load(avatar) {
-                crossfade(200)
-                target {
-                    binding.avatarPlaceholder.gone()
-                    binding.avatar.setImageDrawable(it)
-                }
-            }
-        }
-
-        binding.phantomIcon.toggleVisibility(conversation.isPhantom)
-        binding.online.toggleVisibility(user?.online)
     }
 
     private fun performAction() {

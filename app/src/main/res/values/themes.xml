@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
-    <style name="AppTheme" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Base.V21.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
@@ -48,17 +48,10 @@
         <item name="android:statusBarColor">@color/colorBackground</item>
         <item name="android:navigationBarColor">@color/colorBackground</item>
 
-        <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
-
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">
-            @bool/useLightNavigationBar
-        </item>
-        <item name="android:navigationBarDividerColor" tools:targetApi="o_mr1">
-            @android:color/transparent
-        </item>
-
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
+
+    <style name="AppTheme" parent="Base.V21.AppTheme" />
 
     <style name="AppTheme.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/colorBackground</item>

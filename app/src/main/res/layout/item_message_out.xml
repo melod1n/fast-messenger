@@ -22,6 +22,11 @@
         android:animateLayoutChanges="true"
         android:orientation="vertical">
 
+        <FrameLayout
+            android:id="@+id/reply_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
         <Space
             android:id="@+id/spacer"
             android:layout_width="match_parent"

@@ -9,11 +9,10 @@
         android:id="@+id/refreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="86dp"
         app:layout_constraintBottom_toTopOf="@id/list_anchor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/app_bar">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
@@ -26,17 +25,10 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- TODO: констрейнт + низ рефреша зависит от панели аттачей. -->
-    <!-- Если её нет, то goneMargin. Такое же поведение у фабы -->
-
-    <FrameLayout
-        android:id="@+id/toolbarContainer"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:animateLayoutChanges="true"
-        android:background="@drawable/ic_messages_history_toolbar_gradient_background"
-        android:backgroundTint="?colorBackground"
-        android:minHeight="140dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -44,7 +36,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             app:navigationIcon="@drawable/ic_round_arrow_back_24"
             app:navigationIconTint="?colorOnBackground"
             app:subtitleCentered="true"
@@ -52,174 +44,29 @@
             tools:subtitle="Last seen at 05.26.21, 17:55"
             tools:title="@tools:sample/full_names" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="56dp"
-            android:orientation="horizontal"
-            android:paddingStart="12dp"
-            android:visibility="gone"
-            android:paddingTop="18dp"
-            android:paddingEnd="30dp"
-            android:paddingBottom="24dp">
+    </com.google.android.material.appbar.AppBarLayout>
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/back"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="12dp"
-                android:background="?selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_round_arrow_back_24"
-                android:tint="?colorOnBackground" />
-
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp">
-
-                <com.meloda.fast.widget.CircleImageView
-                    android:id="@+id/avatar"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    tools:src="@tools:sample/avatars" />
-
-                <FrameLayout
-                    android:id="@+id/avatarPlaceholder"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/placeholderBack"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="1dp"
-                        tools:src="@color/colorOnUserAvatarAction" />
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/placeholder"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_account_circle_cut"
-                        app:tint="@color/colorUserAvatarAction" />
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/online"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:layout_gravity="end|bottom"
-                    android:visibility="gone"
-                    tools:visibility="visible">
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:id="@+id/online_border"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:src="?colorBackground" />
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_online_pc"
-                        android:tint="?colorPrimaryVariant" />
-
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/service"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="end|top"
-                    android:visibility="gone"
-                    tools:visibility="visible">
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/ic_back"
-                        android:backgroundTint="@color/colorUserAvatarAction"
-                        android:elevation="0.5dp" />
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:id="@+id/phantomIcon"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_gravity="center"
-                        android:elevation="1dp"
-                        android:src="@drawable/ic_phantom"
-                        android:visibility="gone"
-                        app:tint="@color/colorOnUserAvatarAction"
-                        tools:visibility="gone" />
-
-                    <com.meloda.fast.widget.CircleImageView
-                        android:id="@+id/callIcon"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_gravity="center"
-                        android:elevation="1dp"
-                        android:src="@drawable/ic_attachment_group_call"
-                        android:visibility="gone"
-                        app:tint="@color/colorOnUserAvatarAction"
-                        tools:visibility="visible" />
-
-                </FrameLayout>
-            </FrameLayout>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:orientation="vertical">
-
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/google_sans_regular"
-                    android:maxLines="1"
-                    android:textColor="?colorOnBackground"
-                    android:textSize="20sp"
-                    tools:text="@tools:sample/full_names" />
-
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:alpha="0.7"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="?colorOnBackground"
-                    tools:text="Online" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/timestamp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|bottom"
-            android:layout_marginBottom="24dp"
-            android:elevation="2dp"
-            android:enabled="false"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
-            android:textColor="?colorOnBackground"
-            android:visibility="gone"
-            app:chipBackgroundColor="?colorBackgroundVariant"
-            app:chipCornerRadius="16dp"
-            app:chipStrokeWidth="0dp"
-            app:textEndPadding="12dp"
-            app:textStartPadding="12dp"
-            tools:text="today"
-            tools:visibility="visible" />
-
-    </FrameLayout>
+    <com.google.android.material.chip.Chip
+        android:id="@+id/timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:elevation="2dp"
+        android:enabled="false"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="4dp"
+        android:textColor="?colorOnBackground"
+        android:visibility="gone"
+        app:chipBackgroundColor="?colorBackgroundVariant"
+        app:chipCornerRadius="16dp"
+        app:chipStrokeWidth="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/app_bar"
+        app:textEndPadding="12dp"
+        app:textStartPadding="12dp"
+        tools:text="today"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/attachment_panel"

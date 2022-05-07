@@ -3,7 +3,11 @@
 
     <string name="message_attachments_many">Attachments</string>
 
+    <string name="navigation_friends">Friends</string>
     <string name="navigation_chats">Chats</string>
+    <string name="navigation_profile">Profile</string>
+    <string name="navigation_favorites">Favorites</string>
+    <string name="navigation_settings">Settings</string>
 
     <string name="error">Error: %s</string>
 

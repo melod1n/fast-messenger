@@ -37,6 +37,11 @@
             android:textColor="?colorTertiary"
             tools:text="@tools:sample/full_names" />
 
+        <FrameLayout
+            android:id="@+id/reply_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

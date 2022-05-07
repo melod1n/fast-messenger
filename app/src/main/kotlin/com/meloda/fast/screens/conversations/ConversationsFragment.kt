@@ -2,11 +2,15 @@ package com.meloda.fast.screens.conversations
 
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.view.get
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +18,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
+import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.BaseViewModelFragment
@@ -71,6 +76,10 @@ class ConversationsFragment :
                 }
             }
 
+    private var toggle: ActionBarDrawerToggle? = null
+
+    private val useNavDrawer: Boolean get() = (requireActivity() as MainActivity).useNavDrawer
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prepareViews()
@@ -93,7 +102,10 @@ class ConversationsFragment :
             )
         )
 
+        binding.toolbar.menu[0].isVisible = false
+
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
+        syncAvatarMenuItem(avatarMenuItem)
 
         UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
             user?.run {
@@ -101,6 +113,12 @@ class ConversationsFragment :
                     .loadWithGlide(
                         url = this.photo200, crossFade = true, asCircle = true
                     )
+
+                val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
+                header.findViewById<TextView>(R.id.name).text = user.fullName
+                header.findViewById<ImageView>(R.id.avatar).loadWithGlide(
+                    url = this.photo200, crossFade = true, asCircle = true
+                )
             }
         }
 
@@ -122,6 +140,33 @@ class ConversationsFragment :
 
         viewModel.loadProfileUser()
         viewModel.loadConversations()
+
+        syncToolbarToggle()
+
+        binding.createChat.gone()
+    }
+
+    private fun syncAvatarMenuItem(item: MenuItem) {
+        item.isVisible = !useNavDrawer
+    }
+
+    private fun syncToolbarToggle() {
+        (requireActivity() as MainActivity).let { activity ->
+            if (useNavDrawer) {
+                toggle = ActionBarDrawerToggle(
+                    activity, activity.binding.drawerLayout,
+                    binding.toolbar, R.string.app_name, R.string.app_name
+                ).apply {
+                    isDrawerSlideAnimationEnabled = false
+                    activity.binding.drawerLayout.addDrawerListener(this)
+                    syncState()
+                }
+            } else {
+                toggle?.let { toggle ->
+                    activity.binding.drawerLayout.removeDrawerListener(toggle)
+                }
+            }
+        }
     }
 
     private fun showLogOutDialog() {
