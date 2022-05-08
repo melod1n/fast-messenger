@@ -11,8 +11,6 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
     <application
         android:name=".common.AppGlobal"
         android:allowBackup="false"

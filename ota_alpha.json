@@ -1,10 +1,12 @@
 {
-    "version": "1.4.6",
-    "link": "https://github.com/melod1n/fast-messenger/releases/download/1.4.6/app-alpha.apk",
+    "version": "1.4.8",
+    "link": "https://github.com/melod1n/fast-messenger/releases/download/1.4.8/app-alpha.apk",
     "changelogs": {
         "1.4.3": "* forwards attachment\n* fix empty screen after clear database",
         "1.4.4": "* hotfix crash on conversations list",
         "1.4.5": "* ability to see changelog on update screen\n* settings screen\n* ACRA Crash Reporter",
-        "1.4.6": "* hotfix light status bar on android < 8"
+        "1.4.6": "* hotfix light status bar on android < 8",
+        "1.4.7": "* multiline dialogs in settings\n* fix crash on 2FA sign in",
+        "1.4.8": "* Microsoft AppCenter integration with crashes and distribution"
     }
 }

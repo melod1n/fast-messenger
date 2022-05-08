@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.login
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.os.Bundle
@@ -13,29 +14,31 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import coil.load
-import coil.transform.RoundedCornersTransformation
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
+import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.base.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.*
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.TypeTransformations
+import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.extensions.hideKeyboard
-import com.meloda.fast.extensions.invisible
-import com.meloda.fast.extensions.visible
+import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URLEncoder
@@ -68,6 +71,16 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         prepareViews()
 
         binding.loginInput.clearFocus()
+
+        binding.useCrashReporter.isChecked =
+            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefEnableReporter, true)
+        binding.useCrashReporter.setOnCheckedChangeListener { _, isChecked ->
+            AppGlobal.preferences.edit {
+                putBoolean(SettingsPrefsFragment.PrefEnableReporter, isChecked)
+                requireActivity().finishAffinity()
+                startActivity(Intent(requireContext(), MainActivity::class.java))
+            }
+        }
     }
 
     override fun onEvent(event: VkEvent) {
@@ -139,6 +152,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun launchWebView() {
+        viewModel.initUserConfig()
+        viewModel.openPrimaryScreen()
+        // TODO: 08.05.2022, Danil Nikolaev: отдебажить
+        if (true) return
         val urlToLoad = "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
                 "access_token=${UserConfig.accessToken}&" +
                 "sdk_package=com.meloda.fast.activity&" +
@@ -243,7 +260,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         lastLogin = loginString
         lastPassword = passwordString
 
-        requireView().findFocus().hideKeyboard()
+        requireView().findFocus()?.hideKeyboard()
 
         viewModel.login(
             login = loginString,
@@ -259,22 +276,22 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     ): Boolean {
         var isValidated = true
 
-        if (loginString?.isEmpty() == true) {
+        if (loginString.isNullOrBlank()) {
             isValidated = false
             setError(getString(R.string.input_login_hint), binding.loginLayout)
         }
 
-        if (passwordString?.isEmpty() == true) {
+        if (passwordString.isNullOrBlank()) {
             isValidated = false
             setError(getString(R.string.input_password_hint), binding.passwordLayout)
         }
 
-        if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
+        if (captchaCode.isNullOrBlank() && captchaInputLayout != null) {
             isValidated = false
             setError(getString(R.string.input_code_hint), captchaInputLayout!!)
         }
 
-        if (validationCode?.isEmpty() == true && validationInputLayout != null) {
+        if (validationCode.isNullOrBlank() && validationInputLayout != null) {
             isValidated = false
             setError(getString(R.string.input_code_hint), validationInputLayout!!)
         }
@@ -310,12 +327,13 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
         captchaInputLayout = captchaBinding.captchaLayout
 
-        captchaBinding.image.load(captchaImage) {
-            crossfade(100)
-            transformations(RoundedCornersTransformation(4f))
-        }
+        captchaBinding.image.loadWithGlide(
+            url = captchaImage,
+            crossFade = true,
+            transformations = listOf(TypeTransformations.RoundedCornerCrop(4.dpToPx()))
+        )
 
-        val builder = AlertDialog.Builder(requireContext())
+        val builder = MaterialAlertDialogBuilder(requireContext())
             .setView(captchaBinding.root)
             .setCancelable(false)
             .setTitle(R.string.input_captcha)
@@ -347,7 +365,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         val validationBinding = DialogValidationBinding.inflate(layoutInflater, null, false)
         validationInputLayout = validationBinding.codeLayout
 
-        val builder = AlertDialog.Builder(requireContext())
+        val builder = MaterialAlertDialogBuilder(requireContext())
             .setView(validationBinding.root)
             .setCancelable(false)
             .setTitle(R.string.input_validation_code)

@@ -36,7 +36,7 @@ object ImageLoader {
         placeholderDrawable: Drawable = ColorDrawable(Color.TRANSPARENT),
         errorDrawable: Drawable = placeholderDrawable,
         crossFade: Boolean = false,
-        crossFadeDuration: Int = 200,
+        crossFadeDuration: Int? = null,
         asCircle: Boolean = false,
         transformations: List<TypeTransformations> = emptyList(),
         onLoadedAction: (() -> Unit)? = null,
@@ -62,8 +62,8 @@ object ImageLoader {
             .diskCacheStrategy(cacheStrategy)
             .priority(priority)
 
-        if (crossFade) {
-            builder = builder.transition(withCrossFade(crossFadeDuration))
+        if (crossFade || crossFadeDuration != null) {
+            builder = builder.transition(withCrossFade(crossFadeDuration ?: 200))
         }
 
         if (asCircle) {

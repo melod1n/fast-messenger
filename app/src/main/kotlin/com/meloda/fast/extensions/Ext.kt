@@ -99,14 +99,6 @@ fun TextView.toggleVisibilityIfHasContent(visibilityWhenFalse: Int = View.GONE) 
     visibility = if (!text.isNullOrEmpty()) View.VISIBLE else visibilityWhenFalse
 }
 
-fun <T> MutableLiveData<T>.setIfNotEquals(item: T) {
-    if (this.value != item) this.value = item
-}
-
-fun <T> MutableLiveData<T>.requireValue(): T {
-    return this.value!!
-}
-
 fun View.showKeyboard(flags: Int = 0) {
     AppGlobal.inputMethodManager.showSoftInput(this, flags)
 }
@@ -150,4 +142,16 @@ fun Toolbar.addAvatarMenuItem(urlToLoad: String? = null, drawable: Drawable? = n
     }
 
     return avatarMenuItem
+}
+
+fun <T> MutableLiveData<T>.notifyObservers() {
+    this.value = this.value
+}
+
+fun <T> MutableLiveData<T>.setIfNotEquals(item: T) {
+    if (this.value != item) this.value = item
+}
+
+fun <T> MutableLiveData<T>.requireValue(): T {
+    return this.value!!
 }

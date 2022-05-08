@@ -13,6 +13,15 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/use_crash_reporter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:checked="true"
+        android:text="Use crash reporter tool"
+        tools:ignore="HardcodedText" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

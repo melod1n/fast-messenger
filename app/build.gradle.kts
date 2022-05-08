@@ -3,9 +3,12 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
 
+val msAppCenterToken: String =
+    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", null)
+
 val majorVersion = 1
 val minorVersion = 4
-val patchVersion = 6
+val patchVersion = 8
 
 plugins {
     id("com.android.application")
@@ -38,6 +41,8 @@ android {
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
+            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
+
             versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
@@ -45,6 +50,8 @@ android {
 
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
+
+            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -55,6 +62,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjvm-default=compatibility")
     }
 
     buildFeatures {
@@ -79,18 +90,20 @@ dependencies {
     // Cicerone - Navigation
     implementation("com.github.terrakok:cicerone:7.1")
 
+    // androidx - ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
 
-    implementation("com.github.massoudss:waveformSeekBar:3.1.0")
-
+    // androidx - SplashScreen
     implementation("androidx.core:core-splashscreen:1.0.0-beta02")
 
-    implementation("androidx.work:work-runtime-ktx:2.7.1")
+    // WaveformSeekBar - for voice messages
+    implementation("com.github.massoudss:waveformSeekBar:5.0.0")
 
+
+    // androidx - DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("androidx.paging:paging-runtime-ktx:3.1.1")
-
+    // androidx - Base
     implementation("androidx.appcompat:appcompat:1.4.1")
     implementation("com.google.android.material:material:1.7.0-alpha01")
     implementation("androidx.core:core-ktx:1.7.0")
@@ -124,7 +137,7 @@ dependencies {
 
     implementation("com.github.yogacp:android-viewbinding:1.0.4")
 
-    implementation("io.coil-kt:coil:1.4.0")
+//    implementation("io.coil-kt:coil:1.4.0")
 
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("org.jsoup:jsoup:1.14.3")
@@ -133,11 +146,15 @@ dependencies {
     kapt("com.github.bumptech.glide:compiler:4.13.0")
     implementation(kotlin("reflect"))
 
-    val acraVersion = "5.9.3"
+    // KPermissions
+    val kPermissionsVersion = "3.3.0"
+    implementation("com.github.fondesa:kpermissions:$kPermissionsVersion")
+    implementation("com.github.fondesa:kpermissions-coroutines:$kPermissionsVersion")
 
-    implementation("ch.acra:acra-http:$acraVersion")
-    implementation("ch.acra:acra-mail:$acraVersion")
-    implementation("ch.acra:acra-core:$acraVersion")
-    implementation("ch.acra:acra-dialog:$acraVersion")
-    implementation("ch.acra:acra-notification:$acraVersion")
+    // Microsoft AppCenter
+    val appCenterSdkVersion = "4.3.1"
+    implementation("com.microsoft.appcenter:appcenter-analytics:$appCenterSdkVersion")
+    implementation("com.microsoft.appcenter:appcenter-crashes:$appCenterSdkVersion")
+    implementation("com.microsoft.appcenter:appcenter-distribute:$appCenterSdkVersion")
+
 }

@@ -3,6 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <PreferenceCategory
+        android:key="appearance"
+        android:title="Appearance" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="appearance_multiline"
+        android:summary="The title of the dialog and the text of the message can take up two lines"
+        android:title="Multiline titles and messages" />
+
+    <PreferenceCategory
         android:key="updates"
         android:title="Updates" />
 
@@ -12,32 +22,13 @@
         tools:summary="Current version: 1.4.4" />
 
     <PreferenceCategory
-        android:key="acra"
-        android:title="ACRA Crash Reporter" />
+        android:key="msappcenter"
+        android:title="MS AppCenter Crash Reporter" />
 
     <CheckBoxPreference
         android:defaultValue="true"
-        android:key="acra.enable"
-        android:title="Enable ACRA" />
-
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="acra.alwaysaccept"
-        android:summaryOff="You need to confirm send report"
-        android:summaryOn="Report will be sent without confirmation"
-        android:title="Automatically send crash reports" />
-
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="acra.deviceid.enable"
-        android:summary="ACRA will include Device ID (IMEI for GSM and the MEID or ESN for CDMA phones) to report"
-        android:title="Include Device Unique ID" />
-
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="acra.syslog.enable"
-        android:summary="Including logcat extracts in reports is a great tool for developers, but it can lead to privacy issues as some other applications might log private data like user account names, opened URLs, calendar events..."
-        android:title="Include system logs" />
+        android:key="msappcenter.enable"
+        android:title="Enable Crash Reporter" />
 
     <PreferenceCategory
         android:key="misc"

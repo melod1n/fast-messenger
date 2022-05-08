@@ -2,8 +2,8 @@ package com.meloda.fast.screens.photos
 
 import android.widget.ImageView
 import androidx.lifecycle.viewModelScope
-import coil.load
 import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import kotlinx.coroutines.launch
 
 class PhotoViewViewModel : BaseViewModel() {
@@ -12,7 +12,7 @@ class PhotoViewViewModel : BaseViewModel() {
         url: String,
         imageView: ImageView
     ) = viewModelScope.launch {
-        imageView.load(url)
+        imageView.loadWithGlide(url = url)
     }
 
     fun saveImageToLocalStorage(url: String) = viewModelScope.launch {

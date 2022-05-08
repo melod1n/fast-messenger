@@ -12,15 +12,8 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.meloda.fast.BuildConfig
-import com.meloda.fast.R
 import com.meloda.fast.database.AppDatabase
 import dagger.hilt.android.HiltAndroidApp
-import org.acra.ACRA
-import org.acra.config.dialog
-import org.acra.config.mailSender
-import org.acra.data.StringFormat
-import org.acra.ktx.initAcra
 import kotlin.math.sqrt
 
 @HiltAndroidApp
@@ -50,42 +43,9 @@ class AppGlobal : Application() {
         val Instance get() = instance
     }
 
-    override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
-
-        initAcra {
-            //core configuration:
-            buildConfigClass = BuildConfig::class.java
-            reportFormat = StringFormat.JSON
-
-            alsoReportToAndroidFramework = true
-
-            mailSender {
-                mailTo = "lischenkodev@gmail.com"
-
-                reportFileName = "stacktrace.json"
-            }
-
-            dialog {
-                resIcon = 0
-                resTheme = R.style.AppTheme_Alert
-
-                title = getString(R.string.warning)
-                text = getString(R.string.app_crash_occurred)
-                commentPrompt = getString(R.string.app_crash_comment_prompt)
-
-                positiveButtonText = getString(R.string.app_crash_report)
-            }
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
         instance = this
-
-        if (!BuildConfig.DEBUG) {
-            ACRA.init(this)
-        }
 
         appDatabase = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
             .fallbackToDestructiveMigration()

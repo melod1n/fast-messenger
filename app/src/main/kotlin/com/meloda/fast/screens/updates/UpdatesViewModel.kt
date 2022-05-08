@@ -5,6 +5,7 @@ import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.extensions.setIfNotEquals
 import com.meloda.fast.model.UpdateItem
+import com.microsoft.appcenter.distribute.Distribute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import javax.inject.Inject
@@ -20,6 +21,7 @@ class UpdatesViewModel @Inject constructor(private val updateManager: UpdateMana
     private var currentJob: Job? = null
 
     fun checkUpdates() {
+        Distribute.checkForUpdate()
         if (currentJob != null) {
             currentJob?.cancel()
             currentJob = null

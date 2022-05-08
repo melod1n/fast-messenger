@@ -1,67 +1,81 @@
 package com.meloda.fast.screens.settings
 
 import android.os.Bundle
+import androidx.core.os.bundleOf
+import androidx.fragment.app.setFragmentResult
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
+import com.microsoft.appcenter.crashes.Crashes
+import com.microsoft.appcenter.distribute.Distribute
 
-class SettingsPrefsFragment : PreferenceFragmentCompat() {
+class SettingsPrefsFragment : PreferenceFragmentCompat(),
+    Preference.OnPreferenceClickListener,
+    Preference.OnPreferenceChangeListener {
 
-    private companion object {
-        private const val CategoryUpdates = "updates"
-        private const val PrefCheckUpdates = "updates_check_updates"
+    @Suppress("unused")
+    companion object {
+        const val KeyChangeMultiline = "change_multiline"
+        const val ArgEnabled = "enabled"
 
-        private const val CategoryMisc = "misc"
-        private const val PrefPerformCrash = "misc_perform_crash"
+        const val CategoryAppearance = "appearance"
+        const val PrefMultiline = "appearance_multiline"
+
+        const val CategoryUpdates = "updates"
+        const val PrefCheckUpdates = "updates_check_updates"
+
+        const val CategoryMisc = "misc"
+        const val PrefPerformCrash = "misc_perform_crash"
+
+        const val CategoryAcra = "msappcenter"
+        const val PrefEnableReporter = "msappcenter.enable"
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-        val categoryUpdate: Preference? = findPreference(CategoryUpdates)
-        val checkUpdates: Preference? = findPreference(PrefCheckUpdates)
+        getPreference(PrefMultiline)?.let {
+            it.onPreferenceChangeListener = this
+        }
 
-        checkUpdates?.run {
+        getPreference(PrefCheckUpdates)?.let {
             val version = AppGlobal.versionName.split("_").getOrNull(1)
             val summaryText = getString(R.string.pref_updates_check_update_summary, version)
-            summary = summaryText
+            it.summary = summaryText
 
-            onPreferenceClickListener = clickListener
+            it.onPreferenceClickListener = this
         }
 
-        val categoryMisc: Preference? = findPreference(CategoryMisc)
-        val performCrash: Preference? = findPreference(PrefPerformCrash)
-        performCrash?.run {
-            onPreferenceClickListener = clickListener
+        getPreference(CategoryMisc)?.let {
+            it.isVisible = UserConfig.userId == 362877006
         }
-
-        val categoryAcra: Preference? = findPreference("acra")
-        val enableAcra: Preference? = findPreference("acra.enable")
-        enableAcra?.onPreferenceChangeListener = changeListener
+        getPreference(PrefPerformCrash)?.let {
+            it.isVisible = UserConfig.userId == 362877006
+            it.onPreferenceClickListener = this
+        }
     }
 
-    private val clickListener = Preference.OnPreferenceClickListener { preference ->
-        return@OnPreferenceClickListener when (preference.key) {
+    override fun onPreferenceClick(preference: Preference): Boolean {
+        return when (preference.key) {
             PrefCheckUpdates -> {
-                rootFragment?.openUpdatesScreen()
+                Distribute.checkForUpdate()
                 true
             }
             PrefPerformCrash -> {
-                throw RuntimeException("ur mom gay")
+                Crashes.generateTestCrash()
+                true
             }
             else -> false
         }
     }
 
-    private val changeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
-        return@OnPreferenceChangeListener when (preference.key) {
-            "acra.enable" -> {
+    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
+        return when (preference.key) {
+            PrefMultiline -> {
                 val enabled = newValue as Boolean
-
-                findPreference<Preference>("acra.alwaysaccept")?.isVisible = enabled
-                findPreference<Preference>("acra.deviceid.enable")?.isVisible = enabled
-                findPreference<Preference>("acra.syslog.enable")?.isVisible = enabled
+                setFragmentResult(KeyChangeMultiline, bundleOf(ArgEnabled to enabled))
                 true
             }
             else -> false
@@ -69,4 +83,6 @@ class SettingsPrefsFragment : PreferenceFragmentCompat() {
     }
 
     private val rootFragment: SettingsRootFragment? get() = parentFragment as? SettingsRootFragment
+
+    private fun getPreference(key: String) = findPreference<Preference>(key)
 }

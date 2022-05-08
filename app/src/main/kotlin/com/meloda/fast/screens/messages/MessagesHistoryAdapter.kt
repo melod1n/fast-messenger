@@ -13,7 +13,6 @@ import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.util.ObjectsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
-import coil.load
 import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
@@ -26,6 +25,7 @@ import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemMessageInBinding
 import com.meloda.fast.databinding.ItemMessageOutBinding
 import com.meloda.fast.databinding.ItemMessageServiceBinding
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.model.DataItem
 
@@ -283,10 +283,11 @@ class MessagesHistoryAdapter constructor(
                     size.height
                 )
 
-                binding.photo.load(size.url) {
-                    crossfade(150)
-                    fallback(ColorDrawable(Color.LTGRAY))
-                }
+                binding.photo.loadWithGlide(
+                    url = size.url,
+                    crossFade = true,
+                    placeholderDrawable = ColorDrawable(Color.LTGRAY)
+                )
             }
         }
     }

@@ -11,7 +11,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
-import androidx.datastore.preferences.core.edit
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -26,20 +26,17 @@ import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.Screens
-import com.meloda.fast.common.dataStore
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.addAvatarMenuItem
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.tintMenuItemIcons
 import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -89,16 +86,13 @@ class ConversationsFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        adapter.isMultilineEnabled =
+            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefMultiline, true)
+
         prepareViews()
 
         binding.recyclerView.adapter = adapter
-
-        lifecycleScope.launch {
-            requireContext().dataStore.data.map {
-                adapter.isMultilineEnabled = it[AppSettings.keyIsMultilineEnabled] ?: true
-                adapter.refreshList()
-            }.collect()
-        }
 
         binding.createChat.setOnClickListener {}
 
@@ -131,18 +125,6 @@ class ConversationsFragment :
 
         avatarMenuItem.actionView.run {
             setOnClickListener { avatarPopupMenu.show() }
-            setOnLongClickListener {
-                lifecycleScope.launch {
-                    requireContext().dataStore.edit { settings ->
-                        val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
-                        settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
-
-                        adapter.isMultilineEnabled = !isMultilineEnabled
-                        adapter.refreshList()
-                    }
-                }
-                true
-            }
         }
 
         viewModel.loadProfileUser()
@@ -151,6 +133,15 @@ class ConversationsFragment :
         syncToolbarToggle()
 
         binding.createChat.gone()
+
+        setFragmentResultListener(SettingsPrefsFragment.KeyChangeMultiline) { _, bundle ->
+            val enabled = bundle.getBoolean(SettingsPrefsFragment.ArgEnabled)
+
+            if (adapter.isMultilineEnabled != enabled) {
+                adapter.isMultilineEnabled = enabled
+                adapter.refreshList()
+            }
+        }
     }
 
     private fun syncAvatarMenuItem(item: MenuItem) {

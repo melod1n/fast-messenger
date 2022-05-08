@@ -11,7 +11,6 @@ import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import coil.load
 import com.meloda.fast.R
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
@@ -21,6 +20,7 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkSticker
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.toggleVisibility
 import com.meloda.fast.extensions.visible
@@ -270,7 +270,10 @@ class MessagesPreparator constructor(
         if (avatar != null) {
             val avatarUrl = VkUtils.getMessageAvatar(message, messageUser, messageGroup)
 
-            avatar.load(avatarUrl) { crossfade(100) }
+            avatar.loadWithGlide(
+                url = avatarUrl,
+                crossFade = true
+            )
         }
     }
 }

@@ -46,7 +46,6 @@
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
 
         <item name="android:statusBarColor">@color/colorBackground</item>
-        <item name="android:navigationBarColor">@color/colorBackground</item>
 
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="alertDialogStyle">@style/AppTheme.Alert</item>
