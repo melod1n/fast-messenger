@@ -12,6 +12,11 @@
         android:summary="The title of the dialog and the text of the message can take up two lines"
         android:title="Multiline titles and messages" />
 
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="appearance_hide_keyboard_on_scroll"
+        android:title="Hide keyboard on scroll" />
+
     <PreferenceCategory
         android:key="updates"
         android:title="Updates" />

@@ -36,12 +36,14 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.files.FilesDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.screens.conversations.MessagesNewEvent
+import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -272,11 +274,13 @@ class MessagesHistoryFragment :
                 val firstPosition = layoutManager.findFirstVisibleItemPosition()
                 val lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
-//                Log.d(
-//                    "MessagesHistoryFragment",
-//                    "onScrolled: lastPosition: $lastPosition; adapterLast: ${adapter.lastPosition}; " +
-//                            "dy: $dy"
-//                )
+                if (AppGlobal.preferences.getBoolean(
+                        SettingsPrefsFragment.PrefHideKeyboardOnScroll,
+                        true
+                    ) && dy < 0
+                ) {
+                    binding.recyclerView.hideKeyboard()
+                }
 
                 setUnreadCounterVisibility(lastPosition, dy)
 
@@ -871,7 +875,15 @@ class MessagesHistoryFragment :
     }
 
     private fun setUnreadCounterVisibility(isVisible: Boolean) {
-        binding.unreadCounter.toggleVisibility(isVisible)
+        if (view == null) return
+
+        binding.unreadCounter.run {
+            if (isVisible) {
+                show()
+            } else {
+                hide()
+            }
+        }
     }
 
     private inner class AttachmentPanelController {

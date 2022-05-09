@@ -21,6 +21,7 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
 
         const val CategoryAppearance = "appearance"
         const val PrefMultiline = "appearance_multiline"
+        const val PrefHideKeyboardOnScroll = "appearance_hide_keyboard_on_scroll"
 
         const val CategoryUpdates = "updates"
         const val PrefCheckUpdates = "updates_check_updates"
