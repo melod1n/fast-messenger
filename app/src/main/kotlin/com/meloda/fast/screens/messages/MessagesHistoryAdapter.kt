@@ -340,6 +340,17 @@ class MessagesHistoryAdapter constructor(
         return false
     }
 
+    fun containsId(id: Int): Boolean {
+        for (i in indices) {
+            val item = getItem(i)
+            if (item !is VkMessage) continue
+
+            if (item.id == id) return true
+        }
+
+        return false
+    }
+
     fun getVkMessage(item: DataItem<*>?): VkMessage? {
         if (item == null) return null
         if (item is VkMessage) return item

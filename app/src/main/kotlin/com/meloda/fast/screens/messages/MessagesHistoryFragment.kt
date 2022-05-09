@@ -105,7 +105,7 @@ class MessagesHistoryFragment :
                 cursor.close()
             }
 
-            if (size >= 200) {
+            if (size > 200) {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.warning)
                     .setMessage("Selected file weighs more than 200 megabytes. Compress it or send other file")
@@ -857,7 +857,9 @@ class MessagesHistoryFragment :
         adapter.profiles += event.profiles
         adapter.groups += event.groups
 
-        if (adapter.containsRandomId(event.message.randomId)) return
+        if (adapter.containsRandomId(event.message.randomId)
+            || adapter.containsId(event.message.id)
+        ) return
 
         adapter.add(event.message, beforeFooter = true) {
             if (view == null) return@add
