@@ -9,7 +9,7 @@ val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecre
 
 val majorVersion = 1
 val minorVersion = 5
-val patchVersion = 3
+val patchVersion = 4
 
 plugins {
     id("com.android.application")
@@ -76,6 +76,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    namespace = "com.meloda.fast"
 }
 
 fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
