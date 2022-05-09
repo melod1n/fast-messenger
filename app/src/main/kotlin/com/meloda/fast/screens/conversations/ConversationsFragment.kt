@@ -320,7 +320,7 @@ class ConversationsFragment :
         val params = mutableListOf<String>()
 
         conversation.lastMessage?.run {
-            if (!this.isRead(conversation)) {
+            if (!this.isRead(conversation) && !isOut) {
                 params += read
             }
         }

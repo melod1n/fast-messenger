@@ -685,7 +685,7 @@ class MessagesHistoryFragment :
 
         params += important
 
-        if (!message.isRead(conversation)) {
+        if (!message.isRead(conversation) && !message.isOut) {
             params += read
         }
 
