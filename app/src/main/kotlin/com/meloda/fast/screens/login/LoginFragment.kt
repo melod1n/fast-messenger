@@ -36,6 +36,7 @@ import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.TypeTransformations
 import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.extensions.hideKeyboard
+import com.meloda.fast.extensions.trimmedText
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -276,22 +277,22 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     ): Boolean {
         var isValidated = true
 
-        if (loginString.isNullOrBlank()) {
+        if (loginString?.isEmpty() == true) {
             isValidated = false
             setError(getString(R.string.input_login_hint), binding.loginLayout)
         }
 
-        if (passwordString.isNullOrBlank()) {
+        if (passwordString?.isEmpty() == true) {
             isValidated = false
             setError(getString(R.string.input_password_hint), binding.passwordLayout)
         }
 
-        if (captchaCode.isNullOrBlank() && captchaInputLayout != null) {
+        if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
             isValidated = false
             setError(getString(R.string.input_code_hint), captchaInputLayout!!)
         }
 
-        if (validationCode.isNullOrBlank() && validationInputLayout != null) {
+        if (validationCode?.isEmpty() == true && validationInputLayout != null) {
             isValidated = false
             setError(getString(R.string.input_code_hint), validationInputLayout!!)
         }
@@ -373,7 +374,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         val dialog = builder.show()
 
         validationBinding.ok.setOnClickListener {
-            val validationCode = validationBinding.codeInput.text.toString().trim()
+            val validationCode = validationBinding.codeInput.trimmedText
 
             if (!validateInputData(
                     loginString = null,

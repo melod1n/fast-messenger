@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -155,3 +156,5 @@ fun <T> MutableLiveData<T>.setIfNotEquals(item: T) {
 fun <T> MutableLiveData<T>.requireValue(): T {
     return this.value!!
 }
+
+val EditText.trimmedText: String get() = text.toString().trim()
