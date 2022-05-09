@@ -39,4 +39,9 @@ abstract class BaseFragment : Fragment {
 
     fun requireActivityRouter() = requireNotNull(activityRouter)
 
+    fun startProgress() = toggleProgress(true)
+    fun stopProgress() = toggleProgress(false)
+
+    protected open fun toggleProgress(isProgressing: Boolean) {}
+
 }

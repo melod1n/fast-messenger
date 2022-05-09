@@ -22,8 +22,10 @@ data class CaptchaEvent(val sid: String, val image: String) : VkEvent()
 
 data class ValidationEvent(val sid: String) : VkEvent()
 
-object StartProgressEvent : VkEvent()
-object StopProgressEvent : VkEvent()
+abstract class ProgressEvent : VkEvent()
+
+object StartProgressEvent : ProgressEvent()
+object StopProgressEvent : ProgressEvent()
 
 interface VkEventCallback<in T : Any> {
     fun onEvent(event: T)

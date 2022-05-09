@@ -14,6 +14,7 @@ import androidx.core.view.get
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -22,8 +23,6 @@ import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
@@ -194,9 +193,6 @@ class ConversationsFragment :
     override fun onEvent(event: VkEvent) {
         super.onEvent(event)
         when (event) {
-            is StartProgressEvent -> onProgressStarted()
-            is StopProgressEvent -> onProgressStopped()
-
             is ConversationsLoadedEvent -> refreshConversations(event)
             is ConversationsDeleteEvent -> deleteConversation(event.peerId)
 
@@ -216,14 +212,14 @@ class ConversationsFragment :
         }
     }
 
-    private fun onProgressStarted() {
-        binding.progressBar.toggleVisibility(adapter.isEmpty())
-        binding.refreshLayout.isRefreshing = adapter.isNotEmpty()
-    }
-
-    private fun onProgressStopped() {
-        binding.progressBar.gone()
-        binding.refreshLayout.isRefreshing = false
+    override fun toggleProgress(isProgressing: Boolean) {
+        view?.run {
+            findViewById<View>(R.id.progress_bar).toggleVisibility(
+                if (isProgressing) adapter.isEmpty() else false
+            )
+            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
+                if (isProgressing) adapter.isNotEmpty() else false
+        }
     }
 
     private fun prepareViews() {

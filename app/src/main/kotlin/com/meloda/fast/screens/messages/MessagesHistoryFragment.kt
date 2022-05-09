@@ -23,6 +23,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.net.MediaType
 import com.meloda.fast.R
@@ -34,8 +35,6 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.files.FilesDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
@@ -91,7 +90,7 @@ class MessagesHistoryFragment :
             if (uri == null) return@registerForActivityResult
 
             var name = ""
-            var size: Long = 0
+            var size = 0.0
 
             val contentResolver = requireContext().contentResolver
             contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -100,12 +99,33 @@ class MessagesHistoryFragment :
 
                 cursor.moveToFirst()
                 name = cursor.getString(nameIndex)
-                size = cursor.getLong(sizeIndex)
+                size = AndroidUtils.bytesToMegabytes(cursor.getLong(sizeIndex).toDouble())
                 cursor.close()
             }
 
+            if (size >= 200) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.warning)
+                    .setMessage("Selected file weighs more than 200 megabytes. Compress it or send other file")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setCancelable(false)
+                    .show()
+                return@registerForActivityResult
+            }
+
             val lastDotIndex = name.lastIndexOf(".")
-            val extension = if (lastDotIndex == -1) "" else name.substring(lastDotIndex + 1)
+            var extension = if (lastDotIndex == -1) "" else name.substring(lastDotIndex + 1)
+
+            if (extension.endsWith("msi") || extension.endsWith("exe") || extension.endsWith("apk")) {
+                extension += "fast"
+                name += "fast"
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.warning)
+                    .setMessage("Selected file is executable. Fast changed it extension to \"$extension\", so the final name is \"$name\"")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setCancelable(false)
+                    .show()
+            }
 
             val destination = requireContext()
                 .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
@@ -235,6 +255,7 @@ class MessagesHistoryFragment :
             if (lastVisiblePosition <= adapter.lastPosition - 10) return@addOnLayoutChangeListener
 
             binding.recyclerView.postDelayed({
+                if (getView() == null) return@postDelayed
                 binding.recyclerView.scrollToPosition(adapter.lastPosition)
             }, 25)
         }
@@ -520,9 +541,6 @@ class MessagesHistoryFragment :
         super.onEvent(event)
 
         when (event) {
-            is StartProgressEvent -> onProgressStarted()
-            is StopProgressEvent -> onProgressStopped()
-
             is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
             is MessagesLoadedEvent -> refreshMessages(event)
             is MessagesPinEvent -> conversation.pinnedMessage = event.message
@@ -534,14 +552,14 @@ class MessagesHistoryFragment :
         }
     }
 
-    private fun onProgressStarted() {
-        binding.progressBar.isVisible = adapter.isEmpty()
-        binding.refreshLayout.isRefreshing = adapter.isNotEmpty()
-    }
-
-    private fun onProgressStopped() {
-        binding.progressBar.isVisible = false
-        binding.refreshLayout.isRefreshing = false
+    override fun toggleProgress(isProgressing: Boolean) {
+        view?.run {
+            findViewById<View>(R.id.progress_bar).toggleVisibility(
+                if (isProgressing) adapter.isEmpty() else false
+            )
+            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
+                if (isProgressing) adapter.isNotEmpty() else false
+        }
     }
 
     private fun prepareViews() {
@@ -603,6 +621,7 @@ class MessagesHistoryFragment :
             withHeader = true,
             withFooter = true,
             commitCallback = {
+                if (view == null) return@setItems
                 if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
                 else binding.recyclerView.scrollToPosition(adapter.lastPosition)
             }

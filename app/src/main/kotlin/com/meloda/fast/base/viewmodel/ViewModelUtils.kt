@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentActivity
 import com.meloda.fast.R
 import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.util.ViewUtils.showErrorDialog
 
 object ViewModelUtils {
@@ -27,6 +28,16 @@ object ViewModelUtils {
     }
 
     fun parseEvent(fragment: Fragment, event: VkEvent) {
-        parseEvent(fragment.requireActivity(), event)
+        if (event is ProgressEvent) {
+            if (fragment is BaseFragment) {
+                if (event is StartProgressEvent) {
+                    fragment.startProgress()
+                } else if (event is StopProgressEvent) {
+                    fragment.stopProgress()
+                }
+            } else {
+                parseEvent(fragment.requireActivity(), event)
+            }
+        }
     }
 }
