@@ -152,7 +152,6 @@ class MessagesHistoryFragment :
                     conversation.id,
                     file,
                     name,
-                    mimeType,
                     FilesDataSource.FileType.File
                 )
                 pickFile = false
@@ -658,11 +657,6 @@ class MessagesHistoryFragment :
             ).format(message.date * 1000L)
         )
 
-        val important = getString(
-            if (message.important) R.string.message_context_action_unmark_as_important
-            else R.string.message_context_action_mark_as_important
-        )
-
         val reply = getString(R.string.message_context_action_reply)
 
         val isMessageAlreadyPinned = message.id == conversation.pinnedMessage?.id
@@ -672,16 +666,27 @@ class MessagesHistoryFragment :
             else R.string.message_context_action_pin
         )
 
+        val important = getString(
+            if (message.important) R.string.message_context_action_unmark_as_important
+            else R.string.message_context_action_mark_as_important
+        )
+
+        val read = "Mark as read"
+
         val edit = getString(R.string.message_context_action_edit)
 
         val delete = getString(R.string.message_context_action_delete)
 
-        val params = mutableListOf(
-            important, reply
-        )
+        val params = mutableListOf(reply)
 
         if (conversation.canChangePin) {
             params += pin
+        }
+
+        params += important
+
+        if (!message.isRead(conversation)) {
+            params += read
         }
 
         if (message.canEdit()) {
@@ -696,20 +701,23 @@ class MessagesHistoryFragment :
             .setTitle(time)
             .setItems(arrayParams) { _, which ->
                 when (params[which]) {
-                    important -> viewModel.markAsImportant(
-                        messagesIds = listOf(message.id),
-                        important = !message.important
-                    )
                     reply -> {
                         if (attachmentController.message.value != message)
                             attachmentController.message.value = message
                     }
-                    pin ->
-                        showPinMessageDialog(
-                            peerId = conversation.id,
-                            messageId = message.id,
-                            pin = !isMessageAlreadyPinned
-                        )
+                    pin -> showPinMessageDialog(
+                        peerId = conversation.id,
+                        messageId = message.id,
+                        pin = !isMessageAlreadyPinned
+                    )
+                    important -> viewModel.markAsImportant(
+                        messagesIds = listOf(message.id),
+                        important = !message.important
+                    )
+                    read -> viewModel.readMessage(
+                        conversation.id,
+                        message.id
+                    )
                     edit -> {
                         attachmentController.isEditing = true
 

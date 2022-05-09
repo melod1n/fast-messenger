@@ -47,4 +47,19 @@ class MessagesDataSource @Inject constructor(
 
     suspend fun getById(params: MessagesGetByIdRequest) =
         messagesRepo.getById(params.map)
+
+    suspend fun markAsRead(
+        peerId: Int,
+        messagesIds: List<Int>? = null,
+        startMessageId: Int? = null
+    ) = messagesRepo.markAsRead(
+        mutableMapOf("peer_id" to peerId.toString()).apply {
+            messagesIds?.let {
+                this["message_ids"] = messagesIds.joinToString { it.toString() }
+            }
+            startMessageId?.let {
+                this["start_message_id"] = it.toString()
+            }
+        }
+    )
 }

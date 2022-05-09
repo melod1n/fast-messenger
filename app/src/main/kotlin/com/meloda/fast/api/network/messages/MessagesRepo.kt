@@ -46,4 +46,8 @@ interface MessagesRepo {
     @POST(MessagesUrls.GetById)
     suspend fun getById(@FieldMap params: Map<String, String>): Answer<ApiResponse<MessagesGetByIdResponse>>
 
+    @FormUrlEncoded
+    @POST(MessagesUrls.MarkAsRead)
+    suspend fun markAsRead(@FieldMap params: Map<String, String>): Answer<ApiResponse<Int>>
+
 }

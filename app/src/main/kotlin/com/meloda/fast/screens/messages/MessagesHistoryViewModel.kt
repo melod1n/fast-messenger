@@ -276,6 +276,15 @@ class MessagesHistoryViewModel @Inject constructor(
         )
     }
 
+    fun readMessage(peerId: Int, messageId: Int) {
+        makeJob(
+            { messages.markAsRead(peerId, startMessageId = messageId) },
+            onAnswer = {
+                sendEvent(MessagesReadEvent(false, peerId, messageId))
+            }
+        )
+    }
+
     fun getPhotoMessageUploadServer(peerId: Int, photo: File, name: String) {
         makeJob(
             { photos.getMessagesUploadServer(peerId) },
@@ -288,7 +297,7 @@ class MessagesHistoryViewModel @Inject constructor(
         )
     }
 
-    fun uploadPhotoToServer(peerId: Int, uploadUrl: String, photo: File, name: String) {
+    private fun uploadPhotoToServer(peerId: Int, uploadUrl: String, photo: File, name: String) {
         val requestBody = photo.asRequestBody("image/*".toMediaType())
         val body = MultipartBody.Part.createFormData("photo", name, requestBody)
         makeJob(
@@ -297,24 +306,17 @@ class MessagesHistoryViewModel @Inject constructor(
                 val response = it
 
                 saveMessagePhoto(peerId, response.server, response.photo, response.hash)
-            },
-            onError = {
-                val error = it
             }
         )
     }
 
-    fun saveMessagePhoto(peerId: Int, server: Int, photo: String, hash: String) {
+    private fun saveMessagePhoto(peerId: Int, server: Int, photo: String, hash: String) {
         makeJob(
             { photos.saveMessagePhoto(PhotosSaveMessagePhotoRequest(photo, server, hash)) },
             onAnswer = {
                 val response = it.response ?: return@makeJob
-                val photos = response
 
-                sendMessage(peerId, attachments = listOf(photos.first().asVkPhoto()))
-            },
-            onError = {
-                val error = it
+                sendMessage(peerId, attachments = listOf(response.first().asVkPhoto()))
             }
         )
     }
@@ -343,7 +345,7 @@ class MessagesHistoryViewModel @Inject constructor(
         )
     }
 
-    fun uploadVideoToServer(
+    private fun uploadVideoToServer(
         peerId: Int,
         uploadUrl: String,
         file: File,
@@ -355,17 +357,12 @@ class MessagesHistoryViewModel @Inject constructor(
         makeJob(
             { videos.upload(uploadUrl, body) },
             onAnswer = {
-                val response = it
-
                 saveMessageVideo(peerId, video)
-            },
-            onError = {
-                val error = it
             }
         )
     }
 
-    fun saveMessageVideo(peerId: Int, video: VkVideo) {
+    private fun saveMessageVideo(peerId: Int, video: VkVideo) {
         sendMessage(peerId, attachments = listOf(video))
     }
 
@@ -381,7 +378,7 @@ class MessagesHistoryViewModel @Inject constructor(
         )
     }
 
-    fun uploadAudioToServer(
+    private fun uploadAudioToServer(
         peerId: Int,
         uploadUrl: String,
         file: File,
@@ -399,23 +396,17 @@ class MessagesHistoryViewModel @Inject constructor(
                 } else {
                     onError(ApiError(0, response.error.orEmpty()))
                 }
-            },
-            onError = {
-                val error = it
             }
         )
     }
 
-    fun saveMessageAudio(peerId: Int, server: Int, audio: String, hash: String) {
+    private fun saveMessageAudio(peerId: Int, server: Int, audio: String, hash: String) {
         makeJob(
             { audios.save(server, audio, hash) },
             onAnswer = {
                 val response = it.response ?: return@makeJob
 
                 sendMessage(peerId, attachments = listOf(response.asVkAudio()))
-            },
-            onError = {
-                val error = it
             }
         )
     }
@@ -424,7 +415,6 @@ class MessagesHistoryViewModel @Inject constructor(
         peerId: Int,
         file: File,
         name: String,
-        mimeType: String,
         type: FilesDataSource.FileType
     ) {
         makeJob(
@@ -433,16 +423,15 @@ class MessagesHistoryViewModel @Inject constructor(
                 val response = it.response ?: return@makeJob
                 val url = response.uploadUrl
 
-                uploadFileToServer(peerId, url, file, mimeType, name)
+                uploadFileToServer(peerId, url, file, name)
             }
         )
     }
 
-    fun uploadFileToServer(
+    private fun uploadFileToServer(
         peerId: Int,
         uploadUrl: String,
         file: File,
-        mimeType: String,
         name: String
     ) {
         val requestBody = file.asRequestBody()
@@ -457,14 +446,11 @@ class MessagesHistoryViewModel @Inject constructor(
                 } else {
                     onError(ApiError(0, response.error.orEmpty()))
                 }
-            },
-            onError = {
-                val error = it
             }
         )
     }
 
-    fun saveMessageFile(peerId: Int, file: String) {
+    private fun saveMessageFile(peerId: Int, file: String) {
         makeJob(
             { files.saveMessageFile(file) },
             onAnswer = {
@@ -475,13 +461,9 @@ class MessagesHistoryViewModel @Inject constructor(
                     ?: return@makeJob
 
                 sendMessage(peerId, attachments = listOf(attachment))
-            },
-            onError = {
-                val error = it
             }
         )
     }
-
 }
 
 data class MessagesLoadedEvent(
