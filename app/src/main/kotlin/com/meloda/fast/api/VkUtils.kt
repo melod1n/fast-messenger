@@ -93,7 +93,6 @@ object VkUtils {
     ): String? {
         return when {
             conversation.isAccount() -> null
-            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
             conversation.isUser() -> conversationUser?.photo200
             conversation.isGroup() -> conversationGroup?.photo200
             conversation.isChat() -> conversation.photo200

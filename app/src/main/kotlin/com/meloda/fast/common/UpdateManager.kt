@@ -1,6 +1,7 @@
 package com.meloda.fast.common
 
 import androidx.lifecycle.MutableLiveData
+import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.network.Answer
 import com.meloda.fast.api.network.ota.OtaGetLatestReleaseResponse
@@ -12,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.URLEncoder
 import kotlin.coroutines.CoroutineContext
 
 class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
@@ -55,7 +57,7 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
         val url = "$otaBaseUrl/releases-latest"
 
         val job: suspend () -> Answer<ApiResponse<OtaGetLatestReleaseResponse>> = {
-            repo.getLatestRelease(url = url)
+            repo.getLatestRelease(url = url, secretCode = getOtaSecret())
         }
 
         withContext(Dispatchers.Main) {
@@ -85,6 +87,10 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
                 }
             }
         }
+    }
+
+    private fun getOtaSecret(): String {
+        return URLEncoder.encode(BuildConfig.otaSecretCode, "utf-8")
     }
 
     fun checkUpdates(block: ((item: UpdateItem?, error: Throwable?) -> Unit)? = null) = launch {

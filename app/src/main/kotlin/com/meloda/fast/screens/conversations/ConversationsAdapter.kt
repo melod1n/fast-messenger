@@ -130,26 +130,27 @@ class ConversationsAdapter constructor(
                 binding.avatarPlaceholder.visible()
 
                 when {
-                    conversation.isAccount() -> {
-                        binding.placeholderBack.loadWithGlide(
-                            drawable = ColorDrawable(resourceManager.icLauncherColor),
-                            transformations = ImageLoader.userAvatarTransformations
-                        )
-                        binding.placeholder.imageTintList =
-                            ColorStateList.valueOf(resourceManager.colorOnPrimary)
-                        binding.placeholder.setImageResource(R.drawable.ic_round_bookmark_border_24)
-                        binding.placeholder.setPadding(36)
-                    }
-                    conversation.ownerId == VKConstants.FAST_GROUP_ID -> {
-                        binding.placeholderBack.loadWithGlide(
-                            drawable = ColorDrawable(resourceManager.icLauncherColor),
-                            transformations = ImageLoader.userAvatarTransformations
-                        )
-                        binding.placeholder.imageTintList =
-                            ColorStateList.valueOf(resourceManager.colorOnPrimary)
-                        binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
-                        binding.placeholder.setPadding(18)
-                    }
+                    // TODO: 09.05.2022, Danil Nikolaev: пофиксить мерцание
+//                    conversation.isAccount() -> {
+//                        binding.placeholderBack.loadWithGlide(
+//                            drawable = ColorDrawable(resourceManager.icLauncherColor),
+//                            transformations = ImageLoader.userAvatarTransformations
+//                        )
+//                        binding.placeholder.imageTintList =
+//                            ColorStateList.valueOf(resourceManager.colorOnPrimary)
+//                        binding.placeholder.setImageResource(R.drawable.ic_round_bookmark_border_24)
+//                        binding.placeholder.setPadding(36)
+//                    }
+//                    conversation.ownerId == VKConstants.FAST_GROUP_ID -> {
+//                        binding.placeholderBack.loadWithGlide(
+//                            drawable = ColorDrawable(resourceManager.icLauncherColor),
+//                            transformations = ImageLoader.userAvatarTransformations
+//                        )
+//                        binding.placeholder.imageTintList =
+//                            ColorStateList.valueOf(resourceManager.colorOnPrimary)
+//                        binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
+//                        binding.placeholder.setPadding(18)
+//                    }
                     else -> {
                         binding.placeholderBack.loadWithGlide(
                             drawable = ColorDrawable(resourceManager.colorOnUserAvatarAction),
