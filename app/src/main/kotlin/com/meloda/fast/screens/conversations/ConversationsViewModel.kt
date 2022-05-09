@@ -12,6 +12,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.conversations.*
+import com.meloda.fast.api.network.messages.MessagesDataSource
 import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -27,7 +28,8 @@ class ConversationsViewModel @Inject constructor(
     private val conversations: ConversationsDataSource,
     private val users: UsersDataSource,
     updatesParser: LongPollUpdatesParser,
-    private val router: Router
+    private val router: Router,
+    private val messages: MessagesDataSource
 ) : BaseViewModel() {
 
     init {
@@ -172,6 +174,15 @@ class ConversationsViewModel @Inject constructor(
         group: VkGroup?
     ) {
         router.navigateTo(Screens.MessagesHistory(conversation, user, group))
+    }
+
+    fun readConversation(conversation: VkConversation) {
+        makeJob(
+            { messages.markAsRead(conversation.id, startMessageId = conversation.lastMessageId) },
+            onAnswer = {
+                sendEvent(MessagesReadEvent(false, conversation.id, conversation.lastMessageId))
+            }
+        )
     }
 }
 

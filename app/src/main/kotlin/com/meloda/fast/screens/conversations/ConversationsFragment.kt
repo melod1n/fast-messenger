@@ -308,6 +308,8 @@ class ConversationsFragment :
             }
         }
 
+        val read = "Mark as read"
+
         val pin = getString(
             if (conversation.isPinned) R.string.conversation_context_action_unpin
             else R.string.conversation_context_action_pin
@@ -316,6 +318,12 @@ class ConversationsFragment :
         val delete = getString(R.string.conversation_context_action_delete)
 
         val params = mutableListOf<String>()
+
+        conversation.lastMessage?.run {
+            if (!this.isRead(conversation)) {
+                params += read
+            }
+        }
 
         if (canPinOneMoreDialog) params += pin
 
@@ -326,6 +334,7 @@ class ConversationsFragment :
         MaterialAlertDialogBuilder(requireContext())
             .setItems(arrayParams) { _, which ->
                 when (params[which]) {
+                    read -> viewModel.readConversation(conversation)
                     pin -> showPinConversationDialog(conversation)
                     delete -> showDeleteConversationDialog(conversation.id)
                 }
