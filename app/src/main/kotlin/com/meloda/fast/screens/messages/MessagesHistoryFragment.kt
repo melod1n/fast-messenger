@@ -125,26 +125,25 @@ class MessagesHistoryFragment :
 
             val mimeType = contentResolver.getType(uri) ?: return@registerForActivityResult
 
-            when (MediaType.parse(mimeType).type()) {
-                MediaType.ANY_IMAGE_TYPE.type() -> {
-                    viewModel.getPhotoMessageUploadServer(conversation.id, file, name)
-                }
-                MediaType.ANY_VIDEO_TYPE.type() -> {
-                    viewModel.getVideoMessageUploadServer(conversation.id, file, name)
-                }
-                MediaType.ANY_AUDIO_TYPE.type() -> {
-                    viewModel.getAudioUploadServer(conversation.id, file, name)
-                }
-                else -> {
-                    if (pickFile) {
-                        viewModel.getFileMessageUploadServer(
-                            conversation.id,
-                            file,
-                            name,
-                            mimeType,
-                            FilesDataSource.FileType.File
-                        )
-                        pickFile = false
+            if (pickFile) {
+                viewModel.getFileMessageUploadServer(
+                    conversation.id,
+                    file,
+                    name,
+                    mimeType,
+                    FilesDataSource.FileType.File
+                )
+                pickFile = false
+            } else {
+                when (MediaType.parse(mimeType).type()) {
+                    MediaType.ANY_IMAGE_TYPE.type() -> {
+                        viewModel.getPhotoMessageUploadServer(conversation.id, file, name)
+                    }
+                    MediaType.ANY_VIDEO_TYPE.type() -> {
+                        viewModel.getVideoMessageUploadServer(conversation.id, file, name)
+                    }
+                    MediaType.ANY_AUDIO_TYPE.type() -> {
+                        viewModel.getAudioUploadServer(conversation.id, file, name)
                     }
                 }
             }
@@ -205,7 +204,10 @@ class MessagesHistoryFragment :
                 // TODO: 9/15/2021 user normal time
                 user?.online == true -> "Online"
                 user?.lastSeen != null -> "Last seen at ${
-                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(user?.lastSeen!! * 1000L)
+                    SimpleDateFormat(
+                        "HH:mm",
+                        Locale.getDefault()
+                    ).format(user?.lastSeen!! * 1000L)
                 }"
                 else -> if (user?.lastSeenStatus != null) "Last seen ${user?.lastSeenStatus!!}" else "Last seen recently"
             }
@@ -752,7 +754,8 @@ class MessagesHistoryFragment :
 
     private fun deleteMessages(event: MessagesDeleteEvent) {
         if (event.peerId != conversation.id) return
-        val messagesToDelete = event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
+        val messagesToDelete =
+            event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
         adapter.removeAll(messagesToDelete)
     }
 
@@ -802,7 +805,10 @@ class MessagesHistoryFragment :
     }
 
     @Suppress("NAME_SHADOWING")
-    private fun setUnreadCounterVisibility(lastCompletelyVisiblePosition: Int, dy: Int? = null) {
+    private fun setUnreadCounterVisibility(
+        lastCompletelyVisiblePosition: Int,
+        dy: Int? = null
+    ) {
         if (lastCompletelyVisiblePosition >= adapter.lastPosition - 1) {
             setUnreadCounterVisibility(false)
         } else {

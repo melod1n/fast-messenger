@@ -9,7 +9,7 @@ val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecre
 
 val majorVersion = 1
 val minorVersion = 5
-val patchVersion = 1
+val patchVersion = 2
 
 plugins {
     id("com.android.application")
