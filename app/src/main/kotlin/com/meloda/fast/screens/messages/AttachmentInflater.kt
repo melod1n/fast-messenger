@@ -243,10 +243,8 @@ class AttachmentInflater constructor(
         binding.image.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
 
-            if (photoClickListener != null) {
-                setOnClickListener { photoClickListener?.invoke(size.url) }
-            } else {
-                setOnClickListener(null)
+            setOnClickListener {
+                photoClickListener?.invoke(size.url)
             }
 
             loadWithGlide(

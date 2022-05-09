@@ -232,7 +232,25 @@ class MessagesHistoryAdapter constructor(
 
                 profiles = profiles,
                 groups = groups
-            ).prepare()
+            )
+                .withPhotoClickListener {
+                    Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
+                        context.startActivity(this)
+                    }
+                }
+                .withReplyClickListener {
+                    messagesHistoryFragment?.scrollToMessage(it.id)
+                    forwardedMessagesFragment?.scrollToMessage(it.id)
+                }
+                .withForwardsClickListener { messages ->
+                    messagesHistoryFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                    forwardedMessagesFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                }
+                .prepare()
         }
     }
 
@@ -288,6 +306,12 @@ class MessagesHistoryAdapter constructor(
                     crossFade = true,
                     placeholderDrawable = ColorDrawable(Color.LTGRAY)
                 )
+
+                binding.photo.setOnClickListener {
+                    Intent(Intent.ACTION_VIEW, Uri.parse(size.url)).run {
+                        context.startActivity(this)
+                    }
+                }
             }
         }
     }
