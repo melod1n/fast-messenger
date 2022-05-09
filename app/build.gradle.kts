@@ -8,8 +8,8 @@ val msAppCenterToken: String =
 val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode")
 
 val majorVersion = 1
-val minorVersion = 4
-val patchVersion = 10
+val minorVersion = 5
+val patchVersion = 1
 
 plugins {
     id("com.android.application")
@@ -142,8 +142,6 @@ dependencies {
 
     implementation("com.github.yogacp:android-viewbinding:1.0.4")
 
-//    implementation("io.coil-kt:coil:1.4.0")
-
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("org.jsoup:jsoup:1.14.3")
 
@@ -161,5 +159,8 @@ dependencies {
     implementation("com.microsoft.appcenter:appcenter-analytics:$appCenterSdkVersion")
     implementation("com.microsoft.appcenter:appcenter-crashes:$appCenterSdkVersion")
     implementation("com.microsoft.appcenter:appcenter-distribute:$appCenterSdkVersion")
+
+    // Google Guava
+    implementation("com.google.guava:guava:31.1-android")
 
 }

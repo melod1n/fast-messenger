@@ -1,26 +1,42 @@
 package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.viewModelScope
+import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
-import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.network.audio.AudiosDataSource
+import com.meloda.fast.api.network.files.FilesDataSource
 import com.meloda.fast.api.network.messages.*
+import com.meloda.fast.api.network.photos.PhotosDataSource
+import com.meloda.fast.api.network.photos.PhotosSaveMessagePhotoRequest
+import com.meloda.fast.api.network.videos.VideosDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import javax.inject.Inject
+
 
 @HiltViewModel
 class MessagesHistoryViewModel @Inject constructor(
     private val messages: MessagesDataSource,
-    updatesParser: LongPollUpdatesParser
+    updatesParser: LongPollUpdatesParser,
+    private val photos: PhotosDataSource,
+    private val files: FilesDataSource,
+    private val audios: AudiosDataSource,
+    private val videos: VideosDataSource
 ) : BaseViewModel() {
 
     init {
@@ -131,7 +147,8 @@ class MessagesHistoryViewModel @Inject constructor(
         message: String? = null,
         randomId: Int = 0,
         replyTo: Int? = null,
-        setId: ((messageId: Int) -> Unit)? = null
+        setId: ((messageId: Int) -> Unit)? = null,
+        attachments: List<VkAttachment>? = null
     ) = viewModelScope.launch {
         makeJob(
             {
@@ -140,7 +157,8 @@ class MessagesHistoryViewModel @Inject constructor(
                         peerId = peerId,
                         randomId = randomId,
                         message = message,
-                        replyTo = replyTo
+                        replyTo = replyTo,
+                        attachments = attachments
                     )
                 )
             },
@@ -257,6 +275,213 @@ class MessagesHistoryViewModel @Inject constructor(
             }
         )
     }
+
+    fun getPhotoMessageUploadServer(peerId: Int, photo: File, name: String) {
+        makeJob(
+            { photos.getMessagesUploadServer(peerId) },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+                val url = response.uploadUrl
+
+                uploadPhotoToServer(peerId, url, photo, name)
+            }
+        )
+    }
+
+    fun uploadPhotoToServer(peerId: Int, uploadUrl: String, photo: File, name: String) {
+        val requestBody = photo.asRequestBody("image/*".toMediaType())
+        val body = MultipartBody.Part.createFormData("photo", name, requestBody)
+        makeJob(
+            { photos.uploadPhoto(uploadUrl, body) },
+            onAnswer = {
+                val response = it
+
+                saveMessagePhoto(peerId, response.server, response.photo, response.hash)
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
+    fun saveMessagePhoto(peerId: Int, server: Int, photo: String, hash: String) {
+        makeJob(
+            { photos.saveMessagePhoto(PhotosSaveMessagePhotoRequest(photo, server, hash)) },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+                val photos = response
+
+                sendMessage(peerId, attachments = listOf(photos.first().asVkPhoto()))
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
+    fun getVideoMessageUploadServer(
+        peerId: Int,
+        file: File,
+        name: String,
+    ) {
+        makeJob(
+            { videos.save() },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+                val url = response.uploadUrl
+
+                val video = VkVideo(
+                    id = response.videoId,
+                    ownerId = response.ownerId,
+                    emptyList(),
+                    null,
+                    response.accessKey
+                )
+
+                uploadVideoToServer(peerId, url, file, name, video)
+            }
+        )
+    }
+
+    fun uploadVideoToServer(
+        peerId: Int,
+        uploadUrl: String,
+        file: File,
+        name: String,
+        video: VkVideo
+    ) {
+        val requestBody = file.asRequestBody()
+        val body = MultipartBody.Part.createFormData("video_file", name, requestBody)
+        makeJob(
+            { videos.upload(uploadUrl, body) },
+            onAnswer = {
+                val response = it
+
+                saveMessageVideo(peerId, video)
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
+    fun saveMessageVideo(peerId: Int, video: VkVideo) {
+        sendMessage(peerId, attachments = listOf(video))
+    }
+
+    fun getAudioUploadServer(peerId: Int, file: File, name: String) {
+        makeJob(
+            { audios.getUploadServer() },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+                val url = response.uploadUrl
+
+                uploadAudioToServer(peerId, url, file, name)
+            }
+        )
+    }
+
+    fun uploadAudioToServer(
+        peerId: Int,
+        uploadUrl: String,
+        file: File,
+        name: String
+    ) {
+        val requestBody = file.asRequestBody()
+        val body = MultipartBody.Part.createFormData("file", name, requestBody)
+        makeJob(
+            { audios.upload(uploadUrl, body) },
+            onAnswer = {
+                val response = it
+
+                if (response.audio != null) {
+                    saveMessageAudio(peerId, response.server, response.audio, response.hash)
+                } else {
+                    onError(ApiError(0, response.error.orEmpty()))
+                }
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
+    fun saveMessageAudio(peerId: Int, server: Int, audio: String, hash: String) {
+        makeJob(
+            { audios.save(server, audio, hash) },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+
+                sendMessage(peerId, attachments = listOf(response.asVkAudio()))
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
+    fun getFileMessageUploadServer(
+        peerId: Int,
+        file: File,
+        name: String,
+        mimeType: String,
+        type: FilesDataSource.FileType
+    ) {
+        makeJob(
+            { files.getMessagesUploadServer(peerId, type) },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+                val url = response.uploadUrl
+
+                uploadFileToServer(peerId, url, file, mimeType, name)
+            }
+        )
+    }
+
+    fun uploadFileToServer(
+        peerId: Int,
+        uploadUrl: String,
+        file: File,
+        mimeType: String,
+        name: String
+    ) {
+        val requestBody = file.asRequestBody()
+        val body = MultipartBody.Part.createFormData("file", name, requestBody)
+        makeJob(
+            { files.uploadFile(uploadUrl, body) },
+            onAnswer = {
+                val response = it
+
+                if (response.file != null) {
+                    saveMessageFile(peerId, response.file)
+                } else {
+                    onError(ApiError(0, response.error.orEmpty()))
+                }
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
+    fun saveMessageFile(peerId: Int, file: String) {
+        makeJob(
+            { files.saveMessageFile(file) },
+            onAnswer = {
+                val response = it.response ?: return@makeJob
+
+                val attachment: VkAttachment =
+                    (response.file?.asVkFile()) ?: response.voiceMessage?.asVkVoiceMessage()
+                    ?: return@makeJob
+
+                sendMessage(peerId, attachments = listOf(attachment))
+            },
+            onError = {
+                val error = it
+            }
+        )
+    }
+
 }
 
 data class MessagesLoadedEvent(

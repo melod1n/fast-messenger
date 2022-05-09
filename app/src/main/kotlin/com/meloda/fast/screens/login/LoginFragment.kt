@@ -26,7 +26,7 @@ import com.meloda.fast.R
 import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.base.BaseViewModelFragment
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.DialogCaptchaBinding

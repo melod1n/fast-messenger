@@ -1,13 +1,18 @@
 package com.meloda.fast.screens.messages
 
 import android.animation.ValueAnimator
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.os.bundleOf
@@ -19,6 +24,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.common.net.MediaType
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
@@ -26,7 +32,8 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.base.BaseViewModelFragment
+import com.meloda.fast.api.network.files.FilesDataSource
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -39,6 +46,7 @@ import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
@@ -75,6 +83,72 @@ class MessagesHistoryFragment :
 
     override val viewModel: MessagesHistoryViewModel by viewModels()
     private val binding: FragmentMessagesHistoryBinding by viewBinding()
+
+    private var pickFile: Boolean = false
+
+    private val getContent =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri == null) return@registerForActivityResult
+
+            var name = ""
+            var size: Long = 0
+
+            val contentResolver = requireContext().contentResolver
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+
+                cursor.moveToFirst()
+                name = cursor.getString(nameIndex)
+                size = cursor.getLong(sizeIndex)
+                cursor.close()
+            }
+
+            val lastDotIndex = name.lastIndexOf(".")
+            val extension = if (lastDotIndex == -1) "" else name.substring(lastDotIndex + 1)
+
+            val destination = requireContext()
+                .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
+                    "${File.separator}upload.$extension"
+
+            val file = File(destination)
+            if (file.exists()) file.delete()
+
+            val inputStream = requireActivity().contentResolver.openInputStream(uri)
+                ?: return@registerForActivityResult
+
+            inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val mimeType = contentResolver.getType(uri) ?: return@registerForActivityResult
+
+            when (MediaType.parse(mimeType).type()) {
+                MediaType.ANY_IMAGE_TYPE.type() -> {
+                    viewModel.getPhotoMessageUploadServer(conversation.id, file, name)
+                }
+                MediaType.ANY_VIDEO_TYPE.type() -> {
+                    viewModel.getVideoMessageUploadServer(conversation.id, file, name)
+                }
+                MediaType.ANY_AUDIO_TYPE.type() -> {
+                    viewModel.getAudioUploadServer(conversation.id, file, name)
+                }
+                else -> {
+                    if (pickFile) {
+                        viewModel.getFileMessageUploadServer(
+                            conversation.id,
+                            file,
+                            name,
+                            mimeType,
+                            FilesDataSource.FileType.File
+                        )
+                        pickFile = false
+                    }
+                }
+            }
+        }
 
     private val actionState = MutableLiveData<Action>()
 
@@ -185,7 +259,7 @@ class MessagesHistoryFragment :
 
                 adapter.getOrNull(firstPosition)?.let {
                     if (it !is VkMessage) return
-                    binding.timestamp.isVisible = true
+                    binding.timestamp.visible()
 
                     val time = "${
                         TimeUtils.getLocalizedDate(
@@ -296,6 +370,62 @@ class MessagesHistoryFragment :
             if (attachmentController.message.value != null)
                 attachmentController.message.value = null
         }
+
+        binding.attach.setOnClickListener {
+            showAttachmentsPopupMenu()
+        }
+
+        binding.attach.setOnLongClickListener {
+            pickPhoto()
+            true
+        }
+    }
+
+    private fun showAttachmentsPopupMenu() {
+        val popupMenu = PopupMenu(requireContext(), binding.attach)
+        popupMenu.menu.add("Photo")
+        popupMenu.menu.add("Video")
+        popupMenu.menu.add("Audio")
+        popupMenu.menu.add("File")
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            return@setOnMenuItemClickListener when (menuItem.title) {
+                "Photo" -> {
+                    pickPhoto()
+                    true
+                }
+                "Video" -> {
+                    pickVideo()
+                    true
+                }
+                "Audio" -> {
+                    pickAudio()
+                    true
+                }
+                "File" -> {
+                    pickFile()
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
+    private fun pickPhoto() {
+        getContent.launch(MediaType.ANY_IMAGE_TYPE.mimeType)
+    }
+
+    private fun pickVideo() {
+        getContent.launch(MediaType.ANY_VIDEO_TYPE.mimeType)
+    }
+
+    private fun pickAudio() {
+        getContent.launch(MediaType.ANY_AUDIO_TYPE.mimeType)
+    }
+
+    private fun pickFile() {
+        pickFile = true
+        getContent.launch(MediaType.ANY_TYPE.mimeType)
     }
 
     fun scrollToMessage(messageId: Int) {

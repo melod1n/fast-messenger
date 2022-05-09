@@ -21,7 +21,7 @@ import com.meloda.fast.R
 import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
-import com.meloda.fast.base.BaseViewModelFragment
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent

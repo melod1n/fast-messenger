@@ -7,16 +7,24 @@ import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.account.AccountDataSource
 import com.meloda.fast.api.network.account.AccountRepo
+import com.meloda.fast.api.network.audio.AudiosDataSource
+import com.meloda.fast.api.network.audio.AudiosRepo
 import com.meloda.fast.api.network.auth.AuthDataSource
 import com.meloda.fast.api.network.auth.AuthRepo
 import com.meloda.fast.api.network.conversations.ConversationsDataSource
 import com.meloda.fast.api.network.conversations.ConversationsRepo
+import com.meloda.fast.api.network.files.FilesDataSource
+import com.meloda.fast.api.network.files.FilesRepo
 import com.meloda.fast.api.network.longpoll.LongPollRepo
 import com.meloda.fast.api.network.messages.MessagesDataSource
 import com.meloda.fast.api.network.messages.MessagesRepo
 import com.meloda.fast.api.network.ota.OtaRepo
+import com.meloda.fast.api.network.photos.PhotosDataSource
+import com.meloda.fast.api.network.photos.PhotosRepo
 import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersRepo
+import com.meloda.fast.api.network.videos.VideosDataSource
+import com.meloda.fast.api.network.videos.VideosRepo
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.database.dao.ConversationsDao
 import com.meloda.fast.database.dao.MessagesDao
@@ -152,4 +160,45 @@ object NetworkModule {
     @Singleton
     fun provideUpdateManager(otaRepo: OtaRepo): UpdateManager =
         UpdateManager(otaRepo)
+
+    @Provides
+    @Singleton
+    fun providePhotosRepo(retrofit: Retrofit): PhotosRepo =
+        retrofit.create(PhotosRepo::class.java)
+
+    @Provides
+    @Singleton
+    fun providePhotosDataSource(photosRepo: PhotosRepo): PhotosDataSource =
+        PhotosDataSource(photosRepo)
+
+    @Provides
+    @Singleton
+    fun provideVideosRepo(retrofit: Retrofit): VideosRepo =
+        retrofit.create(VideosRepo::class.java)
+
+    @Provides
+    @Singleton
+    fun provideVideosDataSource(videosRepo: VideosRepo): VideosDataSource =
+        VideosDataSource(videosRepo)
+
+    @Provides
+    @Singleton
+    fun provideAudiosRepo(retrofit: Retrofit): AudiosRepo =
+        retrofit.create(AudiosRepo::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAudiosDataSource(audiosRepo: AudiosRepo): AudiosDataSource =
+        AudiosDataSource(audiosRepo)
+
+    @Provides
+    @Singleton
+    fun provideFilesRepo(retrofit: Retrofit): FilesRepo =
+        retrofit.create(FilesRepo::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFilesDataSource(filesRepo: FilesRepo): FilesDataSource =
+        FilesDataSource(filesRepo)
+
 }

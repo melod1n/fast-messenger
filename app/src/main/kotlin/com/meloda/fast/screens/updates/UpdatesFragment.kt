@@ -15,8 +15,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
-import com.meloda.fast.base.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager

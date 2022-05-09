@@ -19,6 +19,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.children
 import androidx.core.view.forEach
 import androidx.lifecycle.MutableLiveData
+import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ToolbarMenuItemAvatarBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
@@ -158,3 +159,5 @@ fun <T> MutableLiveData<T>.requireValue(): T {
 }
 
 val EditText.trimmedText: String get() = text.toString().trim()
+
+val MediaType.mimeType: String get() = "${type()}/${subtype()}"
