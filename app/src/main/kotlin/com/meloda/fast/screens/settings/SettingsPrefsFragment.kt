@@ -9,7 +9,6 @@ import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
 import com.microsoft.appcenter.crashes.Crashes
-import com.microsoft.appcenter.distribute.Distribute
 
 class SettingsPrefsFragment : PreferenceFragmentCompat(),
     Preference.OnPreferenceClickListener,
@@ -60,7 +59,7 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
     override fun onPreferenceClick(preference: Preference): Boolean {
         return when (preference.key) {
             PrefCheckUpdates -> {
-                Distribute.checkForUpdate()
+                rootFragment?.openUpdatesScreen()
                 true
             }
             PrefPerformCrash -> {

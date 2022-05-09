@@ -5,10 +5,11 @@ val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFing
 
 val msAppCenterToken: String =
     gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", null)
+val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode")
 
 val majorVersion = 1
 val minorVersion = 4
-val patchVersion = 8
+val patchVersion = 9
 
 plugins {
     id("com.android.application")
@@ -43,6 +44,8 @@ android {
 
             buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
 
+            buildConfigField("String", "otaSecretCode", otaSecretCode)
+
             versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
@@ -52,6 +55,8 @@ android {
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
             buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
+
+            buildConfigField("String", "otaSecretCode", otaSecretCode)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"

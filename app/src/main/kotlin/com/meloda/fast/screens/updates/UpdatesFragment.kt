@@ -1,19 +1,24 @@
 package com.meloda.fast.screens.updates
 
+import android.animation.ObjectAnimator
 import android.app.DownloadManager
-import android.content.Context
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseViewModelFragment
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppConstants
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.databinding.FragmentUpdatesBinding
 import com.meloda.fast.extensions.clear
@@ -23,7 +28,11 @@ import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.receiver.DownloadManagerReceiver
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import java.io.*
+import java.util.*
 
 @AndroidEntryPoint
 class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragment_updates) {
@@ -49,7 +58,9 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
     private val binding: FragmentUpdatesBinding by viewBinding()
 
-    private var downloadId: Long = -1
+    private var downloadId: Long? = null
+
+    private var timer: Timer? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -79,10 +90,16 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
     private fun refreshState(state: UpdateState) {
         binding.actionButton.toggleVisibility(
-            viewModel.updateState.value != UpdateState.Loading
+            !listOf(
+                UpdateState.Downloading,
+                UpdateState.Loading
+            ).contains(viewModel.updateState.value)
         )
         binding.flow.toggleVisibility(
-            viewModel.updateState.value != UpdateState.Loading
+            !listOf(
+                UpdateState.Downloading,
+                UpdateState.Loading
+            ).contains(viewModel.updateState.value)
         )
         binding.progress.toggleVisibility(
             viewModel.updateState.value == UpdateState.Loading
@@ -90,6 +107,14 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         binding.changelog.toggleVisibility(
             viewModel.updateState.value == UpdateState.NewUpdate
         )
+        binding.loadingProgress.toggleVisibility(
+            viewModel.updateState.value == UpdateState.Downloading
+        )
+
+        if (state != UpdateState.Downloading) {
+            timer?.cancel()
+            downloadId?.run { AppGlobal.downloadManager.remove(this) }
+        }
 
         when (state) {
             UpdateState.NewUpdate -> {
@@ -98,7 +123,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
                 binding.description.text = getString(
                     R.string.fragment_updates_new_version_description,
-                    item.version
+                    item.versionName
                 )
 
                 binding.actionButton.setText(R.string.fragment_updates_download_update)
@@ -127,6 +152,13 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
                 binding.actionButton.setText(R.string.fragment_updates_try_again)
                 binding.actionButton.setOnClickListener { viewModel.checkUpdates() }
             }
+            UpdateState.Downloading -> {
+                binding.loadingProgress.run {
+                    max = 0
+                    progress = 0
+                    isIndeterminate = true
+                }
+            }
         }
     }
 
@@ -148,9 +180,9 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
     private fun downloadUpdate(newUpdate: UpdateItem) {
         viewModel.updateState.setIfNotEquals(UpdateState.Loading)
 
-//        val timer = Timer()
+        timer = Timer()
 
-        val apkName = newUpdate.version
+        val apkName = newUpdate.versionName
 
         val destination = requireContext()
             .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/$apkName.apk"
@@ -158,7 +190,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         val file = File(destination)
         if (file.exists()) file.delete()
 
-        val request = DownloadManager.Request(Uri.parse(newUpdate.link)).apply {
+        val request = DownloadManager.Request(Uri.parse(newUpdate.downloadLink)).apply {
             setTitle("${getString(R.string.app_name)} ${apkName}.apk")
             setMimeType(AppConstants.INSTALL_APP_MIME_TYPE)
             setDestinationInExternalFilesDir(
@@ -175,13 +207,14 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
         val receiver = DownloadManagerReceiver()
         receiver.onReceiveAction = {
-//            timer.cancel()
+            timer?.cancel()
+            downloadId = null
 
             installUpdate(file)
 
             requireContext().unregisterReceiver(receiver)
 
-            viewModel.updateState.setIfNotEquals(UpdateState.NoUpdates)
+            viewModel.updateState.setIfNotEquals(UpdateState.NewUpdate)
         }
 
         requireContext().registerReceiver(
@@ -189,32 +222,111 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
             IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         )
 
-        val downloadManager: DownloadManager =
-            requireContext().getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        downloadId = AppGlobal.downloadManager.enqueue(request)
 
-        downloadId = downloadManager.enqueue(request)
+        viewModel.updateState.setIfNotEquals(UpdateState.Downloading)
 
-//        timer.schedule(object : TimerTask() { // for progress
-//            override fun run() {
-//                val query = DownloadManager.Query()
-//                query.setFilterById(downloadId)
-//
-//                val cursor = downloadManager.query(query)
-//                if (cursor.moveToFirst()) {
-//                    val sizeIndex =
-//                        cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-//                    val downloadedIndex =
-//                        cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-//                    val size = cursor.getInt(sizeIndex)
-//                    val downloaded = cursor.getInt(downloadedIndex)
-//
-//                    val progress = if (size != -1) (downloaded * 100.0F / size) else 0.0F
-//
-//                    Log.d("Downloading update", "progress $progress%")
-//                }
-//            }
-//
-//        }, 0, 1000)
+        if (binding.loadingProgress.max != 100 * 100) {
+            binding.loadingProgress.max = 100 * 100
+        }
+
+        timer?.schedule(object : TimerTask() { // for progress
+            override fun run() {
+                val query = DownloadManager.Query()
+                query.setFilterById(downloadId ?: -1)
+
+                val cursor = AppGlobal.downloadManager.query(query)
+                if (cursor.moveToFirst()) {
+                    val sizeIndex =
+                        cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                    val downloadedIndex =
+                        cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                    val size = cursor.getInt(sizeIndex)
+                    val downloaded = cursor.getInt(downloadedIndex)
+
+                    val progress =
+                        if (size != -1) (downloaded * 100.0F / size) else 0.0F
+
+                    if (progress.toInt() >= 1) {
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            if (view == null) {
+                                downloadId?.run { AppGlobal.downloadManager.remove(this) }
+                                timer?.cancel()
+                                return@launch
+                            }
+                            binding.loadingProgress.isIndeterminate = false
+
+                            if (binding.loadingProgress.progress != progress.toInt()) {
+                                ObjectAnimator.ofInt(
+                                    binding.loadingProgress,
+                                    "progress",
+                                    binding.loadingProgress.progress,
+                                    progress.toInt() * 100
+                                ).apply {
+                                    duration = 250
+                                    setAutoCancel(true)
+                                    interpolator = DecelerateInterpolator()
+                                }.start()
+                            }
+                        }
+                    }
+
+                    Log.d("Downloading update", "progress $progress%")
+                }
+            }
+
+        }, 0, 250)
+    }
+
+    private fun writeFileToStorage(responseBody: ResponseBody?) {
+        if (responseBody == null) return
+
+        val updateItem = requireNotNull(viewModel.currentItem.value)
+
+        try {
+            val destination = requireContext()
+                .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
+                    "${File.separator}${updateItem.fileName}.${updateItem.extension}"
+
+            val file = File(destination)
+            if (file.exists()) file.delete()
+
+            var inputStream: InputStream? = null
+            var outputStream: OutputStream? = null
+            try {
+                val fileReader = ByteArray(4096)
+                val fileSize: Long = responseBody.contentLength()
+
+                requireActivity().runOnUiThread {
+                    binding.loadingProgress.max = fileSize.toInt()
+                    binding.loadingProgress.progress = 0
+                }
+
+                var fileSizeDownloaded: Long = 0
+                inputStream = responseBody.byteStream()
+                outputStream = FileOutputStream(file)
+                while (true) {
+                    val read: Int = inputStream.read(fileReader)
+                    if (read == -1) {
+                        break
+                    }
+                    outputStream.write(fileReader, 0, read)
+                    fileSizeDownloaded += read.toLong()
+                }
+                outputStream.flush()
+
+                requireActivity().runOnUiThread {
+                    installUpdate(file)
+                }
+            } catch (e: IOException) {
+
+            } finally {
+                inputStream?.close()
+                outputStream?.close()
+            }
+        } catch (e: IOException) {
+
+        }
     }
 
     private fun installUpdate(file: File) {
@@ -228,8 +340,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
     }
 
     private fun showChangelogAlert() {
-        val version = viewModel.currentItem.value?.version
-        val changelog = viewModel.currentItem.value?.changelogs?.get(version)
+        val changelog = viewModel.currentItem.value?.changelog
 
         val messageText =
             if (changelog.isNullOrBlank()) getString(R.string.fragment_updates_changelog_none)

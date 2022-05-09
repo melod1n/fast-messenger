@@ -1,6 +1,5 @@
 package com.meloda.fast.activity
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -15,7 +14,6 @@ import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -29,10 +27,6 @@ import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
-import com.microsoft.appcenter.distribute.Distribute
-import com.microsoft.appcenter.distribute.DistributeListener
-import com.microsoft.appcenter.distribute.ReleaseDetails
-import com.microsoft.appcenter.distribute.UpdateAction
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
@@ -95,49 +89,48 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         )
         AppCenter.start(Crashes::class.java)
 
-        Distribute.setEnabledForDebuggableBuild(true)
-        Distribute.setListener(object : DistributeListener {
-            override fun onReleaseAvailable(
-                activity: Activity,
-                releaseDetails: ReleaseDetails
-            ): Boolean {
-                val versionName = releaseDetails.shortVersion
-                val versionCode = releaseDetails.version
-                val releaseNotes = releaseDetails.releaseNotes
-
-                val versionText = getString(
-                    R.string.fragment_updates_new_version_description,
-                    "$versionName ($versionCode)"
-                )
-
-                val messageText =
-                    "%s\n\n%s:\n%s".format(
-                        versionText,
-                        getString(R.string.fragment_updates_changelog),
-                        releaseNotes
-                    )
-
-                val builder = MaterialAlertDialogBuilder(this@MainActivity)
-                    .setTitle(R.string.fragment_updates_new_version)
-                    .setMessage(messageText)
-                    .setPositiveButton(com.microsoft.appcenter.distribute.R.string.appcenter_distribute_update_dialog_download) { _, _ ->
-                        Distribute.notifyUpdateAction(UpdateAction.UPDATE);
-                    }
-                    .setCancelable(false)
-
-                if (!releaseDetails.isMandatoryUpdate) {
-                    builder.setNegativeButton(com.microsoft.appcenter.distribute.R.string.appcenter_distribute_update_dialog_postpone) { _, _ ->
-                        Distribute.notifyUpdateAction(UpdateAction.POSTPONE)
-                    }
-                }
-                builder.show()
-                return true
-            }
-
-            override fun onNoReleaseAvailable(activity: Activity?) {
-            }
-        })
-        AppCenter.start(Distribute::class.java)
+//        Distribute.setEnabledForDebuggableBuild(true)
+//        Distribute.setListener(object : DistributeListener {
+//            override fun onReleaseAvailable(
+//                activity: Activity,
+//                releaseDetails: ReleaseDetails
+//            ): Boolean {
+//                val versionName = releaseDetails.shortVersion
+//                val versionCode = releaseDetails.version
+//                val releaseNotes = releaseDetails.releaseNotes
+//
+//                val versionText = getString(
+//                    R.string.fragment_updates_new_version_description,
+//                    "$versionName ($versionCode)"
+//                )
+//
+//                val messageText =
+//                    "%s\n\n%s:\n%s".format(
+//                        versionText,
+//                        getString(R.string.fragment_updates_changelog),
+//                        releaseNotes
+//                    )
+//
+//                val builder = MaterialAlertDialogBuilder(this@MainActivity)
+//                    .setTitle(R.string.fragment_updates_new_version)
+//                    .setMessage(messageText)
+//                    .setPositiveButton(com.microsoft.appcenter.distribute.R.string.appcenter_distribute_update_dialog_download) { _, _ ->
+//                        Distribute.notifyUpdateAction(UpdateAction.UPDATE);
+//                    }
+//                    .setCancelable(false)
+//
+//                if (!releaseDetails.isMandatoryUpdate) {
+//                    builder.setNegativeButton(com.microsoft.appcenter.distribute.R.string.appcenter_distribute_update_dialog_postpone) { _, _ ->
+//                        Distribute.notifyUpdateAction(UpdateAction.POSTPONE)
+//                    }
+//                }
+//                builder.show()
+//                return true
+//            }
+//
+//            override fun onNoReleaseAvailable(activity: Activity?) {
+//            }
+//        })
 
         binding.navigationBar.gone()
 
@@ -153,9 +146,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             initUserConfig()
         }
 
-        updateManager.checkUpdates { _, item ->
+        updateManager.checkUpdates { item, _ ->
             if (item != null) {
-                router.navigateTo(Screens.Updates())
+                router.navigateTo(Screens.Updates(item))
             }
         }
 
