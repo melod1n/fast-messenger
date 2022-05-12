@@ -88,86 +88,26 @@ class MessagesHistoryFragment :
     private var pickFile: Boolean = false
 
     private val getContent =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            if (uri == null) return@registerForActivityResult
-
-            var name = ""
-            var size = 0.0
-
-            val contentResolver = requireContext().contentResolver
-            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-
-                cursor.moveToFirst()
-                name = cursor.getString(nameIndex)
-                size = AndroidUtils.bytesToMegabytes(cursor.getLong(sizeIndex).toDouble())
-                cursor.close()
-            }
-
-            if (size > 200) {
+        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uriList: List<Uri>? ->
+            if (uriList.isNullOrEmpty() || uriList.size > 1) {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.warning)
-                    .setMessage("Selected file weighs more than 200 megabytes. Compress it or send other file")
-                    .setPositiveButton(android.R.string.ok, null)
-                    .setCancelable(false)
+                    .setMessage("At the moment you can attach only one item")
+                    .setPositiveButton(R.string.ok, null)
                     .show()
                 return@registerForActivityResult
             }
 
-            val lastDotIndex = name.lastIndexOf(".")
-            var extension = if (lastDotIndex == -1) "" else name.substring(lastDotIndex + 1)
-
-            if (extension.endsWith("msi") || extension.endsWith("exe") || extension.endsWith("apk")) {
-                extension += "fast"
-                name += "fast"
+            if (uriList.size > 10) {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.warning)
-                    .setMessage("Selected file is executable. Fast changed it extension to \"$extension\", so the final name is \"$name\"")
-                    .setPositiveButton(android.R.string.ok, null)
-                    .setCancelable(false)
+                    .setMessage("Select no more than 10 files")
+                    .setPositiveButton(R.string.ok, null)
                     .show()
+                return@registerForActivityResult
             }
 
-            val destination = requireContext()
-                .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
-                    "${File.separator}upload.$extension"
-
-            val file = File(destination)
-            if (file.exists()) file.delete()
-
-            val inputStream = requireActivity().contentResolver.openInputStream(uri)
-                ?: return@registerForActivityResult
-
-            inputStream.use { input ->
-                file.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-
-            val mimeType = contentResolver.getType(uri) ?: return@registerForActivityResult
-
-            if (pickFile) {
-                viewModel.getFileMessageUploadServer(
-                    conversation.id,
-                    file,
-                    name,
-                    FilesDataSource.FileType.File
-                )
-                pickFile = false
-            } else {
-                when (MediaType.parse(mimeType).type()) {
-                    MediaType.ANY_IMAGE_TYPE.type() -> {
-                        viewModel.getPhotoMessageUploadServer(conversation.id, file, name)
-                    }
-                    MediaType.ANY_VIDEO_TYPE.type() -> {
-                        viewModel.getVideoMessageUploadServer(conversation.id, file, name)
-                    }
-                    MediaType.ANY_AUDIO_TYPE.type() -> {
-                        viewModel.getAudioUploadServer(conversation.id, file, name)
-                    }
-                }
-            }
+            uriList.forEach(this::processFileFromStorage)
         }
 
     private val actionState = MutableLiveData<Action>()
@@ -407,6 +347,111 @@ class MessagesHistoryFragment :
         }
     }
 
+    override fun onEvent(event: VkEvent) {
+        super.onEvent(event)
+
+        when (event) {
+            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
+            is MessagesLoadedEvent -> refreshMessages(event)
+            is MessagesPinEvent -> conversation.pinnedMessage = event.message
+            is MessagesUnpinEvent -> conversation.pinnedMessage = null
+            is MessagesDeleteEvent -> deleteMessages(event)
+            is MessagesEditEvent -> editMessage(event)
+            is MessagesReadEvent -> readMessages(event)
+            is MessagesNewEvent -> addNewMessage(event)
+        }
+    }
+
+    override fun toggleProgress(isProgressing: Boolean) {
+        view?.run {
+            findViewById<View>(R.id.progress_bar).toggleVisibility(
+                if (isProgressing) adapter.isEmpty() else false
+            )
+            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
+                if (isProgressing) adapter.isNotEmpty() else false
+        }
+    }
+
+    private fun processFileFromStorage(uri: Uri) {
+        var name = ""
+        var size = 0.0
+
+        val contentResolver = requireContext().contentResolver
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+
+            cursor.moveToFirst()
+            name = cursor.getString(nameIndex)
+            size = AndroidUtils.bytesToMegabytes(cursor.getLong(sizeIndex).toDouble())
+            cursor.close()
+        }
+
+        if (size > 200) {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.warning)
+                .setMessage("Selected file weighs more than 200 megabytes. Compress it or send other file")
+                .setPositiveButton(R.string.ok, null)
+                .setCancelable(false)
+                .show()
+            return
+        }
+
+        val lastDotIndex = name.lastIndexOf(".")
+        var extension = if (lastDotIndex == -1) "" else name.substring(lastDotIndex + 1)
+
+        if (extension.endsWith("msi") || extension.endsWith("exe") || extension.endsWith("apk")) {
+            extension += "fast"
+            name += "fast"
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.warning)
+                .setMessage("Selected file is executable. Fast changed it extension to \"$extension\", so the final name is \"$name\"")
+                .setPositiveButton(R.string.ok, null)
+                .setCancelable(false)
+                .show()
+        }
+
+        val destination = requireContext()
+            .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
+                "${File.separator}upload.$extension"
+
+        val file = File(destination)
+        if (file.exists()) file.delete()
+
+        val inputStream = requireActivity().contentResolver.openInputStream(uri)
+            ?: return
+
+        inputStream.use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        val mimeType = contentResolver.getType(uri) ?: return
+
+        if (pickFile) {
+            viewModel.getFileMessageUploadServer(
+                conversation.id,
+                file,
+                name,
+                FilesDataSource.FileType.File
+            )
+            pickFile = false
+        } else {
+            when (MediaType.parse(mimeType).type()) {
+                MediaType.ANY_IMAGE_TYPE.type() -> {
+                    viewModel.getPhotoMessageUploadServer(conversation.id, file, name)
+                }
+                MediaType.ANY_VIDEO_TYPE.type() -> {
+                    viewModel.getVideoMessageUploadServer(conversation.id, file, name)
+                }
+                MediaType.ANY_AUDIO_TYPE.type() -> {
+                    viewModel.getAudioUploadServer(conversation.id, file, name)
+                }
+            }
+        }
+    }
+
     private fun showAttachmentsPopupMenu() {
         val popupMenu = PopupMenu(requireContext(), binding.attach)
         popupMenu.menu.add("Photo")
@@ -540,30 +585,6 @@ class MessagesHistoryFragment :
         }
     }
 
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
-
-        when (event) {
-            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
-            is MessagesLoadedEvent -> refreshMessages(event)
-            is MessagesPinEvent -> conversation.pinnedMessage = event.message
-            is MessagesUnpinEvent -> conversation.pinnedMessage = null
-            is MessagesDeleteEvent -> deleteMessages(event)
-            is MessagesEditEvent -> editMessage(event)
-            is MessagesReadEvent -> readMessages(event)
-            is MessagesNewEvent -> addNewMessage(event)
-        }
-    }
-
-    override fun toggleProgress(isProgressing: Boolean) {
-        view?.run {
-            findViewById<View>(R.id.progress_bar).toggleVisibility(
-                if (isProgressing) adapter.isEmpty() else false
-            )
-            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
-                if (isProgressing) adapter.isNotEmpty() else false
-        }
-    }
 
     private fun prepareViews() {
         prepareRecyclerView()
@@ -749,7 +770,7 @@ class MessagesHistoryFragment :
                     pin = pin
                 )
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -764,7 +785,9 @@ class MessagesHistoryFragment :
         binding.check.isEnabled =
             (conversation.id != UserConfig.userId) && (!message.isOut || message.canEdit())
 
-        if (conversation.id == UserConfig.userId) binding.check.isChecked = true
+        if (conversation.id == UserConfig.userId ||
+            (binding.check.isEnabled && message.isOut)
+        ) binding.check.isChecked = true
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.confirm_delete_message)
@@ -779,7 +802,7 @@ class MessagesHistoryFragment :
                     deleteForAll = if (!binding.check.isEnabled) null else binding.check.isChecked
                 )
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 

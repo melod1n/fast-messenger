@@ -354,7 +354,7 @@ class ConversationsFragment :
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 viewModel.deleteConversation(conversationId)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -378,7 +378,7 @@ class ConversationsFragment :
                     pin = !isPinned
                 )
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 

@@ -22,13 +22,13 @@ object ViewUtils {
                 if (showErrorPrefix) getString(R.string.error, message)
                 else message
             )
-            .setPositiveButton(positiveText ?: android.R.string.ok) { _, _ ->
+            .setPositiveButton(positiveText ?: R.string.ok) { _, _ ->
                 positiveAction?.invoke()
             }
 
         negativeAction?.run {
             builder.setNegativeButton(
-                negativeText ?: android.R.string.cancel
+                negativeText ?: R.string.cancel
             ) { _, _ -> this.invoke() }
         }
 

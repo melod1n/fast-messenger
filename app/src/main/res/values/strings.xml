@@ -182,4 +182,8 @@
     <string name="app_crash_occurred">Crash occurred</string>
     <string name="app_crash_comment_prompt">Leave a comment</string>
     <string name="app_crash_report">Report</string>
+
+    <string name="ok">@android:string/ok</string>
+    <string name="cancel">@android:string/cancel</string>
+
 </resources>

@@ -348,7 +348,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.fragment_updates_changelog)
             .setMessage(messageText)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .show()
     }
 }
