@@ -4,6 +4,7 @@ import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.network.Answer
 import com.meloda.fast.model.UpdateActualUrl
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Query
 import retrofit2.http.Url
 
@@ -17,7 +18,7 @@ interface OtaRepo {
         @Url url: String,
         @Query("productId") productId: Int = 28,
         @Query("branchId") branchId: Int = 10,
-        @Query("secretCode") secretCode: String
+        @Header("Secret-Code") secretCode: String
     ): Answer<ApiResponse<OtaGetLatestReleaseResponse>>
 
 }
