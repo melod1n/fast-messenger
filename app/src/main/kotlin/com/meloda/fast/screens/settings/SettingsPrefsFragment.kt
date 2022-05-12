@@ -5,8 +5,8 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
 import com.microsoft.appcenter.crashes.Crashes
 
@@ -23,13 +23,17 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
         const val PrefMultiline = "appearance_multiline"
         const val PrefHideKeyboardOnScroll = "appearance_hide_keyboard_on_scroll"
 
+        const val CategoryVisibility = "visibility"
+        const val PrefSendOnlineStatus = "send_online_status"
+
         const val CategoryUpdates = "updates"
         const val PrefCheckUpdates = "updates_check_updates"
 
-        const val CategoryMisc = "misc"
-        const val PrefPerformCrash = "misc_perform_crash"
+        const val CategoryDebug = "debug"
+        const val PrefPerformCrash = "perform_crash"
+        const val PrefShowDestroyedLongPollAlert = "show_destroyed_long_poll_alert"
 
-        const val CategoryAcra = "msappcenter"
+        const val CategoryAppCenter = "msappcenter"
         const val PrefEnableReporter = "msappcenter.enable"
     }
 
@@ -48,11 +52,11 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
             it.onPreferenceClickListener = this
         }
 
-        getPreference(CategoryMisc)?.let {
-            it.isVisible = UserConfig.userId == 362877006
+        getPreference(CategoryDebug)?.let {
+            it.isVisible = BuildConfig.DEBUG
         }
         getPreference(PrefPerformCrash)?.let {
-            it.isVisible = UserConfig.userId == 362877006
+            it.isVisible = BuildConfig.DEBUG
             it.onPreferenceClickListener = this
         }
     }

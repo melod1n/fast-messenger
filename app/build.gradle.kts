@@ -20,6 +20,8 @@ plugins {
 }
 
 android {
+    namespace = "com.meloda.fast"
+
     compileSdk = 31
     buildToolsVersion = "31.0.0"
 
@@ -163,5 +165,6 @@ dependencies {
 
     // Google Guava
     implementation("com.google.guava:guava:31.1-android")
+
 
 }

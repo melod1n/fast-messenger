@@ -23,20 +23,16 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
+import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.TypeTransformations
-import com.meloda.fast.extensions.dpToPx
-import com.meloda.fast.extensions.hideKeyboard
-import com.meloda.fast.extensions.trimmedText
+import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -136,11 +132,11 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
 
-                    lifecycleScope.launch {
-                        withContext(Dispatchers.Main) {
-                            view.loadUrl("javascript:document.getElementsByClassName(\"button\")[0].click()")
-                        }
-                    }
+//                    lifecycleScope.launch {
+//                        withContext(Dispatchers.Main) {
+//                            view.loadUrl("javascript:document.getElementsByClassName(\"button\")[0].click()")
+//                        }
+//                    }
                 }
             }
         }
@@ -153,10 +149,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun launchWebView() {
-        viewModel.initUserConfig()
-        viewModel.openPrimaryScreen()
-        // TODO: 08.05.2022, Danil Nikolaev: отдебажить
-        if (true) return
+//        viewModel.initUserConfig()
+//        viewModel.openPrimaryScreen()
+
+        binding.webView.visible()
         val urlToLoad = "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
                 "access_token=${UserConfig.accessToken}&" +
                 "sdk_package=com.meloda.fast.activity&" +

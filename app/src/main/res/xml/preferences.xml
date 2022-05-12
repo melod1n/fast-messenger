@@ -18,6 +18,16 @@
         android:title="Hide keyboard on scroll" />
 
     <PreferenceCategory
+        android:key="visibility"
+        android:title="Visibility" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="send_online_status"
+        android:summary="Online status will be sent every minute"
+        android:title="Send online status" />
+
+    <PreferenceCategory
         android:key="updates"
         android:title="Updates" />
 
@@ -36,12 +46,17 @@
         android:title="Enable Crash Reporter" />
 
     <PreferenceCategory
-        android:key="misc"
-        android:title="Miscellaneous" />
+        android:key="debug"
+        android:title="Debug" />
 
     <PreferenceScreen
-        android:key="misc_perform_crash"
+        android:key="perform_crash"
         android:summary="App will be crashed. Obviously"
         android:title="Perform crash" />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="show_destroyed_long_poll_alert"
+        android:title="Show destroyed LP alert" />
 
 </PreferenceScreen>

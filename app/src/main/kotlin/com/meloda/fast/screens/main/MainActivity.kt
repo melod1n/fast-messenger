@@ -1,9 +1,10 @@
-package com.meloda.fast.activity
+package com.meloda.fast.screens.main
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.viewbinding.library.activity.viewBinding
+import androidx.core.content.edit
 import androidx.core.view.size
 import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
@@ -14,9 +15,11 @@ import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.github.terrakok.cicerone.androidx.FragmentScreen
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.*
 import com.meloda.fast.database.dao.AccountsDao
@@ -24,6 +27,8 @@ import com.meloda.fast.databinding.ActivityMainBinding
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.toggleVisibility
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
+import com.meloda.fast.service.LongPollService
+import com.meloda.fast.service.OnlineService
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
@@ -59,6 +64,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     @Inject
     lateinit var accountsDao: AccountsDao
 
+    @Inject
+    lateinit var updatesParser: LongPollUpdatesParser
+
     val binding: ActivityMainBinding by viewBinding()
 
     var useNavDrawer: Boolean by Delegates.observable(false) { _, _, _ ->
@@ -84,53 +92,10 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             AppCenter.start(Analytics::class.java)
         }
 
+        AppCenter.start(Crashes::class.java)
         Crashes.setEnabled(
             AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefEnableReporter, true)
         )
-        AppCenter.start(Crashes::class.java)
-
-//        Distribute.setEnabledForDebuggableBuild(true)
-//        Distribute.setListener(object : DistributeListener {
-//            override fun onReleaseAvailable(
-//                activity: Activity,
-//                releaseDetails: ReleaseDetails
-//            ): Boolean {
-//                val versionName = releaseDetails.shortVersion
-//                val versionCode = releaseDetails.version
-//                val releaseNotes = releaseDetails.releaseNotes
-//
-//                val versionText = getString(
-//                    R.string.fragment_updates_new_version_description,
-//                    "$versionName ($versionCode)"
-//                )
-//
-//                val messageText =
-//                    "%s\n\n%s:\n%s".format(
-//                        versionText,
-//                        getString(R.string.fragment_updates_changelog),
-//                        releaseNotes
-//                    )
-//
-//                val builder = MaterialAlertDialogBuilder(this@MainActivity)
-//                    .setTitle(R.string.fragment_updates_new_version)
-//                    .setMessage(messageText)
-//                    .setPositiveButton(com.microsoft.appcenter.distribute.R.string.appcenter_distribute_update_dialog_download) { _, _ ->
-//                        Distribute.notifyUpdateAction(UpdateAction.UPDATE);
-//                    }
-//                    .setCancelable(false)
-//
-//                if (!releaseDetails.isMandatoryUpdate) {
-//                    builder.setNegativeButton(com.microsoft.appcenter.distribute.R.string.appcenter_distribute_update_dialog_postpone) { _, _ ->
-//                        Distribute.notifyUpdateAction(UpdateAction.POSTPONE)
-//                    }
-//                }
-//                builder.show()
-//                return true
-//            }
-//
-//            override fun onNoReleaseAvailable(activity: Activity?) {
-//            }
-//        })
 
         binding.navigationBar.gone()
 
@@ -167,6 +132,55 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
         syncNavigationMode()
         binding.navigationBar.selectedItemId = R.id.messages
+
+        supportFragmentManager.setFragmentResultListener(
+            MainFragment.KeyStartServices,
+            this
+        ) { _, result ->
+            val enable = result.getBoolean("enable", true)
+            if (enable) {
+                startServices()
+            } else {
+                stopServices()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (AppGlobal.preferences.getBoolean(LongPollService.KeyLongPollWasDestroyed, false)) {
+            AppGlobal.preferences.edit {
+                putBoolean(LongPollService.KeyLongPollWasDestroyed, false)
+            }
+
+            if (AppGlobal.preferences.getBoolean(
+                    SettingsPrefsFragment.PrefShowDestroyedLongPollAlert,
+                    false
+                )
+            ) {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.warning)
+                    .setMessage("Long poll was destroyed.")
+                    .setPositiveButton("Restart this shit") { _, _ ->
+                        startServices()
+                    }
+                    .setCancelable(false)
+                    .show()
+            } else {
+                startServices()
+            }
+        }
+    }
+
+    private fun startServices() {
+        startService(Intent(this, LongPollService::class.java))
+        startService(Intent(this, OnlineService::class.java))
+    }
+
+    private fun stopServices() {
+        stopService(Intent(this, LongPollService::class.java))
+        stopService(Intent(this, OnlineService::class.java))
     }
 
     private fun addTestMenuItem() {
@@ -242,5 +256,11 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 binding.navigationBar.toggleVisibility(isVisible)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopServices()
+        updatesParser.clearListeners()
     }
 }

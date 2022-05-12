@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.util.ViewUtils.showErrorDialog

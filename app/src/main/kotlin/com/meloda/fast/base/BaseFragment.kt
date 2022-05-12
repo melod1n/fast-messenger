@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import com.meloda.fast.activity.MainActivity
+import com.meloda.fast.screens.main.MainActivity
 
 abstract class BaseFragment : Fragment {
 

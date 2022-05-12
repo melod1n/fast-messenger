@@ -4,27 +4,31 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import androidx.core.content.edit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.network.Answer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.longpoll.LongPollRepo
 import com.meloda.fast.api.network.messages.MessagesDataSource
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
+import com.meloda.fast.common.AppGlobal
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 @AndroidEntryPoint
-class MessagesUpdateService : Service(), CoroutineScope {
+class LongPollService : Service(), CoroutineScope {
 
     companion object {
         const val TAG = "LongPollTask"
+
+        const val KeyLongPollWasDestroyed = "long_poll_was_destroyed"
     }
 
     private val job = SupervisorJob()
@@ -51,12 +55,18 @@ class MessagesUpdateService : Service(), CoroutineScope {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("LongPollService", "onStartCommand: flags: $flags; startId: $startId")
         launch { startPolling().join() }
         return START_STICKY
     }
 
     private fun startPolling(): Job {
-        if (job.isCompleted || job.isCancelled) throw Exception("Job is over")
+        if (job.isCompleted || job.isCancelled) {
+            Log.d("LongPollService", "job is completed or cancelled. Fuck off")
+            throw Exception("Job is over")
+        }
+
+        Log.d("LongPollService", "job started")
 
         return launch {
             var serverInfo = getServerInfo()
@@ -163,21 +173,19 @@ class MessagesUpdateService : Service(), CoroutineScope {
     }
 
     private fun handleUpdateEvent(eventJson: JsonArray) {
-//        println("$TAG: handleUpdateEvent: $eventJson")
-
         updatesParser.parseNextUpdate(eventJson)
     }
 
-//    fun <T : Any> registerListener(eventType: Int, listener: VkEventCallback<T>) =
-//        updatesParser.registerListener(eventType, listener)
-
     override fun onDestroy() {
+        Log.d("LongPollService", "onDestroy")
         try {
+            AppGlobal.preferences.edit {
+                putBoolean(KeyLongPollWasDestroyed, true)
+            }
             job.cancel()
         } catch (e: Exception) {
+            e.printStackTrace()
         }
-        updatesParser.clearListeners()
         super.onDestroy()
     }
-
 }

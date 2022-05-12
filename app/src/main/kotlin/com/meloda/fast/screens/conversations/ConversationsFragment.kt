@@ -10,7 +10,9 @@ import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.core.view.get
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -19,7 +21,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
-import com.meloda.fast.activity.MainActivity
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
@@ -32,6 +33,8 @@ import com.meloda.fast.extensions.addAvatarMenuItem
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.tintMenuItemIcons
 import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.screens.main.MainActivity
+import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -182,6 +185,10 @@ class ConversationsFragment :
                 lifecycleScope.launch(Dispatchers.Default) {
                     UserConfig.clear()
                     AppGlobal.appDatabase.clearAllTables()
+                    setFragmentResult(
+                        MainFragment.KeyStartServices,
+                        bundleOf("enable" to false)
+                    )
 
                     viewModel.openRootScreen()
                 }

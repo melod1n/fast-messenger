@@ -23,7 +23,7 @@
         android:usesCleartextTraffic="true"
         tools:replace="android:allowBackup">
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".screens.main.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -34,7 +34,12 @@
         </activity>
 
         <service
-            android:name=".service.MessagesUpdateService"
+            android:name=".service.LongPollService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <service
+            android:name=".service.OnlineService"
             android:enabled="true"
             android:exported="false" />
 
