@@ -2,6 +2,7 @@
 
 package com.meloda.fast.api.network
 
+import com.google.gson.Gson
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.base.ApiResponse
@@ -80,21 +81,36 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(pro
     ) : Callback<T> {
 
         override fun onResponse(call: Call<T>, response: Response<T>) {
-            var isVkException = true
-
             val result: ApiAnswer<T> =
                 if (response.isSuccessful) {
                     val baseBody = response.body()
-                    if (baseBody !is ApiResponse<*>) ApiAnswer.Success(baseBody as T)
-                    else {
-                        val body = baseBody as ApiResponse<*>
-                        if (body.error != null) {
+                    if (baseBody !is ApiResponse<*>) {
+                        ApiAnswer.Success(baseBody as T)
+                    } else {
+                        val body = baseBody as? ApiResponse<*>
+                        if (body?.error != null) {
                             ApiAnswer.Error(body.error)
-                        } else ApiAnswer.Success(body as T)
+                        } else {
+                            ApiAnswer.Success(body as T)
+                        }
                     }
-                } else ApiAnswer.Error(IOException(response.errorBody()?.string() ?: ""))
+                } else {
+                    val errorBodyString = response.errorBody()?.string()
 
-            if (result is ApiAnswer.Error && isVkException) if (checkErrors(call, result)) return
+                    ApiAnswer.Error(
+                        if (errorBodyString != null) {
+                            Gson().fromJson(errorBodyString, ApiError::class.java)
+                        } else {
+                            IOException(VkErrors.UNKNOWN)
+                        }
+                    )
+                }
+
+            if (result is ApiAnswer.Error) {
+                if (checkErrors(call, result)) {
+                    return
+                }
+            }
 
             callback.onResponse(proxy, Response.success(result))
         }

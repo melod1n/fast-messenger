@@ -491,7 +491,7 @@ class MessagesHistoryFragment :
     }
 
     private fun pickAudio() {
-        getContent.launch(MediaType.ANY_AUDIO_TYPE.mimeType)
+        getContent.launch(MediaType.MPEG_AUDIO.mimeType)
     }
 
     private fun pickFile() {
