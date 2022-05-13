@@ -59,7 +59,9 @@ data class MessagesSendRequest(
             dontParseLinks?.let { this["dont_parse_links"] = it.intString }
             silent?.let { this["silent"] = it.toString() }
             attachments?.let {
-                this["attachment"] = it.joinToString { attachment -> attachment.asString(true) }
+                this["attachment"] = it.joinToString(separator = ",") { attachment ->
+                    attachment.asString(true)
+                }
             }
         }
 }

@@ -164,4 +164,6 @@ sealed class ApiAnswer<out R> {
     data class Success<out T>(val data: T) : ApiAnswer<T>()
     data class Error(val throwable: Throwable) : ApiAnswer<Nothing>()
 
+    fun isSuccessful(): Boolean = this is Success
+
 }

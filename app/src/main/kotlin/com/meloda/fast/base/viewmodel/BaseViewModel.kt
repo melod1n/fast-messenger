@@ -19,6 +19,28 @@ abstract class BaseViewModel : ViewModel() {
     protected val tasksEventChannel = Channel<VkEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
 
+    protected suspend fun <T> makeSuspendJob(
+        job: suspend () -> ApiAnswer<T>, onAnswer: suspend (T) -> Unit = {},
+        onStart: (suspend () -> Unit)? = null,
+        onEnd: (suspend () -> Unit)? = null,
+        onError: (suspend (Throwable) -> Unit)? = null
+    ): ApiAnswer<T> {
+        onStart?.invoke() ?: onStart()
+        val response = job()
+
+        when (response) {
+            is ApiAnswer.Success -> onAnswer(response.data)
+            is ApiAnswer.Error -> {
+                checkErrors(response.throwable)
+                onError?.invoke(response.throwable) ?: onError(response.throwable)
+            }
+        }
+
+        onEnd?.invoke()
+
+        return response
+    }
+
     protected fun <T> makeJob(
         job: suspend () -> ApiAnswer<T>,
         onAnswer: suspend (T) -> Unit = {},

@@ -11,6 +11,7 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.audio.AudiosDataSource
 import com.meloda.fast.api.network.files.FilesDataSource
 import com.meloda.fast.api.network.messages.*
@@ -27,6 +28,8 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 @HiltViewModel
@@ -411,58 +414,98 @@ class MessagesHistoryViewModel @Inject constructor(
         )
     }
 
-    fun getFileMessageUploadServer(
+    suspend fun uploadFile(
         peerId: Int,
         file: File,
         name: String,
         type: FilesDataSource.FileType
-    ) {
-        makeJob(
-            { files.getMessagesUploadServer(peerId, type) },
-            onAnswer = {
-                val response = it.response ?: return@makeJob
-                val url = response.uploadUrl
-
-                uploadFileToServer(peerId, url, file, name)
+    ) = suspendCoroutine<VkAttachment?> {
+        viewModelScope.launch {
+            val uploadServerUrl = getFileMessageUploadServer(peerId, type)
+            if (uploadServerUrl == null) {
+                it.resume(null)
+                return@launch
             }
-        )
+
+            val uploadedFileInfo = uploadFileToServer(uploadServerUrl, file, name)
+            if (uploadedFileInfo == null) {
+                it.resume(null)
+                return@launch
+            }
+
+            val savedAttachmentPair = saveMessageFile(uploadedFileInfo)
+            if (savedAttachmentPair == null) {
+                it.resume(null)
+                return@launch
+            }
+
+            it.resume(savedAttachmentPair.second)
+        }.also { it.invokeOnCompletion { viewModelScope.launch { onStop() } } }
     }
 
-    private fun uploadFileToServer(
+    suspend fun getFileMessageUploadServer(
         peerId: Int,
+        type: FilesDataSource.FileType
+    ): String? {
+        val uploadServerResponse = makeSuspendJob(
+            { files.getMessagesUploadServer(peerId, type) }
+        )
+        if (!uploadServerResponse.isSuccessful()) {
+            (uploadServerResponse as ApiAnswer.Error).run {
+                onError(this.throwable)
+            }
+            return null
+        }
+
+        (uploadServerResponse as ApiAnswer.Success).data.response?.uploadUrl?.run {
+            return this
+        }
+
+        return null
+    }
+
+    private suspend fun uploadFileToServer(
         uploadUrl: String,
         file: File,
         name: String
-    ) {
+    ): String? {
         val requestBody = file.asRequestBody()
         val body = MultipartBody.Part.createFormData("file", name, requestBody)
-        makeJob(
-            { files.uploadFile(uploadUrl, body) },
-            onAnswer = {
-                val response = it
 
-                if (response.file != null) {
-                    saveMessageFile(peerId, response.file)
-                } else {
-                    onError(ApiError(0, response.error.orEmpty()))
-                }
-            }
+        val uploadFileResponse = makeSuspendJob(
+            { files.uploadFile(uploadUrl, body) }
         )
+        if (!uploadFileResponse.isSuccessful()) {
+            (uploadFileResponse as ApiAnswer.Error).run {
+                onError(this.throwable)
+            }
+            return null
+        }
+
+        (uploadFileResponse as ApiAnswer.Success).data.file?.run {
+            return this
+        }
+
+        return null
     }
 
-    private fun saveMessageFile(peerId: Int, file: String) {
-        makeJob(
-            { files.saveMessageFile(file) },
-            onAnswer = {
-                val response = it.response ?: return@makeJob
-
-                val attachment: VkAttachment =
-                    (response.file?.asVkFile()) ?: response.voiceMessage?.asVkVoiceMessage()
-                    ?: return@makeJob
-
-                sendMessage(peerId, attachments = listOf(attachment))
-            }
+    private suspend fun saveMessageFile(file: String): Pair<String, VkAttachment?>? {
+        val saveResponse = makeSuspendJob(
+            { files.saveMessageFile(file) }
         )
+        if (!saveResponse.isSuccessful()) {
+            (saveResponse as ApiAnswer.Error).run {
+                onError(this.throwable)
+            }
+            return null
+        }
+
+        (saveResponse as ApiAnswer.Success).data.response?.run {
+            return this.type to (this.file?.asVkFile()
+                ?: this.voiceMessage?.asVkVoiceMessage()) as VkAttachment
+        }
+
+        return null
     }
 }
 

@@ -21,6 +21,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -33,6 +34,7 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.network.files.FilesDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -47,6 +49,9 @@ import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -87,20 +92,22 @@ class MessagesHistoryFragment :
 
     private var pickFile: Boolean = false
 
+    private val attachmentsToLoad = mutableListOf<VkAttachment>()
+
     private val getContent =
         registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uriList: List<Uri>? ->
             if (uriList.isNullOrEmpty()) {
                 return@registerForActivityResult
             }
 
-            if (uriList.size > 1) {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.warning)
-                    .setMessage("At the moment you can attach only one item")
-                    .setPositiveButton(R.string.ok, null)
-                    .show()
-                return@registerForActivityResult
-            }
+//            if (uriList.size > 1) {
+//                MaterialAlertDialogBuilder(requireContext())
+//                    .setTitle(R.string.warning)
+//                    .setMessage("At the moment you can attach only one item")
+//                    .setPositiveButton(R.string.ok, null)
+//                    .show()
+//                return@registerForActivityResult
+//            }
 
             if (uriList.size > 10) {
                 MaterialAlertDialogBuilder(requireContext())
@@ -111,8 +118,20 @@ class MessagesHistoryFragment :
                 return@registerForActivityResult
             }
 
-            uriList.forEach(this::processFileFromStorage)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val uploadFlow = flow<Any?> {
+                    uriList.forEach { uri ->
+                        processFileFromStorage(uri)
+                        emit(null)
+                    }
+                }
+
+                uploadFlow.collect()
+
+//                uriList.forEach { processFileFromStorage(it) }
+            }
         }
+
 
     private val actionState = MutableLiveData<Action>()
 
@@ -376,7 +395,7 @@ class MessagesHistoryFragment :
         }
     }
 
-    private fun processFileFromStorage(uri: Uri) {
+    private suspend fun processFileFromStorage(uri: Uri) {
         var name = ""
         var size = 0.0
 
@@ -422,8 +441,7 @@ class MessagesHistoryFragment :
         val file = File(destination)
         if (file.exists()) file.delete()
 
-        val inputStream = requireActivity().contentResolver.openInputStream(uri)
-            ?: return
+        val inputStream = requireActivity().contentResolver.openInputStream(uri) ?: return
 
         inputStream.use { input ->
             file.outputStream().use { output ->
@@ -434,13 +452,17 @@ class MessagesHistoryFragment :
         val mimeType = contentResolver.getType(uri) ?: return
 
         if (pickFile) {
-            viewModel.getFileMessageUploadServer(
+
+            val uploadedAttachment = viewModel.uploadFile(
                 conversation.id,
                 file,
                 name,
                 FilesDataSource.FileType.File
             )
-            pickFile = false
+
+            uploadedAttachment?.run {
+                attachmentsToLoad.add(this)
+            }
         } else {
             when (MediaType.parse(mimeType).type()) {
                 MediaType.ANY_IMAGE_TYPE.type() -> {
@@ -565,7 +587,8 @@ class MessagesHistoryFragment :
                         val messageToUpdate = adapter[messageIndex] as VkMessage
                         messageToUpdate.id = messageId
                         adapter[messageIndex] = messageToUpdate
-                    }
+                    },
+                    attachments = attachmentsToLoad.ifEmpty { null }
                 )
             }
             Action.EDIT -> {
