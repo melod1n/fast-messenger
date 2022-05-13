@@ -89,7 +89,11 @@ class MessagesHistoryFragment :
 
     private val getContent =
         registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uriList: List<Uri>? ->
-            if (uriList.isNullOrEmpty() || uriList.size > 1) {
+            if (uriList.isNullOrEmpty()) {
+                return@registerForActivityResult
+            }
+
+            if (uriList.size > 1) {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.warning)
                     .setMessage("At the moment you can attach only one item")

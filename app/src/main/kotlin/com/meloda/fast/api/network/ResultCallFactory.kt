@@ -99,7 +99,11 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(pro
 
                     ApiAnswer.Error(
                         if (errorBodyString != null) {
-                            Gson().fromJson(errorBodyString, ApiError::class.java)
+                            try {
+                                Gson().fromJson(errorBodyString, ApiError::class.java)
+                            } catch (e: Exception) {
+                                e
+                            }
                         } else {
                             IOException(VkErrors.UNKNOWN)
                         }
