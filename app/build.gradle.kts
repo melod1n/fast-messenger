@@ -161,7 +161,6 @@ dependencies {
     val appCenterSdkVersion = "4.3.1"
     implementation("com.microsoft.appcenter:appcenter-analytics:$appCenterSdkVersion")
     implementation("com.microsoft.appcenter:appcenter-crashes:$appCenterSdkVersion")
-    implementation("com.microsoft.appcenter:appcenter-distribute:$appCenterSdkVersion")
 
     // Google Guava
     implementation("com.google.guava:guava:31.1-android")

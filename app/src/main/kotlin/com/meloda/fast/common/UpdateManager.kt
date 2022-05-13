@@ -3,7 +3,7 @@ package com.meloda.fast.common
 import androidx.lifecycle.MutableLiveData
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.network.Answer
+import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.ota.OtaGetLatestReleaseResponse
 import com.meloda.fast.api.network.ota.OtaRepo
 import com.meloda.fast.extensions.setIfNotEquals
@@ -32,16 +32,16 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
     private var listener: ((item: UpdateItem?, error: Throwable?) -> Unit)? = null
 
     private fun getActualUrl() = launch {
-        val job: suspend () -> Answer<UpdateActualUrl> = { repo.getActualUrl() }
+        val job: suspend () -> ApiAnswer<UpdateActualUrl> = { repo.getActualUrl() }
 
         when (val jobResponse = job()) {
-            is Answer.Success -> {
+            is ApiAnswer.Success -> {
                 val item = jobResponse.data
                 otaBaseUrl = item.url
 
                 getLatestRelease()
             }
-            is Answer.Error -> {
+            is ApiAnswer.Error -> {
                 otaBaseUrl = null
                 val throwable = jobResponse.throwable
                 listener?.invoke(null, throwable)
@@ -56,13 +56,13 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
     private fun getLatestRelease() = launch {
         val url = "$otaBaseUrl/releases-latest"
 
-        val job: suspend () -> Answer<ApiResponse<OtaGetLatestReleaseResponse>> = {
+        val job: suspend () -> ApiAnswer<ApiResponse<OtaGetLatestReleaseResponse>> = {
             repo.getLatestRelease(url = url, secretCode = getOtaSecret())
         }
 
         withContext(Dispatchers.Main) {
             when (val jobResponse = job()) {
-                is Answer.Success -> {
+                is ApiAnswer.Success -> {
                     val response = jobResponse.data.response ?: return@withContext
                     val latestRelease = response.release
 
@@ -80,7 +80,7 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
                     }
                 }
 
-                is Answer.Error -> {
+                is ApiAnswer.Error -> {
                     val throwable = jobResponse.throwable
                     updateError.setIfNotEquals(throwable)
                     listener?.invoke(null, throwable)

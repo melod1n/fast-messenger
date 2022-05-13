@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Fast</string>
 
     <string name="message_attachments_many">Attachments</string>
@@ -185,5 +185,8 @@
 
     <string name="ok">@android:string/ok</string>
     <string name="cancel">@android:string/cancel</string>
+
+    <string name="copy" tools:override="true">Copy</string>
+    <string name="share">Share</string>
 
 </resources>

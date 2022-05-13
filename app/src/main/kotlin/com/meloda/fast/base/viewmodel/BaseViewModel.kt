@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.network.Answer
+import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.VkErrorCodes
 import com.meloda.fast.api.network.VkErrors
 import kotlinx.coroutines.Job
@@ -20,7 +20,7 @@ abstract class BaseViewModel : ViewModel() {
     val tasksEvent = tasksEventChannel.receiveAsFlow()
 
     protected fun <T> makeJob(
-        job: suspend () -> Answer<T>,
+        job: suspend () -> ApiAnswer<T>,
         onAnswer: suspend (T) -> Unit = {},
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
@@ -28,8 +28,8 @@ abstract class BaseViewModel : ViewModel() {
     ): Job = viewModelScope.launch {
         onStart?.invoke() ?: onStart()
         when (val response = job()) {
-            is Answer.Success -> onAnswer(response.data)
-            is Answer.Error -> {
+            is ApiAnswer.Success -> onAnswer(response.data)
+            is ApiAnswer.Error -> {
                 checkErrors(response.throwable)
                 onError?.invoke(response.throwable) ?: onError(response.throwable)
             }

@@ -2,7 +2,7 @@ package com.meloda.fast.api.network.photos
 
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.model.base.attachments.BaseVkPhoto
-import com.meloda.fast.api.network.Answer
+import com.meloda.fast.api.network.ApiAnswer
 import okhttp3.MultipartBody
 import retrofit2.http.*
 
@@ -12,19 +12,19 @@ interface PhotosRepo {
     @POST(PhotoUrls.GetMessagesUploadServer)
     suspend fun getUploadServer(
         @FieldMap map: Map<String, String>
-    ): Answer<ApiResponse<PhotosGetMessagesUploadServerResponse>>
+    ): ApiAnswer<ApiResponse<PhotosGetMessagesUploadServerResponse>>
 
     @Multipart
     @POST
     suspend fun upload(
         @Url url: String,
         @Part photo: MultipartBody.Part
-    ): Answer<PhotosUploadPhotoResponse>
+    ): ApiAnswer<PhotosUploadPhotoResponse>
 
     @FormUrlEncoded
     @POST(PhotoUrls.SaveMessagePhoto)
     suspend fun save(
         @FieldMap map: Map<String, String>
-    ): Answer<ApiResponse<List<BaseVkPhoto>>>
+    ): ApiAnswer<ApiResponse<List<BaseVkPhoto>>>
 
 }

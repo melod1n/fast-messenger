@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.meloda.fast.api.network
 
 import com.meloda.fast.api.VKException
@@ -21,7 +23,7 @@ class ResultCallFactory : CallAdapter.Factory() {
         if (rawReturnType == Call::class.java) {
             if (returnType is ParameterizedType) {
                 val callInnerType: Type = getParameterUpperBound(0, returnType)
-                if (getRawType(callInnerType) == Answer::class.java) {
+                if (getRawType(callInnerType) == ApiAnswer::class.java) {
                     if (callInnerType is ParameterizedType) {
                         val resultInnerType = getParameterUpperBound(0, callInnerType)
                         return ResultCallAdapter<Any?>(resultInnerType)
@@ -55,16 +57,16 @@ internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : C
     abstract fun cloneImpl(): Call<Out>
 }
 
-private class ResultCallAdapter<R>(private val type: Type) : CallAdapter<R, Call<Answer<R>>> {
+private class ResultCallAdapter<R>(private val type: Type) : CallAdapter<R, Call<ApiAnswer<R>>> {
 
     override fun responseType() = type
 
-    override fun adapt(call: Call<R>): Call<Answer<R>> = ResultCall(call)
+    override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call)
 }
 
-internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy) {
+internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(proxy) {
 
-    override fun enqueueImpl(callback: Callback<Answer<T>>) {
+    override fun enqueueImpl(callback: Callback<ApiAnswer<T>>) {
         proxy.enqueue(ResultCallback(this, callback))
     }
 
@@ -74,25 +76,25 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
 
     private class ResultCallback<T>(
         private val proxy: ResultCall<T>,
-        private val callback: Callback<Answer<T>>
+        private val callback: Callback<ApiAnswer<T>>
     ) : Callback<T> {
 
         override fun onResponse(call: Call<T>, response: Response<T>) {
             var isVkException = true
 
-            val result: Answer<T> =
+            val result: ApiAnswer<T> =
                 if (response.isSuccessful) {
                     val baseBody = response.body()
-                    if (baseBody !is ApiResponse<*>) Answer.Success(baseBody as T)
+                    if (baseBody !is ApiResponse<*>) ApiAnswer.Success(baseBody as T)
                     else {
                         val body = baseBody as ApiResponse<*>
                         if (body.error != null) {
-                            Answer.Error(body.error)
-                        } else Answer.Success(body as T)
+                            ApiAnswer.Error(body.error)
+                        } else ApiAnswer.Success(body as T)
                     }
-                } else Answer.Error(IOException(response.errorBody()?.string() ?: ""))
+                } else ApiAnswer.Error(IOException(response.errorBody()?.string() ?: ""))
 
-            if (result is Answer.Error && isVkException) if (checkErrors(call, result)) return
+            if (result is ApiAnswer.Error && isVkException) if (checkErrors(call, result)) return
 
             callback.onResponse(proxy, Response.success(result))
         }
@@ -100,30 +102,35 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
         override fun onFailure(call: Call<T>, error: Throwable) {
             callback.onResponse(
                 proxy,
-                Response.success(Answer.Error(throwable = error))
+                Response.success(ApiAnswer.Error(throwable = error))
             )
         }
 
-        private fun checkErrors(call: Call<T>, result: Answer.Error): Boolean {
+        private fun checkErrors(call: Call<T>, result: ApiAnswer.Error): Boolean {
             if (result.throwable is ApiError) {
                 onFailure(call, result.throwable)
                 return true
             }
 
-            val json = JSONObject(result.throwable.message ?: "{}")
+            try {
+                val json = JSONObject(result.throwable.message ?: "{}")
 
-            return if (json.has("error")) {
-                val error = json.optString("error", "")
-                val description = json.optString("error_description", "")
+                return if (json.has("error")) {
+                    val error = json.optString("error", "")
+                    val description = json.optString("error_description", "")
 
-                val exception = VKException(
-                    error = error,
-                    description = description,
-                ).also { it.json = json }
+                    val exception = VKException(
+                        error = error,
+                        description = description,
+                    ).also { it.json = json }
 
-                onFailure(call, exception)
-                true
-            } else false
+                    onFailure(call, exception)
+                    true
+                } else false
+            } catch (e: Exception) {
+                onFailure(call, e)
+                return true
+            }
         }
     }
 
@@ -132,9 +139,9 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
     }
 }
 
-sealed class Answer<out R> {
+sealed class ApiAnswer<out R> {
 
-    data class Success<out T>(val data: T) : Answer<T>()
-    data class Error(val throwable: Throwable) : Answer<Nothing>()
+    data class Success<out T>(val data: T) : ApiAnswer<T>()
+    data class Error(val throwable: Throwable) : ApiAnswer<Nothing>()
 
 }

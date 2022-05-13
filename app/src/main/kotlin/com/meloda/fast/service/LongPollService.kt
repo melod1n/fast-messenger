@@ -11,7 +11,7 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VKException
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.base.BaseVkLongPoll
-import com.meloda.fast.api.network.Answer
+import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.longpoll.LongPollRepo
 import com.meloda.fast.api.network.messages.MessagesDataSource
@@ -141,8 +141,8 @@ class LongPollService : Service(), CoroutineScope {
 
         println("$TAG: serverInfoResponse: $response")
 
-        if (response is Answer.Error) return null
-        if (response is Answer.Success) {
+        if (response is ApiAnswer.Error) return null
+        if (response is ApiAnswer.Success) {
             return response.data.response
         }
 
@@ -163,9 +163,9 @@ class LongPollService : Service(), CoroutineScope {
 
         println("$TAG: lastUpdateResponse: $response")
 
-        if (response is Answer.Error) return null
+        if (response is ApiAnswer.Error) return null
 
-        if (response is Answer.Success) {
+        if (response is ApiAnswer.Success) {
             return response.data
         }
 

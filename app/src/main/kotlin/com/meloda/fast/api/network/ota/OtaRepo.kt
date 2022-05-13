@@ -1,7 +1,7 @@
 package com.meloda.fast.api.network.ota
 
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.network.Answer
+import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.model.UpdateActualUrl
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -11,7 +11,7 @@ import retrofit2.http.Url
 interface OtaRepo {
 
     @GET(OtaUrls.GetActualUrl)
-    suspend fun getActualUrl(): Answer<UpdateActualUrl>
+    suspend fun getActualUrl(): ApiAnswer<UpdateActualUrl>
 
     @GET
     suspend fun getLatestRelease(
@@ -19,6 +19,6 @@ interface OtaRepo {
         @Query("productId") productId: Int = 28,
         @Query("branchId") branchId: Int = 10,
         @Header("Secret-Code") secretCode: String
-    ): Answer<ApiResponse<OtaGetLatestReleaseResponse>>
+    ): ApiAnswer<ApiResponse<OtaGetLatestReleaseResponse>>
 
 }

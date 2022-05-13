@@ -1,9 +1,11 @@
 package com.meloda.fast.screens.main
 
+import android.content.ClipData
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.viewbinding.library.activity.viewBinding
+import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.view.size
 import androidx.datastore.preferences.core.edit
@@ -148,6 +150,55 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     override fun onResume() {
         super.onResume()
+
+        Crashes.getLastSessionCrashReport().thenAccept { report ->
+            if (report != null) {
+                if (AppGlobal.preferences.getBoolean(
+                        SettingsPrefsFragment.PrefShowCrashAlert,
+                        true
+                    )
+                ) {
+                    val stackTrace = report.stackTrace
+
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.app_crash_occurred)
+                        .setMessage("Stacktrace: $stackTrace")
+                        .setPositiveButton(R.string.ok, null)
+                        .setNegativeButton(R.string.copy) { _, _ ->
+                            AppGlobal.clipboardManager.setPrimaryClip(
+                                ClipData.newPlainText(
+                                    "Fast_Crash_Report",
+                                    stackTrace
+                                )
+                            )
+                            Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
+                        }
+                        .setNeutralButton(R.string.share) { _, _ ->
+                            val sendIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, stackTrace)
+                                type = "text/plain"
+                            }
+
+                            val shareIntent = Intent.createChooser(sendIntent, "Share stacktrace")
+                            try {
+                                startActivity(shareIntent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+
+                                runOnUiThread {
+                                    MaterialAlertDialogBuilder(this)
+                                        .setTitle(R.string.warning)
+                                        .setMessage("Can't share")
+                                        .setPositiveButton(R.string.ok, null)
+                                        .show()
+                                }
+                            }
+                        }
+                        .show()
+                }
+            }
+        }
 
         if (AppGlobal.preferences.getBoolean(LongPollService.KeyLongPollWasDestroyed, false)) {
             AppGlobal.preferences.edit {

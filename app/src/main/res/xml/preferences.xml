@@ -59,4 +59,10 @@
         android:key="show_destroyed_long_poll_alert"
         android:title="Show destroyed LP alert" />
 
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="show_crash_alert"
+        android:summary="Shows alert dialog with stacktrace after app crashed"
+        android:title="Show alert after crash" />
+
 </PreferenceScreen>

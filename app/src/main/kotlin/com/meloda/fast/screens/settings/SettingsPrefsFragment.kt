@@ -32,6 +32,7 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
         const val CategoryDebug = "debug"
         const val PrefPerformCrash = "perform_crash"
         const val PrefShowDestroyedLongPollAlert = "show_destroyed_long_poll_alert"
+        const val PrefShowCrashAlert = "show_crash_alert"
 
         const val CategoryAppCenter = "msappcenter"
         const val PrefEnableReporter = "msappcenter.enable"

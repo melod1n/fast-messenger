@@ -6,7 +6,7 @@ import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.Answer
+import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesDataSource
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.base.viewmodel.VkEventCallback
@@ -179,8 +179,8 @@ class LongPollUpdatesParser(private val messagesDataSource: MessagesDataSource) 
                         )
                     )
 
-                    if (normalMessageResponse !is Answer.Success) {
-                        (normalMessageResponse as Answer.Error).throwable.let { throw it }
+                    if (normalMessageResponse !is ApiAnswer.Success) {
+                        (normalMessageResponse as ApiAnswer.Error).throwable.let { throw it }
                     }
 
                     val messagesResponse = normalMessageResponse.data.response ?: return@launch

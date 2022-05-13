@@ -1,19 +1,13 @@
 package com.meloda.fast.screens.updates
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.network.ota.OtaRepo
 import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.VkErrorEvent
-import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.extensions.setIfNotEquals
 import com.meloda.fast.model.UpdateItem
-import com.microsoft.appcenter.distribute.Distribute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import javax.inject.Inject
 
 
@@ -30,7 +24,6 @@ class UpdatesViewModel @Inject constructor(
     private var currentJob: Job? = null
 
     fun checkUpdates() {
-        Distribute.checkForUpdate()
         if (currentJob != null) {
             currentJob?.cancel()
             currentJob = null
