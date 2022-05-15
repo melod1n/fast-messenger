@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.login
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
@@ -61,9 +60,9 @@ class LoginViewModel @Inject constructor(
                     accessToken = it.accessToken,
                     fastToken = null
                 ).also { account ->
-                    accounts.insert(listOf(account))
                     UserConfig.currentUserId = account.userId
-                    UserConfig.parse(account)
+                    UserConfig.userId = account.userId
+                    UserConfig.accessToken = account.accessToken
                 }
 
                 sendEvent(LoginSuccessAuth)
@@ -105,10 +104,15 @@ class LoginViewModel @Inject constructor(
     }
 
     fun initUserConfig() = viewModelScope.launch {
-        val account = currentAccount ?: return@launch
-        accounts.insert(listOf(account))
+        val account = requireNotNull(currentAccount)
+        UserConfig.fastToken = account.fastToken
 
-        UserConfig.parse(account)
+        accounts.insert(listOf(account))
+    }
+
+    fun saveAccount(userId: Int, accessToken: String, fastToken: String) = viewModelScope.launch {
+        val account = AppAccount(userId, accessToken, fastToken)
+        accounts.insert(listOf(account))
     }
 
     object LoginCodeSent : VkEvent()

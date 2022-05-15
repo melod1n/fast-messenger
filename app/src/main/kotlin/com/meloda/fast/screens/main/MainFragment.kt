@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
@@ -38,7 +39,10 @@ class MainFragment : BaseViewModelFragment<MainViewModel>() {
 
         when (event) {
             StartServicesEvent -> {
-                setFragmentResult(KeyStartServices, Bundle())
+                setFragmentResult(KeyStartServices, bundleOf("enable" to true))
+            }
+            StopServicesEvent -> {
+                setFragmentResult(KeyStartServices, bundleOf("enable" to false))
             }
             is SetNavBarVisibilityEvent -> {
                 (requireActivity() as MainActivity).toggleNavBarVisibility(event.isVisible)

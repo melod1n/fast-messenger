@@ -22,11 +22,8 @@ object UserConfig {
         }
 
     var userId: Int = -1
-        private set
     var accessToken: String = ""
-        private set
     var fastToken: String? = ""
-        private set
 
     fun parse(account: AppAccount) {
         this.userId = account.userId

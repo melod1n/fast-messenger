@@ -15,6 +15,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.core.content.edit
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
@@ -37,7 +38,6 @@ import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
@@ -45,6 +45,19 @@ import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
 class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_login) {
+
+    companion object {
+        private const val ArgGetFastToken = "get_fast_token"
+
+        fun newInstance(getFastToken: Boolean = false): LoginFragment {
+            val fragment = LoginFragment()
+            fragment.arguments = bundleOf(
+                ArgGetFastToken to getFastToken
+            )
+
+            return fragment
+        }
+    }
 
     override val viewModel: LoginViewModel by viewModels()
     private val binding: FragmentLoginBinding by viewBinding()
@@ -57,9 +70,12 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     private var captchaInputLayout: TextInputLayout? = null
     private var validationInputLayout: TextInputLayout? = null
 
+    private var isGetFastToken: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.unknownErrorDefaultText = getString(R.string.unknown_error_occurred)
+        isGetFastToken = requireArguments().getBoolean(ArgGetFastToken, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -77,6 +93,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 requireActivity().finishAffinity()
                 startActivity(Intent(requireContext(), MainActivity::class.java))
             }
+        }
+
+        if (isGetFastToken) {
+            launchWebView()
         }
     }
 
@@ -189,8 +209,18 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
             val fastToken = authData.first
 
-            viewModel.currentAccount = viewModel.currentAccount?.copy(fastToken = fastToken)
-            viewModel.initUserConfig()
+            if (isGetFastToken) {
+                val userId = UserConfig.userId
+                val accessToken = UserConfig.accessToken
+
+                UserConfig.fastToken = fastToken
+
+                viewModel.saveAccount(userId, accessToken, fastToken)
+            } else {
+                val account = requireNotNull(viewModel.currentAccount)
+                viewModel.currentAccount = account.copy(fastToken = fastToken)
+                viewModel.initUserConfig()
+            }
 
             viewModel.openPrimaryScreen()
         }

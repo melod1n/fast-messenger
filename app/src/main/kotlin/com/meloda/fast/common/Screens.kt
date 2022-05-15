@@ -18,7 +18,11 @@ import com.meloda.fast.screens.updates.UpdatesFragment
 object Screens {
     fun Main() = FragmentScreen { MainFragment() }
 
-    fun Login() = FragmentScreen { LoginFragment() }
+    fun Login(
+        getFastToken: Boolean = false
+    ) = FragmentScreen {
+        LoginFragment.newInstance(getFastToken)
+    }
 
     fun Conversations() = FragmentScreen { ConversationsFragment() }
 
