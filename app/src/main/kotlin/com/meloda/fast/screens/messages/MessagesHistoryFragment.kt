@@ -616,6 +616,7 @@ class MessagesHistoryFragment :
     private fun prepareViews() {
         prepareRecyclerView()
         prepareRefreshLayout()
+        prepareEmojiButton()
     }
 
     private fun prepareRecyclerView() {
@@ -640,6 +641,31 @@ class MessagesHistoryFragment :
                 )
             )
             setOnRefreshListener { viewModel.loadHistory(peerId = conversation.id) }
+        }
+    }
+
+    private fun prepareEmojiButton() {
+        binding.emoji.setOnLongClickListener {
+            val text = binding.message.text.toString() + AppGlobal.preferences.getString(
+                SettingsPrefsFragment.PrefFastText, SettingsPrefsFragment.PrefFastTextDefaultValue
+            )
+            binding.message.setText(text)
+            binding.message.selectLast()
+
+            binding.emoji.animate()
+                .scaleX(1.25f)
+                .scaleY(1.25f)
+                .setDuration(100)
+                .withEndAction {
+                    if (view == null) return@withEndAction
+
+                    binding.emoji.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(100)
+                        .start()
+                }.start()
+            true
         }
     }
 

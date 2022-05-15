@@ -1,68 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.app.com/tools">
 
     <PreferenceCategory
-        android:key="appearance"
-        android:title="Appearance" />
+        app:key="appearance"
+        app:title="Appearance" />
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="appearance_multiline"
-        android:summary="The title of the dialog and the text of the message can take up two lines"
-        android:title="Multiline titles and messages" />
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="multiline"
+        app:summary="The title of the dialog and the text of the message can take up two lines"
+        app:title="Multiline titles and messages" />
+
+    <PreferenceCategory
+        app:key="features"
+        app:title="Features" />
 
     <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="appearance_hide_keyboard_on_scroll"
-        android:title="Hide keyboard on scroll" />
+        app:defaultValue="true"
+        app:key="hide_keyboard_on_scroll"
+        app:title="Hide keyboard on scroll" />
+
+    <EditTextPreference
+        app:defaultValue="¯\\_(ツ)_/¯"
+        app:key="fast_text"
+        app:summary="@null"
+        app:title="Fast text"
+        tools:summary="@string/pref_message_fast_text_summary" />
 
     <PreferenceCategory
-        android:key="visibility"
-        android:title="Visibility" />
+        app:key="visibility"
+        app:title="Visibility" />
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="send_online_status"
-        android:summary="Online status will be sent every minute"
-        android:title="Send online status" />
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="send_online_status"
+        app:summary="Online status will be sent every minute"
+        app:title="Send online status" />
 
     <PreferenceCategory
-        android:key="updates"
-        android:title="Updates" />
+        app:key="updates"
+        app:title="Updates" />
 
-    <PreferenceScreen
-        android:key="updates_check_updates"
-        android:title="Check updates"
+    <Preference
+        app:key="check_updates"
+        app:title="Check updates"
         tools:summary="Current version: 1.4.4" />
 
     <PreferenceCategory
-        android:key="msappcenter"
-        android:title="MS AppCenter Crash Reporter" />
+        app:key="msappcenter"
+        app:title="MS AppCenter Crash Reporter" />
 
     <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="msappcenter.enable"
-        android:title="Enable Crash Reporter" />
+        app:defaultValue="true"
+        app:key="msappcenter.enable"
+        app:title="Enable Crash Reporter" />
 
     <PreferenceCategory
-        android:key="debug"
-        android:title="Debug" />
+        app:key="debug"
+        app:title="Debug" />
 
-    <PreferenceScreen
-        android:key="perform_crash"
-        android:summary="App will be crashed. Obviously"
-        android:title="Perform crash" />
-
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="show_destroyed_long_poll_alert"
-        android:title="Show destroyed LP alert" />
+    <Preference
+        app:key="perform_crash"
+        app:summary="App will be crashed. Obviously"
+        app:title="Perform crash" />
 
     <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="show_crash_alert"
-        android:summary="Shows alert dialog with stacktrace after app crashed"
-        android:title="Show alert after crash" />
+        app:defaultValue="false"
+        app:key="show_destroyed_long_poll_alert"
+        app:title="Show destroyed LP alert" />
+
+    <CheckBoxPreference
+        app:defaultValue="true"
+        app:key="show_crash_alert"
+        app:summary="Shows alert dialog with stacktrace after app crashed"
+        app:title="Show alert after crash" />
 
 </PreferenceScreen>

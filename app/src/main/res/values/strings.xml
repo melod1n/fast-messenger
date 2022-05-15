@@ -189,4 +189,6 @@
     <string name="copy" tools:override="true">Copy</string>
     <string name="share">Share</string>
 
+    <string name="pref_message_fast_text_summary">Text that will be inserted into the input field on emoji button long click\nCurrent value: %s</string>
+
 </resources>

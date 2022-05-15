@@ -47,20 +47,10 @@
 
         <item name="android:statusBarColor">@color/colorBackground</item>
 
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
-        <item name="alertDialogStyle">@style/AppTheme.Alert</item>
-
         <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
     </style>
 
     <style name="AppTheme" parent="Base.V21.AppTheme" />
-
-    <style name="Base.V21.AppTheme.Alert" parent="Theme.Material3.DayNight.Dialog.Alert" />
-
-    <style name="AppTheme.Alert" parent="Base.V21.AppTheme.Alert">
-        <item name="dialogCornerRadius">12dp</item>
-    </style>
-
 
     <style name="AppTheme.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/colorBackground</item>

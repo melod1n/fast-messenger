@@ -161,3 +161,7 @@ fun <T> MutableLiveData<T>.requireValue(): T {
 val EditText.trimmedText: String get() = text.toString().trim()
 
 val MediaType.mimeType: String get() = "${type()}/${subtype()}"
+
+fun EditText.selectLast() {
+    setSelection(text.length)
+}

@@ -3,6 +3,7 @@ package com.meloda.fast.screens.settings
 import android.os.Bundle
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
+import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.meloda.fast.BuildConfig
@@ -20,14 +21,18 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
         const val ArgEnabled = "enabled"
 
         const val CategoryAppearance = "appearance"
-        const val PrefMultiline = "appearance_multiline"
-        const val PrefHideKeyboardOnScroll = "appearance_hide_keyboard_on_scroll"
+        const val PrefMultiline = "multiline"
+
+        const val CategoryFeatures = "features"
+        const val PrefHideKeyboardOnScroll = "hide_keyboard_on_scroll"
+        const val PrefFastText = "fast_text"
+        const val PrefFastTextDefaultValue = "¯\\_(ツ)_/¯"
 
         const val CategoryVisibility = "visibility"
         const val PrefSendOnlineStatus = "send_online_status"
 
         const val CategoryUpdates = "updates"
-        const val PrefCheckUpdates = "updates_check_updates"
+        const val PrefCheckUpdates = "check_updates"
 
         const val CategoryDebug = "debug"
         const val PrefPerformCrash = "perform_crash"
@@ -37,6 +42,8 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
         const val CategoryAppCenter = "msappcenter"
         const val PrefEnableReporter = "msappcenter.enable"
     }
+
+    private val prefs = AppGlobal.preferences
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -60,6 +67,8 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
             it.isVisible = BuildConfig.DEBUG
             it.onPreferenceClickListener = this
         }
+
+        findPreference<EditTextPreference>(PrefFastText)?.summaryProvider = fastTextSummaryProvider
     }
 
     override fun onPreferenceClick(preference: Preference): Boolean {
@@ -85,6 +94,13 @@ class SettingsPrefsFragment : PreferenceFragmentCompat(),
             }
             else -> false
         }
+    }
+
+    private val fastTextSummaryProvider = Preference.SummaryProvider<EditTextPreference> {
+        getString(
+            R.string.pref_message_fast_text_summary,
+            prefs.getString(PrefFastText, PrefFastTextDefaultValue)
+        )
     }
 
     private val rootFragment: SettingsRootFragment? get() = parentFragment as? SettingsRootFragment
