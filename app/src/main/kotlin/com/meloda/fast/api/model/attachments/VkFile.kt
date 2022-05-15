@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.attachments
 
 import com.meloda.fast.api.VkUtils
+import com.meloda.fast.api.model.base.attachments.BaseVkFile
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -12,7 +13,8 @@ data class VkFile(
     val ext: String,
     val size: Int,
     val url: String,
-    val accessKey: String?
+    val accessKey: String?,
+    val preview: BaseVkFile.Preview?
 ) : VkAttachment() {
 
     @IgnoredOnParcel

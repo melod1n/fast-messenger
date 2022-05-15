@@ -68,32 +68,25 @@
         tools:text="today"
         tools:visibility="visible" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/attachment_panel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="36dp"
         android:background="@drawable/ic_chat_attachment_panel_background"
         android:backgroundTint="?colorSurfaceVariant"
-        android:minHeight="105dp"
+        android:gravity="bottom"
         android:orientation="vertical"
         android:padding="16dp"
-        android:translationY="50dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:translationY="0dp"
         tools:visibility="visible">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/replyMessage"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/replyMessageTitle"
@@ -138,7 +131,23 @@
                 tools:text="Short Message." />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/attachments_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_uploaded_attachment_photo"
+            tools:visibility="visible" />
+
+        <Space
+            android:id="@+id/attachment_panel_bottom_spacer"
+            android:layout_width="match_parent"
+            android:layout_height="64dp" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <View
         android:id="@+id/bottom_gradient"

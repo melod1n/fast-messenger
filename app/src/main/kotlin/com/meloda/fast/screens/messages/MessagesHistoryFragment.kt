@@ -1,23 +1,18 @@
 package com.meloda.fast.screens.messages
 
-import android.animation.ValueAnimator
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
-import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.animation.doOnEnd
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
@@ -59,7 +54,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.random.Random
 
 @AndroidEntryPoint
@@ -158,6 +152,16 @@ class MessagesHistoryFragment :
             it.itemClickListener = this::onItemClick
             it.avatarLongClickListener = this::onAvatarLongClickListener
         }
+    }
+
+    private val attachmentsAdapter: AttachmentsAdapter by lazy {
+        AttachmentsAdapter(
+            requireContext(),
+            emptyList(),
+            onRemoveClickedListener = { position ->
+                removeAttachment(attachmentsAdapter[position])
+            }
+        )
     }
 
     private var timestampTimer: Timer? = null
@@ -288,10 +292,20 @@ class MessagesHistoryFragment :
                 when {
                     attachmentController.isEditing -> if (it.isNullOrBlank()) Action.DELETE else Action.EDIT
                     canSend -> Action.SEND
-                    else -> Action.RECORD
+                    else -> {
+                        if (attachmentsToLoad.isNotEmpty()) {
+                            if (attachmentController.isEditing) {
+                                Action.EDIT
+                            } else {
+                                Action.SEND
+                            }
+                        } else {
+                            Action.RECORD
+                        }
+                    }
                 }
 
-            if (actionState.value != newValue) actionState.value = newValue
+            actionState.setIfNotEquals(newValue)
         }
 
         actionState.observe(viewLifecycleOwner) {
@@ -329,28 +343,28 @@ class MessagesHistoryFragment :
         attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
             if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
 
-            val currentHeight = binding.listAnchor.height
-
-            val newHeight =
-                if (isVisible) (binding.attachmentPanel.measuredHeight / 1.5).roundToInt()
-                else 1
-
-            ValueAnimator.ofInt(currentHeight, newHeight).apply {
-                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
-                interpolator = LinearInterpolator()
-
-                addUpdateListener { animator ->
-                    if (getView() == null) return@addUpdateListener
-                    val value = animator.animatedValue as Int
-
-                    binding.listAnchor.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                        height = value
-                    }
-                }
-            }.start()
+//            val currentHeight = binding.listAnchor.height
+//
+//            val newHeight =
+//                if (isVisible) (binding.attachmentPanel.measuredHeight / 1.5).roundToInt()
+//                else 1
+//
+//            ValueAnimator.ofInt(currentHeight, newHeight).apply {
+//                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+//                interpolator = LinearInterpolator()
+//
+//                addUpdateListener { animator ->
+//                    if (getView() == null) return@addUpdateListener
+//                    val value = animator.animatedValue as Int
+//
+//                    binding.listAnchor.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                        height = value
+//                    }
+//                }
+//            }.start()
         }
 
-        binding.attachmentPanel.setOnClickListener {
+        binding.replyMessage.setOnClickListener {
             val message = attachmentController.message.value ?: return@setOnClickListener
             val index = adapter.searchMessageIndex(message.id) ?: return@setOnClickListener
 
@@ -526,12 +540,43 @@ class MessagesHistoryFragment :
         attachmentsToLoad += attachment
         binding.attachmentsCounter.visible()
         binding.attachmentsCounter.text = attachmentsToLoad.size.toString()
+
+        binding.attachmentsList.visible()
+        attachmentsAdapter.add(attachment)
+
+        attachmentController.showPanel()
+
+        actionState.setIfNotEquals(
+            if (attachmentController.isEditing) Action.EDIT
+            else Action.SEND
+        )
+    }
+
+    private fun removeAttachment(attachment: VkAttachment) {
+        attachmentsToLoad -= attachment
+        binding.attachmentsCounter.visible()
+        binding.attachmentsCounter.text = attachmentsToLoad.size.toString()
+
+        binding.attachmentsList.visible()
+
+        attachmentController.showPanel()
+
+        if (attachmentsToLoad.isEmpty()) {
+            clearAttachments()
+        } else {
+            attachmentsAdapter.remove(attachment)
+        }
     }
 
     private fun clearAttachments() {
         attachmentsToLoad.clear()
         binding.attachmentsCounter.gone()
         binding.attachmentsCounter.text = null
+
+        attachmentsAdapter.clear()
+        binding.attachmentsList.gone()
+
+        attachmentController.hidePanel()
     }
 
     private fun pickPhoto() {
@@ -576,8 +621,8 @@ class MessagesHistoryFragment :
             Action.RECORD -> {
             }
             Action.SEND -> {
-                val messageText = binding.message.text.toString().trim()
-                if (messageText.isBlank()) return
+                val messageText = binding.message.trimmedText
+                if (messageText.isBlank() && attachmentsToLoad.isEmpty()) return
 
                 val date = System.currentTimeMillis()
 
@@ -647,6 +692,7 @@ class MessagesHistoryFragment :
         prepareRecyclerView()
         prepareRefreshLayout()
         prepareEmojiButton()
+        prepareAttachmentsList()
     }
 
     private fun prepareRecyclerView() {
@@ -697,6 +743,10 @@ class MessagesHistoryFragment :
                 }.start()
             true
         }
+    }
+
+    private fun prepareAttachmentsList() {
+        binding.attachmentsList.adapter = attachmentsAdapter
     }
 
     private fun markMessagesAsImportant(event: MessagesMarkAsImportantEvent) {
@@ -1055,11 +1105,17 @@ class MessagesHistoryFragment :
                 binding.message.showKeyboard()
             }
 
+            binding.replyMessage.visible()
+
             showPanel()
         }
 
         private fun clearMessage() {
-            hidePanel()
+            if (attachmentsToLoad.isEmpty()) {
+                hidePanel()
+            }
+
+            binding.replyMessage.gone()
 
             binding.replyMessageTitle.clear()
             binding.replyMessageText.clear()
@@ -1070,77 +1126,88 @@ class MessagesHistoryFragment :
             }
         }
 
-        private fun showPanel() {
-            binding.attachmentPanel.visible()
-            binding.attachmentPanel.measure(
-                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
-            )
+        fun showPanel() {
+            if (isPanelVisible.requireValue()) return
 
-            if (attachmentController.isPanelVisible.value == false)
+            binding.attachmentPanel.visible()
+//            binding.attachmentPanel.measure(
+//                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
+//            )
+
+            if (!attachmentController.isPanelVisible.requireValue())
                 attachmentController.isPanelVisible.value = true
 
-            val measuredHeight = binding.attachmentPanel.measuredHeight
+//            binding.attachmentPanel.visible()
 
-            binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                height = 0
-            }
-
-            binding.attachmentPanel.animate()
-                .translationY(0f)
-                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
-                .start()
-
-            ValueAnimator.ofInt(0, measuredHeight).apply {
-                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
-                interpolator = LinearInterpolator()
-
-                addUpdateListener { animator ->
-                    if (view == null) return@addUpdateListener
-                    val value = animator.animatedValue as Int
-
-                    if (value >= 36.dpToPx()) {
-                        binding.attachmentPanel.visible()
-                    }
-
-                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                        height = value
-                    }
-                }
-            }.start()
+//            val measuredHeight = binding.attachmentPanel.measuredHeight
+//
+//            binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                height = 0
+//            }
+//
+//            binding.attachmentPanel.animate()
+//                .translationY(0f)
+//                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
+//                .start()
+//
+//            ValueAnimator.ofInt(0, measuredHeight).apply {
+//                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+//                interpolator = LinearInterpolator()
+//
+//                addUpdateListener { animator ->
+//                    if (view == null) return@addUpdateListener
+//                    val value = animator.animatedValue as Int
+//
+//                    if (value >= 36.dpToPx()) {
+//                        binding.attachmentPanel.visible()
+//                    }
+//
+//                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                        height = value
+//                    }
+//                }
+//            }.start()
         }
 
-        private fun hidePanel() {
-            if (attachmentController.isPanelVisible.value == true)
+        fun hidePanel() {
+            if (!isPanelVisible.requireValue() ||
+                attachmentsToLoad.isNotEmpty() ||
+                message.value != null
+            ) return
+
+            if (attachmentController.isPanelVisible.requireValue())
                 attachmentController.isPanelVisible.value = false
 
-            val currentHeight = binding.attachmentPanel.height
+            binding.attachmentPanel.gone()
 
-            binding.attachmentPanel.animate()
-                .translationY(75F)
-                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
-                .start()
-
-            ValueAnimator.ofInt(currentHeight, 0).apply {
-                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
-                interpolator = LinearInterpolator()
-
-                addUpdateListener { animator ->
-                    if (view == null) return@addUpdateListener
-                    val value = animator.animatedValue as Int
-
-                    if (value <= 36.dpToPx()) {
-                        binding.attachmentPanel.gone()
-                    }
-
-                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                        height = value
-                    }
-                }
-                doOnEnd {
-                    if (view == null) return@doOnEnd
-                    binding.attachmentPanel.gone()
-                }
-            }.start()
+//            val currentHeight = binding.attachmentPanel.height
+//
+//            binding.attachmentPanel.animate()
+//                .translationY(75F)
+//                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
+//                .start()
+//
+//            ValueAnimator.ofInt(currentHeight, 0).apply {
+//                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+//                interpolator = LinearInterpolator()
+//
+//                addUpdateListener { animator ->
+//                    if (view == null) return@addUpdateListener
+//                    val value = animator.animatedValue as Int
+//
+//                    if (value <= 36.dpToPx()) {
+//                        binding.attachmentPanel.gone()
+//                    }
+//
+//                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                        height = value
+//                    }
+//                }
+//                doOnEnd {
+//                    if (view == null) return@doOnEnd
+//                    binding.attachmentPanel.gone()
+//                }
+//            }.start()
         }
     }
 
