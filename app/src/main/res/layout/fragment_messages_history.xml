@@ -184,6 +184,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/attachments_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="18dp"
+            android:layout_weight="0"
+            android:background="@drawable/ic_back"
+            android:backgroundTint="?colorOnBackgroundVariantContainer"
+            android:gravity="center"
+            android:minWidth="18dp"
+            android:paddingHorizontal="2dp"
+            android:textColor="?colorOnBackgroundVariantOnContainer"
+            android:textSize="11sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/attach"
+            app:layout_constraintTop_toTopOf="@id/attach"
+            tools:text="3"
+            tools:visibility="visible" />
+
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/message"
             android:layout_width="0dp"

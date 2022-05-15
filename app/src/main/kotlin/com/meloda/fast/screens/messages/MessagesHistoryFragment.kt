@@ -466,7 +466,7 @@ class MessagesHistoryFragment :
             )
 
             uploadedAttachment?.run {
-                attachmentsToLoad.add(this)
+                addAttachment(this)
             }
         } else {
             when (MediaType.parse(mimeType).type()) {
@@ -485,12 +485,21 @@ class MessagesHistoryFragment :
 
     private fun showAttachmentsPopupMenu() {
         val popupMenu = PopupMenu(requireContext(), binding.attach)
+
+        if (attachmentsToLoad.isNotEmpty()) {
+            popupMenu.menu.add("Clear attachments")
+        }
+
         popupMenu.menu.add("Photo")
         popupMenu.menu.add("Video")
         popupMenu.menu.add("Audio")
         popupMenu.menu.add("File")
         popupMenu.setOnMenuItemClickListener { menuItem ->
             return@setOnMenuItemClickListener when (menuItem.title) {
+                "Clear attachments" -> {
+                    clearAttachments()
+                    true
+                }
                 "Photo" -> {
                     pickPhoto()
                     true
@@ -511,6 +520,18 @@ class MessagesHistoryFragment :
             }
         }
         popupMenu.show()
+    }
+
+    private fun addAttachment(attachment: VkAttachment) {
+        attachmentsToLoad += attachment
+        binding.attachmentsCounter.visible()
+        binding.attachmentsCounter.text = attachmentsToLoad.size.toString()
+    }
+
+    private fun clearAttachments() {
+        attachmentsToLoad.clear()
+        binding.attachmentsCounter.gone()
+        binding.attachmentsCounter.text = null
     }
 
     private fun pickPhoto() {
@@ -563,7 +584,7 @@ class MessagesHistoryFragment :
                 val messageIndex = adapter.lastPosition
 
                 val attachments = attachmentsToLoad.ifEmpty { null }?.toList()
-                attachmentsToLoad.clear()
+                clearAttachments()
 
                 val message = VkMessage(
                     id = Int.MAX_VALUE,
