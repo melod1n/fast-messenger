@@ -110,10 +110,8 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(pro
                     )
                 }
 
-            if (result is ApiAnswer.Error) {
-                if (checkErrors(call, result)) {
-                    return
-                }
+            if (checkErrors(call, result)) {
+                return
             }
 
             callback.onResponse(proxy, Response.success(result))
@@ -126,7 +124,14 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(pro
             )
         }
 
-        private fun checkErrors(call: Call<T>, result: ApiAnswer.Error): Boolean {
+        private fun checkErrors(call: Call<T>, result: ApiAnswer<*>): Boolean {
+            if (result is ApiAnswer.Success) {
+
+                return false
+            }
+
+            result as ApiAnswer.Error
+
             if (result.throwable is ApiError) {
                 onFailure(call, result.throwable)
                 return true

@@ -482,8 +482,15 @@ class MessagesHistoryViewModel @Inject constructor(
             return null
         }
 
-        (uploadFileResponse as ApiAnswer.Success).data.file?.run {
-            return this
+        (uploadFileResponse as? ApiAnswer.Success)?.data?.let {
+            if (it.error != null) {
+                onError(ApiError(-1, it.error))
+                return null
+            }
+
+            if (it.file != null) {
+                return it.file
+            }
         }
 
         return null

@@ -49,9 +49,11 @@ import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -441,18 +443,21 @@ class MessagesHistoryFragment :
         val file = File(destination)
         if (file.exists()) file.delete()
 
-        val inputStream = requireActivity().contentResolver.openInputStream(uri) ?: return
+        withContext(Dispatchers.IO) {
+            @Suppress("BlockingMethodInNonBlockingContext")
+            val inputStream =
+                requireActivity().contentResolver.openInputStream(uri) ?: return@withContext
 
-        inputStream.use { input ->
-            file.outputStream().use { output ->
-                input.copyTo(output)
+            inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
         }
 
         val mimeType = contentResolver.getType(uri) ?: return
 
         if (pickFile) {
-
             val uploadedAttachment = viewModel.uploadFile(
                 conversation.id,
                 file,
@@ -557,6 +562,9 @@ class MessagesHistoryFragment :
 
                 val messageIndex = adapter.lastPosition
 
+                val attachments = attachmentsToLoad.ifEmpty { null }?.toList()
+                attachmentsToLoad.clear()
+
                 val message = VkMessage(
                     id = Int.MAX_VALUE,
                     text = messageText,
@@ -565,7 +573,8 @@ class MessagesHistoryFragment :
                     fromId = UserConfig.userId,
                     date = (date / 1000).toInt(),
                     randomId = Random.nextInt(-25000, 25000),
-                    replyMessage = attachmentController.message.value
+                    replyMessage = attachmentController.message.value,
+                    attachments = attachments
                 )
 
                 Log.d("LongPollUpdatesParser", "newMessageRandomId: ${message.randomId}")
@@ -588,7 +597,7 @@ class MessagesHistoryFragment :
                         messageToUpdate.id = messageId
                         adapter[messageIndex] = messageToUpdate
                     },
-                    attachments = attachmentsToLoad.ifEmpty { null }
+                    attachments = attachments
                 )
             }
             Action.EDIT -> {
