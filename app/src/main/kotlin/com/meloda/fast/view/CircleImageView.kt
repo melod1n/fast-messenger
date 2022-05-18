@@ -1,4 +1,4 @@
-package com.meloda.fast.widget
+package com.meloda.fast.view
 
 import android.content.Context
 import android.graphics.Canvas

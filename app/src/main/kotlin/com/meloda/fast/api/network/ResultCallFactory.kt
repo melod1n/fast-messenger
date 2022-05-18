@@ -1,4 +1,5 @@
 @file:Suppress("UNCHECKED_CAST")
+@file:OptIn(ExperimentalContracts::class, ExperimentalContracts::class)
 
 package com.meloda.fast.api.network
 
@@ -13,6 +14,8 @@ import org.json.JSONObject
 import retrofit2.*
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 class ResultCallFactory : CallAdapter.Factory() {
     override fun get(
@@ -169,6 +172,11 @@ sealed class ApiAnswer<out R> {
     data class Success<out T>(val data: T) : ApiAnswer<T>()
     data class Error(val throwable: Throwable) : ApiAnswer<Nothing>()
 
-    fun isSuccessful(): Boolean = this is Success
+    fun isSuccessful(): Boolean {
+        contract {
+            returns(false) implies (this@ApiAnswer is Error)
+        }
+        return this is Success
+    }
 
 }

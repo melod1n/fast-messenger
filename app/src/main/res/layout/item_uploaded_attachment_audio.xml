@@ -6,22 +6,12 @@
     android:layout_height="100dp">
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:adjustViewBounds="true"
-        android:scaleType="centerCrop"
-        tools:src="@tools:sample/backgrounds/scenic"
-        tools:visibility="gone" />
-
-    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/colored_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="?colorPrimaryVariant" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/file_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -32,7 +22,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_attachment_file"
+            android:src="@drawable/ic_round_play_arrow_24"
             app:tint="@color/a3_700" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -45,17 +35,9 @@
             android:maxLines="1"
             android:textColor="?colorOnBackground"
             android:textSize="14sp"
-            tools:text="Kids" />
+            tools:text="Some title" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"
-        tools:visibility="visible" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/close"

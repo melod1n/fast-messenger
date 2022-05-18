@@ -43,6 +43,7 @@ import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
+import com.meloda.fast.view.SpaceItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
@@ -478,20 +479,20 @@ class MessagesHistoryFragment :
                 name,
                 FilesDataSource.FileType.File
             )
-
-            uploadedAttachment?.run {
-                addAttachment(this)
-            }
+            addAttachment(uploadedAttachment)
         } else {
             when (MediaType.parse(mimeType).type()) {
                 MediaType.ANY_IMAGE_TYPE.type() -> {
-                    viewModel.getPhotoMessageUploadServer(conversation.id, file, name)
+                    val uploadedAttachment = viewModel.uploadPhoto(conversation.id, file, name)
+                    addAttachment(uploadedAttachment)
                 }
                 MediaType.ANY_VIDEO_TYPE.type() -> {
-                    viewModel.getVideoMessageUploadServer(conversation.id, file, name)
+                    val uploadedAttachment = viewModel.uploadVideo(file, name)
+                    addAttachment(uploadedAttachment)
                 }
                 MediaType.ANY_AUDIO_TYPE.type() -> {
-                    viewModel.getAudioUploadServer(conversation.id, file, name)
+                    val uploadedAttachment = viewModel.uploadAudio(file, name)
+                    addAttachment(uploadedAttachment)
                 }
             }
         }
@@ -655,13 +656,14 @@ class MessagesHistoryFragment :
 
                 viewModel.sendMessage(
                     peerId = conversation.id,
-                    message = messageText,
+                    message = messageText.ifBlank { null },
                     randomId = message.randomId,
                     replyTo = replyMessage?.id,
                     setId = { messageId ->
                         val messageToUpdate = adapter[messageIndex] as VkMessage
                         messageToUpdate.id = messageId
                         adapter[messageIndex] = messageToUpdate
+                        attachmentsAdapter.clear()
                     },
                     attachments = attachments
                 )
@@ -746,6 +748,9 @@ class MessagesHistoryFragment :
     }
 
     private fun prepareAttachmentsList() {
+        binding.attachmentsList.addItemDecoration(
+            SpaceItemDecoration(endMargin = 4.dpToPx())
+        )
         binding.attachmentsList.adapter = attachmentsAdapter
     }
 

@@ -12,7 +12,8 @@ data class VkVideo(
     val ownerId: Int,
     val images: List<VideoImage>,
     val firstFrames: List<BaseVkVideo.FirstFrame>?,
-    val accessKey: String?
+    val accessKey: String?,
+    val title: String
 ) : VkAttachment() {
 
     @IgnoredOnParcel

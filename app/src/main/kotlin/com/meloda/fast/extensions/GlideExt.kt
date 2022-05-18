@@ -1,7 +1,6 @@
 package com.meloda.fast.extensions
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -33,8 +32,10 @@ object ImageLoader {
         uri: Uri? = null,
         drawableRes: Int? = null,
         drawable: Drawable? = null,
-        placeholderDrawable: Drawable = ColorDrawable(Color.TRANSPARENT),
-        errorDrawable: Drawable = placeholderDrawable,
+        placeholderDrawable: Drawable? = null,
+        placeholderColor: Int? = null,
+        errorDrawable: Drawable? = placeholderDrawable,
+        errorColor: Int? = null,
         crossFade: Boolean = false,
         crossFadeDuration: Int? = null,
         asCircle: Boolean = false,
@@ -54,24 +55,27 @@ object ImageLoader {
             else -> request.load(null as Drawable?)
         }
 
+        val transforms = transformations.toMutableList()
+        if (asCircle) {
+            transforms += TypeTransformations.CircleCrop
+        }
+
         builder = builder
-            .apply(TypeTransformations.createRequestOptions(transformations))
-            .error(errorDrawable)
-            .placeholder(placeholderDrawable)
+            .apply(TypeTransformations.createRequestOptions(transforms))
+            .error(
+                errorDrawable
+                    ?: if (errorColor != null) ColorDrawable(errorColor) else null
+            )
+            .placeholder(
+                placeholderDrawable
+                    ?: if (placeholderColor != null) ColorDrawable(placeholderColor) else null
+            )
             .addListener(ImageLoadRequestListener(onLoadedAction, onFailedAction))
             .diskCacheStrategy(cacheStrategy)
             .priority(priority)
 
         if (crossFade || crossFadeDuration != null) {
             builder = builder.transition(withCrossFade(crossFadeDuration ?: 200))
-        }
-
-        if (asCircle) {
-            builder = builder.apply(
-                TypeTransformations.createRequestOptions(
-                    listOf(TypeTransformations.CircleCrop)
-                )
-            )
         }
 
         builder.into(this)

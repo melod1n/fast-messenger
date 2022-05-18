@@ -7,6 +7,8 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.VkErrorCodes
 import com.meloda.fast.api.network.VkErrors
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -18,6 +20,14 @@ abstract class BaseViewModel : ViewModel() {
 
     protected val tasksEventChannel = Channel<VkEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
+
+    protected val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch { onException(throwable) }
+    }
+
+    fun launch(block: suspend CoroutineScope.() -> Unit): Job {
+        return viewModelScope.launch(exceptionHandler, block = block)
+    }
 
     protected suspend fun <T> makeSuspendJob(
         job: suspend () -> ApiAnswer<T>, onAnswer: suspend (T) -> Unit = {},
@@ -62,6 +72,10 @@ abstract class BaseViewModel : ViewModel() {
                 onEnd?.invoke() ?: onStop()
             }
         }
+    }
+
+    protected open suspend fun onException(throwable: Throwable) {
+        onError(throwable)
     }
 
     protected suspend fun onStart() {

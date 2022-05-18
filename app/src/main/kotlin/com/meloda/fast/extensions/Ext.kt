@@ -165,3 +165,11 @@ val MediaType.mimeType: String get() = "${type()}/${subtype()}"
 fun EditText.selectLast() {
     setSelection(text.length)
 }
+
+fun <T> T.update(block: T.() -> Unit) {
+    block.invoke(this)
+}
+
+fun <T> T?.requireNotNull(): T {
+    return requireNotNull(this)
+}

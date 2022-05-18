@@ -8,7 +8,7 @@
     android:paddingHorizontal="12dp"
     android:paddingVertical="2.5dp">
 
-    <com.meloda.fast.widget.CircleImageView
+    <com.meloda.fast.view.CircleImageView
         android:id="@+id/unread"
         android:layout_width="13dp"
         android:layout_height="13dp"
@@ -33,7 +33,7 @@
             android:layout_height="10dp"
             android:visibility="gone" />
 
-        <com.meloda.fast.widget.BoundedLinearLayout
+        <com.meloda.fast.view.BoundedLinearLayout
             android:id="@+id/bubble"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
                     tools:text="This is test" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
-        </com.meloda.fast.widget.BoundedLinearLayout>
+        </com.meloda.fast.view.BoundedLinearLayout>
 
         <Space
             android:id="@+id/attachmentSpacer"

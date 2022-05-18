@@ -24,7 +24,7 @@ import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.toggleVisibility
 import com.meloda.fast.extensions.visible
-import com.meloda.fast.widget.BoundedLinearLayout
+import com.meloda.fast.view.BoundedLinearLayout
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -244,15 +244,15 @@ class MessagesPreparator constructor(
                 text.gone()
 
                 val hasAttachments = !message.attachments.isNullOrEmpty()
-                var shouldBeVisible = hasAttachments
-                if (hasAttachments) {
-                    for (attachment in message.attachments ?: emptyList()) {
-                        if (VKConstants.separatedFromTextAttachments.contains(attachment.javaClass)) {
-                            shouldBeVisible = false
-                            break
-                        }
-                    }
-                }
+                var shouldBeVisible = false
+//                if (hasAttachments) {
+//                    for (attachment in message.attachments ?: emptyList()) {
+//                        if (VKConstants.separatedFromTextAttachments.contains(attachment.javaClass)) {
+//                            shouldBeVisible = false
+//                            break
+//                        }
+//                    }
+//                }
 
                 bubble.toggleVisibility(shouldBeVisible)
             } else {

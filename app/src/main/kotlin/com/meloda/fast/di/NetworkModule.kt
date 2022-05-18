@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
+import com.meloda.fast.api.network.VkUrls
 import com.meloda.fast.api.network.account.AccountDataSource
 import com.meloda.fast.api.network.account.AccountRepo
 import com.meloda.fast.api.network.audio.AudiosDataSource
@@ -46,16 +47,21 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
-        .addInterceptor(authInterceptor)
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
-        }).build()
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+//            .writeTimeout(20, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BASIC
+                }
+            ).build()
 
     @Singleton
     @Provides
@@ -69,7 +75,7 @@ object NetworkModule {
         client: OkHttpClient,
         gson: Gson
     ): Retrofit = Retrofit.Builder()
-        .baseUrl("https://api.vk.com/")
+        .baseUrl("${VkUrls.API}/")
         .addConverterFactory(GsonConverterFactory.create(gson))
         .addCallAdapterFactory(ResultCallFactory())
         .client(client)

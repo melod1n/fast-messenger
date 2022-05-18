@@ -41,7 +41,7 @@
                 android:layout_height="140dp"
                 android:layout_gravity="center_horizontal">
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:id="@+id/logoImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

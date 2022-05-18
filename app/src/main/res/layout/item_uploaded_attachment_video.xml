@@ -21,7 +21,7 @@
         android:src="?colorPrimaryVariant" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/file_icon"
+        android:id="@+id/video_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -32,7 +32,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_attachment_file"
+            android:src="@drawable/ic_round_play_arrow_24"
             app:tint="@color/a3_700" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -45,7 +45,7 @@
             android:maxLines="1"
             android:textColor="?colorOnBackground"
             android:textSize="14sp"
-            tools:text="Kids" />
+            tools:text="Title" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

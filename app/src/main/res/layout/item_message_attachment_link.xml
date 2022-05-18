@@ -11,7 +11,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp">
 
-        <com.meloda.fast.widget.CircleImageView
+        <com.meloda.fast.view.CircleImageView
             android:id="@+id/preview"
             android:layout_width="48dp"
             android:layout_height="48dp"
