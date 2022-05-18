@@ -26,21 +26,21 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideConversationsDao(appDatabase: AppDatabase): ConversationsDao =
-        appDatabase.conversationsDao()
+        appDatabase.conversationsDao
 
     @Provides
     @Singleton
     fun provideMessagesDao(appDatabase: AppDatabase): MessagesDao =
-        appDatabase.messagesDao()
+        appDatabase.messagesDao
 
     @Provides
     @Singleton
     fun provideUsersDao(appDatabase: AppDatabase): UsersDao =
-        appDatabase.usersDao()
+        appDatabase.usersDao
 
     @Provides
     @Singleton
     fun provideGroupsDao(appDatabase: AppDatabase): GroupsDao =
-        appDatabase.groupsDao()
+        appDatabase.groupsDao
 
 }

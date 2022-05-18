@@ -43,7 +43,7 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
             }
             is ApiAnswer.Error -> {
                 otaBaseUrl = null
-                val throwable = jobResponse.throwable
+                val throwable = jobResponse.error.throwable
                 listener?.invoke(null, throwable)
 
                 withContext(Dispatchers.Main) {
@@ -81,7 +81,7 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
                 }
 
                 is ApiAnswer.Error -> {
-                    val throwable = jobResponse.throwable
+                    val throwable = jobResponse.error.throwable
                     updateError.setIfNotEquals(throwable)
                     listener?.invoke(null, throwable)
                 }

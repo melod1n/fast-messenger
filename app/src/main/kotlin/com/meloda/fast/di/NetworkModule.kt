@@ -59,7 +59,7 @@ object NetworkModule {
             .followSslRedirects(true)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BASIC
+                    level = HttpLoggingInterceptor.Level.BODY
                 }
             ).build()
 

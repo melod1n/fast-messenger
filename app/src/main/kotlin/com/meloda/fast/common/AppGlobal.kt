@@ -50,7 +50,7 @@ class AppGlobal : Application() {
         instance = this
 
         appDatabase = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
-            .fallbackToDestructiveMigration()
+//            .fallbackToDestructiveMigration()
             .build()
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)

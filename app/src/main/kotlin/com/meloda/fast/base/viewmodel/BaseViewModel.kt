@@ -2,11 +2,11 @@ package com.meloda.fast.base.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.VKException
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.VkErrorCodes
-import com.meloda.fast.api.network.VkErrors
+import com.meloda.fast.api.network.AuthorizationError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.ValidationRequiredError
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -14,6 +14,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+@Suppress("MemberVisibilityCanBePrivate")
 abstract class BaseViewModel : ViewModel() {
 
     var unknownErrorDefaultText: String = ""
@@ -41,8 +42,7 @@ abstract class BaseViewModel : ViewModel() {
         when (response) {
             is ApiAnswer.Success -> onAnswer(response.data)
             is ApiAnswer.Error -> {
-                checkErrors(response.throwable)
-                onError?.invoke(response.throwable) ?: onError(response.throwable)
+                onError?.invoke(response.error) ?: checkErrors(response.error)
             }
         }
 
@@ -62,8 +62,7 @@ abstract class BaseViewModel : ViewModel() {
         when (val response = job()) {
             is ApiAnswer.Success -> onAnswer(response.data)
             is ApiAnswer.Error -> {
-                checkErrors(response.throwable)
-                onError?.invoke(response.throwable) ?: onError(response.throwable)
+                onError?.invoke(response.error) ?: checkErrors(response.error)
             }
         }
     }.also {
@@ -75,7 +74,7 @@ abstract class BaseViewModel : ViewModel() {
     }
 
     protected open suspend fun onException(throwable: Throwable) {
-        onError(throwable)
+        checkErrors(throwable)
     }
 
     protected suspend fun onStart() {
@@ -86,37 +85,24 @@ abstract class BaseViewModel : ViewModel() {
         sendEvent(StopProgressEvent)
     }
 
-    protected suspend fun onError(throwable: Throwable) {
-        sendEvent(ErrorEvent(throwable.message ?: unknownErrorDefaultText))
-    }
-
     protected suspend fun <T : VkEvent> sendEvent(event: T) = tasksEventChannel.send(event)
 
-    private suspend fun checkErrors(throwable: Throwable) {
+    protected suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {
-            is ApiError -> {
-                when (throwable.errorCode) {
-                    VkErrorCodes.USER_AUTHORIZATION_FAILED -> {
-                        sendEvent(IllegalTokenEvent)
-                    }
-                }
+            is AuthorizationError -> {
+                sendEvent(AuthorizationErrorEvent)
             }
-            is VKException -> {
-                when (throwable.error) {
-                    VkErrors.NEED_CAPTCHA -> {
-                        val json = throwable.json ?: return
-                        sendEvent(
-                            CaptchaEvent(
-                                sid = json.optString("captcha_sid"),
-                                image = json.optString("captcha_img")
-                            )
-                        )
-                    }
-                    VkErrors.NEED_VALIDATION -> {
-                        val json = throwable.json ?: return
-                        sendEvent(ValidationEvent(sid = json.optString("validation_sid")))
-                    }
-                }
+            is ValidationRequiredError -> {
+                sendEvent(ValidationRequiredEvent(throwable.validationSid))
+            }
+            is CaptchaRequiredError -> {
+                sendEvent(CaptchaRequiredEvent(throwable.captchaSid, throwable.captchaImg))
+            }
+            is ApiError -> {
+                sendEvent(ErrorTextEvent(errorText = throwable.errorMessage ?: unknownErrorDefaultText))
+            }
+            else -> {
+                sendEvent(ErrorTextEvent(throwable.message ?: unknownErrorDefaultText))
             }
         }
     }

@@ -28,8 +28,9 @@ data class VkConversation(
     var lastMessageId: Int,
     var unreadCount: Int,
     var membersCount: Int?,
-    var isPinned: Boolean,
     var canChangePin: Boolean,
+    var majorId: Int,
+    var minorId: Int,
 
     @Embedded(prefix = "pinnedMessage_")
     var pinnedMessage: VkMessage? = null,
@@ -56,5 +57,7 @@ data class VkConversation(
     fun isUnread() = isInUnread() || isOutUnread()
 
     fun isAccount() = id == UserConfig.userId
+
+    fun isPinned() = majorId > 0
 
 }

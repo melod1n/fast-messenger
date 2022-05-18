@@ -313,7 +313,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 { photos.getMessagesUploadServer(peerId) }
             )
             if (!uploadServerResponse.isSuccessful()) {
-                throw uploadServerResponse.throwable
+                throw uploadServerResponse.error.throwable!!
             } else {
                 (uploadServerResponse as ApiAnswer.Success).run {
                     it.resume(requireNotNull(this.data.response?.uploadUrl))
@@ -335,7 +335,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 { photos.uploadPhoto(uploadUrl, body) }
             )
             if (!uploadFileResponse.isSuccessful()) {
-                throw uploadFileResponse.throwable
+                throw uploadFileResponse.error.throwable!!
             } else {
                 (uploadFileResponse as ApiAnswer.Success).data.run {
                     it.resume(Triple(this.server, this.photo, this.hash))
@@ -354,7 +354,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 { photos.saveMessagePhoto(PhotosSaveMessagePhotoRequest(photo, server, hash)) }
             )
             if (!saveResponse.isSuccessful()) {
-                throw saveResponse.throwable
+                throw saveResponse.error.throwable!!
             } else {
                 (saveResponse as ApiAnswer.Success).data.response?.run {
                     it.resume(requireNotNull(first().asVkPhoto()))
@@ -387,7 +387,7 @@ class MessagesHistoryViewModel @Inject constructor(
             )
 
             if (!saveResponse.isSuccessful()) {
-                it.resumeWithException(saveResponse.throwable)
+                it.resumeWithException(saveResponse.error.throwable!!)
                 return@launch
             } else {
                 val response = (saveResponse as ApiAnswer.Success).data.response ?: return@launch
@@ -419,7 +419,7 @@ class MessagesHistoryViewModel @Inject constructor(
             { videos.upload(uploadUrl, body) }
         )
         if (!response.isSuccessful()) {
-            throw response.throwable
+            throw response.error.throwable!!
         }
     }
 
@@ -444,7 +444,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 { audios.getUploadServer() }
             )
             if (!uploadResponse.isSuccessful()) {
-                throw uploadResponse.throwable
+                throw uploadResponse.error.throwable!!
             } else {
                 (uploadResponse as ApiAnswer.Success).data.response.run {
                     it.resume(requireNotNull(this).uploadUrl)
@@ -466,11 +466,11 @@ class MessagesHistoryViewModel @Inject constructor(
                 { audios.upload(uploadUrl, body) }
             )
             if (!uploadResponse.isSuccessful()) {
-                throw uploadResponse.throwable
+                throw uploadResponse.error.throwable!!
             } else {
                 (uploadResponse as ApiAnswer.Success).data.run {
                     if (this.error != null) {
-                        throw ApiError(0, error)
+                        throw ApiError(error = error)
                     } else {
                         it.resume(Triple(this.server, requireNotNull(this.audio), this.hash))
                     }
@@ -489,7 +489,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 { audios.save(server, audio, hash) }
             )
             if (!saveResponse.isSuccessful()) {
-                throw saveResponse.throwable
+                throw saveResponse.error.throwable!!
             } else {
                 (saveResponse as ApiAnswer.Success).data.response.run {
                     it.resume(requireNotNull(this).asVkAudio())
@@ -522,7 +522,7 @@ class MessagesHistoryViewModel @Inject constructor(
                 { files.getMessagesUploadServer(peerId, type) }
             )
             if (!uploadServerResponse.isSuccessful()) {
-                throw uploadServerResponse.throwable
+                throw uploadServerResponse.error.throwable!!
             } else {
                 (uploadServerResponse as ApiAnswer.Success).data.response.run {
                     it.resume(requireNotNull(this).uploadUrl)
@@ -544,11 +544,11 @@ class MessagesHistoryViewModel @Inject constructor(
                 { files.uploadFile(uploadUrl, body) }
             )
             if (!uploadFileResponse.isSuccessful()) {
-                throw uploadFileResponse.throwable
+                throw uploadFileResponse.error.throwable!!
             } else {
                 (uploadFileResponse as ApiAnswer.Success).data.run {
                     if (this.error != null) {
-                        throw ApiError(0, this.error)
+                        throw ApiError(error = this.error)
                     } else {
                         it.resume(this.file.requireNotNull())
                     }
@@ -564,7 +564,7 @@ class MessagesHistoryViewModel @Inject constructor(
                     { files.saveMessageFile(file) }
                 )
                 if (!saveResponse.isSuccessful()) {
-                    throw saveResponse.throwable
+                    throw saveResponse.error.throwable!!
                 } else {
                     (saveResponse as ApiAnswer.Success).data.run {
                         val response = this.response.requireNotNull()

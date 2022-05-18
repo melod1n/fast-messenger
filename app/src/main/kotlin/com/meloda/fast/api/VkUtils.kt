@@ -6,7 +6,9 @@ import android.graphics.drawable.Drawable
 import android.text.SpannableString
 import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
+import com.google.gson.Gson
 import com.meloda.fast.R
+import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -14,7 +16,9 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
+import com.meloda.fast.api.network.*
 
+@Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
 
     fun <T> attachmentToString(
@@ -698,6 +702,39 @@ object VkUtils {
             BaseVkAttachmentItem.AttachmentType.Widget ->
                 context.resources.getString(R.string.message_attachments_widget)
             else -> attachmentType.value
+        }
+    }
+
+    fun getApiError(gson: Gson, errorString: String?): ApiAnswer.Error {
+        try {
+            val defaultError = gson.fromJson(errorString, ApiError::class.java)
+
+            val error: ApiError =
+                when (defaultError.error) {
+                    VkErrorCodes.UserAuthorizationFailed.toString() -> {
+                        val authorizationError =
+                            gson.fromJson(errorString, AuthorizationError::class.java)
+
+                        authorizationError
+                    }
+                    VkErrors.NeedValidation -> {
+                        val validationError =
+                            gson.fromJson(errorString, ValidationRequiredError::class.java)
+
+                        validationError
+                    }
+                    VkErrors.NeedCaptcha -> {
+                        val captchaRequiredError =
+                            gson.fromJson(errorString, CaptchaRequiredError::class.java)
+
+                        captchaRequiredError
+                    }
+                    else -> defaultError
+                }
+
+            return ApiAnswer.Error(error)
+        } catch (e: Exception) {
+            return ApiAnswer.Error(ApiError(throwable = e))
         }
     }
 }

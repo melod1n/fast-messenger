@@ -203,7 +203,6 @@ class ConversationsFragment :
             is ConversationsLoadedEvent -> refreshConversations(event)
             is ConversationsDeleteEvent -> deleteConversation(event.peerId)
 
-            // TODO: 10-Oct-21 remove this and sort conversations list
             is ConversationsPinEvent -> {
                 adapter.pinnedCount++
                 viewModel.loadConversations()
@@ -272,7 +271,7 @@ class ConversationsFragment :
             }
         }
 
-        val pinnedConversations = event.conversations.filter { it.isPinned }
+        val pinnedConversations = event.conversations.filter { it.isPinned() }
         adapter.pinnedCount = pinnedConversations.count()
 
         fillRecyclerView(event.conversations)
@@ -306,11 +305,9 @@ class ConversationsFragment :
 
         var canPinOneMoreDialog = true
         if (adapter.itemCount > 4) {
-            val firstFiveDialogs = adapter.currentList.subList(0, 5)
-            var pinnedCount = 0
+            val pinnedConversations = adapter.cloneCurrentList().filter { it.majorId > 0 }
 
-            firstFiveDialogs.forEach { if (it.isPinned) pinnedCount++ }
-            if (pinnedCount == 5 && position > 4) {
+            if (pinnedConversations.size == 5 && position > 4) {
                 canPinOneMoreDialog = false
             }
         }
@@ -318,7 +315,7 @@ class ConversationsFragment :
         val read = "Mark as read"
 
         val pin = getString(
-            if (conversation.isPinned) R.string.conversation_context_action_unpin
+            if (conversation.isPinned()) R.string.conversation_context_action_unpin
             else R.string.conversation_context_action_pin
         )
 
@@ -363,7 +360,7 @@ class ConversationsFragment :
     }
 
     private fun showPinConversationDialog(conversation: VkConversation) {
-        val isPinned = conversation.isPinned
+        val isPinned = conversation.isPinned()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
                 if (isPinned) R.string.confirm_unpin_conversation
@@ -402,7 +399,7 @@ class ConversationsFragment :
                 newConversation.unreadCount += 1
             }
 
-            if (conversation.isPinned) {
+            if (conversation.isPinned()) {
                 adapter[conversationIndex] = newConversation
                 return
             }

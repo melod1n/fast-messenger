@@ -12,10 +12,10 @@ import com.meloda.fast.util.ViewUtils.showErrorDialog
 
 object ViewModelUtils {
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun parseEvent(activity: FragmentActivity, event: VkEvent) {
         when (event) {
-            is ErrorEvent -> activity.showErrorDialog(event.errorText)
-            is IllegalTokenEvent -> {
+            is AuthorizationErrorEvent -> {
                 Toast.makeText(
                     activity, R.string.authorization_failed, Toast.LENGTH_LONG
                 ).show()
@@ -24,11 +24,17 @@ object ViewModelUtils {
                 activity.finishAffinity()
                 activity.startActivity(Intent(activity, MainActivity::class.java))
             }
+
+            is VkErrorEvent -> {
+                event.errorText?.run {
+                    activity.showErrorDialog(this)
+                }
+            }
         }
     }
 
     fun parseEvent(fragment: Fragment, event: VkEvent) {
-        if (event is ProgressEvent) {
+        if (event is VkProgressEvent) {
             if (fragment is BaseFragment) {
                 if (event is StartProgressEvent) {
                     fragment.startProgress()

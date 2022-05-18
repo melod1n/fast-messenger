@@ -179,11 +179,13 @@ class LongPollUpdatesParser(private val messagesDataSource: MessagesDataSource) 
                         )
                     )
 
-                    if (normalMessageResponse !is ApiAnswer.Success) {
-                        (normalMessageResponse as ApiAnswer.Error).throwable.let { throw it }
+                    if (!normalMessageResponse.isSuccessful()) {
+                        normalMessageResponse.error.throwable?.run { throw this }
                     }
 
-                    val messagesResponse = normalMessageResponse.data.response ?: return@launch
+                    val messagesResponse =
+                        (normalMessageResponse as? ApiAnswer.Success)?.data?.response
+                            ?: return@launch
 
                     val messagesList = messagesResponse.items
                     if (messagesList.isEmpty()) return@launch

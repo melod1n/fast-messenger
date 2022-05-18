@@ -4,11 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.VKException
 import com.meloda.fast.api.network.auth.AuthDataSource
 import com.meloda.fast.api.network.auth.AuthDirectRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.ErrorEvent
+import com.meloda.fast.base.viewmodel.ErrorTextEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
 import com.meloda.fast.database.dao.AccountsDao
@@ -51,7 +50,7 @@ class LoginViewModel @Inject constructor(
             },
             onAnswer = {
                 if (it.userId == null || it.accessToken == null) {
-                    sendEvent(ErrorEvent(unknownErrorDefaultText))
+                    sendEvent(ErrorTextEvent(unknownErrorDefaultText))
                     return@makeJob
                 }
 
@@ -66,30 +65,7 @@ class LoginViewModel @Inject constructor(
                 }
 
                 sendEvent(LoginSuccessAuth)
-
-                // TODO: 19-Oct-21 do somewhen
-//                makeJob({
-//                    dataSource.authWithApp(
-//                        AuthWithAppRequest(
-//                            accessToken = it.accessToken
-//                        )
-//                    )
-//                }, onAnswer = { kindaAnswer ->
-//                    println("$TAG: AppAuthResponse: $kindaAnswer")
-//                }
-//                )
-
-
-            },
-            onError = {
-                if (it !is VKException) {
-                    onError(it)
-                    return@makeJob
-                }
-
-                // TODO: 9/27/2021 use `delay` parameter
-                twoFaCode?.let { sendEvent(LoginCodeSent) }
-            }, onStart = null, onEnd = null
+            }
         )
     }
 
@@ -114,8 +90,7 @@ class LoginViewModel @Inject constructor(
         val account = AppAccount(userId, accessToken, fastToken)
         accounts.insert(listOf(account))
     }
-
-    object LoginCodeSent : VkEvent()
-    object LoginSuccessAuth : VkEvent()
-
 }
+
+object LoginCodeSent : VkEvent()
+object LoginSuccessAuth : VkEvent()

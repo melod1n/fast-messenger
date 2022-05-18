@@ -14,6 +14,8 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -21,8 +23,8 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
+import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -98,6 +100,19 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         if (isGetFastToken) {
             launchWebView()
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback {
+            if (getView() == null) {
+                isEnabled = false
+                return@addCallback
+            }
+
+            if (binding.webView.canGoBack()) {
+                binding.webView.goBack()
+            } else {
+                isEnabled = false
+            }
+        }
     }
 
     override fun onEvent(event: VkEvent) {
@@ -106,27 +121,27 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         when (event) {
             StartProgressEvent -> onProgressStarted()
             StopProgressEvent -> onProgressStopped()
-            is ErrorEvent -> showErrorSnackbar(event.errorText)
-            is CaptchaEvent -> showCaptchaDialog(event.sid, event.image)
-            is ValidationEvent -> showValidationRequired(event.sid)
 
-            LoginViewModel.LoginSuccessAuth -> launchWebView()
-            LoginViewModel.LoginCodeSent -> showValidationDialog()
+            is CaptchaRequiredEvent -> showCaptchaDialog(event.sid, event.image)
+            is ValidationRequiredEvent -> showValidationRequired(event.sid)
+
+            LoginSuccessAuth -> launchWebView()
+            LoginCodeSent -> showValidationDialog()
         }
     }
 
     private fun onProgressStarted() {
-        binding.loginContainer.isVisible = false
-        binding.passwordContainer.isVisible = false
-        binding.auth.isVisible = false
-        binding.progress.isVisible = true
+        binding.loginContainer.gone()
+        binding.passwordContainer.gone()
+        binding.auth.gone()
+        binding.progressBar.visible()
     }
 
     private fun onProgressStopped() {
-        binding.loginContainer.isVisible = true
-        binding.passwordContainer.isVisible = true
-        binding.auth.isVisible = true
-        binding.progress.isVisible = false
+        binding.loginContainer.visible()
+        binding.passwordContainer.visible()
+        binding.auth.visible()
+        binding.progressBar.gone()
     }
 
     private fun prepareViews() {
@@ -144,19 +159,21 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
             clearCache(true)
             webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String, favicon: Bitmap?) {
+                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                    if (getView() == null) return
+                    binding.webViewProgressBar.visible()
+                    binding.webView.gone()
+
                     super.onPageStarted(view, url, favicon)
                     parseAuthUrl(url)
                 }
 
                 override fun onPageFinished(view: WebView, url: String) {
-                    super.onPageFinished(view, url)
+                    if (getView() == null) return
+                    binding.webViewProgressBar.gone()
+                    binding.webView.visible()
 
-//                    lifecycleScope.launch {
-//                        withContext(Dispatchers.Main) {
-//                            view.loadUrl("javascript:document.getElementsByClassName(\"button\")[0].click()")
-//                        }
-//                    }
+                    super.onPageFinished(view, url)
                 }
             }
         }
@@ -169,14 +186,12 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun launchWebView() {
-//        viewModel.initUserConfig()
-//        viewModel.openPrimaryScreen()
+        binding.webViewContainer.visible()
 
-        binding.webView.visible()
         val urlToLoad = "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
                 "access_token=${UserConfig.accessToken}&" +
-                "sdk_package=com.meloda.fast.activity&" +
-                "sdk_fingerprint=AA88DSADAS8DG8FSA8&" +
+                "sdk_package=${BuildConfig.sdkPackage}&" +
+                "sdk_fingerprint=${BuildConfig.sdkFingerprint}&" +
                 "display=page&" +
                 "revoke=1&" +
                 "scope=136297695&" +
@@ -275,10 +290,44 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
     private fun prepareAuthButton() {
         binding.auth.setOnClickListener { validateDataAndAuth() }
+        binding.auth.setOnLongClickListener {
+            showFastLoginAlert()
+            true
+        }
+    }
+
+    private fun showFastLoginAlert() {
+        val editText = AppCompatEditText(requireContext())
+        editText.hint = "\$login;\$password"
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Fast login")
+            .setView(editText)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val text = editText.trimmedText
+                if (text.isEmpty()) return@setPositiveButton
+
+                val split = text.split(";")
+                try {
+                    val login = split[0]
+                    val password = split[1]
+
+                    binding.loginInput.setText(login)
+                    binding.loginInput.selectLast()
+
+                    binding.passwordInput.setText(password)
+                    binding.passwordInput.selectLast()
+
+                    validateDataAndAuth(login to password)
+                } catch (ignored: Exception) {
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun validateDataAndAuth(data: Pair<String, String>? = null) {
-        if (binding.progress.isVisible) return
+        if (binding.progressBar.isVisible) return
         val loginString = data?.first ?: binding.loginInput.text.toString().trim()
         val passwordString = data?.second ?: binding.passwordInput.text.toString().trim()
 
@@ -423,16 +472,5 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     private fun showValidationRequired(validationSid: String) {
         Toast.makeText(requireContext(), R.string.validation_required, Toast.LENGTH_LONG).show()
         viewModel.sendSms(validationSid)
-    }
-
-    private fun showErrorSnackbar(errorDescription: String) {
-        val snackbar = Snackbar.make(
-            requireView(),
-            getString(R.string.error, errorDescription),
-            Snackbar.LENGTH_LONG
-        )
-
-        snackbar.animationMode = Snackbar.ANIMATION_MODE_FADE
-        snackbar.show()
     }
 }

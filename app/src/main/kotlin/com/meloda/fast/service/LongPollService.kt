@@ -8,7 +8,7 @@ import androidx.core.content.edit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.VKException
+import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.network.ApiAnswer
@@ -70,10 +70,10 @@ class LongPollService : Service(), CoroutineScope {
 
         return launch {
             var serverInfo = getServerInfo()
-                ?: throw VKException(error = "bad VK response (server info)")
+                ?: throw ApiError(errorMessage = "bad VK response (server info)")
 
             var lastUpdatesResponse: JsonObject? = getUpdatesResponse(serverInfo)
-                ?: throw VKException(error = "initiation error: bad VK response (last updates)")
+                ?: throw ApiError(errorMessage = "initiation error: bad VK response (last updates)")
 
             var failCount = 0
 
@@ -81,7 +81,7 @@ class LongPollService : Service(), CoroutineScope {
                 if (lastUpdatesResponse == null) {
                     failCount++
                     serverInfo = getServerInfo()
-                        ?: throw VKException(error = "failed retrieving server info after error: bad VK response (server info #2)")
+                        ?: throw ApiError(errorMessage = "failed retrieving server info after error: bad VK response (server info #2)")
                     lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     continue
                 }
@@ -98,8 +98,8 @@ class LongPollService : Service(), CoroutineScope {
                     }
                     2, 3 -> {
                         serverInfo = getServerInfo()
-                            ?: throw VKException(
-                                error = "failed retrieving server info after error: bad VK response (server info #3)"
+                            ?: throw ApiError(
+                                errorMessage = "failed retrieving server info after error: bad VK response (server info #3)"
                             )
                         lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     }

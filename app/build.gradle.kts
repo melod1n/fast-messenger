@@ -102,7 +102,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
 
     // androidx - SplashScreen
-    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
+    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
 
     // WaveformSeekBar - for voice messages
     implementation("com.github.massoudss:waveformSeekBar:5.0.0")
@@ -146,7 +146,6 @@ dependencies {
     implementation("com.github.yogacp:android-viewbinding:1.0.4")
 
     implementation("com.google.code.gson:gson:2.8.8")
-    implementation("org.jsoup:jsoup:1.14.3")
 
     implementation("com.github.bumptech.glide:glide:4.13.0")
     kapt("com.github.bumptech.glide:compiler:4.13.0")
@@ -164,6 +163,9 @@ dependencies {
 
     // Google Guava
     implementation("com.google.guava:guava:31.1-android")
+
+    // Jsoup
+    implementation("org.jsoup:jsoup:1.15.1")
 
 
 }

@@ -14,7 +14,6 @@ import androidx.core.view.setPadding
 import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -115,7 +114,7 @@ class ConversationsAdapter constructor(
                 !conversation.isAccount() && conversationUser?.online == true
             )
 
-            binding.pin.toggleVisibility(conversation.isPinned)
+            binding.pin.toggleVisibility(conversation.isPinned())
 
             val avatar = VkUtils.getConversationAvatar(
                 conversation = conversation,

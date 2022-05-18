@@ -1,5 +1,6 @@
 package com.meloda.fast.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -19,15 +20,16 @@ import com.meloda.fast.model.AppAccount
         VkGroup::class
     ],
     version = 33,
-    exportSchema = false,
+    exportSchema = true,
+    autoMigrations = []
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract val accountsDao: AccountsDao
-    abstract fun conversationsDao(): ConversationsDao
-    abstract fun messagesDao(): MessagesDao
-    abstract fun usersDao(): UsersDao
-    abstract fun groupsDao(): GroupsDao
+    abstract val conversationsDao: ConversationsDao
+    abstract val messagesDao: MessagesDao
+    abstract val usersDao: UsersDao
+    abstract val groupsDao: GroupsDao
 
 }

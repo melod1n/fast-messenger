@@ -40,7 +40,8 @@ data class BaseVkConversation(
         unreadCount = unread_count ?: 0,
         membersCount = chat_settings?.members_count,
         ownerId = chat_settings?.owner_id,
-        isPinned = sort_id.major_id > 0,
+        majorId = sort_id.major_id,
+        minorId = sort_id.minor_id,
         canChangePin = chat_settings?.acl?.can_change_pin == true
     ).apply {
         this.lastMessage = lastMessage
