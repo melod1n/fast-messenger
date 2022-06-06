@@ -4,10 +4,11 @@ import android.content.Context
 import com.meloda.fast.R
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 object TimeUtils {
 
-    const val ONE_DAY_IN_SECONDS = 86400
+    val OneDayInSeconds get() = TimeUnit.DAYS.toSeconds(1)
 
     fun removeTime(date: Date): Long {
         return Calendar.getInstance().apply {

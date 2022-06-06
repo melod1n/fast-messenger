@@ -166,14 +166,20 @@ fun EditText.selectLast() {
     setSelection(text.length)
 }
 
-fun <T> T.update(block: T.() -> Unit) {
-    block.invoke(this)
-}
-
 fun <T> T?.requireNotNull(): T {
     return requireNotNull(this)
 }
 
-fun String?.orDots(): String {
-    return this ?: "..."
+
+fun String?.orDots(count: Int = 3): String {
+    return this ?: ("." * count)
+}
+
+private operator fun String.times(count: Int): String {
+    val builder = StringBuilder()
+    for (i in 0 until count) {
+        builder.append(this)
+    }
+
+    return builder.toString()
 }

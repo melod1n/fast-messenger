@@ -71,7 +71,7 @@ data class VkMessage constructor(
                 (attachments == null || !VKConstants.restrictedToEditAttachments.contains(
                     attachments!![0].javaClass
                 )) &&
-                (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.ONE_DAY_IN_SECONDS)
+                (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.OneDayInSeconds)
 
     fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
 

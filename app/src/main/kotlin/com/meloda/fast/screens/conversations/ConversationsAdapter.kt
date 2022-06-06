@@ -19,7 +19,7 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
-import com.meloda.fast.base.adapter.BindingHolder
+import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemConversationBinding
 import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
@@ -62,14 +62,9 @@ class ConversationsAdapter constructor(
     }
 
     inner class ItemHolder(
-        binding: ItemConversationBinding,
+        private val binding: ItemConversationBinding,
         private val resourceManager: ConversationsResourceProvider
-    ) : BindingHolder<ItemConversationBinding>(binding) {
-
-        init {
-            binding.title.ellipsize = TextUtils.TruncateAt.END
-            binding.message.ellipsize = TextUtils.TruncateAt.END
-        }
+    ) : BaseHolder(binding.root) {
 
         override fun bind(position: Int) {
             val conversation = getItem(position)
@@ -110,7 +105,8 @@ class ConversationsAdapter constructor(
                     return
                 }
 
-            val conversationUserGroup = VkUtils.getConversationUserGroup(conversation, profiles, groups)
+            val conversationUserGroup =
+                VkUtils.getConversationUserGroup(conversation, profiles, groups)
             val messageUserGroup = VkUtils.getMessageUserGroup(message, profiles, groups)
 
             val conversationUser = conversationUserGroup.first
