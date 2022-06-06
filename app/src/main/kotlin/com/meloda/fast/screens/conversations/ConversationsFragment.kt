@@ -138,11 +138,12 @@ class ConversationsFragment :
 
         })
 
-        requireActivity().onBackPressedDispatcher.addCallback {
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (searchMenuItem.isActionViewExpanded) {
                 searchMenuItem.collapseActionView()
             } else {
                 isEnabled = false
+                requireActivity().onBackPressed()
             }
         }
 

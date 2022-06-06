@@ -17,6 +17,7 @@ import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.network.*
+import com.meloda.fast.extensions.orDots
 
 @Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
@@ -121,16 +122,22 @@ object VkUtils {
 
     fun getConversationUserGroup(
         conversation: VkConversation,
-        profiles: HashMap<Int, VkUser>,
-        groups: HashMap<Int, VkGroup>
+        profiles: Map<Int, VkUser>,
+        groups: Map<Int, VkGroup>
     ): Pair<VkUser?, VkGroup?> {
-        val user: VkUser? =
-            if (conversation.isUser()) profiles[conversation.id]
-            else null
+        val user: VkUser? = getConversationUser(conversation, profiles)
+        val group: VkGroup? = getConversationGroup(conversation, groups)
 
-        val group: VkGroup? =
-            if (conversation.isGroup()) groups[conversation.id]
-            else null
+        return user to group
+    }
+
+    fun getMessageUserGroup(
+        message: VkMessage,
+        profiles: Map<Int, VkUser>,
+        groups: Map<Int, VkGroup>
+    ): Pair<VkUser?, VkGroup?> {
+        val user: VkUser? = getMessageUser(message, profiles)
+        val group: VkGroup? = getMessageGroup(message, groups)
 
         return user to group
     }
@@ -366,7 +373,7 @@ object VkUtils {
                 } else {
                     val prefix =
                         if (message.fromId == UserConfig.userId) youPrefix
-                        else messageUser?.toString() ?: messageGroup?.toString() ?: "..."
+                        else messageUser?.toString() ?: messageGroup?.toString().orDots()
 
                     val postfix =
                         if (memberId == UserConfig.userId) youPrefix.lowercase()
@@ -411,7 +418,7 @@ object VkUtils {
                     }
                 } else {
                     val prefix = if (message.fromId == UserConfig.userId) youPrefix
-                    else messageUser?.toString() ?: messageGroup?.toString() ?: "..."
+                    else messageUser?.toString() ?: messageGroup?.toString().orDots()
 
                     val postfix =
                         if (memberId == UserConfig.userId) youPrefix.lowercase()

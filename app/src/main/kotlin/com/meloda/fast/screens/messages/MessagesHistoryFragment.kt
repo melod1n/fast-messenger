@@ -187,7 +187,7 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-        binding.toolbar.title = title ?: "..."
+        binding.toolbar.title = title.orDots()
 
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
@@ -206,7 +206,7 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-        binding.toolbar.subtitle = status ?: "..."
+        binding.toolbar.subtitle = status.orDots()
 
         prepareAvatar()
 

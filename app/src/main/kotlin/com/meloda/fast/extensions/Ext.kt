@@ -173,3 +173,7 @@ fun <T> T.update(block: T.() -> Unit) {
 fun <T> T?.requireNotNull(): T {
     return requireNotNull(this)
 }
+
+fun String?.orDots(): String {
+    return this ?: "..."
+}

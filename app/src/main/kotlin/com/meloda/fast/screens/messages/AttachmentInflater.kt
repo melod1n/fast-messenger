@@ -171,22 +171,19 @@ class AttachmentInflater constructor(
             message = replyMessage
         ) else null
 
-        val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text ?: "...").run {
+        val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text.orDots()).run {
             VkUtils.prepareMessageText(this)
         }
 
         binding.text.text = messageText
 
-        val fromUser: VkUser? =
-            if (replyMessage.isUser()) profiles[replyMessage.fromId]
-            else null
+        val replyUserGroup = VkUtils.getMessageUserGroup(replyMessage, profiles, groups)
 
-        val fromGroup: VkGroup? =
-            if (replyMessage.isGroup()) groups[replyMessage.fromId]
-            else null
+        val fromUser: VkUser? = replyUserGroup.first
+        val fromGroup: VkGroup? = replyUserGroup.second
 
         val title = VkUtils.getMessageTitle(replyMessage, fromUser, fromGroup)
-        binding.title.text = title ?: "..."
+        binding.title.text = title.orDots()
     }
 
     private fun forwards(forwards: List<VkMessage>) {
@@ -384,11 +381,11 @@ class AttachmentInflater constructor(
             else -> null
         }
 
-        val title = when {
+        val title = (when {
             group == null && user != null -> user.fullName
             user == null && group != null -> group.name
-            else -> "..."
-        }
+            else -> null
+        }).orDots()
 
         binding.postTitle.text = context.getString(postTitleRes)
         binding.postTitle.gone()

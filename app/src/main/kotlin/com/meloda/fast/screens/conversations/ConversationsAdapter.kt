@@ -21,12 +21,9 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BindingHolder
 import com.meloda.fast.databinding.ItemConversationBinding
-import com.meloda.fast.extensions.ImageLoader
+import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.gone
-import com.meloda.fast.extensions.toggleVisibility
-import com.meloda.fast.extensions.visible
 import com.meloda.fast.util.TimeUtils
 
 class ConversationsAdapter constructor(
@@ -113,11 +110,14 @@ class ConversationsAdapter constructor(
                     return
                 }
 
-            val conversationUser = VkUtils.getConversationUser(conversation, profiles)
-            val conversationGroup = VkUtils.getConversationGroup(conversation, groups)
+            val conversationUserGroup = VkUtils.getConversationUserGroup(conversation, profiles, groups)
+            val messageUserGroup = VkUtils.getMessageUserGroup(message, profiles, groups)
 
-            val messageUser = VkUtils.getMessageUser(message, profiles)
-            val messageGroup = VkUtils.getMessageGroup(message, groups)
+            val conversationUser = conversationUserGroup.first
+            val conversationGroup = conversationUserGroup.second
+
+            val messageUser = messageUserGroup.first
+            val messageGroup = messageUserGroup.second
 
             val title = VkUtils.getConversationTitle(
                 context = context,
@@ -126,7 +126,7 @@ class ConversationsAdapter constructor(
                 conversationGroup = conversationGroup
             )
 
-            binding.title.text = title ?: "..."
+            binding.title.text = title.orDots()
 
             binding.online.toggleVisibility(
                 !conversation.isAccount() && conversationUser?.online == true
