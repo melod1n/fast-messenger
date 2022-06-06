@@ -119,6 +119,22 @@ object VkUtils {
         }
     }
 
+    fun getConversationUserGroup(
+        conversation: VkConversation,
+        profiles: HashMap<Int, VkUser>,
+        groups: HashMap<Int, VkGroup>
+    ): Pair<VkUser?, VkGroup?> {
+        val user: VkUser? =
+            if (conversation.isUser()) profiles[conversation.id]
+            else null
+
+        val group: VkGroup? =
+            if (conversation.isGroup()) groups[conversation.id]
+            else null
+
+        return user to group
+    }
+
     fun prepareMessageText(text: String, forConversations: Boolean? = null): String {
         return text.apply {
             if (forConversations == true) replace("\n", "")

@@ -35,7 +35,25 @@ class ConversationsAdapter constructor(
     var isMultilineEnabled: Boolean = true,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
-) : BaseAdapter<VkConversation, ConversationsAdapter.ItemHolder>(context, Comparator) {
+) : BaseAdapter<VkConversation, ConversationsAdapter.ItemHolder>(context, comparator) {
+
+    companion object {
+        private val comparator = object : DiffUtil.ItemCallback<VkConversation>() {
+            override fun areItemsTheSame(
+                oldItem: VkConversation,
+                newItem: VkConversation
+            ): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            override fun areContentsTheSame(
+                oldItem: VkConversation,
+                newItem: VkConversation
+            ): Boolean {
+                return ObjectsCompat.equals(oldItem, newItem)
+            }
+        }
+    }
 
     var pinnedCount = 0
 
@@ -291,22 +309,13 @@ class ConversationsAdapter constructor(
         return null
     }
 
-    companion object {
-        private val Comparator = object : DiffUtil.ItemCallback<VkConversation>() {
-            override fun areItemsTheSame(
-                oldItem: VkConversation,
-                newItem: VkConversation
-            ): Boolean {
-                return oldItem.id == newItem.id
-            }
+    override fun onQueryItem(item: VkConversation, query: String): Boolean {
+        val userGroup = VkUtils.getConversationUserGroup(item, profiles, groups)
+        val title = VkUtils.getConversationTitle(context, item, userGroup.first, userGroup.second)
 
-            override fun areContentsTheSame(
-                oldItem: VkConversation,
-                newItem: VkConversation
-            ): Boolean {
-                return ObjectsCompat.equals(oldItem, newItem)
-            }
-        }
+        return title.orEmpty().contains(query, ignoreCase = true) ||
+                item.lastMessage?.text.orEmpty().contains(query, ignoreCase = true)
     }
+
 
 }

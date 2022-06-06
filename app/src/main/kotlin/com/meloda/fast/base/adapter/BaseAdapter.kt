@@ -1,9 +1,12 @@
 package com.meloda.fast.base.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Filter
+import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.meloda.fast.model.DataItem
@@ -11,13 +14,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.properties.Delegates
 
 @Suppress("MemberVisibilityCanBePrivate", "unused", "UNCHECKED_CAST")
 abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
     var context: Context,
     diffUtil: DiffUtil.ItemCallback<T>,
     preAddedValues: List<T> = emptyList(),
-) : ListAdapter<T, VH>(diffUtil) {
+) : ListAdapter<T, VH>(diffUtil), Filterable {
+
+    private var valuesFilter: ValuesFilter? = null
 
     protected val adapterScope = CoroutineScope(Dispatchers.Default)
     private val cleanList = mutableListOf<T>()
@@ -26,6 +32,12 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
 
     var itemClickListener: ((position: Int) -> Unit)? = null
     var itemLongClickListener: ((position: Int) -> Boolean)? = null
+
+    private val listForSave = mutableListOf<T>()
+
+    var isSearching: Boolean by Delegates.observable(false) { _, _, _ ->
+        updateSearchingState()
+    }
 
     init {
         cleanList.addAll(preAddedValues)
@@ -199,9 +211,24 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
 
     val lastPosition get() = currentList.lastIndex
 
+    private fun updateSearchingState() {
+        Log.d("BaseAdapter", "updateSearchingState: $isSearching")
+
+        cleanList.clear()
+
+        if (isSearching) {
+            listForSave.clear()
+            listForSave += cloneCurrentList()
+        } else {
+            setItems(listForSave, commitCallback = {
+                listForSave.clear()
+            })
+        }
+    }
+
     open fun filter(query: String) {
         if (cleanList.isEmpty()) {
-            cleanList.addAll(cloneCurrentList())
+            cleanList.addAll(listForSave)
         }
 
         val newList = mutableListOf<T>()
@@ -223,5 +250,42 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
 
     open fun onQueryItem(item: T, query: String): Boolean {
         return false
+    }
+
+    override fun getFilter(): Filter {
+        if (valuesFilter == null) {
+            valuesFilter = ValuesFilter()
+        }
+
+        return requireNotNull(valuesFilter)
+    }
+
+    private inner class ValuesFilter : Filter() {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            val results = FilterResults()
+
+            if (isEmpty()) return results
+
+            if (!constraint.isNullOrEmpty()) {
+                val filteredList = mutableListOf<T>()
+                for (item in listForSave) {
+                    if (onQueryItem(item, constraint.toString())) {
+                        filteredList.add(item)
+                    }
+                }
+                results.count = filteredList.size
+                results.values = filteredList
+            } else {
+                results.count = listForSave.size
+                results.values = listForSave
+            }
+
+            return results
+        }
+
+        override fun publishResults(constraint: CharSequence?, results: FilterResults) {
+            val items = results.values as? List<T>
+            setItems(items)
+        }
     }
 }

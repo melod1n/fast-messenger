@@ -7,11 +7,13 @@ import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
-import androidx.core.view.get
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -105,7 +107,44 @@ class ConversationsFragment :
             )
         )
 
-        binding.toolbar.menu[0].isVisible = false
+        val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
+        val actionView = searchMenuItem.actionView as SearchView
+
+        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+                if (!adapter.isSearching)
+                    adapter.isSearching = true
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+                if (adapter.isSearching)
+                    adapter.isSearching = false
+                return true
+            }
+
+        })
+
+        actionView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Toast.makeText(requireContext(), "API Search: $query", Toast.LENGTH_SHORT).show()
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                adapter.filter.filter(newText)
+                return false
+            }
+
+        })
+
+        requireActivity().onBackPressedDispatcher.addCallback {
+            if (searchMenuItem.isActionViewExpanded) {
+                searchMenuItem.collapseActionView()
+            } else {
+                isEnabled = false
+            }
+        }
 
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
         syncAvatarMenuItem(avatarMenuItem)
