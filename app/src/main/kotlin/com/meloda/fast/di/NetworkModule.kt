@@ -6,30 +6,19 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.VkUrls
-import com.meloda.fast.api.network.account.AccountDataSource
-import com.meloda.fast.api.network.account.AccountRepo
-import com.meloda.fast.api.network.audio.AudiosDataSource
-import com.meloda.fast.api.network.audio.AudiosRepo
-import com.meloda.fast.api.network.auth.AuthDataSource
-import com.meloda.fast.api.network.auth.AuthRepo
-import com.meloda.fast.api.network.conversations.ConversationsDataSource
-import com.meloda.fast.api.network.conversations.ConversationsRepo
-import com.meloda.fast.api.network.files.FilesDataSource
-import com.meloda.fast.api.network.files.FilesRepo
-import com.meloda.fast.api.network.longpoll.LongPollRepo
-import com.meloda.fast.api.network.messages.MessagesDataSource
-import com.meloda.fast.api.network.messages.MessagesRepo
-import com.meloda.fast.api.network.ota.OtaRepo
-import com.meloda.fast.api.network.photos.PhotosDataSource
-import com.meloda.fast.api.network.photos.PhotosRepo
-import com.meloda.fast.api.network.users.UsersDataSource
-import com.meloda.fast.api.network.users.UsersRepo
-import com.meloda.fast.api.network.videos.VideosDataSource
-import com.meloda.fast.api.network.videos.VideosRepo
+import com.meloda.fast.data.longpoll.LongPollApi
+import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.common.UpdateManager
-import com.meloda.fast.database.dao.ConversationsDao
-import com.meloda.fast.database.dao.MessagesDao
-import com.meloda.fast.database.dao.UsersDao
+import com.meloda.fast.data.account.AccountApi
+import com.meloda.fast.data.audios.AudiosApi
+import com.meloda.fast.data.auth.AuthApi
+import com.meloda.fast.data.conversations.ConversationsApi
+import com.meloda.fast.data.files.FilesApi
+import com.meloda.fast.data.messages.MessagesApi
+import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.data.photos.PhotosApi
+import com.meloda.fast.data.users.UsersApi
+import com.meloda.fast.data.videos.VideosApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -87,124 +76,67 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepo(retrofit: Retrofit): AuthRepo =
-        retrofit.create(AuthRepo::class.java)
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
     @Provides
     @Singleton
-    fun provideConversationsRepo(retrofit: Retrofit): ConversationsRepo =
-        retrofit.create(ConversationsRepo::class.java)
+    fun provideConversationsApi(retrofit: Retrofit): ConversationsApi =
+        retrofit.create(ConversationsApi::class.java)
 
     @Provides
     @Singleton
-    fun provideUsersRepo(retrofit: Retrofit): UsersRepo =
-        retrofit.create(UsersRepo::class.java)
+    fun provideUsersApi(retrofit: Retrofit): UsersApi =
+        retrofit.create(UsersApi::class.java)
 
     @Provides
     @Singleton
-    fun provideMessagesRepo(retrofit: Retrofit): MessagesRepo =
-        retrofit.create(MessagesRepo::class.java)
+    fun provideMessagesApi(retrofit: Retrofit): MessagesApi =
+        retrofit.create(MessagesApi::class.java)
 
     @Provides
     @Singleton
-    fun provideLongPollRepo(retrofit: Retrofit): LongPollRepo =
-        retrofit.create(LongPollRepo::class.java)
+    fun provideLongPollApi(retrofit: Retrofit): LongPollApi =
+        retrofit.create(LongPollApi::class.java)
 
     @Provides
     @Singleton
-    fun provideAuthDataSource(
-        repo: AuthRepo
-    ): AuthDataSource = AuthDataSource(repo)
+    fun provideLongPollUpdatesParser(messagesRepository: MessagesRepository): LongPollUpdatesParser =
+        LongPollUpdatesParser(messagesRepository)
 
     @Provides
     @Singleton
-    fun provideUsersDataSource(
-        repo: UsersRepo,
-        dao: UsersDao
-    ): UsersDataSource = UsersDataSource(repo, dao)
+    fun provideAccountApi(retrofit: Retrofit): AccountApi =
+        retrofit.create(AccountApi::class.java)
 
     @Provides
     @Singleton
-    fun provideConversationsDataSource(
-        repo: ConversationsRepo,
-        dao: ConversationsDao
-    ): ConversationsDataSource = ConversationsDataSource(repo, dao)
+    fun provideOtaApi(retrofit: Retrofit): OtaApi =
+        retrofit.create(OtaApi::class.java)
 
     @Provides
     @Singleton
-    fun provideMessagesDataSource(
-        messagesRepo: MessagesRepo,
-        messagesDao: MessagesDao,
-        longPollRepo: LongPollRepo
-    ): MessagesDataSource = MessagesDataSource(
-        messagesRepo = messagesRepo,
-        messagesDao = messagesDao,
-        longPollRepo = longPollRepo
-    )
+    fun provideUpdateManager(otaApi: OtaApi): UpdateManager =
+        UpdateManager(otaApi)
 
     @Provides
     @Singleton
-    fun provideLongPollUpdatesParser(messagesDataSource: MessagesDataSource): LongPollUpdatesParser =
-        LongPollUpdatesParser(messagesDataSource)
+    fun providePhotosApi(retrofit: Retrofit): PhotosApi =
+        retrofit.create(PhotosApi::class.java)
 
     @Provides
     @Singleton
-    fun provideAccountRepo(retrofit: Retrofit): AccountRepo =
-        retrofit.create(AccountRepo::class.java)
+    fun provideVideosApi(retrofit: Retrofit): VideosApi =
+        retrofit.create(VideosApi::class.java)
 
     @Provides
     @Singleton
-    fun provideAccountDataSource(repo: AccountRepo): AccountDataSource =
-        AccountDataSource(repo)
+    fun provideAudiosApi(retrofit: Retrofit): AudiosApi =
+        retrofit.create(AudiosApi::class.java)
 
     @Provides
     @Singleton
-    fun provideOtaRepo(retrofit: Retrofit): OtaRepo =
-        retrofit.create(OtaRepo::class.java)
-
-    @Provides
-    @Singleton
-    fun provideUpdateManager(otaRepo: OtaRepo): UpdateManager =
-        UpdateManager(otaRepo)
-
-    @Provides
-    @Singleton
-    fun providePhotosRepo(retrofit: Retrofit): PhotosRepo =
-        retrofit.create(PhotosRepo::class.java)
-
-    @Provides
-    @Singleton
-    fun providePhotosDataSource(photosRepo: PhotosRepo): PhotosDataSource =
-        PhotosDataSource(photosRepo)
-
-    @Provides
-    @Singleton
-    fun provideVideosRepo(retrofit: Retrofit): VideosRepo =
-        retrofit.create(VideosRepo::class.java)
-
-    @Provides
-    @Singleton
-    fun provideVideosDataSource(videosRepo: VideosRepo): VideosDataSource =
-        VideosDataSource(videosRepo)
-
-    @Provides
-    @Singleton
-    fun provideAudiosRepo(retrofit: Retrofit): AudiosRepo =
-        retrofit.create(AudiosRepo::class.java)
-
-    @Provides
-    @Singleton
-    fun provideAudiosDataSource(audiosRepo: AudiosRepo): AudiosDataSource =
-        AudiosDataSource(audiosRepo)
-
-    @Provides
-    @Singleton
-    fun provideFilesRepo(retrofit: Retrofit): FilesRepo =
-        retrofit.create(FilesRepo::class.java)
-
-    @Provides
-    @Singleton
-    fun provideFilesDataSource(filesRepo: FilesRepo): FilesDataSource =
-        FilesDataSource(filesRepo)
+    fun provideFilesApi(retrofit: Retrofit): FilesApi =
+        retrofit.create(FilesApi::class.java)
 
 }

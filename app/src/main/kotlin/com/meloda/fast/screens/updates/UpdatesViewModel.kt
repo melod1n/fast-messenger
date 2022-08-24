@@ -1,7 +1,7 @@
 package com.meloda.fast.screens.updates
 
 import androidx.lifecycle.MutableLiveData
-import com.meloda.fast.api.network.ota.OtaRepo
+import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.extensions.setIfNotEquals
@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UpdatesViewModel @Inject constructor(
     private val updateManager: UpdateManager,
-    private val otaRepo: OtaRepo
+    private val otaApi: OtaApi
 ) : BaseViewModel() {
 
     val updateState = MutableLiveData(UpdateState.Loading)

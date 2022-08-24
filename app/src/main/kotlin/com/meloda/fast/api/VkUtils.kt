@@ -71,9 +71,19 @@ object VkUtils {
 
     fun getMessageTitle(
         message: VkMessage,
-        messageUser: VkUser?,
-        messageGroup: VkGroup?
+        defMessageUser: VkUser? = null,
+        defMessageGroup: VkGroup? = null,
+        profiles: Map<Int, VkUser>? = null,
+        groups: Map<Int, VkGroup>? = null
     ): String? {
+        val messageUser: VkUser? =
+            defMessageUser ?: if (profiles == null) null
+            else profiles[message.fromId]
+
+        val messageGroup: VkGroup? =
+            defMessageGroup ?: if (groups == null) null
+            else groups[message.fromId]
+
         return when {
             message.isUser() -> messageUser?.fullName
             message.isGroup() -> messageGroup?.name
@@ -108,9 +118,19 @@ object VkUtils {
     fun getConversationTitle(
         context: Context,
         conversation: VkConversation,
-        conversationUser: VkUser?,
-        conversationGroup: VkGroup?
+        defConversationUser: VkUser? = null,
+        defConversationGroup: VkGroup? = null,
+        profiles: Map<Int, VkUser>? = null,
+        groups: Map<Int, VkGroup>? = null
     ): String? {
+        val conversationUser: VkUser? =
+            defConversationUser ?: if (profiles == null) null
+            else getConversationUser(conversation, profiles)
+
+        val conversationGroup: VkGroup? =
+            defConversationGroup ?: if (groups == null) null
+            else getConversationGroup(conversation, groups)
+
         return when {
             conversation.isAccount() -> context.getString(R.string.favorites)
             conversation.isChat() -> conversation.title

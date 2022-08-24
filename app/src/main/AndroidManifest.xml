@@ -10,6 +10,8 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".common.AppGlobal"
         android:allowBackup="false"
@@ -24,8 +26,10 @@
         tools:replace="android:allowBackup">
         <activity
             android:name=".screens.main.MainActivity"
+            android:theme="@style/AppTheme.Splash"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

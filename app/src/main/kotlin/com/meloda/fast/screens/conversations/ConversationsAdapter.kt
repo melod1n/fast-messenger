@@ -118,8 +118,8 @@ class ConversationsAdapter constructor(
             val title = VkUtils.getConversationTitle(
                 context = context,
                 conversation = conversation,
-                conversationUser = conversationUser,
-                conversationGroup = conversationGroup
+                defConversationUser = conversationUser,
+                defConversationGroup = conversationGroup
             )
 
             binding.title.text = title.orDots()
@@ -142,38 +142,24 @@ class ConversationsAdapter constructor(
                 binding.avatar.clear()
                 binding.avatarPlaceholder.visible()
 
-                when {
-                    // TODO: 09.05.2022, Danil Nikolaev: пофиксить мерцание
-//                    conversation.isAccount() -> {
-//                        binding.placeholderBack.loadWithGlide(
-//                            drawable = ColorDrawable(resourceManager.icLauncherColor),
-//                            transformations = ImageLoader.userAvatarTransformations
-//                        )
-//                        binding.placeholder.imageTintList =
-//                            ColorStateList.valueOf(resourceManager.colorOnPrimary)
-//                        binding.placeholder.setImageResource(R.drawable.ic_round_bookmark_border_24)
-//                        binding.placeholder.setPadding(36)
-//                    }
-//                    conversation.ownerId == VKConstants.FAST_GROUP_ID -> {
-//                        binding.placeholderBack.loadWithGlide(
-//                            drawable = ColorDrawable(resourceManager.icLauncherColor),
-//                            transformations = ImageLoader.userAvatarTransformations
-//                        )
-//                        binding.placeholder.imageTintList =
-//                            ColorStateList.valueOf(resourceManager.colorOnPrimary)
-//                        binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
-//                        binding.placeholder.setPadding(18)
-//                    }
-                    else -> {
-                        binding.placeholderBack.loadWithGlide(
-                            drawable = ColorDrawable(resourceManager.colorOnUserAvatarAction),
-                            transformations = ImageLoader.userAvatarTransformations
-                        )
-                        binding.placeholder.imageTintList =
-                            ColorStateList.valueOf(resourceManager.colorUserAvatarAction)
-                        binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
-                        binding.placeholder.setPadding(0)
-                    }
+                if (conversation.isAccount()) {
+                    binding.placeholderBack.loadWithGlide(
+                        drawable = ColorDrawable(resourceManager.icLauncherColor),
+                        transformations = ImageLoader.userAvatarTransformations
+                    )
+                    binding.placeholder.imageTintList =
+                        ColorStateList.valueOf(resourceManager.colorOnPrimary)
+                    binding.placeholder.setImageResource(R.drawable.ic_round_bookmark_border_24)
+                    binding.placeholder.setPadding(36)
+                } else {
+                    binding.placeholderBack.loadWithGlide(
+                        drawable = ColorDrawable(resourceManager.colorOnUserAvatarAction),
+                        transformations = ImageLoader.userAvatarTransformations
+                    )
+                    binding.placeholder.imageTintList =
+                        ColorStateList.valueOf(resourceManager.colorUserAvatarAction)
+                    binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
+                    binding.placeholder.setPadding(0)
                 }
             } else {
                 binding.avatar.loadWithGlide(

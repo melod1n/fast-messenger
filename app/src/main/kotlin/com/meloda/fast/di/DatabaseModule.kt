@@ -1,8 +1,12 @@
 package com.meloda.fast.di
 
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.data.conversations.ConversationsDao
+import com.meloda.fast.data.groups.GroupsDao
+import com.meloda.fast.data.messages.MessagesDao
+import com.meloda.fast.data.users.UsersDao
 import com.meloda.fast.database.AppDatabase
-import com.meloda.fast.database.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

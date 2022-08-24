@@ -1,12 +1,17 @@
 package com.meloda.fast.screens.main
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ClipData
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.viewbinding.library.activity.viewBinding
 import android.widget.Toast
 import androidx.core.content.edit
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.size
 import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
@@ -24,7 +29,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.*
-import com.meloda.fast.database.dao.AccountsDao
+import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.databinding.ActivityMainBinding
 import com.meloda.fast.extensions.gone
 import com.meloda.fast.extensions.toggleVisibility
@@ -86,7 +91,10 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        createNotificationChannel()
 
         AppCenter.configure(application, BuildConfig.msAppCenterAppToken)
 
@@ -146,6 +154,29 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 stopServices()
             }
         }
+    }
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Dialogs"
+            val descriptionText = "Channel for dialogs notifications"
+            val importance = NotificationManager.IMPORTANCE_MAX
+            val channel = NotificationChannel("simple_notifications", name, importance).apply {
+                description = descriptionText
+            }
+
+            channel.setAllowBubbles(true)
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+
+//        if (BuildCompat.isAtLeastT()) {
+//            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+//        }
     }
 
     override fun onResume() {

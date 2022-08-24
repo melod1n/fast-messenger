@@ -13,10 +13,10 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
-import com.meloda.fast.api.network.longpoll.LongPollRepo
-import com.meloda.fast.api.network.messages.MessagesDataSource
+import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.data.messages.MessagesRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -42,10 +42,10 @@ class LongPollService : Service(), CoroutineScope {
         get() = Dispatchers.Default + job + exceptionHandler
 
     @Inject
-    lateinit var dataSource: MessagesDataSource
+    lateinit var repository: MessagesRepository
 
     @Inject
-    lateinit var longPollRepo: LongPollRepo
+    lateinit var longPollApi: LongPollApi
 
     @Inject
     lateinit var updatesParser: LongPollUpdatesParser
@@ -132,7 +132,7 @@ class LongPollService : Service(), CoroutineScope {
     }
 
     private suspend fun getServerInfo(): BaseVkLongPoll? {
-        val response = dataSource.getLongPollServer(
+        val response = repository.getLongPollServer(
             MessagesGetLongPollServerRequest(
                 needPts = true,
                 version = VKConstants.LP_VERSION
@@ -150,7 +150,7 @@ class LongPollService : Service(), CoroutineScope {
     }
 
     private suspend fun getUpdatesResponse(server: BaseVkLongPoll): JsonObject? {
-        val response = dataSource.getLongPollUpdates(
+        val response = repository.getLongPollUpdates(
             serverUrl = "https://${server.server}",
             params = LongPollGetUpdatesRequest(
                 key = server.key,

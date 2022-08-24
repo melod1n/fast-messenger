@@ -4,13 +4,13 @@ import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.network.auth.AuthDataSource
 import com.meloda.fast.api.network.auth.AuthDirectRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.ErrorTextEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
-import com.meloda.fast.database.dao.AccountsDao
+import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.model.AppAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val dataSource: AuthDataSource,
+    private val authRepository: AuthRepository,
     private val router: Router,
     private val accounts: AccountsDao
 ) : BaseViewModel() {
@@ -33,7 +33,7 @@ class LoginViewModel @Inject constructor(
     ) = viewModelScope.launch {
         makeJob(
             {
-                dataSource.auth(
+                authRepository.auth(
                     AuthDirectRequest(
                         grantType = VKConstants.Auth.GrantType.PASSWORD,
                         clientId = VKConstants.VK_APP_ID,
@@ -70,7 +70,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun sendSms(validationSid: String) = viewModelScope.launch {
-        makeJob({ dataSource.sendSms(validationSid) },
+        makeJob({ authRepository.sendSms(validationSid) },
             onAnswer = { sendEvent(LoginCodeSent) }
         )
     }

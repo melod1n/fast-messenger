@@ -12,12 +12,13 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.conversations.*
-import com.meloda.fast.api.network.messages.MessagesDataSource
-import com.meloda.fast.api.network.users.UsersDataSource
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
+import com.meloda.fast.data.conversations.ConversationsRepository
+import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.data.users.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,11 +26,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
-    private val conversations: ConversationsDataSource,
-    private val users: UsersDataSource,
+    private val conversationsRepository: ConversationsRepository,
+    private val usersRepository: UsersRepository,
     updatesParser: LongPollUpdatesParser,
     private val router: Router,
-    private val messages: MessagesDataSource
+    private val messagesRepository: MessagesRepository
 ) : BaseViewModel() {
 
     init {
@@ -54,7 +55,7 @@ class ConversationsViewModel @Inject constructor(
         offset: Int? = null
     ) = viewModelScope.launch(Dispatchers.Default) {
         makeJob({
-            conversations.get(
+            conversationsRepository.get(
                 ConversationsGetRequest(
                     count = 30,
                     extended = true,
@@ -106,11 +107,11 @@ class ConversationsViewModel @Inject constructor(
     }
 
     fun loadProfileUser() = viewModelScope.launch {
-        makeJob({ users.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
+        makeJob({ usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
             onAnswer = {
                 it.response?.let { r ->
                     val users = r.map { u -> u.asVkUser() }
-                    this@ConversationsViewModel.users.storeUsers(users)
+                    this@ConversationsViewModel.usersRepository.storeUsers(users)
 
                     UserConfig.vkUser.value = users[0]
                 }
@@ -119,7 +120,7 @@ class ConversationsViewModel @Inject constructor(
 
     fun deleteConversation(peerId: Int) = viewModelScope.launch {
         makeJob({
-            conversations.delete(
+            conversationsRepository.delete(
                 ConversationsDeleteRequest(peerId)
             )
         }, onAnswer = { sendEvent(ConversationsDeleteEvent(peerId)) })
@@ -131,12 +132,12 @@ class ConversationsViewModel @Inject constructor(
     ) = viewModelScope.launch {
         if (pin) {
             makeJob(
-                { conversations.pin(ConversationsPinRequest(peerId)) },
+                { conversationsRepository.pin(ConversationsPinRequest(peerId)) },
                 onAnswer = { sendEvent(ConversationsPinEvent(peerId)) }
             )
         } else {
             makeJob(
-                { conversations.unpin(ConversationsUnpinRequest(peerId)) },
+                { conversationsRepository.unpin(ConversationsUnpinRequest(peerId)) },
                 onAnswer = { sendEvent(ConversationsUnpinEvent(peerId)) }
             )
         }
@@ -178,7 +179,7 @@ class ConversationsViewModel @Inject constructor(
 
     fun readConversation(conversation: VkConversation) {
         makeJob(
-            { messages.markAsRead(conversation.id, startMessageId = conversation.lastMessageId) },
+            { messagesRepository.markAsRead(conversation.id, startMessageId = conversation.lastMessageId) },
             onAnswer = {
                 sendEvent(MessagesReadEvent(false, conversation.id, conversation.lastMessageId))
             }

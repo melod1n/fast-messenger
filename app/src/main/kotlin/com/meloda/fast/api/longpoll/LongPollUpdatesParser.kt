@@ -7,16 +7,16 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.messages.MessagesDataSource
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.base.viewmodel.VkEventCallback
+import com.meloda.fast.data.messages.MessagesRepository
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @Suppress("UNCHECKED_CAST", "MemberVisibilityCanBePrivate")
-class LongPollUpdatesParser(private val messagesDataSource: MessagesDataSource) : CoroutineScope {
+class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) : CoroutineScope {
 
     private val job = SupervisorJob()
 
@@ -171,7 +171,7 @@ class LongPollUpdatesParser(private val messagesDataSource: MessagesDataSource) 
         coroutineScope {
             suspendCoroutine<T> {
                 launch {
-                    val normalMessageResponse = messagesDataSource.getById(
+                    val normalMessageResponse = messagesRepository.getById(
                         MessagesGetByIdRequest(
                             messagesIds = listOf(messageId),
                             extended = true,
@@ -191,7 +191,7 @@ class LongPollUpdatesParser(private val messagesDataSource: MessagesDataSource) 
                     if (messagesList.isEmpty()) return@launch
 
                     val normalMessage = messagesList[0].asVkMessage()
-                    messagesDataSource.store(listOf(normalMessage))
+                    messagesRepository.store(listOf(normalMessage))
 
                     val profiles = hashMapOf<Int, VkUser>()
                     messagesResponse.profiles?.forEach { baseUser ->

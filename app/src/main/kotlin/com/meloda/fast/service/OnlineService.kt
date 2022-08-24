@@ -5,10 +5,10 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.network.account.AccountDataSource
 import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.data.account.AccountsRepository
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
@@ -31,7 +31,7 @@ class OnlineService : Service(), CoroutineScope {
         get() = Dispatchers.Default + job + exceptionHandler
 
     @Inject
-    lateinit var dataSource: AccountDataSource
+    lateinit var repository: AccountsRepository
 
     private var timer: Timer? = null
 
@@ -75,7 +75,7 @@ class OnlineService : Service(), CoroutineScope {
                 fastToken
             }
 
-        val response = dataSource.setOnline(
+        val response = repository.setOnline(
             AccountSetOnlineRequest(
                 voip = false,
                 accessToken = token
@@ -86,7 +86,7 @@ class OnlineService : Service(), CoroutineScope {
 
     private suspend fun setOffline() {
         Log.d("OnlineService", "setOffline()")
-        val response = dataSource.setOffline(
+        val response = repository.setOffline(
             AccountSetOfflineRequest(
                 accessToken = UserConfig.accessToken
             )

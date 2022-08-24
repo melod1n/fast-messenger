@@ -5,7 +5,7 @@ import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.ota.OtaGetLatestReleaseResponse
-import com.meloda.fast.api.network.ota.OtaRepo
+import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.extensions.setIfNotEquals
 import com.meloda.fast.model.UpdateActualUrl
 import com.meloda.fast.model.UpdateItem
@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import kotlin.coroutines.CoroutineContext
 
-class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
+class UpdateManager(private val repo: OtaApi) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Default
@@ -95,6 +95,6 @@ class UpdateManager(private val repo: OtaRepo) : CoroutineScope {
 
     fun checkUpdates(block: ((item: UpdateItem?, error: Throwable?) -> Unit)? = null) = launch {
         this@UpdateManager.listener = block
-        getActualUrl()
+//        getActualUrl()
     }
 }

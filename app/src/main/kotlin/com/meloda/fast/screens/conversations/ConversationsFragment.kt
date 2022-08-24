@@ -24,6 +24,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -39,6 +40,7 @@ import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
+import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -152,8 +154,8 @@ class ConversationsFragment :
 
         UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
             user?.run {
-                avatarMenuItem.actionView.findViewById<ImageView>(R.id.avatar)
-                    .loadWithGlide(
+                avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
+                    ?.loadWithGlide(
                         url = this.photo200, crossFade = true, asCircle = true
                     )
 
@@ -165,7 +167,7 @@ class ConversationsFragment :
             }
         }
 
-        avatarMenuItem.actionView.run {
+        avatarMenuItem.actionView?.run {
             setOnClickListener { avatarPopupMenu.show() }
         }
 
@@ -427,7 +429,7 @@ class ConversationsFragment :
 
         val conversationIndex = adapter.searchConversationIndex(message.peerId)
         if (conversationIndex == null) { // диалога нет в списке
-
+            // pizdets
         } else {
             val conversation = adapter[conversationIndex]
             val newConversation = conversation.copy(
@@ -438,6 +440,26 @@ class ConversationsFragment :
             if (!message.isOut) {
                 newConversation.unreadCount += 1
             }
+
+//            if (!message.isOut) {
+//                NotificationsUtils.showSimpleNotification(
+//                    requireContext(),
+//                    VkUtils.getConversationTitle(
+//                        requireContext(), conversation, profiles = event.profiles,
+//                        groups = event.groups
+//                    ) ?: "...",
+//                    "${
+//                        VkUtils.getMessageTitle(
+//                            message,
+//                            profiles = event.profiles,
+//                            groups = event.groups
+//                        ) ?: "..."
+//                    }: ${message.text}",
+//                    customNotificationId = message.id,
+//                    showWhen = true,
+//                    timeStampWhen = message.date * 1000L
+//                )
+//            }
 
             if (conversation.isPinned()) {
                 adapter[conversationIndex] = newConversation

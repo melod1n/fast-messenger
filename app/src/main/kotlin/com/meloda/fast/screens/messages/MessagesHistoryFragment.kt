@@ -30,11 +30,11 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.network.files.FilesDataSource
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
+import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.*
@@ -97,15 +97,6 @@ class MessagesHistoryFragment :
                 return@registerForActivityResult
             }
 
-//            if (uriList.size > 1) {
-//                MaterialAlertDialogBuilder(requireContext())
-//                    .setTitle(R.string.warning)
-//                    .setMessage("At the moment you can attach only one item")
-//                    .setPositiveButton(R.string.ok, null)
-//                    .show()
-//                return@registerForActivityResult
-//            }
-
             if (uriList.size > 10) {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.warning)
@@ -124,8 +115,6 @@ class MessagesHistoryFragment :
                 }
 
                 uploadFlow.collect()
-
-//                uriList.forEach { processFileFromStorage(it) }
             }
         }
 
@@ -477,7 +466,7 @@ class MessagesHistoryFragment :
                 conversation.id,
                 file,
                 name,
-                FilesDataSource.FileType.File
+                FilesRepository.FileType.File
             )
             addAttachment(uploadedAttachment)
         } else {
@@ -612,9 +601,9 @@ class MessagesHistoryFragment :
         }
 
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
-        val avatarImageView: ImageView = avatarMenuItem.actionView.findViewById(R.id.avatar)
+        val avatarImageView: ImageView? = avatarMenuItem.actionView?.findViewById(R.id.avatar)
 
-        avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
+        avatarImageView?.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
     }
 
     private fun performAction() {
@@ -623,7 +612,13 @@ class MessagesHistoryFragment :
             }
             Action.SEND -> {
                 val messageText = binding.message.trimmedText
-                if (messageText.isBlank() && attachmentsToLoad.isEmpty()) return
+                if (messageText.isBlank() && attachmentsToLoad.isEmpty()) {
+                    Log.d(
+                        "MessagesHistoryFragment",
+                        "performAction: SEND: messageText is empty & attachments is empty. return"
+                    )
+                    return
+                }
 
                 val date = System.currentTimeMillis()
 
@@ -639,7 +634,7 @@ class MessagesHistoryFragment :
                     peerId = conversation.id,
                     fromId = UserConfig.userId,
                     date = (date / 1000).toInt(),
-                    randomId = Random.nextInt(-25000, 25000),
+                    randomId = Random.nextInt(),
                     replyMessage = attachmentController.message.value,
                     attachments = attachments
                 )
