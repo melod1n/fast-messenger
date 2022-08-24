@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingHorizontal="12dp"
+    android:paddingHorizontal="6dp"
     android:paddingVertical="2.5dp">
 
     <com.meloda.fast.view.CircleImageView
@@ -12,94 +13,121 @@
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:layout_gravity="bottom"
-        android:layout_marginEnd="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         tools:src="@tools:sample/avatars" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <Space
+        android:id="@+id/spacer"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_marginStart="14dp"
+        android:fontFamily="@font/google_sans_regular"
+        android:textColor="?colorTertiary"
+        app:layout_constraintStart_toStartOf="@id/bubble"
+        app:layout_constraintTop_toBottomOf="@id/spacer"
+        tools:text="@tools:sample/full_names" />
 
-        <Space
-            android:id="@+id/spacer"
-            android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="8dp"
-            android:fontFamily="@font/google_sans_regular"
-            android:textColor="?colorTertiary"
-            tools:text="@tools:sample/full_names" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/ic_message_in_background_middle"
+        android:backgroundTint="?colorSurfaceVariant"
+        android:minWidth="60dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/avatar"
+        app:layout_constraintTop_toBottomOf="@id/title">
 
         <FrameLayout
             android:id="@+id/reply_container"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:visibility="gone"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toTopOf="@id/text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:orientation="horizontal">
-
-            <com.meloda.fast.view.BoundedLinearLayout
-                android:id="@+id/bubble"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/ic_message_in_background"
-                android:backgroundTint="?colorSurfaceVariant"
-                android:minWidth="60dp"
-                android:orientation="vertical"
-                tools:ignore="UselessParent">
-
-                <androidx.appcompat.widget.LinearLayoutCompat
-                    android:id="@+id/textContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:autoLink="all"
-                        android:padding="15dp"
-                        android:textColor="?colorOnBackground"
-                        tools:text="This" />
-
-                </androidx.appcompat.widget.LinearLayoutCompat>
-            </com.meloda.fast.view.BoundedLinearLayout>
-
-            <com.meloda.fast.view.CircleImageView
-                android:id="@+id/unread"
-                android:layout_width="13dp"
-                android:layout_height="13dp"
-                android:layout_marginStart="12dp"
-                android:layout_marginBottom="20dp"
-                android:src="?colorPrimaryVariant" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <Space
-            android:id="@+id/attachmentSpacer"
-            android:layout_width="wrap_content"
-            android:layout_height="5dp"
-            android:visibility="gone" />
+            android:layout_marginHorizontal="4dp"
+            android:autoLink="all"
+            android:padding="6dp"
+            android:textColor="?colorOnBackground"
+            android:textSize="16sp"
+            app:layout_constrainedHeight="true"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toTopOf="@id/attachment_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/reply_container"
+            app:layout_constraintVertical_bias="0"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="This is some kind of a text\													" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/attachmentContainer"
+            android:id="@+id/attachment_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="4dp"
             android:gravity="start"
             android:orientation="vertical"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.appcompat.widget.LinearLayoutCompat>
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/time_read_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:backgroundTint="?colorSurfaceVariant"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="3dp"
+            android:paddingVertical="2dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:background="@drawable/time_read_indicator_on_attachments_background">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                tools:text="12:00" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/read_state"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_round_done_24"
+                android:tint="?colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

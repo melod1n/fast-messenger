@@ -93,7 +93,6 @@ data class VkMessage constructor(
         CHAT_KICK_USER("chat_kick_user"),
         CHAT_SCREENSHOT("chat_screenshot"),
 
-        // TODO: 9/11/2021 catch this shit
         CHAT_INVITE_USER_BY_CALL("chat_invite_user_by_call"),
         CHAT_INVITE_USER_BY_CALL_LINK("chat_invite_user_by_call_join_link"),
         CHAT_STYLE_UPDATE("conversation_style_update");

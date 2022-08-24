@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Space
@@ -33,12 +34,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-// TODO: 9/29/2021 use recyclerview for viewing attachments
 class AttachmentInflater constructor(
     private val context: Context,
     private val container: LinearLayoutCompat,
-    private val textContainer: LinearLayoutCompat,
     private val replyContainer: FrameLayout,
+    private val timeReadContainer: View,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
     private val groups: Map<Int, VkGroup>
@@ -54,6 +54,11 @@ class AttachmentInflater constructor(
     private val colorSecondary = ContextCompat.getColor(
         context,
         R.color.colorSecondary
+    )
+
+    private val timeReadBackground = ContextCompat.getDrawable(
+        context,
+        R.drawable.time_read_indicator_on_attachments_background
     )
 
     private var photoClickListener: ((url: String) -> Unit)? = null
@@ -81,8 +86,20 @@ class AttachmentInflater constructor(
         container.removeAllViews()
         replyContainer.removeAllViews()
 
-        if (textContainer.childCount > 1) {
-            textContainer.removeViews(1, textContainer.childCount - 1)
+        replyContainer.toggleVisibility(message.hasReply())
+        container.toggleVisibility(
+            !message.attachments.isNullOrEmpty()
+                    || message.hasForwards()
+                    || message.hasGeo()
+        )
+
+        timeReadContainer.run {
+            updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                val margin = (if (container.isVisible) 6 else 2).dpToPx()
+                updateMarginsRelative(end = margin, bottom = margin)
+            }
+
+            background = if (container.isVisible) timeReadBackground else null
         }
 
         if (message.hasReply()) {
@@ -153,13 +170,12 @@ class AttachmentInflater constructor(
         val textView = AppCompatTextView(context)
         textView.text = attachmentType
 
-        textContainer.addView(textView)
+        container.addView(textView)
     }
 
     private fun reply(replyMessage: VkMessage) {
         val binding = ItemMessageAttachmentReplyBinding.inflate(inflater, replyContainer, true)
         binding.root.setOnClickListener { replyClickListener?.invoke(replyMessage) }
-
 
         val attachmentText = VkUtils.getAttachmentText(
             context = context,
@@ -221,7 +237,7 @@ class AttachmentInflater constructor(
 
         val binding = ItemMessageAttachmentPhotoBinding.inflate(inflater, container, true)
 
-        val cornersRadius = 8.dpToPx().toFloat()
+        val cornersRadius = 17.dpToPx().toFloat()
 
         binding.border.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius)
@@ -407,7 +423,7 @@ class AttachmentInflater constructor(
     }
 
     private fun voice(voiceMessage: VkVoiceMessage) {
-        val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, container, true)
 
         if (message.isOut) {
             val padding = 6.dpToPx()
@@ -430,7 +446,7 @@ class AttachmentInflater constructor(
     }
 
     private fun call(call: VkCall) {
-        val binding = ItemMessageAttachmentCallBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentCallBinding.inflate(inflater, container, true)
 
         if (message.isOut)
             binding.root.updatePadding(

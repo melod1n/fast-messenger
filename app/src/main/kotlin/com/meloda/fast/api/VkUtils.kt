@@ -293,6 +293,7 @@ object VkUtils {
         messageUser: VkUser? = null,
         messageGroup: VkGroup? = null
     ): SpannableString? {
+        @Suppress("REDUNDANT_ELSE_IN_WHEN")
         return when (message.getPreparedAction()) {
             VkMessage.Action.CHAT_CREATE -> {
                 val text = message.actionText ?: return null
@@ -469,6 +470,20 @@ object VkUtils {
 
                 val spanText =
                     context.getString(R.string.message_action_chat_user_joined_by_link, prefix)
+
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText =
+                    context.getString(R.string.message_action_chat_user_joined_by_call, prefix)
 
                 SpannableString(spanText).also {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)

@@ -169,12 +169,12 @@ class MessagesHistoryAdapter constructor(
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                unread = binding.unread,
+                readState = binding.readState,
+                time = binding.time,
 
-                textContainer = binding.textContainer,
                 replyContainer = binding.replyContainer,
                 attachmentContainer = binding.attachmentContainer,
-                attachmentSpacer = binding.attachmentSpacer,
+                timeReadContainer = binding.timeReadContainer,
 
                 profiles = profiles,
                 groups = groups
@@ -223,12 +223,12 @@ class MessagesHistoryAdapter constructor(
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                unread = binding.unread,
+                readState = binding.readState,
+                time = binding.time,
 
-                textContainer = binding.textContainer,
+                timeReadContainer = binding.timeReadContainer,
                 replyContainer = binding.replyContainer,
                 attachmentContainer = binding.attachmentContainer,
-                attachmentSpacer = binding.attachmentSpacer,
 
                 profiles = profiles,
                 groups = groups

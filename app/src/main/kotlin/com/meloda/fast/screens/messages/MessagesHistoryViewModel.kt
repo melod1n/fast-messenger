@@ -93,7 +93,7 @@ class MessagesHistoryViewModel @Inject constructor(
         makeJob({
             messagesRepository.getHistory(
                 MessagesGetHistoryRequest(
-                    count = 30,
+                    count = 100,
                     peerId = peerId,
                     extended = true,
                     fields = VKConstants.ALL_FIELDS

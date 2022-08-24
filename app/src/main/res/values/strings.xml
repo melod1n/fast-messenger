@@ -65,6 +65,7 @@
     <string name="message_action_chat_user_returned">%s returned to chat</string>
     <string name="message_action_chat_user_invited">%s invited %s</string>
     <string name="message_action_chat_user_joined_by_link">%s joined the chat via link</string>
+    <string name="message_action_chat_user_joined_by_call">%s joined the call</string>
     <string name="message_action_chat_user_joined_by_call_link">%s joined the call via link</string>
     <string name="message_action_chat_pin_message">%s pinned message</string>
     <string name="message_action_chat_unpin_message">%s unpinned message</string>

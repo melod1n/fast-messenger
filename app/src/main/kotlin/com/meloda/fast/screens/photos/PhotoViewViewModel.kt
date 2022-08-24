@@ -15,8 +15,4 @@ class PhotoViewViewModel : BaseViewModel() {
         imageView.loadWithGlide(url = url)
     }
 
-    fun saveImageToLocalStorage(url: String) = viewModelScope.launch {
-        TODO("Not implemented")
-    }
-
 }

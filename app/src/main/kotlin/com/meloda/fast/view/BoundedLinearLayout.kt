@@ -3,12 +3,12 @@ package com.meloda.fast.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.LinearLayout
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.withStyledAttributes
 import com.meloda.fast.R
 
 @SuppressLint("CustomViewStyleable")
-class BoundedLinearLayout : LinearLayout {
+class BoundedLinearLayout : LinearLayoutCompat {
     private var mBoundedWidth: Int = 0
     private var mBoundedHeight: Int = 0
 
