@@ -10,10 +10,7 @@ import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.meloda.fast.model.DataItem
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlin.properties.Delegates
 
 @Suppress("MemberVisibilityCanBePrivate", "unused", "UNCHECKED_CAST")

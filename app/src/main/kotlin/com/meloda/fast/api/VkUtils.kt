@@ -93,12 +93,12 @@ object VkUtils {
 
     fun getConversationUser(conversation: VkConversation, profiles: Map<Int, VkUser>): VkUser? {
         return (if (!conversation.isUser()) null
-        else profiles[conversation.id]).also { conversation.user.value = it }
+        else profiles[conversation.id]).also { conversation.user.postValue(it) }
     }
 
     fun getConversationGroup(conversation: VkConversation, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!conversation.isGroup()) null
-        else groups[conversation.id]).also { conversation.group.value = it }
+        else groups[conversation.id]).also { conversation.group.postValue(it) }
     }
 
     fun getConversationAvatar(
