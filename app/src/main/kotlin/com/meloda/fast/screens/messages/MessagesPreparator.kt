@@ -137,12 +137,12 @@ class MessagesPreparator constructor(
 
         if (title != null) {
             val titleString = when {
-                message.isUser() && messageUser != null -> messageUser.firstName
+                message.isUser() && messageUser != null -> messageUser.fullName
                 message.isGroup() && messageGroup != null -> messageGroup.name
                 else -> null
             }
 
-            title.text = titleString
+            title.text = titleString.orDots()
         }
     }
 
