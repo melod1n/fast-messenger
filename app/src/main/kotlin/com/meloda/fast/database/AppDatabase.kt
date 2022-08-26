@@ -1,5 +1,6 @@
 package com.meloda.fast.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -22,9 +23,11 @@ import com.meloda.fast.model.AppAccount
         VkUser::class,
         VkGroup::class
     ],
-    version = 33,
+    version = 34,
     exportSchema = true,
-    autoMigrations = []
+    autoMigrations = [
+        AutoMigration(from = 33, to = 34)
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

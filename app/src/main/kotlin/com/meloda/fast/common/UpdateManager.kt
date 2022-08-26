@@ -95,6 +95,6 @@ class UpdateManager(private val repo: OtaApi) : CoroutineScope {
 
     fun checkUpdates(block: ((item: UpdateItem?, error: Throwable?) -> Unit)? = null) = launch {
         this@UpdateManager.listener = block
-//        getActualUrl()
+        getActualUrl()
     }
 }

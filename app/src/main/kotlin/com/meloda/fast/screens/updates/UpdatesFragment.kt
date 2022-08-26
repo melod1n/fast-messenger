@@ -146,7 +146,9 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
                 binding.title.setText(R.string.fragment_updates_error_occurred)
 
                 val errorText =
-                    if (error.contains("cannot be converted", ignoreCase = true)) {
+                    if (error.contains("cannot be converted", ignoreCase = true)
+                        || error.contains("begin_object", ignoreCase = true)
+                    ) {
                         "OTA Server is unavailable"
                     } else {
                         getString(R.string.fragment_updates_error_occurred_description, error)

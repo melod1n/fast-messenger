@@ -2,66 +2,63 @@ package com.meloda.fast.util
 
 import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.RemoteInput
 import com.meloda.fast.R
-import com.meloda.fast.screens.main.MainActivity
 
 object NotificationsUtils {
 
-    fun showSimpleNotification(
+    fun createNotification(
         context: Context,
-        title: String?,
-        text: String?,
+        title: String? = null,
+        contentText: String? = null,
+        bigText: String? = null,
         customNotificationId: Int? = null,
         showWhen: Boolean = false,
-        timeStampWhen: Long? = null
-    ) {
-        val intent = Intent(context, MainActivity::class.java).apply {
-//            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-
-        var builder = NotificationCompat.Builder(context, "simple_notifications")
+        timeStampWhen: Long? = null,
+        notify: Boolean = false,
+        notRemovable: Boolean = false,
+        channelId: String = "simple_notifications",
+        priority: NotificationPriority = NotificationPriority.Default,
+        contentIntent: PendingIntent? = null,
+        category: String? = null
+    ): NotificationCompat.Builder {
+        var builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_fast_logo)
             .setContentTitle(title)
-//            .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
+            .setPriority(priority.value)
+            .setContentIntent(contentIntent)
             .setAutoCancel(true)
             .setShowWhen(showWhen)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setOngoing(notRemovable)
 
-        val KEY_TEXT_REPLY = "key_text_reply"
-        val replyLabel = "Reply"
-        val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY).run {
-            setLabel(replyLabel)
-            build()
+        if (category != null) {
+            builder = builder.setCategory(category)
         }
 
-        val action: NotificationCompat.Action =
-            NotificationCompat.Action.Builder(
-                R.drawable.ic_round_arrow_back_24,
-                "Reply", null
-            )
-                .addRemoteInput(remoteInput)
-                .build()
+        if (contentText != null) {
+            builder = builder.setContentText(contentText)
+        }
+
+        if (bigText != null) {
+            builder = builder.setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
+        }
 
         if (timeStampWhen != null) {
             builder = builder.setWhen(timeStampWhen)
         }
 
-//        builder = builder.addAction(action)
-
-
-        with(NotificationManagerCompat.from(context)) {
-            notify(customNotificationId ?: -1, builder.build())
+        if (notify) {
+            with(NotificationManagerCompat.from(context)) {
+                notify(customNotificationId ?: -1, builder.build())
+            }
         }
+
+        return builder
+    }
+
+    enum class NotificationPriority(val value: Int) {
+        Default(0), Low(-1), Min(-2), High(1), Max(2)
     }
 
 }

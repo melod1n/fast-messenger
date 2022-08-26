@@ -192,4 +192,9 @@
 
     <string name="pref_message_fast_text_summary">Text that will be inserted into the input field on emoji button long click\nCurrent value: %s</string>
 
+    <string name="message_update_time_short">upd %s</string>
+
+    <string name="fast_login_title">Fast login</string>
+    <string name="fast_login_hint">$login;$password</string>
+
 </resources>

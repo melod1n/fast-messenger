@@ -26,17 +26,6 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="14dp"
-        android:fontFamily="@font/google_sans_regular"
-        android:textColor="?colorTertiary"
-        app:layout_constraintStart_toStartOf="@id/bubble"
-        app:layout_constraintTop_toBottomOf="@id/spacer"
-        tools:text="@tools:sample/full_names" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bubble"
         android:layout_width="wrap_content"
@@ -48,7 +37,22 @@
         app:layout_constrainedWidth="true"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toEndOf="@id/avatar"
-        app:layout_constraintTop_toBottomOf="@id/title">
+        app:layout_constraintTop_toBottomOf="@id/spacer">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/google_sans_regular"
+            android:textColor="?colorTertiary"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="@id/bubble"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@tools:sample/full_names" />
 
         <FrameLayout
             android:id="@+id/reply_container"
@@ -61,15 +65,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/title" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="4dp"
+            android:layout_marginBottom="6dp"
             android:autoLink="all"
-            android:padding="6dp"
+            android:paddingHorizontal="6dp"
             android:textColor="?colorOnBackground"
             android:textSize="16sp"
             app:layout_constrainedHeight="true"
@@ -120,7 +125,7 @@
                 tools:text="12:00" />
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/read_state"
+                android:id="@+id/message_state"
                 android:layout_width="12dp"
                 android:layout_height="12dp"
                 android:layout_marginStart="4dp"

@@ -15,7 +15,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.addCallback
-import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -31,6 +30,7 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.DialogCaptchaBinding
+import com.meloda.fast.databinding.DialogFastLoginBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.extensions.*
@@ -194,11 +194,11 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 "sdk_fingerprint=${BuildConfig.sdkFingerprint}&" +
                 "display=page&" +
                 "revoke=1&" +
-                "scope=136297695&" +
+                "scope=${VKConstants.Auth.SCOPE.replace("messages,", "")}&" +
                 "redirect_uri=${
                     URLEncoder.encode(
                         "https://oauth.vk.com/blank.html",
-                        Charsets.UTF_8.toString()
+                        "utf-8"
                     )
                 }&" +
                 "response_type=token&" +
@@ -297,14 +297,13 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     private fun showFastLoginAlert() {
-        val editText = AppCompatEditText(requireContext())
-        editText.hint = "\$login;\$password"
+        val dialogFastLoginBinding = DialogFastLoginBinding.inflate(layoutInflater, null, false)
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Fast login")
-            .setView(editText)
+            .setTitle(R.string.fast_login_title)
+            .setView(dialogFastLoginBinding.root)
             .setPositiveButton(R.string.ok) { _, _ ->
-                val text = editText.trimmedText
+                val text = dialogFastLoginBinding.fastLoginText.trimmedText
                 if (text.isEmpty()) return@setPositiveButton
 
                 val split = text.split(";")

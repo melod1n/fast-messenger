@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
@@ -8,8 +9,8 @@ val msAppCenterToken: String =
 val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode")
 
 val majorVersion = 1
-val minorVersion = 5
-val patchVersion = 7
+val minorVersion = 6
+val patchVersion = 2
 
 plugins {
     id("com.android.application")
@@ -71,13 +72,12 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xjvm-default=compatibility")
+        freeCompilerArgs = listOf("-Xjvm-default=compatibility", "-opt-in=kotlin.RequiresOptIn")
     }
 
     buildFeatures {
         viewBinding = true
     }
-    namespace = "com.meloda.fast"
 }
 
 fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
@@ -167,5 +167,6 @@ dependencies {
     // Jsoup
     implementation("org.jsoup:jsoup:1.15.1")
 
+    implementation("com.github.chuckerteam.chucker:library:3.5.2")
 
 }

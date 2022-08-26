@@ -1,6 +1,8 @@
 package com.meloda.fast.api.model
 
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
@@ -27,6 +29,8 @@ data class VkMessage constructor(
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
 
+    var updateTime: Int? = null,
+
     var important: Boolean = false,
 
     var forwards: List<VkMessage>? = null,
@@ -50,10 +54,6 @@ data class VkMessage constructor(
 
     fun isGroup() = fromId < 0
 
-    /*
-        добавить проверку, если предыдущие сообщения непрочитаны и с клиента отправляется сообщение
-        последнее прочитанное сообщение становится предыдущим относительно отправленного
-    */
     fun isRead(conversation: VkConversation) =
         if (isOut) {
             conversation.outRead - id >= 0
@@ -68,9 +68,10 @@ data class VkMessage constructor(
 
     fun canEdit() =
         fromId == UserConfig.userId &&
-                (attachments == null || !VKConstants.restrictedToEditAttachments.contains(
-                    attachments!![0].javaClass
-                )) &&
+                (attachments == null ||
+                        !VKConstants.restrictedToEditAttachments.contains(
+                            requireNotNull(attachments).first().javaClass
+                        )) &&
                 (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.OneDayInSeconds)
 
     fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
@@ -80,6 +81,8 @@ data class VkMessage constructor(
     fun hasForwards(): Boolean = !forwards.isNullOrEmpty()
 
     fun hasGeo(): Boolean = geo != null
+
+    fun isUpdated(): Boolean = updateTime != null && requireNotNull(updateTime) > 0
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),
@@ -98,7 +101,7 @@ data class VkMessage constructor(
         CHAT_STYLE_UPDATE("conversation_style_update");
 
         companion object {
-            fun parse(value: String) = values().first { it.value == value }
+            fun parse(value: String?): Action? = values().firstOrNull { it.value == value }
         }
     }
 

@@ -56,12 +56,11 @@
 
                 <com.meloda.fast.view.CircleImageView
                     android:id="@+id/logoImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="192dp"
+                    android:layout_height="192dp"
                     android:layout_gravity="center"
-                    android:padding="42dp"
-                    android:src="@drawable/ic_fast_lightning"
-                    app:tint="?colorAccent" />
+                    android:src="@drawable/ic_launcher_foreground"
+                    android:tint="?colorPrimary" />
             </FrameLayout>
 
             <ProgressBar
@@ -69,6 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="48dp"
+                android:indeterminateTint="?colorPrimary"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
@@ -85,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:src="@drawable/ic_baseline_account_circle_24"
-                    app:tint="?colorAccent" />
+                    app:tint="?colorPrimary" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/loginLayout"
@@ -119,7 +119,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:src="@drawable/ic_key"
-                    app:tint="?colorAccent" />
+                    app:tint="?colorPrimary" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/passwordLayout"
@@ -149,7 +149,6 @@
                 android:layout_height="60dp"
                 android:layout_gravity="center_horizontal|bottom"
                 android:layout_marginTop="12dp"
-                android:backgroundTint="@color/a1_600"
                 android:fontFamily="@font/google_sans_medium"
                 android:letterSpacing="0"
                 android:paddingStart="24dp"
@@ -159,7 +158,8 @@
                 app:cornerRadius="50dp"
                 app:elevation="16dp"
                 app:icon="@drawable/ic_arrow_end"
-                app:iconGravity="end" />
+                app:iconGravity="end"
+                app:tint="?colorPrimary" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.appcompat.widget.LinearLayoutCompat>

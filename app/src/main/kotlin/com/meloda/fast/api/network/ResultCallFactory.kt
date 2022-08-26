@@ -140,7 +140,6 @@ sealed class ApiAnswer<out R> {
     data class Success<out T>(val data: T) : ApiAnswer<T>()
     data class Error(val error: ApiError) : ApiAnswer<Nothing>()
 
-    @Suppress("OPT_IN_IS_NOT_ENABLED")
     @OptIn(ExperimentalContracts::class)
     fun isSuccessful(): Boolean {
         contract {

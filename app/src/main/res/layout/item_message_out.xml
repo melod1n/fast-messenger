@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="6dp"
         android:background="@drawable/ic_message_in_background_middle"
-        android:backgroundTint="?colorSurfaceVariant"
+        android:backgroundTint="?colorTertiaryContainer"
         android:minWidth="60dp"
         app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toEndOf="parent"
@@ -82,10 +82,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:backgroundTint="?colorSurfaceVariant"
+            android:backgroundTint="?colorTertiaryContainer"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="3dp"
+            android:paddingHorizontal="4dp"
             android:paddingVertical="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -95,16 +95,17 @@
                 android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:textColor="?colorOnBackground"
                 android:textSize="12sp"
                 tools:text="12:00" />
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/read_state"
+                android:id="@+id/message_state"
                 android:layout_width="12dp"
                 android:layout_height="12dp"
-                android:layout_marginStart="4dp"
                 android:src="@drawable/ic_round_done_24"
-                android:tint="?colorOnSurfaceVariant"
+                android:tint="?colorOnBackground"
                 android:visibility="gone"
                 tools:visibility="visible" />
         </androidx.appcompat.widget.LinearLayoutCompat>

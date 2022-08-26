@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.viewbinding.library.activity.viewBinding
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.size
@@ -160,23 +161,26 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Dialogs"
-            val descriptionText = "Channel for dialogs notifications"
-            val importance = NotificationManager.IMPORTANCE_MAX
-            val channel = NotificationChannel("simple_notifications", name, importance).apply {
-                description = descriptionText
+            val dialogsName = "Dialogs"
+            val dialogsDescriptionText = "Channel for dialogs notifications"
+            val dialogsImportance = NotificationManager.IMPORTANCE_MAX
+            val dialogsChannel = NotificationChannel("simple_notifications", dialogsName, dialogsImportance).apply {
+                description = dialogsDescriptionText
             }
 
-            channel.setAllowBubbles(true)
-            // Register the channel with the system
+            val longPollName = "Long Polling"
+            val longPollDescriptionText = "Channel for long polling service (temporary)"
+            val longPollImportance = NotificationManager.IMPORTANCE_MIN
+            val longPollChannel = NotificationChannel("long_polling", longPollName, longPollImportance).apply {
+                description = longPollDescriptionText
+            }
+
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
 
-//        if (BuildCompat.isAtLeastT()) {
-//            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
-//        }
+            notificationManager.createNotificationChannel(dialogsChannel)
+            notificationManager.createNotificationChannel(longPollChannel)
+        }
     }
 
     override fun onResume() {
@@ -256,7 +260,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     private fun startServices() {
-        startService(Intent(this, LongPollService::class.java))
+        ContextCompat.startForegroundService(this, Intent(this, LongPollService::class.java))
         startService(Intent(this, OnlineService::class.java))
     }
 

@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -13,10 +14,11 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
-import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -57,6 +59,22 @@ class LongPollService : Service(), CoroutineScope {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("LongPollService", "onStartCommand: flags: $flags; startId: $startId")
         launch { startPolling().join() }
+
+        val notificationBuilder =
+            NotificationsUtils.createNotification(
+                context = this,
+                title = "Сервис анального зондирования",
+                contentText = "ищем нюдесы в ваших сообщениях",
+                notRemovable = true,
+                channelId = "long_polling",
+                priority = NotificationsUtils.NotificationPriority.Min,
+                category = NotificationCompat.CATEGORY_SERVICE
+            )
+
+        startForeground(
+            startId,
+            notificationBuilder.build()
+        )
         return START_STICKY
     }
 
@@ -187,5 +205,10 @@ class LongPollService : Service(), CoroutineScope {
             e.printStackTrace()
         }
         super.onDestroy()
+    }
+
+    override fun onLowMemory() {
+        Log.d("LongPollService", "onLowMemory")
+        super.onLowMemory()
     }
 }

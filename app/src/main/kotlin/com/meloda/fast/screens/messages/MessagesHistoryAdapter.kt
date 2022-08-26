@@ -33,7 +33,7 @@ class MessagesHistoryAdapter constructor(
     context: Context,
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
-    val groups: HashMap<Int, VkGroup> = hashMapOf()
+    val groups: HashMap<Int, VkGroup> = hashMapOf(),
 ) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(
     context,
     Comparator
@@ -43,7 +43,7 @@ class MessagesHistoryAdapter constructor(
         fragment: MessagesHistoryFragment,
         conversation: VkConversation,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
-        groups: HashMap<Int, VkGroup> = hashMapOf()
+        groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) : this(fragment.requireContext(), conversation, profiles, groups) {
         this.messagesHistoryFragment = fragment
     }
@@ -54,8 +54,11 @@ class MessagesHistoryAdapter constructor(
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf()
     ) : this(fragment.requireContext(), conversation, profiles, groups) {
+        this.isForwards = true
         this.forwardedMessagesFragment = fragment
     }
+
+    private var isForwards: Boolean = false
 
     private var messagesHistoryFragment: MessagesHistoryFragment? = null
     private var forwardedMessagesFragment: ForwardedMessagesFragment? = null
@@ -169,7 +172,7 @@ class MessagesHistoryAdapter constructor(
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                readState = binding.readState,
+                messageState = binding.messageState,
                 time = binding.time,
 
                 replyContainer = binding.replyContainer,
@@ -177,7 +180,9 @@ class MessagesHistoryAdapter constructor(
                 timeReadContainer = binding.timeReadContainer,
 
                 profiles = profiles,
-                groups = groups
+                groups = groups,
+
+                isForwards = isForwards
             )
                 .withPhotoClickListener {
                     Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
@@ -223,7 +228,7 @@ class MessagesHistoryAdapter constructor(
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                readState = binding.readState,
+                messageState = binding.messageState,
                 time = binding.time,
 
                 timeReadContainer = binding.timeReadContainer,
@@ -231,7 +236,9 @@ class MessagesHistoryAdapter constructor(
                 attachmentContainer = binding.attachmentContainer,
 
                 profiles = profiles,
-                groups = groups
+                groups = groups,
+
+                isForwards = isForwards
             )
                 .withPhotoClickListener {
                     Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {

@@ -63,8 +63,12 @@
         android:id="@+id/description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="64dp"
         android:alpha="0.8"
         android:textColor="?colorOnBackground"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         tools:text="v. 1.1.1" />
 
     <androidx.appcompat.widget.AppCompatTextView

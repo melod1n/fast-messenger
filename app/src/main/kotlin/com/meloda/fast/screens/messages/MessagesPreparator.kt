@@ -41,21 +41,17 @@ class MessagesPreparator constructor(
     private val avatar: ImageView? = null,
     private val title: TextView? = null,
     private val spacer: Space? = null,
-    private val readState: ImageView? = null,
+    private val messageState: ImageView? = null,
     private val time: TextView? = null,
     private val replyContainer: FrameLayout? = null,
     private val timeReadContainer: View,
     private val attachmentContainer: LinearLayoutCompat? = null,
 
     private val profiles: Map<Int, VkUser>,
-    private val groups: Map<Int, VkGroup>
+    private val groups: Map<Int, VkGroup>,
+
+    private val isForwards: Boolean = false
 ) {
-
-    private val backgroundMiddleIn =
-        ContextCompat.getDrawable(context, R.drawable.ic_message_in_background_middle)
-
-    private val backgroundMiddleOut =
-        ContextCompat.getDrawable(context, R.drawable.ic_message_out_background_middle)
 
     private val rootHighlightedColor =
         ContextCompat.getColor(context, R.color.n2_100)
@@ -102,7 +98,7 @@ class MessagesPreparator constructor(
             messageGroup = messageGroup
         )
 
-        if (message.isPeerChat()) {
+        if (message.isPeerChat() || isForwards) {
             val prevSenderDiff = VkUtils.isPreviousMessageFromDifferentSender(prevMessage, message)
             val nextSenderDiff = VkUtils.isPreviousMessageFromDifferentSender(message, nextMessage)
             val fiveMinAgo = VkUtils.isPreviousMessageSentFiveMinutesAgo(prevMessage, message)
@@ -159,13 +155,19 @@ class MessagesPreparator constructor(
     }
 
     private fun prepareTime() {
-        time?.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(message.date * 1000L)
+        val sentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(message.date * 1000L)
+
+        val timeText =
+            if (message.isUpdated()) context.getString(R.string.message_update_time_short, sentTime)
+            else sentTime
+
+        time?.text = timeText
     }
 
     private fun prepareUnreadIndicator() {
         val isMessageRead = message.isRead(conversation)
 
-        readState?.run {
+        messageState?.run {
             toggleVisibility(!isMessageRead || message.isOut)
             setImageResource(
                 if (isMessageRead) R.drawable.ic_round_done_all_24
@@ -211,19 +213,32 @@ class MessagesPreparator constructor(
     }
 
     private fun prepareBubbleBackground() {
-        bubble.background = if (message.isOut) backgroundMiddleOut else backgroundMiddleIn
+//        bubble.background = if (message.isOut) backgroundMiddleOut else backgroundMiddleIn
     }
 
     private fun prepareText() {
         if (text != null) {
+            text.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                val topMargin = if (title != null && title.isVisible) 6 else 0.dpToPx()
+
+                goneTopMargin = topMargin
+            }
+
             if (message.text == null) {
                 text.clear()
                 text.gone()
             } else {
                 text.visible()
 
+                val updSpacer = "\t\t\t\t"
+                val timeSpacer = "\t\t\t\t\t\t"
+                val messageStateSpacer = "\t\t\t"
+
                 val preparedText =
-                    VkUtils.prepareMessageText(message.text ?: "") + "\t\t\t\t\t\t\t\t\t"
+                    VkUtils.prepareMessageText(message.text ?: "") +
+                            (if (message.isUpdated()) updSpacer else "") +
+                            timeSpacer +
+                            (if (!message.isOut && message.isRead(conversation)) "" else messageStateSpacer)
 
                 text.text = preparedText
             }

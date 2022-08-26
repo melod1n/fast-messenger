@@ -24,7 +24,8 @@ data class BaseVkMessage(
     val geo: Geo?,
     val action: Action?,
     val ttl: Int,
-    val reply_message: BaseVkMessage?
+    val reply_message: BaseVkMessage?,
+    val update_time: Int?
 ) : Parcelable {
 
     fun asVkMessage() = VkMessage(
@@ -41,7 +42,8 @@ data class BaseVkMessage(
         actionConversationMessageId = action?.conversation_message_id,
         actionMessage = action?.message,
         geo = geo,
-        important = important
+        important = important,
+        updateTime = update_time
     ).also {
         it.attachments = VkUtils.parseAttachments(attachments)
         it.forwards = VkUtils.parseForwards(fwd_messages)

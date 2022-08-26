@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 34,
-    "identityHash": "ee674d345c55f0975cca9868ef719173",
+    "identityHash": "2c202b1fce1b5f6c6ab0da756e0590a6",
     "entities": [
       {
         "tableName": "accounts",
@@ -38,7 +38,7 @@
       },
       {
         "tableName": "conversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `ownerId` INTEGER, `title` TEXT, `photo200` TEXT, `type` TEXT NOT NULL, `callInProgress` INTEGER NOT NULL, `isPhantom` INTEGER NOT NULL, `lastConversationMessageId` INTEGER NOT NULL, `inRead` INTEGER NOT NULL, `outRead` INTEGER NOT NULL, `isMarkedUnread` INTEGER NOT NULL, `lastMessageId` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, `membersCount` INTEGER, `canChangePin` INTEGER NOT NULL, `majorId` INTEGER NOT NULL, `minorId` INTEGER NOT NULL, `someCoolEntry` TEXT, `pinnedMessage_id` INTEGER, `pinnedMessage_text` TEXT, `pinnedMessage_isOut` INTEGER, `pinnedMessage_peerId` INTEGER, `pinnedMessage_fromId` INTEGER, `pinnedMessage_date` INTEGER, `pinnedMessage_randomId` INTEGER, `pinnedMessage_action` TEXT, `pinnedMessage_actionMemberId` INTEGER, `pinnedMessage_actionText` TEXT, `pinnedMessage_actionConversationMessageId` INTEGER, `pinnedMessage_actionMessage` TEXT, `pinnedMessage_important` INTEGER, `pinnedMessage_forwards` TEXT, `pinnedMessage_attachments` TEXT, `pinnedMessage_replyMessage` TEXT, `pinnedMessage_geo` TEXT, `lastMessage_id` INTEGER, `lastMessage_text` TEXT, `lastMessage_isOut` INTEGER, `lastMessage_peerId` INTEGER, `lastMessage_fromId` INTEGER, `lastMessage_date` INTEGER, `lastMessage_randomId` INTEGER, `lastMessage_action` TEXT, `lastMessage_actionMemberId` INTEGER, `lastMessage_actionText` TEXT, `lastMessage_actionConversationMessageId` INTEGER, `lastMessage_actionMessage` TEXT, `lastMessage_important` INTEGER, `lastMessage_forwards` TEXT, `lastMessage_attachments` TEXT, `lastMessage_replyMessage` TEXT, `lastMessage_geo` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `ownerId` INTEGER, `title` TEXT, `photo200` TEXT, `type` TEXT NOT NULL, `callInProgress` INTEGER NOT NULL, `isPhantom` INTEGER NOT NULL, `lastConversationMessageId` INTEGER NOT NULL, `inRead` INTEGER NOT NULL, `outRead` INTEGER NOT NULL, `isMarkedUnread` INTEGER NOT NULL, `lastMessageId` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, `membersCount` INTEGER, `canChangePin` INTEGER NOT NULL, `majorId` INTEGER NOT NULL, `minorId` INTEGER NOT NULL, `pinnedMessage_id` INTEGER, `pinnedMessage_text` TEXT, `pinnedMessage_isOut` INTEGER, `pinnedMessage_peerId` INTEGER, `pinnedMessage_fromId` INTEGER, `pinnedMessage_date` INTEGER, `pinnedMessage_randomId` INTEGER, `pinnedMessage_action` TEXT, `pinnedMessage_actionMemberId` INTEGER, `pinnedMessage_actionText` TEXT, `pinnedMessage_actionConversationMessageId` INTEGER, `pinnedMessage_actionMessage` TEXT, `pinnedMessage_updateTime` INTEGER, `pinnedMessage_important` INTEGER, `pinnedMessage_forwards` TEXT, `pinnedMessage_attachments` TEXT, `pinnedMessage_replyMessage` TEXT, `pinnedMessage_geo` TEXT, `lastMessage_id` INTEGER, `lastMessage_text` TEXT, `lastMessage_isOut` INTEGER, `lastMessage_peerId` INTEGER, `lastMessage_fromId` INTEGER, `lastMessage_date` INTEGER, `lastMessage_randomId` INTEGER, `lastMessage_action` TEXT, `lastMessage_actionMemberId` INTEGER, `lastMessage_actionText` TEXT, `lastMessage_actionConversationMessageId` INTEGER, `lastMessage_actionMessage` TEXT, `lastMessage_updateTime` INTEGER, `lastMessage_important` INTEGER, `lastMessage_forwards` TEXT, `lastMessage_attachments` TEXT, `lastMessage_replyMessage` TEXT, `lastMessage_geo` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -143,12 +143,6 @@
             "notNull": true
           },
           {
-            "fieldPath": "someCoolEntry",
-            "columnName": "someCoolEntry",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
             "fieldPath": "pinnedMessage.id",
             "columnName": "pinnedMessage_id",
             "affinity": "INTEGER",
@@ -218,6 +212,12 @@
             "fieldPath": "pinnedMessage.actionMessage",
             "columnName": "pinnedMessage_actionMessage",
             "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.updateTime",
+            "columnName": "pinnedMessage_updateTime",
+            "affinity": "INTEGER",
             "notNull": false
           },
           {
@@ -323,6 +323,12 @@
             "notNull": false
           },
           {
+            "fieldPath": "lastMessage.updateTime",
+            "columnName": "lastMessage_updateTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
             "fieldPath": "lastMessage.important",
             "columnName": "lastMessage_important",
             "affinity": "INTEGER",
@@ -364,7 +370,7 @@
       },
       {
         "tableName": "messages",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `text` TEXT, `isOut` INTEGER NOT NULL, `peerId` INTEGER NOT NULL, `fromId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `randomId` INTEGER NOT NULL, `action` TEXT, `actionMemberId` INTEGER, `actionText` TEXT, `actionConversationMessageId` INTEGER, `actionMessage` TEXT, `important` INTEGER NOT NULL, `forwards` TEXT, `attachments` TEXT, `replyMessage` TEXT, `geo` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `text` TEXT, `isOut` INTEGER NOT NULL, `peerId` INTEGER NOT NULL, `fromId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `randomId` INTEGER NOT NULL, `action` TEXT, `actionMemberId` INTEGER, `actionText` TEXT, `actionConversationMessageId` INTEGER, `actionMessage` TEXT, `updateTime` INTEGER, `important` INTEGER NOT NULL, `forwards` TEXT, `attachments` TEXT, `replyMessage` TEXT, `geo` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -436,6 +442,12 @@
             "fieldPath": "actionMessage",
             "columnName": "actionMessage",
             "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updateTime",
+            "columnName": "updateTime",
+            "affinity": "INTEGER",
             "notNull": false
           },
           {
@@ -582,7 +594,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ee674d345c55f0975cca9868ef719173')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2c202b1fce1b5f6c6ab0da756e0590a6')"
     ]
   }
 }

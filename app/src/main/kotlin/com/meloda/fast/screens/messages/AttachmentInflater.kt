@@ -257,7 +257,7 @@ class AttachmentInflater constructor(
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
 
             setOnClickListener {
-                photoClickListener?.invoke(size.url)
+                photo.getMaxSize()?.let { size -> photoClickListener?.invoke(size.url) }
             }
 
             loadWithGlide(
