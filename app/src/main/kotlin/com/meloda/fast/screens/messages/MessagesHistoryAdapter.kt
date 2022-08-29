@@ -150,7 +150,7 @@ class MessagesHistoryAdapter constructor(
         private val binding: ItemMessageInBinding
     ) : BasicHolder(binding.root) {
 
-        override fun bind(position: Int) {
+        override fun bind(position: Int, payloads: MutableList<Any>?) {
             val message = getItem(position) as VkMessage
 
             val prevMessage = getVkMessage(getOrNull(position - 1))
@@ -158,6 +158,7 @@ class MessagesHistoryAdapter constructor(
 
             MessagesPreparator(
                 context = context,
+                payloads = payloads,
 
                 root = binding.root,
 
@@ -214,12 +215,13 @@ class MessagesHistoryAdapter constructor(
         private val binding: ItemMessageOutBinding
     ) : BasicHolder(binding.root) {
 
-        override fun bind(position: Int) {
+        override fun bind(position: Int, payloads: MutableList<Any>?) {
             val message = getItem(position) as VkMessage
             val prevMessage = getVkMessage(getOrNull(position - 1))
 
             MessagesPreparator(
                 context = context,
+                payloads = payloads,
                 root = binding.root,
                 conversation = conversation,
                 message = message,

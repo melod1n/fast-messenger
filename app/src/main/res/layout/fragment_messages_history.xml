@@ -73,7 +73,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/ic_chat_attachment_panel_background"
-        android:backgroundTint="?colorSurfaceVariant"
+        android:backgroundTint="?colorSurface"
         android:gravity="bottom"
         android:orientation="vertical"
         android:paddingVertical="16dp"
@@ -164,6 +164,16 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <View
+        android:id="@+id/bottom_alpha"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:alpha="0.85"
+        android:background="?colorBackground"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
         android:id="@+id/list_anchor"
         android:layout_width="0dp"
         android:layout_height="1dp"
@@ -172,26 +182,20 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/message_panel"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_margin="12dp"
-        android:background="@drawable/ic_message_panel_background"
-        android:backgroundTint="?colorSurface"
-        android:elevation="3dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/attach"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_marginStart="12dp"
             android:background="?selectableItemBackgroundBorderless"
-            android:padding="6dp"
-            android:src="@drawable/ic_baseline_attach_file_24"
+            android:padding="12dp"
+            android:src="@drawable/ic_round_add_circle_outline_24"
             android:tint="?colorPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -215,48 +219,63 @@
             tools:text="3"
             tools:visibility="visible" />
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/message"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/message_panel"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginHorizontal="4dp"
-            android:background="@android:color/transparent"
-            android:gravity="center_vertical"
-            android:hint="@string/message_input_hint"
-            android:maxLines="3"
-            android:textColor="?colorOnBackground"
-            android:textColorHint="@color/colorOnBackground50"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/emoji"
-            app:layout_constraintStart_toEndOf="@id/attach"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/emoji"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:background="?selectableItemBackgroundBorderless"
-            android:padding="6dp"
-            android:src="@drawable/ic_round_emoji_emotions_24"
-            android:tint="?colorPrimary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/action"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/action"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="16dp"
-            android:background="?selectableItemBackgroundBorderless"
-            android:padding="6dp"
-            android:src="@drawable/ic_round_mic_24"
-            android:tint="?colorPrimary"
+            android:layout_height="48dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/ic_message_panel_background"
+            android:backgroundTint="?colorSurfaceVariant"
+            android:elevation="0.5dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toEndOf="@id/attach"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/message"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="16dp"
+                android:background="@android:color/transparent"
+                android:gravity="center_vertical"
+                android:hint="@string/message_input_hint"
+                android:maxLines="2"
+                android:textColor="?colorOnSurfaceVariant"
+                android:textColorHint="?colorOnSurfaceVariant"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/emoji"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:background="?selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:src="@drawable/ic_outline_emoji_emotions_24"
+                android:tint="?colorPrimary"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/action"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="12dp"
+                android:background="?selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:src="@drawable/ic_round_mic_none_24"
+                android:tint="?colorPrimary"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

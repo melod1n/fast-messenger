@@ -710,7 +710,7 @@ class MessagesHistoryFragment :
             setColorSchemeColors(
                 AndroidUtils.getThemeAttrColor(
                     requireContext(),
-                    R.attr.colorAccent
+                    R.attr.colorPrimary
                 )
             )
             setOnRefreshListener { viewModel.loadHistory(peerId = conversation.id) }
@@ -1025,6 +1025,8 @@ class MessagesHistoryFragment :
             || adapter.containsId(event.message.id)
         ) return
 
+        val itemCount = adapter.itemCount
+
         adapter.add(event.message, beforeFooter = true) {
             if (view == null) return@add
 
@@ -1038,6 +1040,7 @@ class MessagesHistoryFragment :
                 // add counter of unread
             }
         }
+        adapter.notifyItemRangeChanged(0, itemCount, "avatars")
     }
 
     private fun setUnreadCounterVisibility(isVisible: Boolean) {

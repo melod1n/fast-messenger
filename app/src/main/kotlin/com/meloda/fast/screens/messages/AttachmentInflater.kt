@@ -289,7 +289,7 @@ class AttachmentInflater constructor(
         }
         val ratio = "${size.width}:${size.height}"
 
-        val cornersRadius = 8.dpToPx().toFloat()
+        val cornersRadius = 17.dpToPx().toFloat()
 
         binding.border.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius)

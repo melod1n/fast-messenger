@@ -83,15 +83,16 @@
                     android:id="@+id/loginImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:src="@drawable/ic_baseline_account_circle_24"
                     app:tint="?colorPrimary" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/loginLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginStart="16dp"
                     app:boxStrokeErrorColor="@android:color/transparent">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -117,18 +118,19 @@
                     android:id="@+id/passwordImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:src="@drawable/ic_key"
                     app:tint="?colorPrimary" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/passwordLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginStart="16dp"
                     app:boxStrokeErrorColor="@android:color/transparent"
                     app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="?colorAccent">
+                    app:passwordToggleTint="?colorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/passwordInput"
@@ -137,6 +139,7 @@
                         android:fontFamily="@font/roboto_regular"
                         android:hint="@string/password_login_hint"
                         android:imeOptions="actionGo"
+                        android:inputType="textPassword"
                         android:typeface="normal" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -148,7 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="60dp"
                 android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="48dp"
                 android:fontFamily="@font/google_sans_medium"
                 android:letterSpacing="0"
                 android:paddingStart="24dp"

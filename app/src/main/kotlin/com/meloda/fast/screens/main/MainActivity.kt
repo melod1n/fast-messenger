@@ -95,7 +95,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        createNotificationChannel()
+        createNotificationChannels()
 
         AppCenter.configure(application, BuildConfig.msAppCenterAppToken)
 
@@ -157,9 +157,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
     }
 
-    private fun createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
+    private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val dialogsName = "Dialogs"
             val dialogsDescriptionText = "Channel for dialogs notifications"
@@ -170,7 +168,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
             val longPollName = "Long Polling"
             val longPollDescriptionText = "Channel for long polling service (temporary)"
-            val longPollImportance = NotificationManager.IMPORTANCE_MIN
+            val longPollImportance = NotificationManager.IMPORTANCE_NONE
             val longPollChannel = NotificationChannel("long_polling", longPollName, longPollImportance).apply {
                 description = longPollDescriptionText
             }

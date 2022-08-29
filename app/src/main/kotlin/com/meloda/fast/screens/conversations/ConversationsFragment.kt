@@ -293,7 +293,7 @@ class ConversationsFragment :
             setColorSchemeColors(
                 AndroidUtils.getThemeAttrColor(
                     requireContext(),
-                    R.attr.colorAccent
+                    R.attr.colorPrimary
                 )
             )
             setOnRefreshListener { viewModel.loadConversations() }

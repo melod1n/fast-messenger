@@ -29,6 +29,8 @@ import java.util.*
 class MessagesPreparator constructor(
     private val context: Context,
 
+    private val payloads: MutableList<Any>? = null,
+
     private val root: View? = null,
 
     private val conversation: VkConversation,

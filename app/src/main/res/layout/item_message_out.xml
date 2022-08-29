@@ -24,6 +24,7 @@
         android:background="@drawable/ic_message_in_background_middle"
         android:backgroundTint="?colorTertiaryContainer"
         android:minWidth="60dp"
+        android:minHeight="36dp"
         app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"

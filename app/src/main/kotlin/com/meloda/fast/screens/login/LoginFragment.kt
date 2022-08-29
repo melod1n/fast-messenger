@@ -404,9 +404,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
         captchaBinding.image.loadWithGlide(
             url = captchaImage,
-            crossFade = true,
-            transformations = listOf(TypeTransformations.RoundedCornerCrop(4.dpToPx()))
+            crossFade = true
         )
+        captchaBinding.image.shapeAppearanceModel =
+            captchaBinding.image.shapeAppearanceModel.withCornerSize(16.dpToPx().toFloat())
 
         val builder = MaterialAlertDialogBuilder(requireContext())
             .setView(captchaBinding.root)
