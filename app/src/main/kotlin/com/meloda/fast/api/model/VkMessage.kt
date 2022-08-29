@@ -48,6 +48,10 @@ data class VkMessage constructor(
     @IgnoredOnParcel
     var group: VkGroup? = null
 
+    @Ignore
+    @IgnoredOnParcel
+    var state: State = State.Sent
+
     fun isPeerChat() = peerId > 2_000_000_000
 
     fun isUser() = fromId > 0
@@ -84,6 +88,12 @@ data class VkMessage constructor(
 
     fun isUpdated(): Boolean = updateTime != null && requireNotNull(updateTime) > 0
 
+    fun isSending(): Boolean = state == State.Sending
+
+    fun isError(): Boolean = state == State.Error
+
+    fun isSent(): Boolean = state == State.Sent
+
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),
         CHAT_PHOTO_UPDATE("chat_photo_update"),
@@ -103,6 +113,10 @@ data class VkMessage constructor(
         companion object {
             fun parse(value: String?): Action? = values().firstOrNull { it.value == value }
         }
+    }
+
+    enum class State {
+        Sending, Sent, Error
     }
 
 }

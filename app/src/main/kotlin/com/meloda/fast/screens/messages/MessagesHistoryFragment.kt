@@ -636,8 +636,10 @@ class MessagesHistoryFragment :
                     date = (date / 1000).toInt(),
                     randomId = Random.nextInt(),
                     replyMessage = attachmentController.message.value,
-                    attachments = attachments
-                )
+                    attachments = attachments,
+                ).also {
+                    it.state = VkMessage.State.Sending
+                }
 
                 Log.d("LongPollUpdatesParser", "newMessageRandomId: ${message.randomId}")
 
@@ -657,7 +659,16 @@ class MessagesHistoryFragment :
                     setId = { messageId ->
                         val messageToUpdate = adapter[messageIndex] as VkMessage
                         messageToUpdate.id = messageId
-                        adapter[messageIndex] = messageToUpdate
+                        messageToUpdate.state = VkMessage.State.Sent
+                        adapter.notifyItemChanged(messageIndex, "kek")
+//                        adapter[messageIndex] = messageToUpdate
+                        attachmentsAdapter.clear()
+                    },
+                    onError = {
+                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        messageToUpdate.state = VkMessage.State.Error
+                        adapter.notifyItemChanged(messageIndex, "kek")
+//                        adapter[messageIndex] = messageToUpdate
                         attachmentsAdapter.clear()
                     },
                     attachments = attachments
@@ -683,7 +694,6 @@ class MessagesHistoryFragment :
             else -> {}
         }
     }
-
 
     private fun prepareViews() {
         prepareRecyclerView()
@@ -831,23 +841,35 @@ class MessagesHistoryFragment :
 
         val delete = getString(R.string.message_context_action_delete)
 
-        val params = mutableListOf(reply)
+        val params = mutableListOf<String>()
+        val onlySentParams = mutableListOf<String>()
+
+        params += reply
+        onlySentParams += reply
 
         if (conversation.canChangePin) {
             params += pin
+            onlySentParams += pin
         }
 
         params += important
+        onlySentParams += important
 
         if (!message.isRead(conversation) && !message.isOut) {
             params += read
+            onlySentParams += read
         }
 
         if (message.canEdit()) {
             params += edit
+            onlySentParams += edit
         }
 
         params += delete
+
+        if (!message.isSent()) {
+            params.removeAll(onlySentParams)
+        }
 
         val arrayParams = params.toTypedArray()
 
@@ -916,9 +938,9 @@ class MessagesHistoryFragment :
         )
 
         binding.check.isEnabled =
-            (conversation.id != UserConfig.userId) && (!message.isOut || message.canEdit())
+            message.isSent() && ((conversation.id != UserConfig.userId) && (!message.isOut || message.canEdit()))
 
-        if (conversation.id == UserConfig.userId ||
+        if (message.isSent() && conversation.id == UserConfig.userId ||
             (binding.check.isEnabled && message.isOut)
         ) binding.check.isChecked = true
 
@@ -927,6 +949,14 @@ class MessagesHistoryFragment :
             .setView(binding.root)
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 attachmentController.message.value = null
+
+                if (message.isError()) {
+                    adapter.searchIndexOf(message)?.let { index ->
+                        adapter.removeAt(index)
+                    }
+
+                    return@setPositiveButton
+                }
 
                 viewModel.deleteMessage(
                     peerId = conversation.id,

@@ -31,10 +31,10 @@ class MainViewModel @Inject constructor(private val router: Router) : BaseViewMo
         )
 
         when {
-            fastToken == null -> {
-                sendEvent(StopServicesEvent)
-                openScreen(Screens.Login(true))
-            }
+//            fastToken == null -> {
+//                sendEvent(StopServicesEvent)
+//                openScreen(Screens.Login(true))
+//            }
             UserConfig.isLoggedIn() -> {
                 sendEvent(StartServicesEvent)
                 openScreen(Screens.Conversations())

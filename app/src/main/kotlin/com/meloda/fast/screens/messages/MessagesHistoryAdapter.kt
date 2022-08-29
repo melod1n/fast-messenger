@@ -406,13 +406,12 @@ class MessagesHistoryAdapter constructor(
                 }
             }
 
-            @SuppressLint("DiffUtilEquals")
             override fun areContentsTheSame(
                 oldItem: DataItem<Int>,
                 newItem: DataItem<Int>
             ): Boolean {
 
-                return ObjectsCompat.equals(oldItem, newItem)
+                return ObjectsCompat.equals(oldItem, newItem) && ((oldItem is VkMessage && newItem is VkMessage) && oldItem.state == newItem.state)
             }
         }
     }

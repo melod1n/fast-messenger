@@ -97,10 +97,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             }
         }
 
-        if (isGetFastToken) {
-            launchWebView()
-        }
-
         requireActivity().onBackPressedDispatcher.addCallback {
             if (getView() == null) {
                 isEnabled = false
@@ -125,7 +121,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             is CaptchaRequiredEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationRequiredEvent -> showValidationRequired(event.sid)
 
-            LoginSuccessAuth -> launchWebView()
+            LoginSuccessAuth -> {
+                viewModel.initUserConfig()
+                viewModel.openPrimaryScreen()
+            }
             LoginCodeSent -> showValidationDialog()
         }
     }

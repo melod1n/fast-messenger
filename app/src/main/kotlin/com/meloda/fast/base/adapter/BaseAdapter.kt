@@ -149,6 +149,11 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
         return currentList.indexOf(item)
     }
 
+    fun searchIndexOf(item: T): Int? {
+        val index = indexOf(item)
+        return if (index == -1) null else index
+    }
+
     val indices get() = currentList.indices
 
     operator fun get(position: Int): T {
@@ -284,5 +289,9 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
             val items = results.values as? List<T>
             setItems(items)
         }
+    }
+
+    override fun onCurrentListChanged(previousList: MutableList<T>, currentList: MutableList<T>) {
+        super.onCurrentListChanged(previousList, currentList)
     }
 }

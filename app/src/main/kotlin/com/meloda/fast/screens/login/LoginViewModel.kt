@@ -86,7 +86,7 @@ class LoginViewModel @Inject constructor(
         accounts.insert(listOf(account))
     }
 
-    fun saveAccount(userId: Int, accessToken: String, fastToken: String) = viewModelScope.launch {
+    fun saveAccount(userId: Int, accessToken: String, fastToken: String?) = viewModelScope.launch {
         val account = AppAccount(userId, accessToken, fastToken)
         accounts.insert(listOf(account))
     }

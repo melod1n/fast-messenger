@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.messages
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.View
@@ -169,12 +170,30 @@ class MessagesPreparator constructor(
     private fun prepareUnreadIndicator() {
         val isMessageRead = message.isRead(conversation)
 
-        messageState?.run {
-            toggleVisibility(!isMessageRead || message.isOut)
-            setImageResource(
+        val drawableRes: Int = when (message.state) {
+            VkMessage.State.Sending -> {
+                R.drawable.ic_round_access_time_24
+            }
+            VkMessage.State.Error -> {
+                R.drawable.ic_round_error_outline_24
+            }
+            VkMessage.State.Sent -> {
                 if (isMessageRead) R.drawable.ic_round_done_all_24
                 else R.drawable.ic_round_done_24
+            }
+        }
+
+        messageState?.run {
+            imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(
+                    context,
+                    if (message.state == VkMessage.State.Error) R.color.colorError
+                    else R.color.colorOnBackground
+                )
             )
+
+            toggleVisibility(!isMessageRead || message.isOut)
+            setImageResource(drawableRes)
         }
     }
 
