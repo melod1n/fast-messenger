@@ -3,10 +3,7 @@ package com.meloda.fast.base.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.ValidationRequiredError
+import com.meloda.fast.api.network.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -91,6 +88,9 @@ abstract class BaseViewModel : ViewModel() {
         when (throwable) {
             is AuthorizationError -> {
                 sendEvent(AuthorizationErrorEvent)
+            }
+            is TokenExpiredError -> {
+                sendEvent(TokenExpiredErrorEvent)
             }
             is ValidationRequiredError -> {
                 sendEvent(ValidationRequiredEvent(throwable.validationSid))

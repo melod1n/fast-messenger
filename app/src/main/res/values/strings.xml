@@ -54,6 +54,7 @@
     <string name="validation_required">Validation required</string>
     <string name="unknown_error_occurred">Unknown error occurred</string>
     <string name="authorization_failed">Authorization failed</string>
+    <string name="token_expired">Access token expired</string>
 
 
     <string name="message_action_chat_created">%s created «%s»</string>

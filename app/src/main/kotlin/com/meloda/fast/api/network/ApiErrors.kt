@@ -43,6 +43,8 @@ object VkErrorCodes {
     const val InvalidDocId = 1150
     const val InvalidDocTitle = 1152
     const val AccessToDocDenied = 1153
+
+    const val AccessTokenExpired = 1117
 }
 
 @Suppress("unused")
@@ -55,7 +57,9 @@ object VkErrors {
 
 }
 
-class AuthorizationError : ApiError()
+open class AuthorizationError : ApiError()
+
+class TokenExpiredError: AuthorizationError()
 
 data class ValidationRequiredError(
     @SerializedName("validation_type")

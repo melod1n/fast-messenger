@@ -775,6 +775,12 @@ object VkUtils {
 
                         authorizationError
                     }
+                    VkErrorCodes.AccessTokenExpired.toString() -> {
+                        val tokenExpiredError =
+                            gson.fromJson(errorString, TokenExpiredError::class.java)
+
+                        tokenExpiredError
+                    }
                     VkErrors.NeedValidation -> {
                         val validationError =
                             gson.fromJson(errorString, ValidationRequiredError::class.java)

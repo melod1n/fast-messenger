@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.messages
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -15,6 +16,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -54,6 +56,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.math.abs
+import kotlin.properties.Delegates
 import kotlin.random.Random
 
 @AndroidEntryPoint
@@ -166,7 +169,13 @@ class MessagesHistoryFragment :
 
         binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
 
-        attachmentController = AttachmentPanelController().init()
+        attachmentController = AttachmentPanelController.init(
+            context = requireContext(),
+            adapter = adapter,
+            lifecycleOwner = viewLifecycleOwner,
+            binding = binding,
+            isAttachmentsEmpty = { attachmentsToLoad.isEmpty() }
+        )
 
         val title = when {
             conversation.isChat() -> conversation.title
@@ -176,6 +185,7 @@ class MessagesHistoryFragment :
         }
 
         binding.toolbar.title = title.orDots()
+        binding.toolbar.setOnClickListener { }
 
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
@@ -1075,23 +1085,46 @@ class MessagesHistoryFragment :
         }
     }
 
-    private inner class AttachmentPanelController {
+    private class AttachmentPanelController {
+        companion object {
+            fun init(
+                context: Context,
+                adapter: MessagesHistoryAdapter,
+                lifecycleOwner: LifecycleOwner,
+                binding: FragmentMessagesHistoryBinding,
+                isAttachmentsEmpty: () -> Boolean
+            ): AttachmentPanelController {
+                val controller = AttachmentPanelController()
+                controller.context = context
+                controller.binding = binding
+                controller.adapter = adapter
+                controller.isAttachmentsEmpty = isAttachmentsEmpty
+                controller.message.observe(lifecycleOwner) { value ->
+                    controller.onMessageValueChanged(value)
+                }
+
+                controller.message.value = null
+
+                return controller
+            }
+        }
+
         val isPanelVisible = MutableLiveData(false)
         val message = MutableLiveData<VkMessage?>()
 
         var isEditing = false
 
-        fun init(): AttachmentPanelController {
-            message.observe(viewLifecycleOwner) { value ->
-                if (value != null) {
-                    applyMessage(value)
-                } else {
-                    clearMessage()
-                }
-            }
+        var adapter: MessagesHistoryAdapter by Delegates.notNull()
+        var binding: FragmentMessagesHistoryBinding by Delegates.notNull()
+        var context: Context by Delegates.notNull()
+        var isAttachmentsEmpty: () -> Boolean by Delegates.notNull()
 
-            message.value = null
-            return this
+        fun onMessageValueChanged(value: VkMessage?) {
+            if (value != null) {
+                applyMessage(value)
+            } else {
+                clearMessage()
+            }
         }
 
         private fun applyMessage(message: VkMessage) {
@@ -1106,12 +1139,12 @@ class MessagesHistoryFragment :
             )
 
             val attachmentText = if (message.text == null) VkUtils.getAttachmentText(
-                context = requireContext(),
+                context = context,
                 message = message
             ) else null
 
             val forwardsMessage = if (message.text == null) VkUtils.getForwardsText(
-                context = requireContext(),
+                context = context,
                 message = message
             ) else null
 
@@ -1134,7 +1167,7 @@ class MessagesHistoryFragment :
         }
 
         private fun clearMessage() {
-            if (attachmentsToLoad.isEmpty()) {
+            if (isAttachmentsEmpty()) {
                 hidePanel()
             }
 
@@ -1157,8 +1190,8 @@ class MessagesHistoryFragment :
 //                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
 //            )
 
-            if (!attachmentController.isPanelVisible.requireValue())
-                attachmentController.isPanelVisible.value = true
+            if (!isPanelVisible.requireValue())
+                isPanelVisible.value = true
 
 //            binding.attachmentPanel.visible()
 
@@ -1194,12 +1227,12 @@ class MessagesHistoryFragment :
 
         fun hidePanel() {
             if (!isPanelVisible.requireValue() ||
-                attachmentsToLoad.isNotEmpty() ||
+                !isAttachmentsEmpty() ||
                 message.value != null
             ) return
 
-            if (attachmentController.isPanelVisible.requireValue())
-                attachmentController.isPanelVisible.value = false
+            if (isPanelVisible.requireValue())
+                isPanelVisible.value = false
 
             binding.attachmentPanel.gone()
 
