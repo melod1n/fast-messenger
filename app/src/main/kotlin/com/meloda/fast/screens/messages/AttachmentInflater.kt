@@ -6,8 +6,11 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Space
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -21,6 +24,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.databinding.*
 import com.meloda.fast.extensions.*
 import com.meloda.fast.extensions.ImageLoader.clear
@@ -30,11 +34,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-// TODO: 9/29/2021 use recyclerview for viewing attachments
 class AttachmentInflater constructor(
     private val context: Context,
     private val container: LinearLayoutCompat,
-    private val textContainer: LinearLayoutCompat,
+    private val replyContainer: FrameLayout,
+    private val timeReadContainer: View,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
     private val groups: Map<Int, VkGroup>
@@ -52,24 +56,66 @@ class AttachmentInflater constructor(
         R.color.colorSecondary
     )
 
+    private val timeReadBackground = ContextCompat.getDrawable(
+        context,
+        R.drawable.time_read_indicator_on_attachments_background
+    )
+
     private var photoClickListener: ((url: String) -> Unit)? = null
+    private var replyClickListener: ((replyMessage: VkMessage) -> Unit)? = null
+    private var forwardsClickListener: ((forwards: List<VkMessage>) -> Unit)? = null
 
     private val displayMetrics get() = Resources.getSystem().displayMetrics
 
-    fun setPhotoClickListener(unit: ((url: String) -> Unit)?): AttachmentInflater {
-        this.photoClickListener = unit
+    fun withPhotoClickListener(block: ((url: String) -> Unit)?): AttachmentInflater {
+        this.photoClickListener = block
+        return this
+    }
+
+    fun withReplyClickListener(block: ((replyMessage: VkMessage) -> Unit)?): AttachmentInflater {
+        this.replyClickListener = block
+        return this
+    }
+
+    fun withForwardsClickListener(block: ((forwards: List<VkMessage>) -> Unit)?): AttachmentInflater {
+        this.forwardsClickListener = block
         return this
     }
 
     fun inflate() {
         container.removeAllViews()
+        replyContainer.removeAllViews()
 
-        if (textContainer.childCount > 1) {
-            textContainer.removeViews(1, textContainer.childCount - 1)
+        replyContainer.toggleVisibility(message.hasReply())
+        container.toggleVisibility(
+            !message.attachments.isNullOrEmpty()
+                    || message.hasForwards()
+                    || message.hasGeo()
+        )
+
+        timeReadContainer.run {
+            updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                val margin = (if (container.isVisible) 6 else 2).dpToPx()
+                updateMarginsRelative(end = margin, bottom = margin)
+            }
+
+            background = if (container.isVisible) timeReadBackground else null
+        }
+
+        if (message.hasReply()) {
+            reply(requireNotNull(message.replyMessage))
+        }
+
+        if (message.hasForwards()) {
+            forwards(requireNotNull(message.forwards))
+        }
+
+        if (message.hasGeo()) {
+            geo(requireNotNull(message.geo))
         }
 
         if (message.attachments.isNullOrEmpty()) return
-        attachments = message.attachments!!
+        attachments = requireNotNull(message.attachments)
 
         if (attachments.size == 1) {
             when (val attachment = attachments[0]) {
@@ -109,13 +155,64 @@ class AttachmentInflater constructor(
                 is VkFile -> file(attachment)
                 is VkLink -> link(attachment)
 
-                else -> Log.e(
-                    "Attachment inflater",
-                    "Unknown attachment type: ${attachment.javaClass.name}"
-                )
+                else -> unknown(attachment)
             }
         }
+    }
 
+    private fun unknown(attachment: VkAttachment) {
+        val attachmentType = attachment.javaClass.name
+        Log.e(
+            "Attachment inflater",
+            "Unknown attachment type: $attachmentType"
+        )
+
+        val textView = AppCompatTextView(context)
+        textView.text = attachmentType
+
+        container.addView(textView)
+    }
+
+    private fun reply(replyMessage: VkMessage) {
+        val binding = ItemMessageAttachmentReplyBinding.inflate(inflater, replyContainer, true)
+        binding.root.setOnClickListener { replyClickListener?.invoke(replyMessage) }
+
+        val attachmentText = VkUtils.getAttachmentText(
+            context = context,
+            message = replyMessage
+        )
+
+        val forwardsMessage = if (replyMessage.text == null) VkUtils.getForwardsText(
+            context = context,
+            message = replyMessage
+        ) else null
+
+        val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text.orDots()).run {
+            VkUtils.prepareMessageText(this)
+        }
+
+        binding.text.text = messageText
+
+        val replyUserGroup = VkUtils.getMessageUserGroup(replyMessage, profiles, groups)
+
+        val fromUser: VkUser? = replyUserGroup.first
+        val fromGroup: VkGroup? = replyUserGroup.second
+
+        val title = VkUtils.getMessageTitle(replyMessage, fromUser, fromGroup)
+        binding.title.text = title.orDots()
+    }
+
+    private fun forwards(forwards: List<VkMessage>) {
+        val binding = ItemMessageAttachmentForwardsBinding.inflate(inflater, container, true)
+
+        binding.root.setOnClickListener { forwardsClickListener?.invoke(forwards) }
+    }
+
+    private fun geo(geo: BaseVkMessage.Geo) {
+        val binding = ItemMessageAttachmentGeoBinding.inflate(inflater, container, true)
+
+        binding.location.text = geo.place.title
+        binding.location.toggleVisibilityIfHasContent()
     }
 
     private fun photo(photo: VkPhoto) {
@@ -140,7 +237,7 @@ class AttachmentInflater constructor(
 
         val binding = ItemMessageAttachmentPhotoBinding.inflate(inflater, container, true)
 
-        val cornersRadius = 8.dpToPx().toFloat()
+        val cornersRadius = 17.dpToPx().toFloat()
 
         binding.border.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius)
@@ -159,10 +256,8 @@ class AttachmentInflater constructor(
         binding.image.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
 
-            if (photoClickListener != null) {
-                setOnClickListener { photoClickListener?.invoke(size.url) }
-            } else {
-                setOnClickListener(null)
+            setOnClickListener {
+                photo.getMaxSize()?.let { size -> photoClickListener?.invoke(size.url) }
             }
 
             loadWithGlide(
@@ -194,7 +289,7 @@ class AttachmentInflater constructor(
         }
         val ratio = "${size.width}:${size.height}"
 
-        val cornersRadius = 8.dpToPx().toFloat()
+        val cornersRadius = 17.dpToPx().toFloat()
 
         binding.border.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius)
@@ -243,7 +338,9 @@ class AttachmentInflater constructor(
     }
 
     private fun link(link: VkLink) {
-        val binding = ItemMessageAttachmentLinkBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentLinkBinding.inflate(
+            inflater, container, true
+        )
 
         binding.title.text = link.title
         binding.title.toggleVisibility(!link.title.isNullOrBlank())
@@ -283,7 +380,7 @@ class AttachmentInflater constructor(
     }
 
     private fun wall(wall: VkWall) {
-        val binding = ItemMessageAttachmentWallPostBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentWallPostBinding.inflate(inflater, container, true)
 
         val group = if (wall.fromId > 0) null else groups[wall.fromId]
         val user = if (wall.fromId < 0) null else profiles[wall.fromId]
@@ -300,11 +397,11 @@ class AttachmentInflater constructor(
             else -> null
         }
 
-        val title = when {
+        val title = (when {
             group == null && user != null -> user.fullName
             user == null && group != null -> group.name
-            else -> "..."
-        }
+            else -> null
+        }).orDots()
 
         binding.postTitle.text = context.getString(postTitleRes)
         binding.postTitle.gone()
@@ -326,7 +423,7 @@ class AttachmentInflater constructor(
     }
 
     private fun voice(voiceMessage: VkVoiceMessage) {
-        val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentVoiceBinding.inflate(inflater, container, true)
 
         if (message.isOut) {
             val padding = 6.dpToPx()
@@ -349,7 +446,7 @@ class AttachmentInflater constructor(
     }
 
     private fun call(call: VkCall) {
-        val binding = ItemMessageAttachmentCallBinding.inflate(inflater, textContainer, true)
+        val binding = ItemMessageAttachmentCallBinding.inflate(inflater, container, true)
 
         if (message.isOut)
             binding.root.updatePadding(

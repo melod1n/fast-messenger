@@ -11,19 +11,19 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="16dp"
         android:backgroundTint="?colorBackgroundVariant"
         android:orientation="horizontal"
         android:paddingVertical="8dp"
         android:paddingStart="8dp"
-        android:paddingEnd="32dp"
+        android:paddingEnd="24dp"
         tools:background="@drawable/ic_message_unread">
 
         <FrameLayout
             android:layout_width="56dp"
             android:layout_height="56dp">
 
-            <com.meloda.fast.widget.CircleImageView
+            <com.meloda.fast.view.CircleImageView
                 android:id="@+id/avatar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -57,14 +57,14 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:id="@+id/online_border"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="?colorBackground" />
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:layout_width="14dp"
                     android:layout_height="14dp"
                     android:layout_gravity="center"
@@ -81,7 +81,7 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_gravity="center"
@@ -89,7 +89,7 @@
                     android:backgroundTint="@color/colorUserAvatarAction"
                     android:elevation="0.5dp" />
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:id="@+id/pinIcon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
@@ -109,7 +109,7 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_gravity="center"
@@ -117,7 +117,7 @@
                     android:backgroundTint="@color/colorUserAvatarAction"
                     android:elevation="0.5dp" />
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:id="@+id/phantomIcon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
@@ -128,7 +128,7 @@
                     app:tint="@color/colorOnUserAvatarAction"
                     tools:visibility="gone" />
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:id="@+id/callIcon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
@@ -145,7 +145,7 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
+            android:layout_marginStart="16dp"
             android:orientation="vertical">
 
             <RelativeLayout
@@ -164,6 +164,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:ellipsize="end"
                         android:fontFamily="@font/google_sans_regular"
                         android:maxLines="2"
                         android:textColor="?colorOnBackground"
@@ -191,6 +192,7 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
+                <!-- TODO: добавлять время после сообщения -->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/date"
                     android:layout_width="wrap_content"
@@ -236,6 +238,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.7"
+                    android:ellipsize="end"
                     android:fontFamily="@font/roboto_regular"
                     android:maxLines="2"
                     android:textColor="?colorOnBackground"

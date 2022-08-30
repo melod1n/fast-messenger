@@ -1,24 +1,27 @@
 package com.meloda.fast.di
 
+import com.chuckerteam.chucker.api.ChuckerCollector
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.meloda.fast.api.LongPollUpdatesParser
+import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
-import com.meloda.fast.api.network.account.AccountDataSource
-import com.meloda.fast.api.network.account.AccountRepo
-import com.meloda.fast.api.network.auth.AuthDataSource
-import com.meloda.fast.api.network.auth.AuthRepo
-import com.meloda.fast.api.network.conversations.ConversationsDataSource
-import com.meloda.fast.api.network.conversations.ConversationsRepo
-import com.meloda.fast.api.network.longpoll.LongPollRepo
-import com.meloda.fast.api.network.messages.MessagesDataSource
-import com.meloda.fast.api.network.messages.MessagesRepo
-import com.meloda.fast.api.network.users.UsersDataSource
-import com.meloda.fast.api.network.users.UsersRepo
-import com.meloda.fast.database.dao.ConversationsDao
-import com.meloda.fast.database.dao.MessagesDao
-import com.meloda.fast.database.dao.UsersDao
+import com.meloda.fast.api.network.VkUrls
+import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.common.UpdateManager
+import com.meloda.fast.data.account.AccountApi
+import com.meloda.fast.data.audios.AudiosApi
+import com.meloda.fast.data.auth.AuthApi
+import com.meloda.fast.data.conversations.ConversationsApi
+import com.meloda.fast.data.files.FilesApi
+import com.meloda.fast.data.longpoll.LongPollApi
+import com.meloda.fast.data.messages.MessagesApi
+import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.data.ota.OtaApi
+import com.meloda.fast.data.photos.PhotosApi
+import com.meloda.fast.data.users.UsersApi
+import com.meloda.fast.data.videos.VideosApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,18 +37,68 @@ import javax.inject.Singleton
 @Module
 object NetworkModule {
 
+    /*
+
+    val chuckerCollector = ChuckerCollector(
+        context = this,
+        // Toggles visibility of the notification
+        showNotification = true,
+        // Allows to customize the retention period of collected data
+        retentionPeriod = RetentionManager.Period.ONE_HOUR
+)
+
+// Create the Interceptor
+val chuckerInterceptor = ChuckerInterceptor.Builder(context)
+        // The previously created Collector
+        .collector(chuckerCollector)
+        // The max body content length in bytes, after this responses will be truncated.
+        .maxContentLength(250_000L)
+        // List of headers to replace with ** in the Chucker UI
+        .redactHeaders("Auth-Token", "Bearer")
+        // Read the whole response body even when the client does not consume the response completely.
+        // This is useful in case of parsing errors or when the response body
+        // is closed before being read like in Retrofit with Void and Unit types.
+        .alwaysReadResponseBody(true)
+        // Use decoder when processing request and response bodies. When multiple decoders are installed they
+        // are applied in an order they were added.
+        .addBodyDecoder(decoder)
+        // Controls Android shortcut creation. Available in SNAPSHOTS versions only at the moment
+        .createShortcut(true)
+        .build()
+     */
+
     @Singleton
     @Provides
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
-        .addInterceptor(authInterceptor)
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }).build()
+    fun provideChuckerCollector(): ChuckerCollector =
+        ChuckerCollector(AppGlobal.Instance)
+
+    @Singleton
+    @Provides
+    fun provideChuckerInterceptor(
+        chuckerCollector: ChuckerCollector
+    ): ChuckerInterceptor =
+        ChuckerInterceptor.Builder(AppGlobal.Instance)
+            .collector(chuckerCollector)
+            .build()
+
+    @Singleton
+    @Provides
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        chuckerInterceptor: ChuckerInterceptor
+    ): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
+            .addInterceptor(chuckerInterceptor)
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                }
+            ).build()
 
     @Singleton
     @Provides
@@ -59,7 +112,7 @@ object NetworkModule {
         client: OkHttpClient,
         gson: Gson
     ): Retrofit = Retrofit.Builder()
-        .baseUrl("https://api.vk.com/")
+        .baseUrl("${VkUrls.API}/")
         .addConverterFactory(GsonConverterFactory.create(gson))
         .addCallAdapterFactory(ResultCallFactory())
         .client(client)
@@ -71,73 +124,67 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepo(retrofit: Retrofit): AuthRepo =
-        retrofit.create(AuthRepo::class.java)
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
     @Provides
     @Singleton
-    fun provideConversationsRepo(retrofit: Retrofit): ConversationsRepo =
-        retrofit.create(ConversationsRepo::class.java)
+    fun provideConversationsApi(retrofit: Retrofit): ConversationsApi =
+        retrofit.create(ConversationsApi::class.java)
 
     @Provides
     @Singleton
-    fun provideUsersRepo(retrofit: Retrofit): UsersRepo =
-        retrofit.create(UsersRepo::class.java)
+    fun provideUsersApi(retrofit: Retrofit): UsersApi =
+        retrofit.create(UsersApi::class.java)
 
     @Provides
     @Singleton
-    fun provideMessagesRepo(retrofit: Retrofit): MessagesRepo =
-        retrofit.create(MessagesRepo::class.java)
+    fun provideMessagesApi(retrofit: Retrofit): MessagesApi =
+        retrofit.create(MessagesApi::class.java)
 
     @Provides
     @Singleton
-    fun provideLongPollRepo(retrofit: Retrofit): LongPollRepo =
-        retrofit.create(LongPollRepo::class.java)
+    fun provideLongPollApi(retrofit: Retrofit): LongPollApi =
+        retrofit.create(LongPollApi::class.java)
 
     @Provides
     @Singleton
-    fun provideAuthDataSource(
-        repo: AuthRepo
-    ): AuthDataSource = AuthDataSource(repo)
+    fun provideLongPollUpdatesParser(messagesRepository: MessagesRepository): LongPollUpdatesParser =
+        LongPollUpdatesParser(messagesRepository)
 
     @Provides
     @Singleton
-    fun provideUsersDataSource(
-        repo: UsersRepo,
-        dao: UsersDao
-    ): UsersDataSource = UsersDataSource(repo, dao)
+    fun provideAccountApi(retrofit: Retrofit): AccountApi =
+        retrofit.create(AccountApi::class.java)
 
     @Provides
     @Singleton
-    fun provideConversationsDataSource(
-        repo: ConversationsRepo,
-        dao: ConversationsDao
-    ): ConversationsDataSource = ConversationsDataSource(repo, dao)
+    fun provideOtaApi(retrofit: Retrofit): OtaApi =
+        retrofit.create(OtaApi::class.java)
 
     @Provides
     @Singleton
-    fun provideMessagesDataSource(
-        messagesRepo: MessagesRepo,
-        messagesDao: MessagesDao,
-        longPollRepo: LongPollRepo
-    ): MessagesDataSource = MessagesDataSource(
-        messagesRepo = messagesRepo,
-        messagesDao = messagesDao,
-        longPollRepo = longPollRepo
-    )
+    fun provideUpdateManager(otaApi: OtaApi): UpdateManager =
+        UpdateManager(otaApi)
 
     @Provides
     @Singleton
-    fun provideLongPollUpdatesParser(messagesDataSource: MessagesDataSource): LongPollUpdatesParser =
-        LongPollUpdatesParser(messagesDataSource)
+    fun providePhotosApi(retrofit: Retrofit): PhotosApi =
+        retrofit.create(PhotosApi::class.java)
 
     @Provides
     @Singleton
-    fun provideAccountRepo(retrofit: Retrofit): AccountRepo =
-        retrofit.create(AccountRepo::class.java)
+    fun provideVideosApi(retrofit: Retrofit): VideosApi =
+        retrofit.create(VideosApi::class.java)
 
     @Provides
     @Singleton
-    fun provideAccountDataSource(repo: AccountRepo): AccountDataSource =
-        AccountDataSource(repo)
+    fun provideAudiosApi(retrofit: Retrofit): AudiosApi =
+        retrofit.create(AudiosApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFilesApi(retrofit: Retrofit): FilesApi =
+        retrofit.create(FilesApi::class.java)
+
 }

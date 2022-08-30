@@ -12,14 +12,14 @@ data class BaseVkWall(
     val date: Int,
     val text: String,
     val attachments: List<BaseVkAttachmentItem>?,
-    val post_source: PostSource,
-    val comments: Comments,
-    val likes: Likes,
-    val reposts: Reposts,
-    val views: Views,
+    val post_source: PostSource?,
+    val comments: Comments?,
+    val likes: Likes?,
+    val reposts: Reposts?,
+    val views: Views?,
     val is_favorite: Boolean,
-    val donut: Donut,
-    val access_key: String,
+    val donut: Donut?,
+    val access_key: String?,
     val short_text_rate: Double
 ) : Parcelable {
 
@@ -30,10 +30,10 @@ data class BaseVkWall(
         date = date,
         text = text,
         attachments = attachments,
-        comments = comments.count,
-        likes = likes.count,
-        reposts = reposts.count,
-        views = views.count,
+        comments = comments?.count,
+        likes = likes?.count,
+        reposts = reposts?.count,
+        views = views?.count,
         isFavorite = is_favorite,
         accessKey = access_key
     )

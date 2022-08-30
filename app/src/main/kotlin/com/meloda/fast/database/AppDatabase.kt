@@ -1,5 +1,6 @@
 package com.meloda.fast.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -7,27 +8,34 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.database.dao.ConversationsDao
-import com.meloda.fast.database.dao.GroupsDao
-import com.meloda.fast.database.dao.MessagesDao
-import com.meloda.fast.database.dao.UsersDao
+import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.data.conversations.ConversationsDao
+import com.meloda.fast.data.groups.GroupsDao
+import com.meloda.fast.data.messages.MessagesDao
+import com.meloda.fast.data.users.UsersDao
+import com.meloda.fast.model.AppAccount
 
 @Database(
     entities = [
+        AppAccount::class,
         VkConversation::class,
         VkMessage::class,
         VkUser::class,
         VkGroup::class
     ],
-    version = 28,
-    exportSchema = false,
+    version = 34,
+    exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 33, to = 34)
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun conversationsDao(): ConversationsDao
-    abstract fun messagesDao(): MessagesDao
-    abstract fun usersDao(): UsersDao
-    abstract fun groupsDao(): GroupsDao
+    abstract val accountsDao: AccountsDao
+    abstract val conversationsDao: ConversationsDao
+    abstract val messagesDao: MessagesDao
+    abstract val usersDao: UsersDao
+    abstract val groupsDao: GroupsDao
 
 }

@@ -41,7 +41,8 @@ data class MessagesSendRequest(
     val stickerId: Int? = null,
     val disableMentions: Boolean? = null,
     val dontParseLinks: Boolean? = null,
-    val silent: Boolean? = null
+    val silent: Boolean? = null,
+    val attachments: List<VkAttachment>? = null
 ) : Parcelable {
 
     val map
@@ -57,6 +58,11 @@ data class MessagesSendRequest(
             disableMentions?.let { this["disable_mentions"] = it.intString }
             dontParseLinks?.let { this["dont_parse_links"] = it.intString }
             silent?.let { this["silent"] = it.toString() }
+            attachments?.let {
+                this["attachment"] = it.joinToString(separator = ",") { attachment ->
+                    attachment.asString(true)
+                }
+            }
         }
 }
 

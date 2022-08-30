@@ -1,53 +1,61 @@
 package com.meloda.fast.screens.messages
 
-import android.animation.ValueAnimator
-import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
-import android.text.TextUtils
+import android.os.Environment
+import android.provider.OpenableColumns
+import android.util.Log
 import android.view.View
-import android.view.animation.LinearInterpolator
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.ImageView
 import android.widget.Toast
-import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.content.ContextCompat
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.view.setPadding
-import androidx.core.view.updateLayoutParams
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.common.net.MediaType
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.base.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.common.Screens
+import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.clear
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.screens.conversations.MessagesNewEvent
+import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.TimeUtils
+import com.meloda.fast.view.SpaceItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
-import kotlin.math.roundToInt
-
+import kotlin.math.abs
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class MessagesHistoryFragment :
@@ -60,9 +68,17 @@ class MessagesHistoryFragment :
 
         private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
 
-        fun newInstance(bundle: Bundle): MessagesHistoryFragment {
+        fun newInstance(
+            conversation: VkConversation,
+            user: VkUser?,
+            group: VkGroup?
+        ): MessagesHistoryFragment {
             val fragment = MessagesHistoryFragment()
-            fragment.arguments = bundle
+            fragment.arguments = bundleOf(
+                ARG_CONVERSATION to conversation,
+                ARG_USER to user,
+                ARG_GROUP to group
+            )
 
             return fragment
         }
@@ -71,7 +87,39 @@ class MessagesHistoryFragment :
     override val viewModel: MessagesHistoryViewModel by viewModels()
     private val binding: FragmentMessagesHistoryBinding by viewBinding()
 
-    private val action = MutableLiveData<Action>()
+    private var pickFile: Boolean = false
+
+    private val attachmentsToLoad = mutableListOf<VkAttachment>()
+
+    private val getContent =
+        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uriList: List<Uri>? ->
+            if (uriList.isNullOrEmpty()) {
+                return@registerForActivityResult
+            }
+
+            if (uriList.size > 10) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.warning)
+                    .setMessage("Select no more than 10 files")
+                    .setPositiveButton(R.string.ok, null)
+                    .show()
+                return@registerForActivityResult
+            }
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                val uploadFlow = flow<Any?> {
+                    uriList.forEach { uri ->
+                        processFileFromStorage(uri)
+                        emit(null)
+                    }
+                }
+
+                uploadFlow.collect()
+            }
+        }
+
+
+    private val actionState = MutableLiveData<Action>()
 
     private enum class Action {
         RECORD, SEND, EDIT, DELETE
@@ -90,18 +138,34 @@ class MessagesHistoryFragment :
     }
 
     private val adapter: MessagesHistoryAdapter by lazy {
-        MessagesHistoryAdapter(requireContext(), conversation).also {
+        MessagesHistoryAdapter(this, conversation).also {
             it.itemClickListener = this::onItemClick
             it.avatarLongClickListener = this::onAvatarLongClickListener
         }
+    }
+
+    private val attachmentsAdapter: AttachmentsAdapter by lazy {
+        AttachmentsAdapter(
+            requireContext(),
+            emptyList(),
+            onRemoveClickedListener = { position ->
+                removeAttachment(attachmentsAdapter[position])
+            }
+        )
     }
 
     private var timestampTimer: Timer? = null
 
     private lateinit var attachmentController: AttachmentPanelController
 
+    init {
+        shouldNavBarShown = false
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
 
         attachmentController = AttachmentPanelController().init()
 
@@ -112,12 +176,7 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-        binding.back.setOnClickListener { requireActivity().onBackPressed() }
-
-        binding.title.ellipsize = TextUtils.TruncateAt.END
-        binding.status.ellipsize = TextUtils.TruncateAt.END
-
-        binding.title.text = title ?: "..."
+        binding.toolbar.title = title.orDots()
 
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
@@ -125,7 +184,10 @@ class MessagesHistoryFragment :
                 // TODO: 9/15/2021 user normal time
                 user?.online == true -> "Online"
                 user?.lastSeen != null -> "Last seen at ${
-                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(user?.lastSeen!! * 1000L)
+                    SimpleDateFormat(
+                        "HH:mm",
+                        Locale.getDefault()
+                    ).format(user?.lastSeen!! * 1000L)
                 }"
                 else -> if (user?.lastSeenStatus != null) "Last seen ${user?.lastSeenStatus!!}" else "Last seen recently"
             }
@@ -133,7 +195,7 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-        binding.status.text = status ?: "..."
+        binding.toolbar.subtitle = status.orDots()
 
         prepareAvatar()
 
@@ -153,25 +215,48 @@ class MessagesHistoryFragment :
             if (lastVisiblePosition <= adapter.lastPosition - 10) return@addOnLayoutChangeListener
 
             binding.recyclerView.postDelayed({
+                if (getView() == null) return@postDelayed
                 binding.recyclerView.scrollToPosition(adapter.lastPosition)
             }, 25)
         }
 
+        binding.unreadCounter.setOnClickListener {
+            binding.recyclerView.scrollToPosition(adapter.lastPosition)
+        }
+
+        binding.recyclerView.setItemViewCacheSize(30)
+
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val firstPosition =
-                    (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val firstPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
+
+                if (AppGlobal.preferences.getBoolean(
+                        SettingsPrefsFragment.PrefHideKeyboardOnScroll,
+                        true
+                    ) && dy < 0
+                ) {
+                    binding.recyclerView.hideKeyboard()
+                }
+
+                setUnreadCounterVisibility(lastPosition, dy)
 
                 adapter.getOrNull(firstPosition)?.let {
                     if (it !is VkMessage) return
-                    binding.timestamp.isVisible = true
+                    binding.timestamp.visible()
 
                     val time = "${
                         TimeUtils.getLocalizedDate(
                             requireContext(),
                             it.date * 1000L
                         )
-                    }, ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(it.date * 1000L)}"
+                    }, ${
+                        SimpleDateFormat(
+                            "HH:mm",
+                            Locale.getDefault()
+                        ).format(it.date * 1000L)
+                    }"
 
                     binding.timestamp.text = time
 
@@ -197,13 +282,23 @@ class MessagesHistoryFragment :
                 when {
                     attachmentController.isEditing -> if (it.isNullOrBlank()) Action.DELETE else Action.EDIT
                     canSend -> Action.SEND
-                    else -> Action.RECORD
+                    else -> {
+                        if (attachmentsToLoad.isNotEmpty()) {
+                            if (attachmentController.isEditing) {
+                                Action.EDIT
+                            } else {
+                                Action.SEND
+                            }
+                        } else {
+                            Action.RECORD
+                        }
+                    }
                 }
 
-            if (action.value != newValue) action.value = newValue
+            actionState.setIfNotEquals(newValue)
         }
 
-        action.observe(viewLifecycleOwner) {
+        actionState.observe(viewLifecycleOwner) {
             binding.action.animate()
                 .scaleX(1.25f)
                 .scaleY(1.25f)
@@ -238,32 +333,30 @@ class MessagesHistoryFragment :
         attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
             if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
 
-            val currentMargin =
-                (binding.refreshLayout.layoutParams as CoordinatorLayout.LayoutParams).bottomMargin
-
-            val newMargin =
-                if (isVisible) (binding.attachmentPanel.measuredHeight / 1.5).roundToInt()
-                else 0
-
-            ValueAnimator.ofInt(currentMargin, newMargin).apply {
-                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
-                interpolator = LinearInterpolator()
-
-                addUpdateListener { animator ->
-                    if (getView() == null) return@addUpdateListener
-                    val value = animator.animatedValue as Int
-                    binding.refreshLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> {
-                        bottomMargin = value
-                    }
-                }
-            }.start()
+//            val currentHeight = binding.listAnchor.height
+//
+//            val newHeight =
+//                if (isVisible) (binding.attachmentPanel.measuredHeight / 1.5).roundToInt()
+//                else 1
+//
+//            ValueAnimator.ofInt(currentHeight, newHeight).apply {
+//                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+//                interpolator = LinearInterpolator()
+//
+//                addUpdateListener { animator ->
+//                    if (getView() == null) return@addUpdateListener
+//                    val value = animator.animatedValue as Int
+//
+//                    binding.listAnchor.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                        height = value
+//                    }
+//                }
+//            }.start()
         }
 
-        binding.attachmentPanel.setOnClickListener c@{
-            val message = attachmentController.message.value ?: return@c
-
-            val index = adapter.indexOf(message)
-            if (index == -1) return@c
+        binding.replyMessage.setOnClickListener {
+            val message = attachmentController.message.value ?: return@setOnClickListener
+            val index = adapter.searchMessageIndex(message.id) ?: return@setOnClickListener
 
             binding.recyclerView.scrollToPosition(index)
         }
@@ -272,78 +365,267 @@ class MessagesHistoryFragment :
             if (attachmentController.message.value != null)
                 attachmentController.message.value = null
         }
+
+        binding.attach.setOnClickListener {
+            showAttachmentsPopupMenu()
+        }
+
+        binding.attach.setOnLongClickListener {
+            pickPhoto()
+            true
+        }
     }
 
-    @ColorInt
-    private fun getColor(@ColorRes resId: Int): Int {
-        return ContextCompat.getColor(requireContext(), resId)
+    override fun onEvent(event: VkEvent) {
+        super.onEvent(event)
+
+        when (event) {
+            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
+            is MessagesLoadedEvent -> refreshMessages(event)
+            is MessagesPinEvent -> conversation.pinnedMessage = event.message
+            is MessagesUnpinEvent -> conversation.pinnedMessage = null
+            is MessagesDeleteEvent -> deleteMessages(event)
+            is MessagesEditEvent -> editMessage(event)
+            is MessagesReadEvent -> readMessages(event)
+            is MessagesNewEvent -> addNewMessage(event)
+        }
+    }
+
+    override fun toggleProgress(isProgressing: Boolean) {
+        view?.run {
+            findViewById<View>(R.id.progress_bar).toggleVisibility(
+                if (isProgressing) adapter.isEmpty() else false
+            )
+            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
+                if (isProgressing) adapter.isNotEmpty() else false
+        }
+    }
+
+    private suspend fun processFileFromStorage(uri: Uri) {
+        var name = ""
+        var size = 0.0
+
+        val contentResolver = requireContext().contentResolver
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+
+            cursor.moveToFirst()
+            name = cursor.getString(nameIndex)
+            size = AndroidUtils.bytesToMegabytes(cursor.getLong(sizeIndex).toDouble())
+            cursor.close()
+        }
+
+        if (size > 200) {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.warning)
+                .setMessage("Selected file weighs more than 200 megabytes. Compress it or send other file")
+                .setPositiveButton(R.string.ok, null)
+                .setCancelable(false)
+                .show()
+            return
+        }
+
+        val lastDotIndex = name.lastIndexOf(".")
+        var extension = if (lastDotIndex == -1) "" else name.substring(lastDotIndex + 1)
+
+        if (extension.endsWith("msi") || extension.endsWith("exe") || extension.endsWith("apk")) {
+            extension += "fast"
+            name += "fast"
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.warning)
+                .setMessage("Selected file is executable. Fast changed it extension to \"$extension\", so the final name is \"$name\"")
+                .setPositiveButton(R.string.ok, null)
+                .setCancelable(false)
+                .show()
+        }
+
+        val destination = requireContext()
+            .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
+                "${File.separator}upload.$extension"
+
+        val file = File(destination)
+        if (file.exists()) file.delete()
+
+        withContext(Dispatchers.IO) {
+            @Suppress("BlockingMethodInNonBlockingContext")
+            val inputStream =
+                requireActivity().contentResolver.openInputStream(uri) ?: return@withContext
+
+            inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+
+        val mimeType = contentResolver.getType(uri) ?: return
+
+        if (pickFile) {
+            val uploadedAttachment = viewModel.uploadFile(
+                conversation.id,
+                file,
+                name,
+                FilesRepository.FileType.File
+            )
+            addAttachment(uploadedAttachment)
+        } else {
+            when (MediaType.parse(mimeType).type()) {
+                MediaType.ANY_IMAGE_TYPE.type() -> {
+                    val uploadedAttachment = viewModel.uploadPhoto(conversation.id, file, name)
+                    addAttachment(uploadedAttachment)
+                }
+                MediaType.ANY_VIDEO_TYPE.type() -> {
+                    val uploadedAttachment = viewModel.uploadVideo(file, name)
+                    addAttachment(uploadedAttachment)
+                }
+                MediaType.ANY_AUDIO_TYPE.type() -> {
+                    val uploadedAttachment = viewModel.uploadAudio(file, name)
+                    addAttachment(uploadedAttachment)
+                }
+            }
+        }
+    }
+
+    private fun showAttachmentsPopupMenu() {
+        val popupMenu = PopupMenu(requireContext(), binding.attach)
+
+        if (attachmentsToLoad.isNotEmpty()) {
+            popupMenu.menu.add("Clear attachments")
+        }
+
+        popupMenu.menu.add("Photo")
+        popupMenu.menu.add("Video")
+        popupMenu.menu.add("Audio")
+        popupMenu.menu.add("File")
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            return@setOnMenuItemClickListener when (menuItem.title) {
+                "Clear attachments" -> {
+                    clearAttachments()
+                    true
+                }
+                "Photo" -> {
+                    pickPhoto()
+                    true
+                }
+                "Video" -> {
+                    pickVideo()
+                    true
+                }
+                "Audio" -> {
+                    pickAudio()
+                    true
+                }
+                "File" -> {
+                    pickFile()
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
+    private fun addAttachment(attachment: VkAttachment) {
+        attachmentsToLoad += attachment
+        binding.attachmentsCounter.visible()
+        binding.attachmentsCounter.text = attachmentsToLoad.size.toString()
+
+        binding.attachmentsList.visible()
+        attachmentsAdapter.add(attachment)
+
+        attachmentController.showPanel()
+
+        actionState.setIfNotEquals(
+            if (attachmentController.isEditing) Action.EDIT
+            else Action.SEND
+        )
+    }
+
+    private fun removeAttachment(attachment: VkAttachment) {
+        attachmentsToLoad -= attachment
+        binding.attachmentsCounter.visible()
+        binding.attachmentsCounter.text = attachmentsToLoad.size.toString()
+
+        binding.attachmentsList.visible()
+
+        attachmentController.showPanel()
+
+        if (attachmentsToLoad.isEmpty()) {
+            clearAttachments()
+        } else {
+            attachmentsAdapter.remove(attachment)
+        }
+    }
+
+    private fun clearAttachments() {
+        attachmentsToLoad.clear()
+        binding.attachmentsCounter.gone()
+        binding.attachmentsCounter.text = null
+
+        attachmentsAdapter.clear()
+        binding.attachmentsList.gone()
+
+        attachmentController.hidePanel()
+    }
+
+    private fun pickPhoto() {
+        getContent.launch(MediaType.ANY_IMAGE_TYPE.mimeType)
+    }
+
+    private fun pickVideo() {
+        getContent.launch(MediaType.ANY_VIDEO_TYPE.mimeType)
+    }
+
+    private fun pickAudio() {
+        getContent.launch(MediaType.MPEG_AUDIO.mimeType)
+    }
+
+    private fun pickFile() {
+        pickFile = true
+        getContent.launch(MediaType.ANY_TYPE.mimeType)
+    }
+
+    fun scrollToMessage(messageId: Int) {
+        adapter.searchMessageIndex(messageId)?.let { index ->
+            binding.recyclerView.scrollToPosition(index)
+        }
     }
 
     private fun prepareAvatar() {
         val avatar = when {
-            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
             conversation.isUser() -> user?.photo200
             conversation.isGroup() -> group?.photo200
             conversation.isChat() -> conversation.photo200
             else -> null
         }
 
-        val colorOnPrimary = getColor(R.color.colorOnPrimary)
-        val colorUserAvatarAction = getColor(R.color.colorUserAvatarAction)
-        val colorOnUserAvatarAction = getColor(R.color.colorOnUserAvatarAction)
+        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
+        val avatarImageView: ImageView? = avatarMenuItem.actionView?.findViewById(R.id.avatar)
 
-        val icLauncherColor = getColor(R.color.a1_500)
-
-        binding.avatar.toggleVisibility(avatar != null)
-
-        if (avatar == null) {
-            binding.avatarPlaceholder.visible()
-
-            if (conversation.ownerId == VKConstants.FAST_GROUP_ID) {
-                binding.placeholderBack.loadWithGlide(
-                    drawable = ColorDrawable(icLauncherColor),
-                    transformations = ImageLoader.userAvatarTransformations
-                )
-                binding.placeholder.imageTintList =
-                    ColorStateList.valueOf(colorOnPrimary)
-                binding.placeholder.setImageResource(R.drawable.ic_fast_logo)
-                binding.placeholder.setPadding(18)
-            } else {
-                binding.placeholderBack.loadWithGlide(
-                    drawable = ColorDrawable(colorOnUserAvatarAction),
-                    transformations = ImageLoader.userAvatarTransformations
-                )
-                binding.placeholder.imageTintList =
-                    ColorStateList.valueOf(colorUserAvatarAction)
-                binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
-                binding.placeholder.setPadding(0)
-                binding.avatar.clear()
-            }
-        } else {
-            binding.avatar.load(avatar) {
-                crossfade(200)
-                target {
-                    binding.avatarPlaceholder.gone()
-                    binding.avatar.setImageDrawable(it)
-                }
-            }
-        }
-
-        binding.phantomIcon.toggleVisibility(conversation.isPhantom)
-        binding.online.toggleVisibility(user?.online)
+        avatarImageView?.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
     }
 
     private fun performAction() {
-        when (action.value) {
+        when (actionState.value) {
             Action.RECORD -> {
             }
             Action.SEND -> {
-                val messageText = binding.message.text.toString().trim()
-                if (messageText.isBlank()) return
+                val messageText = binding.message.trimmedText
+                if (messageText.isBlank() && attachmentsToLoad.isEmpty()) {
+                    Log.d(
+                        "MessagesHistoryFragment",
+                        "performAction: SEND: messageText is empty & attachments is empty. return"
+                    )
+                    return
+                }
 
                 val date = System.currentTimeMillis()
 
                 val messageIndex = adapter.lastPosition
+
+                val attachments = attachmentsToLoad.ifEmpty { null }?.toList()
+                clearAttachments()
 
                 val message = VkMessage(
                     id = Int.MAX_VALUE,
@@ -352,9 +634,14 @@ class MessagesHistoryFragment :
                     peerId = conversation.id,
                     fromId = UserConfig.userId,
                     date = (date / 1000).toInt(),
-                    randomId = 0,
-                    replyMessage = attachmentController.message.value
-                )
+                    randomId = Random.nextInt(),
+                    replyMessage = attachmentController.message.value,
+                    attachments = attachments,
+                ).also {
+                    it.state = VkMessage.State.Sending
+                }
+
+                Log.d("LongPollUpdatesParser", "newMessageRandomId: ${message.randomId}")
 
                 adapter.add(message, beforeFooter = true, commitCallback = {
                     binding.recyclerView.scrollToPosition(adapter.lastPosition)
@@ -366,14 +653,25 @@ class MessagesHistoryFragment :
 
                 viewModel.sendMessage(
                     peerId = conversation.id,
-                    message = messageText,
-                    randomId = 0,
+                    message = messageText.ifBlank { null },
+                    randomId = message.randomId,
                     replyTo = replyMessage?.id,
                     setId = { messageId ->
                         val messageToUpdate = adapter[messageIndex] as VkMessage
                         messageToUpdate.id = messageId
-                        adapter[messageIndex] = messageToUpdate
-                    }
+                        messageToUpdate.state = VkMessage.State.Sent
+                        adapter.notifyItemChanged(messageIndex, "kek")
+//                        adapter[messageIndex] = messageToUpdate
+                        attachmentsAdapter.clear()
+                    },
+                    onError = {
+                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        messageToUpdate.state = VkMessage.State.Error
+                        adapter.notifyItemChanged(messageIndex, "kek")
+//                        adapter[messageIndex] = messageToUpdate
+                        attachmentsAdapter.clear()
+                    },
+                    attachments = attachments
                 )
             }
             Action.EDIT -> {
@@ -397,35 +695,11 @@ class MessagesHistoryFragment :
         }
     }
 
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
-
-        when (event) {
-            is StartProgressEvent -> onProgressStarted()
-            is StopProgressEvent -> onProgressStopped()
-
-            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
-            is MessagesLoadedEvent -> refreshMessages(event)
-            is MessagesPinEvent -> conversation.pinnedMessage = event.message
-            is MessagesUnpinEvent -> conversation.pinnedMessage = null
-            is MessagesDeleteEvent -> deleteMessages(event)
-            is MessagesEditEvent -> editMessage(event)
-        }
-    }
-
-    private fun onProgressStarted() {
-        binding.progressBar.isVisible = adapter.isEmpty()
-        binding.refreshLayout.isRefreshing = adapter.isNotEmpty()
-    }
-
-    private fun onProgressStopped() {
-        binding.progressBar.isVisible = false
-        binding.refreshLayout.isRefreshing = false
-    }
-
     private fun prepareViews() {
         prepareRecyclerView()
         prepareRefreshLayout()
+        prepareEmojiButton()
+        prepareAttachmentsList()
     }
 
     private fun prepareRecyclerView() {
@@ -446,28 +720,57 @@ class MessagesHistoryFragment :
             setColorSchemeColors(
                 AndroidUtils.getThemeAttrColor(
                     requireContext(),
-                    R.attr.colorAccent
+                    R.attr.colorPrimary
                 )
             )
             setOnRefreshListener { viewModel.loadHistory(peerId = conversation.id) }
         }
     }
 
+    private fun prepareEmojiButton() {
+        binding.emoji.setOnLongClickListener {
+            val text = binding.message.text.toString() + AppGlobal.preferences.getString(
+                SettingsPrefsFragment.PrefFastText, SettingsPrefsFragment.PrefFastTextDefaultValue
+            )
+            binding.message.setText(text)
+            binding.message.selectLast()
+
+            binding.emoji.animate()
+                .scaleX(1.25f)
+                .scaleY(1.25f)
+                .setDuration(100)
+                .withEndAction {
+                    if (view == null) return@withEndAction
+
+                    binding.emoji.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(100)
+                        .start()
+                }.start()
+            true
+        }
+    }
+
+    private fun prepareAttachmentsList() {
+        binding.attachmentsList.addItemDecoration(
+            SpaceItemDecoration(endMargin = 4.dpToPx())
+        )
+        binding.attachmentsList.adapter = attachmentsAdapter
+    }
+
     private fun markMessagesAsImportant(event: MessagesMarkAsImportantEvent) {
-        var changed = false
-        val positions = mutableListOf<Int>()
+        val newList = adapter.cloneCurrentList()
 
-        for (i in adapter.indices) {
-            val message = adapter[i] as VkMessage
-            message.important = event.important
+        for (i in newList.indices) {
+            val item = newList[i]
+            val message: VkMessage = (if (item !is VkMessage) null else item) ?: continue
             if (event.messagesIds.contains(message.id)) {
-                if (!changed) changed = true
-
-                positions.add(i)
-
-                adapter[i] = message
+                newList[i] = message.copy(important = event.important)
             }
         }
+
+        adapter.submitList(newList)
     }
 
     private fun refreshMessages(event: MessagesLoadedEvent) {
@@ -485,6 +788,7 @@ class MessagesHistoryFragment :
             withHeader = true,
             withFooter = true,
             commitCallback = {
+                if (view == null) return@setItems
                 if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
                 else binding.recyclerView.scrollToPosition(adapter.lastPosition)
             }
@@ -517,11 +821,6 @@ class MessagesHistoryFragment :
             ).format(message.date * 1000L)
         )
 
-        val important = getString(
-            if (message.important) R.string.message_context_action_unmark_as_important
-            else R.string.message_context_action_mark_as_important
-        )
-
         val reply = getString(R.string.message_context_action_reply)
 
         val isMessageAlreadyPinned = message.id == conversation.pinnedMessage?.id
@@ -531,23 +830,46 @@ class MessagesHistoryFragment :
             else R.string.message_context_action_pin
         )
 
+        val important = getString(
+            if (message.important) R.string.message_context_action_unmark_as_important
+            else R.string.message_context_action_mark_as_important
+        )
+
+        val read = "Mark as read"
+
         val edit = getString(R.string.message_context_action_edit)
 
         val delete = getString(R.string.message_context_action_delete)
 
-        val params = mutableListOf(
-            important, reply
-        )
+        val params = mutableListOf<String>()
+        val onlySentParams = mutableListOf<String>()
+
+        params += reply
+        onlySentParams += reply
 
         if (conversation.canChangePin) {
             params += pin
+            onlySentParams += pin
+        }
+
+        params += important
+        onlySentParams += important
+
+        if (!message.isRead(conversation) && !message.isOut) {
+            params += read
+            onlySentParams += read
         }
 
         if (message.canEdit()) {
             params += edit
+            onlySentParams += edit
         }
 
         params += delete
+
+        if (!message.isSent()) {
+            params.removeAll(onlySentParams)
+        }
 
         val arrayParams = params.toTypedArray()
 
@@ -555,20 +877,23 @@ class MessagesHistoryFragment :
             .setTitle(time)
             .setItems(arrayParams) { _, which ->
                 when (params[which]) {
-                    important -> viewModel.markAsImportant(
-                        messagesIds = listOf(message.id),
-                        important = !message.important
-                    )
                     reply -> {
                         if (attachmentController.message.value != message)
                             attachmentController.message.value = message
                     }
-                    pin ->
-                        showPinMessageDialog(
-                            peerId = conversation.id,
-                            messageId = message.id,
-                            pin = !isMessageAlreadyPinned
-                        )
+                    pin -> showPinMessageDialog(
+                        peerId = conversation.id,
+                        messageId = message.id,
+                        pin = !isMessageAlreadyPinned
+                    )
+                    important -> viewModel.markAsImportant(
+                        messagesIds = listOf(message.id),
+                        important = !message.important
+                    )
+                    read -> viewModel.readMessage(
+                        conversation.id,
+                        message.id
+                    )
                     edit -> {
                         attachmentController.isEditing = true
 
@@ -600,7 +925,7 @@ class MessagesHistoryFragment :
                     pin = pin
                 )
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -613,15 +938,25 @@ class MessagesHistoryFragment :
         )
 
         binding.check.isEnabled =
-            (conversation.id != UserConfig.userId) && (!message.isOut || message.canEdit())
+            message.isSent() && ((conversation.id != UserConfig.userId) && (!message.isOut || message.canEdit()))
 
-        if (conversation.id == UserConfig.userId) binding.check.isChecked = true
+        if (message.isSent() && conversation.id == UserConfig.userId ||
+            (binding.check.isEnabled && message.isOut)
+        ) binding.check.isChecked = true
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.confirm_delete_message)
             .setView(binding.root)
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 attachmentController.message.value = null
+
+                if (message.isError()) {
+                    adapter.searchIndexOf(message)?.let { index ->
+                        adapter.removeAt(index)
+                    }
+
+                    return@setPositiveButton
+                }
 
                 viewModel.deleteMessage(
                     peerId = conversation.id,
@@ -630,18 +965,123 @@ class MessagesHistoryFragment :
                     deleteForAll = if (!binding.check.isEnabled) null else binding.check.isChecked
                 )
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
     private fun deleteMessages(event: MessagesDeleteEvent) {
-        val messagesToDelete = event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
+        if (event.peerId != conversation.id) return
+        val messagesToDelete =
+            event.messagesIds.mapNotNull { id -> adapter.searchMessageById(id) }
         adapter.removeAll(messagesToDelete)
     }
 
     private fun editMessage(event: MessagesEditEvent) {
+        if (event.message.peerId != conversation.id) return
         adapter.searchMessageIndex(event.message.id)?.let { index ->
             adapter[index] = event.message
+            adapter.notifyItemChanged(index)
+        }
+    }
+
+    private fun readMessages(event: MessagesReadEvent) {
+        if (event.peerId != conversation.id) return
+
+        val oldOutRead = conversation.outRead
+        val oldInRead = conversation.inRead
+
+        if (event.isOut) {
+            conversation.outRead = event.messageId
+        } else {
+            conversation.inRead = event.messageId
+        }
+
+        val positionsToUpdate = mutableListOf<Int>()
+        val newList = adapter.cloneCurrentList()
+        for (i in newList.indices) {
+            val message = newList[i]
+            if (message !is VkMessage) continue
+
+            if ((message.isOut && conversation.outRead - oldOutRead > 0 && message.id > oldOutRead) ||
+                (!message.isOut && conversation.inRead - oldInRead > 0 && message.id > oldInRead)
+            ) {
+                positionsToUpdate += i
+            }
+        }
+
+        positionsToUpdate.forEach { index ->
+            adapter.notifyItemChanged(index)
+
+            if (binding.unreadCounter.isVisible) {
+                setUnreadCounterVisibility(
+                    (binding.recyclerView.layoutManager as LinearLayoutManager)
+                        .findLastCompletelyVisibleItemPosition()
+                )
+            }
+        }
+    }
+
+    @Suppress("NAME_SHADOWING")
+    private fun setUnreadCounterVisibility(
+        lastCompletelyVisiblePosition: Int,
+        dy: Int? = null
+    ) {
+        if (lastCompletelyVisiblePosition >= adapter.lastPosition - 1) {
+            setUnreadCounterVisibility(false)
+        } else {
+            if (adapter.containsUnreadMessages()) {
+                setUnreadCounterVisibility(true)
+            } else {
+                if (dy == null) {
+                    setUnreadCounterVisibility(false)
+                } else {
+                    if (dy > 0) {
+                        if (dy > 40) setUnreadCounterVisibility(true)
+                    } else {
+                        if (dy < -40) setUnreadCounterVisibility(false)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun addNewMessage(event: MessagesNewEvent) {
+        if (event.message.peerId != conversation.id) return
+
+        adapter.profiles += event.profiles
+        adapter.groups += event.groups
+
+        if (adapter.containsRandomId(event.message.randomId)
+            || adapter.containsId(event.message.id)
+        ) return
+
+        val itemCount = adapter.itemCount
+
+        adapter.add(event.message, beforeFooter = true) {
+            if (view == null) return@add
+
+            val lastVisiblePosition =
+                (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+
+            if (abs(lastVisiblePosition - adapter.lastPosition) <= 3) {
+                binding.recyclerView.scrollToPosition(adapter.lastPosition)
+            } else {
+                setUnreadCounterVisibility(true)
+                // add counter of unread
+            }
+        }
+        adapter.notifyItemRangeChanged(0, itemCount, "avatars")
+    }
+
+    private fun setUnreadCounterVisibility(isVisible: Boolean) {
+        if (view == null) return
+
+        binding.unreadCounter.run {
+            if (isVisible) {
+                show()
+            } else {
+                hide()
+            }
         }
     }
 
@@ -665,11 +1105,15 @@ class MessagesHistoryFragment :
         }
 
         private fun applyMessage(message: VkMessage) {
-            val title = when {
-                message.isGroup() && message.group.value != null -> message.group.value?.name
-                message.isUser() && message.user.value != null -> message.user.value?.fullName
-                else -> null
-            }
+            val messageUser: VkUser? =
+                if (message.isUser()) adapter.profiles[message.fromId]
+                else null
+            val messageGroup: VkGroup? =
+                if (message.isGroup()) adapter.groups[message.fromId]
+                else null
+            val title = VkUtils.getMessageTitle(
+                message, messageUser, messageGroup
+            )
 
             val attachmentText = if (message.text == null) VkUtils.getAttachmentText(
                 context = requireContext(),
@@ -689,13 +1133,22 @@ class MessagesHistoryFragment :
 
             if (isEditing) {
                 binding.message.setText(message.text)
+                binding.message.setSelection(message.text?.length ?: 0)
+                binding.message.requestFocusFromTouch()
+                binding.message.showKeyboard()
             }
+
+            binding.replyMessage.visible()
 
             showPanel()
         }
 
         private fun clearMessage() {
-            hidePanel()
+            if (attachmentsToLoad.isEmpty()) {
+                hidePanel()
+            }
+
+            binding.replyMessage.gone()
 
             binding.replyMessageTitle.clear()
             binding.replyMessageText.clear()
@@ -706,66 +1159,100 @@ class MessagesHistoryFragment :
             }
         }
 
-        private fun showPanel() {
-            binding.attachmentPanel.visible()
-            binding.attachmentPanel.measure(
-                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
-            )
+        fun showPanel() {
+            if (isPanelVisible.requireValue()) return
 
-            if (attachmentController.isPanelVisible.value == false)
+            binding.attachmentPanel.visible()
+//            binding.attachmentPanel.measure(
+//                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
+//            )
+
+            if (!attachmentController.isPanelVisible.requireValue())
                 attachmentController.isPanelVisible.value = true
 
-            val measuredHeight = binding.attachmentPanel.measuredHeight
+//            binding.attachmentPanel.visible()
 
-            binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
-                height = 0
-            }
-
-            binding.attachmentPanel.animate()
-                .translationY(0f)
-                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
-                .start()
-
-            ValueAnimator.ofInt(0, measuredHeight).apply {
-                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
-                interpolator = LinearInterpolator()
-
-                addUpdateListener { animator ->
-                    if (view == null) return@addUpdateListener
-                    val value = animator.animatedValue as Int
-                    binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
-                        height = value
-                    }
-                }
-            }.start()
+//            val measuredHeight = binding.attachmentPanel.measuredHeight
+//
+//            binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                height = 0
+//            }
+//
+//            binding.attachmentPanel.animate()
+//                .translationY(0f)
+//                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
+//                .start()
+//
+//            ValueAnimator.ofInt(0, measuredHeight).apply {
+//                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+//                interpolator = LinearInterpolator()
+//
+//                addUpdateListener { animator ->
+//                    if (view == null) return@addUpdateListener
+//                    val value = animator.animatedValue as Int
+//
+//                    if (value >= 36.dpToPx()) {
+//                        binding.attachmentPanel.visible()
+//                    }
+//
+//                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                        height = value
+//                    }
+//                }
+//            }.start()
         }
 
-        private fun hidePanel() {
-            if (attachmentController.isPanelVisible.value == true)
+        fun hidePanel() {
+            if (!isPanelVisible.requireValue() ||
+                attachmentsToLoad.isNotEmpty() ||
+                message.value != null
+            ) return
+
+            if (attachmentController.isPanelVisible.requireValue())
                 attachmentController.isPanelVisible.value = false
 
-            val currentHeight = binding.attachmentPanel.height
+            binding.attachmentPanel.gone()
 
-            binding.attachmentPanel.animate()
-                .translationY(75F)
-                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
-                .start()
-
-            ValueAnimator.ofInt(currentHeight, 0).apply {
-                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
-                interpolator = LinearInterpolator()
-
-                addUpdateListener { animator ->
-                    if (view == null) return@addUpdateListener
-                    val value = animator.animatedValue as Int
-
-                    binding.attachmentPanel.updateLayoutParams<CoordinatorLayout.LayoutParams> {
-                        height = value
-                    }
-                }
-            }.start()
+//            val currentHeight = binding.attachmentPanel.height
+//
+//            binding.attachmentPanel.animate()
+//                .translationY(75F)
+//                .setDuration(ATTACHMENT_PANEL_ANIMATION_DURATION)
+//                .start()
+//
+//            ValueAnimator.ofInt(currentHeight, 0).apply {
+//                duration = ATTACHMENT_PANEL_ANIMATION_DURATION
+//                interpolator = LinearInterpolator()
+//
+//                addUpdateListener { animator ->
+//                    if (view == null) return@addUpdateListener
+//                    val value = animator.animatedValue as Int
+//
+//                    if (value <= 36.dpToPx()) {
+//                        binding.attachmentPanel.gone()
+//                    }
+//
+//                    binding.attachmentPanel.updateLayoutParams<ConstraintLayout.LayoutParams> {
+//                        height = value
+//                    }
+//                }
+//                doOnEnd {
+//                    if (view == null) return@doOnEnd
+//                    binding.attachmentPanel.gone()
+//                }
+//            }.start()
         }
+    }
 
+    fun openForwardsScreen(
+        conversation: VkConversation,
+        messages: List<VkMessage>,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ) {
+        requireActivityRouter().navigateTo(
+            Screens.ForwardedMessages(conversation, messages, profiles, groups)
+        )
     }
 
 }

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.viewModels
-import com.meloda.fast.base.BaseViewModelFragment
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

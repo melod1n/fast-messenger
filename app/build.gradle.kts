@@ -1,11 +1,16 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-val login: String = gradleLocalProperties(rootDir).getProperty("vkLogin")
-val password: String = gradleLocalProperties(rootDir).getProperty("vkPassword")
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 
 val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
+
+val msAppCenterToken: String =
+    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", null)
+val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode")
+
+val majorVersion = 1
+val minorVersion = 6
+val patchVersion = 4
 
 plugins {
     id("com.android.application")
@@ -16,15 +21,23 @@ plugins {
 }
 
 android {
-    compileSdk = 31
-    buildToolsVersion = "31.0.0"
+    namespace = "com.meloda.fast"
+
+    compileSdk = 32
+
+    applicationVariants.all {
+        outputs.all {
+            (this as BaseVariantOutputImpl).outputFileName =
+                "${name}-${versionName}-${versionCode}.apk"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.meloda.fast"
         minSdk = 23
-        targetSdk = 30
+        targetSdk = 32
         versionCode = 1
-        versionName = "1.0"
+        versionName = "alpha"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -35,24 +48,27 @@ android {
 
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "vkLogin", login)
-            buildConfigField("String", "vkPassword", password)
-
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
+
+            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
+
+            buildConfigField("String", "otaSecretCode", otaSecretCode)
+
+            versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
             isMinifyEnabled = false
 
-            buildConfigField("String", "vkLogin", login)
-            buildConfigField("String", "vkPassword", password)
-
             buildConfigField("String", "sdkPackage", sdkPackage)
             buildConfigField("String", "sdkFingerprint", sdkFingerprint)
 
+            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
+
+            buildConfigField("String", "otaSecretCode", otaSecretCode)
+
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -62,74 +78,88 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjvm-default=compatibility", "-opt-in=kotlin.RequiresOptIn")
+    }
+
     buildFeatures {
         viewBinding = true
     }
 }
 
-kapt {
-    correctErrorTypes = true
+fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 
-    //use this shit if you don't want have hilt errors
-    javacOptions {
-        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-    }
-}
+val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
-    // Cicerone - Navigation
-    implementation("com.github.terrakok:cicerone:7.1")
+    implementation(kotlin("reflect", "1.6.10"))
 
-    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
+    implementation(libs.androidx.core)
 
-    implementation("com.github.massoudss:waveformSeekBar:3.1.0")
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.livedata)
+    implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
+    implementation(libs.androidx.lifecycle.common.java8)
 
-    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
+    implementation(libs.androidx.splashScreen)
 
-    implementation("androidx.work:work-runtime-ktx:2.7.1")
+    implementation(libs.androidx.dataStore)
 
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.androidx.appCompat)
 
-    implementation("androidx.paging:paging-runtime-ktx:3.1.1")
+    implementation(libs.androidx.activity)
 
-    implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("com.google.android.material:material:1.6.0-beta01")
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.preference:preference-ktx:1.2.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.fragment:fragment-ktx:1.4.1")
+    implementation(libs.androidx.fragment)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
+    implementation(libs.androidx.preference)
 
-    implementation("androidx.room:room-ktx:2.4.2")
-    implementation("androidx.room:room-runtime:2.4.2")
-    kapt("androidx.room:room-compiler:2.4.2")
+    implementation(libs.androidx.swipeRefreshLayout)
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.4.1")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.4.1")
+    implementation(libs.androidx.recyclerView)
 
-    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.androidx.cardView)
 
-    implementation("com.google.dagger:hilt-android:2.39.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.39.1")
+    implementation(libs.androidx.constraintLayout)
 
-    implementation("com.github.yogacp:android-viewbinding:1.0.4")
+    implementation(libs.androidx.room)
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
 
-    implementation("io.coil-kt:coil:1.4.0")
+    implementation(libs.cicerone)
 
-    implementation("com.google.code.gson:gson:2.8.8")
-    implementation("org.jsoup:jsoup:1.14.3")
-    implementation("ch.acra:acra:4.11.1")
+    implementation(libs.waveformSeekBar)
 
-    implementation("com.github.bumptech.glide:glide:4.13.0")
-    kapt("com.github.bumptech.glide:compiler:4.13.0")
+    implementation(libs.glide)
+    kapt(libs.glide.compiler)
+
+    implementation(libs.kPermissions)
+    implementation(libs.kPermissions.coroutines)
+
+    implementation(libs.appCenter.analytics)
+    implementation(libs.appCenter.crashes)
+
+    implementation(libs.hilt)
+    kapt(libs.hilt.compiler)
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson.converter)
+
+    implementation(libs.okhttp3)
+    implementation(libs.okhttp3.interceptor)
+
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    implementation(libs.viewBindingDelegate)
+
+    implementation(libs.google.gson)
+
+    implementation(libs.google.guava)
+
+    implementation(libs.google.material)
+
+    implementation(libs.jsoup)
+
+    implementation(libs.chucker)
 }

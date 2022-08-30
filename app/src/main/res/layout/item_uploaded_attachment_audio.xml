@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="100dp"
+    android:layout_height="100dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/colored_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="?colorPrimaryVariant" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_round_play_arrow_24"
+            app:tint="@color/a3_700" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/google_sans_regular"
+            android:maxLines="1"
+            android:textColor="?colorOnBackground"
+            android:textSize="14sp"
+            tools:text="Some title" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/close"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="end|top"
+        android:layout_margin="4dp"
+        android:background="@drawable/ic_close_in_circle"
+        android:backgroundTint="?colorBackground"
+        android:elevation="3dp"
+        android:padding="4dp"
+        android:src="@drawable/ic_round_close_20"
+        android:tint="?colorOnBackground" />
+
+</FrameLayout>

@@ -17,16 +17,4 @@
         <item name="cornerRadius">15dp</item>
     </style>
 
-    <style name="CollapsingToolbarTitle">
-        <item name="fontFamily">@font/google_sans_regular</item>
-        <item name="android:textColor">@color/n1_900</item>
-        <item name="android:textSize">42sp</item>
-    </style>
-
-    <style name="CollapsingToolbarCollapsedTitle">
-        <item name="fontFamily">@font/google_sans_regular</item>
-        <item name="android:textColor">@color/n1_900</item>
-        <item name="android:textSize">20sp</item>
-    </style>
-
 </resources>

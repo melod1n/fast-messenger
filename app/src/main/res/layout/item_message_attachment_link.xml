@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<com.meloda.fast.view.BoundedLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
@@ -11,7 +11,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp">
 
-        <com.meloda.fast.widget.CircleImageView
+        <com.meloda.fast.view.CircleImageView
             android:id="@+id/preview"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -57,4 +57,4 @@
             app:fontFamily="@font/roboto_regular"
             tools:text="vk.com/melod1n" />
     </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.appcompat.widget.LinearLayoutCompat>
+</com.meloda.fast.view.BoundedLinearLayout>

@@ -1,6 +1,7 @@
 package com.meloda.fast.common
 
 import android.app.Application
+import android.app.DownloadManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
@@ -12,10 +13,9 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.meloda.fast.BuildConfig
 import com.meloda.fast.database.AppDatabase
 import dagger.hilt.android.HiltAndroidApp
-import org.acra.ACRA
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 @HiltAndroidApp
@@ -26,6 +26,7 @@ class AppGlobal : Application() {
         lateinit var inputMethodManager: InputMethodManager
         lateinit var connectivityManager: ConnectivityManager
         lateinit var clipboardManager: ClipboardManager
+        lateinit var downloadManager: DownloadManager
 
         lateinit var preferences: SharedPreferences
         lateinit var resources: Resources
@@ -37,10 +38,12 @@ class AppGlobal : Application() {
         lateinit var packageManager: PackageManager
 
         var versionName = ""
-        var versionCode = 0L
+        var versionCode = 0
 
         var screenWidth = 0
         var screenHeight = 0
+
+        var screenWidth80 = 0
 
         val Instance get() = instance
     }
@@ -49,19 +52,15 @@ class AppGlobal : Application() {
         super.onCreate()
         instance = this
 
-        if (!BuildConfig.DEBUG) {
-            ACRA.init(this)
-        }
-
         appDatabase = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
-            .fallbackToDestructiveMigration()
+//            .fallbackToDestructiveMigration()
             .build()
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
-        versionCode = PackageInfoCompat.getLongVersionCode(info)
+        versionCode = PackageInfoCompat.getLongVersionCode(info).toInt()
 
         Companion.resources = resources
         Companion.packageName = packageName
@@ -69,6 +68,8 @@ class AppGlobal : Application() {
 
         screenWidth = resources.displayMetrics.widthPixels
         screenHeight = resources.displayMetrics.heightPixels
+
+        screenWidth80 = (screenWidth * 0.8).roundToInt()
 
         val density = resources.displayMetrics.density
         val densityDpi = resources.displayMetrics.densityDpi
@@ -82,11 +83,12 @@ class AppGlobal : Application() {
 
         Log.i(
             "Fast::DeviceInfo",
-            "width: $screenWidth; height: $screenHeight; density: $density; diagonal: $diagonal; dpiDensity: $densityDpi; scaledDensity: $densityScaled; xDpi: $xDpi; yDpi: $yDpi"
+            "width: $screenWidth; 70% width: $screenWidth80; height: $screenHeight; density: $density; diagonal: $diagonal; dpiDensity: $densityDpi; scaledDensity: $densityScaled; xDpi: $xDpi; yDpi: $yDpi"
         )
 
         inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
 }

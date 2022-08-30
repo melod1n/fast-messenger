@@ -11,16 +11,20 @@ class AuthInterceptor : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val builder = chain.request().url.newBuilder()
-            .addQueryParameter("v", URLEncoder.encode(VKConstants.API_VERSION, "utf-8"))
 
+        val url = builder.build().toUrl().toString()
 
-        if (!builder.build().toUrl().toString().contains(AccountUrls.SetOnline))
+        if (!url.contains("upload.php")) {
+            builder.addQueryParameter("v", URLEncoder.encode(VKConstants.API_VERSION, "utf-8"))
+        }
+
+        if (!url.contains(AccountUrls.SetOnline) && !url.contains("upload.php")) {
             UserConfig.accessToken.let {
                 if (it.isNotBlank())
                     builder.addQueryParameter("access_token", URLEncoder.encode(it, "utf-8"))
             }
+        }
 
-        // TODO: 9/29/2021 crash on timeout
         return chain.proceed(chain.request().newBuilder().apply { url(builder.build()) }.build())
 
     }

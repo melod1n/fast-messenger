@@ -6,7 +6,9 @@ import android.graphics.drawable.Drawable
 import android.text.SpannableString
 import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
+import com.google.gson.Gson
 import com.meloda.fast.R
+import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -14,7 +16,10 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
+import com.meloda.fast.api.network.*
+import com.meloda.fast.extensions.orDots
 
+@Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
 
     fun <T> attachmentToString(
@@ -44,12 +49,12 @@ object VkUtils {
 
     fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
         return (if (!message.isUser()) null
-        else profiles[message.fromId]).also { message.user.value = it }
+        else profiles[message.fromId]).also { message.user = it }
     }
 
     fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!message.isGroup()) null
-        else groups[message.fromId]).also { message.group.value = it }
+        else groups[message.fromId]).also { message.group = it }
     }
 
     fun getMessageAvatar(
@@ -66,9 +71,19 @@ object VkUtils {
 
     fun getMessageTitle(
         message: VkMessage,
-        messageUser: VkUser?,
-        messageGroup: VkGroup?
+        defMessageUser: VkUser? = null,
+        defMessageGroup: VkGroup? = null,
+        profiles: Map<Int, VkUser>? = null,
+        groups: Map<Int, VkGroup>? = null
     ): String? {
+        val messageUser: VkUser? =
+            defMessageUser ?: if (profiles == null) null
+            else profiles[message.fromId]
+
+        val messageGroup: VkGroup? =
+            defMessageGroup ?: if (groups == null) null
+            else groups[message.fromId]
+
         return when {
             message.isUser() -> messageUser?.fullName
             message.isGroup() -> messageGroup?.name
@@ -78,12 +93,12 @@ object VkUtils {
 
     fun getConversationUser(conversation: VkConversation, profiles: Map<Int, VkUser>): VkUser? {
         return (if (!conversation.isUser()) null
-        else profiles[conversation.id]).also { conversation.user.value = it }
+        else profiles[conversation.id]).also { conversation.user.postValue(it) }
     }
 
     fun getConversationGroup(conversation: VkConversation, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!conversation.isGroup()) null
-        else groups[conversation.id]).also { conversation.group.value = it }
+        else groups[conversation.id]).also { conversation.group.postValue(it) }
     }
 
     fun getConversationAvatar(
@@ -92,12 +107,59 @@ object VkUtils {
         conversationGroup: VkGroup?
     ): String? {
         return when {
-            conversation.ownerId == VKConstants.FAST_GROUP_ID -> null
+            conversation.isAccount() -> null
             conversation.isUser() -> conversationUser?.photo200
             conversation.isGroup() -> conversationGroup?.photo200
             conversation.isChat() -> conversation.photo200
             else -> null
         }
+    }
+
+    fun getConversationTitle(
+        context: Context,
+        conversation: VkConversation,
+        defConversationUser: VkUser? = null,
+        defConversationGroup: VkGroup? = null,
+        profiles: Map<Int, VkUser>? = null,
+        groups: Map<Int, VkGroup>? = null
+    ): String? {
+        val conversationUser: VkUser? =
+            defConversationUser ?: if (profiles == null) null
+            else getConversationUser(conversation, profiles)
+
+        val conversationGroup: VkGroup? =
+            defConversationGroup ?: if (groups == null) null
+            else getConversationGroup(conversation, groups)
+
+        return when {
+            conversation.isAccount() -> context.getString(R.string.favorites)
+            conversation.isChat() -> conversation.title
+            conversation.isUser() -> conversationUser?.fullName
+            conversation.isGroup() -> conversationGroup?.name
+            else -> null
+        }
+    }
+
+    fun getConversationUserGroup(
+        conversation: VkConversation,
+        profiles: Map<Int, VkUser>,
+        groups: Map<Int, VkGroup>
+    ): Pair<VkUser?, VkGroup?> {
+        val user: VkUser? = getConversationUser(conversation, profiles)
+        val group: VkGroup? = getConversationGroup(conversation, groups)
+
+        return user to group
+    }
+
+    fun getMessageUserGroup(
+        message: VkMessage,
+        profiles: Map<Int, VkUser>,
+        groups: Map<Int, VkGroup>
+    ): Pair<VkUser?, VkGroup?> {
+        val user: VkUser? = getMessageUser(message, profiles)
+        val group: VkGroup? = getMessageGroup(message, groups)
+
+        return user to group
     }
 
     fun prepareMessageText(text: String, forConversations: Boolean? = null): String {
@@ -231,6 +293,7 @@ object VkUtils {
         messageUser: VkUser? = null,
         messageGroup: VkGroup? = null
     ): SpannableString? {
+        @Suppress("REDUNDANT_ELSE_IN_WHEN")
         return when (message.getPreparedAction()) {
             VkMessage.Action.CHAT_CREATE -> {
                 val text = message.actionText ?: return null
@@ -245,12 +308,14 @@ object VkUtils {
                 val spanText =
                     context.getString(R.string.message_action_chat_created, prefix, text)
 
+                val startIndex = spanText.indexOf(text, startIndex = prefix.length)
+
                 SpannableString(spanText).also {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                     it.setSpan(
                         StyleSpan(Typeface.BOLD),
-                        spanText.indexOf(text, startIndex = prefix.length),
-                        text.length, 0
+                        startIndex,
+                        startIndex + text.length, 0
                     )
                 }
             }
@@ -329,7 +394,7 @@ object VkUtils {
                 } else {
                     val prefix =
                         if (message.fromId == UserConfig.userId) youPrefix
-                        else messageUser?.toString() ?: messageGroup?.toString() ?: "..."
+                        else messageUser?.toString() ?: messageGroup?.toString().orDots()
 
                     val postfix =
                         if (memberId == UserConfig.userId) youPrefix.lowercase()
@@ -374,7 +439,7 @@ object VkUtils {
                     }
                 } else {
                     val prefix = if (message.fromId == UserConfig.userId) youPrefix
-                    else messageUser?.toString() ?: messageGroup?.toString() ?: "..."
+                    else messageUser?.toString() ?: messageGroup?.toString().orDots()
 
                     val postfix =
                         if (memberId == UserConfig.userId) youPrefix.lowercase()
@@ -405,6 +470,20 @@ object VkUtils {
 
                 val spanText =
                     context.getString(R.string.message_action_chat_user_joined_by_link, prefix)
+
+                SpannableString(spanText).also {
+                    it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
+                }
+            }
+            VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                val spanText =
+                    context.getString(R.string.message_action_chat_user_joined_by_call, prefix)
 
                 SpannableString(spanText).also {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
@@ -520,8 +599,8 @@ object VkUtils {
     }
 
     fun getAttachmentText(context: Context, message: VkMessage): String? {
-        message.geoType?.let {
-            return when (it) {
+        message.geo?.let {
+            return when (it.type) {
                 "point" -> context.getString(R.string.message_geo_point)
                 else -> context.getString(R.string.message_geo)
             }
@@ -551,14 +630,14 @@ object VkUtils {
     }
 
     fun getAttachmentConversationIcon(context: Context, message: VkMessage): Drawable? {
-        message.geoType?.let {
-            return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
-        }
-
-        if (message.attachments.isNullOrEmpty()) return null
-
         return message.attachments?.let { attachments ->
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
+                message.geo?.let {
+                    return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
+                }
+
+                if (attachments.isEmpty()) return null
+
                 getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentIconByType(
                         context,
@@ -681,6 +760,39 @@ object VkUtils {
             BaseVkAttachmentItem.AttachmentType.Widget ->
                 context.resources.getString(R.string.message_attachments_widget)
             else -> attachmentType.value
+        }
+    }
+
+    fun getApiError(gson: Gson, errorString: String?): ApiAnswer.Error {
+        try {
+            val defaultError = gson.fromJson(errorString, ApiError::class.java)
+
+            val error: ApiError =
+                when (defaultError.error) {
+                    VkErrorCodes.UserAuthorizationFailed.toString() -> {
+                        val authorizationError =
+                            gson.fromJson(errorString, AuthorizationError::class.java)
+
+                        authorizationError
+                    }
+                    VkErrors.NeedValidation -> {
+                        val validationError =
+                            gson.fromJson(errorString, ValidationRequiredError::class.java)
+
+                        validationError
+                    }
+                    VkErrors.NeedCaptcha -> {
+                        val captchaRequiredError =
+                            gson.fromJson(errorString, CaptchaRequiredError::class.java)
+
+                        captchaRequiredError
+                    }
+                    else -> defaultError
+                }
+
+            return ApiAnswer.Error(error)
+        } catch (e: Exception) {
+            return ApiAnswer.Error(ApiError(throwable = e))
         }
     }
 }

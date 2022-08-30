@@ -27,7 +27,8 @@ data class BaseVkFile(
         ext = ext,
         url = url,
         size = size,
-        accessKey = access_key
+        accessKey = access_key,
+        preview = preview
     )
 
     @Parcelize

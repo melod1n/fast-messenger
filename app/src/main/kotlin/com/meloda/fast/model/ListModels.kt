@@ -1,6 +1,6 @@
 package com.meloda.fast.model
 
-sealed class DataItem<IdType> {
+abstract class DataItem<IdType> {
     abstract val dataItemId: IdType
 
     object Header : DataItem<Int>() {

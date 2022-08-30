@@ -2,34 +2,47 @@ package com.meloda.fast.screens.conversations
 
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
-import androidx.datastore.preferences.core.edit
+import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
-import com.meloda.fast.base.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.AppSettings
-import com.meloda.fast.common.dataStore
+import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.addAvatarMenuItem
 import com.meloda.fast.extensions.gone
+import com.meloda.fast.extensions.tintMenuItemIcons
 import com.meloda.fast.extensions.toggleVisibility
-import com.meloda.fast.screens.messages.MessagesHistoryFragment
+import com.meloda.fast.screens.main.MainActivity
+import com.meloda.fast.screens.main.MainFragment
+import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
+import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -42,7 +55,7 @@ class ConversationsFragment :
     private val adapter: ConversationsAdapter by lazy {
         ConversationsAdapter(
             requireContext(),
-            ConversationsResourceManager(requireContext())
+            ConversationsResourceProvider(requireContext())
         ).also {
             it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
@@ -53,56 +66,149 @@ class ConversationsFragment :
         get() =
             PopupMenu(
                 requireContext(),
-                binding.avatar,
-                Gravity.BOTTOM
+                binding.toolbar,
+                Gravity.BOTTOM or Gravity.END
             ).apply {
+                menu.add("Settings")
                 menu.add(getString(R.string.log_out))
                 setOnMenuItemClickListener { item ->
-                    if (item.title == getString(R.string.log_out)) {
-                        showLogOutDialog()
-                        return@setOnMenuItemClickListener true
+                    return@setOnMenuItemClickListener when (item.title) {
+                        getString(R.string.log_out) -> {
+                            showLogOutDialog()
+                            true
+                        }
+                        "Settings" -> {
+                            requireActivityRouter().navigateTo(Screens.Settings())
+                            true
+                        }
+                        else -> false
                     }
-
-                    false
                 }
             }
 
+    private var toggle: ActionBarDrawerToggle? = null
+
+    private val useNavDrawer: Boolean get() = (requireActivity() as MainActivity).useNavDrawer
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        adapter.isMultilineEnabled =
+            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefMultiline, true)
+
         prepareViews()
 
         binding.recyclerView.adapter = adapter
 
-        lifecycleScope.launch {
-            requireContext().dataStore.data.map {
-                adapter.isMultilineEnabled = it[AppSettings.keyIsMultilineEnabled] ?: true
-                adapter.refreshList()
-            }.collect()
-        }
-
         binding.createChat.setOnClickListener {}
 
-        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
-            user?.run { binding.avatar.loadWithGlide(url = this.photo200, crossFade = true) }
+        binding.toolbar.tintMenuItemIcons(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.colorPrimary
+            )
+        )
+
+        val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
+        val actionView = searchMenuItem.actionView as SearchView
+
+        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+                if (!adapter.isSearching)
+                    adapter.isSearching = true
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+                if (adapter.isSearching)
+                    adapter.isSearching = false
+                return true
+            }
+
+        })
+
+        actionView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Toast.makeText(requireContext(), "API Search: $query", Toast.LENGTH_SHORT).show()
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                adapter.filter.filter(newText)
+                return false
+            }
+
+        })
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            if (searchMenuItem.isActionViewExpanded) {
+                searchMenuItem.collapseActionView()
+            } else {
+                isEnabled = false
+                requireActivity().onBackPressed()
+            }
         }
 
-        binding.avatar.setOnClickListener { avatarPopupMenu.show() }
+        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
+        syncAvatarMenuItem(avatarMenuItem)
 
-        binding.avatar.setOnLongClickListener {
-            lifecycleScope.launch {
-                requireContext().dataStore.edit { settings ->
-                    val isMultilineEnabled = settings[AppSettings.keyIsMultilineEnabled] ?: true
-                    settings[AppSettings.keyIsMultilineEnabled] = !isMultilineEnabled
+        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
+            user?.run {
+                avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
+                    ?.loadWithGlide(
+                        url = this.photo200, crossFade = true, asCircle = true
+                    )
 
-                    adapter.isMultilineEnabled = !isMultilineEnabled
-                    adapter.refreshList()
-                }
+                val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
+                header.findViewById<TextView>(R.id.name).text = user.fullName
+                header.findViewById<ImageView>(R.id.avatar).loadWithGlide(
+                    url = this.photo200, crossFade = true, asCircle = true
+                )
             }
-            true
+        }
+
+        avatarMenuItem.actionView?.run {
+            setOnClickListener { avatarPopupMenu.show() }
         }
 
         viewModel.loadProfileUser()
         viewModel.loadConversations()
+
+        syncToolbarToggle()
+
+        binding.createChat.gone()
+
+        setFragmentResultListener(SettingsPrefsFragment.KeyChangeMultiline) { _, bundle ->
+            val enabled = bundle.getBoolean(SettingsPrefsFragment.ArgEnabled)
+
+            if (adapter.isMultilineEnabled != enabled) {
+                adapter.isMultilineEnabled = enabled
+                adapter.refreshList()
+            }
+        }
+    }
+
+    private fun syncAvatarMenuItem(item: MenuItem) {
+        item.isVisible = !useNavDrawer
+    }
+
+    private fun syncToolbarToggle() {
+        (requireActivity() as MainActivity).let { activity ->
+            if (useNavDrawer) {
+                toggle = ActionBarDrawerToggle(
+                    activity, activity.binding.drawerLayout,
+                    binding.toolbar, R.string.app_name, R.string.app_name
+                ).apply {
+                    isDrawerSlideAnimationEnabled = false
+                    activity.binding.drawerLayout.addDrawerListener(this)
+                    syncState()
+                }
+            } else {
+                toggle?.let { toggle ->
+                    activity.binding.drawerLayout.removeDrawerListener(toggle)
+                }
+            }
+        }
     }
 
     private fun showLogOutDialog() {
@@ -121,6 +227,10 @@ class ConversationsFragment :
                 lifecycleScope.launch(Dispatchers.Default) {
                     UserConfig.clear()
                     AppGlobal.appDatabase.clearAllTables()
+                    setFragmentResult(
+                        MainFragment.KeyStartServices,
+                        bundleOf("enable" to false)
+                    )
 
                     viewModel.openRootScreen()
                 }
@@ -132,13 +242,9 @@ class ConversationsFragment :
     override fun onEvent(event: VkEvent) {
         super.onEvent(event)
         when (event) {
-            is StartProgressEvent -> onProgressStarted()
-            is StopProgressEvent -> onProgressStopped()
-
             is ConversationsLoadedEvent -> refreshConversations(event)
             is ConversationsDeleteEvent -> deleteConversation(event.peerId)
 
-            // TODO: 10-Oct-21 remove this and sort conversations list
             is ConversationsPinEvent -> {
                 adapter.pinnedCount++
                 viewModel.loadConversations()
@@ -150,17 +256,18 @@ class ConversationsFragment :
 
             is MessagesNewEvent -> onMessageNew(event)
             is MessagesEditEvent -> onMessageEdit(event)
+            is MessagesReadEvent -> onMessageRead(event)
         }
     }
 
-    private fun onProgressStarted() {
-        binding.progressBar.toggleVisibility(adapter.isEmpty())
-        binding.refreshLayout.isRefreshing = adapter.isNotEmpty()
-    }
-
-    private fun onProgressStopped() {
-        binding.progressBar.gone()
-        binding.refreshLayout.isRefreshing = false
+    override fun toggleProgress(isProgressing: Boolean) {
+        view?.run {
+            findViewById<View>(R.id.progress_bar).toggleVisibility(
+                if (isProgressing) adapter.isEmpty() else false
+            )
+            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
+                if (isProgressing) adapter.isNotEmpty() else false
+        }
     }
 
     private fun prepareViews() {
@@ -186,7 +293,7 @@ class ConversationsFragment :
             setColorSchemeColors(
                 AndroidUtils.getThemeAttrColor(
                     requireContext(),
-                    R.attr.colorAccent
+                    R.attr.colorPrimary
                 )
             )
             setOnRefreshListener { viewModel.loadConversations() }
@@ -197,7 +304,16 @@ class ConversationsFragment :
         adapter.profiles += event.profiles
         adapter.groups += event.groups
 
-        val pinnedConversations = event.conversations.filter { it.isPinned }
+        if (event.avatars != null) {
+            event.avatars.forEach { avatar ->
+                Glide.with(requireContext())
+                    .load(avatar)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .preload(200, 200)
+            }
+        }
+
+        val pinnedConversations = event.conversations.filter { it.isPinned() }
         adapter.pinnedCount = pinnedConversations.count()
 
         fillRecyclerView(event.conversations)
@@ -218,13 +334,7 @@ class ConversationsFragment :
             if (conversation.isGroup()) adapter.groups[conversation.id]
             else null
 
-        viewModel.openMessagesHistoryScreen(
-            bundleOf(
-                MessagesHistoryFragment.ARG_USER to user,
-                MessagesHistoryFragment.ARG_GROUP to group,
-                MessagesHistoryFragment.ARG_CONVERSATION to conversation
-            )
-        )
+        viewModel.openMessagesHistoryScreen(conversation, user, group)
     }
 
     private fun onItemLongClick(position: Int): Boolean {
@@ -237,23 +347,29 @@ class ConversationsFragment :
 
         var canPinOneMoreDialog = true
         if (adapter.itemCount > 4) {
-            val firstFiveDialogs = adapter.currentList.subList(0, 5)
-            var pinnedCount = 0
+            val pinnedConversations = adapter.cloneCurrentList().filter { it.majorId > 0 }
 
-            firstFiveDialogs.forEach { if (it.isPinned) pinnedCount++ }
-            if (pinnedCount == 5 && position > 4) {
+            if (pinnedConversations.size == 5 && position > 4) {
                 canPinOneMoreDialog = false
             }
         }
 
+        val read = "Mark as read"
+
         val pin = getString(
-            if (conversation.isPinned) R.string.conversation_context_action_unpin
+            if (conversation.isPinned()) R.string.conversation_context_action_unpin
             else R.string.conversation_context_action_pin
         )
 
         val delete = getString(R.string.conversation_context_action_delete)
 
         val params = mutableListOf<String>()
+
+        conversation.lastMessage?.run {
+            if (!this.isRead(conversation) && !isOut) {
+                params += read
+            }
+        }
 
         if (canPinOneMoreDialog) params += pin
 
@@ -264,6 +380,7 @@ class ConversationsFragment :
         MaterialAlertDialogBuilder(requireContext())
             .setItems(arrayParams) { _, which ->
                 when (params[which]) {
+                    read -> viewModel.readConversation(conversation)
                     pin -> showPinConversationDialog(conversation)
                     delete -> showDeleteConversationDialog(conversation.id)
                 }
@@ -276,7 +393,7 @@ class ConversationsFragment :
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 viewModel.deleteConversation(conversationId)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -285,7 +402,7 @@ class ConversationsFragment :
     }
 
     private fun showPinConversationDialog(conversation: VkConversation) {
-        val isPinned = conversation.isPinned
+        val isPinned = conversation.isPinned()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
                 if (isPinned) R.string.confirm_unpin_conversation
@@ -300,7 +417,7 @@ class ConversationsFragment :
                     pin = !isPinned
                 )
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -312,24 +429,50 @@ class ConversationsFragment :
 
         val conversationIndex = adapter.searchConversationIndex(message.peerId)
         if (conversationIndex == null) { // диалога нет в списке
-
+            // pizdets
         } else {
             val conversation = adapter[conversationIndex]
-            conversation.run {
-                lastMessage = message
-                lastMessageId = message.id
+            val newConversation = conversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
                 lastConversationMessageId = -1
+            )
+            if (!message.isOut) {
+                newConversation.unreadCount += 1
             }
 
-            if (conversation.isPinned) {
-                adapter[conversationIndex] = conversation
+//            if (!message.isOut) {
+//                NotificationsUtils.showSimpleNotification(
+//                    requireContext(),
+//                    VkUtils.getConversationTitle(
+//                        requireContext(), conversation, profiles = event.profiles,
+//                        groups = event.groups
+//                    ) ?: "...",
+//                    "${
+//                        VkUtils.getMessageTitle(
+//                            message,
+//                            profiles = event.profiles,
+//                            groups = event.groups
+//                        ) ?: "..."
+//                    }: ${message.text}",
+//                    customNotificationId = message.id,
+//                    showWhen = true,
+//                    timeStampWhen = message.date * 1000L
+//                )
+//            }
+
+            if (conversation.isPinned()) {
+                adapter[conversationIndex] = newConversation
                 return
             }
 
-            adapter.removeConversation(message.peerId) ?: return
-            val toPosition = adapter.pinnedCount
+            val newList = adapter.cloneCurrentList()
+            newList.removeAt(conversationIndex)
 
-            adapter.add(conversation, toPosition)
+            val toPosition = adapter.pinnedCount
+            newList.add(toPosition, newConversation)
+
+            adapter.submitList(newList)
         }
     }
 
@@ -341,8 +484,25 @@ class ConversationsFragment :
 
         } else {
             val conversation = adapter[conversationIndex]
-            conversation.lastMessage = message
-            adapter[conversationIndex] = conversation
+            adapter[conversationIndex] = conversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
+                lastConversationMessageId = -1
+            )
         }
+    }
+
+    private fun onMessageRead(event: MessagesReadEvent) {
+        val conversationIndex = adapter.searchConversationIndex(event.peerId) ?: return
+
+        val newConversation = adapter[conversationIndex].copy()
+
+        if (event.isOut) {
+            newConversation.outRead = event.messageId
+        } else {
+            newConversation.inRead = event.messageId
+        }
+
+        adapter[conversationIndex] = newConversation
     }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.app.com/tools">
+
+    <PreferenceCategory
+        app:key="appearance"
+        app:title="Appearance" />
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="multiline"
+        app:summary="The title of the dialog and the text of the message can take up two lines"
+        app:title="Multiline titles and messages" />
+
+    <PreferenceCategory
+        app:key="features"
+        app:title="Features" />
+
+    <CheckBoxPreference
+        app:defaultValue="true"
+        app:key="hide_keyboard_on_scroll"
+        app:title="Hide keyboard on scroll" />
+
+    <EditTextPreference
+        app:defaultValue="¯\\_(ツ)_/¯"
+        app:key="fast_text"
+        app:summary="@null"
+        app:title="Fast text"
+        tools:summary="@string/pref_message_fast_text_summary" />
+
+    <PreferenceCategory
+        app:key="visibility"
+        app:title="Visibility" />
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="send_online_status"
+        app:summary="Online status will be sent every minute"
+        app:title="Send online status" />
+
+    <PreferenceCategory
+        app:key="updates"
+        app:title="Updates" />
+
+    <Preference
+        app:key="check_updates"
+        app:title="Check updates"
+        tools:summary="Current version: 1.4.4" />
+
+    <PreferenceCategory
+        app:key="msappcenter"
+        app:title="MS AppCenter Crash Reporter" />
+
+    <CheckBoxPreference
+        app:defaultValue="true"
+        app:key="msappcenter.enable"
+        app:title="Enable Crash Reporter" />
+
+    <PreferenceCategory
+        app:key="debug"
+        app:title="Debug" />
+
+    <Preference
+        app:key="perform_crash"
+        app:summary="App will be crashed. Obviously"
+        app:title="Perform crash" />
+
+    <CheckBoxPreference
+        app:defaultValue="false"
+        app:key="show_destroyed_long_poll_alert"
+        app:title="Show destroyed LP alert" />
+
+    <CheckBoxPreference
+        app:defaultValue="true"
+        app:key="show_crash_alert"
+        app:summary="Shows alert dialog with stacktrace after app crashed"
+        app:title="Show alert after crash" />
+
+</PreferenceScreen>

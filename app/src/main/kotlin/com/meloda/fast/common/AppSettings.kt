@@ -12,7 +12,7 @@ import kotlinx.coroutines.Job
 
 object AppSettings {
 
-    val keyIsMultilineEnabled = booleanPreferencesKey("isMultilineEnabled")
+    val keyUseNavigationDrawer = booleanPreferencesKey("use_nav_drawer")
 
 }
 

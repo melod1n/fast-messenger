@@ -2,17 +2,27 @@ package com.meloda.fast.extensions
 
 import android.animation.ValueAnimator
 import android.content.res.Resources
-import android.os.Build
+import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import android.util.DisplayMetrics
 import android.util.SparseArray
+import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.annotation.Px
-import androidx.annotation.StyleRes
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.children
+import androidx.core.view.forEach
+import androidx.lifecycle.MutableLiveData
+import com.google.common.net.MediaType
+import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.databinding.ToolbarMenuItemAvatarBinding
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 
 fun Int.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
@@ -52,6 +62,11 @@ fun ValueAnimator.startWithIntValues(from: Int, to: Int) {
     start()
 }
 
+fun ValueAnimator.startWithFloatValues(from: Float, to: Float) {
+    setFloatValues(from, to)
+    start()
+}
+
 fun View.setMarginsPx(
     @Px leftMargin: Int? = null,
     @Px topMargin: Int? = null,
@@ -84,4 +99,87 @@ fun ImageView.toggleVisibilityIfHasContent(visibilityWhenFalse: Int = View.GONE)
 @JvmOverloads
 fun TextView.toggleVisibilityIfHasContent(visibilityWhenFalse: Int = View.GONE) {
     visibility = if (!text.isNullOrEmpty()) View.VISIBLE else visibilityWhenFalse
+}
+
+fun View.showKeyboard(flags: Int = 0) {
+    AppGlobal.inputMethodManager.showSoftInput(this, flags)
+}
+
+fun View.hideKeyboard(focusedView: View? = null, flags: Int = 0) {
+    AppGlobal.inputMethodManager.hideSoftInputFromWindow(
+        focusedView?.windowToken ?: this.windowToken, flags
+    )
+}
+
+fun Toolbar.tintMenuItemIcons(@ColorInt colorToTint: Int) {
+    menu.forEach { item ->
+        item.icon?.setTint(colorToTint)
+    }
+}
+
+fun Toolbar.addAvatarMenuItem(urlToLoad: String? = null, drawable: Drawable? = null): MenuItem {
+    val avatarMenuItemBinding = ToolbarMenuItemAvatarBinding.inflate(
+        LayoutInflater.from(context), null, false
+    )
+
+    val avatarMenuItem = menu.add("Profile")
+    avatarMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+    avatarMenuItem.actionView = avatarMenuItemBinding.root
+
+    val imageView = avatarMenuItemBinding.avatar
+
+    when {
+        urlToLoad != null -> {
+            imageView.loadWithGlide(
+                url = urlToLoad,
+                transformations = ImageLoader.userAvatarTransformations
+            )
+        }
+        drawable != null -> {
+            imageView.loadWithGlide(
+                drawable = drawable,
+                transformations = ImageLoader.userAvatarTransformations
+            )
+        }
+    }
+
+    return avatarMenuItem
+}
+
+fun <T> MutableLiveData<T>.notifyObservers() {
+    this.value = this.value
+}
+
+fun <T> MutableLiveData<T>.setIfNotEquals(item: T) {
+    if (this.value != item) this.value = item
+}
+
+fun <T> MutableLiveData<T>.requireValue(): T {
+    return this.value!!
+}
+
+val EditText.trimmedText: String get() = text.toString().trim()
+
+val MediaType.mimeType: String get() = "${type()}/${subtype()}"
+
+fun EditText.selectLast() {
+    setSelection(text.length)
+}
+
+fun <T> T?.requireNotNull(): T {
+    return requireNotNull(this)
+}
+
+
+fun String?.orDots(count: Int = 3): String {
+    return this ?: ("." * count)
+}
+
+private operator fun String.times(count: Int): String {
+    val builder = StringBuilder()
+    for (i in 0 until count) {
+        builder.append(this)
+    }
+
+    return builder.toString()
 }

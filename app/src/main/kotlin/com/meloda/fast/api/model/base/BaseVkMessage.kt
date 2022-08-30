@@ -24,7 +24,8 @@ data class BaseVkMessage(
     val geo: Geo?,
     val action: Action?,
     val ttl: Int,
-    val reply_message: BaseVkMessage?
+    val reply_message: BaseVkMessage?,
+    val update_time: Int?
 ) : Parcelable {
 
     fun asVkMessage() = VkMessage(
@@ -40,8 +41,9 @@ data class BaseVkMessage(
         actionText = action?.text,
         actionConversationMessageId = action?.conversation_message_id,
         actionMessage = action?.message,
-        geoType = geo?.type,
-        important = important
+        geo = geo,
+        important = important,
+        updateTime = update_time
     ).also {
         it.attachments = VkUtils.parseAttachments(attachments)
         it.forwards = VkUtils.parseForwards(fwd_messages)
@@ -54,7 +56,6 @@ data class BaseVkMessage(
         val coordinates: Coordinates,
         val place: Place
     ) : Parcelable {
-
 
         @Parcelize
         data class Coordinates(val latitude: Float, val longitude: Float) : Parcelable

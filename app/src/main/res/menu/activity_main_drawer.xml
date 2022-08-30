@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/profile"
+        android:icon="@drawable/ic_account_circle_cut"
+        android:title="@string/navigation_profile" />
+
+    <item
+        android:id="@+id/favorites"
+        android:icon="@drawable/ic_round_star_24"
+        android:title="@string/navigation_favorites" />
+
+    <item
+        android:id="@+id/messages"
+        android:icon="@drawable/ic_round_mail_24"
+        android:title="@string/navigation_chats" />
+
+    <item
+        android:id="@+id/friends"
+        android:icon="@drawable/ic_round_group_24"
+        android:title="@string/navigation_friends" />
+
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/ic_round_settings_24"
+        android:title="@string/navigation_settings" />
+
+</menu>

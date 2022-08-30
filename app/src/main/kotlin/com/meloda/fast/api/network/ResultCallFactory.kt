@@ -1,15 +1,18 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.meloda.fast.api.network
 
-import com.meloda.fast.api.VKException
+import com.google.gson.Gson
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.base.ApiResponse
 import okhttp3.Request
-import okio.IOException
 import okio.Timeout
-import org.json.JSONObject
 import retrofit2.*
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 class ResultCallFactory : CallAdapter.Factory() {
     override fun get(
@@ -21,7 +24,7 @@ class ResultCallFactory : CallAdapter.Factory() {
         if (rawReturnType == Call::class.java) {
             if (returnType is ParameterizedType) {
                 val callInnerType: Type = getParameterUpperBound(0, returnType)
-                if (getRawType(callInnerType) == Answer::class.java) {
+                if (getRawType(callInnerType) == ApiAnswer::class.java) {
                     if (callInnerType is ParameterizedType) {
                         val resultInnerType = getParameterUpperBound(0, callInnerType)
                         return ResultCallAdapter<Any?>(resultInnerType)
@@ -55,16 +58,16 @@ internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : C
     abstract fun cloneImpl(): Call<Out>
 }
 
-private class ResultCallAdapter<R>(private val type: Type) : CallAdapter<R, Call<Answer<R>>> {
+private class ResultCallAdapter<R>(private val type: Type) : CallAdapter<R, Call<ApiAnswer<R>>> {
 
     override fun responseType() = type
 
-    override fun adapt(call: Call<R>): Call<Answer<R>> = ResultCall(call)
+    override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call)
 }
 
-internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy) {
+internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(proxy) {
 
-    override fun enqueueImpl(callback: Callback<Answer<T>>) {
+    override fun enqueueImpl(callback: Callback<ApiAnswer<T>>) {
         proxy.enqueue(ResultCallback(this, callback))
     }
 
@@ -74,25 +77,34 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
 
     private class ResultCallback<T>(
         private val proxy: ResultCall<T>,
-        private val callback: Callback<Answer<T>>
+        private val callback: Callback<ApiAnswer<T>>
     ) : Callback<T> {
 
-        override fun onResponse(call: Call<T>, response: Response<T>) {
-            var isVkException = true
+        val gson = Gson()
 
-            val result: Answer<T> =
+        override fun onResponse(call: Call<T>, response: Response<T>) {
+            val result: ApiAnswer<T> =
                 if (response.isSuccessful) {
                     val baseBody = response.body()
-                    if (baseBody !is ApiResponse<*>) Answer.Success(baseBody as T)
-                    else {
-                        val body = baseBody as ApiResponse<*>
-                        if (body.error != null) {
-                            Answer.Error(body.error)
-                        } else Answer.Success(body as T)
+                    if (baseBody !is ApiResponse<*>) {
+                        ApiAnswer.Success(baseBody as T)
+                    } else {
+                        val body = baseBody as? ApiResponse<*>
+                        if (body?.error != null) {
+                            VkUtils.getApiError(gson, gson.toJson(body.error))
+                        } else {
+                            ApiAnswer.Success(body as T)
+                        }
                     }
-                } else Answer.Error(IOException(response.errorBody()?.string() ?: ""))
+                } else {
+                    val errorBodyString = response.errorBody()?.string()
 
-            if (result is Answer.Error && isVkException) if (checkErrors(call, result)) return
+                    VkUtils.getApiError(gson, errorBodyString)
+                }
+
+            if (checkErrors(call, result)) {
+                return
+            }
 
             callback.onResponse(proxy, Response.success(result))
         }
@@ -100,30 +112,21 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
         override fun onFailure(call: Call<T>, error: Throwable) {
             callback.onResponse(
                 proxy,
-                Response.success(Answer.Error(throwable = error))
+                Response.success(ApiAnswer.Error(ApiError(throwable = error)))
             )
         }
 
-        private fun checkErrors(call: Call<T>, result: Answer.Error): Boolean {
-            if (result.throwable is ApiError) {
-                onFailure(call, result.throwable)
-                return true
+        private fun checkErrors(call: Call<T>, result: ApiAnswer<*>): Boolean {
+            if (!result.isSuccessful()) {
+                result.error.throwable?.run {
+                    onFailure(call, this)
+                    return true
+                }
+            } else {
+                return false
             }
 
-            val json = JSONObject(result.throwable.message ?: "{}")
-
-            return if (json.has("error")) {
-                val error = json.optString("error", "")
-                val description = json.optString("error_description", "")
-
-                val exception = VKException(
-                    error = error,
-                    description = description,
-                ).also { it.json = json }
-
-                onFailure(call, exception)
-                true
-            } else false
+            return false
         }
     }
 
@@ -132,9 +135,16 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, Answer<T>>(proxy)
     }
 }
 
-sealed class Answer<out R> {
+sealed class ApiAnswer<out R> {
 
-    data class Success<out T>(val data: T) : Answer<T>()
-    data class Error(val throwable: Throwable) : Answer<Nothing>()
+    data class Success<out T>(val data: T) : ApiAnswer<T>()
+    data class Error(val error: ApiError) : ApiAnswer<Nothing>()
 
+    @OptIn(ExperimentalContracts::class)
+    fun isSuccessful(): Boolean {
+        contract {
+            returns(false) implies (this@ApiAnswer is Error)
+        }
+        return this is Success
+    }
 }

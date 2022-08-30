@@ -2,16 +2,17 @@ package com.meloda.fast.screens.messages
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.util.ObjectsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
-import coil.load
 import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
@@ -24,6 +25,7 @@ import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemMessageInBinding
 import com.meloda.fast.databinding.ItemMessageOutBinding
 import com.meloda.fast.databinding.ItemMessageServiceBinding
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.dpToPx
 import com.meloda.fast.model.DataItem
 
@@ -31,8 +33,35 @@ class MessagesHistoryAdapter constructor(
     context: Context,
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
-    val groups: HashMap<Int, VkGroup> = hashMapOf()
-) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(context, Comparator) {
+    val groups: HashMap<Int, VkGroup> = hashMapOf(),
+) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(
+    context,
+    Comparator
+) {
+
+    constructor(
+        fragment: MessagesHistoryFragment,
+        conversation: VkConversation,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf(),
+    ) : this(fragment.requireContext(), conversation, profiles, groups) {
+        this.messagesHistoryFragment = fragment
+    }
+
+    constructor(
+        fragment: ForwardedMessagesFragment,
+        conversation: VkConversation,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ) : this(fragment.requireContext(), conversation, profiles, groups) {
+        this.isForwards = true
+        this.forwardedMessagesFragment = fragment
+    }
+
+    private var isForwards: Boolean = false
+
+    private var messagesHistoryFragment: MessagesHistoryFragment? = null
+    private var forwardedMessagesFragment: ForwardedMessagesFragment? = null
 
     var avatarLongClickListener: ((position: Int) -> Unit)? = null
 
@@ -86,14 +115,14 @@ class MessagesHistoryAdapter constructor(
         if (holder is Header || holder is Footer) {
             Log.d(
                 "MessagesHistoryAdapter",
-                "onBindViewHolder: index $position, holder is ${holder.javaClass.simpleName}. Skip"
+                "onBindViewHolder: index $position, holder: ${holder.javaClass.simpleName}. Skip"
             )
             return
         }
 
         Log.d(
             "MessagesHistoryAdapter",
-            "onBindViewHolder: index $position, holder is ${holder.javaClass.simpleName}. Bind"
+            "onBindViewHolder: index $position, holder: ${holder.javaClass.simpleName}. Bind"
         )
 
         initListeners(holder.itemView, position)
@@ -121,7 +150,7 @@ class MessagesHistoryAdapter constructor(
         private val binding: ItemMessageInBinding
     ) : BasicHolder(binding.root) {
 
-        override fun bind(position: Int) {
+        override fun bind(position: Int, payloads: MutableList<Any>?) {
             val message = getItem(position) as VkMessage
 
             val prevMessage = getVkMessage(getOrNull(position - 1))
@@ -129,6 +158,7 @@ class MessagesHistoryAdapter constructor(
 
             MessagesPreparator(
                 context = context,
+                payloads = payloads,
 
                 root = binding.root,
 
@@ -143,19 +173,38 @@ class MessagesHistoryAdapter constructor(
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                unread = binding.unread,
+                messageState = binding.messageState,
+                time = binding.time,
 
-                textContainer = binding.textContainer,
+                replyContainer = binding.replyContainer,
                 attachmentContainer = binding.attachmentContainer,
-                attachmentSpacer = binding.attachmentSpacer,
+                timeReadContainer = binding.timeReadContainer,
 
                 profiles = profiles,
-                groups = groups
-            ).setPhotoClickListener {
-                Toast.makeText(context, "Photo url: $it", Toast.LENGTH_LONG).show()
-            }.prepare()
+                groups = groups,
 
-            binding.avatar.setOnLongClickListener() {
+                isForwards = isForwards
+            )
+                .withPhotoClickListener {
+                    Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
+                        context.startActivity(this)
+                    }
+                }
+                .withReplyClickListener {
+                    messagesHistoryFragment?.scrollToMessage(it.id)
+                    forwardedMessagesFragment?.scrollToMessage(it.id)
+                }
+                .withForwardsClickListener { messages ->
+                    messagesHistoryFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                    forwardedMessagesFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                }
+                .prepare()
+
+            binding.avatar.setOnLongClickListener {
                 avatarLongClickListener?.invoke(position)
                 true
             }
@@ -166,12 +215,13 @@ class MessagesHistoryAdapter constructor(
         private val binding: ItemMessageOutBinding
     ) : BasicHolder(binding.root) {
 
-        override fun bind(position: Int) {
+        override fun bind(position: Int, payloads: MutableList<Any>?) {
             val message = getItem(position) as VkMessage
             val prevMessage = getVkMessage(getOrNull(position - 1))
 
             MessagesPreparator(
                 context = context,
+                payloads = payloads,
                 root = binding.root,
                 conversation = conversation,
                 message = message,
@@ -180,15 +230,36 @@ class MessagesHistoryAdapter constructor(
                 bubble = binding.bubble,
                 text = binding.text,
                 spacer = binding.spacer,
-                unread = binding.unread,
+                messageState = binding.messageState,
+                time = binding.time,
 
-                textContainer = binding.textContainer,
+                timeReadContainer = binding.timeReadContainer,
+                replyContainer = binding.replyContainer,
                 attachmentContainer = binding.attachmentContainer,
-                attachmentSpacer = binding.attachmentSpacer,
 
                 profiles = profiles,
-                groups = groups
-            ).prepare()
+                groups = groups,
+
+                isForwards = isForwards
+            )
+                .withPhotoClickListener {
+                    Intent(Intent.ACTION_VIEW, Uri.parse(it)).run {
+                        context.startActivity(this)
+                    }
+                }
+                .withReplyClickListener {
+                    messagesHistoryFragment?.scrollToMessage(it.id)
+                    forwardedMessagesFragment?.scrollToMessage(it.id)
+                }
+                .withForwardsClickListener { messages ->
+                    messagesHistoryFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                    forwardedMessagesFragment?.openForwardsScreen(
+                        conversation, messages, profiles, groups
+                    )
+                }
+                .prepare()
         }
     }
 
@@ -239,12 +310,54 @@ class MessagesHistoryAdapter constructor(
                     size.height
                 )
 
-                binding.photo.load(size.url) {
-                    crossfade(150)
-                    fallback(ColorDrawable(Color.LTGRAY))
+                binding.photo.loadWithGlide(
+                    url = size.url,
+                    crossFade = true,
+                    placeholderDrawable = ColorDrawable(Color.LTGRAY)
+                )
+
+                binding.photo.setOnClickListener {
+                    Intent(Intent.ACTION_VIEW, Uri.parse(size.url)).run {
+                        context.startActivity(this)
+                    }
                 }
             }
         }
+    }
+
+    fun containsUnreadMessages(isOutgoingMessages: Boolean = false): Boolean {
+        for (i in indices) {
+            val item = getItem(i)
+            if (item !is VkMessage) continue
+
+            if (item.isOut == isOutgoingMessages && !item.isRead(conversation)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun containsRandomId(randomId: Int): Boolean {
+        if (randomId == 0) return false
+        for (i in indices) {
+            val item = getItem(i)
+            if (item !is VkMessage) continue
+
+            if (item.randomId == randomId) return true
+        }
+
+        return false
+    }
+
+    fun containsId(id: Int): Boolean {
+        for (i in indices) {
+            val item = getItem(i)
+            if (item !is VkMessage) continue
+
+            if (item.id == id) return true
+        }
+
+        return false
     }
 
     fun getVkMessage(item: DataItem<*>?): VkMessage? {
@@ -287,16 +400,19 @@ class MessagesHistoryAdapter constructor(
                 return if (oldItem is VkMessage && newItem is VkMessage) {
                     oldItem.id == newItem.id
                 } else {
-                    oldItem is DataItem.Footer && newItem is DataItem.Footer
-                            || oldItem is DataItem.Header && newItem is DataItem.Header
+                    oldItem is DataItem.Footer && newItem is DataItem.Footer ||
+                            oldItem is DataItem.Header && newItem is DataItem.Header ||
+                            ObjectsCompat.equals(oldItem, newItem)
                 }
             }
 
-            @SuppressLint("DiffUtilEquals")
             override fun areContentsTheSame(
                 oldItem: DataItem<Int>,
                 newItem: DataItem<Int>
-            ): Boolean = oldItem == newItem
+            ): Boolean {
+
+                return ObjectsCompat.equals(oldItem, newItem) && ((oldItem is VkMessage && newItem is VkMessage) && oldItem.state == newItem.state)
+            }
         }
     }
 }

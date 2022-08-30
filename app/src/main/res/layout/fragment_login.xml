@@ -7,11 +7,33 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <WebView
-        android:id="@+id/webView"
+    <FrameLayout
+        android:id="@+id/web_view_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:visibility="gone">
+
+        <WebView
+            android:id="@+id/web_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ProgressBar
+            android:id="@+id/web_view_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+    </FrameLayout>
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/use_crash_reporter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:checked="true"
+        android:text="Use crash reporter tool"
+        tools:ignore="HardcodedText" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -32,21 +54,21 @@
                 android:layout_height="140dp"
                 android:layout_gravity="center_horizontal">
 
-                <com.meloda.fast.widget.CircleImageView
+                <com.meloda.fast.view.CircleImageView
                     android:id="@+id/logoImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="192dp"
+                    android:layout_height="192dp"
                     android:layout_gravity="center"
-                    android:padding="42dp"
-                    android:src="@drawable/ic_fast_lightning"
-                    app:tint="?colorAccent" />
+                    android:src="@drawable/ic_launcher_foreground"
+                    android:tint="?colorPrimary" />
             </FrameLayout>
 
             <ProgressBar
-                android:id="@+id/progress"
+                android:id="@+id/progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="48dp"
+                android:indeterminateTint="?colorPrimary"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
@@ -61,20 +83,22 @@
                     android:id="@+id/loginImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:src="@drawable/ic_baseline_account_circle_24"
-                    app:tint="?colorAccent" />
+                    app:tint="?colorPrimary" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/loginLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     app:boxStrokeErrorColor="@android:color/transparent">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/loginInput"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:hint="@string/login_hint"
                         android:imeOptions="actionGo"
                         android:inputType="textEmailAddress" />
@@ -94,25 +118,28 @@
                     android:id="@+id/passwordImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:src="@drawable/ic_key"
-                    app:tint="?colorAccent" />
+                    app:tint="?colorPrimary" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/passwordLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     app:boxStrokeErrorColor="@android:color/transparent"
                     app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="?colorAccent">
+                    app:passwordToggleTint="?colorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/passwordInput"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:fontFamily="@font/roboto_regular"
                         android:hint="@string/password_login_hint"
                         android:imeOptions="actionGo"
+                        android:inputType="textPassword"
                         android:typeface="normal" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -124,8 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="60dp"
                 android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="@color/a1_600"
+                android:layout_marginTop="48dp"
                 android:fontFamily="@font/google_sans_medium"
                 android:letterSpacing="0"
                 android:paddingStart="24dp"
@@ -135,7 +161,8 @@
                 app:cornerRadius="50dp"
                 app:elevation="16dp"
                 app:icon="@drawable/ic_arrow_end"
-                app:iconGravity="end" />
+                app:iconGravity="end"
+                app:tint="?colorPrimary" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.appcompat.widget.LinearLayoutCompat>

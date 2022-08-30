@@ -1,0 +1,600 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 34,
+    "identityHash": "2c202b1fce1b5f6c6ab0da756e0590a6",
+    "entities": [
+      {
+        "tableName": "accounts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `accessToken` TEXT NOT NULL, `fastToken` TEXT, PRIMARY KEY(`userId`))",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accessToken",
+            "columnName": "accessToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fastToken",
+            "columnName": "fastToken",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "userId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "conversations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `ownerId` INTEGER, `title` TEXT, `photo200` TEXT, `type` TEXT NOT NULL, `callInProgress` INTEGER NOT NULL, `isPhantom` INTEGER NOT NULL, `lastConversationMessageId` INTEGER NOT NULL, `inRead` INTEGER NOT NULL, `outRead` INTEGER NOT NULL, `isMarkedUnread` INTEGER NOT NULL, `lastMessageId` INTEGER NOT NULL, `unreadCount` INTEGER NOT NULL, `membersCount` INTEGER, `canChangePin` INTEGER NOT NULL, `majorId` INTEGER NOT NULL, `minorId` INTEGER NOT NULL, `pinnedMessage_id` INTEGER, `pinnedMessage_text` TEXT, `pinnedMessage_isOut` INTEGER, `pinnedMessage_peerId` INTEGER, `pinnedMessage_fromId` INTEGER, `pinnedMessage_date` INTEGER, `pinnedMessage_randomId` INTEGER, `pinnedMessage_action` TEXT, `pinnedMessage_actionMemberId` INTEGER, `pinnedMessage_actionText` TEXT, `pinnedMessage_actionConversationMessageId` INTEGER, `pinnedMessage_actionMessage` TEXT, `pinnedMessage_updateTime` INTEGER, `pinnedMessage_important` INTEGER, `pinnedMessage_forwards` TEXT, `pinnedMessage_attachments` TEXT, `pinnedMessage_replyMessage` TEXT, `pinnedMessage_geo` TEXT, `lastMessage_id` INTEGER, `lastMessage_text` TEXT, `lastMessage_isOut` INTEGER, `lastMessage_peerId` INTEGER, `lastMessage_fromId` INTEGER, `lastMessage_date` INTEGER, `lastMessage_randomId` INTEGER, `lastMessage_action` TEXT, `lastMessage_actionMemberId` INTEGER, `lastMessage_actionText` TEXT, `lastMessage_actionConversationMessageId` INTEGER, `lastMessage_actionMessage` TEXT, `lastMessage_updateTime` INTEGER, `lastMessage_important` INTEGER, `lastMessage_forwards` TEXT, `lastMessage_attachments` TEXT, `lastMessage_replyMessage` TEXT, `lastMessage_geo` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "photo200",
+            "columnName": "photo200",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "callInProgress",
+            "columnName": "callInProgress",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPhantom",
+            "columnName": "isPhantom",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastConversationMessageId",
+            "columnName": "lastConversationMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inRead",
+            "columnName": "inRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outRead",
+            "columnName": "outRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isMarkedUnread",
+            "columnName": "isMarkedUnread",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastMessageId",
+            "columnName": "lastMessageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unreadCount",
+            "columnName": "unreadCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "membersCount",
+            "columnName": "membersCount",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "canChangePin",
+            "columnName": "canChangePin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "majorId",
+            "columnName": "majorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minorId",
+            "columnName": "minorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pinnedMessage.id",
+            "columnName": "pinnedMessage_id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.text",
+            "columnName": "pinnedMessage_text",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.isOut",
+            "columnName": "pinnedMessage_isOut",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.peerId",
+            "columnName": "pinnedMessage_peerId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.fromId",
+            "columnName": "pinnedMessage_fromId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.date",
+            "columnName": "pinnedMessage_date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.randomId",
+            "columnName": "pinnedMessage_randomId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.action",
+            "columnName": "pinnedMessage_action",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.actionMemberId",
+            "columnName": "pinnedMessage_actionMemberId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.actionText",
+            "columnName": "pinnedMessage_actionText",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.actionConversationMessageId",
+            "columnName": "pinnedMessage_actionConversationMessageId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.actionMessage",
+            "columnName": "pinnedMessage_actionMessage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.updateTime",
+            "columnName": "pinnedMessage_updateTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.important",
+            "columnName": "pinnedMessage_important",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.forwards",
+            "columnName": "pinnedMessage_forwards",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.attachments",
+            "columnName": "pinnedMessage_attachments",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.replyMessage",
+            "columnName": "pinnedMessage_replyMessage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pinnedMessage.geo",
+            "columnName": "pinnedMessage_geo",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.id",
+            "columnName": "lastMessage_id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.text",
+            "columnName": "lastMessage_text",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.isOut",
+            "columnName": "lastMessage_isOut",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.peerId",
+            "columnName": "lastMessage_peerId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.fromId",
+            "columnName": "lastMessage_fromId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.date",
+            "columnName": "lastMessage_date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.randomId",
+            "columnName": "lastMessage_randomId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.action",
+            "columnName": "lastMessage_action",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.actionMemberId",
+            "columnName": "lastMessage_actionMemberId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.actionText",
+            "columnName": "lastMessage_actionText",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.actionConversationMessageId",
+            "columnName": "lastMessage_actionConversationMessageId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.actionMessage",
+            "columnName": "lastMessage_actionMessage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.updateTime",
+            "columnName": "lastMessage_updateTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.important",
+            "columnName": "lastMessage_important",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.forwards",
+            "columnName": "lastMessage_forwards",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.attachments",
+            "columnName": "lastMessage_attachments",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.replyMessage",
+            "columnName": "lastMessage_replyMessage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastMessage.geo",
+            "columnName": "lastMessage_geo",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "messages",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `text` TEXT, `isOut` INTEGER NOT NULL, `peerId` INTEGER NOT NULL, `fromId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `randomId` INTEGER NOT NULL, `action` TEXT, `actionMemberId` INTEGER, `actionText` TEXT, `actionConversationMessageId` INTEGER, `actionMessage` TEXT, `updateTime` INTEGER, `important` INTEGER NOT NULL, `forwards` TEXT, `attachments` TEXT, `replyMessage` TEXT, `geo` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isOut",
+            "columnName": "isOut",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "peerId",
+            "columnName": "peerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromId",
+            "columnName": "fromId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "randomId",
+            "columnName": "randomId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "actionMemberId",
+            "columnName": "actionMemberId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "actionText",
+            "columnName": "actionText",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "actionConversationMessageId",
+            "columnName": "actionConversationMessageId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "actionMessage",
+            "columnName": "actionMessage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updateTime",
+            "columnName": "updateTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "important",
+            "columnName": "important",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "forwards",
+            "columnName": "forwards",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "attachments",
+            "columnName": "attachments",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "replyMessage",
+            "columnName": "replyMessage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "geo",
+            "columnName": "geo",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `online` INTEGER NOT NULL, `photo200` TEXT, `lastSeen` INTEGER, `lastSeenStatus` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstName",
+            "columnName": "firstName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastName",
+            "columnName": "lastName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "online",
+            "columnName": "online",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photo200",
+            "columnName": "photo200",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastSeen",
+            "columnName": "lastSeen",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastSeenStatus",
+            "columnName": "lastSeenStatus",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "groups",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `screenName` TEXT NOT NULL, `photo200` TEXT, `membersCount` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenName",
+            "columnName": "screenName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photo200",
+            "columnName": "photo200",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "membersCount",
+            "columnName": "membersCount",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2c202b1fce1b5f6c6ab0da756e0590a6')"
+    ]
+  }
+}

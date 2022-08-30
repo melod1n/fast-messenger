@@ -1,22 +1,17 @@
 package com.meloda.fast.base.viewmodel
 
-data class ShowDialogInfoEvent(
-    val title: String? = null,
-    val message: String,
-    val positiveBtn: String? = null,
-    val negativeBtn: String? = null
-) : VkEvent()
-
-data class ErrorEvent(val errorText: String) : VkEvent()
-
-object IllegalTokenEvent : VkEvent()
-data class CaptchaEvent(val sid: String, val image: String) : VkEvent()
-data class ValidationEvent(val sid: String) : VkEvent()
-
-object StartProgressEvent : VkEvent()
-object StopProgressEvent : VkEvent()
-
 abstract class VkEvent
+abstract class VkErrorEvent(open val errorText: String? = null) : VkEvent()
+abstract class VkProgressEvent : VkEvent()
+
+open class ErrorTextEvent(override val errorText: String) : VkErrorEvent()
+
+object AuthorizationErrorEvent : VkErrorEvent()
+data class CaptchaRequiredEvent(val sid: String, val image: String) : VkErrorEvent()
+data class ValidationRequiredEvent(val sid: String) : VkErrorEvent()
+
+object StartProgressEvent : VkProgressEvent()
+object StopProgressEvent : VkProgressEvent()
 
 interface VkEventCallback<in T : Any> {
     fun onEvent(event: T)

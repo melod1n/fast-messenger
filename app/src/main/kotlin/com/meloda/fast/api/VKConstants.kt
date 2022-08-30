@@ -12,7 +12,7 @@ object VKConstants {
 
     const val ALL_FIELDS = "$USER_FIELDS,$GROUP_FIELDS"
 
-    const val API_VERSION = "5.132"
+    const val API_VERSION = "5.189"
     const val LP_VERSION = 10
 
     const val VK_APP_ID = "2274003"
@@ -52,23 +52,5 @@ object VKConstants {
         VkStory::class.java,
         VkVoiceMessage::class.java,
         VkWidget::class.java
-    )
-
-    val separatedFromTextAttachments = listOf<Class<out VkAttachment>>(
-        VkPhoto::class.java,
-        VkVideo::class.java,
-        VkSticker::class.java,
-        VkStory::class.java,
-        VkWidget::class.java,
-        VkGroupCall::class.java,
-        VkGroupCall::class.java,
-        VkCurator::class.java,
-        VkEvent::class.java,
-        VkGift::class.java,
-        VkGraffiti::class.java,
-        VkPoll::class.java,
-        VkWall::class.java,
-        VkWallReply::class.java,
-        VkLink::class.java
     )
 }

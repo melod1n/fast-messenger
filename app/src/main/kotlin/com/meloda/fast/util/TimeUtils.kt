@@ -4,10 +4,11 @@ import android.content.Context
 import com.meloda.fast.R
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 object TimeUtils {
 
-    const val ONE_DAY_IN_SECONDS = 86400
+    val OneDayInSeconds get() = TimeUnit.DAYS.toSeconds(1)
 
     fun removeTime(date: Date): Long {
         return Calendar.getInstance().apply {
@@ -23,20 +24,18 @@ object TimeUtils {
         val now = Calendar.getInstance()
         val then = Calendar.getInstance().also { it.timeInMillis = date }
 
-        val pattern =
-            if (now[Calendar.YEAR] != then[Calendar.YEAR]) {
-                "dd MMM yyyy"
-            } else if (now[Calendar.MONTH] != then[Calendar.MONTH]) {
-                "dd MMMM"
-            } else if (now[Calendar.DAY_OF_MONTH] != then[Calendar.DAY_OF_MONTH]) {
+        val pattern = when {
+            now[Calendar.YEAR] != then[Calendar.YEAR] -> "dd MMM yyyy"
+            now[Calendar.MONTH] != then[Calendar.MONTH] -> "dd MMMM"
+            now[Calendar.DAY_OF_MONTH] != then[Calendar.DAY_OF_MONTH] -> {
                 if (now[Calendar.DAY_OF_MONTH] - then[Calendar.DAY_OF_MONTH] == 1) {
                     return context.getString(R.string.yesterday)
                 } else {
                     "dd MMMM"
                 }
-            } else {
-                return context.getString(R.string.today)
             }
+            else -> return context.getString(R.string.today)
+        }
 
         return SimpleDateFormat(pattern, Locale.getDefault()).format(date)
     }

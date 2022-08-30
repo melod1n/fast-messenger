@@ -5,9 +5,11 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.network.account.AccountDataSource
 import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
+import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.data.account.AccountsRepository
+import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import java.util.*
@@ -18,14 +20,10 @@ import kotlin.coroutines.CoroutineContext
 @AndroidEntryPoint
 class OnlineService : Service(), CoroutineScope {
 
-    private companion object {
-        private const val TAG = "OnlineService"
-    }
-
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.d(MessagesUpdateService.TAG, "error: $throwable")
+        Log.d(LongPollService.TAG, "error: $throwable")
         throwable.printStackTrace()
     }
 
@@ -33,43 +31,72 @@ class OnlineService : Service(), CoroutineScope {
         get() = Dispatchers.Default + job + exceptionHandler
 
     @Inject
-    lateinit var dataSource: AccountDataSource
+    lateinit var repository: AccountsRepository
 
     private var timer: Timer? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        timer = Timer().apply {
-            schedule(delay = 0, period = 60_000) {
-                launch {
-                    setOffline()
-                    delay(5000)
-                    setOnline()
-                }
-            }
-        }
+        Log.d("OnlineService", "onStartCommand: flags: $flags; startId: $startId")
+        createTimer()
 
         return START_STICKY_COMPATIBILITY
     }
 
+    private fun createTimer() {
+        timer = Timer().apply {
+            schedule(delay = 0, period = 60 * 1000L) {
+                launch { performJob() }
+            }
+        }
+    }
+
+    private suspend fun performJob() {
+        if (!AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefSendOnlineStatus, true)) {
+            return
+        }
+
+        setOffline()
+        delay(5000)
+        setOnline()
+    }
+
     private suspend fun setOnline() {
-        println("$TAG: setOnline()")
-        val response = dataSource.setOnline(
+        Log.d("OnlineService", "setOnline()")
+
+        val fastToken = UserConfig.fastToken
+
+        val token =
+            if (fastToken == null) {
+                Log.d("OnlineService", "setOnline: Fast token is null. Using VK token")
+                UserConfig.accessToken
+            } else {
+                fastToken
+            }
+
+        val response = repository.setOnline(
             AccountSetOnlineRequest(
                 voip = false,
-                accessToken = UserConfig.fastToken
+                accessToken = token
             )
         )
+        Log.d("OnlineService", "setOnline: response: $response")
     }
 
     private suspend fun setOffline() {
-        println("$TAG: setOffline()")
-        val response = dataSource.setOffline(
+        Log.d("OnlineService", "setOffline()")
+        val response = repository.setOffline(
             AccountSetOfflineRequest(
                 accessToken = UserConfig.accessToken
             )
         )
+        Log.d("OnlineService", "setOffline: response: $response")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("OnlineService", "onDestroy")
     }
 
 }

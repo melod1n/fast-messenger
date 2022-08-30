@@ -1,11 +1,18 @@
 package com.meloda.fast.api.base
 
+import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
-import com.meloda.fast.api.VKException
+import okio.IOException
 
-data class ApiError(
-    @SerializedName("error_code")
-    val errorCode: Int,
-    @SerializedName("error_msg")
-    override var message: String
-) : VKException(error = message, code = errorCode)
+open class ApiError(
+    @SerializedName("error", alternate = ["error_code"])
+    val error: String? = null,
+    @SerializedName("error_msg", alternate = ["error_description"])
+    open val errorMessage: String? = null,
+    val throwable: Throwable? = null
+) : IOException() {
+
+    override fun toString(): String {
+        return Gson().toJson(this)
+    }
+}

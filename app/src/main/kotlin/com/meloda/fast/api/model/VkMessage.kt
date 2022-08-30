@@ -1,12 +1,12 @@
 package com.meloda.fast.api.model
 
-import androidx.lifecycle.MutableLiveData
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -14,7 +14,7 @@ import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "messages")
 @Parcelize
-data class VkMessage(
+data class VkMessage constructor(
     @PrimaryKey(autoGenerate = false)
     var id: Int,
     var text: String? = null,
@@ -28,21 +28,29 @@ data class VkMessage(
     val actionText: String? = null,
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
-    val geoType: String? = null,
+
+    var updateTime: Int? = null,
+
     var important: Boolean = false,
 
     var forwards: List<VkMessage>? = null,
     var attachments: List<VkAttachment>? = null,
-    var replyMessage: VkMessage? = null
+    var replyMessage: VkMessage? = null,
+
+    val geo: BaseVkMessage.Geo? = null,
 ) : SelectableItem(id) {
 
     @Ignore
     @IgnoredOnParcel
-    val user = MutableLiveData<VkUser?>()
+    var user: VkUser? = null
 
     @Ignore
     @IgnoredOnParcel
-    val group = MutableLiveData<VkGroup?>()
+    var group: VkGroup? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var state: State = State.Sent
 
     fun isPeerChat() = peerId > 2_000_000_000
 
@@ -51,8 +59,11 @@ data class VkMessage(
     fun isGroup() = fromId < 0
 
     fun isRead(conversation: VkConversation) =
-        if (isOut) conversation.outRead - id >= 0
-        else conversation.inRead - id >= 0
+        if (isOut) {
+            conversation.outRead - id >= 0
+        } else {
+            conversation.inRead - id >= 0
+        }
 
     fun getPreparedAction(): Action? {
         if (action == null) return null
@@ -61,10 +72,27 @@ data class VkMessage(
 
     fun canEdit() =
         fromId == UserConfig.userId &&
-                (attachments == null || !VKConstants.restrictedToEditAttachments.contains(
-                    attachments!![0].javaClass
-                )) &&
-                (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.ONE_DAY_IN_SECONDS)
+                (attachments == null ||
+                        !VKConstants.restrictedToEditAttachments.contains(
+                            requireNotNull(attachments).first().javaClass
+                        )) &&
+                (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.OneDayInSeconds)
+
+    fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
+
+    fun hasReply(): Boolean = replyMessage != null
+
+    fun hasForwards(): Boolean = !forwards.isNullOrEmpty()
+
+    fun hasGeo(): Boolean = geo != null
+
+    fun isUpdated(): Boolean = updateTime != null && requireNotNull(updateTime) > 0
+
+    fun isSending(): Boolean = state == State.Sending
+
+    fun isError(): Boolean = state == State.Error
+
+    fun isSent(): Boolean = state == State.Sent
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),
@@ -78,14 +106,17 @@ data class VkMessage(
         CHAT_KICK_USER("chat_kick_user"),
         CHAT_SCREENSHOT("chat_screenshot"),
 
-        // TODO: 9/11/2021 catch this shit
         CHAT_INVITE_USER_BY_CALL("chat_invite_user_by_call"),
         CHAT_INVITE_USER_BY_CALL_LINK("chat_invite_user_by_call_join_link"),
         CHAT_STYLE_UPDATE("conversation_style_update");
 
         companion object {
-            fun parse(value: String) = values().first { it.value == value }
+            fun parse(value: String?): Action? = values().firstOrNull { it.value == value }
         }
+    }
+
+    enum class State {
+        Sending, Sent, Error
     }
 
 }

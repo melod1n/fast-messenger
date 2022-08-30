@@ -43,7 +43,8 @@ data class BaseVkVideo(
         ownerId = owner_id,
         images = image.map { it.asVideoImage() },
         firstFrames = first_frame,
-        accessKey = access_key
+        accessKey = access_key,
+        title = title
     )
 
     @Parcelize
