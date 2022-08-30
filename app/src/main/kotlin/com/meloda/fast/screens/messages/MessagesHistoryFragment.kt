@@ -7,19 +7,18 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.net.MediaType
 import com.meloda.fast.R
@@ -165,7 +164,7 @@ class MessagesHistoryFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
 
         attachmentController = AttachmentPanelController().init()
 
@@ -396,8 +395,6 @@ class MessagesHistoryFragment :
             findViewById<View>(R.id.progress_bar).toggleVisibility(
                 if (isProgressing) adapter.isEmpty() else false
             )
-            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
-                if (isProgressing) adapter.isNotEmpty() else false
         }
     }
 
@@ -600,10 +597,12 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
-        val avatarImageView: ImageView? = avatarMenuItem.actionView?.findViewById(R.id.avatar)
+//        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
+//        val avatarImageView: ImageView? = avatarMenuItem.actionView?.findViewById(R.id.avatar)
 
-        avatarImageView?.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
+        val avatarImageView = binding.toolbar.avatarImageView
+        avatarImageView.visible()
+        avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
     }
 
     private fun performAction() {
@@ -643,7 +642,7 @@ class MessagesHistoryFragment :
 
                 Log.d("LongPollUpdatesParser", "newMessageRandomId: ${message.randomId}")
 
-                adapter.add(message, beforeFooter = true, commitCallback = {
+                adapter.add(message, commitCallback = {
                     binding.recyclerView.scrollToPosition(adapter.lastPosition)
                     binding.message.clear()
                 })
@@ -697,34 +696,27 @@ class MessagesHistoryFragment :
 
     private fun prepareViews() {
         prepareRecyclerView()
-        prepareRefreshLayout()
         prepareEmojiButton()
         prepareAttachmentsList()
     }
 
     private fun prepareRecyclerView() {
         binding.recyclerView.itemAnimator = null
-    }
 
-    private fun prepareRefreshLayout() {
-        with(binding.refreshLayout) {
-            setProgressViewOffset(
-                true, progressViewStartOffset, progressViewEndOffset
-            )
-            setProgressBackgroundColorSchemeColor(
-                AndroidUtils.getThemeAttrColor(
-                    requireContext(),
-                    R.attr.colorSurface
-                )
-            )
-            setColorSchemeColors(
-                AndroidUtils.getThemeAttrColor(
-                    requireContext(),
-                    R.attr.colorPrimary
-                )
-            )
-            setOnRefreshListener { viewModel.loadHistory(peerId = conversation.id) }
-        }
+        binding.toolbar.measure(
+            View.MeasureSpec.AT_MOST,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+        binding.bottomMessagePanel.measure(
+            View.MeasureSpec.AT_MOST,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+        binding.recyclerView.updatePaddingRelative(
+            top = binding.toolbar.measuredHeight,
+            bottom = binding.bottomMessagePanel.measuredHeight
+        )
     }
 
     private fun prepareEmojiButton() {
@@ -785,8 +777,6 @@ class MessagesHistoryFragment :
 
         adapter.setItems(
             values.sortedBy { it.date },
-            withHeader = true,
-            withFooter = true,
             commitCallback = {
                 if (view == null) return@setItems
                 if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
@@ -1057,7 +1047,7 @@ class MessagesHistoryFragment :
 
         val itemCount = adapter.itemCount
 
-        adapter.add(event.message, beforeFooter = true) {
+        adapter.add(event.message) {
             if (view == null) return@add
 
             val lastVisiblePosition =

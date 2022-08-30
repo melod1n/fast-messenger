@@ -75,29 +75,12 @@ class MessagesHistoryAdapter constructor(
                     else -> -1
                 }
             }
-            is DataItem.Header -> {
-                return TypeHeader
-            }
-            is DataItem.Footer -> {
-                return TypeFooter
-            }
             else -> -1
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasicHolder {
         return when (viewType) {
-            // magick numbers is great!
-            TypeHeader -> {
-                Header(createEmptyView(60))
-            }
-            TypeFooter -> {
-                Footer(
-                    createEmptyView(
-                        context.resources.getDimensionPixelSize(R.dimen.messages_history_input_panel_height_with_margins)
-                    )
-                )
-            }
             TypeService -> ServiceMessage(
                 ItemMessageServiceBinding.inflate(inflater, parent, false)
             )
@@ -127,17 +110,6 @@ class MessagesHistoryAdapter constructor(
 
         initListeners(holder.itemView, position)
         holder.bind(position)
-    }
-
-    private fun createEmptyView(size: Int) = View(context).apply {
-        layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            size
-        )
-
-        isEnabled = false
-        isClickable = false
-        isFocusable = false
     }
 
     open inner class BasicHolder(v: View = View(context)) : BaseHolder(v)
