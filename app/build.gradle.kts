@@ -1,12 +1,12 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 
-val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage")
-val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint")
+val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage", "\"\"")
+val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint", "\"\"")
 
 val msAppCenterToken: String =
-    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", null)
-val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode")
+    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", "\"\"")
+val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode", "\"\"")
 
 val majorVersion = 1
 val minorVersion = 6
