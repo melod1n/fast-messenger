@@ -63,4 +63,8 @@ interface MessagesApi {
     @POST(MessagesUrls.GetConversationMembers)
     suspend fun getConversationMembers(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<MessagesGetConversationMembersResponse>>
 
+    @FormUrlEncoded
+    @POST(MessagesUrls.RemoveChatUser)
+    suspend fun removeChatUser(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<Int>>
+
 }

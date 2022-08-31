@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
+import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
@@ -53,8 +55,28 @@ class ChatInfoMembersFragment :
         val groups = requireArguments().getSerializable(ArgGroups) as List<VkGroup>
         val members = requireArguments().getSerializable(ArgMembers) as List<VkChat.ChatMember>
 
-        val adapter = ChatInfoMembersAdapter(requireContext(), members, profiles, groups)
+        val adapter =
+            ChatInfoMembersAdapter(
+                requireContext(),
+                members,
+                profiles,
+                groups,
+                confirmRemoveMemberAction = { memberId ->
+                    setFragmentResult(
+                        ChatInfoFragment.KeyConfirmRemoveChatUser,
+                        bundleOf(ChatInfoFragment.ArgMemberId to memberId)
+                    )
+                }
+            )
         binding.recyclerView.adapter = adapter
+        binding.recyclerView.itemAnimator = null
+
+        setFragmentResultListener(ChatInfoFragment.KeyRemoveChatUser) { _, bundle ->
+            val memberId = bundle.getInt(ChatInfoFragment.ArgMemberId)
+            adapter.searchMemberIndex(memberId)?.let { index ->
+                adapter.removeAt(index)
+            }
+        }
     }
 
 }

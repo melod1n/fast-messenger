@@ -5,7 +5,9 @@ import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
@@ -30,6 +32,10 @@ import java.util.*
 class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragment_chat_info) {
 
     companion object {
+        const val KeyConfirmRemoveChatUser = "confirm_remove_chat_user"
+        const val KeyRemoveChatUser = "remove_chat_user"
+        const val ArgMemberId = "member_id"
+
         private const val ArgConversation = "conversation"
         private const val ArgUser = "user"
         private const val ArgGroup = "group"
@@ -100,6 +106,14 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
 
         binding.viewPager.offscreenPageLimit = getTabsCount() - 1
+
+        childFragmentManager.setFragmentResultListener(
+            KeyConfirmRemoveChatUser,
+            this
+        ) { _, bundle ->
+            val memberId = bundle.getInt(ArgMemberId)
+            showConfirmRemoveMemberAlert(memberId)
+        }
     }
 
     override fun onEvent(event: VkEvent) {
@@ -111,6 +125,14 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
 
             is GetConversationMembersEvent -> {
                 fillChatInfo(event)
+            }
+            is RemoveChatUserEvent -> {
+                val memberId = event.memberId
+                childFragmentManager.setFragmentResult(
+                    KeyRemoveChatUser, bundleOf(
+                        ArgMemberId to memberId
+                    )
+                )
             }
         }
     }
@@ -151,7 +173,8 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
                 photo100 = null,
                 photo200 = memberUser?.photo200 ?: memberGroup?.photo200,
                 isOwner = vkChatMember.isOwner,
-                isAdmin = vkChatMember.isAdmin
+                isAdmin = vkChatMember.isAdmin,
+                canKick = vkChatMember.canKick
             )
         }
 
@@ -195,7 +218,11 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
 
     fun createTabFragment(position: Int): Fragment {
         if (conversation.isChat() && position == 0) {
-            return ChatInfoMembersFragment.newInstance(chatProfiles, chatGroups, chatMembers)
+            return ChatInfoMembersFragment.newInstance(
+                chatProfiles,
+                chatGroups,
+                chatMembers
+            )
         }
 
         return Fragment()
@@ -213,5 +240,16 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         TabLayoutMediator(binding.tabs, binding.viewPager) { tab, position ->
             tab.text = titles[position]
         }.attach()
+    }
+
+    private fun showConfirmRemoveMemberAlert(memberId: Int) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.warning)
+            .setMessage(R.string.confirm_remove_chat_user)
+            .setPositiveButton(R.string.yes) { _, _ ->
+                viewModel.removeChatUser(conversation.localId, memberId)
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
     }
 }

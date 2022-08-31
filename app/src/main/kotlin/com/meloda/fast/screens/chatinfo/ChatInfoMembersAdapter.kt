@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.VkChat
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
@@ -14,7 +15,6 @@ import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemChatMemberBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.orDots
 import com.meloda.fast.extensions.toggleVisibility
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,7 +23,8 @@ class ChatInfoMembersAdapter(
     context: Context,
     preAddedValues: List<VkChat.ChatMember>,
     private val profiles: List<VkUser>,
-    private val groups: List<VkGroup>
+    private val groups: List<VkGroup>,
+    private val confirmRemoveMemberAction: ((memberId: Int) -> Unit)? = null
 ) : BaseAdapter<VkChat.ChatMember, ChatInfoMembersAdapter.Holder>(
     context,
     comparator,
@@ -59,7 +60,6 @@ class ChatInfoMembersAdapter(
 
         private val colorOnBackground = ContextCompat.getColor(context, R.color.colorOnBackground)
         private val colorPrimary = ContextCompat.getColor(context, R.color.colorPrimary)
-        private val starIcon = ContextCompat.getDrawable(context, R.drawable.ic_round_star_24)
 
         override fun bind(position: Int) {
             val chatMember = getItem(position)
@@ -85,27 +85,26 @@ class ChatInfoMembersAdapter(
                 }"
                 else "Offline"
 
-            val inviteUser: VkUser? =
-                if (chatMember.invitedBy < 0) null
-                else profiles.firstOrNull { it.id == chatMember.invitedBy }
-
-            val inviteGroup: VkGroup? =
-                if (chatMember.invitedBy > 0) null
-                else groups.firstOrNull { it.id == chatMember.invitedBy }
-
-            val inviteTitle = inviteUser?.toString() ?: inviteGroup?.name
-
-            binding.invitedBy.toggleVisibility(!chatMember.isOwner)
-
-            val invitedByText = "Invited by ${inviteTitle.orDots()}"
-            binding.invitedBy.text = invitedByText
-
             binding.star.toggleVisibility(chatMember.isAdmin || chatMember.isOwner)
             binding.star.imageTintList =
                 ColorStateList.valueOf(
                     if (chatMember.isOwner) colorPrimary
                     else colorOnBackground
                 )
+
+            binding.remove.toggleVisibility(
+                chatMember.canKick || chatMember.id == UserConfig.userId
+            )
+            binding.remove.setOnClickListener { confirmRemoveMemberAction?.invoke(chatMember.id) }
         }
+    }
+
+    fun searchMemberIndex(memberId: Int): Int? {
+        for (i in indices) {
+            val member = getItem(i)
+            if (member.id == memberId) return i
+        }
+
+        return null
     }
 }

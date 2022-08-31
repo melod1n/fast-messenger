@@ -90,17 +90,17 @@ abstract class BaseAdapter<T : Any, VH : BaseHolder> constructor(
     fun removeAll(items: List<T>, commitCallback: (() -> Unit)? = null) {
         val newList = cloneCurrentList()
         newList.removeAll(items)
-        submitList(newList, commitCallback)
-
         cleanList.removeAll(items)
+
+        submitList(newList, commitCallback)
     }
 
     fun removeAt(index: Int, commitCallback: (() -> Unit)? = null) {
         val newList = cloneCurrentList()
         newList.removeAt(index)
-        submitList(newList, commitCallback)
-
         cleanList.removeAt(index)
+
+        submitList(newList, commitCallback)
     }
 
     fun clear(commitCallback: (() -> Unit)? = null) = removeAll(currentList, commitCallback)
@@ -149,9 +149,9 @@ abstract class BaseAdapter<T : Any, VH : BaseHolder> constructor(
     fun setItem(position: Int, item: T, commitCallback: (() -> Unit)? = null) {
         val newList = cloneCurrentList()
         newList[position] = item
-        submitList(newList, commitCallback)
-
         cleanList[position] = item
+
+        submitList(newList, commitCallback)
     }
 
     fun isEmpty() = currentList.isEmpty()

@@ -74,7 +74,7 @@ class MessagesRepository(
         extended: Boolean? = null,
         fields: String? = null
     ) = messagesApi.getConversationMembers(
-        MessagesGetConversationMembers(
+        MessagesGetConversationMembersRequest(
             peerId,
             offset,
             count,
@@ -82,5 +82,10 @@ class MessagesRepository(
             fields
         ).map
     )
+
+    suspend fun removeChatUser(
+        chatId: Int,
+        memberId: Int
+    ) = messagesApi.removeChatUser(MessagesRemoveChatUserRequest(chatId, memberId).map)
 
 }

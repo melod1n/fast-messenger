@@ -2,7 +2,6 @@ package com.meloda.fast.screens.chatinfo
 
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.model.VkChat
 import com.meloda.fast.api.model.VkChatMember
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
@@ -17,18 +16,6 @@ import javax.inject.Inject
 class ChatInfoViewModel @Inject constructor(
     private val messagesRepository: MessagesRepository
 ) : BaseViewModel() {
-
-    fun getChatInfo(chatId: Int) = viewModelScope.launch {
-        makeJob(
-            { messagesRepository.getChat(chatId, VKConstants.ALL_FIELDS) },
-            onAnswer = {
-                val response = it.response ?: return@makeJob
-                val chat = response.asVkChat()
-
-                sendEvent(GetChatInfoEvent(chat))
-            }
-        )
-    }
 
     fun getConversationMembers(peerId: Int) = viewModelScope.launch {
         makeJob(
@@ -51,6 +38,15 @@ class ChatInfoViewModel @Inject constructor(
         )
     }
 
+    fun removeChatUser(chatId: Int, memberId: Int) = viewModelScope.launch {
+        makeJob(
+            { messagesRepository.removeChatUser(chatId, memberId) },
+            onAnswer = {
+                sendEvent(RemoveChatUserEvent(chatId, memberId))
+            }
+        )
+    }
+
 }
 
 data class GetConversationMembersEvent(
@@ -60,4 +56,6 @@ data class GetConversationMembersEvent(
     val groups: List<VkGroup>
 ) : VkEvent()
 
-data class GetChatInfoEvent(val chat: VkChat) : VkEvent()
+data class RemoveChatUserEvent(
+    val chatId: Int, val memberId: Int
+) : VkEvent()

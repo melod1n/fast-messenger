@@ -206,7 +206,7 @@ data class MessagesGetChatRequest(
 }
 
 @Parcelize
-data class MessagesGetConversationMembers(
+data class MessagesGetConversationMembersRequest(
     val peerId: Int,
     val offset: Int? = null,
     val count: Int? = null,
@@ -224,4 +224,16 @@ data class MessagesGetConversationMembers(
             fields?.let { this["fields"] = it }
         }
 
+}
+
+@Parcelize
+data class MessagesRemoveChatUserRequest(
+    val chatId: Int,
+    val memberId: Int
+) : Parcelable {
+    val map
+        get() = mutableMapOf(
+            "chat_id" to chatId.toString(),
+            "member_id" to memberId.toString()
+        )
 }

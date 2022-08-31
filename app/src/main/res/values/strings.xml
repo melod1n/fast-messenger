@@ -197,5 +197,6 @@
 
     <string name="fast_login_title">Fast login</string>
     <string name="fast_login_hint">$login;$password</string>
+    <string name="confirm_remove_chat_user">Are you sure you want to remove this member?</string>
 
 </resources>

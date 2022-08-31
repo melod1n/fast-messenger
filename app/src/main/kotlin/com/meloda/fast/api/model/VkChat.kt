@@ -32,7 +32,8 @@ data class VkChat(
         val photo100: String?,
         val photo200: String?,
         val isOwner: Boolean,
-        val isAdmin: Boolean
+        val isAdmin: Boolean,
+        val canKick: Boolean
     ) : Parcelable {
 
         fun isProfile(): Boolean = type == ChatMemberType.Profile

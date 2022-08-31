@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.messages
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -351,8 +350,6 @@ class MessagesHistoryAdapter constructor(
 
     companion object {
         private const val TypeService = 1
-        private const val TypeHeader = 0
-        private const val TypeFooter = 2
         private const val TypeIncoming = 3
         private const val TypeOutgoing = 4
 
