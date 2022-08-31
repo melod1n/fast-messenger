@@ -189,5 +189,18 @@ data class MessagesGetByIdRequest(
             extended?.let { this["extended"] = it.intString }
             fields?.let { this["fields"] = it }
         }
+}
 
+@Parcelize
+data class MessagesGetChatRequest(
+    val chatId: Int,
+    val fields: String? = null
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "chat_id" to chatId.toString()
+        ).apply {
+            fields?.let { this["fields"] = it }
+        }
 }

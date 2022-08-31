@@ -185,7 +185,9 @@ class MessagesHistoryFragment :
         }
 
         binding.toolbar.title = title.orDots()
-        binding.toolbar.setOnClickListener { }
+        binding.toolbar.setOnClickListener {
+            openChatInfoScreen(conversation, user, group)
+        }
 
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
@@ -252,7 +254,6 @@ class MessagesHistoryFragment :
                 setUnreadCounterVisibility(lastPosition, dy)
 
                 adapter.getOrNull(firstPosition)?.let {
-                    if (it !is VkMessage) return
                     binding.timestamp.visible()
 
                     val time = "${
@@ -607,9 +608,6 @@ class MessagesHistoryFragment :
             else -> null
         }
 
-//        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
-//        val avatarImageView: ImageView? = avatarMenuItem.actionView?.findViewById(R.id.avatar)
-
         val avatarImageView = binding.toolbar.avatarImageView
         avatarImageView.visible()
         avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
@@ -666,7 +664,7 @@ class MessagesHistoryFragment :
                     randomId = message.randomId,
                     replyTo = replyMessage?.id,
                     setId = { messageId ->
-                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        val messageToUpdate = adapter[messageIndex]
                         messageToUpdate.id = messageId
                         messageToUpdate.state = VkMessage.State.Sent
                         adapter.notifyItemChanged(messageIndex, "kek")
@@ -674,7 +672,7 @@ class MessagesHistoryFragment :
                         attachmentsAdapter.clear()
                     },
                     onError = {
-                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        val messageToUpdate = adapter[messageIndex]
                         messageToUpdate.state = VkMessage.State.Error
                         adapter.notifyItemChanged(messageIndex, "kek")
 //                        adapter[messageIndex] = messageToUpdate
@@ -765,8 +763,7 @@ class MessagesHistoryFragment :
         val newList = adapter.cloneCurrentList()
 
         for (i in newList.indices) {
-            val item = newList[i]
-            val message: VkMessage = (if (item !is VkMessage) null else item) ?: continue
+            val message = newList[i]
             if (event.messagesIds.contains(message.id)) {
                 newList[i] = message.copy(important = event.important)
             }
@@ -800,7 +797,7 @@ class MessagesHistoryFragment :
     }
 
     private fun onAvatarLongClickListener(position: Int) {
-        val message = adapter[position] as VkMessage
+        val message = adapter[position]
 
         val messageUser = VkUtils.getMessageUser(message, adapter.profiles)
         val messageGroup = VkUtils.getMessageGroup(message, adapter.groups)
@@ -810,7 +807,7 @@ class MessagesHistoryFragment :
     }
 
     private fun showOptionsDialog(position: Int) {
-        val message = adapter[position] as VkMessage
+        val message = adapter[position]
         if (message.action != null) return
 
         val time = getString(
@@ -1000,7 +997,6 @@ class MessagesHistoryFragment :
         val newList = adapter.cloneCurrentList()
         for (i in newList.indices) {
             val message = newList[i]
-            if (message !is VkMessage) continue
 
             if ((message.isOut && conversation.outRead - oldOutRead > 0 && message.id > oldOutRead) ||
                 (!message.isOut && conversation.inRead - oldInRead > 0 && message.id > oldInRead)
@@ -1275,6 +1271,16 @@ class MessagesHistoryFragment :
     ) {
         requireActivityRouter().navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
+        )
+    }
+
+    fun openChatInfoScreen(
+        conversation: VkConversation,
+        user: VkUser?,
+        group: VkGroup?
+    ) {
+        requireActivityRouter().navigateTo(
+            Screens.ChatInfo(conversation, user, group)
         )
     }
 

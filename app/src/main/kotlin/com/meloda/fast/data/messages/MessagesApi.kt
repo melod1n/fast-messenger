@@ -1,6 +1,7 @@
 package com.meloda.fast.data.messages
 
 import com.meloda.fast.api.base.ApiResponse
+import com.meloda.fast.api.model.base.BaseVkChat
 import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.network.ApiAnswer
@@ -52,5 +53,9 @@ interface MessagesApi {
     @FormUrlEncoded
     @POST(MessagesUrls.MarkAsRead)
     suspend fun markAsRead(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<Int>>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.GetChat)
+    suspend fun getChat(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<BaseVkChat>>
 
 }

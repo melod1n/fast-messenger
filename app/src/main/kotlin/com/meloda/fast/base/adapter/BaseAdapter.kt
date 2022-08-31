@@ -9,12 +9,11 @@ import android.widget.Filter
 import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import com.meloda.fast.model.DataItem
 import kotlinx.coroutines.*
 import kotlin.properties.Delegates
 
 @Suppress("MemberVisibilityCanBePrivate", "unused", "UNCHECKED_CAST")
-abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
+abstract class BaseAdapter<T : Any, VH : BaseHolder> constructor(
     var context: Context,
     diffUtil: DiffUtil.ItemCallback<T>,
     preAddedValues: List<T> = emptyList(),
@@ -59,27 +58,18 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
     fun add(
         item: T,
         position: Int? = null,
-        beforeFooter: Boolean = false,
         commitCallback: (() -> Unit)? = null
-    ) = addAll(listOf(item), position, beforeFooter, commitCallback)
+    ) = addAll(listOf(item), position, commitCallback)
 
     fun addAll(
         items: List<T>,
         position: Int? = null,
-        beforeFooter: Boolean = false,
         commitCallback: (() -> Unit)? = null
     ) {
         adapterScope.launch {
             val newList = cloneCurrentList()
             if (position == null) {
                 val mutableItems = items.toMutableList()
-                if (beforeFooter && newList.lastOrNull() is DataItem.Footer) {
-                    newList.removeLastOrNull()
-                }
-
-                if (beforeFooter) {
-                    mutableItems += DataItem.Footer as T
-                }
 
                 newList.addAll(mutableItems)
                 cleanList.addAll(mutableItems)
@@ -117,23 +107,17 @@ abstract class BaseAdapter<T : DataItem<*>, VH : BaseHolder> constructor(
 
     fun setItem(
         item: T,
-        withHeader: Boolean = false,
-        withFooter: Boolean = false,
         commitCallback: (() -> Unit)? = null
-    ) = setItems(listOf(item), withHeader, withFooter, commitCallback)
+    ) = setItems(listOf(item), commitCallback)
 
     @Suppress("UNCHECKED_CAST")
     fun setItems(
         list: List<T>?,
-        withHeader: Boolean = false,
-        withFooter: Boolean = false,
         commitCallback: (() -> Unit)? = null
     ) {
         adapterScope.launch {
             val items = mutableListOf<T>()
-            if (withHeader) items.add(DataItem.Header as T)
             if (!list.isNullOrEmpty()) items.addAll(list)
-            if (withFooter) items.add(DataItem.Footer as T)
 
             withContext(Dispatchers.Main) {
                 if (items == currentList) {

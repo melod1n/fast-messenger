@@ -27,6 +27,7 @@ data class BaseVkConversation(
 
     fun asVkConversation(lastMessage: VkMessage? = null) = VkConversation(
         id = peer.id,
+        localId = peer.local_id,
         title = chat_settings?.title,
         photo200 = chat_settings?.photo?.photo_200,
         type = peer.type,

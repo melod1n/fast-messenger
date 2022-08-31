@@ -15,6 +15,7 @@ import kotlinx.parcelize.Parcelize
 data class VkConversation(
     @PrimaryKey(autoGenerate = false)
     var id: Int,
+    var localId: Int,
     var ownerId: Int?,
     var title: String?,
     var photo200: String?,
@@ -37,7 +38,7 @@ data class VkConversation(
 
     @Embedded(prefix = "lastMessage_")
     var lastMessage: VkMessage? = null,
-) : SelectableItem(id) {
+) : SelectableItem() {
 
     @Ignore
     @IgnoredOnParcel
