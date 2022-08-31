@@ -66,14 +66,14 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         requireNotNull(requireArguments().getParcelable(MessagesHistoryFragment.ARG_CONVERSATION))
     }
 
+    private val chatProfiles: MutableList<VkUser> = mutableListOf()
+    private val chatGroups: MutableList<VkGroup> = mutableListOf()
     private val chatMembers: MutableList<VkChat.ChatMember> = mutableListOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (conversation.isChat()) {
-            viewModel.getChatInfo(conversation.localId)
-        }
+        viewModel.getConversationMembers(conversation.id)
 
         val title = when {
             conversation.isChat() -> conversation.title
@@ -109,8 +109,8 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
             StartProgressEvent -> onProgressStart()
             StopProgressEvent -> onProgressStop()
 
-            is GetChatInfoEvent -> {
-                fillChatInfo(event.chat)
+            is GetConversationMembersEvent -> {
+                fillChatInfo(event)
             }
         }
     }
@@ -127,20 +127,47 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         binding.progresBar.gone()
     }
 
-    private fun fillChatInfo(chat: VkChat) {
-        updateStatus(chat)
-        chatMembers.addAll(chat.members)
+    private fun fillChatInfo(event: GetConversationMembersEvent) {
+        val onlineMembers = event.profiles.filter { it.online }
+        updateStatus(onlineMembers.size)
+
+        val eventChatMembers = event.items.map { vkChatMember ->
+            val memberUser: VkUser? = if (vkChatMember.memberId < 0) null
+            else event.profiles.firstOrNull { it.id == vkChatMember.memberId }
+
+            val memberGroup: VkGroup? = if (vkChatMember.memberId > 0) null
+            else event.groups.firstOrNull { it.id == vkChatMember.memberId }
+
+            VkChat.ChatMember(
+                id = vkChatMember.memberId,
+                type = if (vkChatMember.memberId > 0) VkChat.ChatMember.ChatMemberType.Profile else VkChat.ChatMember.ChatMemberType.Group,
+                isOnline = memberUser?.online,
+                lastSeen = memberUser?.lastSeen,
+                name = memberGroup?.name,
+                firstName = memberUser?.firstName,
+                lastName = memberUser?.lastName,
+                invitedBy = vkChatMember.invitedBy,
+                photo50 = null,
+                photo100 = null,
+                photo200 = memberUser?.photo200 ?: memberGroup?.photo200,
+                isOwner = vkChatMember.isOwner,
+                isAdmin = vkChatMember.isAdmin
+            )
+        }
+
+        chatProfiles.addAll(event.profiles)
+        chatGroups.addAll(event.groups)
+        chatMembers.addAll(eventChatMembers)
         prepareTabs()
     }
 
-    private fun updateStatus(chat: VkChat? = null) {
+    private fun updateStatus(onlineMembersCount: Int? = null) {
         val status = when {
             conversation.isChat() -> {
                 val membersCountText = "${conversation.membersCount} members"
-                if (chat == null) membersCountText
+                if (onlineMembersCount == null) membersCountText
                 else {
-                    val onlineMembers = chat.members.filter { it.isOnline == true }
-                    "$membersCountText, ${onlineMembers.size} online"
+                    "$membersCountText, $onlineMembersCount online"
                 }
             }
             conversation.isUser() -> when {
@@ -168,7 +195,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
 
     fun createTabFragment(position: Int): Fragment {
         if (conversation.isChat() && position == 0) {
-            return ChatInfoMembersFragment.newInstance(chatMembers)
+            return ChatInfoMembersFragment.newInstance(chatProfiles, chatGroups, chatMembers)
         }
 
         return Fragment()

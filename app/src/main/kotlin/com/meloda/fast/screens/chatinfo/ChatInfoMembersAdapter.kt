@@ -1,17 +1,29 @@
 package com.meloda.fast.screens.chatinfo
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
+import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
+import com.meloda.fast.api.model.VkGroup
+import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemChatMemberBinding
+import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.extensions.orDots
+import com.meloda.fast.extensions.toggleVisibility
+import java.text.SimpleDateFormat
 import java.util.*
 
 class ChatInfoMembersAdapter(
     context: Context,
-    preAddedValues: List<VkChat.ChatMember>
+    preAddedValues: List<VkChat.ChatMember>,
+    private val profiles: List<VkUser>,
+    private val groups: List<VkGroup>
 ) : BaseAdapter<VkChat.ChatMember, ChatInfoMembersAdapter.Holder>(
     context,
     comparator,
@@ -45,13 +57,55 @@ class ChatInfoMembersAdapter(
         private val binding: ItemChatMemberBinding
     ) : BaseHolder(binding.root) {
 
+        private val colorOnBackground = ContextCompat.getColor(context, R.color.colorOnBackground)
+        private val colorPrimary = ContextCompat.getColor(context, R.color.colorPrimary)
+        private val starIcon = ContextCompat.getDrawable(context, R.drawable.ic_round_star_24)
+
         override fun bind(position: Int) {
             val chatMember = getItem(position)
 
-            val title = chatMember.name ?: "${chatMember.firstName} ${chatMember.lastName}"
+            binding.avatar.loadWithGlide(
+                url = chatMember.photo200,
+                crossFade = true,
+                placeholderColor = Color.GRAY,
+                errorColor = Color.RED
+            )
 
+            val title = chatMember.name ?: "${chatMember.firstName} ${chatMember.lastName}"
             binding.title.text = title
+
+            binding.online.toggleVisibility(chatMember.isProfile())
+            binding.online.text =
+                if (chatMember.isOnline == true) "Online"
+                else if (chatMember.lastSeen != null) "Last seen at ${
+                    SimpleDateFormat(
+                        "HH:mm",
+                        Locale.getDefault()
+                    ).format(chatMember.lastSeen * 1000L)
+                }"
+                else "Offline"
+
+            val inviteUser: VkUser? =
+                if (chatMember.invitedBy < 0) null
+                else profiles.firstOrNull { it.id == chatMember.invitedBy }
+
+            val inviteGroup: VkGroup? =
+                if (chatMember.invitedBy > 0) null
+                else groups.firstOrNull { it.id == chatMember.invitedBy }
+
+            val inviteTitle = inviteUser?.toString() ?: inviteGroup?.name
+
+            binding.invitedBy.toggleVisibility(!chatMember.isOwner)
+
+            val invitedByText = "Invited by ${inviteTitle.orDots()}"
+            binding.invitedBy.text = invitedByText
+
+            binding.star.toggleVisibility(chatMember.isAdmin || chatMember.isOwner)
+            binding.star.imageTintList =
+                ColorStateList.valueOf(
+                    if (chatMember.isOwner) colorPrimary
+                    else colorOnBackground
+                )
         }
     }
-
 }

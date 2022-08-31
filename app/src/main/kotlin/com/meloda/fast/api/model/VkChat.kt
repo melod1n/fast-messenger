@@ -23,11 +23,21 @@ data class VkChat(
         val id: Int,
         val type: ChatMemberType,
         val isOnline: Boolean?,
+        val lastSeen: Int?,
         val name: String?,
         val firstName: String?,
         val lastName: String?,
-        val invitedBy: Int
+        val invitedBy: Int,
+        val photo50: String?,
+        val photo100: String?,
+        val photo200: String?,
+        val isOwner: Boolean,
+        val isAdmin: Boolean
     ) : Parcelable {
+
+        fun isProfile(): Boolean = type == ChatMemberType.Profile
+
+        fun isGroup(): Boolean = type == ChatMemberType.Group
 
         enum class ChatMemberType(val value: String) {
             Profile("profile"), Group("group");

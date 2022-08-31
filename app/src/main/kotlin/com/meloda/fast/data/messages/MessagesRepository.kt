@@ -67,4 +67,20 @@ class MessagesRepository(
         fields: String? = null
     ) = messagesApi.getChat(MessagesGetChatRequest(chatId, fields).map)
 
+    suspend fun getConversationMembers(
+        peerId: Int,
+        offset: Int? = null,
+        count: Int? = null,
+        extended: Boolean? = null,
+        fields: String? = null
+    ) = messagesApi.getConversationMembers(
+        MessagesGetConversationMembers(
+            peerId,
+            offset,
+            count,
+            extended,
+            fields
+        ).map
+    )
+
 }

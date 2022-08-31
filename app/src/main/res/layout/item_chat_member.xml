@@ -3,15 +3,87 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="8dp">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <com.meloda.fast.view.CircleImageView
+        android:id="@+id/avatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="@tools:sample/full_names" />
+        tools:src="?colorOnBackground" />
 
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:orientation="vertical"
+        app:constraint_referenced_ids="title_container,online,invited_by"
+        app:flow_horizontalAlign="start"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@id/avatar"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/title_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constrainedWidth="true">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?colorOnBackground"
+            android:textSize="16sp"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/star"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@tools:sample/full_names" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/star"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_round_star_24"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/title"
+            app:layout_constraintTop_toTopOf="@id/title"
+            app:tint="?colorOnBackground"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/online"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.85"
+        android:textSize="12sp"
+        tools:text="Last seen 3 days ago" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/invited_by"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.6"
+        android:textSize="11sp"
+        tools:text="Invited by Danya Nikolaev" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

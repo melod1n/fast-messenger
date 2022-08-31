@@ -12,7 +12,7 @@ object VKConstants {
 
     const val ALL_FIELDS = "$USER_FIELDS,$GROUP_FIELDS"
 
-    const val API_VERSION = "5.132"
+    const val API_VERSION = "5.144"
     const val LP_VERSION = 10
 
     const val VK_APP_ID = "2274003"

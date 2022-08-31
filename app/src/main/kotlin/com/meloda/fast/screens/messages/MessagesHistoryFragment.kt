@@ -277,7 +277,10 @@ class MessagesHistoryFragment :
 
                     timestampTimer = Timer()
                     timestampTimer?.schedule(2500) {
-                        recyclerView.post { binding.timestamp.gone() }
+                        recyclerView.post {
+                            if (getView() == null) return@post
+                            binding.timestamp.gone()
+                        }
                     }
                 }
 

@@ -204,3 +204,24 @@ data class MessagesGetChatRequest(
             fields?.let { this["fields"] = it }
         }
 }
+
+@Parcelize
+data class MessagesGetConversationMembers(
+    val peerId: Int,
+    val offset: Int? = null,
+    val count: Int? = null,
+    val extended: Boolean? = null,
+    val fields: String? = null
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "peer_id" to peerId.toString()
+        ).apply {
+            offset?.let { this["offset"] = it.toString() }
+            count?.let { this["count"] = it.toString() }
+            extended?.let { this["extended"] = it.toString() }
+            fields?.let { this["fields"] = it }
+        }
+
+}

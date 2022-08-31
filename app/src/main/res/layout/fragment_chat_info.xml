@@ -25,12 +25,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:tabGravity="start"
         app:tabMode="scrollable" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,9 +42,11 @@
         android:id="@+id/progres_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

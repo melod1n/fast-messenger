@@ -6,6 +6,7 @@ import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
+import com.meloda.fast.api.network.messages.MessagesGetConversationMembersResponse
 import com.meloda.fast.api.network.messages.MessagesGetHistoryResponse
 import com.meloda.fast.api.network.messages.MessagesUrls
 import retrofit2.http.FieldMap
@@ -57,5 +58,9 @@ interface MessagesApi {
     @FormUrlEncoded
     @POST(MessagesUrls.GetChat)
     suspend fun getChat(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<BaseVkChat>>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.GetConversationMembers)
+    suspend fun getConversationMembers(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<MessagesGetConversationMembersResponse>>
 
 }
