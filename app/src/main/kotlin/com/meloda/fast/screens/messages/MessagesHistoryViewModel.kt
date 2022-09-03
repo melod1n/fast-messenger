@@ -23,7 +23,6 @@ import com.meloda.fast.data.videos.VideosRepository
 import com.meloda.fast.extensions.requireNotNull
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -156,7 +155,6 @@ class MessagesHistoryViewModel @Inject constructor(
         onError: ((error: Throwable) -> Unit)? = null,
         attachments: List<VkAttachment>? = null
     ) = launch {
-        delay(2500)
         makeJob(
             {
                 messagesRepository.send(
