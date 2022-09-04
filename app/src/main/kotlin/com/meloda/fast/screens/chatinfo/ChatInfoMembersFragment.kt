@@ -49,7 +49,7 @@ class ChatInfoMembersFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.recyclerView.addItemDecoration(SpaceItemDecoration(topMargin = 4.dpToPx()))
+        binding.recyclerView.addItemDecoration(SpaceItemDecoration(topMargin = 8.dpToPx()))
 
         val profiles = requireArguments().getSerializable(ArgProfiles) as List<VkUser>
         val groups = requireArguments().getSerializable(ArgGroups) as List<VkGroup>

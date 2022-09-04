@@ -30,6 +30,7 @@ data class VkConversation(
     var unreadCount: Int,
     var membersCount: Int?,
     var canChangePin: Boolean,
+    var canChangeInfo: Boolean,
     var majorId: Int,
     var minorId: Int,
 

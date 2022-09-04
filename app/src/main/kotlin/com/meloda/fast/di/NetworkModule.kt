@@ -37,36 +37,6 @@ import javax.inject.Singleton
 @Module
 object NetworkModule {
 
-    /*
-
-    val chuckerCollector = ChuckerCollector(
-        context = this,
-        // Toggles visibility of the notification
-        showNotification = true,
-        // Allows to customize the retention period of collected data
-        retentionPeriod = RetentionManager.Period.ONE_HOUR
-)
-
-// Create the Interceptor
-val chuckerInterceptor = ChuckerInterceptor.Builder(context)
-        // The previously created Collector
-        .collector(chuckerCollector)
-        // The max body content length in bytes, after this responses will be truncated.
-        .maxContentLength(250_000L)
-        // List of headers to replace with ** in the Chucker UI
-        .redactHeaders("Auth-Token", "Bearer")
-        // Read the whole response body even when the client does not consume the response completely.
-        // This is useful in case of parsing errors or when the response body
-        // is closed before being read like in Retrofit with Void and Unit types.
-        .alwaysReadResponseBody(true)
-        // Use decoder when processing request and response bodies. When multiple decoders are installed they
-        // are applied in an order they were added.
-        .addBodyDecoder(decoder)
-        // Controls Android shortcut creation. Available in SNAPSHOTS versions only at the moment
-        .createShortcut(true)
-        .build()
-     */
-
     @Singleton
     @Provides
     fun provideChuckerCollector(): ChuckerCollector =
@@ -91,7 +61,11 @@ val chuckerInterceptor = ChuckerInterceptor.Builder(context)
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(authInterceptor)
-            .addInterceptor(chuckerInterceptor)
+            .addInterceptor(
+                chuckerInterceptor.apply {
+                    redactHeader("Secret-Code")
+                }
+            )
             .followRedirects(true)
             .followSslRedirects(true)
             .addInterceptor(

@@ -3,9 +3,9 @@ package com.meloda.fast.screens.chatinfo
 import android.os.Bundle
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
@@ -103,6 +103,9 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         avatarImageView.visible()
         avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
 
+        binding.toolbar.avatarClickAction = {
+            showAvatarOptions()
+        }
         binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
 
         binding.viewPager.offscreenPageLimit = getTabsCount() - 1
@@ -250,6 +253,26 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
                 viewModel.removeChatUser(conversation.localId, memberId)
             }
             .setNegativeButton(R.string.no, null)
+            .show()
+    }
+
+    private fun showAvatarOptions() {
+        val options = mutableListOf("Open")
+
+        if (conversation.canChangeInfo) {
+            options += listOf("Edit", "Delete")
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setItems(options.toTypedArray()) { _, which ->
+                when (options[which]) {
+                    "Open" -> {
+                        Toast.makeText(requireContext(), "Open photo", Toast.LENGTH_SHORT).show()
+                    }
+                    else ->
+                        Toast.makeText(requireContext(), "Change info", Toast.LENGTH_SHORT).show()
+                }
+            }
             .show()
     }
 }

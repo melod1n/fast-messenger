@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
@@ -36,6 +37,10 @@ class DialogToolbar @JvmOverloads constructor(
 
     var avatarDrawable: Drawable? by Delegates.observable(null) { _, _, _ ->
         applyAvatarDrawable(avatarDrawable)
+    }
+
+    var avatarClickAction: ((avatar: View) -> Unit)? by Delegates.observable(null) { _, _, _ ->
+        applyAvatarClickAction(avatarClickAction)
     }
 
     var startIconDrawable: Drawable? by Delegates.observable(null) { _, _, _ ->
@@ -97,6 +102,10 @@ class DialogToolbar @JvmOverloads constructor(
     private fun applyAvatarDrawable(drawable: Drawable?) {
         binding.avatar.setImageDrawable(drawable)
         binding.avatar.toggleVisibilityIfHasContent()
+    }
+
+    private fun applyAvatarClickAction(action: ((avatar: View) -> Unit)?) {
+        binding.avatar.setOnClickListener(action)
     }
 
     private fun applyStartIconDrawable(drawable: Drawable?) {
