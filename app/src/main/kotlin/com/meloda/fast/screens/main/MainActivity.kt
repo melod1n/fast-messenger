@@ -80,13 +80,17 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         syncNavigationMode()
     }
 
+    private var isOnlineServiceWasLaunched: Boolean = false
+
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
         super.onResumeFragments()
     }
 
     override fun onPause() {
-        toggleOnlineService(false)
+        if (isOnlineServiceWasLaunched) {
+            toggleOnlineService(false)
+        }
         navigatorHolder.removeNavigator()
         super.onPause()
     }
@@ -177,7 +181,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     override fun onResume() {
         super.onResume()
 
-        toggleOnlineService(true)
+        if (isOnlineServiceWasLaunched) {
+            toggleOnlineService(true)
+        }
 
         Crashes.getLastSessionCrashReport().thenAccept { report ->
             if (report != null) {
@@ -264,6 +270,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     private fun toggleOnlineService(enable: Boolean) {
         if (enable) {
+            isOnlineServiceWasLaunched = true
             startService(Intent(this, OnlineService::class.java))
         } else {
             stopService(Intent(this, OnlineService::class.java))
@@ -349,5 +356,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         super.onDestroy()
         stopServices()
         updatesParser.clearListeners()
+        isOnlineServiceWasLaunched = false
     }
 }

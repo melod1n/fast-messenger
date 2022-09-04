@@ -63,15 +63,12 @@ class OnlineService : Service(), CoroutineScope {
         currentJob = launch {
             Log.d("OnlineService", "setOnline()")
 
-            val fastToken = UserConfig.fastToken
+            val token = UserConfig.fastToken ?: UserConfig.accessToken
 
-            val token =
-                if (fastToken == null) {
-                    Log.d("OnlineService", "setOnline: Fast token is null. Using VK token")
-                    UserConfig.accessToken
-                } else {
-                    fastToken
-                }
+            if (token.isBlank()) {
+                Log.d("OnlineService", "setOnline: token is empty")
+                return@launch
+            }
 
             val response = repository.setOnline(
                 AccountSetOnlineRequest(
