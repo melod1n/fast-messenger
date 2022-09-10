@@ -6,17 +6,10 @@ import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-open class SelectableItem constructor(
-    @Ignore
-    val selectableItemId: Int = 0
-) : DataItem<Int>(), Parcelable {
+open class SelectableItem : Parcelable {
 
     @Ignore
     @IgnoredOnParcel
     var isSelected: Boolean = false
-
-    @Ignore
-    @IgnoredOnParcel
-    override val dataItemId = selectableItemId
 
 }

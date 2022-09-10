@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.app.DownloadManager
 import android.content.IntentFilter
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -170,7 +171,9 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
     }
 
     private fun checkIsInstallingAllowed(item: UpdateItem) {
-        if (!AndroidUtils.isCanInstallUnknownApps(requireContext())) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O &&
+            !AndroidUtils.isCanInstallUnknownApps(requireContext())
+        ) {
             val builder = MaterialAlertDialogBuilder(requireContext())
             builder.setTitle(R.string.warning)
             builder.setMessage(R.string.fragment_updates_unknown_sources_disabled_message)

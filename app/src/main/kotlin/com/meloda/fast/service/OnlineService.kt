@@ -35,53 +35,50 @@ class OnlineService : Service(), CoroutineScope {
 
     private var timer: Timer? = null
 
+    private var currentJob: Job? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("OnlineService", "onStartCommand: flags: $flags; startId: $startId")
-        createTimer()
+
+        if (AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefSendOnlineStatus, true)) {
+            createTimer()
+        }
 
         return START_STICKY_COMPATIBILITY
     }
 
     private fun createTimer() {
         timer = Timer().apply {
-            schedule(delay = 0, period = 60 * 1000L) {
-                launch { performJob() }
+            schedule(delay = 0, period = 300 * 1000L) {
+                setOnline()
             }
         }
     }
 
-    private suspend fun performJob() {
-        if (!AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefSendOnlineStatus, true)) {
-            return
-        }
+    private fun setOnline() {
+        if (currentJob != null) return
 
-        setOffline()
-        delay(5000)
-        setOnline()
-    }
+        currentJob = launch {
+            Log.d("OnlineService", "setOnline()")
 
-    private suspend fun setOnline() {
-        Log.d("OnlineService", "setOnline()")
+            val token = UserConfig.fastToken ?: UserConfig.accessToken
 
-        val fastToken = UserConfig.fastToken
-
-        val token =
-            if (fastToken == null) {
-                Log.d("OnlineService", "setOnline: Fast token is null. Using VK token")
-                UserConfig.accessToken
-            } else {
-                fastToken
+            if (token.isBlank()) {
+                Log.d("OnlineService", "setOnline: token is empty")
+                return@launch
             }
 
-        val response = repository.setOnline(
-            AccountSetOnlineRequest(
-                voip = false,
-                accessToken = token
+            val response = repository.setOnline(
+                AccountSetOnlineRequest(
+                    voip = false,
+                    accessToken = token
+                )
             )
-        )
-        Log.d("OnlineService", "setOnline: response: $response")
+            Log.d("OnlineService", "setOnline: response: $response")
+            currentJob = null
+        }
     }
 
     private suspend fun setOffline() {
@@ -96,7 +93,8 @@ class OnlineService : Service(), CoroutineScope {
 
     override fun onDestroy() {
         super.onDestroy()
+        timer?.cancel()
+        currentJob?.cancel("OnlineService destroyed")
         Log.d("OnlineService", "onDestroy")
     }
-
 }

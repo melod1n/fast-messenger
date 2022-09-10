@@ -36,4 +36,13 @@
     <attr name="colorOnBackgroundVariantContainer" format="color" />
     <attr name="colorOnBackgroundVariantOnContainer" format="color" />
 
+    <declare-styleable name="DialogToolbar">
+        <attr name="backgroundColor" format="color" />
+        <attr name="title" format="string" />
+        <attr name="subtitle" format="string" />
+        <attr name="avatar" format="reference" />
+        <attr name="startIcon" format="reference" />
+        <attr name="useTranslucentBackgroundColor" format="boolean" />
+    </declare-styleable>
+
 </resources>

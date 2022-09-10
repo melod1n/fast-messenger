@@ -24,6 +24,15 @@ object ViewModelUtils {
                 activity.finishAffinity()
                 activity.startActivity(Intent(activity, MainActivity::class.java))
             }
+            is TokenExpiredErrorEvent -> {
+                Toast.makeText(
+                    activity, R.string.token_expired, Toast.LENGTH_LONG
+                ).show()
+
+                UserConfig.clear()
+                activity.finishAffinity()
+                activity.startActivity(Intent(activity, MainActivity::class.java))
+            }
 
             is VkErrorEvent -> {
                 event.errorText?.run {

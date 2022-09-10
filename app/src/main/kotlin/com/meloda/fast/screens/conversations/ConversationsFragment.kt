@@ -24,7 +24,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -40,7 +39,6 @@ import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -226,7 +224,7 @@ class ConversationsFragment :
             ) { _, _ ->
                 lifecycleScope.launch(Dispatchers.Default) {
                     UserConfig.clear()
-                    AppGlobal.appDatabase.clearAllTables()
+                    AppGlobal.cacheDatabase.clearAllTables()
                     setFragmentResult(
                         MainFragment.KeyStartServices,
                         bundleOf("enable" to false)

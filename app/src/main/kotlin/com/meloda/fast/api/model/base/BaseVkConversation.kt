@@ -27,6 +27,7 @@ data class BaseVkConversation(
 
     fun asVkConversation(lastMessage: VkMessage? = null) = VkConversation(
         id = peer.id,
+        localId = peer.local_id,
         title = chat_settings?.title,
         photo200 = chat_settings?.photo?.photo_200,
         type = peer.type,
@@ -42,7 +43,8 @@ data class BaseVkConversation(
         ownerId = chat_settings?.owner_id,
         majorId = sort_id.major_id,
         minorId = sort_id.minor_id,
-        canChangePin = chat_settings?.acl?.can_change_pin == true
+        canChangePin = chat_settings?.acl?.can_change_pin == true,
+        canChangeInfo = chat_settings?.acl?.can_change_info == true
     ).apply {
         this.lastMessage = lastMessage
         this.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()
