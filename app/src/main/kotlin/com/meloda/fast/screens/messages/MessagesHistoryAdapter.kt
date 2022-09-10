@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.messages
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -27,14 +26,13 @@ import com.meloda.fast.databinding.ItemMessageOutBinding
 import com.meloda.fast.databinding.ItemMessageServiceBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.extensions.dpToPx
-import com.meloda.fast.model.DataItem
 
 class MessagesHistoryAdapter constructor(
     context: Context,
     val conversation: VkConversation,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
-) : BaseAdapter<DataItem<Int>, MessagesHistoryAdapter.BasicHolder>(
+) : BaseAdapter<VkMessage, MessagesHistoryAdapter.BasicHolder>(
     context,
     Comparator
 ) {
@@ -75,29 +73,12 @@ class MessagesHistoryAdapter constructor(
                     else -> -1
                 }
             }
-            is DataItem.Header -> {
-                return TypeHeader
-            }
-            is DataItem.Footer -> {
-                return TypeFooter
-            }
             else -> -1
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasicHolder {
         return when (viewType) {
-            // magick numbers is great!
-            TypeHeader -> {
-                Header(createEmptyView(60))
-            }
-            TypeFooter -> {
-                Footer(
-                    createEmptyView(
-                        context.resources.getDimensionPixelSize(R.dimen.messages_history_input_panel_height_with_margins)
-                    )
-                )
-            }
             TypeService -> ServiceMessage(
                 ItemMessageServiceBinding.inflate(inflater, parent, false)
             )
@@ -129,17 +110,6 @@ class MessagesHistoryAdapter constructor(
         holder.bind(position)
     }
 
-    private fun createEmptyView(size: Int) = View(context).apply {
-        layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            size
-        )
-
-        isEnabled = false
-        isClickable = false
-        isFocusable = false
-    }
-
     open inner class BasicHolder(v: View = View(context)) : BaseHolder(v)
 
     inner class Header(v: View) : BasicHolder(v)
@@ -153,8 +123,8 @@ class MessagesHistoryAdapter constructor(
         override fun bind(position: Int, payloads: MutableList<Any>?) {
             val message = getItem(position) as VkMessage
 
-            val prevMessage = getVkMessage(getOrNull(position - 1))
-            val nextMessage = getVkMessage(getOrNull(position + 1))
+            val prevMessage = getOrNull(position - 1)
+            val nextMessage = getOrNull(position + 1)
 
             MessagesPreparator(
                 context = context,
@@ -216,8 +186,8 @@ class MessagesHistoryAdapter constructor(
     ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int, payloads: MutableList<Any>?) {
-            val message = getItem(position) as VkMessage
-            val prevMessage = getVkMessage(getOrNull(position - 1))
+            val message = getItem(position)
+            val prevMessage = getOrNull(position - 1)
 
             MessagesPreparator(
                 context = context,
@@ -360,13 +330,6 @@ class MessagesHistoryAdapter constructor(
         return false
     }
 
-    fun getVkMessage(item: DataItem<*>?): VkMessage? {
-        if (item == null) return null
-        if (item is VkMessage) return item
-
-        return null
-    }
-
     fun searchMessageIndex(messageId: Int): Int? {
         for (i in indices) {
             val message = getItem(i)
@@ -387,31 +350,22 @@ class MessagesHistoryAdapter constructor(
 
     companion object {
         private const val TypeService = 1
-        private const val TypeHeader = 0
-        private const val TypeFooter = 2
         private const val TypeIncoming = 3
         private const val TypeOutgoing = 4
 
-        private val Comparator = object : DiffUtil.ItemCallback<DataItem<Int>>() {
+        private val Comparator = object : DiffUtil.ItemCallback<VkMessage>() {
             override fun areItemsTheSame(
-                oldItem: DataItem<Int>,
-                newItem: DataItem<Int>
+                oldItem: VkMessage,
+                newItem: VkMessage
             ): Boolean {
-                return if (oldItem is VkMessage && newItem is VkMessage) {
-                    oldItem.id == newItem.id
-                } else {
-                    oldItem is DataItem.Footer && newItem is DataItem.Footer ||
-                            oldItem is DataItem.Header && newItem is DataItem.Header ||
-                            ObjectsCompat.equals(oldItem, newItem)
-                }
+                return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(
-                oldItem: DataItem<Int>,
-                newItem: DataItem<Int>
+                oldItem: VkMessage,
+                newItem: VkMessage
             ): Boolean {
-
-                return ObjectsCompat.equals(oldItem, newItem) && ((oldItem is VkMessage && newItem is VkMessage) && oldItem.state == newItem.state)
+                return ObjectsCompat.equals(oldItem, newItem) && (oldItem.state == newItem.state)
             }
         }
     }

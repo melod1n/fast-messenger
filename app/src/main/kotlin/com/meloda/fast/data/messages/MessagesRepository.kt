@@ -2,8 +2,8 @@ package com.meloda.fast.data.messages
 
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
-import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.api.network.messages.*
+import com.meloda.fast.data.longpoll.LongPollApi
 
 class MessagesRepository(
     private val messagesApi: MessagesApi,
@@ -61,5 +61,31 @@ class MessagesRepository(
             }
         }
     )
+
+    suspend fun getChat(
+        chatId: Int,
+        fields: String? = null
+    ) = messagesApi.getChat(MessagesGetChatRequest(chatId, fields).map)
+
+    suspend fun getConversationMembers(
+        peerId: Int,
+        offset: Int? = null,
+        count: Int? = null,
+        extended: Boolean? = null,
+        fields: String? = null
+    ) = messagesApi.getConversationMembers(
+        MessagesGetConversationMembersRequest(
+            peerId,
+            offset,
+            count,
+            extended,
+            fields
+        ).map
+    )
+
+    suspend fun removeChatUser(
+        chatId: Int,
+        memberId: Int
+    ) = messagesApi.removeChatUser(MessagesRemoveChatUserRequest(chatId, memberId).map)
 
 }

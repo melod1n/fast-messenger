@@ -38,7 +38,7 @@ data class VkMessage constructor(
     var replyMessage: VkMessage? = null,
 
     val geo: BaseVkMessage.Geo? = null,
-) : SelectableItem(id) {
+) : SelectableItem() {
 
     @Ignore
     @IgnoredOnParcel

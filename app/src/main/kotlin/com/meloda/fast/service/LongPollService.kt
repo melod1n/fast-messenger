@@ -60,21 +60,6 @@ class LongPollService : Service(), CoroutineScope {
         Log.d("LongPollService", "onStartCommand: flags: $flags; startId: $startId")
         launch { startPolling().join() }
 
-        val notificationBuilder =
-            NotificationsUtils.createNotification(
-                context = this,
-                title = "Сервис анального зондирования",
-                contentText = "ищем нюдесы в ваших сообщениях",
-                notRemovable = true,
-                channelId = "long_polling",
-                priority = NotificationsUtils.NotificationPriority.Min,
-                category = NotificationCompat.CATEGORY_SERVICE
-            )
-
-        startForeground(
-            startId,
-            notificationBuilder.build()
-        )
         return START_STICKY
     }
 

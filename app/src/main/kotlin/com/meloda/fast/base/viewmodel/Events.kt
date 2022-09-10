@@ -7,6 +7,7 @@ abstract class VkProgressEvent : VkEvent()
 open class ErrorTextEvent(override val errorText: String) : VkErrorEvent()
 
 object AuthorizationErrorEvent : VkErrorEvent()
+object TokenExpiredErrorEvent: VkErrorEvent()
 data class CaptchaRequiredEvent(val sid: String, val image: String) : VkErrorEvent()
 data class ValidationRequiredEvent(val sid: String) : VkErrorEvent()
 

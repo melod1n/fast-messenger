@@ -189,5 +189,51 @@ data class MessagesGetByIdRequest(
             extended?.let { this["extended"] = it.intString }
             fields?.let { this["fields"] = it }
         }
+}
 
+@Parcelize
+data class MessagesGetChatRequest(
+    val chatId: Int,
+    val fields: String? = null
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "chat_id" to chatId.toString()
+        ).apply {
+            fields?.let { this["fields"] = it }
+        }
+}
+
+@Parcelize
+data class MessagesGetConversationMembersRequest(
+    val peerId: Int,
+    val offset: Int? = null,
+    val count: Int? = null,
+    val extended: Boolean? = null,
+    val fields: String? = null
+) : Parcelable {
+
+    val map
+        get() = mutableMapOf(
+            "peer_id" to peerId.toString()
+        ).apply {
+            offset?.let { this["offset"] = it.toString() }
+            count?.let { this["count"] = it.toString() }
+            extended?.let { this["extended"] = it.toString() }
+            fields?.let { this["fields"] = it }
+        }
+
+}
+
+@Parcelize
+data class MessagesRemoveChatUserRequest(
+    val chatId: Int,
+    val memberId: Int
+) : Parcelable {
+    val map
+        get() = mutableMapOf(
+            "chat_id" to chatId.toString(),
+            "member_id" to memberId.toString()
+        )
 }

@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.util.Log
 import android.viewbinding.library.activity.viewBinding
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.size
@@ -81,12 +80,17 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         syncNavigationMode()
     }
 
+    private var isOnlineServiceWasLaunched: Boolean = false
+
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
         super.onResumeFragments()
     }
 
     override fun onPause() {
+        if (isOnlineServiceWasLaunched) {
+            toggleOnlineService(false)
+        }
         navigatorHolder.removeNavigator()
         super.onPause()
     }
@@ -162,27 +166,24 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             val dialogsName = "Dialogs"
             val dialogsDescriptionText = "Channel for dialogs notifications"
             val dialogsImportance = NotificationManager.IMPORTANCE_MAX
-            val dialogsChannel = NotificationChannel("simple_notifications", dialogsName, dialogsImportance).apply {
-                description = dialogsDescriptionText
-            }
-
-            val longPollName = "Long Polling"
-            val longPollDescriptionText = "Channel for long polling service (temporary)"
-            val longPollImportance = NotificationManager.IMPORTANCE_NONE
-            val longPollChannel = NotificationChannel("long_polling", longPollName, longPollImportance).apply {
-                description = longPollDescriptionText
-            }
+            val dialogsChannel =
+                NotificationChannel("simple_notifications", dialogsName, dialogsImportance).apply {
+                    description = dialogsDescriptionText
+                }
 
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
             notificationManager.createNotificationChannel(dialogsChannel)
-            notificationManager.createNotificationChannel(longPollChannel)
         }
     }
 
     override fun onResume() {
         super.onResume()
+
+        if (isOnlineServiceWasLaunched) {
+            toggleOnlineService(true)
+        }
 
         Crashes.getLastSessionCrashReport().thenAccept { report ->
             if (report != null) {
@@ -258,13 +259,22 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     private fun startServices() {
-        ContextCompat.startForegroundService(this, Intent(this, LongPollService::class.java))
-        startService(Intent(this, OnlineService::class.java))
+        startService(Intent(this, LongPollService::class.java))
+        toggleOnlineService(true)
     }
 
     private fun stopServices() {
         stopService(Intent(this, LongPollService::class.java))
-        stopService(Intent(this, OnlineService::class.java))
+        toggleOnlineService(false)
+    }
+
+    private fun toggleOnlineService(enable: Boolean) {
+        if (enable) {
+            isOnlineServiceWasLaunched = true
+            startService(Intent(this, OnlineService::class.java))
+        } else {
+            stopService(Intent(this, OnlineService::class.java))
+        }
     }
 
     private fun addTestMenuItem() {
@@ -346,5 +356,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         super.onDestroy()
         stopServices()
         updatesParser.clearListeners()
+        isOnlineServiceWasLaunched = false
     }
 }

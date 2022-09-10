@@ -13,7 +13,8 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.meloda.fast.database.AppDatabase
+import com.meloda.fast.database.AccountsDatabase
+import com.meloda.fast.database.CacheDatabase
 import dagger.hilt.android.HiltAndroidApp
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -33,7 +34,8 @@ class AppGlobal : Application() {
         lateinit var packageName: String
         private lateinit var instance: AppGlobal
 
-        lateinit var appDatabase: AppDatabase
+        lateinit var cacheDatabase: CacheDatabase
+        lateinit var accountsDatabase: AccountsDatabase
 
         lateinit var packageManager: PackageManager
 
@@ -52,8 +54,11 @@ class AppGlobal : Application() {
         super.onCreate()
         instance = this
 
-        appDatabase = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
-//            .fallbackToDestructiveMigration()
+        cacheDatabase = Room.databaseBuilder(this, CacheDatabase::class.java, "cache")
+            .fallbackToDestructiveMigration()
+            .build()
+
+        accountsDatabase = Room.databaseBuilder(this, AccountsDatabase::class.java, "accounts")
             .build()
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
