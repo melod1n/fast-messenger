@@ -3,7 +3,10 @@ package com.meloda.fast.base.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.network.*
+import com.meloda.fast.api.network.ApiAnswer
+import com.meloda.fast.api.network.AuthorizationError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.ValidationRequiredError
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
