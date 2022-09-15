@@ -15,21 +15,21 @@ import android.viewbinding.library.fragment.viewBinding
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.content.edit
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.base.viewmodel.*
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
+import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
+import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogFastLoginBinding
@@ -40,8 +40,6 @@ import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.util.regex.Pattern
 
@@ -159,6 +157,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             interpolator = LinearInterpolator()
 
             addUpdateListener { animator ->
+                if (view == null) return@addUpdateListener
+
                 val value = animator.animatedValue as Float
 
                 binding.signIn.scaleX = value
