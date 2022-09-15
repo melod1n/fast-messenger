@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.viewbinding.library.fragment.viewBinding
 import android.widget.Toast
@@ -18,6 +19,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,8 +49,7 @@ import com.meloda.fast.util.TimeUtils
 import com.meloda.fast.view.SpaceItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -121,7 +122,7 @@ class MessagesHistoryFragment :
         }
 
 
-    private val actionState = MutableLiveData<Action>()
+    private val actionState = MutableStateFlow(Action.RECORD)
 
     private enum class Action {
         RECORD, SEND, EDIT, DELETE
@@ -216,7 +217,9 @@ class MessagesHistoryFragment :
 
         viewModel.loadHistory(conversation.id)
 
-        binding.action.setOnClickListener { performAction() }
+        binding.action.setOnClickListener {
+            performAction()
+        }
 
         binding.recyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
             if (bottom >= oldBottom) return@addOnLayoutChangeListener
@@ -288,60 +291,60 @@ class MessagesHistoryFragment :
             }
         })
 
-        binding.message.doAfterTextChanged {
-            val canSend = it.toString().isNotBlank()
+        binding.message.doAfterTextChanged { text ->
+            val canSend = text.toString().isNotBlank() || attachmentsToLoad.isNotEmpty()
 
             val newValue: Action =
                 when {
-                    attachmentController.isEditing -> if (it.isNullOrBlank()) Action.DELETE else Action.EDIT
+                    attachmentController.isEditing ->
+                        if (text.isNullOrBlank() && attachmentsToLoad.isEmpty()) {
+                            Action.DELETE
+                        } else {
+                            Action.EDIT
+                        }
                     canSend -> Action.SEND
                     else -> {
-                        if (attachmentsToLoad.isNotEmpty()) {
-                            if (attachmentController.isEditing) {
-                                Action.EDIT
-                            } else {
-                                Action.SEND
-                            }
-                        } else {
-                            Action.RECORD
-                        }
+                        Action.RECORD
                     }
                 }
 
-            actionState.setIfNotEquals(newValue)
+            actionState.value = newValue
         }
 
-        actionState.observe(viewLifecycleOwner) {
-            binding.action.animate()
-                .scaleX(1.25f)
-                .scaleY(1.25f)
-                .setDuration(100)
-                .withEndAction {
-                    if (getView() == null) return@withEndAction
+        actionState
+            .asStateFlow()
+            .flowWithLifecycle(lifecycle)
+            .onEach { state ->
+                binding.action.animate()
+                    .scaleX(1.25f)
+                    .scaleY(1.25f)
+                    .setDuration(100)
+                    .withEndAction {
+                        if (getView() == null) return@withEndAction
 
-                    binding.action.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(100)
-                        .start()
-                }.start()
+                        binding.action.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(100)
+                            .start()
+                    }.start()
 
-            when (it) {
-                Action.RECORD -> {
-                    binding.action.setImageResource(R.drawable.ic_round_mic_24)
+                when (state) {
+                    Action.RECORD -> {
+                        binding.action.setImageResource(R.drawable.ic_round_mic_24)
+                    }
+                    Action.SEND -> {
+                        binding.action.setImageResource(R.drawable.ic_round_send_24)
+                    }
+                    Action.EDIT -> {
+                        binding.action.setImageResource(R.drawable.ic_round_done_24)
+                    }
+                    Action.DELETE -> {
+                        binding.action.setImageResource(R.drawable.ic_trash_can_outline_24)
+                    }
                 }
-                Action.SEND -> {
-                    binding.action.setImageResource(R.drawable.ic_round_send_24)
-                }
-                Action.EDIT -> {
-                    binding.action.setImageResource(R.drawable.ic_round_done_24)
-                }
-                Action.DELETE -> {
-                    binding.action.setImageResource(R.drawable.ic_trash_can_outline_24)
-                }
-                else -> return@observe
             }
-        }
+            .launchIn(lifecycleScope)
 
         attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
             if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
@@ -547,10 +550,9 @@ class MessagesHistoryFragment :
 
         attachmentController.showPanel()
 
-        actionState.setIfNotEquals(
+        actionState.value =
             if (attachmentController.isEditing) Action.EDIT
             else Action.SEND
-        )
     }
 
     private fun removeAttachment(attachment: VkAttachment) {
@@ -619,6 +621,7 @@ class MessagesHistoryFragment :
     private fun performAction() {
         when (actionState.value) {
             Action.RECORD -> {
+                binding.action.performHapticFeedback(HapticFeedbackConstants.REJECT)
             }
             Action.SEND -> {
                 val messageText = binding.message.trimmedText
@@ -661,6 +664,8 @@ class MessagesHistoryFragment :
                 val replyMessage = attachmentController.message.value
                 attachmentController.message.value = null
 
+                binding.action.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+
                 viewModel.sendMessage(
                     peerId = conversation.id,
                     message = messageText.ifBlank { null },
@@ -701,7 +706,6 @@ class MessagesHistoryFragment :
             Action.DELETE -> attachmentController.message.value?.let {
                 showDeleteMessageDialog(it)
             }
-            else -> {}
         }
     }
 
@@ -731,6 +735,9 @@ class MessagesHistoryFragment :
     }
 
     private fun prepareEmojiButton() {
+        binding.emoji.setOnClickListener {
+            binding.emoji.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        }
         binding.emoji.setOnLongClickListener {
             val text = binding.message.text.toString() + AppGlobal.preferences.getString(
                 SettingsPrefsFragment.PrefFastText, SettingsPrefsFragment.PrefFastTextDefaultValue
@@ -751,6 +758,8 @@ class MessagesHistoryFragment :
                         .setDuration(100)
                         .start()
                 }.start()
+
+            binding.emoji.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             true
         }
     }
@@ -933,7 +942,7 @@ class MessagesHistoryFragment :
         val binding = DialogMessageDeleteBinding.inflate(layoutInflater, null, false)
 
         binding.check.setText(
-            if (message.isOut) R.string.message_delete_for_all
+            if (message.isOut || conversation.canChangeInfo) R.string.message_delete_for_all
             else R.string.message_mark_as_spam
         )
 

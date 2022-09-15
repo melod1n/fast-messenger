@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.login
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,17 +9,18 @@ import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.view.inputmethod.EditorInfo
 import android.viewbinding.library.fragment.viewBinding
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.content.edit
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -38,54 +40,73 @@ import com.meloda.fast.extensions.ImageLoader.loadWithGlide
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
-import java.util.*
 import java.util.regex.Pattern
-import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
 class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_login) {
 
     companion object {
-        private const val ArgGetFastToken = "get_fast_token"
-
-        fun newInstance(getFastToken: Boolean = false): LoginFragment {
-            val fragment = LoginFragment()
-            fragment.arguments = bundleOf(
-                ArgGetFastToken to getFastToken
-            )
-
-            return fragment
+        fun newInstance(): LoginFragment {
+            return LoginFragment()
         }
     }
 
     override val viewModel: LoginViewModel by viewModels()
     private val binding: FragmentLoginBinding by viewBinding()
 
-    private var lastLogin: String = ""
-    private var lastPassword: String = ""
-
-    private var errorTimer: Timer? = null
-
-    private var captchaInputLayout: TextInputLayout? = null
-    private var validationInputLayout: TextInputLayout? = null
-
-    private var isGetFastToken: Boolean = false
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.unknownErrorDefaultText = getString(R.string.unknown_error_occurred)
-        isGetFastToken = requireArguments().getBoolean(ArgGetFastToken, false)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        requireActivity().window.apply {
+            statusBarColor = requireContext().getColor(R.color.colorLoginFragmentBackground)
+            navigationBarColor = requireContext().getColor(R.color.colorLoginFragmentBackground)
+        }
+
         prepareViews()
 
-        binding.loginInput.clearFocus()
+        binding.login.clearFocus()
+
+        val onFocusedChangedListener = View.OnFocusChangeListener { editText, hasFocus ->
+            val roundedCorners = 10.dpToPx().toFloat()
+            val inputLayout =
+                (editText.parent.parent as? TextInputLayout) ?: return@OnFocusChangeListener
+            val cornerRadiusToSet = if (hasFocus) 0F else roundedCorners
+
+            if (inputLayout.boxCornerRadiusBottomEnd != cornerRadiusToSet) {
+                ValueAnimator.ofFloat(
+                    inputLayout.boxCornerRadiusBottomEnd,
+                    cornerRadiusToSet
+                ).apply {
+                    duration = 100
+                    interpolator = LinearInterpolator()
+
+                    addUpdateListener { animator ->
+                        val value = animator.animatedValue as Float
+                        inputLayout.setBoxCornerRadii(roundedCorners, roundedCorners, value, value)
+                    }
+                }.start()
+            }
+        }
+
+        binding.login.onFocusChangeListener = onFocusedChangedListener
+        binding.password.onFocusChangeListener = onFocusedChangedListener
+
+        binding.login.notifyAboutChanges(viewModel.loginValue)
+        binding.password.notifyAboutChanges(viewModel.passwordValue)
+
+        viewModel.isLoginValid.flowOnLifecycle(lifecycle) { isValid ->
+            binding.loginContainer.error =
+                if (isValid) null
+                else getString(R.string.input_login_hint)
+        }
+        viewModel.isPasswordValid.flowOnLifecycle(lifecycle) { isValid ->
+            binding.passwordContainer.error =
+                if (isValid) null
+                else getString(R.string.input_password_hint)
+        }
 
         binding.useCrashReporter.isChecked =
             AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefEnableReporter, true)
@@ -100,6 +121,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         requireActivity().onBackPressedDispatcher.addCallback {
             if (getView() == null) {
                 isEnabled = false
+                requireActivity().onBackPressed()
                 return@addCallback
             }
 
@@ -107,6 +129,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                 binding.webView.goBack()
             } else {
                 isEnabled = false
+                requireActivity().onBackPressed()
             }
         }
     }
@@ -115,9 +138,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         super.onEvent(event)
 
         when (event) {
-            StartProgressEvent -> onProgressStarted()
-            StopProgressEvent -> onProgressStopped()
-
             is CaptchaRequiredEvent -> showCaptchaDialog(event.sid, event.image)
             is ValidationRequiredEvent -> showValidationRequired(event.sid)
 
@@ -129,23 +149,28 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         }
     }
 
-    private fun onProgressStarted() {
-        binding.loginContainer.gone()
-        binding.passwordContainer.gone()
-        binding.auth.gone()
-        binding.progressBar.visible()
-    }
+    override fun toggleProgress(isProgressing: Boolean) {
+        binding.progressBar.toggleVisibility(isProgressing)
 
-    private fun onProgressStopped() {
-        binding.loginContainer.visible()
-        binding.passwordContainer.visible()
-        binding.auth.visible()
-        binding.progressBar.gone()
+        val newScale = if (binding.signIn.isVisible) 0F else 1F
+
+        ValueAnimator.ofFloat(binding.signIn.scaleX, newScale).apply {
+            duration = 100
+            interpolator = LinearInterpolator()
+
+            addUpdateListener { animator ->
+                val value = animator.animatedValue as Float
+
+                binding.signIn.scaleX = value
+                binding.signIn.scaleY = value
+
+                binding.signIn.toggleVisibility(value > 0)
+            }
+        }.start()
     }
 
     private fun prepareViews() {
         prepareWebView()
-        prepareEmailEditText()
         preparePasswordEditText()
         prepareAuthButton()
     }
@@ -223,18 +248,9 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
             val fastToken = authData.first
 
-            if (isGetFastToken) {
-                val userId = UserConfig.userId
-                val accessToken = UserConfig.accessToken
-
-                UserConfig.fastToken = fastToken
-
-                viewModel.saveAccount(userId, accessToken, fastToken)
-            } else {
-                val account = requireNotNull(viewModel.currentAccount)
-                viewModel.currentAccount = account.copy(fastToken = fastToken)
-                viewModel.initUserConfig()
-            }
+            val account = requireNotNull(viewModel.currentAccount)
+            viewModel.currentAccount = account.copy(fastToken = fastToken)
+            viewModel.initUserConfig()
 
             viewModel.openPrimaryScreen()
         }
@@ -255,41 +271,34 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         } else null
     }
 
-    private fun prepareEmailEditText() {
-        binding.loginInput.addTextChangedListener {
-            if (!binding.loginLayout.error.isNullOrBlank()) binding.loginLayout.error = ""
-        }
-    }
-
     private fun preparePasswordEditText() {
-        binding.passwordInput.typeface = Typeface.DEFAULT
-        binding.passwordLayout.endIconMode = TextInputLayout.END_ICON_NONE
+        binding.password.typeface = Typeface.DEFAULT
+        binding.passwordContainer.endIconMode = TextInputLayout.END_ICON_NONE
 
-        binding.passwordInput.addTextChangedListener {
-            if (!binding.passwordLayout.error.isNullOrBlank()) binding.passwordLayout.error = ""
-        }
-
-        binding.passwordInput.setOnFocusChangeListener { _, hasFocus ->
-            binding.passwordLayout.endIconMode =
-                if (hasFocus) TextInputLayout.END_ICON_PASSWORD_TOGGLE
-                else TextInputLayout.END_ICON_NONE
-        }
-
-        binding.passwordInput.setOnEditorActionListener edit@{ _, _, event ->
+        binding.password.setOnEditorActionListener edit@{ _, _, event ->
             if (event == null) return@edit false
             return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
                 (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
             ) {
-                binding.passwordInput.hideKeyboard()
-                binding.auth.performClick()
+                binding.password.hideKeyboard()
+                binding.signIn.performClick()
                 true
             } else false
         }
     }
 
     private fun prepareAuthButton() {
-        binding.auth.setOnClickListener { validateDataAndAuth() }
-        binding.auth.setOnLongClickListener {
+        binding.signIn.setOnClickListener {
+            viewModel.login()
+
+            lifecycleScope.launch {
+                onEvent(StartProgressEvent)
+                delay(2500)
+                onEvent(StopProgressEvent)
+            }
+
+        }
+        binding.signIn.setOnLongClickListener {
             showFastLoginAlert()
             true
         }
@@ -310,13 +319,13 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
                     val login = split[0]
                     val password = split[1]
 
-                    binding.loginInput.setText(login)
-                    binding.loginInput.selectLast()
+                    binding.login.setText(login)
+                    binding.login.selectLast()
 
-                    binding.passwordInput.setText(password)
-                    binding.passwordInput.selectLast()
+                    binding.password.setText(password)
+                    binding.password.selectLast()
 
-                    validateDataAndAuth(login to password)
+                    viewModel.login()
                 } catch (ignored: Exception) {
                 }
             }
@@ -324,82 +333,8 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             .show()
     }
 
-    private fun validateDataAndAuth(data: Pair<String, String>? = null) {
-        if (binding.progressBar.isVisible) return
-        val loginString = data?.first ?: binding.loginInput.text.toString().trim()
-        val passwordString = data?.second ?: binding.passwordInput.text.toString().trim()
-
-        if (!validateInputData(loginString, passwordString)) return
-
-        lastLogin = loginString
-        lastPassword = passwordString
-
-        requireView().findFocus()?.hideKeyboard()
-
-        viewModel.login(
-            login = loginString,
-            password = passwordString
-        )
-    }
-
-    private fun validateInputData(
-        loginString: String?,
-        passwordString: String?,
-        captchaCode: String? = null,
-        validationCode: String? = null
-    ): Boolean {
-        var isValidated = true
-
-        if (loginString?.isEmpty() == true) {
-            isValidated = false
-            setError(getString(R.string.input_login_hint), binding.loginLayout)
-        }
-
-        if (passwordString?.isEmpty() == true) {
-            isValidated = false
-            setError(getString(R.string.input_password_hint), binding.passwordLayout)
-        }
-
-        if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
-            isValidated = false
-            setError(getString(R.string.input_code_hint), captchaInputLayout!!)
-        }
-
-        if (validationCode?.isEmpty() == true && validationInputLayout != null) {
-            isValidated = false
-            setError(getString(R.string.input_code_hint), validationInputLayout!!)
-        }
-
-        return isValidated
-    }
-
-    private fun setError(error: String, inputLayout: TextInputLayout) {
-        inputLayout.error = error
-
-        if (errorTimer != null) {
-            errorTimer?.cancel()
-            errorTimer = null
-        }
-
-        if (errorTimer == null) {
-            errorTimer = Timer()
-        }
-
-        errorTimer?.schedule(2500) {
-            lifecycleScope.launch(Dispatchers.Main) { clearErrors() }
-        }
-    }
-
-    private fun clearErrors() {
-        binding.loginLayout.error = ""
-        binding.passwordLayout.error = ""
-
-        captchaInputLayout?.error = ""
-    }
-
     private fun showCaptchaDialog(captchaSid: String, captchaImage: String) {
         val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
-        captchaInputLayout = captchaBinding.captchaLayout
 
         captchaBinding.image.loadWithGlide(
             url = captchaImage,
@@ -416,29 +351,17 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         val dialog = builder.show()
 
         captchaBinding.ok.setOnClickListener {
-            val captchaCode = captchaBinding.captchaInput.text.toString().trim()
-
-            if (!validateInputData(
-                    loginString = null,
-                    passwordString = null,
-                    captchaCode = captchaCode
-                )
-            ) return@setOnClickListener
+            val captchaCode = captchaBinding.captchaInput.trimmedText
+            viewModel.captchaValue.value = "$captchaSid;$captchaCode"
 
             dialog.dismiss()
-
-            viewModel.login(
-                login = lastLogin,
-                password = lastPassword,
-                captcha = captchaSid to captchaCode
-            )
+            viewModel.login()
         }
         captchaBinding.cancel.setOnClickListener { dialog.dismiss() }
     }
 
     private fun showValidationDialog() {
         val validationBinding = DialogValidationBinding.inflate(layoutInflater, null, false)
-        validationInputLayout = validationBinding.codeLayout
 
         val builder = MaterialAlertDialogBuilder(requireContext())
             .setView(validationBinding.root)
@@ -449,21 +372,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 
         validationBinding.ok.setOnClickListener {
             val validationCode = validationBinding.codeInput.trimmedText
-
-            if (!validateInputData(
-                    loginString = null,
-                    passwordString = null,
-                    validationCode = validationCode
-                )
-            ) return@setOnClickListener
+            viewModel.twoFaValue.value = validationCode
 
             dialog.dismiss()
-
-            viewModel.login(
-                login = lastLogin,
-                password = lastPassword,
-                twoFaCode = validationCode
-            )
+            viewModel.login()
         }
         validationBinding.cancel.setOnClickListener { dialog.dismiss() }
     }

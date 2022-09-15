@@ -57,7 +57,7 @@ class ConversationsViewModel @Inject constructor(
         makeJob({
             conversationsRepository.get(
                 ConversationsGetRequest(
-                    count = 100,
+                    count = 30,
                     extended = true,
                     offset = offset,
                     fields = VKConstants.ALL_FIELDS

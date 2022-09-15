@@ -1,18 +1,24 @@
 package com.meloda.fast.screens.login
 
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.network.auth.AuthDirectRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.ErrorTextEvent
+import com.meloda.fast.base.viewmodel.StartProgressEvent
+import com.meloda.fast.base.viewmodel.UnknownErrorEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
+import com.meloda.fast.extensions.requireValue
 import com.meloda.fast.model.AppAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,50 +29,84 @@ class LoginViewModel @Inject constructor(
     private val accounts: AccountsDao
 ) : BaseViewModel() {
 
+    val loginValue = MutableLiveData<String>()
+    val passwordValue = MutableLiveData<String>()
+    val captchaValue = MutableLiveData<String?>()
+    val twoFaValue = MutableLiveData<String?>()
+
+    val isLoginValid = MediatorLiveData<Boolean>().apply {
+        addSource(loginValue) { login ->
+            this.value = !login.isNullOrBlank()
+        }
+    }
+    val isPasswordValid = MediatorLiveData<Boolean>().apply {
+        addSource(passwordValue) { password ->
+            this.value = !password.isNullOrBlank()
+        }
+    }
+    val isFieldsValid = MediatorLiveData<Boolean>().apply {
+        val observer = Observer<Boolean> {
+            this.value = isLoginValid.value == true && isPasswordValid.value == true
+        }
+        addSource(isLoginValid, observer)
+        addSource(isPasswordValid, observer)
+    }
+
     var currentAccount: AppAccount? = null
 
-    fun login(
-        login: String,
-        password: String,
-        twoFaCode: String? = null,
-        captcha: Pair<String, String>? = null
-    ) = viewModelScope.launch {
-        makeJob(
-            {
-                authRepository.auth(
-                    AuthDirectRequest(
-                        grantType = VKConstants.Auth.GrantType.PASSWORD,
-                        clientId = VKConstants.VK_APP_ID,
-                        clientSecret = VKConstants.VK_SECRET,
-                        username = login,
-                        password = password,
-                        scope = VKConstants.Auth.SCOPE,
-                        twoFaForceSms = true,
-                        twoFaCode = twoFaCode,
-                        captchaSid = captcha?.first,
-                        captchaKey = captcha?.second
-                    )
-                )
-            },
-            onAnswer = {
-                if (it.userId == null || it.accessToken == null) {
-                    sendEvent(ErrorTextEvent(unknownErrorDefaultText))
-                    return@makeJob
-                }
+    fun login() {
+        if (isLoginValid.value != true || isPasswordValid.value != true) return
 
-                currentAccount = AppAccount(
-                    userId = it.userId,
-                    accessToken = it.accessToken,
-                    fastToken = null
-                ).also { account ->
-                    UserConfig.currentUserId = account.userId
-                    UserConfig.userId = account.userId
-                    UserConfig.accessToken = account.accessToken
-                }
-
-                sendEvent(LoginSuccessAuth)
+        val captchaSplit =
+            if (captchaValue.value != null) {
+                captchaValue.requireValue()?.split(";")?.run { first() to last() }
+            } else {
+                null
             }
-        )
+
+
+        viewModelScope.launch {
+            makeJob(
+                {
+                    authRepository.auth(
+                        AuthDirectRequest(
+                            grantType = VKConstants.Auth.GrantType.PASSWORD,
+                            clientId = VKConstants.VK_APP_ID,
+                            clientSecret = VKConstants.VK_SECRET,
+                            username = loginValue.value.orEmpty(),
+                            password = passwordValue.value.orEmpty(),
+                            scope = VKConstants.Auth.SCOPE,
+                            twoFaForceSms = true,
+                            twoFaCode = twoFaValue.value,
+                            captchaSid = captchaSplit?.first,
+                            captchaKey = captchaSplit?.second
+                        )
+                    )
+                },
+                onAnswer = {
+                    if (it.userId == null || it.accessToken == null) {
+                        sendEvent(UnknownErrorEvent)
+                        return@makeJob
+                    }
+
+                    currentAccount = AppAccount(
+                        userId = it.userId,
+                        accessToken = it.accessToken,
+                        fastToken = null
+                    ).also { account ->
+                        UserConfig.currentUserId = account.userId
+                        UserConfig.userId = account.userId
+                        UserConfig.accessToken = account.accessToken
+                    }
+
+                    sendEvent(LoginSuccessAuth)
+                },
+                onAnyResult = {
+                    captchaValue.value = null
+                    twoFaValue.value = null
+                }
+            )
+        }
     }
 
     fun sendSms(validationSid: String) = viewModelScope.launch {
@@ -83,11 +123,6 @@ class LoginViewModel @Inject constructor(
         val account = requireNotNull(currentAccount)
         UserConfig.fastToken = account.fastToken
 
-        accounts.insert(listOf(account))
-    }
-
-    fun saveAccount(userId: Int, accessToken: String, fastToken: String?) = viewModelScope.launch {
-        val account = AppAccount(userId, accessToken, fastToken)
         accounts.insert(listOf(account))
     }
 }

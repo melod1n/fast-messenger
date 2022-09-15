@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/loginRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:animateLayoutChanges="true"
+    android:background="@color/colorLoginFragmentBackground">
 
     <FrameLayout
         android:id="@+id/web_view_container"
@@ -16,7 +17,8 @@
         <WebView
             android:id="@+id/web_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
         <ProgressBar
             android:id="@+id/web_view_progress_bar"
@@ -33,136 +35,103 @@
         android:layout_gravity="center_horizontal"
         android:checked="true"
         android:text="Use crash reporter tool"
-        tools:ignore="HardcodedText" />
+        android:visibility="gone"
+        tools:ignore="HardcodedText,MissingConstraints" />
 
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="64dp"
+        android:orientation="vertical"
+        app:constraint_referenced_ids="title,login_container,password_container"
+        app:flow_verticalGap="16dp"
+        app:flow_verticalStyle="packed"
+        app:layout_constraintBottom_toTopOf="@id/sign_in_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans_regular"
+        android:paddingBottom="38dp"
+        android:text="@string/sign_in_to_vk"
+        android:textAppearance="@style/TextAppearance.Material3.DisplayMedium"
+        android:textColor="?colorOnBackground"
+        android:textSize="42sp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/login_container"
+        style="@style/Ui.Widget.TextInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:startIconDrawable="@drawable/ic_round_person_24">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:hint="@string/login_hint"
+            android:imeOptions="actionGo"
+            android:inputType="textEmailAddress" />
 
-            <FrameLayout
-                android:id="@+id/logoContainer"
-                android:layout_width="140dp"
-                android:layout_height="140dp"
-                android:layout_gravity="center_horizontal">
+    </com.google.android.material.textfield.TextInputLayout>
 
-                <com.meloda.fast.view.CircleImageView
-                    android:id="@+id/logoImage"
-                    android:layout_width="192dp"
-                    android:layout_height="192dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_launcher_foreground"
-                    android:tint="?colorPrimary" />
-            </FrameLayout>
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/password_container"
+        style="@style/Ui.Widget.TextInputLayout.Password"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:startIconDrawable="@drawable/ic_key">
 
-            <ProgressBar
-                android:id="@+id/progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
-                android:indeterminateTint="?colorPrimary"
-                android:visibility="gone"
-                tools:visibility="visible" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto_regular"
+            android:hint="@string/password_login_hint"
+            android:imeOptions="actionGo"
+            android:inputType="textPassword"
+            android:typeface="normal" />
 
-            <LinearLayout
-                android:id="@+id/loginContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
-                android:orientation="horizontal">
+    </com.google.android.material.textfield.TextInputLayout>
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/loginImage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:src="@drawable/ic_baseline_account_circle_24"
-                    app:tint="?colorPrimary" />
+    <FrameLayout
+        android:id="@+id/sign_in_container"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:minHeight="104dp"
+        android:paddingBottom="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/flow">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/loginLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    app:boxStrokeErrorColor="@android:color/transparent">
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/sign_in"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_arrow_end"
+            app:backgroundTint="?colorTertiary"
+            app:elevation="0dp"
+            app:tint="?colorOnTertiary"
+            tools:ignore="ContentDescription"
+            tools:visibility="visible" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/loginInput"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/login_hint"
-                        android:imeOptions="actionGo"
-                        android:inputType="textEmailAddress" />
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="?colorPrimary"
+            android:visibility="gone"
+            tools:visibility="gone" />
+    </FrameLayout>
 
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/passwordContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:orientation="horizontal">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/passwordImage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:src="@drawable/ic_key"
-                    app:tint="?colorPrimary" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/passwordLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    app:boxStrokeErrorColor="@android:color/transparent"
-                    app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="?colorPrimary">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/passwordInput"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/roboto_regular"
-                        android:hint="@string/password_login_hint"
-                        android:imeOptions="actionGo"
-                        android:inputType="textPassword"
-                        android:typeface="normal" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/auth"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginTop="48dp"
-                android:fontFamily="@font/google_sans_medium"
-                android:letterSpacing="0"
-                android:paddingStart="24dp"
-                android:paddingEnd="16dp"
-                android:text="@string/log_in"
-                android:textSize="14sp"
-                app:cornerRadius="50dp"
-                app:elevation="16dp"
-                app:icon="@drawable/ic_arrow_end"
-                app:iconGravity="end"
-                app:tint="?colorPrimary" />
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-</androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.constraintlayout.widget.ConstraintLayout>

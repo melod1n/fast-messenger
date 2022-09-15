@@ -57,9 +57,14 @@ object VkErrors {
 
 }
 
+@Suppress("unused")
+object VkErrorMessages {
+    const val UserBanned = "user has been banned"
+}
+
 open class AuthorizationError : ApiError()
 
-class TokenExpiredError: AuthorizationError()
+class TokenExpiredError : AuthorizationError()
 
 data class ValidationRequiredError(
     @SerializedName("validation_type")
@@ -80,3 +85,19 @@ data class CaptchaRequiredError(
     @SerializedName("captcha_img")
     val captchaImg: String
 ) : ApiError()
+
+data class UserBannedError(
+    @SerializedName("ban_info")
+    val banInfo: BanInfo
+) : ApiError() {
+
+    data class BanInfo(
+        @SerializedName("member_name")
+        val memberName: String,
+        val message: String,
+        @SerializedName("access_token")
+        val accessToken: String,
+        @SerializedName("restore_url")
+        val restoreUrl: String
+    )
+}

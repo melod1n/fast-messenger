@@ -12,6 +12,8 @@ import android.provider.Settings
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.core.content.FileProvider
+import androidx.core.graphics.Insets
+import androidx.core.view.WindowInsetsCompat
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
@@ -123,5 +125,17 @@ object AndroidUtils {
         }
 
         return intent
+    }
+
+    fun getStatusBarInsets(insets: WindowInsetsCompat): Insets {
+        return insets.getInsets(WindowInsetsCompat.Type.statusBars())
+    }
+
+    fun getNavBarInsets(insets: WindowInsetsCompat): Insets {
+        return insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+    }
+
+    fun getImeInsets(insets: WindowInsetsCompat): Insets {
+        return insets.getInsets(WindowInsetsCompat.Type.ime())
     }
 }

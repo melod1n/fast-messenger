@@ -112,8 +112,11 @@ class ConversationsFragment :
 
         searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
-                if (!adapter.isSearching)
-                    adapter.isSearching = true
+                if (adapter.isEmpty() || adapter.isSearching) {
+                    return false
+                }
+
+                adapter.isSearching = true
                 return true
             }
 
