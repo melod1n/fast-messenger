@@ -290,13 +290,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     private fun prepareAuthButton() {
         binding.signIn.setOnClickListener {
             viewModel.login()
-
-            lifecycleScope.launch {
-                onEvent(StartProgressEvent)
-                delay(2500)
-                onEvent(StopProgressEvent)
-            }
-
         }
         binding.signIn.setOnLongClickListener {
             showFastLoginAlert()
