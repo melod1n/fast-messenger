@@ -1,0 +1,51 @@
+package com.meloda.fast.screens.userbanned
+
+import android.os.Bundle
+import android.view.View
+import android.viewbinding.library.fragment.viewBinding
+import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import com.meloda.fast.R
+import com.meloda.fast.base.viewmodel.BaseViewModelFragment
+import com.meloda.fast.databinding.FragmentUserBannedBinding
+
+class UserBannedFragment :
+    BaseViewModelFragment<UserBannedViewModel>(R.layout.fragment_user_banned) {
+
+    companion object {
+
+        private const val ArgMemberName = "member_name"
+        private const val ArgMessage = "message"
+        private const val ArgRestoreUrl = "restore_url"
+        private const val ArgAccessToken = "access_token"
+
+        fun newInstance(
+            memberName: String,
+            message: String,
+            restoreUrl: String,
+            accessToken: String
+        ): UserBannedFragment {
+            val fragment = UserBannedFragment()
+            fragment.arguments = bundleOf(
+                ArgMemberName to memberName,
+                ArgMessage to message,
+                ArgRestoreUrl to restoreUrl,
+                ArgAccessToken to accessToken
+            )
+            return fragment
+        }
+    }
+
+    override val viewModel: UserBannedViewModel by viewModels()
+    private val binding: FragmentUserBannedBinding by viewBinding()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+
+        binding.name.text = requireArguments().getString(ArgMemberName)
+        binding.reason.text = requireArguments().getString(ArgMessage)
+    }
+
+}

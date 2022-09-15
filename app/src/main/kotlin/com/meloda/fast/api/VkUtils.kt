@@ -783,7 +783,14 @@ object VkUtils {
                     }
                     VkErrors.NeedValidation -> {
                         val validationError =
-                            gson.fromJson(errorString, ValidationRequiredError::class.java)
+                            gson.fromJson(
+                                errorString,
+                                if (defaultError.errorMessage == VkErrorMessages.UserBanned) {
+                                    UserBannedError::class.java
+                                } else {
+                                    ValidationRequiredError::class.java
+                                }
+                            )
 
                         validationError
                     }

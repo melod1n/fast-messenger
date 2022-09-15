@@ -14,16 +14,13 @@ import com.meloda.fast.screens.messages.ForwardedMessagesFragment
 import com.meloda.fast.screens.messages.MessagesHistoryFragment
 import com.meloda.fast.screens.settings.SettingsRootFragment
 import com.meloda.fast.screens.updates.UpdatesFragment
+import com.meloda.fast.screens.userbanned.UserBannedFragment
 
 @Suppress("FunctionName")
 object Screens {
     fun Main() = FragmentScreen { MainFragment() }
 
-    fun Login(
-        getFastToken: Boolean = false
-    ) = FragmentScreen {
-        LoginFragment.newInstance(getFastToken)
-    }
+    fun Login() = FragmentScreen { LoginFragment.newInstance() }
 
     fun Conversations() = FragmentScreen { ConversationsFragment() }
 
@@ -54,4 +51,15 @@ object Screens {
         FragmentScreen { UpdatesFragment.newInstance(updateItem) }
 
     fun Settings() = FragmentScreen { SettingsRootFragment() }
+
+    fun UserBanned(
+        memberName: String,
+        message: String,
+        restoreUrl: String,
+        accessToken: String
+    ) = FragmentScreen {
+        UserBannedFragment.newInstance(
+            memberName, message, restoreUrl, accessToken
+        )
+    }
 }

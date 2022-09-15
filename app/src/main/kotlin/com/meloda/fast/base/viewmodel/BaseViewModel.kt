@@ -14,8 +14,6 @@ import kotlinx.coroutines.launch
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class BaseViewModel : ViewModel() {
 
-    var unknownErrorDefaultText: String = ""
-
     protected val tasksEventChannel = Channel<VkEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
 
@@ -31,15 +29,20 @@ abstract class BaseViewModel : ViewModel() {
         job: suspend () -> ApiAnswer<T>, onAnswer: suspend (T) -> Unit = {},
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
-        onError: (suspend (Throwable) -> Unit)? = null
+        onError: (suspend (Throwable) -> Unit)? = null,
+        onAnyResult: (suspend () -> Unit)? = null
     ): ApiAnswer<T> {
         onStart?.invoke() ?: onStart()
         val response = job()
 
         when (response) {
-            is ApiAnswer.Success -> onAnswer(response.data)
+            is ApiAnswer.Success -> {
+                onAnswer(response.data)
+                onAnyResult?.invoke()
+            }
             is ApiAnswer.Error -> {
                 onError?.invoke(response.error) ?: checkErrors(response.error)
+                onAnyResult?.invoke()
             }
         }
 
@@ -53,13 +56,18 @@ abstract class BaseViewModel : ViewModel() {
         onAnswer: suspend (T) -> Unit = {},
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
-        onError: (suspend (Throwable) -> Unit)? = null
+        onError: (suspend (Throwable) -> Unit)? = null,
+        onAnyResult: (suspend () -> Unit)? = null
     ): Job = viewModelScope.launch {
         onStart?.invoke() ?: onStart()
         when (val response = job()) {
-            is ApiAnswer.Success -> onAnswer(response.data)
+            is ApiAnswer.Success -> {
+                onAnswer(response.data)
+                onAnyResult?.invoke()
+            }
             is ApiAnswer.Error -> {
                 onError?.invoke(response.error) ?: checkErrors(response.error)
+                onAnyResult?.invoke()
             }
         }
     }.also {
@@ -92,17 +100,44 @@ abstract class BaseViewModel : ViewModel() {
             is TokenExpiredError -> {
                 sendEvent(TokenExpiredErrorEvent)
             }
+            is UserBannedError -> {
+                val banInfo = throwable.banInfo
+                sendEvent(
+                    UserBannedEvent(
+                        memberName = banInfo.memberName,
+                        message = banInfo.message,
+                        restoreUrl = banInfo.restoreUrl,
+                        accessToken = banInfo.accessToken
+                    )
+                )
+            }
             is ValidationRequiredError -> {
                 sendEvent(ValidationRequiredEvent(throwable.validationSid))
             }
             is CaptchaRequiredError -> {
-                sendEvent(CaptchaRequiredEvent(throwable.captchaSid, throwable.captchaImg))
+                sendEvent(
+                    CaptchaRequiredEvent(
+                        sid = throwable.captchaSid, image = throwable.captchaImg
+                    )
+                )
             }
             is ApiError -> {
-                sendEvent(ErrorTextEvent(errorText = throwable.errorMessage ?: unknownErrorDefaultText))
+                sendEvent(
+                    if (throwable.errorMessage == null) {
+                        UnknownErrorEvent
+                    } else {
+                        ErrorTextEvent(errorText = requireNotNull(throwable.errorMessage))
+                    }
+                )
             }
             else -> {
-                sendEvent(ErrorTextEvent(throwable.message ?: unknownErrorDefaultText))
+                sendEvent(
+                    if (throwable.message == null) {
+                        UnknownErrorEvent
+                    } else {
+                        ErrorTextEvent(requireNotNull(throwable.message))
+                    }
+                )
             }
         }
     }

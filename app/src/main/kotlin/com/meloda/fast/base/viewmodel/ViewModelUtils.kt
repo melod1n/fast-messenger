@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentActivity
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.common.Screens
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.util.ViewUtils.showErrorDialog
 
@@ -32,6 +33,16 @@ object ViewModelUtils {
                 UserConfig.clear()
                 activity.finishAffinity()
                 activity.startActivity(Intent(activity, MainActivity::class.java))
+            }
+            is UserBannedEvent -> {
+                (activity as? MainActivity)?.router?.navigateTo(
+                    Screens.UserBanned(
+                        memberName = event.memberName,
+                        message = event.message,
+                        restoreUrl = event.restoreUrl,
+                        accessToken = event.accessToken
+                    )
+                )
             }
 
             is VkErrorEvent -> {

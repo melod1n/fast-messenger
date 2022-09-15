@@ -2,6 +2,7 @@ package com.meloda.fast.extensions
 
 import android.animation.ValueAnimator
 import android.content.res.Resources
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import android.util.DisplayMetrics
@@ -10,19 +11,23 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.Px
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.children
-import androidx.core.view.forEach
-import androidx.lifecycle.MutableLiveData
+import androidx.core.view.*
+import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.*
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ToolbarMenuItemAvatarBinding
 import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 fun Int.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
@@ -182,4 +187,49 @@ private operator fun String.times(count: Int): String {
     }
 
     return builder.toString()
+}
+
+fun View.doOnApplyWindowInsets(block: (view: View, insets: WindowInsetsCompat, padding: Rect) -> WindowInsetsCompat) {
+    val initialPadding = recordInitialPaddingForView(this)
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { v, insets ->
+        block(v, insets, initialPadding)
+    }
+
+    requestApplyInsetsWhenAttached()
+}
+
+private fun recordInitialPaddingForView(view: View) =
+    Rect(view.paddingLeft, view.paddingTop, view.paddingRight, view.paddingBottom)
+
+fun View.requestApplyInsetsWhenAttached() {
+    if (isAttachedToWindow) {
+        requestApplyInsets()
+    } else {
+        doOnAttach { requestApplyInsets() }
+    }
+}
+
+fun EditText.notifyObservers() {
+    this.text = this.text
+}
+
+fun EditText.notifyAboutChanges(mutableLiveData: MutableLiveData<String>) {
+    doAfterTextChanged { editable ->
+        mutableLiveData.value = editable?.toString().orEmpty()
+    }
+}
+
+fun CheckBox.notifyAboutChanges(mutableLiveData: MutableStateFlow<Boolean>) {
+    setOnCheckedChangeListener { _, isChecked -> mutableLiveData.value = isChecked }
+}
+
+fun <T> MutableLiveData<T>.flowOnLifecycle(
+    lifecycle: Lifecycle,
+    onCollect: (item: T) -> Unit
+) {
+    asFlow()
+        .flowWithLifecycle(lifecycle)
+        .onEach { onCollect.invoke(it) }
+        .launchIn(lifecycle.coroutineScope)
 }

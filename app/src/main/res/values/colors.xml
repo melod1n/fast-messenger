@@ -45,4 +45,7 @@
     <color name="colorWaveformBackground">@color/a2_300</color>
 
     <color name="colorMessagesHistoryPanel">@color/a1_0</color>
+
+    <color name="colorLoginFragmentBackground">@color/n1_50</color>
+    <color name="colorLoginFieldBackground">@color/n1_10</color>
 </resources>

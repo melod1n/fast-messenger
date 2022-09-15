@@ -198,5 +198,10 @@
     <string name="fast_login_title">Fast login</string>
     <string name="fast_login_hint">$login;$password</string>
     <string name="confirm_remove_chat_user">Are you sure you want to remove this member?</string>
+    <string name="user_banned_error">User banned</string>
+    <string name="blocking_reason_title">Blocking reason</string>
+    <string name="account_temporarily_blocked">Account temporarily blocked</string>
+    <string name="user_name">User name</string>
+    <string name="sign_in_to_vk">Sign in to VK</string>
 
 </resources>

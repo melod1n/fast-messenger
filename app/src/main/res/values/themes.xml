@@ -2,6 +2,10 @@
 <resources>
 
     <style name="Base.V21.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
@@ -45,7 +49,7 @@
 
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
 
-        <item name="android:statusBarColor">@color/colorBackground</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
 
         <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
     </style>
