@@ -4,7 +4,11 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
+import android.view.View
 import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.meloda.fast.R
@@ -13,10 +17,37 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkAudio
+import com.meloda.fast.api.model.attachments.VkCall
+import com.meloda.fast.api.model.attachments.VkCurator
+import com.meloda.fast.api.model.attachments.VkEvent
+import com.meloda.fast.api.model.attachments.VkFile
+import com.meloda.fast.api.model.attachments.VkGift
+import com.meloda.fast.api.model.attachments.VkGraffiti
+import com.meloda.fast.api.model.attachments.VkGroupCall
+import com.meloda.fast.api.model.attachments.VkLink
+import com.meloda.fast.api.model.attachments.VkMiniApp
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkPoll
+import com.meloda.fast.api.model.attachments.VkSticker
+import com.meloda.fast.api.model.attachments.VkStory
+import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.attachments.VkVoiceMessage
+import com.meloda.fast.api.model.attachments.VkWall
+import com.meloda.fast.api.model.attachments.VkWallReply
+import com.meloda.fast.api.model.attachments.VkWidget
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
-import com.meloda.fast.api.network.*
+import com.meloda.fast.api.network.ApiAnswer
+import com.meloda.fast.api.network.AuthorizationError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.TokenExpiredError
+import com.meloda.fast.api.network.UserBannedError
+import com.meloda.fast.api.network.ValidationRequiredError
+import com.meloda.fast.api.network.VkErrorCodes
+import com.meloda.fast.api.network.VkErrorMessages
+import com.meloda.fast.api.network.VkErrors
 import com.meloda.fast.extensions.orDots
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -806,6 +837,87 @@ object VkUtils {
             return ApiAnswer.Error(error)
         } catch (e: Exception) {
             return ApiAnswer.Error(ApiError(throwable = e))
+        }
+    }
+
+    fun visualizeMentions(
+        messageText: String,
+        mentionColor: Int,
+        onMentionClick: (id: Int) -> Unit
+    ): SpannableString {
+        var newMessageText = messageText
+
+        val idsIndexes = mutableListOf<Triple<Int, Int, Int>>()
+        val mentions = hashMapOf<String, String>()
+
+        var startFrom = 0
+
+        while (true) {
+            val leftBracketIndex = newMessageText.indexOf('[', startFrom)
+            val verticalLineIndex = newMessageText.indexOf('|', startFrom)
+            val rightBracketIndex = newMessageText.indexOf(']', startFrom)
+
+            if (leftBracketIndex == -1 ||
+                verticalLineIndex == -1 ||
+                rightBracketIndex == -1
+            ) break
+
+            val idPart = newMessageText.substring(leftBracketIndex + 1, verticalLineIndex)
+
+            val actualId = idPart.substring(2, idPart.length).toIntOrNull() ?: -1
+
+            if (!idPart.matches(Regex("^id(\\d+)\$")) || rightBracketIndex - verticalLineIndex < 2) {
+                break
+            }
+
+            val text = newMessageText.substring(verticalLineIndex + 1, rightBracketIndex)
+
+            val str = "[$idPart|$text]"
+
+            mentions[str] = text
+
+            idsIndexes += Triple(actualId, leftBracketIndex, leftBracketIndex + text.length)
+
+            startFrom = rightBracketIndex + 1
+        }
+
+        mentions.forEach {
+            newMessageText = newMessageText.replace(it.key, it.value)
+        }
+
+        val spanBuilder = SpannableString(newMessageText)
+
+        idsIndexes.forEach { triple ->
+            val id = triple.first
+            val start = triple.second
+            val end = triple.third
+
+            spanBuilder.setSpan(
+                createClickableSpan(id, mentionColor, onMentionClick),
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        return spanBuilder
+    }
+
+    private fun createClickableSpan(
+        id: Int,
+        mentionColor: Int,
+        onMentionClick: (id: Int) -> Unit
+    ): ClickableSpan {
+        return object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                widget.cancelPendingInputEvents()
+                onMentionClick.invoke(id)
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                ds.color = mentionColor
+                ds.typeface = Typeface.defaultFromStyle(Typeface.BOLD)
+            }
         }
     }
 }

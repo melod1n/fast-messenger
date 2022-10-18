@@ -111,7 +111,9 @@ class ConversationsFragment :
         val actionView = searchMenuItem.actionView as SearchView
 
         searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+
+            override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
+
                 if (adapter.isEmpty() || adapter.isSearching) {
                     return false
                 }
@@ -120,7 +122,7 @@ class ConversationsFragment :
                 return true
             }
 
-            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+            override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
                 if (adapter.isSearching)
                     adapter.isSearching = false
                 return true

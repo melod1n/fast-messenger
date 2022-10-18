@@ -128,6 +128,8 @@ class MessagesHistoryAdapter constructor(
 
             MessagesPreparator(
                 context = context,
+                position = position,
+                adapterClickListener = itemClickListener,
                 payloads = payloads,
 
                 root = binding.root,
@@ -191,6 +193,8 @@ class MessagesHistoryAdapter constructor(
 
             MessagesPreparator(
                 context = context,
+                position = position,
+                adapterClickListener = itemClickListener,
                 payloads = payloads,
                 root = binding.root,
                 conversation = conversation,
