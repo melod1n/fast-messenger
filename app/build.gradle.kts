@@ -23,7 +23,7 @@ plugins {
 android {
     namespace = "com.meloda.fast"
 
-    compileSdk = 32
+    compileSdk = 33
 
     applicationVariants.all {
         outputs.all {
@@ -34,8 +34,8 @@ android {
 
     defaultConfig {
         applicationId = "com.meloda.fast"
-        minSdk = 23
-        targetSdk = 32
+        minSdk = 24
+        targetSdk = 33
         versionCode = 1
         versionName = "alpha"
 
