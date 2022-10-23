@@ -14,8 +14,8 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemChatMemberBinding
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.toggleVisibility
 import java.text.SimpleDateFormat
 import java.util.*
 

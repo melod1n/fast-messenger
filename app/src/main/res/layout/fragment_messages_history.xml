@@ -12,7 +12,6 @@
         android:clipToPadding="false"
         android:overScrollMode="never"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/list_anchor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -147,6 +146,7 @@
         android:layout_height="50dp"
         android:background="@drawable/ic_message_panel_gradient"
         android:backgroundTint="?colorBackground"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -154,12 +154,14 @@
     <View
         android:id="@+id/bottom_alpha"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="0dp"
         android:alpha="0.85"
         android:background="?colorBackground"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/bottom_message_panel" />
 
     <View
         android:id="@+id/list_anchor"
@@ -281,12 +283,12 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/unread_counter"
+        style="@style/Widget.Material3.FloatingActionButton.Tertiary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:src="@drawable/ic_round_keyboard_arrow_down_24"
         android:visibility="gone"
-        app:fabSize="mini"
         app:layout_constraintBottom_toTopOf="@id/attachment_panel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_goneMarginBottom="88dp"

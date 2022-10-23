@@ -2,19 +2,20 @@ package com.meloda.fast.screens.chatinfo
 
 import android.os.Bundle
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.databinding.FragmentChatInfoMembersBinding
-import com.meloda.fast.extensions.dpToPx
+import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.view.SpaceItemDecoration
+import dev.chrisbanes.insetter.applyInsetter
 
 class ChatInfoMembersFragment :
     BaseViewModelFragment<ChatInfoMembersViewModel>(R.layout.fragment_chat_info_members) {
@@ -43,12 +44,15 @@ class ChatInfoMembersFragment :
 
     override val viewModel: ChatInfoMembersViewModel by viewModels()
 
-    private val binding: FragmentChatInfoMembersBinding by viewBinding()
+    private val binding by viewBinding(FragmentChatInfoMembersBinding::bind)
 
     @Suppress("UNCHECKED_CAST")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.recyclerView.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
         binding.recyclerView.addItemDecoration(SpaceItemDecoration(topMargin = 8.dpToPx()))
 
         val profiles = requireArguments().getSerializable(ArgProfiles) as List<VkUser>

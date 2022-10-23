@@ -5,7 +5,7 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.SpannableString
-import android.text.TextUtils
+import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.ViewGroup
 import androidx.core.util.ObjectsCompat
@@ -21,9 +21,13 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemConversationBinding
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.clear
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.ImageLoader
+import com.meloda.fast.ext.ImageLoader.clear
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.visible
 import com.meloda.fast.util.TimeUtils
 
 class ConversationsAdapter constructor(
@@ -216,11 +220,16 @@ class ConversationsAdapter constructor(
             var prefix = when {
                 actionMessage != null -> ""
                 message.isOut -> "${resourceManager.youPrefix}: "
-                else -> {
-                    if (message.isUser() && messageUser != null && messageUser.firstName.isNotBlank()) "${messageUser.firstName}: "
-                    else if (message.isGroup() && messageGroup != null && messageGroup.name.isNotBlank()) "${messageGroup.name}: "
-                    else ""
-                }
+                else ->
+                    when {
+                        message.isUser() && messageUser != null && messageUser.firstName.isNotBlank() -> {
+                            "${messageUser.firstName}: "
+                        }
+                        message.isGroup() && messageGroup != null && messageGroup.name.isNotBlank() -> {
+                            "${messageGroup.name}: "
+                        }
+                        else -> ""
+                    }
             }
 
             if ((!conversation.isChat() && !message.isOut) || conversation.id == UserConfig.userId)
@@ -228,14 +237,19 @@ class ConversationsAdapter constructor(
 
             val spanText = "$prefix$coloredMessage$messageText"
 
-            val spanMessage = SpannableString(spanText)
-            spanMessage.setSpan(
-                ForegroundColorSpan(resourceManager.colorOutline), 0,
+
+            val visualizedMessageText = VkUtils.visualizeMentions(
+                messageText = spanText,
+                resourceManager.colorPrimary
+            )
+            visualizedMessageText.setSpan(
+                ForegroundColorSpan(resourceManager.colorOutline),
+                0,
                 prefix.length + coloredMessage.length,
-                0
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
 
-            binding.message.text = spanMessage
+            binding.message.text = visualizedMessageText
 
             binding.date.text = TimeUtils.getLocalizedTime(context, message.date * 1000L)
 

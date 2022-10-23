@@ -12,6 +12,7 @@ import com.meloda.fast.screens.login.LoginFragment
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.messages.ForwardedMessagesFragment
 import com.meloda.fast.screens.messages.MessagesHistoryFragment
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.screens.settings.SettingsRootFragment
 import com.meloda.fast.screens.updates.UpdatesFragment
 import com.meloda.fast.screens.userbanned.UserBannedFragment
@@ -62,4 +63,6 @@ object Screens {
             memberName, message, restoreUrl, accessToken
         )
     }
+
+    fun SettingsTest() = FragmentScreen { SettingsFragment() }
 }

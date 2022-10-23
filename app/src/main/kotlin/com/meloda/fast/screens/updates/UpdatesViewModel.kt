@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.UpdateManager
-import com.meloda.fast.extensions.setIfNotEquals
+import com.meloda.fast.ext.setIfNotEquals
 import com.meloda.fast.model.UpdateItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job

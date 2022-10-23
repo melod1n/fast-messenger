@@ -2,6 +2,7 @@ package com.meloda.fast.common
 
 import android.app.Application
 import android.app.DownloadManager
+import android.app.LocaleManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
