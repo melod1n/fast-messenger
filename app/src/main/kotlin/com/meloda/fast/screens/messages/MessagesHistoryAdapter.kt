@@ -24,8 +24,8 @@ import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemMessageInBinding
 import com.meloda.fast.databinding.ItemMessageOutBinding
 import com.meloda.fast.databinding.ItemMessageServiceBinding
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.dpToPx
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.dpToPx
 
 class MessagesHistoryAdapter constructor(
     context: Context,

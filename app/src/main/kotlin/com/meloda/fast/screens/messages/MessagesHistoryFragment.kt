@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.messages
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -8,10 +9,12 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
@@ -23,6 +26,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.net.MediaType
 import com.meloda.fast.R
@@ -40,21 +44,44 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.doOnApplyWindowInsets
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.getParcelableCompat
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.hideKeyboard
+import com.meloda.fast.ext.mimeType
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.requireValue
+import com.meloda.fast.ext.sdk30AndUp
+import com.meloda.fast.ext.selectLast
+import com.meloda.fast.ext.showKeyboard
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.trimmedText
+import com.meloda.fast.ext.visible
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
+import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.util.TimeUtils
 import com.meloda.fast.view.SpaceItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jsoup.internal.StringUtil.padding
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import java.util.Timer
 import kotlin.concurrent.schedule
 import kotlin.math.abs
 import kotlin.properties.Delegates
@@ -88,7 +115,7 @@ class MessagesHistoryFragment :
     }
 
     override val viewModel: MessagesHistoryViewModel by viewModels()
-    private val binding: FragmentMessagesHistoryBinding by viewBinding()
+    private val binding by viewBinding(FragmentMessagesHistoryBinding::bind)
 
     private var pickFile: Boolean = false
 
@@ -129,15 +156,17 @@ class MessagesHistoryFragment :
     }
 
     private val user: VkUser? by lazy {
-        requireArguments().getParcelable(ARG_USER)
+        requireArguments().getParcelableCompat(ARG_USER, VkUser::class.java)
     }
 
     private val group: VkGroup? by lazy {
-        requireArguments().getParcelable(ARG_GROUP)
+        requireArguments().getParcelableCompat(ARG_GROUP, VkGroup::class.java)
     }
 
     private val conversation: VkConversation by lazy {
-        requireNotNull(requireArguments().getParcelable(ARG_CONVERSATION))
+        requireNotNull(
+            requireArguments().getParcelableCompat(ARG_CONVERSATION, VkConversation::class.java)
+        )
     }
 
     private val adapter: MessagesHistoryAdapter by lazy {
@@ -168,6 +197,10 @@ class MessagesHistoryFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val colorBackground = ContextCompat.getColor(requireContext(), R.color.colorBackground)
+        val alphaColorBackground = ColorUtils.alphaColor(colorBackground, 0.85F)
+        binding.bottomMessagePanel.setBackgroundColor(alphaColorBackground)
+
         binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
 
         attachmentController = AttachmentPanelController.init(
@@ -185,6 +218,23 @@ class MessagesHistoryFragment :
             else -> null
         }
 
+//        listOf(
+//            binding.bottomAlpha,
+//            binding.bottomGradient
+//        ).forEach { v ->
+//            v.applyInsetter {
+//                type(navigationBars = true) { padding() }
+//            }
+//        }
+        binding.bottomMessagePanel.applyInsetter {
+            type(navigationBars = true, ime = true) { padding(animated = true) }
+        }
+//        binding.recyclerView.applyInsetter {
+//            type(navigationBars = true, ime = true) { padding(animated = true) }
+//        }
+        binding.toolbar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
         binding.toolbar.title = title.orDots()
         binding.toolbar.setOnClickListener {
             openChatInfoScreen(conversation, user, group)
@@ -221,18 +271,10 @@ class MessagesHistoryFragment :
             performAction()
         }
 
-        binding.recyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-            if (bottom >= oldBottom) return@addOnLayoutChangeListener
-            val lastVisiblePosition =
-                (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-
-            if (lastVisiblePosition <= adapter.lastPosition - 10) return@addOnLayoutChangeListener
-
-            binding.recyclerView.postDelayed({
-                if (getView() == null) return@postDelayed
-                binding.recyclerView.scrollToPosition(adapter.lastPosition)
-            }, 25)
-        }
+//        binding.recyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+//            if (bottom >= oldBottom) return@addOnLayoutChangeListener
+//            checkIfNeedToScrollToBottom()
+//        }
 
         binding.unreadCounter.setOnClickListener {
             binding.recyclerView.scrollToPosition(adapter.lastPosition)
@@ -413,6 +455,20 @@ class MessagesHistoryFragment :
                 if (isProgressing) adapter.isEmpty() else false
             )
         }
+    }
+
+    private fun checkIfNeedToScrollToBottom() {
+        if (adapter.isEmpty()) return
+
+        val lastVisiblePosition =
+            (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+
+        if (lastVisiblePosition <= adapter.lastPosition - 10) return
+
+        binding.recyclerView.postDelayed({
+            if (view == null) return@postDelayed
+            binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
+        }, 0)
     }
 
     private suspend fun processFileFromStorage(uri: Uri) {
@@ -621,7 +677,9 @@ class MessagesHistoryFragment :
     private fun performAction() {
         when (actionState.value) {
             Action.RECORD -> {
-                binding.action.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                sdk30AndUp {
+                    binding.action.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                }
             }
             Action.SEND -> {
                 val messageText = binding.message.trimmedText
@@ -664,7 +722,9 @@ class MessagesHistoryFragment :
                 val replyMessage = attachmentController.message.value
                 attachmentController.message.value = null
 
-                binding.action.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                sdk30AndUp {
+                    binding.action.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                }
 
                 viewModel.sendMessage(
                     peerId = conversation.id,
@@ -728,15 +788,54 @@ class MessagesHistoryFragment :
             View.MeasureSpec.UNSPECIFIED
         )
 
-        binding.recyclerView.updatePaddingRelative(
-            top = binding.toolbar.measuredHeight,
-            bottom = binding.bottomMessagePanel.measuredHeight
-        )
+//        binding.recyclerView.updatePaddingRelative(
+//            top = binding.toolbar.measuredHeight,
+//            bottom = binding.bottomMessagePanel.measuredHeight
+//        )
+
+        val toolbarMeasuredHeight = binding.toolbar.measuredHeight
+        val bottomMessagePanelMeasuredHeight = binding.bottomMessagePanel.measuredHeight
+
+        binding.recyclerView.doOnApplyWindowInsets { v, insets, _ ->
+            val statusBars = AndroidUtils.getStatusBarInsets(insets)
+            val ime = AndroidUtils.getImeInsets(insets)
+            val navBars = AndroidUtils.getNavBarInsets(insets)
+
+            val topPadding = toolbarMeasuredHeight + statusBars.top
+
+            val bottomPadding = bottomMessagePanelMeasuredHeight +
+                    ime.bottom + (if (ime.bottom == 0) navBars.bottom else 0)
+
+            val currentPadding = v.paddingBottom
+
+            v.updatePaddingRelative(top = topPadding)
+            ValueAnimator.ofInt(currentPadding, bottomPadding).apply {
+                interpolator = LinearInterpolator()
+                duration = if (currentPadding > bottomPadding) 125 else 50
+
+                addUpdateListener {
+                    if (view == null) return@addUpdateListener
+                    val value = it.animatedValue as Int
+                    v.updatePaddingRelative(bottom = value)
+                }
+
+                doOnEnd {
+                    if (view == null) return@doOnEnd
+                    checkIfNeedToScrollToBottom()
+                }
+            }.start()
+
+//            v.updatePaddingRelative(top = topPadding, bottom = bottomPadding)
+
+            insets
+        }
     }
 
     private fun prepareEmojiButton() {
         binding.emoji.setOnClickListener {
-            binding.emoji.performHapticFeedback(HapticFeedbackConstants.REJECT)
+            sdk30AndUp {
+                binding.emoji.performHapticFeedback(HapticFeedbackConstants.REJECT)
+            }
         }
         binding.emoji.setOnLongClickListener {
             val text = binding.message.text.toString() + AppGlobal.preferences.getString(

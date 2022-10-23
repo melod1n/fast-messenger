@@ -1,4 +1,4 @@
-package com.meloda.fast.extensions
+package com.meloda.fast.ext
 
 import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable

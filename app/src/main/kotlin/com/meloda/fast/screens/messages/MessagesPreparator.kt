@@ -18,10 +18,14 @@ import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.base.adapter.OnItemClickListener
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.visible
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -248,7 +252,7 @@ class MessagesPreparator constructor(
             text.setOnClickListener { adapterClickListener?.invoke(position) }
             text.movementMethod = LinkMovementMethod.getInstance()
             text.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                val topMargin = if (title != null && title.isVisible) 6 else 0.dpToPx()
+                val topMargin = (if (title != null && title.isVisible) 6 else 0).dpToPx()
 
                 goneTopMargin = topMargin
             }

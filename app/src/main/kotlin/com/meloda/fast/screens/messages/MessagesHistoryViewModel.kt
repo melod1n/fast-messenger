@@ -20,7 +20,7 @@ import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
-import com.meloda.fast.extensions.requireNotNull
+import com.meloda.fast.ext.requireNotNull
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.MediaType.Companion.toMediaType

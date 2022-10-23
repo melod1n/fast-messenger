@@ -1,4 +1,4 @@
-package com.meloda.fast.extensions
+package com.meloda.fast.ext
 
 import android.animation.ValueAnimator
 import android.content.res.Resources
@@ -24,7 +24,7 @@ import androidx.lifecycle.*
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ToolbarMenuItemAvatarBinding
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

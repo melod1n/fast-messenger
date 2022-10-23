@@ -9,16 +9,14 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.network.auth.AuthDirectRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.UnknownErrorEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
-import com.meloda.fast.extensions.requireValue
+import com.meloda.fast.ext.requireValue
 import com.meloda.fast.model.AppAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

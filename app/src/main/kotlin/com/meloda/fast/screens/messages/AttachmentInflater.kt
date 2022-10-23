@@ -26,9 +26,15 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.databinding.*
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.clear
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.toggleVisibilityIfHasContent
+import com.meloda.fast.ext.visible
+import com.meloda.fast.ext.ImageLoader.clear
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.TypeTransformations
 import com.meloda.fast.util.AndroidUtils
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,6 +53,10 @@ class AttachmentInflater constructor(
 
     private val inflater = LayoutInflater.from(context)
 
+    private val colorPrimary = ContextCompat.getColor(
+        context,
+        R.color.colorPrimary
+    )
     private val colorBackground = ContextCompat.getColor(
         context,
         R.color.colorBackground
@@ -191,7 +201,10 @@ class AttachmentInflater constructor(
             VkUtils.prepareMessageText(this)
         }
 
-        binding.text.text = messageText
+        binding.text.text = VkUtils.visualizeMentions(
+            messageText = messageText,
+            mentionColor = colorPrimary
+        )
 
         val replyUserGroup = VkUtils.getMessageUserGroup(replyMessage, profiles, groups)
 

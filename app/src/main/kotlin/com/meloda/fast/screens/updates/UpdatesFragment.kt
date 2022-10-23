@@ -10,10 +10,10 @@ import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.view.animation.DecelerateInterpolator
-import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
@@ -21,9 +21,9 @@ import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.databinding.FragmentUpdatesBinding
-import com.meloda.fast.extensions.clear
-import com.meloda.fast.extensions.setIfNotEquals
-import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.setIfNotEquals
+import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.receiver.DownloadManagerReceiver
 import com.meloda.fast.util.AndroidUtils
@@ -31,8 +31,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import java.io.*
-import java.util.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.Timer
+import java.util.TimerTask
 
 @AndroidEntryPoint
 class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragment_updates) {
@@ -56,7 +61,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
     override val viewModel: UpdatesViewModel by viewModels()
 
-    private val binding: FragmentUpdatesBinding by viewBinding()
+    private val binding by viewBinding(FragmentUpdatesBinding::bind)
 
     private var downloadId: Long? = null
 

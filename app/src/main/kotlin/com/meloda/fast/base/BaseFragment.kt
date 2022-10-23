@@ -5,7 +5,7 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
-import com.meloda.fast.extensions.doOnApplyWindowInsets
+import com.meloda.fast.ext.doOnApplyWindowInsets
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.util.AndroidUtils
 
@@ -17,7 +17,7 @@ abstract class BaseFragment : Fragment {
 
     protected var shouldNavBarShown: Boolean = true
 
-    protected var useInsets: Boolean = true
+    protected var useInsets: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +28,7 @@ abstract class BaseFragment : Fragment {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prepareInsets()
+        deprecatedPrepareInsets()
 
         (requireActivity() as? MainActivity)?.run {
             toggleNavBarVisibility(shouldNavBarShown)
@@ -51,7 +51,7 @@ abstract class BaseFragment : Fragment {
 
     protected open fun toggleProgress(isProgressing: Boolean) {}
 
-    protected open fun prepareInsets() {
+    protected open fun deprecatedPrepareInsets() {
         if (!useInsets) return
 
         view?.doOnApplyWindowInsets { view, insets, padding ->

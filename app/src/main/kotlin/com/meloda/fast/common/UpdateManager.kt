@@ -6,7 +6,7 @@ import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.ota.OtaGetLatestReleaseResponse
 import com.meloda.fast.data.ota.OtaApi
-import com.meloda.fast.extensions.setIfNotEquals
+import com.meloda.fast.ext.setIfNotEquals
 import com.meloda.fast.model.UpdateActualUrl
 import com.meloda.fast.model.UpdateItem
 import kotlinx.coroutines.CoroutineScope

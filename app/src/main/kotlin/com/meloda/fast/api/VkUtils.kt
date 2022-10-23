@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.ClickableSpan
@@ -48,7 +49,7 @@ import com.meloda.fast.api.network.ValidationRequiredError
 import com.meloda.fast.api.network.VkErrorCodes
 import com.meloda.fast.api.network.VkErrorMessages
 import com.meloda.fast.api.network.VkErrors
-import com.meloda.fast.extensions.orDots
+import com.meloda.fast.ext.orDots
 
 @Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
@@ -843,8 +844,12 @@ object VkUtils {
     fun visualizeMentions(
         messageText: String,
         mentionColor: Int,
-        onMentionClick: (id: Int) -> Unit
-    ): SpannableString {
+        onMentionClick: ((id: Int) -> Unit)? = null
+    ): SpannableStringBuilder {
+        if (messageText.isEmpty()) {
+            return SpannableStringBuilder("")
+        }
+
         var newMessageText = messageText
 
         val idsIndexes = mutableListOf<Triple<Int, Int, Int>>()
@@ -885,7 +890,7 @@ object VkUtils {
             newMessageText = newMessageText.replace(it.key, it.value)
         }
 
-        val spanBuilder = SpannableString(newMessageText)
+        val spanBuilder = SpannableStringBuilder(newMessageText)
 
         idsIndexes.forEach { triple ->
             val id = triple.first
@@ -906,17 +911,18 @@ object VkUtils {
     private fun createClickableSpan(
         id: Int,
         mentionColor: Int,
-        onMentionClick: (id: Int) -> Unit
+        onMentionClick: ((id: Int) -> Unit)? = null
     ): ClickableSpan {
         return object : ClickableSpan() {
             override fun onClick(widget: View) {
                 widget.cancelPendingInputEvents()
-                onMentionClick.invoke(id)
+
+                onMentionClick?.invoke(id)
             }
 
             override fun updateDrawState(ds: TextPaint) {
                 ds.color = mentionColor
-                ds.typeface = Typeface.defaultFromStyle(Typeface.BOLD)
+//                ds.typeface = Typeface.defaultFromStyle(Typeface.BOLD)
             }
         }
     }

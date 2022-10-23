@@ -11,7 +11,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.view.inputmethod.EditorInfo
-import android.viewbinding.library.fragment.viewBinding
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -20,6 +19,7 @@ import androidx.activity.addCallback
 import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.BuildConfig
@@ -35,11 +35,20 @@ import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogFastLoginBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.flowOnLifecycle
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.hideKeyboard
+import com.meloda.fast.ext.notifyAboutChanges
+import com.meloda.fast.ext.selectLast
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.trimmedText
+import com.meloda.fast.ext.visible
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import java.net.URLEncoder
 import java.util.regex.Pattern
 
@@ -53,7 +62,7 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     }
 
     override val viewModel: LoginViewModel by viewModels()
-    private val binding: FragmentLoginBinding by viewBinding()
+    private val binding by viewBinding(FragmentLoginBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -66,6 +75,12 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         prepareViews()
 
         binding.login.clearFocus()
+
+        binding.root.applyInsetter {
+            type(ime = true, navigationBars = true, statusBars = true) { padding(animated = true) }
+
+//            syncTranslationTo(binding.root)
+        }
 
         val onFocusedChangedListener = View.OnFocusChangeListener { editText, hasFocus ->
             val roundedCorners = 10.dpToPx().toFloat()

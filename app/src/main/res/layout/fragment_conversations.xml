@@ -14,8 +14,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?actionBarSize"
-            android:background="?colorBackground"
+            android:layout_height="wrap_content"
             android:elevation="0dp"
             app:layout_scrollFlags="scroll|enterAlways|snap"
             app:menu="@menu/fragment_conversations"
@@ -33,6 +32,7 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipToPadding="false"
             android:orientation="vertical"
             android:overScrollMode="ifContentScrolls"
             android:scrollbars="vertical"
