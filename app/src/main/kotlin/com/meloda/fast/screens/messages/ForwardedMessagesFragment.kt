@@ -15,6 +15,7 @@ import com.meloda.fast.databinding.FragmentForwardedMessagesBinding
 import com.meloda.fast.ext.getParcelableArrayListCompat
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.getSerializableCompat
+import dev.chrisbanes.insetter.applyInsetter
 
 class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messages) {
 
@@ -97,6 +98,13 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.recyclerView.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
+
+        binding.toolbar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
         binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         fillRecyclerView()

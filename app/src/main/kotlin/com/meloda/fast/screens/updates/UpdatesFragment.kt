@@ -29,6 +29,7 @@ import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.receiver.DownloadManagerReceiver
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
@@ -71,6 +72,14 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.toolbar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
+
+        binding.root.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
+
         UpdateManager.newUpdate.observe(viewLifecycleOwner) { item ->
             viewModel.currentItem.setIfNotEquals(item)
         }
@@ -80,7 +89,9 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         }
 
         if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
-            val updateItem: UpdateItem = requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java) ?: return
+            val updateItem: UpdateItem =
+                requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java)
+                    ?: return
             viewModel.currentItem.setIfNotEquals(updateItem)
             viewModel.updateState.setIfNotEquals(UpdateState.NewUpdate)
         } else {
