@@ -6,8 +6,11 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
@@ -87,6 +90,23 @@ class ConversationsFragment :
 
     private val useNavDrawer: Boolean get() = (requireActivity() as MainActivity).useNavDrawer
 
+    private var searchNullableMenuItem: MenuItem? = null
+
+    private val onBackPressedCallback
+        get() = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val menuItem = searchNullableMenuItem
+                if (menuItem != null && menuItem.isActionViewExpanded) {
+                    menuItem.collapseActionView()
+                    remove()
+                } else {
+                    remove()
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+
+        }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -111,6 +131,51 @@ class ConversationsFragment :
         binding.recyclerView.applyInsetter {
             type(navigationBars = true) { padding() }
         }
+
+        val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
+        searchNullableMenuItem = searchMenuItem
+        val actionView = searchMenuItem.actionView as SearchView
+
+        var onBackCallback: OnBackPressedCallback? = null
+
+        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+
+            override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
+
+                if (adapter.isEmpty() || adapter.isSearching) {
+                    return false
+                }
+
+                adapter.isSearching = true
+
+                onBackCallback = onBackPressedCallback
+                requireActivity().onBackPressedDispatcher.addCallback(requireNotNull(onBackCallback))
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
+                if (adapter.isSearching)
+                    adapter.isSearching = false
+
+                onBackCallback?.remove()
+                onBackCallback = null
+                return true
+            }
+
+        })
+
+        actionView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Toast.makeText(requireContext(), "API Search: $query", Toast.LENGTH_SHORT).show()
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                adapter.filter.filter(newText)
+                return false
+            }
+
+        })
 
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
         syncAvatarMenuItem(avatarMenuItem)
