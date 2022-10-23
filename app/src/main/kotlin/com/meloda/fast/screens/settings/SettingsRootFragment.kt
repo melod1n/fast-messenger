@@ -21,7 +21,7 @@ class SettingsRootFragment : BaseFragment(R.layout.fragment_settings_root) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         setFragmentResultListener(KeyCheckUpdates) { _, _ ->
             openUpdatesScreen()

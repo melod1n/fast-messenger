@@ -77,7 +77,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jsoup.internal.StringUtil.padding
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -91,31 +90,8 @@ import kotlin.random.Random
 class MessagesHistoryFragment :
     BaseViewModelFragment<MessagesHistoryViewModel>(R.layout.fragment_messages_history) {
 
-    companion object {
-        const val ARG_USER: String = "user"
-        const val ARG_GROUP: String = "group"
-        const val ARG_CONVERSATION: String = "conversation"
-
-        private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
-
-        fun newInstance(
-            conversation: VkConversation,
-            user: VkUser?,
-            group: VkGroup?
-        ): MessagesHistoryFragment {
-            val fragment = MessagesHistoryFragment()
-            fragment.arguments = bundleOf(
-                ARG_CONVERSATION to conversation,
-                ARG_USER to user,
-                ARG_GROUP to group
-            )
-
-            return fragment
-        }
-    }
-
-    override val viewModel: MessagesHistoryViewModel by viewModels()
     private val binding by viewBinding(FragmentMessagesHistoryBinding::bind)
+    override val viewModel: MessagesHistoryViewModel by viewModels()
 
     private var pickFile: Boolean = false
 
@@ -201,7 +177,9 @@ class MessagesHistoryFragment :
         val alphaColorBackground = ColorUtils.alphaColor(colorBackground, 0.85F)
         binding.bottomMessagePanel.setBackgroundColor(alphaColorBackground)
 
-        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
+        binding.toolbar.startButtonClickAction = {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
 
         attachmentController = AttachmentPanelController.init(
             context = requireContext(),
@@ -1393,6 +1371,29 @@ class MessagesHistoryFragment :
         requireActivityRouter().navigateTo(
             Screens.ChatInfo(conversation, user, group)
         )
+    }
+
+    companion object {
+        const val ARG_USER: String = "user"
+        const val ARG_GROUP: String = "group"
+        const val ARG_CONVERSATION: String = "conversation"
+
+        private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
+
+        fun newInstance(
+            conversation: VkConversation,
+            user: VkUser?,
+            group: VkGroup?
+        ): MessagesHistoryFragment {
+            val fragment = MessagesHistoryFragment()
+            fragment.arguments = bundleOf(
+                ARG_CONVERSATION to conversation,
+                ARG_USER to user,
+                ARG_GROUP to group
+            )
+
+            return fragment
+        }
     }
 
 }

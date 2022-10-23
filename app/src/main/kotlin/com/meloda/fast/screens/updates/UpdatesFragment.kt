@@ -22,6 +22,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.databinding.FragmentUpdatesBinding
 import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.setIfNotEquals
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.UpdateItem
@@ -79,14 +80,14 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         }
 
         if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
-            val updateItem: UpdateItem = requireArguments().getParcelable(ARG_UPDATE_ITEM) ?: return
+            val updateItem: UpdateItem = requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java) ?: return
             viewModel.currentItem.setIfNotEquals(updateItem)
             viewModel.updateState.setIfNotEquals(UpdateState.NewUpdate)
         } else {
             viewModel.checkUpdates()
         }
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.changelog.setOnClickListener {
             showChangelogAlert()

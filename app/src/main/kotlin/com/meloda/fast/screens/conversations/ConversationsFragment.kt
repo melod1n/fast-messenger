@@ -6,11 +6,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.addCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
-import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
@@ -113,51 +110,6 @@ class ConversationsFragment :
         }
         binding.recyclerView.applyInsetter {
             type(navigationBars = true) { padding() }
-        }
-
-        val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
-        val actionView = searchMenuItem.actionView as SearchView
-
-        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-
-            override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
-
-                if (adapter.isEmpty() || adapter.isSearching) {
-                    return false
-                }
-
-                adapter.isSearching = true
-                return true
-            }
-
-            override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
-                if (adapter.isSearching)
-                    adapter.isSearching = false
-                return true
-            }
-
-        })
-
-        actionView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                Toast.makeText(requireContext(), "API Search: $query", Toast.LENGTH_SHORT).show()
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                adapter.filter.filter(newText)
-                return false
-            }
-
-        })
-
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (searchMenuItem.isActionViewExpanded) {
-                searchMenuItem.collapseActionView()
-            } else {
-                isEnabled = false
-                requireActivity().onBackPressed()
-            }
         }
 
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()

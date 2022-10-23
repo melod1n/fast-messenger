@@ -182,6 +182,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
     }
 
     private fun prepareToolbar() {
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
     }
 }

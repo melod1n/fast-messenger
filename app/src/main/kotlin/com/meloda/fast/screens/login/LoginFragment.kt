@@ -15,7 +15,6 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.activity.addCallback
 import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -131,20 +130,20 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
             }
         }
 
-        requireActivity().onBackPressedDispatcher.addCallback {
-            if (getView() == null) {
-                isEnabled = false
-                requireActivity().onBackPressed()
-                return@addCallback
-            }
-
-            if (binding.webView.canGoBack()) {
-                binding.webView.goBack()
-            } else {
-                isEnabled = false
-                requireActivity().onBackPressed()
-            }
-        }
+//        requireActivity().onBackPressedDispatcher.addCallback {
+//            if (getView() == null) {
+//                isEnabled = false
+//                requireActivity().onBackPressedDispatcher.onBackPressed()
+//                return@addCallback
+//            }
+//
+//            if (binding.webView.canGoBack()) {
+//                binding.webView.goBack()
+//            } else {
+//                isEnabled = false
+//                requireActivity().onBackPressedDispatcher.onBackPressed()
+//            }
+//        }
     }
 
     override fun onEvent(event: VkEvent) {

@@ -97,7 +97,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         fillRecyclerView()
     }
