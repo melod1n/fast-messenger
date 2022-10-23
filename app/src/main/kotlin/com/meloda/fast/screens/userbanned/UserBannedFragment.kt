@@ -42,7 +42,7 @@ class UserBannedFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.name.text = requireArguments().getString(ArgMemberName)
         binding.reason.text = requireArguments().getString(ArgMessage)

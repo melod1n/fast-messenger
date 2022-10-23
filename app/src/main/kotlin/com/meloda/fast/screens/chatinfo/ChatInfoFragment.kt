@@ -123,7 +123,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         binding.toolbar.avatarClickAction = {
             showAvatarOptions()
         }
-        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
+        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.viewPager.offscreenPageLimit = getTabsCount() - 1
 
