@@ -27,6 +27,7 @@ import com.meloda.fast.ext.setIfNotEquals
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.receiver.DownloadManagerReceiver
+import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -44,26 +45,9 @@ import java.util.TimerTask
 @AndroidEntryPoint
 class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragment_updates) {
 
-    companion object {
-        private const val ARG_UPDATE_ITEM = "arg_update_item"
-        private const val ARG_FILE_BASE_PATH = "file://"
-        private const val ARG_PROVIDER_PATH = ".provider"
-
-        fun newInstance(updateItem: UpdateItem? = null): UpdatesFragment {
-            val fragment = UpdatesFragment()
-            if (updateItem != null) {
-                fragment.arguments = bundleOf(ARG_UPDATE_ITEM to updateItem)
-            } else {
-                fragment.arguments = Bundle()
-            }
-
-            return fragment
-        }
-    }
+    private val binding by viewBinding(FragmentUpdatesBinding::bind)
 
     override val viewModel: UpdatesViewModel by viewModels()
-
-    private val binding by viewBinding(FragmentUpdatesBinding::bind)
 
     private var downloadId: Long? = null
 
@@ -72,9 +56,11 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.applyInsetter {
+        binding.appBar.applyInsetter {
             type(statusBars = true) { padding() }
         }
+
+        (requireActivity() as MainActivity).setSupportActionBar(binding.toolbar)
 
         binding.root.applyInsetter {
             type(navigationBars = true) { padding() }
@@ -378,5 +364,22 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
             .setMessage(messageText)
             .setPositiveButton(R.string.ok, null)
             .show()
+    }
+
+    companion object {
+        private const val ARG_UPDATE_ITEM = "arg_update_item"
+        private const val ARG_FILE_BASE_PATH = "file://"
+        private const val ARG_PROVIDER_PATH = ".provider"
+
+        fun newInstance(updateItem: UpdateItem? = null): UpdatesFragment {
+            val fragment = UpdatesFragment()
+            if (updateItem != null) {
+                fragment.arguments = bundleOf(ARG_UPDATE_ITEM to updateItem)
+            } else {
+                fragment.arguments = Bundle()
+            }
+
+            return fragment
+        }
     }
 }
