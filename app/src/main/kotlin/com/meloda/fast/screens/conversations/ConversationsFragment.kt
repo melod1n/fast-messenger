@@ -77,8 +77,7 @@ class ConversationsFragment :
                             true
                         }
                         "Settings" -> {
-//                            requireActivityRouter().navigateTo(Screens.Settings())
-                            requireActivityRouter().navigateTo(Screens.SettingsTest())
+                            requireActivityRouter().navigateTo(Screens.Settings())
                             true
                         }
                         else -> false
@@ -115,8 +114,6 @@ class ConversationsFragment :
 
         prepareViews()
 
-        binding.recyclerView.adapter = adapter
-
         binding.createChat.setOnClickListener {}
 
         binding.toolbar.tintMenuItemIcons(
@@ -125,12 +122,14 @@ class ConversationsFragment :
                 R.color.colorPrimary
             )
         )
-        binding.toolbar.applyInsetter {
+        binding.appBar.applyInsetter {
             type(statusBars = true) { padding() }
         }
         binding.recyclerView.applyInsetter {
             type(navigationBars = true) { padding() }
         }
+
+        binding.recyclerView.adapter = adapter
 
         val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
         searchNullableMenuItem = searchMenuItem

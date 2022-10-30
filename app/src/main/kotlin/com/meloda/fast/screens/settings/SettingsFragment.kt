@@ -22,7 +22,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        prepareView()
 
         val appearanceTitle = SettingsItem.Title(
             title = "Appearance",
@@ -138,6 +137,8 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
 
         val adapter = SettingsAdapter(requireContext(), settingsList)
         binding.recyclerView.adapter = adapter
+
+        prepareView()
 
         adapter.onClickAction = { key: String ->
             when (key) {
