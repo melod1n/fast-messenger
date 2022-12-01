@@ -2,11 +2,11 @@ package com.meloda.fast.screens.chatinfo
 
 import android.os.Bundle
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.meloda.fast.R
@@ -19,14 +19,16 @@ import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.FragmentChatInfoBinding
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.gone
-import com.meloda.fast.extensions.orDots
-import com.meloda.fast.extensions.visible
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.getParcelableCompat
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.visible
 import com.meloda.fast.screens.messages.MessagesHistoryFragment
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 @AndroidEntryPoint
 class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragment_chat_info) {
@@ -58,18 +60,26 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
 
     override val viewModel: ChatInfoViewModel by viewModels()
 
-    private val binding: FragmentChatInfoBinding by viewBinding()
+    private val binding by viewBinding(FragmentChatInfoBinding::bind)
 
     private val user: VkUser? by lazy {
-        requireArguments().getParcelable(MessagesHistoryFragment.ARG_USER)
+        requireArguments().getParcelableCompat(MessagesHistoryFragment.ARG_USER, VkUser::class.java)
     }
 
     private val group: VkGroup? by lazy {
-        requireArguments().getParcelable(MessagesHistoryFragment.ARG_GROUP)
+        requireArguments().getParcelableCompat(
+            MessagesHistoryFragment.ARG_GROUP,
+            VkGroup::class.java
+        )
     }
 
     private val conversation: VkConversation by lazy {
-        requireNotNull(requireArguments().getParcelable(MessagesHistoryFragment.ARG_CONVERSATION))
+        requireNotNull(
+            requireArguments().getParcelableCompat(
+                MessagesHistoryFragment.ARG_CONVERSATION,
+                VkConversation::class.java
+            )
+        )
     }
 
     private val chatProfiles: MutableList<VkUser> = mutableListOf()
@@ -88,6 +98,13 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
             else -> null
         }
 
+
+        binding.toolbar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
+        binding.progresBar.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
         binding.toolbar.title = title.orDots()
 
         updateStatus()
@@ -106,7 +123,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         binding.toolbar.avatarClickAction = {
             showAvatarOptions()
         }
-        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressed() }
+        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.viewPager.offscreenPageLimit = getTabsCount() - 1
 

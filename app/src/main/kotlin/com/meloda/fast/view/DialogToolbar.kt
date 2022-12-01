@@ -11,9 +11,9 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.updatePaddingRelative
 import com.meloda.fast.R
 import com.meloda.fast.databinding.ViewDialogToolbarBinding
-import com.meloda.fast.extensions.dpToPx
-import com.meloda.fast.extensions.toggleVisibility
-import com.meloda.fast.extensions.toggleVisibilityIfHasContent
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.toggleVisibilityIfHasContent
 import com.meloda.fast.util.ColorUtils
 import kotlin.properties.Delegates
 

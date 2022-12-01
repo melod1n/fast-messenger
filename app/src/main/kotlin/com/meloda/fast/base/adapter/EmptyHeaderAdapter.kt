@@ -5,9 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.RecyclerView
-import com.meloda.fast.extensions.dpToPx
-import com.meloda.fast.util.AndroidUtils
-import kotlin.math.roundToInt
+import com.meloda.fast.ext.dpToPx
 
 class EmptyHeaderAdapter(
     var context: Context

@@ -14,12 +14,12 @@ import com.meloda.fast.databinding.ItemUploadedAttachmentAudioBinding
 import com.meloda.fast.databinding.ItemUploadedAttachmentFileBinding
 import com.meloda.fast.databinding.ItemUploadedAttachmentPhotoBinding
 import com.meloda.fast.databinding.ItemUploadedAttachmentVideoBinding
-import com.meloda.fast.extensions.ImageLoader.clear
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.dpToPx
-import com.meloda.fast.extensions.gone
-import com.meloda.fast.extensions.toggleVisibility
-import com.meloda.fast.extensions.visible
+import com.meloda.fast.ext.ImageLoader.clear
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.visible
 
 class AttachmentsAdapter(
     context: Context,

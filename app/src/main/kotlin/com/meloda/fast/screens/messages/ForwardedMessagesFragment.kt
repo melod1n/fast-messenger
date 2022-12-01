@@ -2,8 +2,8 @@ package com.meloda.fast.screens.messages
 
 import android.os.Bundle
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
@@ -12,6 +12,10 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentForwardedMessagesBinding
+import com.meloda.fast.ext.getParcelableArrayListCompat
+import com.meloda.fast.ext.getParcelableCompat
+import com.meloda.fast.ext.getSerializableCompat
+import dev.chrisbanes.insetter.applyInsetter
 
 class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messages) {
 
@@ -39,12 +43,12 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
         }
     }
 
-    private val binding: FragmentForwardedMessagesBinding by viewBinding()
+    private val binding by viewBinding(FragmentForwardedMessagesBinding::bind)
 
     private var conversation: VkConversation? = null
     private var messages: List<VkMessage> = emptyList()
-    private var profiles: HashMap<Int, VkUser> = hashMapOf()
-    private var groups: HashMap<Int, VkGroup> = hashMapOf()
+    private var profiles = UsersIdsList.Empty
+    private var groups = GroupsIdsList.Empty
 
     private val adapter: MessagesHistoryAdapter by lazy {
         MessagesHistoryAdapter(
@@ -52,23 +56,56 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
         )
     }
 
+    open class IdsMap<T> : HashMap<Int, T>() {
+        val ids get() = keys
+    }
+
+    class MessagesIdsList : IdsMap<VkMessage>() {
+        companion object {
+            val Empty get() = MessagesIdsList()
+        }
+    }
+
+    class UsersIdsList : IdsMap<VkUser>() {
+        companion object {
+            val Empty get() = UsersIdsList()
+        }
+    }
+
+    class GroupsIdsList : IdsMap<VkGroup>() {
+        companion object {
+            val Empty get() = GroupsIdsList()
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         requireArguments().run {
-            conversation = getParcelable(ArgConversation)
-            messages = getParcelableArrayList(ArgMessages) ?: emptyList()
+            conversation = getParcelableCompat(ArgConversation, VkConversation::class.java)
 
-            profiles = getSerializable(ArgProfiles) as? HashMap<Int, VkUser> ?: hashMapOf()
-            groups = getSerializable(ArgGroups) as? HashMap<Int, VkGroup> ?: hashMapOf()
+            messages = getParcelableArrayListCompat(ArgMessages, VkMessage::class.java)
+                ?: emptyList()
+
+            profiles =
+                getSerializableCompat(ArgProfiles, UsersIdsList::class.java) ?: UsersIdsList.Empty
+            groups =
+                getSerializableCompat(ArgGroups, GroupsIdsList::class.java) ?: GroupsIdsList.Empty
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.recyclerView.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
+
+        binding.toolbar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         fillRecyclerView()
     }

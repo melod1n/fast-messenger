@@ -8,16 +8,13 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:elevation="0dp">
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?actionBarSize"
-            android:background="?colorBackground"
-            android:elevation="0dp"
-            app:layout_scrollFlags="scroll|enterAlways|snap"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:menu="@menu/fragment_conversations"
             app:title="@string/title_messages"
             app:titleTextColor="?colorOnBackground" />
@@ -33,6 +30,7 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipToPadding="false"
             android:orientation="vertical"
             android:overScrollMode="ifContentScrolls"
             android:scrollbars="vertical"

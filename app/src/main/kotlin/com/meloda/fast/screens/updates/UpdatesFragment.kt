@@ -10,10 +10,10 @@ import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.view.animation.DecelerateInterpolator
-import android.viewbinding.library.fragment.viewBinding
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
@@ -21,42 +21,33 @@ import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.databinding.FragmentUpdatesBinding
-import com.meloda.fast.extensions.clear
-import com.meloda.fast.extensions.setIfNotEquals
-import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.getParcelableCompat
+import com.meloda.fast.ext.setIfNotEquals
+import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.receiver.DownloadManagerReceiver
+import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import java.io.*
-import java.util.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.Timer
+import java.util.TimerTask
 
 @AndroidEntryPoint
 class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragment_updates) {
 
-    companion object {
-        private const val ARG_UPDATE_ITEM = "arg_update_item"
-        private const val ARG_FILE_BASE_PATH = "file://"
-        private const val ARG_PROVIDER_PATH = ".provider"
-
-        fun newInstance(updateItem: UpdateItem? = null): UpdatesFragment {
-            val fragment = UpdatesFragment()
-            if (updateItem != null) {
-                fragment.arguments = bundleOf(ARG_UPDATE_ITEM to updateItem)
-            } else {
-                fragment.arguments = Bundle()
-            }
-
-            return fragment
-        }
-    }
+    private val binding by viewBinding(FragmentUpdatesBinding::bind)
 
     override val viewModel: UpdatesViewModel by viewModels()
-
-    private val binding: FragmentUpdatesBinding by viewBinding()
 
     private var downloadId: Long? = null
 
@@ -64,6 +55,16 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.appBar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
+
+        (requireActivity() as MainActivity).setSupportActionBar(binding.toolbar)
+
+        binding.root.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
 
         UpdateManager.newUpdate.observe(viewLifecycleOwner) { item ->
             viewModel.currentItem.setIfNotEquals(item)
@@ -74,14 +75,16 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         }
 
         if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
-            val updateItem: UpdateItem = requireArguments().getParcelable(ARG_UPDATE_ITEM) ?: return
+            val updateItem: UpdateItem =
+                requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java)
+                    ?: return
             viewModel.currentItem.setIfNotEquals(updateItem)
             viewModel.updateState.setIfNotEquals(UpdateState.NewUpdate)
         } else {
             viewModel.checkUpdates()
         }
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.changelog.setOnClickListener {
             showChangelogAlert()
@@ -361,5 +364,22 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
             .setMessage(messageText)
             .setPositiveButton(R.string.ok, null)
             .show()
+    }
+
+    companion object {
+        private const val ARG_UPDATE_ITEM = "arg_update_item"
+        private const val ARG_FILE_BASE_PATH = "file://"
+        private const val ARG_PROVIDER_PATH = ".provider"
+
+        fun newInstance(updateItem: UpdateItem? = null): UpdatesFragment {
+            val fragment = UpdatesFragment()
+            if (updateItem != null) {
+                fragment.arguments = bundleOf(ARG_UPDATE_ITEM to updateItem)
+            } else {
+                fragment.arguments = Bundle()
+            }
+
+            return fragment
+        }
     }
 }

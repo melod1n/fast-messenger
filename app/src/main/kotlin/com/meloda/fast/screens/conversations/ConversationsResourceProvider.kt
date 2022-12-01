@@ -6,6 +6,7 @@ import com.meloda.fast.base.ResourceProvider
 
 class ConversationsResourceProvider(context: Context) : ResourceProvider(context) {
 
+    val colorPrimary = getColor(R.color.colorPrimary)
     val colorOutline = getColor(R.color.colorOutline)
     val colorOnPrimary = getColor(R.color.colorOnPrimary)
     val colorUserAvatarAction = getColor(R.color.colorUserAvatarAction)

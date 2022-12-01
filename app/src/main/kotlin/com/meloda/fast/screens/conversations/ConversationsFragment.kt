@@ -4,11 +4,10 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.addCallback
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
@@ -19,6 +18,7 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -30,16 +30,17 @@ import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentConversationsBinding
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.addAvatarMenuItem
-import com.meloda.fast.extensions.gone
-import com.meloda.fast.extensions.tintMenuItemIcons
-import com.meloda.fast.extensions.toggleVisibility
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.addAvatarMenuItem
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.tintMenuItemIcons
+import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -48,7 +49,7 @@ class ConversationsFragment :
     BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
     override val viewModel: ConversationsViewModel by viewModels()
-    private val binding: FragmentConversationsBinding by viewBinding()
+    private val binding by viewBinding(FragmentConversationsBinding::bind)
 
     private val adapter: ConversationsAdapter by lazy {
         ConversationsAdapter(
@@ -88,6 +89,23 @@ class ConversationsFragment :
 
     private val useNavDrawer: Boolean get() = (requireActivity() as MainActivity).useNavDrawer
 
+    private var searchNullableMenuItem: MenuItem? = null
+
+    private val onBackPressedCallback
+        get() = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val menuItem = searchNullableMenuItem
+                if (menuItem != null && menuItem.isActionViewExpanded) {
+                    menuItem.collapseActionView()
+                    remove()
+                } else {
+                    remove()
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+
+        }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -95,8 +113,6 @@ class ConversationsFragment :
             AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefMultiline, true)
 
         prepareViews()
-
-        binding.recyclerView.adapter = adapter
 
         binding.createChat.setOnClickListener {}
 
@@ -106,9 +122,20 @@ class ConversationsFragment :
                 R.color.colorPrimary
             )
         )
+        binding.appBar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
+        binding.recyclerView.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
+
+        binding.recyclerView.adapter = adapter
 
         val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
+        searchNullableMenuItem = searchMenuItem
         val actionView = searchMenuItem.actionView as SearchView
+
+        var onBackCallback: OnBackPressedCallback? = null
 
         searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
 
@@ -119,12 +146,18 @@ class ConversationsFragment :
                 }
 
                 adapter.isSearching = true
+
+                onBackCallback = onBackPressedCallback
+                requireActivity().onBackPressedDispatcher.addCallback(requireNotNull(onBackCallback))
                 return true
             }
 
             override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
                 if (adapter.isSearching)
                     adapter.isSearching = false
+
+                onBackCallback?.remove()
+                onBackCallback = null
                 return true
             }
 
@@ -142,15 +175,6 @@ class ConversationsFragment :
             }
 
         })
-
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (searchMenuItem.isActionViewExpanded) {
-                searchMenuItem.collapseActionView()
-            } else {
-                isEnabled = false
-                requireActivity().onBackPressed()
-            }
-        }
 
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
         syncAvatarMenuItem(avatarMenuItem)
