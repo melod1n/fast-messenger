@@ -6,6 +6,8 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.AuthorizationError
 import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.TokenExpiredError
+import com.meloda.fast.api.network.UserBannedError
 import com.meloda.fast.api.network.ValidationRequiredError
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +35,7 @@ abstract class BaseViewModel : ViewModel() {
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
         onError: (suspend (Throwable) -> Unit)? = null,
-        onAnyResult: (suspend () -> Unit)? = null
+        onAnyResult: (suspend () -> Unit)? = null,
     ): ApiAnswer<T> {
         onStart?.invoke() ?: onStart()
         val response = job()
@@ -60,7 +62,7 @@ abstract class BaseViewModel : ViewModel() {
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
         onError: (suspend (Throwable) -> Unit)? = null,
-        onAnyResult: (suspend () -> Unit)? = null
+        onAnyResult: (suspend () -> Unit)? = null,
     ): Job = viewModelScope.launch {
         onStart?.invoke() ?: onStart()
         when (val response = job()) {
