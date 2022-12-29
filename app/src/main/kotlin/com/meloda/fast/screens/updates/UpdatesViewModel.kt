@@ -1,25 +1,25 @@
 package com.meloda.fast.screens.updates
 
-import androidx.lifecycle.MutableLiveData
-import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.UpdateManager
-import com.meloda.fast.ext.setIfNotEquals
+import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.model.UpdateItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 
 @HiltViewModel
 class UpdatesViewModel @Inject constructor(
     private val updateManager: UpdateManager,
-    private val otaApi: OtaApi
+    private val otaApi: OtaApi,
 ) : BaseViewModel() {
 
-    val updateState = MutableLiveData(UpdateState.Loading)
-    val currentError = MutableLiveData<String?>(null)
-    val currentItem = MutableLiveData<UpdateItem?>(null)
+    val updateState: MutableStateFlow<UpdateState> = MutableStateFlow(UpdateState.Loading)
+    val currentError: MutableStateFlow<String?> = MutableStateFlow(null)
+    val currentItem: MutableStateFlow<UpdateItem?> = MutableStateFlow(null)
 
     private var currentJob: Job? = null
 
@@ -28,21 +28,21 @@ class UpdatesViewModel @Inject constructor(
             currentJob?.cancel()
             currentJob = null
         }
-        updateState.setIfNotEquals(UpdateState.Loading)
+        updateState.update { UpdateState.Loading }
 
         currentJob = updateManager.checkUpdates { item, error ->
             when {
                 item != null -> {
-                    currentError.setIfNotEquals(null)
-                    updateState.setIfNotEquals(UpdateState.NewUpdate)
+                    currentError.update { null }
+                    updateState.update { UpdateState.NewUpdate }
                 }
                 error != null -> {
-                    currentError.setIfNotEquals(error.message ?: "")
-                    updateState.setIfNotEquals(UpdateState.Error)
+                    currentError.update { error.message ?: "" }
+                    updateState.update { UpdateState.Error }
                 }
                 else -> {
-                    currentError.setIfNotEquals(null)
-                    updateState.setIfNotEquals(UpdateState.NoUpdates)
+                    currentError.update { null }
+                    updateState.update { UpdateState.NoUpdates }
                 }
             }
         }.apply { invokeOnCompletion { currentJob = null } }

@@ -330,7 +330,7 @@ class MessagesHistoryFragment :
 
             actionState.value = newValue
         }
-
+        
         actionState
             .asStateFlow()
             .flowWithLifecycle(lifecycle)

@@ -50,7 +50,7 @@ object Screens {
     fun Updates(updateItem: UpdateItem? = null) =
         FragmentScreen { UpdatesFragment.newInstance(updateItem) }
 
-    fun Settings() = FragmentScreen { SettingsFragment() }
+    fun Settings() = FragmentScreen { SettingsFragment.newInstance() }
 
     fun UserBanned(
         memberName: String,

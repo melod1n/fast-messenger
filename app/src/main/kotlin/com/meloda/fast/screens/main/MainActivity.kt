@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.edit
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.size
 import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
@@ -41,6 +40,7 @@ import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.sdk26AndUp
 import com.meloda.fast.ext.sdk33AndUp
 import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
@@ -62,7 +62,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             screen: FragmentScreen,
             fragmentTransaction: FragmentTransaction,
             currentFragment: Fragment?,
-            nextFragment: Fragment
+            nextFragment: Fragment,
         ) {
         }
     }
@@ -104,7 +104,10 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val testTheme =
+            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_DEBUG_TEST_THEME, false)
+        setTheme(if (testTheme) R.style.TestTheme else R.style.AppTheme)
+
         super.onCreate(savedInstanceState)
         edgeToEdge()
 

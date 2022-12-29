@@ -19,7 +19,8 @@ plugins {
     id("kotlin-android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -92,12 +93,23 @@ android {
     }
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
+hilt {
+    enableAggregatingTask = true
+}
+
 fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.20")
+    implementation ("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
+    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
+
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.0")
 
     implementation("androidx.core:core-ktx:1.9.0")
 
@@ -113,9 +125,9 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.5.1")
 
-    implementation("androidx.activity:activity-ktx:1.6.0")
+    implementation("androidx.activity:activity-ktx:1.6.1")
 
-    implementation("androidx.fragment:fragment-ktx:1.5.3")
+    implementation("androidx.fragment:fragment-ktx:1.5.5")
 
     implementation("androidx.preference:preference-ktx:1.2.0")
 
@@ -138,14 +150,14 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.14.2")
     kapt("com.github.bumptech.glide:compiler:4.14.2")
 
-    implementation("com.github.fondesa:kpermissions:3.3.0")
-    implementation("com.github.fondesa:kpermissions-coroutines:3.3.0")
+    implementation("com.github.fondesa:kpermissions:3.4.0")
+    implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
 
-    implementation("com.microsoft.appcenter:appcenter-analytics:4.4.5")
-    implementation("com.microsoft.appcenter:appcenter-crashes:4.4.5")
+    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.0")
+    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.0")
 
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation("com.google.dagger:hilt-android:2.44.2")
+    kapt("com.google.dagger:hilt-android-compiler:2.44.2")
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -158,7 +170,7 @@ dependencies {
 
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.6")
 
-    implementation("com.google.code.gson:gson:2.9.1")
+    implementation("com.google.code.gson:gson:2.10")
 
     implementation("com.google.guava:guava:31.1-jre")
 

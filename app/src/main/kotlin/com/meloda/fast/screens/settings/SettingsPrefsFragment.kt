@@ -11,7 +11,7 @@ import com.meloda.fast.R
 import com.meloda.fast.common.AppGlobal
 import com.microsoft.appcenter.crashes.Crashes
 
-class SettingsPrefsFragment : PreferenceFragmentCompat(),
+class SettingsPrefsFragment constructor(): PreferenceFragmentCompat(),
     Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
 

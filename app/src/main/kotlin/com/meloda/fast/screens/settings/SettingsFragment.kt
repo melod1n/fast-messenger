@@ -2,23 +2,45 @@ package com.meloda.fast.screens.settings
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.content.edit
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentSettingsBinding
 import com.meloda.fast.ext.ifEmpty
+import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.settings.SettingsItem
-import com.microsoft.appcenter.crashes.Crashes
+import com.meloda.fast.screens.settings.adapter.OnSettingsChangeListener
+import com.meloda.fast.screens.settings.adapter.OnSettingsClickListener
+import com.meloda.fast.screens.settings.adapter.OnSettingsLongClickListener
+import com.meloda.fast.screens.settings.adapter.settingsCheckboxItemDelegate
+import com.meloda.fast.screens.settings.adapter.settingsEditTextItemDelegate
+import com.meloda.fast.screens.settings.adapter.settingsSwitchItemDelegate
+import com.meloda.fast.screens.settings.adapter.settingsTitleItemDelegate
+import com.meloda.fast.screens.settings.adapter.settingsTitleSummaryItemDelegate
+import com.microsoft.appcenter.crashes.model.TestCrashException
 import dev.chrisbanes.insetter.applyInsetter
+import kotlin.properties.Delegates
 
-class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
+class SettingsFragment : BaseFragment(R.layout.fragment_settings),
+    OnSettingsClickListener,
+    OnSettingsLongClickListener,
+    OnSettingsChangeListener {
 
     init {
         useInsets = false
     }
 
     private val binding by viewBinding(FragmentSettingsBinding::bind)
+
+    private var testAppearanceList = mutableListOf<SettingsItem<*>>()
+
+    private val debugList = mutableListOf<SettingsItem<*>>()
+
+    private var adapter by Delegates.notNull<AsyncDiffItemAdapter>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -28,7 +50,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
             itemKey = "appearance"
         )
         val appearanceMultiline = SettingsItem.Switch(
-            itemKey = "multiline",
+            itemKey = "appearance_multiline",
             defaultValue = true,
             title = "Multiline titles and messages",
             summary = "The title of the dialog and the text of the message can take up two lines"
@@ -75,7 +97,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
             title = "Updates"
         )
         val updatesCheckUpdates = SettingsItem.TitleSummary(
-            itemKey = "check_updates",
+            itemKey = KEY_UPDATES_CHECK_UPDATES,
             title = "Check updates"
         )
 
@@ -94,40 +116,66 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
             title = "Debug"
         )
         val debugPerformCrash = SettingsItem.TitleSummary(
-            itemKey = "perform_crash",
+            itemKey = KEY_DEBUG_PERFORM_CRASH,
             title = "Perform crash",
             summary = "App will be crashed. Obviously"
         )
         val debugShowDestroyedLongPollAlert = SettingsItem.Switch(
-            itemKey = "show_destroyed_long_poll_alert",
+            itemKey = "debug_show_destroyed_long_poll_alert",
             defaultValue = false,
             title = "Show destroyed LP alert"
         )
         val debugShowCrashAlert = SettingsItem.Switch(
-            itemKey = "show_crash_alert",
+            itemKey = "debug_show_crash_alert",
             defaultValue = true,
             title = "Show alert after crash",
-            summary = "Shows alert dialog with stacktrace after app crashed"
+            summary = "Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually))"
+        )
+        val debugTestThemeSwitch = SettingsItem.Switch(
+            itemKey = KEY_DEBUG_TEST_THEME,
+            title = "Test theme switch",
+            defaultValue = false
+        )
+        val debugListUpdateSwitch = SettingsItem.Switch(
+            itemKey = KEY_DEBUG_LIST_UPDATE,
+            title = "Show Appearance Category",
+            defaultValue = true
+        )
+        val debugHideDebugList = SettingsItem.TitleSummary(
+            itemKey = KEY_DEBUG_HIDE_DEBUG_LIST,
+            title = "Hide debug list"
         )
 
-        val appearanceList = listOf(
-            appearanceTitle, appearanceMultiline
+        val appearanceList: List<SettingsItem<*>> = listOf(
+            appearanceTitle,
+            appearanceMultiline,
         )
         val featuresList = listOf(
-            featuresTitle, featuresHideKeyboardOnScroll, featuresFastText
+            featuresTitle,
+            featuresHideKeyboardOnScroll,
+            featuresFastText,
         )
         val visibilityList = listOf(
-            visibilityTitle, visibilitySendOnlineStatus
+            visibilityTitle,
+            visibilitySendOnlineStatus,
         )
         val updatesList = listOf(
-            updatesTitle, updatesCheckUpdates
+            updatesTitle,
+            updatesCheckUpdates,
         )
         val msAppCenterList = listOf(
-            msAppCenterTitle, msAppCenterEnable
+            msAppCenterTitle,
+            msAppCenterEnable,
         )
-        val debugList = listOf(
-            debugTitle, debugPerformCrash, debugShowDestroyedLongPollAlert, debugShowCrashAlert
-        )
+        listOf(
+            debugTitle,
+            debugPerformCrash,
+            debugShowDestroyedLongPollAlert,
+            debugShowCrashAlert,
+            debugTestThemeSwitch,
+            debugListUpdateSwitch,
+            debugHideDebugList,
+        ).forEach(debugList::add)
 
         val settingsList = mutableListOf<SettingsItem<*>>()
         listOf(
@@ -135,37 +183,39 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
             updatesList, msAppCenterList, debugList
         ).forEach(settingsList::addAll)
 
-        val adapter = SettingsAdapter(requireContext(), settingsList)
+        testAppearanceList = appearanceList.toMutableList()
+
+        val titleDelegate = settingsTitleItemDelegate()
+        val titleSummaryDelegate = settingsTitleSummaryItemDelegate(
+            onClickListener = this, onLongClickListener = this
+        )
+        val editTextDelegate = settingsEditTextItemDelegate(
+            onClickListener = this, onLongClickListener = this, onChangeListener = this
+        )
+        val checkboxDelegate = settingsCheckboxItemDelegate(
+            onClickListener = this, onLongClickListener = this, onChangeListener = this
+        )
+        val switchDelegate = settingsSwitchItemDelegate(
+            onClickListener = this, onLongClickListener = this, onChangeListener = this
+        )
+
+        val adapter = AsyncDiffItemAdapter(
+            titleDelegate,
+            titleSummaryDelegate,
+            editTextDelegate,
+            checkboxDelegate,
+            switchDelegate
+        )
+        this.adapter = adapter
         binding.recyclerView.adapter = adapter
 
+        if (!AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)) {
+            settingsList.removeAll(debugList)
+        }
+
+        adapter.items = settingsList.toList()
+
         prepareView()
-
-        adapter.onClickAction = { key: String ->
-            when (key) {
-                updatesCheckUpdates.key -> {
-                    requireActivityRouter().navigateTo(Screens.Updates())
-                }
-                debugPerformCrash.key -> {
-                    Crashes.generateTestCrash()
-                }
-                else -> Unit
-            }
-        }
-        adapter.onChangeAction = { key: String, newValue: Any? ->
-            when (key) {
-                featuresFastText.key -> {
-                    val stringValue = newValue as? String
-                    adapter.searchIndex(featuresFastText.key)?.let { index ->
-                        val currentItem = adapter[index] as SettingsItem.EditText
-                        currentItem.value = stringValue
-                        currentItem.updateSummary()
-
-                        adapter.notifyItemChanged(index)
-                    }
-                }
-                else -> Unit
-            }
-        }
     }
 
     private fun prepareView() {
@@ -184,5 +234,86 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings) {
 
     private fun prepareToolbar() {
         binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+    }
+
+    override fun onClick(key: String) {
+        when (key) {
+            KEY_UPDATES_CHECK_UPDATES -> {
+                requireActivityRouter().navigateTo(Screens.Updates())
+            }
+            KEY_DEBUG_PERFORM_CRASH -> {
+                throw TestCrashException()
+            }
+            KEY_DEBUG_HIDE_DEBUG_LIST -> {
+                val showDebugCategory =
+                    AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
+                if (!showDebugCategory) return
+
+                AppGlobal.preferences.edit {
+                    putBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
+                }
+
+                adapter.items =
+                    adapter.items.castAsSettings().filter { !it.key.startsWith("debug") }
+            }
+            else -> Unit
+        }
+    }
+
+    override fun onLongClick(key: String): Boolean {
+        return when (key) {
+            KEY_UPDATES_CHECK_UPDATES -> {
+                val showDebugCategory =
+                    AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
+                if (showDebugCategory) return false
+
+                AppGlobal.preferences.edit {
+                    putBoolean(KEY_SHOW_DEBUG_CATEGORY, true)
+                }
+
+                adapter.items = adapter.items.castAsSettings() + debugList
+                true
+            }
+            else -> false
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun onChange(key: String, newValue: Any?) {
+        when (key) {
+            KEY_DEBUG_TEST_THEME -> {
+                requireActivity().recreate()
+            }
+            KEY_DEBUG_LIST_UPDATE -> {
+                val showAppearanceCategory = newValue as Boolean
+
+                val currentItems = adapter.items.castAsSettings()
+
+                if (showAppearanceCategory) {
+                    adapter.items = testAppearanceList + currentItems
+                } else {
+                    adapter.items = currentItems.filter { !it.key.startsWith("appearance") }
+                }
+            }
+            else -> Unit
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun List<AdapterDiffItem>.castAsSettings(): List<SettingsItem<*>> {
+        return (this as List<SettingsItem<*>>).toList()
+    }
+
+    companion object {
+        fun newInstance(): SettingsFragment = SettingsFragment()
+
+        const val KEY_UPDATES_CHECK_UPDATES = "updates_check_updates"
+
+        const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
+        const val KEY_DEBUG_TEST_THEME = "debug_test_theme"
+        const val KEY_DEBUG_LIST_UPDATE = "debug_list_update"
+        private const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
+
+        private const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
     }
 }

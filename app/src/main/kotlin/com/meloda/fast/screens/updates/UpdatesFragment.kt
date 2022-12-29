@@ -23,7 +23,7 @@ import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.databinding.FragmentUpdatesBinding
 import com.meloda.fast.ext.clear
 import com.meloda.fast.ext.getParcelableCompat
-import com.meloda.fast.ext.setIfNotEquals
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.receiver.DownloadManagerReceiver
@@ -32,6 +32,7 @@ import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import java.io.File
@@ -42,6 +43,7 @@ import java.io.OutputStream
 import java.util.Timer
 import java.util.TimerTask
 
+// TODO: 29.12.2022, Danil Nikolaev: переписать работу с Flow
 @AndroidEntryPoint
 class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragment_updates) {
 
@@ -67,19 +69,17 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
         }
 
         UpdateManager.newUpdate.observe(viewLifecycleOwner) { item ->
-            viewModel.currentItem.setIfNotEquals(item)
+            viewModel.currentItem.update { item }
         }
 
-        viewModel.updateState.observe(viewLifecycleOwner) { state ->
-            state?.run { refreshState(this) }
-        }
+        viewModel.updateState.listenValue(::refreshState)
 
         if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
             val updateItem: UpdateItem =
                 requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java)
                     ?: return
-            viewModel.currentItem.setIfNotEquals(updateItem)
-            viewModel.updateState.setIfNotEquals(UpdateState.NewUpdate)
+            viewModel.currentItem.update { updateItem }
+            viewModel.updateState.update { UpdateState.NewUpdate }
         } else {
             viewModel.checkUpdates()
         }
@@ -191,7 +191,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
     }
 
     private fun downloadUpdate(newUpdate: UpdateItem) {
-        viewModel.updateState.setIfNotEquals(UpdateState.Loading)
+        viewModel.updateState.update { UpdateState.Loading }
 
         timer = Timer()
 
@@ -227,7 +227,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
             requireContext().unregisterReceiver(receiver)
 
-            viewModel.updateState.setIfNotEquals(UpdateState.NewUpdate)
+            viewModel.updateState.update { UpdateState.NewUpdate }
         }
 
         requireContext().registerReceiver(
@@ -237,7 +237,7 @@ class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragmen
 
         downloadId = AppGlobal.downloadManager.enqueue(request)
 
-        viewModel.updateState.setIfNotEquals(UpdateState.Downloading)
+        viewModel.updateState.update { UpdateState.Downloading }
 
         if (binding.loadingProgress.max != 100 * 100) {
             binding.loadingProgress.max = 100 * 100
