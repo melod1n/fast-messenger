@@ -1,11 +1,10 @@
 package com.meloda.fast.data.conversations
 
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
 import com.meloda.fast.api.network.conversations.ConversationsGetRequest
 import com.meloda.fast.api.network.conversations.ConversationsPinRequest
 import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
-import kotlinx.coroutines.sync.Mutex
 
 class ConversationsRepository(
     private val conversationsApi: ConversationsApi,

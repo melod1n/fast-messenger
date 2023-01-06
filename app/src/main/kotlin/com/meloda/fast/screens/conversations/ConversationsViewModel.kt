@@ -7,11 +7,16 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
-import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.conversations.*
+import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.api.model.presentation.VkConversationUi
+import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
+import com.meloda.fast.api.network.conversations.ConversationsGetRequest
+import com.meloda.fast.api.network.conversations.ConversationsPinRequest
+import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -21,6 +26,7 @@ import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,8 +36,12 @@ class ConversationsViewModel @Inject constructor(
     private val usersRepository: UsersRepository,
     updatesParser: LongPollUpdatesParser,
     private val router: Router,
-    private val messagesRepository: MessagesRepository
+    private val messagesRepository: MessagesRepository,
 ) : BaseViewModel() {
+
+    val conversations: MutableStateFlow<List<VkConversationUi>> = MutableStateFlow(emptyList())
+
+    val oldConversations: MutableStateFlow<List<VkConversation>> = MutableStateFlow(emptyList())
 
     init {
         updatesParser.onNewMessage {
@@ -52,7 +62,7 @@ class ConversationsViewModel @Inject constructor(
     }
 
     fun loadConversations(
-        offset: Int? = null
+        offset: Int? = null,
     ) = viewModelScope.launch(Dispatchers.Default) {
         makeJob({
             conversationsRepository.get(
@@ -82,6 +92,10 @@ class ConversationsViewModel @Inject constructor(
                         )
                     }
 
+                    val newConversations = conversations
+                        .map { it.mapToDomain(profiles, groups) }
+                        .map(VkConversationDomain::mapToPresentation)
+
                     val avatars = conversations.mapNotNull { conversation ->
                         VkUtils.getConversationAvatar(
                             conversation,
@@ -89,6 +103,9 @@ class ConversationsViewModel @Inject constructor(
                             if (conversation.isGroup()) groups[conversation.id] else null
                         )
                     }
+
+                    oldConversations.emit(conversations)
+                    this@ConversationsViewModel.conversations.emit(newConversations)
 
                     sendEvent(
                         ConversationsLoadedEvent(
@@ -128,7 +145,7 @@ class ConversationsViewModel @Inject constructor(
 
     fun pinConversation(
         peerId: Int,
-        pin: Boolean
+        pin: Boolean,
     ) = viewModelScope.launch {
         if (pin) {
             makeJob(
@@ -172,14 +189,19 @@ class ConversationsViewModel @Inject constructor(
     fun openMessagesHistoryScreen(
         conversation: VkConversation,
         user: VkUser?,
-        group: VkGroup?
+        group: VkGroup?,
     ) {
         router.navigateTo(Screens.MessagesHistory(conversation, user, group))
     }
 
     fun readConversation(conversation: VkConversation) {
         makeJob(
-            { messagesRepository.markAsRead(conversation.id, startMessageId = conversation.lastMessageId) },
+            {
+                messagesRepository.markAsRead(
+                    conversation.id,
+                    startMessageId = conversation.lastMessageId
+                )
+            },
             onAnswer = {
                 sendEvent(MessagesReadEvent(false, conversation.id, conversation.lastMessageId))
             }
@@ -194,7 +216,7 @@ data class ConversationsLoadedEvent(
     val conversations: List<VkConversation>,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>,
-    val avatars: List<String>? = null
+    val avatars: List<String>? = null,
 ) : VkEvent()
 
 data class ConversationsDeleteEvent(val peerId: Int) : VkEvent()
@@ -206,7 +228,7 @@ data class ConversationsUnpinEvent(val peerId: Int) : VkEvent()
 data class MessagesNewEvent(
     val message: VkMessage,
     val profiles: HashMap<Int, VkUser>,
-    val groups: HashMap<Int, VkGroup>
+    val groups: HashMap<Int, VkGroup>,
 ) : VkEvent()
 
 data class MessagesEditEvent(val message: VkMessage) : VkEvent()

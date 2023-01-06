@@ -1,12 +1,18 @@
-package com.meloda.fast.api.model
+package com.meloda.fast.api.model.data
 
+import android.os.Parcelable
 import androidx.lifecycle.MutableLiveData
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.model.SelectableItem
+import com.meloda.fast.api.model.VkGroup
+import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.domain.PeerType
+import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.model.base.AdapterDiffItem
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -14,7 +20,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class VkConversation(
     @PrimaryKey(autoGenerate = false)
-    var id: Int,
+    override var id: Int,
     var localId: Int,
     var ownerId: Int?,
     var title: String?,
@@ -39,7 +45,29 @@ data class VkConversation(
 
     @Embedded(prefix = "lastMessage_")
     var lastMessage: VkMessage? = null,
-) : SelectableItem() {
+) : Parcelable, AdapterDiffItem {
+
+    fun mapToDomain(
+        profiles: HashMap<Int, VkUser>,
+        groups: HashMap<Int, VkGroup>,
+    ) = VkConversationDomain(
+        conversationId = id,
+        messageId = lastMessageId,
+        fromId = lastMessage?.fromId ?: -1,
+        peerType = PeerType.parse(type),
+        lastMessageId = lastMessageId,
+        lastMessage = lastMessage,
+        conversationTitle = title,
+        profiles = profiles,
+        groups = groups,
+        conversationPhoto = photo200,
+        unreadCount = unreadCount,
+        majorId = majorId,
+        isPhantom = isPhantom,
+        isCallInProgress = callInProgress,
+        inRead = inRead,
+        outRead = outRead,
+    )
 
     @Ignore
     @IgnoredOnParcel

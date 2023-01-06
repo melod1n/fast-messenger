@@ -27,10 +27,6 @@ sealed class SettingsItem<T>(val key: String) : AdapterDiffItem {
         return newItem is SettingsItem<*> && newItem.key == this.key
     }
 
-    override fun areContentsTheSame(newItem: AdapterDiffItem): Boolean {
-        return this == newItem
-    }
-
     interface TitleProvider<T : SettingsItem<*>> {
         fun provideTitle(settingsItem: T): String?
     }

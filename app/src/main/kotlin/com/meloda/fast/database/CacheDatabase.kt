@@ -3,7 +3,7 @@ package com.meloda.fast.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser

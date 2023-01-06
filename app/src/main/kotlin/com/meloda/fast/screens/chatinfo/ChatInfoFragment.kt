@@ -11,7 +11,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment

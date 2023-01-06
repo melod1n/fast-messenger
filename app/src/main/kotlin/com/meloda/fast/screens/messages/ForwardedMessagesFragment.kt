@@ -5,7 +5,7 @@ import android.view.View
 import androidx.core.os.bundleOf
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser

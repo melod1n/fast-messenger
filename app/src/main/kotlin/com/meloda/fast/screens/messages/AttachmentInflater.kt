@@ -14,7 +14,11 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.*
+import androidx.core.view.isNotEmpty
+import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updateMarginsRelative
+import androidx.core.view.updatePadding
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.meloda.fast.R
@@ -23,21 +27,48 @@ import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkAudio
+import com.meloda.fast.api.model.attachments.VkCall
+import com.meloda.fast.api.model.attachments.VkFile
+import com.meloda.fast.api.model.attachments.VkGift
+import com.meloda.fast.api.model.attachments.VkGraffiti
+import com.meloda.fast.api.model.attachments.VkLink
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkSticker
+import com.meloda.fast.api.model.attachments.VkStory
+import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.attachments.VkVoiceMessage
+import com.meloda.fast.api.model.attachments.VkWall
 import com.meloda.fast.api.model.base.BaseVkMessage
-import com.meloda.fast.databinding.*
+import com.meloda.fast.databinding.ItemMessageAttachmentAudioBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentCallBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentFileBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentForwardsBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentGeoBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentGiftBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentGraffitiBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentLinkBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentPhotoBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentReplyBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentStickerBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentStoryBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentVideoBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentVoiceBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentWallPostBinding
+import com.meloda.fast.ext.ImageLoader.clear
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.TypeTransformations
 import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.toggleVisibilityIfHasContent
 import com.meloda.fast.ext.visible
-import com.meloda.fast.ext.ImageLoader.clear
-import com.meloda.fast.ext.ImageLoader.loadWithGlide
-import com.meloda.fast.ext.TypeTransformations
+import com.meloda.fast.model.base.asString
 import com.meloda.fast.util.AndroidUtils
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 import kotlin.math.roundToInt
 
 class AttachmentInflater constructor(
@@ -47,7 +78,7 @@ class AttachmentInflater constructor(
     private val timeReadContainer: View,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
-    private val groups: Map<Int, VkGroup>
+    private val groups: Map<Int, VkGroup>,
 ) {
     private lateinit var attachments: List<VkAttachment>
 
@@ -187,15 +218,13 @@ class AttachmentInflater constructor(
         val binding = ItemMessageAttachmentReplyBinding.inflate(inflater, replyContainer, true)
         binding.root.setOnClickListener { replyClickListener?.invoke(replyMessage) }
 
-        val attachmentText = VkUtils.getAttachmentText(
-            context = context,
+        val attachmentText = (VkUtils.getAttachmentText(
             message = replyMessage
-        )
+        ))?.asString(context)
 
-        val forwardsMessage = if (replyMessage.text == null) VkUtils.getForwardsText(
-            context = context,
+        val forwardsMessage = (if (replyMessage.text == null) VkUtils.getForwardsText(
             message = replyMessage
-        ) else null
+        ) else null)?.asString(context)
 
         val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text.orDots()).run {
             VkUtils.prepareMessageText(this)

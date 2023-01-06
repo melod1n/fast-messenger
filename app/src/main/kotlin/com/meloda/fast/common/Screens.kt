@@ -1,7 +1,7 @@
 package com.meloda.fast.common
 
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser

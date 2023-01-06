@@ -32,11 +32,11 @@ import com.google.common.net.MediaType
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
@@ -60,6 +60,7 @@ import com.meloda.fast.ext.showKeyboard
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
+import com.meloda.fast.model.base.asString
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.util.AndroidUtils
@@ -330,7 +331,7 @@ class MessagesHistoryFragment :
 
             actionState.value = newValue
         }
-        
+
         actionState
             .asStateFlow()
             .flowWithLifecycle(lifecycle)
@@ -994,7 +995,7 @@ class MessagesHistoryFragment :
     private fun showPinMessageDialog(
         peerId: Int,
         messageId: Int?,
-        pin: Boolean
+        pin: Boolean,
     ) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
@@ -1109,7 +1110,7 @@ class MessagesHistoryFragment :
     @Suppress("NAME_SHADOWING")
     private fun setUnreadCounterVisibility(
         lastCompletelyVisiblePosition: Int,
-        dy: Int? = null
+        dy: Int? = null,
     ) {
         if (lastCompletelyVisiblePosition >= adapter.lastPosition - 1) {
             setUnreadCounterVisibility(false)
@@ -1177,7 +1178,7 @@ class MessagesHistoryFragment :
                 adapter: MessagesHistoryAdapter,
                 lifecycleOwner: LifecycleOwner,
                 binding: FragmentMessagesHistoryBinding,
-                isAttachmentsEmpty: () -> Boolean
+                isAttachmentsEmpty: () -> Boolean,
             ): AttachmentPanelController {
                 val controller = AttachmentPanelController()
                 controller.context = context
@@ -1223,15 +1224,13 @@ class MessagesHistoryFragment :
                 message, messageUser, messageGroup
             )
 
-            val attachmentText = if (message.text == null) VkUtils.getAttachmentText(
-                context = context,
+            val attachmentText = (if (message.text == null) VkUtils.getAttachmentText(
                 message = message
-            ) else null
+            ) else null)?.asString(context)
 
-            val forwardsMessage = if (message.text == null) VkUtils.getForwardsText(
-                context = context,
+            val forwardsMessage = (if (message.text == null) VkUtils.getForwardsText(
                 message = message
-            ) else null
+            ) else null)?.asString(context)
 
             val messageText = forwardsMessage ?: attachmentText
             ?: (message.text ?: "").run { VkUtils.prepareMessageText(this) }
@@ -1356,7 +1355,7 @@ class MessagesHistoryFragment :
         conversation: VkConversation,
         messages: List<VkMessage>,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
-        groups: HashMap<Int, VkGroup> = hashMapOf()
+        groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) {
         requireActivityRouter().navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
@@ -1366,7 +1365,7 @@ class MessagesHistoryFragment :
     fun openChatInfoScreen(
         conversation: VkConversation,
         user: VkUser?,
-        group: VkGroup?
+        group: VkGroup?,
     ) {
         requireActivityRouter().navigateTo(
             Screens.ChatInfo(conversation, user, group)
@@ -1383,7 +1382,7 @@ class MessagesHistoryFragment :
         fun newInstance(
             conversation: VkConversation,
             user: VkUser?,
-            group: VkGroup?
+            group: VkGroup?,
         ): MessagesHistoryFragment {
             val fragment = MessagesHistoryFragment()
             fragment.arguments = bundleOf(

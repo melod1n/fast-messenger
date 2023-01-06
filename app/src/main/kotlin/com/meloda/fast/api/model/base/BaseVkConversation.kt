@@ -1,7 +1,7 @@
 package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkGroupCall
 import kotlinx.parcelize.Parcelize

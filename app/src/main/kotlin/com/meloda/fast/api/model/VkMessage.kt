@@ -7,6 +7,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel

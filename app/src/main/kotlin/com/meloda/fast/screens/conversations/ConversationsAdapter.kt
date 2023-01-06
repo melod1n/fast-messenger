@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.adapter.BaseAdapter
@@ -28,6 +28,7 @@ import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.visible
+import com.meloda.fast.model.base.asString
 import com.meloda.fast.util.TimeUtils
 
 class ConversationsAdapter constructor(
@@ -198,15 +199,13 @@ class ConversationsAdapter constructor(
             binding.textAttachment.toggleVisibility(attachmentIcon != null)
             binding.textAttachment.setImageDrawable(attachmentIcon)
 
-            val attachmentText = if (attachmentIcon == null) VkUtils.getAttachmentText(
-                context = context,
+            val attachmentText = (if (attachmentIcon == null) VkUtils.getAttachmentText(
                 message = message
-            ) else null
+            ) else null)?.asString(context)
 
-            val forwardsMessage = if (message.text == null) VkUtils.getForwardsText(
-                context = context,
+            val forwardsMessage = (if (message.text == null) VkUtils.getForwardsText(
                 message = message
-            ) else null
+            ) else null)?.asString(context)
 
             val messageText = (if (
                 actionMessage != null ||

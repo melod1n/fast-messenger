@@ -24,7 +24,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.presentation.VkConversationUi
+import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
@@ -33,8 +35,12 @@ import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.addAvatarMenuItem
 import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.tintMenuItemIcons
+import com.meloda.fast.ext.toast
 import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.model.base.AdapterDiffItem
+import com.meloda.fast.screens.conversations.adapter.conversationDelegate
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.settings.SettingsPrefsFragment
@@ -59,6 +65,10 @@ class ConversationsFragment :
             it.itemClickListener = this::onItemClick
             it.itemLongClickListener = this::onItemLongClick
         }
+    }
+
+    private val delegatesAdapter by lazy {
+        AsyncDiffItemAdapter()
     }
 
     private val avatarPopupMenu: PopupMenu
@@ -196,10 +206,28 @@ class ConversationsFragment :
 
         avatarMenuItem.actionView?.run {
             setOnClickListener { avatarPopupMenu.show() }
+            setOnLongClickListener {
+                toggleAdapter()
+                true
+            }
         }
 
         viewModel.loadProfileUser()
         viewModel.loadConversations()
+
+        val conversationsDelegate = conversationDelegate(
+            onItemClickListener = { conversation ->
+                "conversation click: $conversation".toast()
+            },
+            onItemLongClickListener = { conversation ->
+                "conversation long click: $conversation".toast()
+                true
+            }
+        )
+        delegatesAdapter.addDelegate(conversationsDelegate)
+
+        viewModel.conversations.listenValue(delegatesAdapter::setItems)
+        viewModel.oldConversations.listenValue(adapter::submitList)
 
         syncToolbarToggle()
 
@@ -213,6 +241,11 @@ class ConversationsFragment :
                 adapter.refreshList()
             }
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : AdapterDiffItem> List<T>.asConversationsList(): List<VkConversationUi> {
+        return this as List<VkConversationUi>
     }
 
     private fun syncAvatarMenuItem(item: MenuItem) {
@@ -347,7 +380,7 @@ class ConversationsFragment :
     }
 
     private fun fillRecyclerView(values: List<VkConversation>) {
-        adapter.submitList(values)
+//        adapter.submitList(values)
     }
 
     private fun onItemClick(position: Int) {
@@ -531,5 +564,13 @@ class ConversationsFragment :
         }
 
         adapter[conversationIndex] = newConversation
+    }
+
+    private fun toggleAdapter() {
+        if (binding.recyclerView.adapter == adapter) {
+            binding.recyclerView.adapter = delegatesAdapter
+        } else if (binding.recyclerView.adapter == delegatesAdapter) {
+            binding.recyclerView.adapter = adapter
+        }
     }
 }
