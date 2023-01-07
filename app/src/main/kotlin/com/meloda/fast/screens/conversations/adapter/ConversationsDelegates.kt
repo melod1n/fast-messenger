@@ -10,6 +10,7 @@ import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.adapter.OnItemClickListener
 import com.meloda.fast.base.adapter.OnItemLongClickListener
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ItemConversationBinding
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.isFalse
@@ -20,6 +21,7 @@ import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.asString
 import com.meloda.fast.model.base.setImage
 import com.meloda.fast.screens.conversations.ConversationsResourceProvider
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.TimeUtils
 
 fun conversationDelegate(
@@ -37,6 +39,13 @@ fun conversationDelegate(
         val resourceProvider = ConversationsResourceProvider(context)
 
         bind {
+            val isMultilineEnabled =
+                AppGlobal.preferences.getBoolean(SettingsFragment.KEY_APPEARANCE_MULTILINE, true)
+            val maxLines = if (isMultilineEnabled) 2 else 1
+
+            binding.title.maxLines = maxLines
+            binding.message.maxLines = maxLines
+
             binding.container.background =
                 if (item.isRead) resourceProvider.conversationUnreadBackground else null
 

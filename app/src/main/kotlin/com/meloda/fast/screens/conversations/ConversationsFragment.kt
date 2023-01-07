@@ -2,15 +2,10 @@ package com.meloda.fast.screens.conversations
 
 import android.os.Bundle
 import android.view.Gravity
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.PopupMenu
-import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
@@ -18,8 +13,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -27,7 +20,6 @@ import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentConversationsBinding
@@ -41,7 +33,6 @@ import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.screens.conversations.adapter.conversationDelegate
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
-import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -55,19 +46,7 @@ class ConversationsFragment :
     override val viewModel: ConversationsViewModel by viewModels()
     private val binding by viewBinding(FragmentConversationsBinding::bind)
 
-    private val adapter: ConversationsAdapter by lazy {
-        ConversationsAdapter(
-            requireContext(),
-            ConversationsResourceProvider(requireContext())
-        ).also {
-            it.itemClickListener = this::onItemClick
-            it.itemLongClickListener = this::onItemLongClick
-        }
-    }
-
-    private val delegatesAdapter by lazy {
-        AsyncDiffItemAdapter()
-    }
+    private val adapter by lazy { AsyncDiffItemAdapter() }
 
     private val avatarPopupMenu: PopupMenu
         get() =
@@ -93,178 +72,13 @@ class ConversationsFragment :
                 }
             }
 
-    private var toggle: ActionBarDrawerToggle? = null
-
-    private val useNavDrawer: Boolean get() = (requireActivity() as MainActivity).useNavDrawer
-
-    private var searchNullableMenuItem: MenuItem? = null
-
-    private val onBackPressedCallback
-        get() = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                val menuItem = searchNullableMenuItem
-                if (menuItem != null && menuItem.isActionViewExpanded) {
-                    menuItem.collapseActionView()
-                    remove()
-                } else {
-                    remove()
-                    requireActivity().onBackPressedDispatcher.onBackPressed()
-                }
-            }
-
-        }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        adapter.isMultilineEnabled =
-            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_APPEARANCE_MULTILINE, true)
-
-        prepareViews()
-
-        binding.createChat.setOnClickListener {}
-
-        binding.toolbar.tintMenuItemIcons(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.colorPrimary
-            )
-        )
-        binding.appBar.applyInsetter {
-            type(statusBars = true) { padding() }
-        }
-        binding.recyclerView.applyInsetter {
-            type(navigationBars = true) { padding() }
-        }
-
-        val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
-        searchNullableMenuItem = searchMenuItem
-        val actionView = searchMenuItem.actionView as SearchView
-
-        var onBackCallback: OnBackPressedCallback? = null
-
-        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-
-            override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
-
-                if (adapter.isEmpty() || adapter.isSearching) {
-                    return false
-                }
-
-                adapter.isSearching = true
-
-                onBackCallback = onBackPressedCallback
-                requireActivity().onBackPressedDispatcher.addCallback(requireNotNull(onBackCallback))
-                return true
-            }
-
-            override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
-                if (adapter.isSearching)
-                    adapter.isSearching = false
-
-                onBackCallback?.remove()
-                onBackCallback = null
-                return true
-            }
-
-        })
-
-        actionView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                Toast.makeText(requireContext(), "API Search: $query", Toast.LENGTH_SHORT).show()
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                adapter.filter.filter(newText)
-                return false
-            }
-
-        })
-
-        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
-        syncAvatarMenuItem(avatarMenuItem)
-
-        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
-            user?.run {
-                avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
-                    ?.loadWithGlide {
-                        imageUrl = photo200
-                        crossFade = true
-                        asCircle = true
-                    }
-
-                val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
-                header.findViewById<TextView>(R.id.name).text = user.fullName
-                header.findViewById<ImageView>(R.id.avatar).loadWithGlide {
-                    imageUrl = photo200
-                    crossFade = true
-                    asCircle = true
-                }
-            }
-        }
-
-        avatarMenuItem.actionView?.run {
-            setOnClickListener { avatarPopupMenu.show() }
-            setOnLongClickListener {
-                toggleAdapter()
-                true
-            }
-        }
+        prepareView()
+        listenViewModel()
 
         viewModel.loadProfileUser()
         viewModel.loadConversations()
-
-        val conversationsDelegate = conversationDelegate(
-            onItemClickListener = { conversation ->
-                val dataConversation =
-                    viewModel.domainConversations.value.find { it.id == conversation.id }
-                        ?: return@conversationDelegate
-
-                viewModel.openMessagesHistoryScreen(
-                    dataConversation,
-                    conversation.conversationUser,
-                    conversation.conversationGroup
-                )
-            },
-            onItemLongClickListener = { conversation ->
-                showOptionsDialog(conversation)
-                true
-            }
-        )
-        delegatesAdapter.addDelegate(conversationsDelegate)
-
-        viewModel.uiConversations.listenValue(delegatesAdapter::setItems)
-        viewModel.domainConversations.listenValue(adapter::submitList)
-
-        binding.recyclerView.adapter = delegatesAdapter
-
-        syncToolbarToggle()
-
-        binding.createChat.gone()
-    }
-
-    private fun syncAvatarMenuItem(item: MenuItem) {
-        item.isVisible = !useNavDrawer
-    }
-
-    private fun syncToolbarToggle() {
-        (requireActivity() as MainActivity).let { activity ->
-            if (useNavDrawer) {
-                toggle = ActionBarDrawerToggle(
-                    activity, activity.binding.drawerLayout,
-                    binding.toolbar, R.string.app_name, R.string.app_name
-                ).apply {
-                    isDrawerSlideAnimationEnabled = false
-                    activity.binding.drawerLayout.addDrawerListener(this)
-                    syncState()
-                }
-            } else {
-                toggle?.let { toggle ->
-                    activity.binding.drawerLayout.removeDrawerListener(toggle)
-                }
-            }
-        }
     }
 
     private fun showLogOutDialog() {
@@ -295,27 +109,6 @@ class ConversationsFragment :
             .show()
     }
 
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
-        when (event) {
-            is ConversationsLoadedEvent -> refreshConversations(event)
-            is ConversationsDeleteEvent -> deleteConversation(event.peerId)
-
-            is ConversationsPinEvent -> {
-                adapter.pinnedCount++
-                viewModel.loadConversations()
-            }
-            is ConversationsUnpinEvent -> {
-                adapter.pinnedCount--
-                viewModel.loadConversations()
-            }
-
-            is MessagesNewEvent -> onMessageNew(event)
-            is MessagesEditEvent -> onMessageEdit(event)
-            is MessagesReadEvent -> onMessageRead(event)
-        }
-    }
-
     override fun toggleProgress(isProgressing: Boolean) {
         view?.run {
             findViewById<View>(R.id.progress_bar).toggleVisibility(
@@ -326,13 +119,85 @@ class ConversationsFragment :
         }
     }
 
-    private fun prepareViews() {
+    private fun prepareView() {
+        applyInsets()
+        prepareToolbar()
+        prepareCreateChat()
         prepareRecyclerView()
         prepareRefreshLayout()
     }
 
+    private fun applyInsets() {
+        binding.appBar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
+        binding.recyclerView.applyInsetter {
+            type(navigationBars = true) { padding() }
+        }
+    }
+
+    private fun prepareToolbar() {
+        binding.toolbar.tintMenuItemIcons(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.colorPrimary
+            )
+        )
+
+        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
+
+        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
+            user?.run {
+                avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
+                    ?.loadWithGlide {
+                        imageUrl = photo200
+                        crossFade = true
+                        asCircle = true
+                    }
+
+                val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
+                header.findViewById<TextView>(R.id.name).text = user.fullName
+                header.findViewById<ImageView>(R.id.avatar).loadWithGlide {
+                    imageUrl = photo200
+                    crossFade = true
+                    asCircle = true
+                }
+            }
+        }
+
+        avatarMenuItem.actionView?.run {
+            setOnClickListener { avatarPopupMenu.show() }
+        }
+    }
+
+    private fun prepareCreateChat() {
+        binding.createChat.setOnClickListener {}
+        binding.createChat.gone()
+    }
+
     private fun prepareRecyclerView() {
         binding.recyclerView.itemAnimator = null
+
+        val conversationsDelegate = conversationDelegate(
+            onItemClickListener = { conversation ->
+                val dataConversation =
+                    viewModel.domainConversations.value.find { it.id == conversation.id }
+                        ?: return@conversationDelegate
+
+                viewModel.openMessagesHistoryScreen(
+                    dataConversation,
+                    conversation.conversationUser,
+                    conversation.conversationGroup
+                )
+            },
+            onItemLongClickListener = { conversation ->
+                showOptionsDialog(conversation)
+                true
+            }
+        )
+        adapter.addDelegate(conversationsDelegate)
+
+        binding.recyclerView.adapter = adapter
     }
 
     private fun prepareRefreshLayout() {
@@ -356,45 +221,8 @@ class ConversationsFragment :
         }
     }
 
-    private fun refreshConversations(event: ConversationsLoadedEvent) {
-        adapter.profiles += event.profiles
-        adapter.groups += event.groups
-
-        if (event.avatars != null) {
-            event.avatars.forEach { avatar ->
-                Glide.with(requireContext())
-                    .load(avatar)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .preload(200, 200)
-            }
-        }
-
-        val pinnedConversations = event.conversations.filter { it.isPinned() }
-        adapter.pinnedCount = pinnedConversations.count()
-
-        fillRecyclerView(event.conversations)
-    }
-
-    private fun fillRecyclerView(values: List<VkConversationDomain>) {
-//        adapter.submitList(values)
-    }
-
-    private fun onItemClick(position: Int) {
-        val conversation = adapter[position]
-
-        val user =
-            if (conversation.isUser()) adapter.profiles[conversation.id]
-            else null
-
-        val group =
-            if (conversation.isGroup()) adapter.groups[conversation.id]
-            else null
-
-        viewModel.openMessagesHistoryScreen(conversation, user, group)
-    }
-
-    private fun onItemLongClick(position: Int): Boolean {
-        return true
+    private fun listenViewModel() {
+        viewModel.uiConversations.listenValue(adapter::setItems)
     }
 
     private fun showOptionsDialog(uiConversations: VkConversationUi) {
@@ -455,10 +283,6 @@ class ConversationsFragment :
             .show()
     }
 
-    private fun deleteConversation(conversationId: Int) {
-        adapter.removeConversation(conversationId)
-    }
-
     private fun showPinConversationDialog(conversation: VkConversationDomain) {
         val isPinned = conversation.isPinned()
         MaterialAlertDialogBuilder(requireContext())
@@ -477,100 +301,5 @@ class ConversationsFragment :
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
-    }
-
-    private fun onMessageNew(event: MessagesNewEvent) {
-        adapter.profiles += event.profiles
-        adapter.groups += event.groups
-
-        val message = event.message
-
-        val conversationIndex = adapter.searchConversationIndex(message.peerId)
-        if (conversationIndex == null) { // диалога нет в списке
-            // pizdets
-        } else {
-            val conversation = adapter[conversationIndex]
-            var newConversation = conversation.copy(
-                lastMessageId = message.id,
-                lastConversationMessageId = -1
-            ).also { it.lastMessage = message }
-
-            if (!message.isOut) {
-                newConversation = newConversation.copy(
-                    unreadCount = newConversation.unreadCount + 1
-                )
-            }
-
-//            if (!message.isOut) {
-//                NotificationsUtils.showSimpleNotification(
-//                    requireContext(),
-//                    VkUtils.getConversationTitle(
-//                        requireContext(), conversation, profiles = event.profiles,
-//                        groups = event.groups
-//                    ) ?: "...",
-//                    "${
-//                        VkUtils.getMessageTitle(
-//                            message,
-//                            profiles = event.profiles,
-//                            groups = event.groups
-//                        ) ?: "..."
-//                    }: ${message.text}",
-//                    customNotificationId = message.id,
-//                    showWhen = true,
-//                    timeStampWhen = message.date * 1000L
-//                )
-//            }
-
-            if (conversation.isPinned()) {
-                adapter[conversationIndex] = newConversation
-                return
-            }
-
-            val newList = adapter.cloneCurrentList()
-            newList.removeAt(conversationIndex)
-
-            val toPosition = adapter.pinnedCount
-            newList.add(toPosition, newConversation)
-
-            adapter.submitList(newList)
-        }
-    }
-
-    private fun onMessageEdit(event: MessagesEditEvent) {
-        val message = event.message
-
-        val conversationIndex = adapter.searchConversationIndex(message.peerId)
-        if (conversationIndex == null) { // диалога нет в списке
-
-        } else {
-            val conversation = adapter[conversationIndex]
-            adapter[conversationIndex] = conversation.copy(
-                lastMessageId = message.id,
-                lastConversationMessageId = -1
-            ).also {
-                it.lastMessage = message
-            }
-        }
-    }
-
-    private fun onMessageRead(event: MessagesReadEvent) {
-        val conversationIndex = adapter.searchConversationIndex(event.peerId) ?: return
-
-        var newConversation = adapter[conversationIndex]
-
-        newConversation = newConversation.copy(
-            outRead = if (event.isOut) event.messageId else newConversation.outRead,
-            inRead = if (!event.isOut) event.messageId else newConversation.inRead
-        )
-
-        adapter[conversationIndex] = newConversation
-    }
-
-    private fun toggleAdapter() {
-        if (binding.recyclerView.adapter == adapter) {
-            binding.recyclerView.adapter = delegatesAdapter
-        } else if (binding.recyclerView.adapter == delegatesAdapter) {
-            binding.recyclerView.adapter = adapter
-        }
     }
 }
