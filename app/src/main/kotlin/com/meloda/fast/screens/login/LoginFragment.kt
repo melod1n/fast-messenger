@@ -45,7 +45,7 @@ import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
 import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
+import com.meloda.fast.screens.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import java.net.URLEncoder
@@ -121,29 +121,14 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         }
 
         binding.useCrashReporter.isChecked =
-            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefEnableReporter, true)
+            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, true)
         binding.useCrashReporter.setOnCheckedChangeListener { _, isChecked ->
             AppGlobal.preferences.edit {
-                putBoolean(SettingsPrefsFragment.PrefEnableReporter, isChecked)
+                putBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, isChecked)
                 requireActivity().finishAffinity()
                 startActivity(Intent(requireContext(), MainActivity::class.java))
             }
         }
-
-//        requireActivity().onBackPressedDispatcher.addCallback {
-//            if (getView() == null) {
-//                isEnabled = false
-//                requireActivity().onBackPressedDispatcher.onBackPressed()
-//                return@addCallback
-//            }
-//
-//            if (binding.webView.canGoBack()) {
-//                binding.webView.goBack()
-//            } else {
-//                isEnabled = false
-//                requireActivity().onBackPressedDispatcher.onBackPressed()
-//            }
-//        }
     }
 
     override fun onEvent(event: VkEvent) {

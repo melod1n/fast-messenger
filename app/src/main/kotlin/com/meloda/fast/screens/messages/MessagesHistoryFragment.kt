@@ -62,7 +62,7 @@ import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
 import com.meloda.fast.model.base.asString
 import com.meloda.fast.screens.conversations.MessagesNewEvent
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.util.TimeUtils
@@ -275,7 +275,7 @@ class MessagesHistoryFragment :
                 val lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
                 if (AppGlobal.preferences.getBoolean(
-                        SettingsPrefsFragment.PrefHideKeyboardOnScroll,
+                        SettingsFragment.KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
                         true
                     ) && dy < 0
                 ) {
@@ -828,9 +828,11 @@ class MessagesHistoryFragment :
             }
         }
         binding.emoji.setOnLongClickListener {
-            val text = binding.message.text.toString() + AppGlobal.preferences.getString(
-                SettingsPrefsFragment.PrefFastText, SettingsPrefsFragment.PrefFastTextDefaultValue
-            )
+            val text = binding.message.text.toString() +
+                    AppGlobal.preferences.getString(
+                        SettingsFragment.KEY_FEATURES_FAST_TEXT,
+                        SettingsFragment.DEFAULT_VALUE_FEATURES_FAST_TEXT
+                    )
             binding.message.setText(text)
             binding.message.selectLast()
 

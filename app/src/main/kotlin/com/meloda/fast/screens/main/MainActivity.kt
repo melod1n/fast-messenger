@@ -41,7 +41,6 @@ import com.meloda.fast.ext.sdk26AndUp
 import com.meloda.fast.ext.sdk33AndUp
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.screens.settings.SettingsFragment
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
 import com.microsoft.appcenter.AppCenter
@@ -121,7 +120,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
         AppCenter.start(Crashes::class.java)
         Crashes.setEnabled(
-            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefEnableReporter, true)
+            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, true)
         )
 
         binding.navigationBar.gone()
@@ -138,9 +137,11 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             initUserConfig()
         }
 
-        updateManager.checkUpdates { item, _ ->
-            if (item != null) {
-                router.navigateTo(Screens.Updates(item))
+        if (AppGlobal.preferences.getBoolean(SettingsFragment.KEY_UPDATES_CHECK_AT_STARTUP, true)) {
+            updateManager.checkUpdates { item, _ ->
+                if (item != null) {
+                    router.navigateTo(Screens.Updates(item))
+                }
             }
         }
 
@@ -204,7 +205,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         Crashes.getLastSessionCrashReport().thenAccept { report ->
             if (report != null) {
                 if (AppGlobal.preferences.getBoolean(
-                        SettingsPrefsFragment.PrefShowCrashAlert,
+                        SettingsFragment.KEY_DEBUG_SHOW_CRASH_ALERT,
                         true
                     )
                 ) {
@@ -256,7 +257,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             }
 
             if (AppGlobal.preferences.getBoolean(
-                    SettingsPrefsFragment.PrefShowDestroyedLongPollAlert,
+                    SettingsFragment.KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT,
                     false
                 )
             ) {

@@ -14,7 +14,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -39,11 +38,10 @@ import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.tintMenuItemIcons
 import com.meloda.fast.ext.toggleVisibility
-import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.screens.conversations.adapter.conversationDelegate
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -120,7 +118,7 @@ class ConversationsFragment :
         super.onViewCreated(view, savedInstanceState)
 
         adapter.isMultilineEnabled =
-            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefMultiline, true)
+            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_APPEARANCE_MULTILINE, true)
 
         prepareViews()
 
@@ -244,20 +242,6 @@ class ConversationsFragment :
         syncToolbarToggle()
 
         binding.createChat.gone()
-
-        setFragmentResultListener(SettingsPrefsFragment.KeyChangeMultiline) { _, bundle ->
-            val enabled = bundle.getBoolean(SettingsPrefsFragment.ArgEnabled)
-
-            if (adapter.isMultilineEnabled != enabled) {
-                adapter.isMultilineEnabled = enabled
-                adapter.refreshList()
-            }
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <T : AdapterDiffItem> List<T>.asConversationsList(): List<VkConversationUi> {
-        return this as List<VkConversationUi>
     }
 
     private fun syncAvatarMenuItem(item: MenuItem) {

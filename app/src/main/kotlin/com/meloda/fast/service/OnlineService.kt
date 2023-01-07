@@ -9,10 +9,16 @@ import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsRepository
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
+import com.meloda.fast.screens.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
-import java.util.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.util.Timer
 import javax.inject.Inject
 import kotlin.concurrent.schedule
 import kotlin.coroutines.CoroutineContext
@@ -42,7 +48,10 @@ class OnlineService : Service(), CoroutineScope {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("OnlineService", "onStartCommand: flags: $flags; startId: $startId")
 
-        if (AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefSendOnlineStatus, true)) {
+        if (AppGlobal.preferences.getBoolean(
+                SettingsFragment.KEY_VISIBILITY_SEND_ONLINE_STATUS, true
+            )
+        ) {
             createTimer()
         }
 

@@ -50,7 +50,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             itemKey = "appearance"
         )
         val appearanceMultiline = SettingsItem.Switch(
-            itemKey = "appearance_multiline",
+            itemKey = KEY_APPEARANCE_MULTILINE,
             defaultValue = true,
             title = "Multiline titles and messages",
             summary = "The title of the dialog and the text of the message can take up two lines"
@@ -61,13 +61,13 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             itemKey = "features"
         )
         val featuresHideKeyboardOnScroll = SettingsItem.Switch(
-            itemKey = "hide_keyboard_on_scroll",
+            itemKey = KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
             defaultValue = true,
             title = "Hide keyboard on scroll"
         )
 
         val featuresFastText = SettingsItem.EditText(
-            itemKey = "fast_text",
+            itemKey = KEY_FEATURES_FAST_TEXT,
             title = "Fast text",
             defaultValue = "¯\\_(ツ)_/¯",
         ).apply {
@@ -86,7 +86,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             title = "Visibility"
         )
         val visibilitySendOnlineStatus = SettingsItem.Switch(
-            itemKey = "send_online_status",
+            itemKey = KEY_VISIBILITY_SEND_ONLINE_STATUS,
             defaultValue = false,
             title = "Send online status",
             summary = "Online status will be sent every five minutes"
@@ -95,6 +95,12 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         val updatesTitle = SettingsItem.Title(
             itemKey = "updates",
             title = "Updates"
+        )
+        val updatesCheckAtStartup = SettingsItem.Switch(
+            itemKey = KEY_UPDATES_CHECK_AT_STARTUP,
+            title = "Check at startup",
+            summary = "Check updates at app startup",
+            defaultValue = true
         )
         val updatesCheckUpdates = SettingsItem.TitleSummary(
             itemKey = KEY_UPDATES_CHECK_UPDATES,
@@ -106,7 +112,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             title = "MS AppCenter Crash Reporter"
         )
         val msAppCenterEnable = SettingsItem.Switch(
-            itemKey = "msappcenter.enable",
+            itemKey = KEY_MS_APPCENTER_ENABLE,
             defaultValue = true,
             title = "Enable Crash Reporter"
         )
@@ -121,12 +127,12 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             summary = "App will be crashed. Obviously"
         )
         val debugShowDestroyedLongPollAlert = SettingsItem.Switch(
-            itemKey = "debug_show_destroyed_long_poll_alert",
+            itemKey = KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT,
             defaultValue = false,
             title = "Show destroyed LP alert"
         )
         val debugShowCrashAlert = SettingsItem.Switch(
-            itemKey = "debug_show_crash_alert",
+            itemKey = KEY_DEBUG_SHOW_CRASH_ALERT,
             defaultValue = true,
             title = "Show alert after crash",
             summary = "Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually))"
@@ -161,6 +167,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         )
         val updatesList = listOf(
             updatesTitle,
+            updatesCheckAtStartup,
             updatesCheckUpdates,
         )
         val msAppCenterList = listOf(
@@ -307,11 +314,24 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
     companion object {
         fun newInstance(): SettingsFragment = SettingsFragment()
 
+        const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"
+
+        const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
+        const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
+        const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"
+
+        const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
+
+        const val KEY_UPDATES_CHECK_AT_STARTUP = "updates_check_at_startup"
         const val KEY_UPDATES_CHECK_UPDATES = "updates_check_updates"
+
+        const val KEY_MS_APPCENTER_ENABLE = "msappcenter.enable"
 
         const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
         const val KEY_DEBUG_TEST_THEME = "debug_test_theme"
         const val KEY_DEBUG_LIST_UPDATE = "debug_list_update"
+        const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
+        const val KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT = "debug_show_destroyed_long_poll_alert"
         private const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
 
         private const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
