@@ -17,14 +17,15 @@ import com.meloda.fast.databinding.ItemChatMemberBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.toggleVisibility
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import java.util.Objects
 
 class ChatInfoMembersAdapter(
     context: Context,
     preAddedValues: List<VkChat.ChatMember>,
     private val profiles: List<VkUser>,
     private val groups: List<VkGroup>,
-    private val confirmRemoveMemberAction: ((memberId: Int) -> Unit)? = null
+    private val confirmRemoveMemberAction: ((memberId: Int) -> Unit)? = null,
 ) : BaseAdapter<VkChat.ChatMember, ChatInfoMembersAdapter.Holder>(
     context,
     comparator,
@@ -35,14 +36,14 @@ class ChatInfoMembersAdapter(
         val comparator = object : DiffUtil.ItemCallback<VkChat.ChatMember>() {
             override fun areItemsTheSame(
                 oldItem: VkChat.ChatMember,
-                newItem: VkChat.ChatMember
+                newItem: VkChat.ChatMember,
             ): Boolean {
                 return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(
                 oldItem: VkChat.ChatMember,
-                newItem: VkChat.ChatMember
+                newItem: VkChat.ChatMember,
             ): Boolean {
                 return Objects.deepEquals(oldItem, newItem)
             }
@@ -55,7 +56,7 @@ class ChatInfoMembersAdapter(
     }
 
     inner class Holder(
-        private val binding: ItemChatMemberBinding
+        private val binding: ItemChatMemberBinding,
     ) : BaseHolder(binding.root) {
 
         private val colorOnBackground = ContextCompat.getColor(context, R.color.colorOnBackground)
@@ -64,12 +65,12 @@ class ChatInfoMembersAdapter(
         override fun bind(position: Int) {
             val chatMember = getItem(position)
 
-            binding.avatar.loadWithGlide(
-                url = chatMember.photo200,
-                crossFade = true,
-                placeholderColor = Color.GRAY,
+            binding.avatar.loadWithGlide {
+                imageUrl = chatMember.photo200
+                crossFade = true
+                placeholderColor = Color.GRAY
                 errorColor = Color.RED
-            )
+            }
 
             val title = chatMember.name ?: "${chatMember.firstName} ${chatMember.lastName}"
             binding.title.text = title

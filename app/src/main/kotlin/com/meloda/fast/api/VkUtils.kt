@@ -86,9 +86,19 @@ object VkUtils {
         else profiles[message.fromId]).also { message.user = it }
     }
 
+    fun getMessageActionUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+        return if (message.actionMemberId == null || message.actionMemberId <= 0) null
+        else profiles[message.actionMemberId]
+    }
+
     fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!message.isGroup()) null
         else groups[message.fromId]).also { message.group = it }
+    }
+
+    fun getMessageActionGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
+        return if (message.actionMemberId == null || message.actionMemberId >= 0) null
+        else groups[message.actionMemberId]
     }
 
     fun getMessageAvatar(
@@ -202,12 +212,27 @@ object VkUtils {
     }
 
     fun getMessageUserGroup(
-        message: VkMessage,
+        message: VkMessage?,
         profiles: Map<Int, VkUser>,
         groups: Map<Int, VkGroup>,
     ): Pair<VkUser?, VkGroup?> {
+        if (message == null) return null to null
+
         val user: VkUser? = getMessageUser(message, profiles)
         val group: VkGroup? = getMessageGroup(message, groups)
+
+        return user to group
+    }
+
+    fun getMessageActionUserGroup(
+        message: VkMessage?,
+        profiles: Map<Int, VkUser>,
+        groups: Map<Int, VkGroup>,
+    ): Pair<VkUser?, VkGroup?> {
+        if (message == null) return null to null
+
+        val user: VkUser? = getMessageActionUser(message, profiles)
+        val group: VkGroup? = getMessageActionGroup(message, groups)
 
         return user to group
     }
@@ -336,15 +361,17 @@ object VkUtils {
 
     fun getActionMessageText(
         context: Context,
-        message: VkMessage,
+        message: VkMessage?,
         youPrefix: String,
-        profiles: Map<Int, VkUser>? = null,
-        groups: Map<Int, VkGroup>? = null,
-        messageUser: VkUser? = null,
-        messageGroup: VkGroup? = null,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?,
+        action: VkMessage.Action?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
     ): SpannableString? {
-        @Suppress("REDUNDANT_ELSE_IN_WHEN")
-        return when (message.getPreparedAction()) {
+        if (message == null) return null
+
+        return when (action) {
             VkMessage.Action.CHAT_CREATE -> {
                 val text = message.actionText ?: return null
 
@@ -425,9 +452,6 @@ object VkUtils {
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
 
-                val actionUser = profiles?.get(memberId)
-                val actionGroup = groups?.get(memberId)
-
                 if (isUser && actionUser == null) return null
                 if (isGroup && actionGroup == null) return null
 
@@ -470,9 +494,6 @@ object VkUtils {
                 val memberId = message.actionMemberId ?: 0
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
-
-                val actionUser = profiles?.get(memberId)
-                val actionGroup = groups?.get(memberId)
 
                 if (isUser && actionUser == null) return null
                 if (isGroup && actionGroup == null) return null
@@ -613,27 +634,28 @@ object VkUtils {
                 }
             }
             null -> null
-            else -> SpannableString("[${message.action}]")
         }
     }
 
     fun getActionConversationText(
         context: Context,
-        message: VkMessage,
+        message: VkMessage?,
         youPrefix: String,
-        profiles: HashMap<Int, VkUser>? = null,
-        groups: HashMap<Int, VkGroup>? = null,
         messageUser: VkUser? = null,
         messageGroup: VkGroup? = null,
+        action: VkMessage.Action?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
     ): String? {
         return getActionMessageText(
             context = context,
             message = message,
             youPrefix = youPrefix,
-            profiles = profiles,
-            groups = groups,
             messageUser = messageUser,
-            messageGroup = messageGroup
+            messageGroup = messageGroup,
+            action = action,
+            actionUser = actionUser,
+            actionGroup = actionGroup,
         )?.toString()
     }
 
@@ -674,7 +696,11 @@ object VkUtils {
         }
     }
 
-    fun getAttachmentConversationIcon(context: Context, message: VkMessage): Drawable? {
+    fun getAttachmentConversationIcon(
+        context: Context,
+        message: VkMessage?,
+    ): Drawable? {
+        if (message == null) return null
         return message.attachments?.let { attachments ->
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 message.geo?.let {

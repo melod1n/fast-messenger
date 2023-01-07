@@ -650,7 +650,11 @@ class MessagesHistoryFragment :
 
         val avatarImageView = binding.toolbar.avatarImageView
         avatarImageView.visible()
-        avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
+        avatarImageView.loadWithGlide {
+            imageUrl = avatar
+            asCircle = true
+            crossFade = true
+        }
     }
 
     private fun performAction() {

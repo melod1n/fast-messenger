@@ -15,9 +15,9 @@ import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemConversationBinding
@@ -43,14 +43,14 @@ class ConversationsAdapter constructor(
         private val comparator = object : DiffUtil.ItemCallback<VkConversation>() {
             override fun areItemsTheSame(
                 oldItem: VkConversation,
-                newItem: VkConversation
+                newItem: VkConversation,
             ): Boolean {
                 return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(
                 oldItem: VkConversation,
-                newItem: VkConversation
+                newItem: VkConversation,
             ): Boolean {
                 return ObjectsCompat.equals(oldItem, newItem)
             }
@@ -68,7 +68,7 @@ class ConversationsAdapter constructor(
 
     inner class ItemHolder(
         private val binding: ItemConversationBinding,
-        private val resourceManager: ConversationsResourceProvider
+        private val resourceManager: ConversationsResourceProvider,
     ) : BaseHolder(binding.root) {
 
         override fun bind(position: Int) {
@@ -148,40 +148,41 @@ class ConversationsAdapter constructor(
                 binding.avatarPlaceholder.visible()
 
                 if (conversation.isAccount()) {
-                    binding.placeholderBack.loadWithGlide(
-                        drawable = ColorDrawable(resourceManager.icLauncherColor),
+                    binding.placeholderBack.loadWithGlide {
+                        imageDrawable = ColorDrawable(resourceManager.icLauncherColor)
                         transformations = ImageLoader.userAvatarTransformations
-                    )
+                    }
                     binding.placeholder.imageTintList =
                         ColorStateList.valueOf(resourceManager.colorOnPrimary)
                     binding.placeholder.setImageResource(R.drawable.ic_round_bookmark_border_24)
                     binding.placeholder.setPadding(36)
                 } else {
-                    binding.placeholderBack.loadWithGlide(
-                        drawable = ColorDrawable(resourceManager.colorOnUserAvatarAction),
+                    binding.placeholderBack.loadWithGlide {
+                        imageDrawable = ColorDrawable(resourceManager.colorOnUserAvatarAction)
                         transformations = ImageLoader.userAvatarTransformations
-                    )
+                    }
                     binding.placeholder.imageTintList =
                         ColorStateList.valueOf(resourceManager.colorUserAvatarAction)
                     binding.placeholder.setImageResource(R.drawable.ic_account_circle_cut)
                     binding.placeholder.setPadding(0)
                 }
             } else {
-                binding.avatar.loadWithGlide(
-                    url = avatar,
-                    crossFade = true,
+                binding.avatar.loadWithGlide {
+                    imageUrl = avatar
+                    crossFade = true
                     onLoadedAction = { binding.avatarPlaceholder.gone() }
-                )
+                }
             }
 
             val actionMessage = VkUtils.getActionConversationText(
                 context = context,
                 message = message,
                 youPrefix = resourceManager.youPrefix,
-                profiles = profiles,
-                groups = groups,
                 messageUser = messageUser,
-                messageGroup = messageGroup
+                messageGroup = messageGroup,
+                action = message.getPreparedAction(),
+                actionUser = null,
+                actionGroup = null
             )
 
             val attachmentIcon: Drawable? = when {

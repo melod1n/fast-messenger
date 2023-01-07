@@ -288,11 +288,11 @@ class AttachmentInflater constructor(
                 width = (displayMetrics.widthPixels * widthMultiplier).roundToInt()
                 dimensionRatio = ratio
             }
-            loadWithGlide(
-                drawable = ColorDrawable(colorSecondary),
-                priority = Priority.IMMEDIATE,
+            loadWithGlide {
+                imageDrawable = ColorDrawable(colorSecondary)
+                loadPriority = Priority.IMMEDIATE
                 cacheStrategy = DiskCacheStrategy.NONE
-            )
+            }
         }
 
         binding.image.run {
@@ -302,12 +302,12 @@ class AttachmentInflater constructor(
                 photo.getMaxSize()?.let { size -> photoClickListener?.invoke(size.url) }
             }
 
-            loadWithGlide(
-                url = size.url,
-                crossFade = true,
-                placeholderDrawable = ColorDrawable(colorBackground),
-                priority = Priority.LOW
-            )
+            loadWithGlide {
+                imageUrl = size.url
+                crossFade = true
+                placeholderDrawable = ColorDrawable(colorBackground)
+                loadPriority = Priority.LOW
+            }
         }
     }
 
@@ -340,22 +340,22 @@ class AttachmentInflater constructor(
                 width = (displayMetrics.widthPixels * widthMultiplier).roundToInt()
                 dimensionRatio = ratio
             }
-            loadWithGlide(
-                drawable = ColorDrawable(colorSecondary),
-                priority = Priority.IMMEDIATE,
+            loadWithGlide {
+                imageDrawable = ColorDrawable(colorSecondary)
+                loadPriority = Priority.IMMEDIATE
                 cacheStrategy = DiskCacheStrategy.NONE
-            )
+            }
         }
 
         binding.image.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
 
-            loadWithGlide(
-                url = size.url,
-                crossFade = true,
-                placeholderDrawable = ColorDrawable(colorBackground),
-                priority = Priority.LOW
-            )
+            loadWithGlide {
+                imageUrl = size.url
+                crossFade = true
+                placeholderDrawable = ColorDrawable(colorBackground)
+                loadPriority = Priority.LOW
+            }
         }
     }
 
@@ -391,7 +391,10 @@ class AttachmentInflater constructor(
         binding.caption.toggleVisibility(!link.caption.isNullOrBlank())
 
         link.photo?.getSizeOrSmaller('y')?.let { size ->
-            binding.preview.loadWithGlide(url = size.url, crossFade = true)
+            binding.preview.loadWithGlide {
+                imageUrl = size.url
+                crossFade = true
+            }
             binding.linkIcon.gone()
             return
         }
@@ -417,7 +420,10 @@ class AttachmentInflater constructor(
 
             layoutParams = LinearLayoutCompat.LayoutParams(size, size)
 
-            loadWithGlide(url = url, crossFade = true)
+            loadWithGlide {
+                imageUrl = url
+                crossFade = true
+            }
         }
     }
 
@@ -451,7 +457,10 @@ class AttachmentInflater constructor(
         binding.avatar.toggleVisibility(group != null || user != null)
 
         if (binding.avatar.isVisible) {
-            binding.avatar.loadWithGlide(url = avatar, crossFade = true)
+            binding.avatar.loadWithGlide {
+                imageUrl = avatar
+                crossFade = true
+            }
         } else {
             binding.avatar.clear()
         }
@@ -533,7 +542,10 @@ class AttachmentInflater constructor(
                 (graffiti.height / heightCoefficient).roundToInt()
             )
 
-            loadWithGlide(url = url, crossFade = true)
+            loadWithGlide {
+                imageUrl = url
+                crossFade = true
+            }
         }
     }
 
@@ -549,7 +561,10 @@ class AttachmentInflater constructor(
 
             layoutParams = LinearLayoutCompat.LayoutParams(size, size)
 
-            loadWithGlide(url = url, crossFade = true)
+            loadWithGlide {
+                imageUrl = url
+                crossFade = true
+            }
         }
     }
 
@@ -573,21 +588,21 @@ class AttachmentInflater constructor(
             )
         }
 
-        binding.dimmer.loadWithGlide(
-            drawable = dimmerDrawable,
-            transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius)),
-            priority = Priority.IMMEDIATE,
+        binding.dimmer.loadWithGlide {
+            imageDrawable = dimmerDrawable
+            transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius))
+            loadPriority = Priority.IMMEDIATE
             cacheStrategy = DiskCacheStrategy.NONE
-        )
+        }
 
         binding.image.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius.toFloat())
 
-            loadWithGlide(
-                url = photoUrl,
-                crossFade = true,
+            loadWithGlide {
+                imageUrl = photoUrl
+                crossFade = true
                 placeholderDrawable = ColorDrawable(Color.GRAY)
-            )
+            }
         }
 
         if (story.ownerId == UserConfig.userId) {

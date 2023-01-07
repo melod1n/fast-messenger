@@ -139,8 +139,6 @@ class ConversationsFragment :
             type(navigationBars = true) { padding() }
         }
 
-        binding.recyclerView.adapter = adapter
-
         val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
         searchNullableMenuItem = searchMenuItem
         val actionView = searchMenuItem.actionView as SearchView
@@ -192,15 +190,19 @@ class ConversationsFragment :
         UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
             user?.run {
                 avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
-                    ?.loadWithGlide(
-                        url = this.photo200, crossFade = true, asCircle = true
-                    )
+                    ?.loadWithGlide {
+                        imageUrl = photo200
+                        crossFade = true
+                        asCircle = true
+                    }
 
                 val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
                 header.findViewById<TextView>(R.id.name).text = user.fullName
-                header.findViewById<ImageView>(R.id.avatar).loadWithGlide(
-                    url = this.photo200, crossFade = true, asCircle = true
-                )
+                header.findViewById<ImageView>(R.id.avatar).loadWithGlide {
+                    imageUrl = photo200
+                    crossFade = true
+                    asCircle = true
+                }
             }
         }
 
@@ -217,7 +219,15 @@ class ConversationsFragment :
 
         val conversationsDelegate = conversationDelegate(
             onItemClickListener = { conversation ->
-                "conversation click: $conversation".toast()
+                val dataConversation =
+                    viewModel.dataConversations.value.find { it.id == conversation.id }
+                        ?: return@conversationDelegate
+
+                viewModel.openMessagesHistoryScreen(
+                    dataConversation,
+                    conversation.conversationUser,
+                    conversation.conversationGroup
+                )
             },
             onItemLongClickListener = { conversation ->
                 "conversation long click: $conversation".toast()
@@ -226,8 +236,10 @@ class ConversationsFragment :
         )
         delegatesAdapter.addDelegate(conversationsDelegate)
 
-        viewModel.conversations.listenValue(delegatesAdapter::setItems)
-        viewModel.oldConversations.listenValue(adapter::submitList)
+        viewModel.uiConversations.listenValue(delegatesAdapter::setItems)
+        viewModel.dataConversations.listenValue(adapter::submitList)
+
+        binding.recyclerView.adapter = delegatesAdapter
 
         syncToolbarToggle()
 

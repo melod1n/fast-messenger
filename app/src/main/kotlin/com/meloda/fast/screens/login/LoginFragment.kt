@@ -343,10 +343,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     private fun showCaptchaDialog(captchaSid: String, captchaImage: String) {
         val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
 
-        captchaBinding.image.loadWithGlide(
-            url = captchaImage,
+        captchaBinding.image.loadWithGlide {
+            imageUrl = captchaImage
             crossFade = true
-        )
+        }
         captchaBinding.image.shapeAppearanceModel =
             captchaBinding.image.shapeAppearanceModel.withCornerSize(16.dpToPx().toFloat())
 

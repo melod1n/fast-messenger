@@ -294,10 +294,10 @@ class MessagesPreparator constructor(
         if (avatar != null) {
             val avatarUrl = VkUtils.getMessageAvatar(message, messageUser, messageGroup)
 
-            avatar.loadWithGlide(
-                url = avatarUrl,
+            avatar.loadWithGlide {
+                imageUrl = avatarUrl
                 crossFade = true
-            )
+            }
         }
     }
 }

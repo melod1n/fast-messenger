@@ -11,9 +11,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
-import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
@@ -45,7 +45,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         fun newInstance(
             conversation: VkConversation,
             user: VkUser?,
-            group: VkGroup?
+            group: VkGroup?,
         ): ChatInfoFragment {
             val fragment = ChatInfoFragment()
             fragment.arguments = bundleOf(
@@ -118,12 +118,17 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
 
         val avatarImageView = binding.toolbar.avatarImageView
         avatarImageView.visible()
-        avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
+        avatarImageView.loadWithGlide {
+            imageUrl = avatar
+            asCircle = true
+            crossFade = true
+        }
 
         binding.toolbar.avatarClickAction = {
             showAvatarOptions()
         }
-        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        binding.toolbar.startButtonClickAction =
+            { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.viewPager.offscreenPageLimit = getTabsCount() - 1
 

@@ -48,8 +48,12 @@ data class VkConversation(
 ) : Parcelable, AdapterDiffItem {
 
     fun mapToDomain(
-        profiles: HashMap<Int, VkUser>,
-        groups: HashMap<Int, VkGroup>,
+        conversationUser: VkUser?,
+        conversationGroup: VkGroup?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?,
     ) = VkConversationDomain(
         conversationId = id,
         messageId = lastMessageId,
@@ -58,8 +62,6 @@ data class VkConversation(
         lastMessageId = lastMessageId,
         lastMessage = lastMessage,
         conversationTitle = title,
-        profiles = profiles,
-        groups = groups,
         conversationPhoto = photo200,
         unreadCount = unreadCount,
         majorId = majorId,
@@ -67,6 +69,13 @@ data class VkConversation(
         isCallInProgress = callInProgress,
         inRead = inRead,
         outRead = outRead,
+        conversationUser = conversationUser,
+        conversationGroup = conversationGroup,
+        actionUser = actionUser,
+        actionGroup = actionGroup,
+        action = lastMessage?.getPreparedAction(),
+        messageUser = messageUser,
+        messageGroup = messageGroup,
     )
 
     @Ignore

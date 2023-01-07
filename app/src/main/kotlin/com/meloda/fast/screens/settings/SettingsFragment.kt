@@ -87,7 +87,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         )
         val visibilitySendOnlineStatus = SettingsItem.Switch(
             itemKey = "send_online_status",
-            defaultValue = true,
+            defaultValue = false,
             title = "Send online status",
             summary = "Online status will be sent every five minutes"
         )

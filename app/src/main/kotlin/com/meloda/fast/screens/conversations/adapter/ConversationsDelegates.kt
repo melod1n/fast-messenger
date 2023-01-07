@@ -1,21 +1,25 @@
 package com.meloda.fast.screens.conversations.adapter
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.data.ActionState
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.adapter.OnItemClickListener
 import com.meloda.fast.base.adapter.OnItemLongClickListener
 import com.meloda.fast.databinding.ItemConversationBinding
-import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.isFalse
+import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.visible
 import com.meloda.fast.model.base.AdapterDiffItem
-import com.meloda.fast.model.base.Image
 import com.meloda.fast.model.base.asString
+import com.meloda.fast.model.base.setImage
+import com.meloda.fast.screens.conversations.ConversationsResourceProvider
 import com.meloda.fast.util.TimeUtils
 
 fun conversationDelegate(
@@ -30,24 +34,13 @@ fun conversationDelegate(
         binding.root.setOnClickListener { onItemClickListener.onItemClick(item) }
         binding.root.setOnLongClickListener { onItemLongClickListener.onLongItemClick(item) }
 
-        val colorPrimary = getColor(R.color.colorPrimary)
-        val colorOutline = getColor(R.color.colorOutline)
-        val colorOnPrimary = getColor(R.color.colorOnPrimary)
-        val colorUserAvatarAction = getColor(R.color.colorUserAvatarAction)
-        val colorOnUserAvatarAction = getColor(R.color.colorOnUserAvatarAction)
-        val colorBackground = getColor(R.color.colorBackground)
-        val colorBackgroundVariant = getColor(R.color.colorBackgroundVariant)
-
-        val unreadBackground = getDrawable(R.drawable.ic_message_unread)
-        val icLauncherColor = getColor(R.color.a1_500)
+        val resourceProvider = ConversationsResourceProvider(context)
 
         bind {
-            binding.container.background = if (item.isRead) unreadBackground else null
+            binding.container.background =
+                if (item.isRead) resourceProvider.conversationUnreadBackground else null
 
             binding.title.text = item.title.asString(context)
-
-            binding.message.toggleVisibility(item.message != null)
-            binding.message.text = item.message
 
             binding.date.toggleVisibility(item.date != null)
             binding.date.text = TimeUtils.getLocalizedTime(context, (item.date ?: -1) * 1000L)
@@ -61,23 +54,91 @@ fun conversationDelegate(
 
             binding.textAttachment.toggleVisibility(item.attachmentImage != null)
 
+            binding.pin.toggleVisibility(item.isPinned)
+
+            binding.online.toggleVisibility(item.isOnline)
+
             binding.avatarPlaceholder.visible()
-            when (val avatar = item.avatar) {
-                is Image.Url -> {
-                    binding.avatar.loadWithGlide(
-                        url = avatar.url,
-                        crossFade = true,
-                        onLoadedAction = { binding.avatarPlaceholder.gone() }
-                    )
-                }
-                is Image.Simple -> {
-                    if (avatar == ColorDrawable(Color.TRANSPARENT)) {
-                        binding.avatar.setImageDrawable(ColorDrawable(colorOnPrimary))
+            binding.avatar.setImage(item.avatar) {
+                crossFade = true
+                onLoadedAction = { binding.avatarPlaceholder.gone() }
+            }
+
+            val actionMessage = VkUtils.getActionConversationText(
+                context = context,
+                message = item.lastMessage,
+                youPrefix = resourceProvider.youPrefix,
+                messageUser = item.messageUser,
+                messageGroup = item.messageGroup,
+                action = item.action,
+                actionUser = item.actionUser,
+                actionGroup = item.actionGroup
+            )
+
+            val attachmentIcon: Drawable? = when {
+                item.lastMessage?.text == null -> null
+                !item.lastMessage?.forwards.isNullOrEmpty() -> {
+                    if (item.lastMessage?.forwards?.size == 1) {
+                        resourceProvider.iconForwardedMessage
                     } else {
-                        binding.avatar.setImageDrawable(avatar.drawable)
+                        resourceProvider.iconForwardedMessages
                     }
                 }
-                else -> Unit
+                else -> VkUtils.getAttachmentConversationIcon(context, item.lastMessage)
             }
+
+            binding.textAttachment.toggleVisibility(attachmentIcon != null)
+            binding.textAttachment.setImageDrawable(attachmentIcon)
+
+            val attachmentText = (if (attachmentIcon == null) VkUtils.getAttachmentText(
+                message = item.lastMessage
+            ) else null)?.asString(context)
+
+            val forwardsMessage = (if (item.lastMessage?.text == null) VkUtils.getForwardsText(
+                message = item.lastMessage
+            ) else null)?.asString(context)
+
+            val messageText = (if (
+                actionMessage != null ||
+                forwardsMessage != null ||
+                attachmentText != null
+            ) ""
+            else item.lastMessage?.text ?: "").run { VkUtils.prepareMessageText(this) }
+
+            val coloredMessage = actionMessage ?: attachmentText ?: forwardsMessage ?: ""
+
+            var prefix = when {
+                actionMessage != null -> ""
+                item.lastMessage?.isOut.isTrue -> "${resourceProvider.youPrefix}: "
+                else ->
+                    when {
+                        item.lastMessage?.isUser().isTrue && item.messageUser != null && item.messageUser?.firstName?.isNotBlank().isTrue -> {
+                            "${item.messageUser?.firstName}: "
+                        }
+                        item.lastMessage?.isGroup().isTrue && item.messageGroup != null && item.messageGroup?.name?.isNotBlank().isTrue -> {
+                            "${item.messageGroup?.name}: "
+                        }
+                        else -> ""
+                    }
+            }
+
+            if ((!item.peerType.isChat() && item.lastMessage?.isOut.isFalse) || item.conversationId == UserConfig.userId)
+                prefix = ""
+
+            val spanText = "$prefix$coloredMessage$messageText"
+
+
+            val visualizedMessageText = VkUtils.visualizeMentions(
+                messageText = spanText,
+                resourceProvider.colorPrimary
+            )
+            visualizedMessageText.setSpan(
+                ForegroundColorSpan(resourceProvider.colorOutline),
+                0,
+                prefix.length + coloredMessage.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            binding.message.text = visualizedMessageText
         }
     }

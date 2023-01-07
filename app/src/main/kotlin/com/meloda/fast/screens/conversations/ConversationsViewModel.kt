@@ -24,10 +24,16 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
+import com.meloda.fast.ext.findIndex
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,9 +45,18 @@ class ConversationsViewModel @Inject constructor(
     private val messagesRepository: MessagesRepository,
 ) : BaseViewModel() {
 
-    val conversations: MutableStateFlow<List<VkConversationUi>> = MutableStateFlow(emptyList())
+    val profiles: MutableStateFlow<HashMap<Int, VkUser>> = MutableStateFlow(hashMapOf())
 
-    val oldConversations: MutableStateFlow<List<VkConversation>> = MutableStateFlow(emptyList())
+    val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
+
+    val dataConversations: MutableStateFlow<List<VkConversation>> = MutableStateFlow(emptyList())
+
+    val uiConversations: MutableStateFlow<List<VkConversationUi>> = MutableStateFlow(emptyList())
+
+    val pinnedConversationsCount = dataConversations.map { conversations ->
+        val pinnedConversations = conversations.filter { it.isPinned() }
+        pinnedConversations.size
+    }.stateIn(viewModelScope, SharingStarted.Lazily, -1)
 
     init {
         updatesParser.onNewMessage {
@@ -63,7 +78,7 @@ class ConversationsViewModel @Inject constructor(
 
     fun loadConversations(
         offset: Int? = null,
-    ) = viewModelScope.launch(Dispatchers.Default) {
+    ) = viewModelScope.launch(Dispatchers.IO) {
         makeJob({
             conversationsRepository.get(
                 ConversationsGetRequest(
@@ -80,21 +95,20 @@ class ConversationsViewModel @Inject constructor(
                     response.profiles?.forEach { baseUser ->
                         baseUser.asVkUser().let { user -> profiles[user.id] = user }
                     }
+                    this@ConversationsViewModel.profiles.update { profiles }
 
                     val groups = hashMapOf<Int, VkGroup>()
                     response.groups?.forEach { baseGroup ->
                         baseGroup.asVkGroup().let { group -> groups[group.id] = group }
                     }
+                    this@ConversationsViewModel.groups.update { groups }
 
                     val conversations = response.items.map { items ->
                         items.conversation.asVkConversation(
                             items.lastMessage?.asVkMessage()
                         )
                     }
-
-                    val newConversations = conversations
-                        .map { it.mapToDomain(profiles, groups) }
-                        .map(VkConversationDomain::mapToPresentation)
+                    dataConversations.emit(conversations)
 
                     val avatars = conversations.mapNotNull { conversation ->
                         VkUtils.getConversationAvatar(
@@ -103,9 +117,6 @@ class ConversationsViewModel @Inject constructor(
                             if (conversation.isGroup()) groups[conversation.id] else null
                         )
                     }
-
-                    oldConversations.emit(conversations)
-                    this@ConversationsViewModel.conversations.emit(newConversations)
 
                     sendEvent(
                         ConversationsLoadedEvent(
@@ -118,9 +129,55 @@ class ConversationsViewModel @Inject constructor(
                             avatars = avatars
                         )
                     )
+
+                    prepareConversations(conversations)
                 }
             }
         )
+    }
+
+    private suspend fun prepareConversations(conversations: List<VkConversation>) =
+        withContext(Dispatchers.Default) {
+            val newConversations = conversations
+                .mapToDomain()
+                .map(VkConversationDomain::mapToPresentation)
+
+            uiConversations.emit(newConversations)
+        }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun List<*>.mapToDomain(): List<VkConversationDomain> {
+        val list = this as List<VkConversation>
+
+        return list.map { conversation ->
+            val userGroup =
+                VkUtils.getConversationUserGroup(
+                    conversation,
+                    profiles.value,
+                    groups.value
+                )
+            val actionUserGroup =
+                VkUtils.getMessageActionUserGroup(
+                    conversation.lastMessage,
+                    profiles.value,
+                    groups.value
+                )
+            val messageUserGroup =
+                VkUtils.getMessageUserGroup(
+                    conversation.lastMessage,
+                    profiles.value,
+                    groups.value
+                )
+
+            conversation.mapToDomain(
+                userGroup.first,
+                userGroup.second,
+                actionUserGroup.first,
+                actionUserGroup.second,
+                messageUserGroup.first,
+                messageUserGroup.second
+            )
+        }
     }
 
     fun loadProfileUser() = viewModelScope.launch {
@@ -168,6 +225,46 @@ class ConversationsViewModel @Inject constructor(
                 groups = event.groups
             )
         )
+
+        val message = event.message
+
+        val newProfiles: HashMap<Int, VkUser> =
+            (profiles.value + event.profiles) as HashMap<Int, VkUser>
+        profiles.update { newProfiles }
+
+        val newGroups: HashMap<Int, VkGroup> =
+            (groups.value + event.groups) as HashMap<Int, VkGroup>
+        groups.update { newGroups }
+
+        val dataConversationsList = dataConversations.value.toMutableList()
+        val dataConversationIndex = dataConversationsList.findIndex { it.id == message.peerId }
+
+        if (dataConversationIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            val dataConversation = dataConversationsList[dataConversationIndex]
+            val newConversation = dataConversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
+                lastConversationMessageId = -1
+            )
+            if (!message.isOut) {
+                newConversation.unreadCount += 1
+            }
+
+            if (dataConversation.isPinned()) {
+                dataConversationsList[dataConversationIndex] = newConversation
+                prepareConversations(dataConversationsList)
+                return
+            }
+
+            dataConversationsList.removeAt(dataConversationIndex)
+
+            val toPosition = pinnedConversationsCount.value
+            dataConversationsList.add(toPosition, newConversation)
+
+            prepareConversations(dataConversationsList)
+        }
     }
 
     private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
@@ -233,4 +330,8 @@ data class MessagesNewEvent(
 
 data class MessagesEditEvent(val message: VkMessage) : VkEvent()
 
-data class MessagesReadEvent(val isOut: Boolean, val peerId: Int, val messageId: Int) : VkEvent()
+data class MessagesReadEvent(
+    val isOut: Boolean,
+    val peerId: Int,
+    val messageId: Int,
+) : VkEvent()

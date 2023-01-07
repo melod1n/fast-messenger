@@ -1,11 +1,8 @@
 package com.meloda.fast.api.model.domain
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.text.SpannableString
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -25,8 +22,6 @@ data class VkConversationDomain(
     val lastMessageId: Int,
     val lastMessage: VkMessage?,
     val conversationTitle: String?,
-    val profiles: HashMap<Int, VkUser>,
-    val groups: HashMap<Int, VkGroup>,
     val conversationPhoto: String?,
     val unreadCount: Int,
     val majorId: Int,
@@ -34,6 +29,13 @@ data class VkConversationDomain(
     val isCallInProgress: Boolean,
     val inRead: Int,
     val outRead: Int,
+    val conversationUser: VkUser?,
+    val conversationGroup: VkGroup?,
+    val actionUser: VkUser?,
+    val actionGroup: VkGroup?,
+    val action: VkMessage.Action?,
+    val messageUser: VkUser?,
+    val messageGroup: VkGroup?,
 ) {
 
     fun isAccount() = peerType.isUser() && conversationId == UserConfig.userId
@@ -43,13 +45,7 @@ data class VkConversationDomain(
     fun isOutUnread() = outRead - lastMessageId < 0
 
     fun extractAvatar(): Image {
-        val conversationUser: VkUser? =
-            VkUtils.getConversationDomainUser(this, profiles)
-
-        val conversationGroup: VkGroup? =
-            VkUtils.getConversationDomainGroup(this, groups)
-
-        val placeholderImage = Image.Simple(ColorDrawable(Color.TRANSPARENT))
+        val placeholderImage = Image.ColorResource(R.color.colorOnPrimary)
 
         val avatarLink = when {
             peerType.isUser() -> conversationUser?.photo200
@@ -67,12 +63,6 @@ data class VkConversationDomain(
     }
 
     fun extractTitle(): Text {
-        val conversationUser: VkUser? =
-            VkUtils.getConversationDomainUser(this, profiles)
-
-        val conversationGroup: VkGroup? =
-            VkUtils.getConversationDomainGroup(this, groups)
-
         return when {
             isAccount() -> Text.Resource(R.string.favorites)
             peerType.isChat() -> Text.Simple(conversationTitle ?: "...")
@@ -115,7 +105,17 @@ data class VkConversationDomain(
         actionState = ActionState.parse(isPhantom, isCallInProgress),
         isBirthday = false,
         isRead = extractReadCondition(),
-        isAccount = isAccount()
+        isAccount = isAccount(),
+        isOnline = !isAccount() && conversationUser?.online == true,
+        lastMessage = lastMessage,
+        conversationUser = conversationUser,
+        conversationGroup = conversationGroup,
+        actionUser = actionUser,
+        actionGroup = actionGroup,
+        action = action,
+        messageUser = messageUser,
+        messageGroup = messageGroup,
+        peerType = peerType
     )
 }
 

@@ -18,9 +18,17 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.Px
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
+import androidx.core.view.doOnAttach
+import androidx.core.view.forEach
 import androidx.core.widget.doAfterTextChanged
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.flowWithLifecycle
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ToolbarMenuItemAvatarBinding
@@ -76,7 +84,7 @@ fun View.setMarginsPx(
     @Px leftMargin: Int? = null,
     @Px topMargin: Int? = null,
     @Px rightMargin: Int? = null,
-    @Px bottomMargin: Int? = null
+    @Px bottomMargin: Int? = null,
 ) {
     if (layoutParams is ViewGroup.MarginLayoutParams) {
         val params = layoutParams as ViewGroup.MarginLayoutParams
@@ -135,16 +143,16 @@ fun Toolbar.addAvatarMenuItem(urlToLoad: String? = null, drawable: Drawable? = n
 
     when {
         urlToLoad != null -> {
-            imageView.loadWithGlide(
-                url = urlToLoad,
+            imageView.loadWithGlide {
+                imageUrl = urlToLoad
                 transformations = ImageLoader.userAvatarTransformations
-            )
+            }
         }
         drawable != null -> {
-            imageView.loadWithGlide(
-                drawable = drawable,
+            imageView.loadWithGlide {
+                imageDrawable = drawable
                 transformations = ImageLoader.userAvatarTransformations
-            )
+            }
         }
     }
 
@@ -226,10 +234,14 @@ fun CheckBox.notifyAboutChanges(mutableLiveData: MutableStateFlow<Boolean>) {
 
 fun <T> MutableLiveData<T>.flowOnLifecycle(
     lifecycle: Lifecycle,
-    onCollect: (item: T) -> Unit
+    onCollect: (item: T) -> Unit,
 ) {
     asFlow()
         .flowWithLifecycle(lifecycle)
         .onEach { onCollect.invoke(it) }
         .launchIn(lifecycle.coroutineScope)
+}
+
+inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
+    return indexOf(firstOrNull(predicate)).let { if (it == -1) null else it }
 }

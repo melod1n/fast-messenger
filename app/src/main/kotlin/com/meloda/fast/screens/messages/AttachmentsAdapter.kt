@@ -7,7 +7,11 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import com.google.android.material.shape.ShapeAppearanceModel
 import com.meloda.fast.R
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkAudio
+import com.meloda.fast.api.model.attachments.VkFile
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkVideo
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemUploadedAttachmentAudioBinding
@@ -80,7 +84,7 @@ class AttachmentsAdapter(
     }
 
     inner class PhotoViewHolder(
-        private val binding: ItemUploadedAttachmentPhotoBinding
+        private val binding: ItemUploadedAttachmentPhotoBinding,
     ) : Holder(binding.root) {
 
         init {
@@ -93,13 +97,15 @@ class AttachmentsAdapter(
 
             binding.progressBar.visible()
 
-            binding.image.loadWithGlide(
-                url = photo.getSizeOrSmaller(VkPhoto.SIZE_TYPE_807)?.url,
-                crossFade = true,
-                placeholderColor = colorPrimaryVariant,
-                onLoadedAction = { binding.progressBar.gone() },
-                onFailedAction = { binding.progressBar.gone() }
-            )
+            val onDoneAction = { binding.progressBar.gone() }
+
+            binding.image.loadWithGlide {
+                imageUrl = photo.getSizeOrSmaller(VkPhoto.SIZE_TYPE_807)?.url
+                crossFade = true
+                placeholderColor = colorPrimaryVariant
+                onLoadedAction = onDoneAction
+                onFailedAction = onDoneAction
+            }
 
             binding.close.setOnClickListener {
                 onRemoveClickedListener?.invoke(position)
@@ -108,7 +114,7 @@ class AttachmentsAdapter(
     }
 
     inner class VideoViewHolder(
-        private val binding: ItemUploadedAttachmentVideoBinding
+        private val binding: ItemUploadedAttachmentVideoBinding,
     ) : Holder(binding.root) {
         init {
             val cornerSizedShapeAppearanceModel = ShapeAppearanceModel().withCornerSize(
@@ -132,13 +138,13 @@ class AttachmentsAdapter(
             if (previewSrc != null) {
                 binding.progressBar.visible()
 
-                binding.image.loadWithGlide(
-                    url = previewSrc.url,
-                    crossFade = true,
-                    placeholderColor = colorPrimaryVariant,
-                    onLoadedAction = { binding.progressBar.gone() },
+                binding.image.loadWithGlide {
+                    imageUrl = previewSrc.url
+                    crossFade = true
+                    placeholderColor = colorPrimaryVariant
+                    onLoadedAction = { binding.progressBar.gone() }
                     onFailedAction = { showPlaceholder() }
-                )
+                }
             } else {
                 binding.progressBar.gone()
                 binding.image.clear()
@@ -159,7 +165,7 @@ class AttachmentsAdapter(
     }
 
     inner class AudioViewHolder(
-        private val binding: ItemUploadedAttachmentAudioBinding
+        private val binding: ItemUploadedAttachmentAudioBinding,
     ) : Holder(binding.root) {
         init {
             binding.coloredBackground.shapeAppearanceModel =
@@ -178,7 +184,7 @@ class AttachmentsAdapter(
     }
 
     inner class FileViewHolder(
-        private val binding: ItemUploadedAttachmentFileBinding
+        private val binding: ItemUploadedAttachmentFileBinding,
     ) : Holder(binding.root) {
 
         init {
@@ -203,13 +209,13 @@ class AttachmentsAdapter(
             if (previewSrc != null) {
                 binding.progressBar.visible()
 
-                binding.image.loadWithGlide(
-                    url = previewSrc.src,
-                    crossFade = true,
-                    placeholderColor = colorPrimaryVariant,
-                    onLoadedAction = { binding.progressBar.gone() },
+                binding.image.loadWithGlide {
+                    imageUrl = previewSrc.src
+                    crossFade = true
+                    placeholderColor = colorPrimaryVariant
+                    onLoadedAction = { binding.progressBar.gone() }
                     onFailedAction = { showPlaceholder() }
-                )
+                }
             } else {
                 binding.progressBar.gone()
                 binding.image.clear()

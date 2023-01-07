@@ -10,9 +10,9 @@ class PhotoViewViewModel : BaseViewModel() {
 
     fun loadImageFromUrl(
         url: String,
-        imageView: ImageView
+        imageView: ImageView,
     ) = viewModelScope.launch {
-        imageView.loadWithGlide(url = url)
+        imageView.loadWithGlide { imageUrl = url }
     }
 
 }
