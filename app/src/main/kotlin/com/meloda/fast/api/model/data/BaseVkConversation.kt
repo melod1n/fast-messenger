@@ -15,6 +15,8 @@ data class BaseVkConversation(
     val last_message_id: Int,
     val in_read: Int,
     val out_read: Int,
+    val in_read_cmid: Int,
+    val out_read_cmid: Int,
     val sort_id: SortId,
     val last_conversation_message_id: Int,
     val is_marked_unread: Boolean,
@@ -139,6 +141,8 @@ data class BaseVkConversation(
         canChangePin = chat_settings?.acl?.can_change_pin == true,
         canChangeInfo = chat_settings?.acl?.can_change_info == true,
         pinnedMessageId = chat_settings?.pinned_message?.id,
+        inReadCmId = in_read_cmid,
+        outReadCmId = out_read_cmid,
     ).also {
         it.lastMessage = lastMessage
         it.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()

@@ -81,6 +81,10 @@ class ConversationsViewModel @Inject constructor(
         updatesParser.onMessageOutgoingRead {
             viewModelScope.launch { handleReadOutgoingMessage(it) }
         }
+
+        updatesParser.onConversationPinStateChanged {
+            viewModelScope.launch { handlePinStateChanged(it) }
+        }
     }
 
     fun loadConversations(offset: Int? = null) {
@@ -122,13 +126,13 @@ class ConversationsViewModel @Inject constructor(
                     groups.update { newGroups }
 
                     val domainConversationsList = dataConversationsList.mapToDomain()
-                    prepareConversations(domainConversationsList)
+                    emitConversations(domainConversationsList)
                 }
             }
         )
     }
 
-    private suspend fun prepareConversations(conversations: List<VkConversationDomain>) =
+    private suspend fun emitConversations(conversations: List<VkConversationDomain>) =
         withContext(Dispatchers.Default) {
             domainConversations.emit(conversations)
 
@@ -223,13 +227,14 @@ class ConversationsViewModel @Inject constructor(
         }
     }
 
+    // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
     private suspend fun handleConversationPinStateUpdate(peerId: Int, pin: Boolean) =
         withContext(Dispatchers.IO) {
             val conversationsList = domainConversations.value.toMutableList()
             val conversationIndex =
                 conversationsList.findIndex { it.id == peerId } ?: return@withContext
 
-            val newConversation = conversationsList[conversationIndex].copy(
+            val conversation = conversationsList[conversationIndex].copy(
                 majorId = if (pin) (pinnedConversationsCount.value + 1) * 16
                 else 0
             ).fill()
@@ -237,12 +242,12 @@ class ConversationsViewModel @Inject constructor(
             conversationsList.removeAt(conversationIndex)
 
             if (pin) {
-                conversationsList.add(0, newConversation)
+                conversationsList.add(0, conversation)
             } else {
-                conversationsList.add(pinnedConversationsCount.value - 1, newConversation)
+                conversationsList.add(pinnedConversationsCount.value - 1, conversation)
             }
 
-            prepareConversations(conversationsList)
+            emitConversations(conversationsList)
         }
 
     private suspend fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) =
@@ -269,18 +274,20 @@ class ConversationsViewModel @Inject constructor(
                 var newConversation = dataConversation.copy(
                     lastMessageId = message.id,
                     lastConversationMessageId = -1
-                ).also {
+                ).fill().also {
                     it.lastMessage = message
                 }
                 if (!message.isOut) {
                     newConversation = newConversation.copy(
                         unreadCount = newConversation.unreadCount + 1
-                    )
+                    ).fill().also {
+                        it.lastMessage = message
+                    }
                 }
 
                 if (dataConversation.isPinned()) {
                     dataConversationsList[dataConversationIndex] = newConversation
-                    prepareConversations(dataConversationsList)
+                    emitConversations(dataConversationsList)
                     return@withContext
                 }
 
@@ -289,7 +296,7 @@ class ConversationsViewModel @Inject constructor(
                 val toPosition = pinnedConversationsCount.value
                 dataConversationsList.add(toPosition, newConversation)
 
-                prepareConversations(dataConversationsList)
+                emitConversations(dataConversationsList)
             }
         }
 
@@ -309,11 +316,11 @@ class ConversationsViewModel @Inject constructor(
                 conversationsList[conversationIndex] = conversation.copy(
                     lastMessageId = message.id,
                     lastConversationMessageId = -1
-                ).also {
+                ).fill().also {
                     it.lastMessage = message
                 }
 
-                prepareConversations(conversationsList)
+                emitConversations(conversationsList)
             }
         }
 
@@ -324,12 +331,15 @@ class ConversationsViewModel @Inject constructor(
             val conversationIndex =
                 conversationsList.findIndex { it.id == event.peerId } ?: return@withContext
 
-            var newConversation = conversationsList[conversationIndex]
-            newConversation = newConversation.copy(inRead = event.messageId)
+            var conversation = conversationsList[conversationIndex]
+            conversation = conversation.copy(
+                inRead = event.messageId,
+                unreadCount = event.unreadCount
+            ).fill()
 
-            conversationsList[conversationIndex] = newConversation
+            conversationsList[conversationIndex] = conversation
 
-            prepareConversations(conversationsList)
+            emitConversations(conversationsList)
         }
 
     private suspend fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) =
@@ -339,13 +349,43 @@ class ConversationsViewModel @Inject constructor(
             val conversationIndex =
                 conversationsList.findIndex { it.id == event.peerId } ?: return@withContext
 
-            var newConversation = conversationsList[conversationIndex]
-            newConversation = newConversation.copy(outRead = event.messageId)
+            var conversation = conversationsList[conversationIndex]
+            conversation = conversation.copy(
+                outRead = event.messageId,
+                unreadCount = event.unreadCount
+            ).fill()
 
-            conversationsList[conversationIndex] = newConversation
+            conversationsList[conversationIndex] = conversation
 
-            prepareConversations(conversationsList)
+            emitConversations(conversationsList)
         }
+
+    // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
+    private suspend fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) =
+        withContext(Dispatchers.IO) {
+            val conversationsList = domainConversations.value.toMutableList()
+
+            val conversationIndex =
+                conversationsList.findIndex { it.id == event.peerId } ?: return@withContext
+
+            val pin = event.majorId > 0
+
+            var conversation = conversationsList[conversationIndex]
+            conversation = conversation.copy(
+                majorId = event.majorId
+            ).fill()
+
+            conversationsList.removeAt(conversationIndex)
+
+            if (pin) {
+                conversationsList.add(0, conversation)
+            } else {
+                conversationsList.add(pinnedConversationsCount.value - 1, conversation)
+            }
+
+            emitConversations(conversationsList)
+        }
+
 
     fun openRootScreen() {
         router.replaceScreen(Screens.Main())

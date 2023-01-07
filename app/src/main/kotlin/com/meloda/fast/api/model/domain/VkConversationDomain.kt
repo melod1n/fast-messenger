@@ -33,6 +33,8 @@ data class VkConversationDomain(
     val isCallInProgress: Boolean,
     val isPhantom: Boolean,
     val lastConversationMessageId: Int,
+    val inReadCmId: Int,
+    val outReadCmId: Int,
     val inRead: Int,
     val outRead: Int,
     val lastMessageId: Int,
