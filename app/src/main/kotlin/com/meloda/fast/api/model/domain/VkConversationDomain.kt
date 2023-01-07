@@ -1,48 +1,103 @@
 package com.meloda.fast.api.model.domain
 
+import android.os.Parcelable
 import android.text.SpannableString
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.model.ActionState
+import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.data.ActionState
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.ext.isFalse
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.model.base.Image
 import com.meloda.fast.model.base.Text
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
 @Suppress("MemberVisibilityCanBePrivate")
+@Entity(tableName = "conversations")
+@Parcelize
 data class VkConversationDomain(
-    val conversationId: Int,
-    val messageId: Int,
-    val fromId: Int,
-    val peerType: PeerType,
-    val lastMessageId: Int,
-    val lastMessage: VkMessage?,
+    @PrimaryKey(autoGenerate = false)
+    val id: Int,
+    val localId: Int,
+    val ownerId: Int?,
     val conversationTitle: String?,
     val conversationPhoto: String?,
-    val unreadCount: Int,
-    val majorId: Int,
-    val isPhantom: Boolean,
     val isCallInProgress: Boolean,
+    val isPhantom: Boolean,
+    val lastConversationMessageId: Int,
     val inRead: Int,
     val outRead: Int,
-    val conversationUser: VkUser?,
-    val conversationGroup: VkGroup?,
-    val actionUser: VkUser?,
-    val actionGroup: VkGroup?,
-    val action: VkMessage.Action?,
-    val messageUser: VkUser?,
-    val messageGroup: VkGroup?,
-) {
+    val lastMessageId: Int,
+    val unreadCount: Int,
+    val membersCount: Int?,
+    val canChangePin: Boolean,
+    val canChangeInfo: Boolean,
+    val majorId: Int,
+    val minorId: Int,
+    val pinnedMessageId: Int?,
+    val type: String,
+) : Parcelable {
 
-    fun isAccount() = peerType.isUser() && conversationId == UserConfig.userId
+    @Ignore
+    @IgnoredOnParcel
+    var peerType: ConversationPeerType = ConversationPeerType.parse(type)
+
+    @Ignore
+    @IgnoredOnParcel
+    var lastMessage: VkMessage? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var pinnedMessage: VkMessage? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var conversationUser: VkUser? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var conversationGroup: VkGroup? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var actionUser: VkUser? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var actionGroup: VkGroup? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var action: VkMessage.Action? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var messageUser: VkUser? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var messageGroup: VkGroup? = null
+
+    fun isChat() = peerType.isChat()
+    fun isUser() = peerType.isUser()
+    fun isGroup() = peerType.isGroup()
 
     fun isInUnread() = inRead - lastMessageId < 0
-
     fun isOutUnread() = outRead - lastMessageId < 0
+
+    fun isUnread() = isInUnread() || isOutUnread()
+
+    fun isAccount() = id == UserConfig.userId
+
+    fun isPinned() = majorId > 0
 
     fun extractAvatar(): Image {
         val placeholderImage = Image.ColorResource(R.color.colorOnPrimary)
@@ -93,8 +148,8 @@ data class VkConversationDomain(
     }
 
     fun mapToPresentation() = VkConversationUi(
-        conversationId = conversationId,
-        messageId = messageId,
+        conversationId = id,
+        lastMessageId = lastMessageId,
         avatar = extractAvatar(),
         title = extractTitle(),
         unreadCount = extractUnreadCounterText(),
@@ -117,24 +172,5 @@ data class VkConversationDomain(
         messageGroup = messageGroup,
         peerType = peerType
     )
-}
 
-sealed class PeerType {
-    object User : PeerType()
-    object Group : PeerType()
-    object Chat : PeerType()
-
-    fun isUser() = this == User
-    fun isGroup() = this == Group
-    fun isChat() = this == Chat
-
-    companion object {
-        fun parse(type: String): PeerType {
-            return when (type) {
-                "user" -> User
-                "group" -> Group
-                else -> Chat
-            }
-        }
-    }
 }

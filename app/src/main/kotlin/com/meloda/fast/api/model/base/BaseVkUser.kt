@@ -32,7 +32,7 @@ data class BaseVkUser(
         val app_id: Int?
     ) : Parcelable
 
-    fun asVkUser() = VkUser(
+    fun mapToDomain() = VkUser(
         id = id,
         firstName = first_name,
         lastName = last_name,

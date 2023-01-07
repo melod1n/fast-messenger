@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.settings
 
 import android.os.Bundle
+
 import android.view.View
 import androidx.fragment.app.commit
 import androidx.fragment.app.setFragmentResultListener
@@ -10,6 +11,7 @@ import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentSettingsRootBinding
 
+@Deprecated("")
 class SettingsRootFragment : BaseFragment(R.layout.fragment_settings_root) {
 
     companion object {

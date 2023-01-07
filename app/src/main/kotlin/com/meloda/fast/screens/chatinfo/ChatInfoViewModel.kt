@@ -30,8 +30,8 @@ class ChatInfoViewModel @Inject constructor(
                 val response = it.response ?: return@makeJob
 
                 val items = response.items.map { member -> member.asVkChatMember() }
-                val profiles = response.profiles.orEmpty().map { profile -> profile.asVkUser() }
-                val groups = response.groups.orEmpty().map { group -> group.asVkGroup() }
+                val profiles = response.profiles.orEmpty().map { profile -> profile.mapToDomain() }
+                val groups = response.groups.orEmpty().map { group -> group.mapToDomain() }
 
                 sendEvent(GetConversationMembersEvent(response.count, items, profiles, groups))
             }

@@ -1,7 +1,7 @@
 package com.meloda.fast.common
 
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -25,13 +25,13 @@ object Screens {
     fun Conversations() = FragmentScreen { ConversationsFragment() }
 
     fun MessagesHistory(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         user: VkUser?,
         group: VkGroup?
     ) = FragmentScreen { MessagesHistoryFragment.newInstance(conversation, user, group) }
 
     fun ForwardedMessages(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         messages: List<VkMessage>,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf()
@@ -42,7 +42,7 @@ object Screens {
     }
 
     fun ChatInfo(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         user: VkUser?,
         group: VkGroup?
     ) = FragmentScreen { ChatInfoFragment.newInstance(conversation, user, group) }

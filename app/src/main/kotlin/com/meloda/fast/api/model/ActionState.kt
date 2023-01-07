@@ -1,4 +1,4 @@
-package com.meloda.fast.api.model.data
+package com.meloda.fast.api.model
 
 sealed class ActionState {
     object Phantom : ActionState()

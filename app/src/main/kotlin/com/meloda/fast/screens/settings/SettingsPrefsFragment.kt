@@ -11,7 +11,8 @@ import com.meloda.fast.R
 import com.meloda.fast.common.AppGlobal
 import com.microsoft.appcenter.crashes.Crashes
 
-class SettingsPrefsFragment constructor(): PreferenceFragmentCompat(),
+@Deprecated("")
+class SettingsPrefsFragment : PreferenceFragmentCompat(),
     Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
 

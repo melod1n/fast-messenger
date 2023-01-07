@@ -18,7 +18,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkPhoto
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemMessageInBinding
@@ -29,7 +29,7 @@ import com.meloda.fast.ext.dpToPx
 
 class MessagesHistoryAdapter constructor(
     context: Context,
-    val conversation: VkConversation,
+    val conversation: VkConversationDomain,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
 ) : BaseAdapter<VkMessage, MessagesHistoryAdapter.BasicHolder>(
@@ -39,7 +39,7 @@ class MessagesHistoryAdapter constructor(
 
     constructor(
         fragment: MessagesHistoryFragment,
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) : this(fragment.requireContext(), conversation, profiles, groups) {
@@ -48,7 +48,7 @@ class MessagesHistoryAdapter constructor(
 
     constructor(
         fragment: ForwardedMessagesFragment,
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) : this(fragment.requireContext(), conversation, profiles, groups) {

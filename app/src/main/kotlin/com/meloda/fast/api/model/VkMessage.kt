@@ -7,7 +7,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -59,7 +59,7 @@ data class VkMessage constructor(
 
     fun isGroup() = fromId < 0
 
-    fun isRead(conversation: VkConversation) =
+    fun isRead(conversation: VkConversationDomain) =
         if (isOut) {
             conversation.outRead - id >= 0
         } else {

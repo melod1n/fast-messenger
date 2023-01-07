@@ -1,6 +1,6 @@
 package com.meloda.fast.data.conversations
 
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
 import com.meloda.fast.api.network.conversations.ConversationsGetRequest
 import com.meloda.fast.api.network.conversations.ConversationsPinRequest
@@ -19,6 +19,6 @@ class ConversationsRepository(
 
     suspend fun unpin(params: ConversationsUnpinRequest) = conversationsApi.unpin(params.map)
 
-    suspend fun store(conversations: List<VkConversation>) = conversationsDao.insert(conversations)
+    suspend fun store(conversations: List<VkConversationDomain>) = conversationsDao.insert(conversations)
 
 }

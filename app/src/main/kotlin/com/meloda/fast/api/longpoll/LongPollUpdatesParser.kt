@@ -195,12 +195,12 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
                     val profiles = hashMapOf<Int, VkUser>()
                     messagesResponse.profiles?.forEach { baseUser ->
-                        baseUser.asVkUser().let { user -> profiles[user.id] = user }
+                        baseUser.mapToDomain().let { user -> profiles[user.id] = user }
                     }
 
                     val groups = hashMapOf<Int, VkGroup>()
                     messagesResponse.groups?.forEach { baseGroup ->
-                        baseGroup.asVkGroup().let { group -> groups[group.id] = group }
+                        baseGroup.mapToDomain().let { group -> groups[group.id] = group }
                     }
 
                     val resumeValue: LongPollEvent? = when (eventType) {

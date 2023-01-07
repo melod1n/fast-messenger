@@ -4,14 +4,20 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
-import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.messages.*
+import com.meloda.fast.api.network.messages.MessagesDeleteRequest
+import com.meloda.fast.api.network.messages.MessagesEditRequest
+import com.meloda.fast.api.network.messages.MessagesGetHistoryRequest
+import com.meloda.fast.api.network.messages.MessagesMarkAsImportantRequest
+import com.meloda.fast.api.network.messages.MessagesPinMessageRequest
+import com.meloda.fast.api.network.messages.MessagesSendRequest
+import com.meloda.fast.api.network.messages.MessagesUnPinMessageRequest
 import com.meloda.fast.api.network.photos.PhotosSaveMessagePhotoRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -20,7 +26,7 @@ import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
-import com.meloda.fast.ext.requireNotNull
+import com.meloda.fast.ext.notNull
 import com.meloda.fast.screens.conversations.MessagesNewEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.MediaType.Companion.toMediaType
@@ -40,7 +46,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private val photosRepository: PhotosRepository,
     private val filesRepository: FilesRepository,
     private val audiosRepository: AudiosRepository,
-    private val videosRepository: VideosRepository
+    private val videosRepository: VideosRepository,
 ) : BaseViewModel() {
 
     init {
@@ -106,14 +112,14 @@ class MessagesHistoryViewModel @Inject constructor(
                 val profiles = hashMapOf<Int, VkUser>()
                 response.profiles?.let { baseProfiles ->
                     baseProfiles.forEach { baseProfile ->
-                        baseProfile.asVkUser().let { profile -> profiles[profile.id] = profile }
+                        baseProfile.mapToDomain().let { profile -> profiles[profile.id] = profile }
                     }
                 }
 
                 val groups = hashMapOf<Int, VkGroup>()
                 response.groups?.let { baseGroups ->
                     baseGroups.forEach { baseGroup ->
-                        baseGroup.asVkGroup().let { group -> groups[group.id] = group }
+                        baseGroup.mapToDomain().let { group -> groups[group.id] = group }
                     }
                 }
 
@@ -125,10 +131,10 @@ class MessagesHistoryViewModel @Inject constructor(
 
                 messagesRepository.store(hashMessages.values.toList())
 
-                val conversations = hashMapOf<Int, VkConversation>()
+                val conversations = hashMapOf<Int, VkConversationDomain>()
                 response.conversations?.let { baseConversations ->
                     baseConversations.forEach { baseConversation ->
-                        baseConversation.asVkConversation(
+                        baseConversation.mapToDomain(
                             hashMessages[baseConversation.last_message_id]
                         ).let { conversation -> conversations[conversation.id] = conversation }
                     }
@@ -153,7 +159,7 @@ class MessagesHistoryViewModel @Inject constructor(
         replyTo: Int? = null,
         setId: ((messageId: Int) -> Unit)? = null,
         onError: ((error: Throwable) -> Unit)? = null,
-        attachments: List<VkAttachment>? = null
+        attachments: List<VkAttachment>? = null,
     ) = launch {
         makeJob(
             {
@@ -178,7 +184,7 @@ class MessagesHistoryViewModel @Inject constructor(
 
     fun markAsImportant(
         messagesIds: List<Int>,
-        important: Boolean
+        important: Boolean,
     ) = launch {
         makeJob({
             messagesRepository.markAsImportant(
@@ -203,7 +209,7 @@ class MessagesHistoryViewModel @Inject constructor(
         peerId: Int,
         messageId: Int? = null,
         conversationMessageId: Int? = null,
-        pin: Boolean
+        pin: Boolean,
     ) = launch {
         if (pin) {
             makeJob({
@@ -235,7 +241,7 @@ class MessagesHistoryViewModel @Inject constructor(
         messagesIds: List<Int>? = null,
         conversationsMessagesIds: List<Int>? = null,
         isSpam: Boolean? = null,
-        deleteForAll: Boolean? = null
+        deleteForAll: Boolean? = null,
     ) = launch {
         makeJob(
             {
@@ -264,7 +270,7 @@ class MessagesHistoryViewModel @Inject constructor(
         peerId: Int,
         messageId: Int,
         message: String? = null,
-        attachments: List<VkAttachment>? = null
+        attachments: List<VkAttachment>? = null,
     ) = launch {
         makeJob(
             {
@@ -296,7 +302,7 @@ class MessagesHistoryViewModel @Inject constructor(
     suspend fun uploadPhoto(
         peerId: Int,
         photo: File,
-        name: String
+        name: String,
     ) = suspendCoroutine<VkAttachment> {
         launch {
             val uploadServerUrl = getPhotoMessageUploadServer(peerId)
@@ -330,8 +336,8 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun uploadPhotoToServer(
         uploadUrl: String,
         photo: File,
-        name: String
-    ) = suspendCoroutine<Triple<Int, String, String>> {
+        name: String,
+    ) = suspendCoroutine {
         launch {
             val requestBody = photo.asRequestBody("image/*".toMediaType())
             val body = MultipartBody.Part.createFormData("photo", name, requestBody)
@@ -352,7 +358,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun saveMessagePhoto(
         server: Int,
         photo: String,
-        hash: String
+        hash: String,
     ) = suspendCoroutine<VkAttachment> {
         launch {
             val saveResponse = makeSuspendJob(
@@ -378,7 +384,7 @@ class MessagesHistoryViewModel @Inject constructor(
 
     suspend fun uploadVideo(
         file: File,
-        name: String
+        name: String,
     ) = suspendCoroutine<VkVideo> {
         launch {
             val uploadInfo = getVideoMessageUploadServer()
@@ -423,7 +429,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun uploadVideoToServer(
         uploadUrl: String,
         file: File,
-        name: String
+        name: String,
     ) = launch {
         val requestBody = file.asRequestBody()
         val body = MultipartBody.Part.createFormData("video_file", name, requestBody)
@@ -438,7 +444,7 @@ class MessagesHistoryViewModel @Inject constructor(
 
     suspend fun uploadAudio(
         file: File,
-        name: String
+        name: String,
     ) = suspendCoroutine<VkAttachment> {
         launch {
             val uploadUrl = getAudioUploadServer()
@@ -469,7 +475,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun uploadAudioToServer(
         uploadUrl: String,
         file: File,
-        name: String
+        name: String,
     ) = suspendCoroutine<Triple<Int, String, String>> {
         launch {
             val requestBody = file.asRequestBody()
@@ -495,7 +501,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun saveMessageAudio(
         server: Int,
         audio: String,
-        hash: String
+        hash: String,
     ) = suspendCoroutine<VkAttachment> {
         launch {
             val saveResponse = makeSuspendJob(
@@ -515,7 +521,7 @@ class MessagesHistoryViewModel @Inject constructor(
         peerId: Int,
         file: File,
         name: String,
-        type: FilesRepository.FileType
+        type: FilesRepository.FileType,
     ) = suspendCoroutine<VkAttachment> {
         launch {
             val uploadServerUrl = getFileMessageUploadServer(peerId, type)
@@ -528,7 +534,7 @@ class MessagesHistoryViewModel @Inject constructor(
 
     private suspend fun getFileMessageUploadServer(
         peerId: Int,
-        type: FilesRepository.FileType
+        type: FilesRepository.FileType,
     ) = suspendCoroutine<String> {
         launch {
             val uploadServerResponse = makeSuspendJob(
@@ -547,7 +553,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun uploadFileToServer(
         uploadUrl: String,
         file: File,
-        name: String
+        name: String,
     ) = suspendCoroutine<String> {
         launch {
             val requestBody = file.asRequestBody()
@@ -563,7 +569,7 @@ class MessagesHistoryViewModel @Inject constructor(
                     if (this.error != null) {
                         throw ApiError(error = this.error)
                     } else {
-                        it.resume(this.file.requireNotNull())
+                        it.resume(this.file.notNull())
                     }
                 }
             }
@@ -580,12 +586,12 @@ class MessagesHistoryViewModel @Inject constructor(
                     throw saveResponse.error.throwable!!
                 } else {
                     (saveResponse as ApiAnswer.Success).data.run {
-                        val response = this.response.requireNotNull()
+                        val response = this.response.notNull()
                         it.resume(
                             response.type to (
                                     response.file?.asVkFile()
                                         ?: response.voiceMessage?.asVkVoiceMessage()
-                                    ).requireNotNull()
+                                    ).notNull()
                         )
                     }
                 }
@@ -595,10 +601,10 @@ class MessagesHistoryViewModel @Inject constructor(
 
 data class MessagesLoadedEvent(
     val count: Int,
-    val conversations: HashMap<Int, VkConversation>,
+    val conversations: HashMap<Int, VkConversationDomain>,
     val messages: List<VkMessage>,
     val profiles: HashMap<Int, VkUser>,
-    val groups: HashMap<Int, VkGroup>
+    val groups: HashMap<Int, VkGroup>,
 ) : VkEvent()
 
 data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) :
@@ -615,5 +621,5 @@ data class MessagesEditEvent(val message: VkMessage) : VkEvent()
 data class MessagesReadEvent(
     val isOut: Boolean,
     val peerId: Int,
-    val messageId: Int
+    val messageId: Int,
 ) : VkEvent()

@@ -24,7 +24,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
@@ -220,7 +220,7 @@ class ConversationsFragment :
         val conversationsDelegate = conversationDelegate(
             onItemClickListener = { conversation ->
                 val dataConversation =
-                    viewModel.dataConversations.value.find { it.id == conversation.id }
+                    viewModel.domainConversations.value.find { it.id == conversation.id }
                         ?: return@conversationDelegate
 
                 viewModel.openMessagesHistoryScreen(
@@ -237,7 +237,7 @@ class ConversationsFragment :
         delegatesAdapter.addDelegate(conversationsDelegate)
 
         viewModel.uiConversations.listenValue(delegatesAdapter::setItems)
-        viewModel.dataConversations.listenValue(adapter::submitList)
+        viewModel.domainConversations.listenValue(adapter::submitList)
 
         binding.recyclerView.adapter = delegatesAdapter
 
@@ -391,7 +391,7 @@ class ConversationsFragment :
         fillRecyclerView(event.conversations)
     }
 
-    private fun fillRecyclerView(values: List<VkConversation>) {
+    private fun fillRecyclerView(values: List<VkConversationDomain>) {
 //        adapter.submitList(values)
     }
 
@@ -473,7 +473,7 @@ class ConversationsFragment :
         adapter.removeConversation(conversationId)
     }
 
-    private fun showPinConversationDialog(conversation: VkConversation) {
+    private fun showPinConversationDialog(conversation: VkConversationDomain) {
         val isPinned = conversation.isPinned()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
@@ -504,13 +504,15 @@ class ConversationsFragment :
             // pizdets
         } else {
             val conversation = adapter[conversationIndex]
-            val newConversation = conversation.copy(
-                lastMessage = message,
+            var newConversation = conversation.copy(
                 lastMessageId = message.id,
                 lastConversationMessageId = -1
-            )
+            ).also { it.lastMessage = message }
+
             if (!message.isOut) {
-                newConversation.unreadCount += 1
+                newConversation = newConversation.copy(
+                    unreadCount = newConversation.unreadCount + 1
+                )
             }
 
 //            if (!message.isOut) {
@@ -557,23 +559,23 @@ class ConversationsFragment :
         } else {
             val conversation = adapter[conversationIndex]
             adapter[conversationIndex] = conversation.copy(
-                lastMessage = message,
                 lastMessageId = message.id,
                 lastConversationMessageId = -1
-            )
+            ).also {
+                it.lastMessage = message
+            }
         }
     }
 
     private fun onMessageRead(event: MessagesReadEvent) {
         val conversationIndex = adapter.searchConversationIndex(event.peerId) ?: return
 
-        val newConversation = adapter[conversationIndex].copy()
+        var newConversation = adapter[conversationIndex]
 
-        if (event.isOut) {
-            newConversation.outRead = event.messageId
-        } else {
-            newConversation.inRead = event.messageId
-        }
+        newConversation = newConversation.copy(
+            outRead = if (event.isOut) event.messageId else newConversation.outRead,
+            inRead = if (!event.isOut) event.messageId else newConversation.inRead
+        )
 
         adapter[conversationIndex] = newConversation
     }

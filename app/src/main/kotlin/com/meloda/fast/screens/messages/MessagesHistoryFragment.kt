@@ -36,7 +36,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
@@ -140,11 +140,7 @@ class MessagesHistoryFragment :
         requireArguments().getParcelableCompat(ARG_GROUP, VkGroup::class.java)
     }
 
-    private val conversation: VkConversation by lazy {
-        requireNotNull(
-            requireArguments().getParcelableCompat(ARG_CONVERSATION, VkConversation::class.java)
-        )
-    }
+    private var conversation: VkConversationDomain by Delegates.notNull()
 
     private val adapter: MessagesHistoryAdapter by lazy {
         MessagesHistoryAdapter(this, conversation).also {
@@ -171,6 +167,17 @@ class MessagesHistoryFragment :
         shouldNavBarShown = false
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        conversation = requireNotNull(
+            requireArguments().getParcelableCompat(
+                ARG_CONVERSATION,
+                VkConversationDomain::class.java
+            )
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -191,7 +198,7 @@ class MessagesHistoryFragment :
         )
 
         val title = when {
-            conversation.isChat() -> conversation.title
+            conversation.isChat() -> conversation.conversationTitle
             conversation.isUser() -> user?.toString()
             conversation.isGroup() -> group?.name
             else -> null
@@ -644,7 +651,7 @@ class MessagesHistoryFragment :
         val avatar = when {
             conversation.isUser() -> user?.photo200
             conversation.isGroup() -> group?.photo200
-            conversation.isChat() -> conversation.photo200
+            conversation.isChat() -> conversation.conversationPhoto
             else -> null
         }
 
@@ -1081,11 +1088,10 @@ class MessagesHistoryFragment :
         val oldOutRead = conversation.outRead
         val oldInRead = conversation.inRead
 
-        if (event.isOut) {
-            conversation.outRead = event.messageId
-        } else {
-            conversation.inRead = event.messageId
-        }
+        conversation = conversation.copy(
+            outRead = if (event.isOut) event.messageId else conversation.outRead,
+            inRead = if (!event.isOut) event.messageId else conversation.inRead
+        )
 
         val positionsToUpdate = mutableListOf<Int>()
         val newList = adapter.cloneCurrentList()
@@ -1356,7 +1362,7 @@ class MessagesHistoryFragment :
     }
 
     fun openForwardsScreen(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         messages: List<VkMessage>,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
@@ -1367,7 +1373,7 @@ class MessagesHistoryFragment :
     }
 
     fun openChatInfoScreen(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         user: VkUser?,
         group: VkGroup?,
     ) {
@@ -1384,7 +1390,7 @@ class MessagesHistoryFragment :
         private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
 
         fun newInstance(
-            conversation: VkConversation,
+            conversation: VkConversationDomain,
             user: VkUser?,
             group: VkGroup?,
         ): MessagesHistoryFragment {

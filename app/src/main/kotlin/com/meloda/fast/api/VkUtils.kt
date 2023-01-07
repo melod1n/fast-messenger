@@ -39,7 +39,6 @@ import com.meloda.fast.api.model.attachments.VkWallReply
 import com.meloda.fast.api.model.attachments.VkWidget
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
-import com.meloda.fast.api.model.data.VkConversation
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.AuthorizationError
@@ -135,34 +134,18 @@ object VkUtils {
         }
     }
 
-    fun getConversationUser(conversation: VkConversation, profiles: Map<Int, VkUser>): VkUser? {
-        return (if (!conversation.isUser()) null
-        else profiles[conversation.id]).also { conversation.user.postValue(it) }
+    fun getConversationUser(conversation: VkConversationDomain, profiles: Map<Int, VkUser>): VkUser? {
+        return if (!conversation.isUser()) null
+        else profiles[conversation.id]
     }
 
-    fun getConversationDomainUser(
-        conversation: VkConversationDomain,
-        profiles: Map<Int, VkUser>,
-    ): VkUser? {
-        return (if (!conversation.peerType.isUser()) null
-        else profiles[conversation.conversationId])
-    }
-
-    fun getConversationGroup(conversation: VkConversation, groups: Map<Int, VkGroup>): VkGroup? {
-        return (if (!conversation.isGroup()) null
-        else groups[conversation.id]).also { conversation.group.postValue(it) }
-    }
-
-    fun getConversationDomainGroup(
-        conversation: VkConversationDomain,
-        groups: Map<Int, VkGroup>,
-    ): VkGroup? {
-        return (if (!conversation.peerType.isGroup()) null
-        else groups[conversation.conversationId])
+    fun getConversationGroup(conversation: VkConversationDomain, groups: Map<Int, VkGroup>): VkGroup? {
+        return if (!conversation.isGroup()) null
+        else groups[conversation.id]
     }
 
     fun getConversationAvatar(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         conversationUser: VkUser?,
         conversationGroup: VkGroup?,
     ): String? {
@@ -170,14 +153,14 @@ object VkUtils {
             conversation.isAccount() -> null
             conversation.isUser() -> conversationUser?.photo200
             conversation.isGroup() -> conversationGroup?.photo200
-            conversation.isChat() -> conversation.photo200
+            conversation.isChat() -> conversation.conversationPhoto
             else -> null
         }
     }
 
     fun getConversationTitle(
         context: Context,
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         defConversationUser: VkUser? = null,
         defConversationGroup: VkGroup? = null,
         profiles: Map<Int, VkUser>? = null,
@@ -193,7 +176,7 @@ object VkUtils {
 
         return when {
             conversation.isAccount() -> context.getString(R.string.favorites)
-            conversation.isChat() -> conversation.title
+            conversation.isChat() -> conversation.conversationTitle
             conversation.isUser() -> conversationUser?.fullName
             conversation.isGroup() -> conversationGroup?.name
             else -> null
@@ -201,7 +184,7 @@ object VkUtils {
     }
 
     fun getConversationUserGroup(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         profiles: Map<Int, VkUser>,
         groups: Map<Int, VkGroup>,
     ): Pair<VkUser?, VkGroup?> {

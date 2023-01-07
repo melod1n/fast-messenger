@@ -17,7 +17,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemConversationBinding
@@ -37,20 +37,20 @@ class ConversationsAdapter constructor(
     var isMultilineEnabled: Boolean = true,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
-) : BaseAdapter<VkConversation, ConversationsAdapter.ItemHolder>(context, comparator) {
+) : BaseAdapter<VkConversationDomain, ConversationsAdapter.ItemHolder>(context, comparator) {
 
     companion object {
-        private val comparator = object : DiffUtil.ItemCallback<VkConversation>() {
+        private val comparator = object : DiffUtil.ItemCallback<VkConversationDomain>() {
             override fun areItemsTheSame(
-                oldItem: VkConversation,
-                newItem: VkConversation,
+                oldItem: VkConversationDomain,
+                newItem: VkConversationDomain,
             ): Boolean {
                 return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(
-                oldItem: VkConversation,
-                newItem: VkConversation,
+                oldItem: VkConversationDomain,
+                newItem: VkConversationDomain,
             ): Boolean {
                 return ObjectsCompat.equals(oldItem, newItem)
             }
@@ -79,8 +79,8 @@ class ConversationsAdapter constructor(
                 binding.callIcon.gone()
                 binding.phantomIcon.gone()
             } else {
-                binding.service.toggleVisibility(conversation.isPhantom || conversation.callInProgress)
-                binding.callIcon.toggleVisibility(conversation.callInProgress)
+                binding.service.toggleVisibility(conversation.isPhantom || conversation.isCallInProgress)
+                binding.callIcon.toggleVisibility(conversation.isCallInProgress)
                 binding.phantomIcon.toggleVisibility(conversation.isPhantom)
             }
 
@@ -92,7 +92,7 @@ class ConversationsAdapter constructor(
             val message =
                 if (conversation.lastMessage != null) requireNotNull(conversation.lastMessage)
                 else {
-                    binding.title.text = conversation.title
+                    binding.title.text = conversation.conversationTitle
                     val text = context.getString(
                         if (conversation.isPhantom) R.string.messages_self_destructed
                         else R.string.no_messages
@@ -305,7 +305,7 @@ class ConversationsAdapter constructor(
         return null
     }
 
-    override fun onQueryItem(item: VkConversation, query: String): Boolean {
+    override fun onQueryItem(item: VkConversationDomain, query: String): Boolean {
         val userGroup = VkUtils.getConversationUserGroup(item, profiles, groups)
         val title = VkUtils.getConversationTitle(context, item, userGroup.first, userGroup.second)
 

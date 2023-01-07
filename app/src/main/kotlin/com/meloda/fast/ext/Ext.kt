@@ -179,7 +179,7 @@ fun EditText.selectLast() {
     setSelection(text.length)
 }
 
-fun <T> T?.requireNotNull(): T {
+fun <T> T?.notNull(): T {
     return requireNotNull(this)
 }
 
@@ -244,4 +244,15 @@ fun <T> MutableLiveData<T>.flowOnLifecycle(
 
 inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
     return indexOf(firstOrNull(predicate)).let { if (it == -1) null else it }
+}
+
+inline fun <reified T, K, M : MutableMap<in K, T>> Iterable<T>.toMap(
+    destination: M,
+    keySelector: (T) -> K,
+): M {
+    for (element in this) {
+        val key = keySelector(element)
+        destination[key] = element
+    }
+    return destination
 }

@@ -2,7 +2,7 @@ package com.meloda.fast.api.network.conversations
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.meloda.fast.api.model.base.BaseVkConversation
+import com.meloda.fast.api.model.data.BaseVkConversation
 import com.meloda.fast.api.model.base.BaseVkGroup
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.BaseVkUser

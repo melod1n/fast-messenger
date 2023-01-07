@@ -10,7 +10,9 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.base.BaseVkGroup
+import com.meloda.fast.api.model.base.BaseVkUser
+import com.meloda.fast.api.model.data.BaseVkConversation
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
@@ -25,6 +27,7 @@ import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
 import com.meloda.fast.ext.findIndex
+import com.meloda.fast.ext.toMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,11 +52,12 @@ class ConversationsViewModel @Inject constructor(
 
     val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
 
-    val dataConversations: MutableStateFlow<List<VkConversation>> = MutableStateFlow(emptyList())
+    val domainConversations: MutableStateFlow<List<VkConversationDomain>> =
+        MutableStateFlow(emptyList())
 
     val uiConversations: MutableStateFlow<List<VkConversationUi>> = MutableStateFlow(emptyList())
 
-    val pinnedConversationsCount = dataConversations.map { conversations ->
+    val pinnedConversationsCount = domainConversations.map { conversations ->
         val pinnedConversations = conversations.filter { it.isPinned() }
         pinnedConversations.size
     }.stateIn(viewModelScope, SharingStarted.Lazily, -1)
@@ -91,65 +95,67 @@ class ConversationsViewModel @Inject constructor(
         },
             onAnswer = {
                 it.response?.let { response ->
-                    val profiles = hashMapOf<Int, VkUser>()
-                    response.profiles?.forEach { baseUser ->
-                        baseUser.asVkUser().let { user -> profiles[user.id] = user }
+                    val dataConversationsMessages = response.items.map { item ->
+                        item.conversation to item.lastMessage
                     }
-                    this@ConversationsViewModel.profiles.update { profiles }
+                    val dataConversations = dataConversationsMessages.map { pair -> pair.first }
+                    val messages =
+                        dataConversationsMessages
+                            .map { pair -> pair.second }
+                            .mapNotNull { message -> message?.asVkMessage() }
 
-                    val groups = hashMapOf<Int, VkGroup>()
-                    response.groups?.forEach { baseGroup ->
-                        baseGroup.asVkGroup().let { group -> groups[group.id] = group }
-                    }
-                    this@ConversationsViewModel.groups.update { groups }
-
-                    val conversations = response.items.map { items ->
-                        items.conversation.asVkConversation(
-                            items.lastMessage?.asVkMessage()
-                        )
-                    }
-                    dataConversations.emit(conversations)
-
-                    val avatars = conversations.mapNotNull { conversation ->
-                        VkUtils.getConversationAvatar(
-                            conversation,
-                            if (conversation.isUser()) profiles[conversation.id] else null,
-                            if (conversation.isGroup()) groups[conversation.id] else null
-                        )
+                    withContext(Dispatchers.IO) {
+                        messagesRepository.store(messages)
                     }
 
-                    sendEvent(
-                        ConversationsLoadedEvent(
-                            count = response.count,
-                            offset = offset,
-                            unreadCount = response.unreadCount ?: 0,
-                            conversations = conversations,
-                            profiles = profiles,
-                            groups = groups,
-                            avatars = avatars
-                        )
-                    )
+//                    val newProfiles = hashMapOf<Int, VkUser>()
+//                    response.profiles?.forEach { baseUser ->
+//                        baseUser.mapToDomain().let { user -> newProfiles[user.id] = user }
+//                    }
 
-                    prepareConversations(conversations)
+
+                    val newProfiles = response.profiles
+                        ?.map(BaseVkUser::mapToDomain)
+                        ?.toMap(hashMapOf(), VkUser::id) ?: hashMapOf()
+                    profiles.update { newProfiles }
+
+
+//                    val newGroups = hashMapOf<Int, VkGroup>()
+//                    response.groups?.forEach { baseGroup ->
+//                        baseGroup.mapToDomain().let { group -> newGroups[group.id] = group }
+//                    }
+
+                    val newGroups = response.groups
+                        ?.map(BaseVkGroup::mapToDomain)
+                        ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
+                    groups.update { newGroups }
+
+                    val domainConversationsList = dataConversations.mapToDomain()
+                    domainConversations.emit(domainConversationsList)
+
+                    prepareConversations(domainConversationsList)
                 }
             }
         )
     }
 
-    private suspend fun prepareConversations(conversations: List<VkConversation>) =
+    private suspend fun prepareConversations(conversations: List<VkConversationDomain>) =
         withContext(Dispatchers.Default) {
-            val newConversations = conversations
-                .mapToDomain()
-                .map(VkConversationDomain::mapToPresentation)
+            val uiConversationsList =
+                conversations.map(VkConversationDomain::mapToPresentation)
 
-            uiConversations.emit(newConversations)
+            uiConversations.emit(uiConversationsList)
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun List<*>.mapToDomain(): List<VkConversationDomain> {
-        val list = this as List<VkConversation>
+    private suspend fun List<BaseVkConversation>.mapToDomain(): List<VkConversationDomain> =
+        this.map { baseConversation ->
+            val conversation = baseConversation.mapToDomain()
+            val messages = messagesRepository.getCached(conversation.id)
 
-        return list.map { conversation ->
+            val lastMessage = messages.find { it.id == conversation.lastMessageId }
+            conversation.lastMessage = lastMessage
+
             val userGroup =
                 VkUtils.getConversationUserGroup(
                     conversation,
@@ -158,33 +164,33 @@ class ConversationsViewModel @Inject constructor(
                 )
             val actionUserGroup =
                 VkUtils.getMessageActionUserGroup(
-                    conversation.lastMessage,
+                    lastMessage,
                     profiles.value,
                     groups.value
                 )
             val messageUserGroup =
                 VkUtils.getMessageUserGroup(
-                    conversation.lastMessage,
+                    lastMessage,
                     profiles.value,
                     groups.value
                 )
 
-            conversation.mapToDomain(
-                userGroup.first,
-                userGroup.second,
-                actionUserGroup.first,
-                actionUserGroup.second,
-                messageUserGroup.first,
-                messageUserGroup.second
-            )
+            conversation.conversationUser = userGroup.first
+            conversation.conversationGroup = userGroup.second
+            conversation.action = lastMessage?.getPreparedAction()
+            conversation.actionUser = actionUserGroup.first
+            conversation.actionGroup = actionUserGroup.second
+            conversation.messageUser = messageUserGroup.first
+            conversation.messageGroup = messageUserGroup.second
+
+            conversation
         }
-    }
 
     fun loadProfileUser() = viewModelScope.launch {
         makeJob({ usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
             onAnswer = {
                 it.response?.let { r ->
-                    val users = r.map { u -> u.asVkUser() }
+                    val users = r.map { u -> u.mapToDomain() }
                     this@ConversationsViewModel.usersRepository.storeUsers(users)
 
                     UserConfig.vkUser.value = users[0]
@@ -236,20 +242,23 @@ class ConversationsViewModel @Inject constructor(
             (groups.value + event.groups) as HashMap<Int, VkGroup>
         groups.update { newGroups }
 
-        val dataConversationsList = dataConversations.value.toMutableList()
+        val dataConversationsList = domainConversations.value.toMutableList()
         val dataConversationIndex = dataConversationsList.findIndex { it.id == message.peerId }
 
         if (dataConversationIndex == null) { // диалога нет в списке
             // pizdets
         } else {
             val dataConversation = dataConversationsList[dataConversationIndex]
-            val newConversation = dataConversation.copy(
-                lastMessage = message,
+            var newConversation = dataConversation.copy(
                 lastMessageId = message.id,
                 lastConversationMessageId = -1
-            )
+            ).also {
+                it.lastMessage = message
+            }
             if (!message.isOut) {
-                newConversation.unreadCount += 1
+                newConversation = newConversation.copy(
+                    unreadCount = newConversation.unreadCount + 1
+                )
             }
 
             if (dataConversation.isPinned()) {
@@ -284,14 +293,14 @@ class ConversationsViewModel @Inject constructor(
     }
 
     fun openMessagesHistoryScreen(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         user: VkUser?,
         group: VkGroup?,
     ) {
         router.navigateTo(Screens.MessagesHistory(conversation, user, group))
     }
 
-    fun readConversation(conversation: VkConversation) {
+    fun readConversation(conversation: VkConversationDomain) {
         makeJob(
             {
                 messagesRepository.markAsRead(
@@ -310,7 +319,7 @@ data class ConversationsLoadedEvent(
     val count: Int,
     val offset: Int?,
     val unreadCount: Int?,
-    val conversations: List<VkConversation>,
+    val conversations: List<VkConversationDomain>,
     val profiles: HashMap<Int, VkUser>,
     val groups: HashMap<Int, VkGroup>,
     val avatars: List<String>? = null,

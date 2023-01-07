@@ -13,7 +13,7 @@ import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.StartProgressEvent
 import com.meloda.fast.base.viewmodel.StopProgressEvent
@@ -43,7 +43,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         private const val ArgGroup = "group"
 
         fun newInstance(
-            conversation: VkConversation,
+            conversation: VkConversationDomain,
             user: VkUser?,
             group: VkGroup?,
         ): ChatInfoFragment {
@@ -73,11 +73,11 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         )
     }
 
-    private val conversation: VkConversation by lazy {
+    private val conversation: VkConversationDomain by lazy {
         requireNotNull(
             requireArguments().getParcelableCompat(
                 MessagesHistoryFragment.ARG_CONVERSATION,
-                VkConversation::class.java
+                VkConversationDomain::class.java
             )
         )
     }
@@ -92,7 +92,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         viewModel.getConversationMembers(conversation.id)
 
         val title = when {
-            conversation.isChat() -> conversation.title
+            conversation.isChat() -> conversation.conversationTitle
             conversation.isUser() -> user?.toString()
             conversation.isGroup() -> group?.name
             else -> null
@@ -112,7 +112,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         val avatar = when {
             conversation.isUser() -> user?.photo200
             conversation.isGroup() -> group?.photo200
-            conversation.isChat() -> conversation.photo200
+            conversation.isChat() -> conversation.conversationPhoto
             else -> null
         }
 

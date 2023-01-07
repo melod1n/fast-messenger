@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.ext.notNull
 import org.json.JSONObject
 
 @Suppress("UnnecessaryVariable")
@@ -36,7 +37,9 @@ class Converters {
     fun fromListVkMessageToString(messages: List<VkMessage>?): String? {
         if (messages == null) return null
 
-        val string = messages.map { fromVkMessageToString(it)!! }.joinToString { CACHE_SEPARATOR }
+        val string = messages
+            .mapNotNull(::fromVkMessageToString)
+            .joinToString(separator = CACHE_SEPARATOR)
 
         return string
     }
@@ -46,14 +49,14 @@ class Converters {
         if (string == null) return null
 
         if (string.contains(CACHE_SEPARATOR)) {
-            val messages =
-                string.split(CACHE_SEPARATOR).map { fromStringToVkMessage(it)!! }
+            val messages = string
+                .split(CACHE_SEPARATOR)
+                .mapNotNull(::fromStringToVkMessage)
             return messages
         }
 
 
-        val message = fromStringToVkMessage(string)!!
-
+        val message = fromStringToVkMessage(string).notNull()
         return listOf(message)
     }
 
@@ -61,7 +64,9 @@ class Converters {
     fun fromVkMessageToString(message: VkMessage?): String? {
         if (message == null) return null
 
-        return Gson().toJson(message)
+        val string = Gson().toJson(message)
+
+        return string
     }
 
     @TypeConverter
@@ -77,9 +82,9 @@ class Converters {
     fun fromListVkAttachmentToString(attachments: List<VkAttachment>?): String? {
         if (attachments == null) return null
 
-        val string =
-            attachments.map { fromVkAttachmentToString(it)!! }.joinToString { CACHE_SEPARATOR }
-
+        val string = attachments
+            .mapNotNull(::fromVkAttachmentToString)
+            .joinToString(separator = CACHE_SEPARATOR)
         return string
     }
 
@@ -88,13 +93,14 @@ class Converters {
         if (string == null) return null
 
         if (string.contains(CACHE_SEPARATOR)) {
-            val attachments =
-                string.split(CACHE_SEPARATOR).map { fromStringToVkAttachment(it)!! }
+            val attachments = string
+                .split(CACHE_SEPARATOR)
+                .mapNotNull(::fromStringToVkAttachment)
             return attachments
         }
 
 
-        val attachment = fromStringToVkAttachment(string)!!
+        val attachment = fromStringToVkAttachment(string).notNull()
 
         return listOf(attachment)
     }
@@ -110,7 +116,7 @@ class Converters {
 
     @TypeConverter
     fun fromStringToVkAttachment(string: String?): VkAttachment? {
-        if (string == null) return null
+        if (string.isNullOrBlank()) return null
 
         val className = JSONObject(string).optString("className")
 

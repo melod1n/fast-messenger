@@ -5,7 +5,7 @@ import android.view.View
 import androidx.core.os.bundleOf
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
-import com.meloda.fast.api.model.data.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -26,7 +26,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
         private const val ArgGroups = "groups"
 
         fun newInstance(
-            conversation: VkConversation,
+            conversation: VkConversationDomain,
             messages: List<VkMessage>,
             profiles: HashMap<Int, VkUser> = hashMapOf(),
             groups: HashMap<Int, VkGroup> = hashMapOf()
@@ -45,7 +45,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
 
     private val binding by viewBinding(FragmentForwardedMessagesBinding::bind)
 
-    private var conversation: VkConversation? = null
+    private var conversation: VkConversationDomain? = null
     private var messages: List<VkMessage> = emptyList()
     private var profiles = UsersIdsList.Empty
     private var groups = GroupsIdsList.Empty
@@ -83,7 +83,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
         super.onCreate(savedInstanceState)
 
         requireArguments().run {
-            conversation = getParcelableCompat(ArgConversation, VkConversation::class.java)
+            conversation = getParcelableCompat(ArgConversation, VkConversationDomain::class.java)
 
             messages = getParcelableArrayListCompat(ArgMessages, VkMessage::class.java)
                 ?: emptyList()
@@ -122,7 +122,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
     }
 
     fun openForwardsScreen(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         messages: List<VkMessage>,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf()

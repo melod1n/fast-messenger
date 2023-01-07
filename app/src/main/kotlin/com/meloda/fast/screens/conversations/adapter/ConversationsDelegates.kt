@@ -6,7 +6,7 @@ import android.text.style.ForegroundColorSpan
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.data.ActionState
+import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.adapter.OnItemClickListener
 import com.meloda.fast.base.adapter.OnItemLongClickListener
@@ -126,7 +126,6 @@ fun conversationDelegate(
                 prefix = ""
 
             val spanText = "$prefix$coloredMessage$messageText"
-
 
             val visualizedMessageText = VkUtils.visualizeMentions(
                 messageText = spanText,
