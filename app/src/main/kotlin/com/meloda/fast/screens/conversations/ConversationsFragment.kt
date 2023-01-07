@@ -34,10 +34,10 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.addAvatarMenuItem
+import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.tintMenuItemIcons
-import com.meloda.fast.ext.toast
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.screens.conversations.adapter.conversationDelegate
@@ -230,7 +230,7 @@ class ConversationsFragment :
                 )
             },
             onItemLongClickListener = { conversation ->
-                "conversation long click: $conversation".toast()
+                showOptionsDialog(conversation)
                 true
             }
         )
@@ -410,18 +410,20 @@ class ConversationsFragment :
     }
 
     private fun onItemLongClick(position: Int): Boolean {
-        showOptionsDialog(position)
         return true
     }
 
-    private fun showOptionsDialog(position: Int) {
-        val conversation = adapter[position]
+    private fun showOptionsDialog(uiConversations: VkConversationUi) {
+        val conversationsList = viewModel.domainConversations.value.toMutableList()
+
+        val conversationIndex =
+            conversationsList.findIndex { it.id == uiConversations.conversationId } ?: return
+
+        val conversation = conversationsList[conversationIndex]
 
         var canPinOneMoreDialog = true
         if (adapter.itemCount > 4) {
-            val pinnedConversations = adapter.cloneCurrentList().filter { it.majorId > 0 }
-
-            if (pinnedConversations.size == 5 && position > 4) {
+            if (viewModel.pinnedConversationsCount.value == 5 && conversationIndex > 4) {
                 canPinOneMoreDialog = false
             }
         }
