@@ -44,9 +44,6 @@ class MainFragment : BaseViewModelFragment<MainViewModel>() {
             StopServicesEvent -> {
                 setFragmentResult(KeyStartServices, bundleOf("enable" to false))
             }
-            is SetNavBarVisibilityEvent -> {
-                (requireActivity() as MainActivity).toggleNavBarVisibility(event.isVisible)
-            }
         }
     }
 }

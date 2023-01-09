@@ -21,10 +21,6 @@ class MainViewModel @Inject constructor(private val router: Router) : BaseViewMo
         val accessToken = UserConfig.accessToken
         val fastToken = UserConfig.fastToken
 
-        viewModelScope.launch {
-            sendEvent(SetNavBarVisibilityEvent(UserConfig.isLoggedIn()))
-        }
-
         Log.d(
             "MainViewModel",
             "checkSession: currentUserId: $currentUserId; userId: $userId; accessToken: $accessToken; fastToken: $fastToken"
@@ -47,8 +43,6 @@ class MainViewModel @Inject constructor(private val router: Router) : BaseViewMo
     }
 
 }
-
-data class SetNavBarVisibilityEvent(val isVisible: Boolean) : VkEvent()
 
 object StartServicesEvent : VkEvent()
 

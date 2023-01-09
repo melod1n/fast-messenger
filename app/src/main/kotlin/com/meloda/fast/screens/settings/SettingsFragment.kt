@@ -30,10 +30,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
     OnSettingsLongClickListener,
     OnSettingsChangeListener {
 
-    init {
-        useInsets = false
-    }
-
     private val binding by viewBinding(FragmentSettingsBinding::bind)
 
     private var testAppearanceList = mutableListOf<SettingsItem<*>>()
@@ -186,8 +182,12 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
 
         val settingsList = mutableListOf<SettingsItem<*>>()
         listOf(
-            appearanceList, featuresList, visibilityList,
-            updatesList, msAppCenterList, debugList
+            appearanceList,
+            featuresList,
+            visibilityList,
+            updatesList,
+            msAppCenterList,
+            debugList,
         ).forEach(settingsList::addAll)
 
         testAppearanceList = appearanceList.toMutableList()

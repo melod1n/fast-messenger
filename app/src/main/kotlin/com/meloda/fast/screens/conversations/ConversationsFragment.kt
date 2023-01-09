@@ -4,9 +4,7 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
@@ -25,13 +23,13 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.addAvatarMenuItem
+import com.meloda.fast.ext.color
 import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.tintMenuItemIcons
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.screens.conversations.adapter.conversationDelegate
-import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -137,32 +135,19 @@ class ConversationsFragment :
     }
 
     private fun prepareToolbar() {
-        binding.toolbar.tintMenuItemIcons(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.colorPrimary
-            )
-        )
+        binding.toolbar.tintMenuItemIcons(color(R.color.colorPrimary))
 
         val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
 
-        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
-            user?.run {
-                avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
-                    ?.loadWithGlide {
-                        imageUrl = photo200
-                        crossFade = true
-                        asCircle = true
-                    }
+        UserConfig.vkUser.listenValue { user ->
+            if (user == null) return@listenValue
 
-                val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
-                header.findViewById<TextView>(R.id.name).text = user.fullName
-                header.findViewById<ImageView>(R.id.avatar).loadWithGlide {
-                    imageUrl = photo200
+            avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
+                ?.loadWithGlide {
+                    imageUrl = user.photo200
                     crossFade = true
                     asCircle = true
                 }
-            }
         }
 
         avatarMenuItem.actionView?.run {

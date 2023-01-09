@@ -81,10 +81,10 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
 //            syncTranslationTo(binding.root)
         }
 
+        val roundedCorners = 10.dpToPx().toFloat()
         val onFocusedChangedListener = View.OnFocusChangeListener { editText, hasFocus ->
-            val roundedCorners = 10.dpToPx().toFloat()
-            val inputLayout =
-                (editText.parent.parent as? TextInputLayout) ?: return@OnFocusChangeListener
+            val inputLayout = editText.parent.parent as? TextInputLayout
+                ?: throw NullPointerException("Something in layout was changed")
             val cornerRadiusToSet = if (hasFocus) 0F else roundedCorners
 
             if (inputLayout.boxCornerRadiusBottomEnd != cornerRadiusToSet) {

@@ -36,6 +36,7 @@ import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
 fun Int.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
@@ -225,6 +226,13 @@ fun EditText.notifyObservers() {
 fun EditText.notifyAboutChanges(mutableLiveData: MutableLiveData<String>) {
     doAfterTextChanged { editable ->
         mutableLiveData.value = editable?.toString().orEmpty()
+    }
+}
+
+fun EditText.notifyAboutChanges(stateFlow: MutableStateFlow<String>) {
+    doAfterTextChanged { editable ->
+        val text = editable?.toString().orEmpty()
+        stateFlow.update { text }
     }
 }
 

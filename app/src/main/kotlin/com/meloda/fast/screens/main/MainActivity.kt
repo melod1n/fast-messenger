@@ -10,9 +10,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.edit
-import androidx.core.view.size
-import androidx.datastore.preferences.core.edit
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
@@ -29,17 +26,13 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.AppSettings
 import com.meloda.fast.common.Screens
 import com.meloda.fast.common.UpdateManager
-import com.meloda.fast.common.dataStore
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.databinding.ActivityMainBinding
 import com.meloda.fast.ext.edgeToEdge
-import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.sdk26AndUp
 import com.meloda.fast.ext.sdk33AndUp
-import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
@@ -47,11 +40,8 @@ import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(R.layout.activity_main) {
@@ -82,10 +72,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     lateinit var updatesParser: LongPollUpdatesParser
 
     val binding by viewBinding(ActivityMainBinding::bind)
-
-    var useNavDrawer: Boolean by Delegates.observable(false) { _, _, _ ->
-        syncNavigationMode()
-    }
 
     private var isOnlineServiceWasLaunched: Boolean = false
 
@@ -123,14 +109,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             AppGlobal.preferences.getBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, true)
         )
 
-        binding.navigationBar.gone()
-
-        lifecycleScope.launch {
-            dataStore.data.map { data ->
-                useNavDrawer = data[AppSettings.keyUseNavigationDrawer] ?: false
-            }.collect()
-        }
-
         if (UserConfig.currentUserId == -1) {
             openMainScreen()
         } else {
@@ -144,22 +122,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 }
             }
         }
-
-        binding.drawer.getHeaderView(0).setOnLongClickListener {
-            lifecycleScope.launch {
-                dataStore.edit { settings ->
-                    val useNavDrawer = settings[AppSettings.keyUseNavigationDrawer] ?: false
-                    settings[AppSettings.keyUseNavigationDrawer] = !useNavDrawer
-
-                    finish()
-                    startActivity(Intent(this@MainActivity, MainActivity::class.java))
-                }
-            }
-            true
-        }
-
-        syncNavigationMode()
-        binding.navigationBar.selectedItemId = R.id.messages
 
         supportFragmentManager.setFragmentResultListener(
             MainFragment.KeyStartServices,
@@ -294,32 +256,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
     }
 
-    private fun addTestMenuItem() {
-        val test = binding.navigationBar.menu.add("Test")
-        test.setIcon(R.drawable.ic_round_settings_24)
-        test.setOnMenuItemClickListener {
-            if (binding.navigationBar.menu.size < 5) {
-                addClearMenuItem()
-            } else {
-                binding.navigationBar.menu.clear()
-                addTestMenuItem()
-            }
-
-            true
-        }
-    }
-
-    private fun addClearMenuItem() {
-        binding.navigationBar.menu.add("Test").run {
-            setIcon(R.drawable.ic_round_settings_24)
-            setOnMenuItemClickListener {
-                binding.navigationBar.menu.clear()
-                addTestMenuItem()
-                true
-            }
-        }
-    }
-
     private fun initUserConfig() {
         if (UserConfig.currentUserId == -1) return
 
@@ -342,31 +278,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     private fun openMainScreen() {
         router.newRootScreen(Screens.Main())
-    }
-
-    private fun syncNavigationMode() {
-//        binding.navigationBar.toggleVisibility(!useNavDrawer)
-        binding.drawerLayout.setDrawerLockMode(
-            if (useNavDrawer) DrawerLayout.LOCK_MODE_UNLOCKED
-            else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
-        )
-    }
-
-    fun toggleNavBarVisibility(isVisible: Boolean, smooth: Boolean = false) {
-        if (true) {
-            binding.navigationBar.gone()
-            return
-        }
-
-        if (useNavDrawer) {
-            binding.navigationBar.gone()
-        } else {
-            if (smooth) {
-                binding.navigationBar.toggleVisibility(isVisible)
-            } else {
-                binding.navigationBar.toggleVisibility(isVisible)
-            }
-        }
     }
 
     override fun onDestroy() {

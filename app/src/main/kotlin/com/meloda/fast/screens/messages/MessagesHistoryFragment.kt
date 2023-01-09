@@ -163,10 +163,6 @@ class MessagesHistoryFragment :
 
     private lateinit var attachmentController: AttachmentPanelController
 
-    init {
-        shouldNavBarShown = false
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

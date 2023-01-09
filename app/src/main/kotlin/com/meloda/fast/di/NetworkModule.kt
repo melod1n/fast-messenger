@@ -45,7 +45,7 @@ object NetworkModule {
     @Singleton
     @Provides
     fun provideChuckerInterceptor(
-        chuckerCollector: ChuckerCollector
+        chuckerCollector: ChuckerCollector,
     ): ChuckerInterceptor =
         ChuckerInterceptor.Builder(AppGlobal.Instance)
             .collector(chuckerCollector)
@@ -55,7 +55,7 @@ object NetworkModule {
     @Provides
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
-        chuckerInterceptor: ChuckerInterceptor
+        chuckerInterceptor: ChuckerInterceptor,
     ): OkHttpClient =
         OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
@@ -84,7 +84,7 @@ object NetworkModule {
     @Provides
     fun provideRetrofit(
         client: OkHttpClient,
-        gson: Gson
+        gson: Gson,
     ): Retrofit = Retrofit.Builder()
         .baseUrl("${VkUrls.API}/")
         .addConverterFactory(GsonConverterFactory.create(gson))

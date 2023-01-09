@@ -17,6 +17,7 @@ import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.requireValue
 import com.meloda.fast.model.AppAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -63,7 +64,7 @@ class LoginViewModel @Inject constructor(
             }
 
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             makeJob(
                 {
                     authRepository.auth(

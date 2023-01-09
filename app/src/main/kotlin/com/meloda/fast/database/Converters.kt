@@ -2,10 +2,10 @@ package com.meloda.fast.database
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
+import com.meloda.fast.api.base.AttachmentClassNameIsEmptyException
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
-import com.meloda.fast.ext.notNull
 import org.json.JSONObject
 
 @Suppress("UnnecessaryVariable")
@@ -19,18 +19,28 @@ class Converters {
     fun fromGeoToString(geo: BaseVkMessage.Geo?): String? {
         if (geo == null) return null
 
-        val string = Gson().toJson(geo)
+        return try {
+            val string = Gson().toJson(geo)
 
-        return string
+            return string
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromStringToGeo(string: String?): BaseVkMessage.Geo? {
         if (string == null) return null
 
-        val geo = Gson().fromJson(string, BaseVkMessage.Geo::class.java)
+        return try {
+            val geo = Gson().fromJson(string, BaseVkMessage.Geo::class.java)
 
-        return geo
+            return geo
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
@@ -56,26 +66,36 @@ class Converters {
         }
 
 
-        val message = fromStringToVkMessage(string).notNull()
-        return listOf(message)
+        val message = fromStringToVkMessage(string)
+        return message?.let { listOf(it) }
     }
 
     @TypeConverter
     fun fromVkMessageToString(message: VkMessage?): String? {
         if (message == null) return null
 
-        val string = Gson().toJson(message)
+        return try {
+            val string = Gson().toJson(message)
 
-        return string
+            return string
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromStringToVkMessage(string: String?): VkMessage? {
         if (string == null) return null
 
-        val message = Gson().fromJson(string, VkMessage::class.java)
+        return try {
+            val message = Gson().fromJson(string, VkMessage::class.java)
 
-        return message
+            return message
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
@@ -99,29 +119,42 @@ class Converters {
             return attachments
         }
 
+        val attachment = fromStringToVkAttachment(string)
 
-        val attachment = fromStringToVkAttachment(string).notNull()
-
-        return listOf(attachment)
+        return attachment?.let { listOf(it) }
     }
 
     @TypeConverter
     fun fromVkAttachmentToString(attachment: VkAttachment?): String? {
         if (attachment == null) return null
 
-        val string = Gson().toJson(attachment)
-
-        return string
+        try {
+            attachment.javaClass.getDeclaredField("className")
+        } catch (e: NoSuchFieldException) {
+            throw AttachmentClassNameIsEmptyException(attachment)
+        }
+        return try {
+            val string = Gson().toJson(attachment)
+            string
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromStringToVkAttachment(string: String?): VkAttachment? {
         if (string.isNullOrBlank()) return null
 
-        val className = JSONObject(string).optString("className")
+        return try {
+            val className = JSONObject(string).optString("className")
 
-        val attachment = Gson().fromJson(string, Class.forName(className)) as? VkAttachment?
+            val attachment = Gson().fromJson(string, Class.forName(className)) as? VkAttachment?
 
-        return attachment
+            return attachment
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

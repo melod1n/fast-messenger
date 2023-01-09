@@ -13,7 +13,7 @@ data class VkVideo(
     val images: List<VideoImage>,
     val firstFrames: List<BaseVkVideo.FirstFrame>?,
     val accessKey: String?,
-    val title: String
+    val title: String,
 ) : VkAttachment() {
 
     @IgnoredOnParcel
@@ -47,11 +47,11 @@ data class VkVideo(
         val width: Int,
         val height: Int,
         val url: String,
-        val withPadding: Boolean
+        val withPadding: Boolean,
     ) : Parcelable {
 
         @IgnoredOnParcel
-        var shapeKind: ShapeKind
+        var shapeKind: ShapeKind? = null
 
         init {
             val ratio = width.toFloat() / height.toFloat()
@@ -64,10 +64,21 @@ data class VkVideo(
         }
     }
 
-    sealed class ShapeKind {
-        object Vertical : ShapeKind()
-        object Horizontal : ShapeKind()
-        object Square : ShapeKind()
+    open class ShapeKind(val value: Int) {
+        object Square : ShapeKind(0)
+        object Vertical : ShapeKind(1)
+        object Horizontal : ShapeKind(2)
+
+        companion object {
+
+
+            fun parse(value: Int) = when (value) {
+                0 -> Square
+                1 -> Vertical
+                2 -> Horizontal
+                else -> throw IllegalArgumentException("Unknown value: $value")
+            }
+        }
     }
 
     override fun asString(withAccessKey: Boolean) = VkUtils.attachmentToString(

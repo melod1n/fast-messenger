@@ -57,8 +57,6 @@ class ConversationsAdapter constructor(
         }
     }
 
-    var pinnedCount = 0
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
         return ItemHolder(
             ItemConversationBinding.inflate(inflater, parent, false),

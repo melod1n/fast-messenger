@@ -190,16 +190,18 @@ class ConversationsViewModel @Inject constructor(
         return conversation.fill()
     }
 
-    fun loadProfileUser() = viewModelScope.launch {
-        makeJob({ usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
+    fun loadProfileUser() = viewModelScope.launch(Dispatchers.IO) {
+        makeJob(
+            { usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS)) },
             onAnswer = {
                 it.response?.let { r ->
                     val users = r.map { u -> u.mapToDomain() }
                     this@ConversationsViewModel.usersRepository.storeUsers(users)
 
-                    UserConfig.vkUser.value = users[0]
+                    UserConfig.vkUser.emit(users.first())
                 }
-            })
+            }
+        )
     }
 
     fun deleteConversation(peerId: Int) = viewModelScope.launch {
