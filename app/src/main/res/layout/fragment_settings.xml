@@ -26,7 +26,6 @@
                 app:navigationIcon="@drawable/ic_round_arrow_back_24"
                 app:navigationIconTint="?colorOnBackground"
                 app:title="@string/title_settings" />
-
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 

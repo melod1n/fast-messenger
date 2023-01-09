@@ -49,13 +49,13 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
 
         <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+
+        <item name="collapsingToolbarLayoutStyle">@style/Ui.Widget.CollapsingToolbar</item>
     </style>
 
     <style name="AppTheme" parent="Base.V21.AppTheme" />
 
-    <style name="TestTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-
-    </style>
+    <style name="TestTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
 
     <style name="AppTheme.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/colorBackground</item>

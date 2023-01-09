@@ -37,4 +37,8 @@
         <item name="endIconMode">password_toggle</item>
     </style>
 
+    <style name="Ui.Widget.CollapsingToolbar" parent="Widget.Material3.CollapsingToolbar">
+        <item name="scrimVisibleHeightTrigger">60dp</item>
+    </style>
+
 </resources>

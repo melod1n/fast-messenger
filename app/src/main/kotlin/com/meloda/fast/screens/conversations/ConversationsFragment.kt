@@ -1,14 +1,19 @@
 package com.meloda.fast.screens.conversations
 
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.animation.doOnEnd
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -24,8 +29,10 @@ import com.meloda.fast.databinding.FragmentConversationsBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.addAvatarMenuItem
 import com.meloda.fast.ext.color
+import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.tintMenuItemIcons
 import com.meloda.fast.ext.toggleVisibility
@@ -119,6 +126,7 @@ class ConversationsFragment :
 
     private fun prepareView() {
         applyInsets()
+        prepareAppBar()
         prepareToolbar()
         prepareCreateChat()
         prepareRecyclerView()
@@ -132,6 +140,10 @@ class ConversationsFragment :
         binding.recyclerView.applyInsetter {
             type(navigationBars = true) { padding() }
         }
+    }
+
+    private fun prepareAppBar() {
+        binding.appBar.isLiftOnScroll = false
     }
 
     private fun prepareToolbar() {
@@ -162,6 +174,27 @@ class ConversationsFragment :
 
     private fun prepareRecyclerView() {
         binding.recyclerView.itemAnimator = null
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
+            private var scrollState = 0
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                scrollState = newState
+            }
+
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val firstVisiblePosition =
+                    (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+
+                applyAppBarElevation(
+                    scrollState != RecyclerView.SCROLL_STATE_IDLE && firstVisiblePosition > 0
+                )
+            }
+        })
 
         val conversationsDelegate = conversationDelegate(
             onItemClickListener = { conversation ->
@@ -183,6 +216,38 @@ class ConversationsFragment :
         adapter.addDelegate(conversationsDelegate)
 
         binding.recyclerView.adapter = adapter
+    }
+
+    private var appBarElevationAnimator: ValueAnimator? = null
+
+    private fun applyAppBarElevation(isLifted: Boolean) {
+        val currentElevation = binding.appBar.elevation
+        val elevationToSet = if (isLifted) 6.dpToPx().toFloat() else 0F
+
+        if (!isLifted && currentElevation > 0) {
+            appBarElevationAnimator?.cancel()
+        }
+
+        if (appBarElevationAnimator?.isRunning.isTrue ||
+            currentElevation == elevationToSet
+        ) return
+
+        appBarElevationAnimator = ValueAnimator.ofFloat(
+            currentElevation, elevationToSet
+        ).apply {
+            duration = 200
+            interpolator = AccelerateDecelerateInterpolator()
+
+            addUpdateListener { animator ->
+                val value = animator.animatedValue as Float
+                binding.appBar.elevation = value
+            }
+
+            doOnEnd {
+                appBarElevationAnimator = null
+            }
+            start()
+        }
     }
 
     private fun prepareRefreshLayout() {
