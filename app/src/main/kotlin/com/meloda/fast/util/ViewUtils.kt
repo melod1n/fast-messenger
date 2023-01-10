@@ -8,31 +8,39 @@ import com.meloda.fast.R
 object ViewUtils {
 
     fun Context.showErrorDialog(
-        message: String,
+        title: String? = null,
+        message: String? = null,
         showErrorPrefix: Boolean = true,
-        isCancelable: Boolean? = null,
-        positiveText: Int? = null,
+        isCancelable: Boolean = true,
+        positiveText: String? = null,
         positiveAction: (() -> Unit)? = null,
-        negativeText: Int? = null,
+        negativeText: String? = null,
         negativeAction: (() -> Unit)? = null,
+        onDismissAction: (() -> Unit)? = null,
     ): AlertDialog {
         val builder = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.warning)
+            .setCancelable(isCancelable)
             .setMessage(
                 if (showErrorPrefix) getString(R.string.error, message)
                 else message
             )
-            .setPositiveButton(positiveText ?: R.string.ok) { _, _ ->
-                positiveAction?.invoke()
+            .setOnDismissListener {
+                onDismissAction?.invoke()
             }
 
-        negativeAction?.run {
-            builder.setNegativeButton(
-                negativeText ?: R.string.cancel
-            ) { _, _ -> this.invoke() }
+        title?.let { text ->
+            builder.setTitle(text)
+        } ?: run {
+            builder.setTitle(R.string.warning)
         }
 
-        isCancelable?.run { builder.setCancelable(this) }
+        positiveText?.let { text ->
+            builder.setPositiveButton(text) { _, _ -> positiveAction?.invoke() }
+        }
+
+        negativeText?.let { text ->
+            builder.setNegativeButton(text) { _, _ -> negativeAction?.invoke() }
+        }
 
         return builder.show()
     }

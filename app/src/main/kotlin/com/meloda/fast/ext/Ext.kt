@@ -264,3 +264,7 @@ inline fun <reified T, K, M : MutableMap<in K, T>> Iterable<T>.toMap(
     }
     return destination
 }
+
+fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
+    if (condition.invoke()) add(element)
+}

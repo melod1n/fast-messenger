@@ -1,68 +1,197 @@
 package com.meloda.fast.screens.login
 
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.network.auth.AuthDirectRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
 import com.meloda.fast.base.viewmodel.UnknownErrorEvent
+import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
-import com.meloda.fast.ext.requireValue
 import com.meloda.fast.model.AppAccount
+import com.meloda.fast.screens.login.model.LoginFormState
+import com.meloda.fast.screens.login.model.LoginValidationResult
+import com.meloda.fast.screens.login.validation.LoginValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+interface ILoginViewModel {
+    val events: Flow<VkEvent>
+
+    val formState: StateFlow<LoginFormState>
+
+    val isLoadingInProgress: StateFlow<Boolean>
+
+    val isNeedToShowLoginError: StateFlow<Boolean>
+    val isNeedToShowPasswordError: StateFlow<Boolean>
+    val isNeedToShowCaptchaError: StateFlow<Boolean>
+    val isNeedToShowValidationError: StateFlow<Boolean>
+
+    val isNeedToShowCaptchaDialog: StateFlow<Boolean>
+    val isNeedToShowValidationDialog: StateFlow<Boolean>
+    val isNeedToShowValidationToast: StateFlow<Boolean>
+    val isNeedToShowFastLoginDialog: StateFlow<Boolean>
+    val isNeedToShowErrorDialog: StateFlow<Boolean>
+
+    fun onLoginInputChanged(newLogin: String)
+    fun onPasswordInputChanged(newPassword: String)
+    fun onCaptchaCodeInputChanged(newCaptcha: String)
+    fun onValidationCodeInputChanged(newTwoFa: String)
+
+
+    fun onCaptchaEventReceived(event: CaptchaRequiredEvent)
+
+    fun onValidationEventReceived(event: ValidationRequiredEvent)
+
+    fun onSignInButtonClicked()
+    fun onSignInButtonLongClicked()
+
+    fun onCaptchaDialogOkButtonClicked()
+
+    fun onValidationDialogOkButtonClicked()
+
+    fun onFastLoginDialogOkButtonClicked()
+
+    fun onCaptchaDialogDismissed()
+    fun onValidationDialogDismissed()
+    fun onValidationToastShown()
+    fun onFastLoginDialogDismissed()
+    fun onErrorDialogDismissed()
+}
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val router: Router,
-    private val accounts: AccountsDao
-) : BaseViewModel() {
+    private val accounts: AccountsDao,
+    private val loginValidator: LoginValidator,
+) : BaseViewModel(), ILoginViewModel {
 
-    val loginValue = MutableLiveData<String>()
-    val passwordValue = MutableLiveData<String>()
-    val captchaValue = MutableLiveData<String?>()
-    val twoFaValue = MutableLiveData<String?>()
+    override val events: Flow<VkEvent>
+        get() = tasksEvent
 
-    val isLoginValid = MediatorLiveData<Boolean>().apply {
-        addSource(loginValue) { login ->
-            this.value = !login.isNullOrBlank()
+    override val formState = MutableStateFlow(LoginFormState.EMPTY)
+
+    private val validationState: StateFlow<List<LoginValidationResult>> = formState.map { state ->
+        loginValidator.validate(state)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, listOf(LoginValidationResult.Empty))
+
+    override val isLoadingInProgress = MutableStateFlow(false)
+    override val isNeedToShowLoginError = MutableStateFlow(false)
+    override val isNeedToShowPasswordError = MutableStateFlow(false)
+    override val isNeedToShowCaptchaError = MutableStateFlow(false)
+    override val isNeedToShowValidationError = MutableStateFlow(false)
+    override val isNeedToShowErrorDialog = MutableStateFlow(false)
+    override val isNeedToShowCaptchaDialog = MutableStateFlow(false)
+    override val isNeedToShowValidationDialog = MutableStateFlow(false)
+    override val isNeedToShowValidationToast = MutableStateFlow(false)
+    override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
+
+    override fun onLoginInputChanged(newLogin: String) {
+        val newState = formState.value.copy(login = newLogin)
+        formState.update { newState }
+        isNeedToShowPasswordError.update { false }
+    }
+
+    override fun onPasswordInputChanged(newPassword: String) {
+        val newState = formState.value.copy(password = newPassword)
+        formState.update { newState }
+        isNeedToShowPasswordError.update { false }
+    }
+
+    override fun onCaptchaCodeInputChanged(newCaptcha: String) {
+        val newState = formState.value.copy(captchaCode = newCaptcha)
+        formState.update { newState }
+        processValidation()
+    }
+
+    override fun onValidationCodeInputChanged(newTwoFa: String) {
+        val newState = formState.value.copy()
+        formState.update { newState }
+        processValidation()
+    }
+
+    override fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
+        val newForm = formState.value.copy(
+            captchaSid = event.sid,
+            captchaImage = event.image
+        )
+
+        viewModelScope.launch { formState.emit(newForm) }
+    }
+
+    override fun onValidationEventReceived(event: ValidationRequiredEvent) {
+        val newForm = formState.value.copy(
+            validationSid = event.sid
+        )
+
+        viewModelScope.launch {
+            formState.emit(newForm)
+            isNeedToShowValidationToast.emit(true)
+
+            sendValidationCode()
         }
     }
-    val isPasswordValid = MediatorLiveData<Boolean>().apply {
-        addSource(passwordValue) { password ->
-            this.value = !password.isNullOrBlank()
-        }
-    }
-    val isFieldsValid = MediatorLiveData<Boolean>().apply {
-        val observer = Observer<Boolean> {
-            this.value = isLoginValid.value == true && isPasswordValid.value == true
-        }
-        addSource(isLoginValid, observer)
-        addSource(isPasswordValid, observer)
+
+    override fun onSignInButtonClicked() {
+        login()
     }
 
-    var currentAccount: AppAccount? = null
+    override fun onSignInButtonLongClicked() {
+        viewModelScope.launch { isNeedToShowFastLoginDialog.emit(true) }
+    }
 
-    fun login() {
-        if (isLoginValid.value != true || isPasswordValid.value != true) return
+    override fun onCaptchaDialogOkButtonClicked() {
+        login()
+    }
 
-        val captchaSplit =
-            if (captchaValue.value != null) {
-                captchaValue.requireValue()?.split(";")?.run { first() to last() }
-            } else {
-                null
-            }
+    override fun onValidationDialogOkButtonClicked() {
+        login()
+    }
 
+    override fun onFastLoginDialogOkButtonClicked() {
+        login()
+    }
+
+    override fun onCaptchaDialogDismissed() {
+        isNeedToShowCaptchaDialog.tryEmit(false)
+    }
+
+    override fun onValidationDialogDismissed() {
+        isNeedToShowValidationDialog.tryEmit(false)
+    }
+
+    override fun onValidationToastShown() {
+        isNeedToShowValidationToast.tryEmit(false)
+    }
+
+    override fun onFastLoginDialogDismissed() {
+        isNeedToShowFastLoginDialog.tryEmit(false)
+    }
+
+    override fun onErrorDialogDismissed() {
+        isNeedToShowErrorDialog.tryEmit(false)
+    }
+
+    private fun login(forceSms: Boolean = false) {
+        processValidation()
+        if (!validationState.value.contains(LoginValidationResult.Valid)) return
+
+        val form = formState.value
 
         viewModelScope.launch(Dispatchers.IO) {
             makeJob(
@@ -72,13 +201,13 @@ class LoginViewModel @Inject constructor(
                             grantType = VKConstants.Auth.GrantType.PASSWORD,
                             clientId = VKConstants.VK_APP_ID,
                             clientSecret = VKConstants.VK_SECRET,
-                            username = loginValue.value.orEmpty(),
-                            password = passwordValue.value.orEmpty(),
+                            username = form.login,
+                            password = form.password,
                             scope = VKConstants.Auth.SCOPE,
-                            twoFaForceSms = true,
-                            twoFaCode = twoFaValue.value,
-                            captchaSid = captchaSplit?.first,
-                            captchaKey = captchaSplit?.second
+                            twoFaForceSms = forceSms,
+                            twoFaCode = form.validationCode,
+                            captchaSid = form.captchaSid,
+                            captchaKey = form.captchaCode
                         )
                     )
                 },
@@ -88,7 +217,7 @@ class LoginViewModel @Inject constructor(
                         return@makeJob
                     }
 
-                    currentAccount = AppAccount(
+                    val currentAccount = AppAccount(
                         userId = it.userId,
                         accessToken = it.accessToken,
                         fastToken = null
@@ -96,35 +225,52 @@ class LoginViewModel @Inject constructor(
                         UserConfig.currentUserId = account.userId
                         UserConfig.userId = account.userId
                         UserConfig.accessToken = account.accessToken
+                        UserConfig.fastToken = account.fastToken
                     }
 
-                    sendEvent(LoginSuccessAuth)
+                    accounts.insert(listOf(currentAccount))
+
+                    router.replaceScreen(Screens.Main())
                 },
                 onAnyResult = {
-                    captchaValue.value = null
-                    twoFaValue.value = null
+                    val newForm = formState.value.copy(
+                        captchaSid = null,
+                        captchaImage = null,
+                        captchaCode = "",
+                        validationSid = null,
+                        validationCode = ""
+                    )
+                    formState.update { newForm }
                 }
             )
         }
     }
 
-    fun sendSms(validationSid: String) = viewModelScope.launch {
-        makeJob({ authRepository.sendSms(validationSid) },
-            onAnswer = { sendEvent(LoginCodeSent) }
-        )
+    private fun sendValidationCode() {
+        val validationSid = formState.value.validationSid ?: return
+
+        viewModelScope.launch {
+            makeJob(
+                { authRepository.sendSms(validationSid) },
+                onAnswer = {
+                    isNeedToShowValidationDialog.emit(true)
+                }
+            )
+        }
     }
 
-    fun openPrimaryScreen() {
-        router.replaceScreen(Screens.Main())
-    }
+    private fun processValidation() {
+        val validationResults = validationState.value
 
-    fun initUserConfig() = viewModelScope.launch {
-        val account = requireNotNull(currentAccount)
-        UserConfig.fastToken = account.fastToken
-
-        accounts.insert(listOf(account))
+        validationResults.forEach { result ->
+            when (result) {
+                LoginValidationResult.LoginEmpty -> isNeedToShowLoginError.tryEmit(true)
+                LoginValidationResult.PasswordEmpty -> isNeedToShowPasswordError.tryEmit(true)
+                LoginValidationResult.CaptchaEmpty -> isNeedToShowCaptchaError.tryEmit(true)
+                LoginValidationResult.ValidationEmpty -> isNeedToShowValidationError.tryEmit(true)
+                LoginValidationResult.Empty -> Unit
+                LoginValidationResult.Valid -> Unit
+            }
+        }
     }
 }
-
-object LoginCodeSent : VkEvent()
-object LoginSuccessAuth : VkEvent()
