@@ -5,7 +5,6 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.lifecycleScope
 import com.meloda.fast.base.BaseFragment
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
@@ -16,9 +15,14 @@ abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
 
     protected abstract val viewModel: VM
 
+    @Deprecated("")
+    protected var isNeedToSubscribeToViewModel: Boolean = true
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        subscribeToViewModel(viewModel)
+        if (isNeedToSubscribeToViewModel) {
+            subscribeToViewModel(viewModel)
+        }
     }
 
     protected open fun onEvent(event: VkEvent) {

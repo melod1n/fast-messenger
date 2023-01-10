@@ -99,12 +99,12 @@ class ConversationsFragment :
                 if (isEasterEgg) "Выйти внаружу"
                 else getString(R.string.action_sign_out)
             ) { _, _ ->
-                lifecycleScope.launch(Dispatchers.Default) {
+                lifecycleScope.launch(Dispatchers.IO) {
                     UserConfig.clear()
                     AppGlobal.cacheDatabase.clearAllTables()
                     setFragmentResult(
-                        MainFragment.KeyStartServices,
-                        bundleOf("enable" to false)
+                        MainFragment.START_SERVICES_KEY,
+                        bundleOf(MainFragment.START_SERVICES_ARG_ENABLE to false)
                     )
 
                     viewModel.openRootScreen()

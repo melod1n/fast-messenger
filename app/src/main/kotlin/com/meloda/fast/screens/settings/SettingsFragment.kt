@@ -1,8 +1,10 @@
 package com.meloda.fast.screens.settings
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
@@ -10,9 +12,13 @@ import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentSettingsBinding
+import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.settings.SettingsItem
+import com.meloda.fast.screens.main.LongPollState
+import com.meloda.fast.screens.main.LongPollUtils
+import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.settings.adapter.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.adapter.OnSettingsClickListener
 import com.meloda.fast.screens.settings.adapter.OnSettingsLongClickListener
@@ -23,6 +29,7 @@ import com.meloda.fast.screens.settings.adapter.settingsTitleItemDelegate
 import com.meloda.fast.screens.settings.adapter.settingsTitleSummaryItemDelegate
 import com.microsoft.appcenter.crashes.model.TestCrashException
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
 class SettingsFragment : BaseFragment(R.layout.fragment_settings),
@@ -61,7 +68,6 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             defaultValue = true,
             title = "Hide keyboard on scroll"
         )
-
         val featuresFastText = SettingsItem.EditText(
             itemKey = KEY_FEATURES_FAST_TEXT,
             title = "Fast text",
@@ -76,6 +82,12 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                 }
             }
         }
+        val featuresLongPollBackground = SettingsItem.Switch(
+            itemKey = KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+            defaultValue = DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
+            title = "LongPoll in background",
+            summary = "Your messages will be updates even when app is not on the screen"
+        )
 
         val visibilityTitle = SettingsItem.Title(
             itemKey = "visibility",
@@ -156,6 +168,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             featuresTitle,
             featuresHideKeyboardOnScroll,
             featuresFastText,
+            featuresLongPollBackground
         )
         val visibilityList = listOf(
             visibilityTitle,
@@ -218,6 +231,10 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
 
         if (!AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)) {
             settingsList.removeAll(debugList)
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            settingsList.remove(featuresLongPollBackground)
         }
 
         adapter.items = settingsList.toList()
@@ -288,6 +305,13 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
     @Suppress("UNCHECKED_CAST")
     override fun onChange(key: String, newValue: Any?) {
         when (key) {
+            KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
+                LongPollUtils.requestNotificationsPermission(
+                    fragmentActivity = requireActivity(),
+                    onStateChangedAction = this::changeLongPollState,
+                    fromSettings = true
+                )
+            }
             KEY_DEBUG_TEST_THEME -> {
                 requireActivity().recreate()
             }
@@ -306,6 +330,10 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         }
     }
 
+    private fun changeLongPollState(state: LongPollState) = lifecycleScope.launch {
+        (requireActivity() as MainActivity).longPollState.emit(state)
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun List<AdapterDiffItem>.castAsSettings(): List<SettingsItem<*>> {
         return (this as List<SettingsItem<*>>).toList()
@@ -319,6 +347,8 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
         const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
         const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"
+        const val KEY_FEATURES_LONG_POLL_IN_BACKGROUND = "features_lp_background"
+        const val DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND = true
 
         const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
 

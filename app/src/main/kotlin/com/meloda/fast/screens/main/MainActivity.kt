@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.main
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipData
@@ -14,11 +13,6 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
-import com.fondesa.kpermissions.coroutines.sendSuspend
-import com.fondesa.kpermissions.extension.permissionsBuilder
-import com.fondesa.kpermissions.isGranted
-import com.fondesa.kpermissions.isPermanentlyDenied
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
@@ -33,12 +27,10 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.data.account.AccountsDao
-import com.meloda.fast.databinding.ActivityMainBinding
 import com.meloda.fast.ext.edgeToEdge
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.sdk26AndUp
-import com.meloda.fast.ext.sdk33AndUp
-import com.meloda.fast.ext.toast
+import com.meloda.fast.screens.main.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
@@ -78,17 +70,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     @Inject
     lateinit var updatesParser: LongPollUpdatesParser
 
-    val binding by viewBinding(ActivityMainBinding::bind)
-
     private var isOnlineServiceWasLaunched: Boolean = false
 
-    private val longPollState = MutableStateFlow<LongPollState>(LongPollState.Stop)
-
-    private sealed class LongPollState {
-        object ForegroundService : LongPollState()
-        object DefaultService : LongPollState()
-        object Stop : LongPollState()
-    }
+    val longPollState = MutableStateFlow<LongPollState>(LongPollState.Stop)
 
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
@@ -139,10 +123,10 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
 
         supportFragmentManager.setFragmentResultListener(
-            MainFragment.KeyStartServices,
+            MainFragment.START_SERVICES_KEY,
             this
         ) { _, result ->
-            val enable = result.getBoolean("enable", true)
+            val enable = result.getBoolean(MainFragment.START_SERVICES_ARG_ENABLE, true)
             if (enable) {
                 startServices()
             } else {
@@ -151,14 +135,21 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
 
         longPollState.listenValue { state ->
+            stopLongPollService()
+
             when (state) {
                 LongPollState.DefaultService -> startLongPollService(false)
                 LongPollState.ForegroundService -> startLongPollService(true)
-                LongPollState.Stop -> stopLongPollService()
+                else -> Unit
             }
         }
 
-        requestNotificationsPermission()
+        requestNotificationsPermission(
+            fragmentActivity = this,
+            onStateChangedAction = { state ->
+                lifecycleScope.launch { longPollState.emit(state) }
+            }
+        )
     }
 
     private fun createNotificationChannels() {
@@ -184,69 +175,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
             notificationManager.createNotificationChannels(listOf(dialogsChannel, longPollChannel))
         }
-    }
-
-    private fun requestNotificationsPermission() {
-        sdk33AndUp {
-            lifecycleScope.launch {
-                val result = permissionsBuilder(Manifest.permission.POST_NOTIFICATIONS)
-                    .build()
-                    .sendSuspend()
-                    .first()
-
-                val resultToEmit: LongPollState = when {
-                    result.isGranted() -> LongPollState.ForegroundService
-                    else -> LongPollState.DefaultService
-                }
-
-                if (longPollState.value != resultToEmit) {
-                    longPollState.emit(LongPollState.Stop)
-                    longPollState.emit(resultToEmit)
-                }
-
-                val isLongPollOnlyInsideApp =
-                    AppGlobal.preferences.getBoolean("lp_inside_app", false)
-
-                if (result.isGranted()) {
-                    AppGlobal.preferences.edit { putBoolean("lp_inside_app", false) }
-                }
-
-                if (!result.isGranted() && !isLongPollOnlyInsideApp) {
-                    showNotificationsPermissionAlert(result.isPermanentlyDenied())
-                }
-            }
-        } ?: run {
-            lifecycleScope.launch {
-                longPollState.emit(LongPollState.ForegroundService)
-            }
-        }
-    }
-
-    private fun showNotificationsPermissionAlert(permanentlyDenied: Boolean) {
-        val builder = MaterialAlertDialogBuilder(this@MainActivity)
-            .setCancelable(false)
-            .setTitle(R.string.warning)
-            .setMessage(
-                "You denied notifications permission." +
-                        "\nWithout notifications LongPoll service will work only inside app." +
-                        "\nThis means that messages will only be updated while app is on the screen"
-            )
-
-        if (permanentlyDenied) {
-            builder.setPositiveButton("Open settings") { _, _ ->
-                "open settings".toast()
-            }
-            builder.setNeutralButton(R.string.ok) { _, _ ->
-                AppGlobal.preferences.edit { putBoolean("lp_inside_app", true) }
-            }
-        } else {
-            builder.setPositiveButton("Grant") { _, _ ->
-                requestNotificationsPermission()
-            }
-            builder.setNeutralButton("Dismiss", null)
-        }
-
-        builder.show()
     }
 
     override fun onResume() {
