@@ -18,7 +18,6 @@ import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesRepository
-import com.meloda.fast.ext.sdk33AndUp
 import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -46,10 +45,10 @@ class LongPollService : Service() {
         throwable.printStackTrace()
     }
 
-    val coroutineContext: CoroutineContext
+    private val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + job + exceptionHandler
 
-    val coroutineScope = CoroutineScope(coroutineContext)
+    private val coroutineScope = CoroutineScope(coroutineContext)
 
     @Inject
     lateinit var repository: MessagesRepository
@@ -67,7 +66,10 @@ class LongPollService : Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val asForeground = intent.getBooleanExtra("foreground", false)
 
-        Log.d("LongPollService", "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId")
+        Log.d(
+            "LongPollService",
+            "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId"
+        )
 
         coroutineScope.launch { startPolling().join() }
 
@@ -193,8 +195,6 @@ class LongPollService : Service() {
         )
 
         println("$TAG: lastUpdateResponse: $response")
-
-        if (response is ApiAnswer.Error) return null
 
         if (response is ApiAnswer.Success) {
             return response.data

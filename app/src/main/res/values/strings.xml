@@ -204,4 +204,7 @@
     <string name="user_name">User name</string>
     <string name="sign_in_to_vk">Sign in to VK</string>
 
+
+    <string name="easter_egg_log_out_dmitry" translatable="false">Выйти внаружу</string>
+
 </resources>

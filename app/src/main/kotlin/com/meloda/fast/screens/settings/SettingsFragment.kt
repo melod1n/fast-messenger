@@ -313,7 +313,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                 )
             }
             KEY_DEBUG_TEST_THEME -> {
-                requireActivity().recreate()
+//                requireActivity().recreate()
             }
             KEY_DEBUG_LIST_UPDATE -> {
                 val showAppearanceCategory = newValue as Boolean

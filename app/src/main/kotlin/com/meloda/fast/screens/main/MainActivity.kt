@@ -128,6 +128,13 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         ) { _, result ->
             val enable = result.getBoolean(MainFragment.START_SERVICES_ARG_ENABLE, true)
             if (enable) {
+                requestNotificationsPermission(
+                    fragmentActivity = this,
+                    onStateChangedAction = { state ->
+                        lifecycleScope.launch { longPollState.emit(state) }
+                    }
+                )
+
                 startServices()
             } else {
                 stopServices()
@@ -143,13 +150,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 else -> Unit
             }
         }
-
-        requestNotificationsPermission(
-            fragmentActivity = this,
-            onStateChangedAction = { state ->
-                lifecycleScope.launch { longPollState.emit(state) }
-            }
-        )
     }
 
     private fun createNotificationChannels() {

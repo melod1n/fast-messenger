@@ -34,9 +34,12 @@ import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.string
 import com.meloda.fast.ext.tintMenuItemIcons
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.screens.conversations.adapter.conversationDelegate
+import com.meloda.fast.screens.main.LongPollState
+import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,33 +52,9 @@ class ConversationsFragment :
     BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
 
     override val viewModel: ConversationsViewModel by viewModels()
+
     private val binding by viewBinding(FragmentConversationsBinding::bind)
-
     private val adapter by lazy { AsyncDiffItemAdapter() }
-
-    private val avatarPopupMenu: PopupMenu
-        get() =
-            PopupMenu(
-                requireContext(),
-                binding.toolbar,
-                Gravity.BOTTOM or Gravity.END
-            ).apply {
-                menu.add("Settings")
-                menu.add(getString(R.string.log_out))
-                setOnMenuItemClickListener { item ->
-                    return@setOnMenuItemClickListener when (item.title) {
-                        getString(R.string.log_out) -> {
-                            showLogOutDialog()
-                            true
-                        }
-                        "Settings" -> {
-                            requireActivityRouter().navigateTo(Screens.Settings())
-                            true
-                        }
-                        else -> false
-                    }
-                }
-            }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -87,21 +66,26 @@ class ConversationsFragment :
     }
 
     private fun showLogOutDialog() {
-        val isEasterEgg = UserConfig.userId == 37610580
+        val isEasterEgg = UserConfig.userId == ID_DMITRY
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
-                if (isEasterEgg) "Выйти внаружу?"
-                else getString(R.string.sign_out_confirm_title)
+                if (isEasterEgg) "%s?".format(string(R.string.easter_egg_log_out_dmitry))
+                else string(R.string.sign_out_confirm_title)
             )
             .setMessage(R.string.sign_out_confirm)
             .setPositiveButton(
-                if (isEasterEgg) "Выйти внаружу"
-                else getString(R.string.action_sign_out)
+                if (isEasterEgg) string(R.string.easter_egg_log_out_dmitry)
+                else string(R.string.action_sign_out)
             ) { _, _ ->
                 lifecycleScope.launch(Dispatchers.IO) {
-                    UserConfig.clear()
+                    AppGlobal.accountsDatabase.accountsDao.deleteById(UserConfig.userId)
                     AppGlobal.cacheDatabase.clearAllTables()
+
+                    (requireActivity() as MainActivity).longPollState.emit(LongPollState.Stop)
+
+                    UserConfig.clear()
+
                     setFragmentResult(
                         MainFragment.START_SERVICES_KEY,
                         bundleOf(MainFragment.START_SERVICES_ARG_ENABLE to false)
@@ -163,8 +147,33 @@ class ConversationsFragment :
         }
 
         avatarMenuItem.actionView?.run {
-            setOnClickListener { avatarPopupMenu.show() }
+            setOnClickListener {
+                showAvatarPopup()
+            }
         }
+    }
+
+    private fun showAvatarPopup() {
+        PopupMenu(
+            requireContext(),
+            binding.toolbar,
+            Gravity.BOTTOM or Gravity.END
+        ).apply {
+            inflate(R.menu.fragment_conversations_popup)
+            setOnMenuItemClickListener { item ->
+                return@setOnMenuItemClickListener when (item.itemId) {
+                    R.id.settings -> {
+                        requireActivityRouter().navigateTo(Screens.Settings())
+                        true
+                    }
+                    R.id.log_out -> {
+                        showLogOutDialog()
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }.show()
     }
 
     private fun prepareCreateChat() {
@@ -292,12 +301,12 @@ class ConversationsFragment :
 
         val read = "Mark as read"
 
-        val pin = getString(
+        val pin = string(
             if (conversation.isPinned()) R.string.conversation_context_action_unpin
             else R.string.conversation_context_action_pin
         )
 
-        val delete = getString(R.string.conversation_context_action_delete)
+        val delete = string(R.string.conversation_context_action_delete)
 
         val params = mutableListOf<String>()
 
@@ -351,5 +360,9 @@ class ConversationsFragment :
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    companion object {
+        private const val ID_DMITRY = 37610580
     }
 }

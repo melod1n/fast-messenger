@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
@@ -35,6 +36,7 @@ import com.meloda.fast.databinding.DialogFastLoginBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.color
 import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.flowOnLifecycle
 import com.meloda.fast.ext.gone
@@ -63,23 +65,20 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     override val viewModel: LoginViewModel by viewModels()
     private val binding by viewBinding(FragmentLoginBinding::bind)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val backgroundColor = color(R.color.colorLoginFragmentBackground)
 
         requireActivity().window.apply {
-            statusBarColor = requireContext().getColor(R.color.colorLoginFragmentBackground)
-            navigationBarColor = requireContext().getColor(R.color.colorLoginFragmentBackground)
+            statusBarColor = backgroundColor
+            navigationBarColor = backgroundColor
         }
+    }
 
-        prepareViews()
-
-        binding.login.clearFocus()
-
-        binding.root.applyInsetter {
-            type(ime = true, navigationBars = true, statusBars = true) { padding(animated = true) }
-
-//            syncTranslationTo(binding.root)
-        }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        prepareView()
 
         val roundedCorners = 10.dpToPx().toFloat()
         val onFocusedChangedListener = View.OnFocusChangeListener { editText, hasFocus ->
@@ -168,10 +167,35 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         }.start()
     }
 
-    private fun prepareViews() {
+    private fun prepareView() {
+        applyInsets()
+        prepareFields()
         prepareWebView()
-        preparePasswordEditText()
         prepareAuthButton()
+    }
+
+    private fun applyInsets() {
+        binding.root.applyInsetter {
+            type(ime = true, statusBars = true) { padding() }
+        }
+    }
+
+    private fun prepareFields() {
+        binding.login.clearFocus()
+
+        binding.password.typeface = Typeface.DEFAULT
+        binding.passwordContainer.endIconMode = TextInputLayout.END_ICON_NONE
+
+        binding.password.setOnEditorActionListener edit@{ _, _, event ->
+            if (event == null) return@edit false
+            return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
+                (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
+            ) {
+                binding.password.hideKeyboard()
+                binding.signIn.performClick()
+                true
+            } else false
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -270,22 +294,6 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
         } else null
     }
 
-    private fun preparePasswordEditText() {
-        binding.password.typeface = Typeface.DEFAULT
-        binding.passwordContainer.endIconMode = TextInputLayout.END_ICON_NONE
-
-        binding.password.setOnEditorActionListener edit@{ _, _, event ->
-            if (event == null) return@edit false
-            return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
-                (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
-            ) {
-                binding.password.hideKeyboard()
-                binding.signIn.performClick()
-                true
-            } else false
-        }
-    }
-
     private fun prepareAuthButton() {
         binding.signIn.setOnClickListener {
             viewModel.login()
@@ -375,5 +383,14 @@ class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_lo
     private fun showValidationRequired(validationSid: String) {
         Toast.makeText(requireContext(), R.string.validation_required, Toast.LENGTH_LONG).show()
         viewModel.sendSms(validationSid)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        requireActivity().window.apply {
+            statusBarColor = Color.TRANSPARENT
+            navigationBarColor = Color.TRANSPARENT
+        }
     }
 }
