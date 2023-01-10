@@ -9,12 +9,16 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.fondesa.kpermissions.coroutines.sendSuspend
 import com.fondesa.kpermissions.extension.permissionsBuilder
+import com.fondesa.kpermissions.isGranted
+import com.fondesa.kpermissions.isPermanentlyDenied
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
@@ -31,8 +35,10 @@ import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.databinding.ActivityMainBinding
 import com.meloda.fast.ext.edgeToEdge
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.sdk26AndUp
 import com.meloda.fast.ext.sdk33AndUp
+import com.meloda.fast.ext.toast
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
@@ -40,6 +46,7 @@ import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -74,6 +81,14 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     val binding by viewBinding(ActivityMainBinding::bind)
 
     private var isOnlineServiceWasLaunched: Boolean = false
+
+    private val longPollState = MutableStateFlow<LongPollState>(LongPollState.Stop)
+
+    private sealed class LongPollState {
+        object ForegroundService : LongPollState()
+        object DefaultService : LongPollState()
+        object Stop : LongPollState()
+    }
 
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
@@ -134,6 +149,16 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 stopServices()
             }
         }
+
+        longPollState.listenValue { state ->
+            when (state) {
+                LongPollState.DefaultService -> startLongPollService(false)
+                LongPollState.ForegroundService -> startLongPollService(true)
+                LongPollState.Stop -> stopLongPollService()
+            }
+        }
+
+        requestNotificationsPermission()
     }
 
     private fun createNotificationChannels() {
@@ -146,15 +171,82 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                     description = dialogsDescriptionText
                 }
 
+            val longPollName = "Long Polling"
+            val longPollDescriptionText = "Channel for long polling service"
+            val longPollImportance = NotificationManager.IMPORTANCE_NONE
+            val longPollChannel =
+                NotificationChannel("long_polling", longPollName, longPollImportance).apply {
+                    description = longPollDescriptionText
+                }
+
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            notificationManager.createNotificationChannel(dialogsChannel)
+            notificationManager.createNotificationChannels(listOf(dialogsChannel, longPollChannel))
+        }
+    }
 
-            sdk33AndUp {
-                permissionsBuilder(Manifest.permission.POST_NOTIFICATIONS).build().send()
+    private fun requestNotificationsPermission() {
+        sdk33AndUp {
+            lifecycleScope.launch {
+                val result = permissionsBuilder(Manifest.permission.POST_NOTIFICATIONS)
+                    .build()
+                    .sendSuspend()
+                    .first()
+
+                val resultToEmit: LongPollState = when {
+                    result.isGranted() -> LongPollState.ForegroundService
+                    else -> LongPollState.DefaultService
+                }
+
+                if (longPollState.value != resultToEmit) {
+                    longPollState.emit(LongPollState.Stop)
+                    longPollState.emit(resultToEmit)
+                }
+
+                val isLongPollOnlyInsideApp =
+                    AppGlobal.preferences.getBoolean("lp_inside_app", false)
+
+                if (result.isGranted()) {
+                    AppGlobal.preferences.edit { putBoolean("lp_inside_app", false) }
+                }
+
+                if (!result.isGranted() && !isLongPollOnlyInsideApp) {
+                    showNotificationsPermissionAlert(result.isPermanentlyDenied())
+                }
+            }
+        } ?: run {
+            lifecycleScope.launch {
+                longPollState.emit(LongPollState.ForegroundService)
             }
         }
+    }
+
+    private fun showNotificationsPermissionAlert(permanentlyDenied: Boolean) {
+        val builder = MaterialAlertDialogBuilder(this@MainActivity)
+            .setCancelable(false)
+            .setTitle(R.string.warning)
+            .setMessage(
+                "You denied notifications permission." +
+                        "\nWithout notifications LongPoll service will work only inside app." +
+                        "\nThis means that messages will only be updated while app is on the screen"
+            )
+
+        if (permanentlyDenied) {
+            builder.setPositiveButton("Open settings") { _, _ ->
+                "open settings".toast()
+            }
+            builder.setNeutralButton(R.string.ok) { _, _ ->
+                AppGlobal.preferences.edit { putBoolean("lp_inside_app", true) }
+            }
+        } else {
+            builder.setPositiveButton("Grant") { _, _ ->
+                requestNotificationsPermission()
+            }
+            builder.setNeutralButton("Dismiss", null)
+        }
+
+        builder.show()
     }
 
     override fun onResume() {
@@ -238,13 +330,30 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     private fun startServices() {
-        startService(Intent(this, LongPollService::class.java))
         toggleOnlineService(true)
     }
 
     private fun stopServices() {
-        stopService(Intent(this, LongPollService::class.java))
         toggleOnlineService(false)
+    }
+
+    private fun createLongPollIntent(asForeground: Boolean? = null): Intent =
+        Intent(this, LongPollService::class.java).apply {
+            asForeground?.let { putExtra("foreground", it) }
+        }
+
+    private fun startLongPollService(asForeground: Boolean) {
+        val longPollIntent = createLongPollIntent(asForeground)
+
+        if (asForeground) {
+            ContextCompat.startForegroundService(this, longPollIntent)
+        } else {
+            startService(longPollIntent)
+        }
+    }
+
+    private fun stopLongPollService() {
+        stopService(createLongPollIntent())
     }
 
     private fun toggleOnlineService(enable: Boolean) {

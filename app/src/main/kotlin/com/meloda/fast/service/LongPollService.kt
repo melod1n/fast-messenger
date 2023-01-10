@@ -18,14 +18,20 @@ import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.ext.sdk33AndUp
 import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 @AndroidEntryPoint
-class LongPollService : Service(), CoroutineScope {
+class LongPollService : Service() {
 
     companion object {
         const val TAG = "LongPollTask"
@@ -40,8 +46,10 @@ class LongPollService : Service(), CoroutineScope {
         throwable.printStackTrace()
     }
 
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Default + job + exceptionHandler
+    val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + job + exceptionHandler
+
+    val coroutineScope = CoroutineScope(coroutineContext)
 
     @Inject
     lateinit var repository: MessagesRepository
@@ -56,10 +64,30 @@ class LongPollService : Service(), CoroutineScope {
         return null
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("LongPollService", "onStartCommand: flags: $flags; startId: $startId")
-        launch { startPolling().join() }
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        val asForeground = intent.getBooleanExtra("foreground", false)
 
+        Log.d("LongPollService", "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId")
+
+        coroutineScope.launch { startPolling().join() }
+
+        if (asForeground) {
+            val notificationBuilder =
+                NotificationsUtils.createNotification(
+                    context = this,
+                    title = "LongPoll",
+                    contentText = "обновление ваших сообщений в фоне",
+                    notRemovable = true,
+                    channelId = "long_polling",
+                    priority = NotificationsUtils.NotificationPriority.Min,
+                    category = NotificationCompat.CATEGORY_SERVICE
+                )
+
+            startForeground(
+                startId,
+                notificationBuilder.build()
+            )
+        }
         return START_STICKY
     }
 
@@ -71,7 +99,7 @@ class LongPollService : Service(), CoroutineScope {
 
         Log.d("LongPollService", "job started")
 
-        return launch {
+        return coroutineScope.launch {
             var serverInfo = getServerInfo()
                 ?: throw ApiError(errorMessage = "bad VK response (server info)")
 
