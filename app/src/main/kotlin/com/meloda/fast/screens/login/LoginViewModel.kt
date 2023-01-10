@@ -88,7 +88,7 @@ class LoginViewModel @Inject constructor(
 
     private val validationState: StateFlow<List<LoginValidationResult>> = formState.map { state ->
         loginValidator.validate(state)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, listOf(LoginValidationResult.Empty))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
 
     override val isLoadingInProgress = MutableStateFlow(false)
     override val isNeedToShowLoginError = MutableStateFlow(false)
@@ -104,7 +104,7 @@ class LoginViewModel @Inject constructor(
     override fun onLoginInputChanged(newLogin: String) {
         val newState = formState.value.copy(login = newLogin)
         formState.update { newState }
-        isNeedToShowPasswordError.update { false }
+        isNeedToShowLoginError.update { false }
     }
 
     override fun onPasswordInputChanged(newPassword: String) {

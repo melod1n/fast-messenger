@@ -223,7 +223,7 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
 
         viewModel.isNeedToShowCaptchaError.listenValue { needToShow ->
-            captchaBinding.captchaInput.error =
+            captchaBinding.captchaLayout.error =
                 if (needToShow) codeErrorText
                 else null
         }
@@ -258,7 +258,7 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         val validationBinding = DialogValidationBinding.inflate(layoutInflater, null, false)
 
         viewModel.isNeedToShowValidationError.listenValue { needToShow ->
-            validationBinding.codeInput.error =
+            validationBinding.codeLayout.error =
                 if (needToShow) codeErrorText
                 else null
         }
@@ -296,10 +296,10 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         }
 
         viewModel.isNeedToShowLoginError.listenValue { needToShow ->
-            binding.login.error = if (needToShow) loginErrorText else null
+            binding.loginContainer.error = if (needToShow) loginErrorText else null
         }
         viewModel.isNeedToShowPasswordError.listenValue { needToShow ->
-            binding.password.error = if (needToShow) passwordErrorText else null
+            binding.passwordContainer.error = if (needToShow) passwordErrorText else null
         }
         viewModel.isNeedToShowErrorDialog.listenValue { needToShow ->
             if (needToShow) {

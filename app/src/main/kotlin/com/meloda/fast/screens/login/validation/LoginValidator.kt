@@ -9,14 +9,6 @@ class LoginValidator {
     fun validate(formState: LoginFormState): List<LoginValidationResult> {
         val resultList = mutableListOf<LoginValidationResult>()
 
-        resultList.addIf(LoginValidationResult.Empty) {
-            formState == LoginFormState.EMPTY
-        }
-
-        if (resultList.isNotEmpty()) {
-            return resultList
-        }
-
         resultList.addIf(LoginValidationResult.LoginEmpty) {
             formState.login.isBlank()
         }
