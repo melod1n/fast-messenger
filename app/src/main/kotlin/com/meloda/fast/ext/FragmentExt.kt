@@ -52,7 +52,7 @@ fun drawable(@DrawableRes resId: Int): Drawable? {
     return ContextCompat.getDrawable(requireContext(), resId)
 }
 
-context (Fragment)
+context(Fragment)
 fun string(@StringRes resId: Int): String {
     return getString(resId)
 }
