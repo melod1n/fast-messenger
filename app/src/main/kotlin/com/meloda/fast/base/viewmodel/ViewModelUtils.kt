@@ -8,8 +8,9 @@ import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.common.Screens
+import com.meloda.fast.model.base.Text
 import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.util.ViewUtils.showErrorDialog
+import com.meloda.fast.util.ViewUtils.showDialog
 
 object ViewModelUtils {
 
@@ -47,7 +48,11 @@ object ViewModelUtils {
 
             is VkErrorEvent -> {
                 event.errorText?.run {
-                    activity.showErrorDialog(this)
+                    activity.showDialog(
+                        title = Text.Resource(R.string.title_error),
+                        message = Text.Simple(this),
+                        positiveText = Text.Resource(R.string.ok)
+                    )
                 }
             }
         }

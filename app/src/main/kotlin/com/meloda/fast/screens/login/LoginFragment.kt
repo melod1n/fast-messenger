@@ -27,6 +27,7 @@ import com.meloda.fast.databinding.DialogFastLoginBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.clearTextOnErrorIconClick
 import com.meloda.fast.ext.color
 import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.hideKeyboard
@@ -37,9 +38,10 @@ import com.meloda.fast.ext.string
 import com.meloda.fast.ext.toast
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
+import com.meloda.fast.model.base.Text
 import com.meloda.fast.screens.main.MainActivity
 import com.meloda.fast.screens.settings.SettingsFragment
-import com.meloda.fast.util.ViewUtils.showErrorDialog
+import com.meloda.fast.util.ViewUtils.showDialog
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
@@ -122,6 +124,9 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
     }
 
     private fun prepareFields() {
+        binding.loginContainer.clearTextOnErrorIconClick(binding.login)
+        binding.passwordContainer.clearTextOnErrorIconClick(binding.password)
+
         binding.login.clearFocus()
 
         binding.login.doAfterTextChanged { editable ->
@@ -141,28 +146,32 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
 
         val roundedCorners = 10.dpToPx().toFloat()
         val onFocusChangedAction: (v: View, hasFocus: Boolean) -> Unit = { v, hasFocus ->
-            val inputLayout = v.parent.parent as? TextInputLayout
-                ?: throw NullPointerException("Something in layout was changed")
-            val cornerRadiusToSet = if (hasFocus) 0F else roundedCorners
-
-            if (inputLayout.boxCornerRadiusBottomEnd != cornerRadiusToSet) {
-                ValueAnimator.ofFloat(
-                    inputLayout.boxCornerRadiusBottomEnd,
-                    cornerRadiusToSet
-                ).apply {
-                    duration = EDIT_TEXT_ANIMATION_DURATION
-                    interpolator = LinearInterpolator()
-
-                    addUpdateListener { animator ->
-                        val value = animator.animatedValue as Float
-                        inputLayout.setBoxCornerRadii(roundedCorners, roundedCorners, value, value)
-                    }
-                }.start()
-            }
+            applyFieldFocusChange(v, hasFocus, roundedCorners)
         }
 
         binding.login.setOnFocusChangeListener(onFocusChangedAction::invoke)
         binding.password.setOnFocusChangeListener(onFocusChangedAction::invoke)
+    }
+
+    private fun applyFieldFocusChange(v: View, hasFocus: Boolean, roundedCorners: Float) {
+        val inputLayout = v.parent.parent as? TextInputLayout
+            ?: throw NullPointerException("Something in layout was changed")
+        val cornerRadiusToSet = if (hasFocus) 0F else roundedCorners
+
+        if (inputLayout.boxCornerRadiusBottomEnd != cornerRadiusToSet) {
+            ValueAnimator.ofFloat(
+                inputLayout.boxCornerRadiusBottomEnd,
+                cornerRadiusToSet
+            ).apply {
+                duration = EDIT_TEXT_ANIMATION_DURATION
+                interpolator = LinearInterpolator()
+
+                addUpdateListener { animator ->
+                    val value = animator.animatedValue as Float
+                    inputLayout.setBoxCornerRadii(roundedCorners, roundedCorners, value, value)
+                }
+            }.start()
+        }
     }
 
     private fun prepareAuthButton() {
@@ -283,9 +292,10 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
     }
 
     private fun showErrorDialog() {
-        requireContext().showErrorDialog(
-            message = viewModel.formState.value.error.orEmpty(),
-            positiveText = string(R.string.ok),
+        requireContext().showDialog(
+            title = Text.Resource(R.string.title_error),
+            message = Text.Simple(viewModel.formState.value.error.orEmpty()),
+            positiveText = Text.Resource(R.string.ok),
             onDismissAction = viewModel::onErrorDialogDismissed
         )
     }
@@ -328,7 +338,6 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
                 showFastLoginDialog()
             }
         }
-
     }
 
     override fun onDestroy() {

@@ -12,7 +12,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -23,7 +22,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
 import androidx.core.view.doOnAttach
 import androidx.core.view.forEach
-import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
@@ -36,7 +34,6 @@ import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 
 fun Int.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
@@ -115,16 +112,6 @@ fun TextView.toggleVisibilityIfHasContent(visibilityWhenFalse: Int = View.GONE) 
     visibility = if (!text.isNullOrEmpty()) View.VISIBLE else visibilityWhenFalse
 }
 
-fun View.showKeyboard(flags: Int = 0) {
-    AppGlobal.inputMethodManager.showSoftInput(this, flags)
-}
-
-fun View.hideKeyboard(focusedView: View? = null, flags: Int = 0) {
-    AppGlobal.inputMethodManager.hideSoftInputFromWindow(
-        focusedView?.windowToken ?: this.windowToken, flags
-    )
-}
-
 fun Toolbar.tintMenuItemIcons(@ColorInt colorToTint: Int) {
     menu.forEach { item ->
         item.icon?.setTint(colorToTint)
@@ -172,13 +159,7 @@ fun <T> MutableLiveData<T>.requireValue(): T {
     return this.value!!
 }
 
-val EditText.trimmedText: String get() = text.toString().trim()
-
 val MediaType.mimeType: String get() = "${type()}/${subtype()}"
-
-fun EditText.selectLast() {
-    setSelection(text.length)
-}
 
 fun <T> T?.notNull(): T {
     return requireNotNull(this)
@@ -216,23 +197,6 @@ fun View.requestApplyInsetsWhenAttached() {
         requestApplyInsets()
     } else {
         doOnAttach { requestApplyInsets() }
-    }
-}
-
-fun EditText.notifyObservers() {
-    this.text = this.text
-}
-
-fun EditText.notifyAboutChanges(mutableLiveData: MutableLiveData<String>) {
-    doAfterTextChanged { editable ->
-        mutableLiveData.value = editable?.toString().orEmpty()
-    }
-}
-
-fun EditText.notifyAboutChanges(stateFlow: MutableStateFlow<String>) {
-    doAfterTextChanged { editable ->
-        val text = editable?.toString().orEmpty()
-        stateFlow.update { text }
     }
 }
 

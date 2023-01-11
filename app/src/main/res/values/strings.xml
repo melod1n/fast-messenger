@@ -9,7 +9,10 @@
     <string name="navigation_favorites">Favorites</string>
     <string name="navigation_settings">Settings</string>
 
-    <string name="error">Error: %s</string>
+    <string name="error_occurred">Error occurred</string>
+    <string name="error_occurred_description">Error: %s</string>
+
+    <string name="title_error">Error</string>
 
     <string name="password_login_hint">Password</string>
 
@@ -175,8 +178,6 @@
     <string name="fragment_updates_new_version_description">v. %s</string>
     <string name="fragment_updates_no_updates">No updates</string>
     <string name="fragment_updates_no_updates_description">Try again later</string>
-    <string name="fragment_updates_error_occurred">Error occurred</string>
-    <string name="fragment_updates_error_occurred_description">Error: %s</string>
     <string name="fragment_updates_unknown_sources_disabled_message">Unknown sources installing is disabled in the settings. Open settings?</string>
 
     <string name="warning">Warning</string>

@@ -3,46 +3,36 @@ package com.meloda.fast.util
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.meloda.fast.R
+import com.meloda.fast.model.base.Text
+import com.meloda.fast.model.base.asString
 
 object ViewUtils {
 
-    fun Context.showErrorDialog(
-        title: String? = null,
-        message: String? = null,
-        showErrorPrefix: Boolean = true,
+    fun Context.showDialog(
+        title: Text? = null,
+        message: Text? = null,
         isCancelable: Boolean = true,
-        positiveText: String? = null,
+        positiveText: Text? = null,
         positiveAction: (() -> Unit)? = null,
-        negativeText: String? = null,
+        negativeText: Text? = null,
         negativeAction: (() -> Unit)? = null,
         onDismissAction: (() -> Unit)? = null,
     ): AlertDialog {
         val builder = MaterialAlertDialogBuilder(this)
             .setCancelable(isCancelable)
-            .setMessage(
-                if (showErrorPrefix) getString(R.string.error, message)
-                else message
-            )
-            .setOnDismissListener {
-                onDismissAction?.invoke()
-            }
+            .setOnDismissListener { onDismissAction?.invoke() }
 
-        title?.let { text ->
-            builder.setTitle(text)
-        } ?: run {
-            builder.setTitle(R.string.warning)
-        }
+        title?.asString()?.let(builder::setTitle)
+        message?.asString()?.let(builder::setMessage)
 
         positiveText?.let { text ->
-            builder.setPositiveButton(text) { _, _ -> positiveAction?.invoke() }
+            builder.setPositiveButton(text.asString()) { _, _ -> positiveAction?.invoke() }
         }
 
         negativeText?.let { text ->
-            builder.setNegativeButton(text) { _, _ -> negativeAction?.invoke() }
+            builder.setNegativeButton(text.asString()) { _, _ -> negativeAction?.invoke() }
         }
 
         return builder.show()
     }
-
 }
