@@ -81,14 +81,14 @@ object AndroidUtils {
     }
 
     @Suppress("DEPRECATION")
-    fun isCanInstallUnknownApps(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            AppGlobal.packageManager.canRequestPackageInstalls()
-        } else {
+    fun isCanInstallUnknownApps(): Boolean {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             Settings.Secure.getInt(
-                context.contentResolver,
+                AppGlobal.Instance.contentResolver,
                 Settings.Secure.INSTALL_NON_MARKET_APPS
             ) == 1
+        } else {
+            AppGlobal.packageManager.canRequestPackageInstalls()
         }
     }
 
@@ -106,7 +106,7 @@ object AndroidUtils {
     fun getInstallPackageIntent(
         context: Context,
         providerPath: String,
-        fileToRead: File
+        fileToRead: File,
     ): Intent {
         val intent = Intent(Intent.ACTION_VIEW)
 

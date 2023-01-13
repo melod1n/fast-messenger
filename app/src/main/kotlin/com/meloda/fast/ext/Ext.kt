@@ -6,7 +6,12 @@ import android.animation.ValueAnimator
 import android.content.res.Resources
 import android.util.DisplayMetrics
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.common.net.MediaType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @Deprecated("use resources")
 fun Int.dpToPx(): Int {
@@ -86,4 +91,11 @@ inline fun <reified T, K, M : MutableMap<in K, T>> Iterable<T>.toMap(
 
 fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
     if (condition.invoke()) add(element)
+}
+
+context(ViewModel)
+fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit) {
+    onEach {
+        action.invoke(it)
+    }.launchIn(viewModelScope)
 }

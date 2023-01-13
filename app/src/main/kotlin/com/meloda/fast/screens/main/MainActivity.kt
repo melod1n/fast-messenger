@@ -25,7 +25,7 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
-import com.meloda.fast.common.UpdateManager
+import com.meloda.fast.common.UpdateManagerImpl
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.edgeToEdge
 import com.meloda.fast.ext.listenValue
@@ -38,6 +38,7 @@ import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -62,7 +63,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     lateinit var router: Router
 
     @Inject
-    lateinit var updateManager: UpdateManager
+    lateinit var updateManager: UpdateManagerImpl
 
     @Inject
     lateinit var accountsDao: AccountsDao
@@ -115,11 +116,15 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
 
         if (AppGlobal.preferences.getBoolean(SettingsFragment.KEY_UPDATES_CHECK_AT_STARTUP, true)) {
-            updateManager.checkUpdates { item, _ ->
-                if (item != null) {
-                    router.navigateTo(Screens.Updates(item))
+            var listener: Job? = null
+            listener = updateManager.stateFlow.listenValue { state ->
+                if (state.updateItem != null) {
+                    listener?.cancel()
+                    listener = null
                 }
             }
+
+            updateManager.checkUpdates()
         }
 
         supportFragmentManager.setFragmentResultListener(

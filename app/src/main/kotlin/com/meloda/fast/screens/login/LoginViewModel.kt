@@ -34,18 +34,18 @@ interface ILoginViewModel {
 
     val formState: StateFlow<LoginFormState>
 
-    val isLoadingInProgress: StateFlow<Boolean>
+    val isLoadingInProgress: Flow<Boolean>
 
-    val isNeedToShowLoginError: StateFlow<Boolean>
-    val isNeedToShowPasswordError: StateFlow<Boolean>
-    val isNeedToShowCaptchaError: StateFlow<Boolean>
-    val isNeedToShowValidationError: StateFlow<Boolean>
+    val isNeedToShowLoginError: Flow<Boolean>
+    val isNeedToShowPasswordError: Flow<Boolean>
+    val isNeedToShowCaptchaError: Flow<Boolean>
+    val isNeedToShowValidationError: Flow<Boolean>
 
-    val isNeedToShowCaptchaDialog: StateFlow<Boolean>
-    val isNeedToShowValidationDialog: StateFlow<Boolean>
-    val isNeedToShowValidationToast: StateFlow<Boolean>
-    val isNeedToShowFastLoginDialog: StateFlow<Boolean>
-    val isNeedToShowErrorDialog: StateFlow<Boolean>
+    val isNeedToShowCaptchaDialog: Flow<Boolean>
+    val isNeedToShowValidationDialog: Flow<Boolean>
+    val isNeedToShowValidationToast: Flow<Boolean>
+    val isNeedToShowFastLoginDialog: Flow<Boolean>
+    val isNeedToShowErrorDialog: Flow<Boolean>
 
     fun onLoginInputChanged(newLogin: String)
     fun onPasswordInputChanged(newPassword: String)

@@ -10,6 +10,7 @@ import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.VkUrls
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
+import com.meloda.fast.common.UpdateManagerImpl
 import com.meloda.fast.data.account.AccountApi
 import com.meloda.fast.data.audios.AudiosApi
 import com.meloda.fast.data.auth.AuthApi
@@ -22,6 +23,7 @@ import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.data.photos.PhotosApi
 import com.meloda.fast.data.users.UsersApi
 import com.meloda.fast.data.videos.VideosApi
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -138,8 +140,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideUpdateManager(otaApi: OtaApi): UpdateManager =
-        UpdateManager(otaApi)
+    fun provideUpdateManagerImpl(otaApi: OtaApi): UpdateManagerImpl =
+        UpdateManagerImpl(otaApi)
 
     @Provides
     @Singleton

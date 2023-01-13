@@ -6,20 +6,12 @@ import android.widget.Toast
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-
-context (AppCompatActivity)
-fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit) {
-    onEach {
-        action.invoke(it)
-    }.launchIn(lifecycleScope)
-}
 
 context(Fragment)
 fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit) {
