@@ -1,5 +1,6 @@
 package com.meloda.fast.service
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
@@ -8,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.meloda.fast.R
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
@@ -18,6 +20,7 @@ import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.receiver.StopLongPollServiceReceiver
 import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -73,6 +76,22 @@ class LongPollService : Service() {
 
         coroutineScope.launch { startPolling().join() }
 
+        val stopIntent = Intent(this, StopLongPollServiceReceiver::class.java).apply {
+            action = StopLongPollServiceReceiver.ACTION_STOP
+        }
+        val stopPendingIntent = PendingIntent.getBroadcast(
+            this,
+            1,
+            stopIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val action = NotificationCompat.Action(
+            R.drawable.ic_round_close_24,
+            getString(R.string.action_stop),
+            stopPendingIntent
+        )
+
         if (asForeground) {
             val notificationBuilder =
                 NotificationsUtils.createNotification(
@@ -82,7 +101,8 @@ class LongPollService : Service() {
                     notRemovable = true,
                     channelId = "long_polling",
                     priority = NotificationsUtils.NotificationPriority.Min,
-                    category = NotificationCompat.CATEGORY_SERVICE
+                    category = NotificationCompat.CATEGORY_SERVICE,
+                    actions = listOf(action)
                 )
 
             startForeground(
@@ -129,6 +149,7 @@ class LongPollService : Service() {
 
                         lastUpdatesResponse = getUpdatesResponse(serverInfo.copy(ts = newTs))
                     }
+
                     2, 3 -> {
                         serverInfo = getServerInfo()
                             ?: throw ApiError(
@@ -136,6 +157,7 @@ class LongPollService : Service() {
                             )
                         lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     }
+
                     else -> {
                         val newTs = lastUpdatesResponse["ts"]?.asInt
 

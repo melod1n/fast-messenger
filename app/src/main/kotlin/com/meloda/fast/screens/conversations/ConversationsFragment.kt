@@ -82,7 +82,7 @@ class ConversationsFragment :
                     AppGlobal.accountsDatabase.accountsDao.deleteById(UserConfig.userId)
                     AppGlobal.cacheDatabase.clearAllTables()
 
-                    (requireActivity() as MainActivity).longPollState.emit(LongPollState.Stop)
+                    MainActivity.longPollState.emit(LongPollState.Stop)
 
                     UserConfig.clear()
 
@@ -166,10 +166,12 @@ class ConversationsFragment :
                         requireActivityRouter().navigateTo(Screens.Settings())
                         true
                     }
+
                     R.id.log_out -> {
                         showLogOutDialog()
                         true
                     }
+
                     else -> false
                 }
             }

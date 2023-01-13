@@ -18,7 +18,7 @@ class ResultCallFactory : CallAdapter.Factory() {
     override fun get(
         returnType: Type,
         annotations: Array<out Annotation>,
-        retrofit: Retrofit
+        retrofit: Retrofit,
     ): CallAdapter<*, *>? {
         val rawReturnType: Class<*> = getRawType(returnType)
         if (rawReturnType == Call::class.java) {
@@ -77,7 +77,7 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(pro
 
     private class ResultCallback<T>(
         private val proxy: ResultCall<T>,
-        private val callback: Callback<ApiAnswer<T>>
+        private val callback: Callback<ApiAnswer<T>>,
     ) : Callback<T> {
 
         val gson = Gson()
@@ -117,13 +117,11 @@ internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(pro
         }
 
         private fun checkErrors(call: Call<T>, result: ApiAnswer<*>): Boolean {
-            if (!result.isSuccessful()) {
+            if (result.isError()) {
                 result.error.throwable?.run {
                     onFailure(call, this)
                     return true
                 }
-            } else {
-                return false
             }
 
             return false
@@ -143,8 +141,16 @@ sealed class ApiAnswer<out R> {
     @OptIn(ExperimentalContracts::class)
     fun isSuccessful(): Boolean {
         contract {
-            returns(false) implies (this@ApiAnswer is Error)
+            returns(true) implies (this@ApiAnswer is Success)
         }
         return this is Success
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    fun isError(): Boolean {
+        contract {
+            returns(true) implies (this@ApiAnswer is Error)
+        }
+        return this is Error
     }
 }

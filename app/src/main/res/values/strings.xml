@@ -207,5 +207,7 @@
 
 
     <string name="easter_egg_log_out_dmitry" translatable="false">Выйти внаружу</string>
+    <string name="action_search">Search</string>
+    <string name="action_stop">Stop</string>
 
 </resources>

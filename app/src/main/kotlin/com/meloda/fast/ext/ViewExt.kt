@@ -126,7 +126,7 @@ fun Toolbar.addAvatarMenuItem(urlToLoad: String? = null, drawable: Drawable? = n
     )
 
     val avatarMenuItem = menu.add(context.getString(R.string.navigation_profile))
-    avatarMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+    avatarMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
     avatarMenuItem.actionView = avatarMenuItemBinding.root
 
     val imageView = avatarMenuItemBinding.avatar

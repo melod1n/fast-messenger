@@ -73,8 +73,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     private var isOnlineServiceWasLaunched: Boolean = false
 
-    val longPollState = MutableStateFlow<LongPollState>(LongPollState.Stop)
-
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
         super.onResumeFragments()
@@ -327,5 +325,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         stopServices()
         updatesParser.clearListeners()
         isOnlineServiceWasLaunched = false
+    }
+
+    companion object {
+        val longPollState = MutableStateFlow<LongPollState>(LongPollState.Stop)
     }
 }

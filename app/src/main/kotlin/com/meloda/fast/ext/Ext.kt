@@ -1,4 +1,4 @@
-@file:Suppress("DeprecatedCallableAddReplaceWith")
+//@file:Suppress("DeprecatedCallableAddReplaceWith")
 
 package com.meloda.fast.ext
 
@@ -41,11 +41,6 @@ inline fun <T, K> Pair<T?, K?>.runIfElementsNotNull(block: (T, K) -> Unit) {
     if (firstCopy != null && secondCopy != null) {
         block(firstCopy, secondCopy)
     }
-}
-
-@Deprecated("get rid of LiveData")
-fun <T> MutableLiveData<T>.setIfNotEquals(item: T) {
-    if (this.value != item) this.value = item
 }
 
 @Deprecated("get rid of LiveData")

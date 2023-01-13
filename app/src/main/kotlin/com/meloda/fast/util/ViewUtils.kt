@@ -16,6 +16,8 @@ object ViewUtils {
         positiveAction: (() -> Unit)? = null,
         negativeText: Text? = null,
         negativeAction: (() -> Unit)? = null,
+        neutralText: Text? = null,
+        neutralAction: (() -> Unit)? = null,
         onDismissAction: (() -> Unit)? = null,
     ): AlertDialog {
         val builder = MaterialAlertDialogBuilder(this)
@@ -28,9 +30,11 @@ object ViewUtils {
         positiveText?.let { text ->
             builder.setPositiveButton(text.asString()) { _, _ -> positiveAction?.invoke() }
         }
-
         negativeText?.let { text ->
             builder.setNegativeButton(text.asString()) { _, _ -> negativeAction?.invoke() }
+        }
+        neutralText?.let { text ->
+            builder.setNeutralButton(text.asString()) { _, _ -> neutralAction?.invoke() }
         }
 
         return builder.show()

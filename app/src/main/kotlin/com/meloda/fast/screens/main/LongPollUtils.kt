@@ -11,11 +11,12 @@ import com.fondesa.kpermissions.coroutines.sendSuspend
 import com.fondesa.kpermissions.extension.permissionsBuilder
 import com.fondesa.kpermissions.isGranted
 import com.fondesa.kpermissions.isPermanentlyDenied
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.sdk33AndUp
+import com.meloda.fast.model.base.Text
 import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.util.ViewUtils.showDialog
 import kotlinx.coroutines.launch
 
 object LongPollUtils {
@@ -72,22 +73,15 @@ object LongPollUtils {
         }
     }
 
-    fun showNotificationsPermissionAlert(
+    private fun showNotificationsPermissionAlert(
         fragmentActivity: FragmentActivity,
         onStateChangedAction: (LongPollState) -> Unit,
         permanentlyDenied: Boolean,
     ) {
-        val builder = MaterialAlertDialogBuilder(fragmentActivity)
-            .setCancelable(false)
-            .setTitle(R.string.warning)
-            .setMessage(
-                "You denied notifications permission." +
-                        "\nWithout notifications LongPoll service will work only inside app." +
-                        "\nThis means that messages will only be updated while app is on the screen"
-            )
-
-        if (permanentlyDenied) {
-            builder.setPositiveButton("Open settings") { _, _ ->
+        val positiveText =
+            Text.Simple(if (permanentlyDenied) "Open settings" else "Grant")
+        val positiveAction = {
+            if (permanentlyDenied) {
                 val intent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.parse("package:${fragmentActivity.packageName}")
@@ -100,21 +94,36 @@ object LongPollUtils {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+            } else {
+                requestNotificationsPermission(fragmentActivity, onStateChangedAction)
             }
-            builder.setNeutralButton(R.string.ok) { _, _ ->
+        }
+
+        val neutralText =
+            if (permanentlyDenied) Text.Resource(R.string.ok)
+            else Text.Simple("Dismiss")
+        val neutralAction = {
+            if (permanentlyDenied) {
                 AppGlobal.preferences.edit {
                     putBoolean("lp_inside_app", true)
                     putBoolean(SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND, false)
                 }
-            }
-        } else {
-            builder.setPositiveButton("Grant") { _, _ ->
-                requestNotificationsPermission(fragmentActivity, onStateChangedAction)
-            }
-            builder.setNeutralButton("Dismiss", null)
+            } else Unit
         }
 
-        builder.show()
+        fragmentActivity.showDialog(
+            title = Text.Resource(R.string.warning),
+            message = Text.Simple(
+                "You denied notifications permission." +
+                        "\nWithout notifications LongPoll service will work only inside app." +
+                        "\nThis means that messages will only be updated while app is on the screen"
+            ),
+            positiveText = positiveText,
+            positiveAction = positiveAction,
+            neutralText = neutralText,
+            neutralAction = neutralAction,
+            isCancelable = false
+        )
     }
 
 }

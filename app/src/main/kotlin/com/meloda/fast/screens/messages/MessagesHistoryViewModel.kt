@@ -323,7 +323,7 @@ class MessagesHistoryViewModel @Inject constructor(
             val uploadServerResponse = makeSuspendJob(
                 { photosRepository.getMessagesUploadServer(peerId) }
             )
-            if (!uploadServerResponse.isSuccessful()) {
+            if (uploadServerResponse.isError()) {
                 throw requireNotNull(uploadServerResponse.error.throwable)
             } else {
                 (uploadServerResponse as ApiAnswer.Success).run {
@@ -345,8 +345,8 @@ class MessagesHistoryViewModel @Inject constructor(
             val uploadFileResponse = makeSuspendJob(
                 { photosRepository.uploadPhoto(uploadUrl, body) }
             )
-            if (!uploadFileResponse.isSuccessful()) {
-                throw uploadFileResponse.error.throwable!!
+            if (uploadFileResponse.isError()) {
+                throw uploadFileResponse.error.throwable.notNull()
             } else {
                 (uploadFileResponse as ApiAnswer.Success).data.run {
                     it.resume(Triple(this.server, this.photo, this.hash))
@@ -372,8 +372,8 @@ class MessagesHistoryViewModel @Inject constructor(
                     )
                 }
             )
-            if (!saveResponse.isSuccessful()) {
-                throw saveResponse.error.throwable!!
+            if (saveResponse.isError()) {
+                throw saveResponse.error.throwable.notNull()
             } else {
                 (saveResponse as ApiAnswer.Success).data.response?.run {
                     it.resume(requireNotNull(first().asVkPhoto()))
@@ -405,8 +405,8 @@ class MessagesHistoryViewModel @Inject constructor(
                 { videosRepository.save() }
             )
 
-            if (!saveResponse.isSuccessful()) {
-                it.resumeWithException(saveResponse.error.throwable!!)
+            if (saveResponse.isError()) {
+                it.resumeWithException(saveResponse.error.throwable.notNull())
                 return@launch
             } else {
                 val response = (saveResponse as ApiAnswer.Success).data.response ?: return@launch
@@ -437,8 +437,8 @@ class MessagesHistoryViewModel @Inject constructor(
         val response = makeSuspendJob(
             { videosRepository.upload(uploadUrl, body) }
         )
-        if (!response.isSuccessful()) {
-            throw response.error.throwable!!
+        if (response.isError()) {
+            throw response.error.throwable.notNull()
         }
     }
 
@@ -462,8 +462,8 @@ class MessagesHistoryViewModel @Inject constructor(
             val uploadResponse = makeSuspendJob(
                 { audiosRepository.getUploadServer() }
             )
-            if (!uploadResponse.isSuccessful()) {
-                throw uploadResponse.error.throwable!!
+            if (uploadResponse.isError()) {
+                throw uploadResponse.error.throwable.notNull()
             } else {
                 (uploadResponse as ApiAnswer.Success).data.response.run {
                     it.resume(requireNotNull(this).uploadUrl)
@@ -484,8 +484,8 @@ class MessagesHistoryViewModel @Inject constructor(
             val uploadResponse = makeSuspendJob(
                 { audiosRepository.upload(uploadUrl, body) }
             )
-            if (!uploadResponse.isSuccessful()) {
-                throw uploadResponse.error.throwable!!
+            if (uploadResponse.isError()) {
+                throw uploadResponse.error.throwable.notNull()
             } else {
                 (uploadResponse as ApiAnswer.Success).data.run {
                     if (this.error != null) {
@@ -507,8 +507,8 @@ class MessagesHistoryViewModel @Inject constructor(
             val saveResponse = makeSuspendJob(
                 { audiosRepository.save(server, audio, hash) }
             )
-            if (!saveResponse.isSuccessful()) {
-                throw saveResponse.error.throwable!!
+            if (saveResponse.isError()) {
+                throw saveResponse.error.throwable.notNull()
             } else {
                 (saveResponse as ApiAnswer.Success).data.response.run {
                     it.resume(requireNotNull(this).asVkAudio())
@@ -540,8 +540,8 @@ class MessagesHistoryViewModel @Inject constructor(
             val uploadServerResponse = makeSuspendJob(
                 { filesRepository.getMessagesUploadServer(peerId, type) }
             )
-            if (!uploadServerResponse.isSuccessful()) {
-                throw uploadServerResponse.error.throwable!!
+            if (uploadServerResponse.isError()) {
+                throw uploadServerResponse.error.throwable.notNull()
             } else {
                 (uploadServerResponse as ApiAnswer.Success).data.response.run {
                     it.resume(requireNotNull(this).uploadUrl)
@@ -562,8 +562,8 @@ class MessagesHistoryViewModel @Inject constructor(
             val uploadFileResponse = makeSuspendJob(
                 { filesRepository.uploadFile(uploadUrl, body) }
             )
-            if (!uploadFileResponse.isSuccessful()) {
-                throw uploadFileResponse.error.throwable!!
+            if (uploadFileResponse.isError()) {
+                throw uploadFileResponse.error.throwable.notNull()
             } else {
                 (uploadFileResponse as ApiAnswer.Success).data.run {
                     if (this.error != null) {
@@ -582,8 +582,8 @@ class MessagesHistoryViewModel @Inject constructor(
                 val saveResponse = makeSuspendJob(
                     { filesRepository.saveMessageFile(file) }
                 )
-                if (!saveResponse.isSuccessful()) {
-                    throw saveResponse.error.throwable!!
+                if (saveResponse.isError()) {
+                    throw saveResponse.error.throwable.notNull()
                 } else {
                     (saveResponse as ApiAnswer.Success).data.run {
                         val response = this.response.notNull()

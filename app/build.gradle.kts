@@ -42,8 +42,6 @@ android {
         versionCode = 1
         versionName = "alpha"
 
-        resourceConfigurations += listOf("en")
-
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
@@ -78,6 +76,23 @@ android {
         }
     }
 
+    val flavorDimension = "version"
+
+    flavorDimensions += flavorDimension
+
+    productFlavors {
+        create("dev") {
+            resourceConfigurations += listOf("en", "xxhdpi")
+
+            dimension = flavorDimension
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+        create("full") {
+            dimension = flavorDimension
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -106,7 +121,7 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
-    implementation ("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
+    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.0")
@@ -123,7 +138,7 @@ dependencies {
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("androidx.appcompat:appcompat:1.5.1")
+    implementation("androidx.appcompat:appcompat:1.6.0")
 
     implementation("androidx.activity:activity-ktx:1.6.1")
 
@@ -139,9 +154,9 @@ dependencies {
 
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    implementation("androidx.room:room-ktx:2.4.3")
-    implementation("androidx.room:room-runtime:2.4.3")
-    kapt("androidx.room:room-compiler:2.4.3")
+    implementation("androidx.room:room-ktx:2.5.0")
+    implementation("androidx.room:room-runtime:2.5.0")
+    kapt("androidx.room:room-compiler:2.5.0")
 
     implementation("com.github.terrakok:cicerone:7.1")
 
@@ -170,7 +185,7 @@ dependencies {
 
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.6")
 
-    implementation("com.google.code.gson:gson:2.10")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.google.guava:guava:31.1-jre")
 

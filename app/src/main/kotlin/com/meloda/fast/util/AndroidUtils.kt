@@ -110,19 +110,14 @@ object AndroidUtils {
     ): Intent {
         val intent = Intent(Intent.ACTION_VIEW)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-            intent.data = FileProvider.getUriForFile(
-                context,
-                BuildConfig.APPLICATION_ID + providerPath,
-                fileToRead
-            )
-        } else {
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            intent.setDataAndType(Uri.fromFile(fileToRead), AppConstants.INSTALL_APP_MIME_TYPE)
-        }
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+        intent.data = FileProvider.getUriForFile(
+            context,
+            BuildConfig.APPLICATION_ID + providerPath,
+            fileToRead
+        )
 
         return intent
     }

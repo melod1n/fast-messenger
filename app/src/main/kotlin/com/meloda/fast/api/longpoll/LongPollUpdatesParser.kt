@@ -209,7 +209,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                         )
                     )
 
-                    if (!normalMessageResponse.isSuccessful()) {
+                    if (normalMessageResponse.isError()) {
                         normalMessageResponse.error.throwable?.run { throw this }
                     }
 

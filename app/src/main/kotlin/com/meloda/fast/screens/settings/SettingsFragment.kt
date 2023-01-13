@@ -12,7 +12,6 @@ import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.databinding.FragmentSettingsBinding
-import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.settings.SettingsItem
@@ -265,9 +264,11 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             KEY_UPDATES_CHECK_UPDATES -> {
                 requireActivityRouter().navigateTo(Screens.Updates())
             }
+
             KEY_DEBUG_PERFORM_CRASH -> {
                 throw TestCrashException()
             }
+
             KEY_DEBUG_HIDE_DEBUG_LIST -> {
                 val showDebugCategory =
                     AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
@@ -280,6 +281,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                 adapter.items =
                     adapter.items.castAsSettings().filter { !it.key.startsWith("debug") }
             }
+
             else -> Unit
         }
     }
@@ -298,11 +300,11 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                 adapter.items = adapter.items.castAsSettings() + debugList
                 true
             }
+
             else -> false
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun onChange(key: String, newValue: Any?) {
         when (key) {
             KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
@@ -312,9 +314,11 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                     fromSettings = true
                 )
             }
+
             KEY_DEBUG_TEST_THEME -> {
 //                requireActivity().recreate()
             }
+
             KEY_DEBUG_LIST_UPDATE -> {
                 val showAppearanceCategory = newValue as Boolean
 
@@ -326,12 +330,13 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                     adapter.items = currentItems.filter { !it.key.startsWith("appearance") }
                 }
             }
+
             else -> Unit
         }
     }
 
     private fun changeLongPollState(state: LongPollState) = lifecycleScope.launch {
-        (requireActivity() as MainActivity).longPollState.emit(state)
+        MainActivity.longPollState.emit(state)
     }
 
     @Suppress("UNCHECKED_CAST")

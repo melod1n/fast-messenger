@@ -1,5 +1,6 @@
 package com.meloda.fast.util
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
@@ -8,6 +9,7 @@ import com.meloda.fast.R
 
 object NotificationsUtils {
 
+    @SuppressLint("MissingPermission")
     fun createNotification(
         context: Context,
         title: String? = null,
@@ -21,9 +23,10 @@ object NotificationsUtils {
         channelId: String = "simple_notifications",
         priority: NotificationPriority = NotificationPriority.Default,
         contentIntent: PendingIntent? = null,
-        category: String? = null
+        category: String? = null,
+        actions: List<NotificationCompat.Action> = emptyList(),
     ): NotificationCompat.Builder {
-        var builder = NotificationCompat.Builder(context, channelId)
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_fast_logo)
             .setContentTitle(title)
             .setPriority(priority.value)
@@ -33,26 +36,32 @@ object NotificationsUtils {
             .setOngoing(notRemovable)
 
         if (category != null) {
-            builder = builder.setCategory(category)
+            builder.setCategory(category)
         }
 
         if (contentText != null) {
-            builder = builder.setContentText(contentText)
+            builder.setContentText(contentText)
         }
 
         if (bigText != null) {
-            builder = builder.setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
         }
 
         if (timeStampWhen != null) {
-            builder = builder.setWhen(timeStampWhen)
+            builder.setWhen(timeStampWhen)
         }
 
         if (notify) {
-            with(NotificationManagerCompat.from(context)) {
-                notify(customNotificationId ?: -1, builder.build())
+            try {
+                with(NotificationManagerCompat.from(context)) {
+                    notify(customNotificationId ?: -1, builder.build())
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
+
+        actions.forEach(builder::addAction)
 
         return builder
     }

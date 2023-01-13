@@ -45,6 +45,15 @@
             android:enabled="true"
             android:exported="false" />
 
+        <receiver
+            android:name=".receiver.StopLongPollServiceReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.meloda.fast.receiver.ACTION_STOP" />
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
