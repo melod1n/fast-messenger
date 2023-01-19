@@ -20,6 +20,7 @@ import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.ext.isTrue
 import com.meloda.fast.receiver.StopLongPollServiceReceiver
 import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,8 +67,8 @@ class LongPollService : Service() {
         return null
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val asForeground = intent.getBooleanExtra("foreground", false)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val asForeground = intent?.getBooleanExtra("foreground", false).isTrue
 
         Log.d(
             "LongPollService",
@@ -78,6 +79,7 @@ class LongPollService : Service() {
 
         val stopIntent = Intent(this, StopLongPollServiceReceiver::class.java).apply {
             action = StopLongPollServiceReceiver.ACTION_STOP
+            putExtra(StopLongPollServiceReceiver.NOTIFICATION_ID, startId)
         }
         val stopPendingIntent = PendingIntent.getBroadcast(
             this,

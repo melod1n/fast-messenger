@@ -51,6 +51,8 @@ object NotificationsUtils {
             builder.setWhen(timeStampWhen)
         }
 
+        actions.forEach(builder::addAction)
+
         if (notify) {
             try {
                 with(NotificationManagerCompat.from(context)) {
@@ -60,8 +62,6 @@ object NotificationsUtils {
                 e.printStackTrace()
             }
         }
-
-        actions.forEach(builder::addAction)
 
         return builder
     }

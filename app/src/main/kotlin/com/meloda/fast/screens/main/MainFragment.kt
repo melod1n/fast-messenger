@@ -21,10 +21,6 @@ class MainFragment : BaseViewModelFragment<MainViewModel>() {
 
     override val viewModel: MainViewModel by viewModels()
 
-    init {
-        isNeedToSubscribeToViewModel = false
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

@@ -15,7 +15,6 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import com.meloda.fast.BuildConfig
-import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
 import java.io.File
 

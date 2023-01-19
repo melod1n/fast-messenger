@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import com.meloda.fast.base.BaseFragment
 import kotlinx.coroutines.launch
 
+@Deprecated("", ReplaceWith("BaseFragment"))
 abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
 
     constructor() : super()
@@ -15,14 +16,9 @@ abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
 
     protected abstract val viewModel: VM
 
-    @Deprecated("")
-    protected var isNeedToSubscribeToViewModel: Boolean = true
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (isNeedToSubscribeToViewModel) {
-            subscribeToViewModel(viewModel)
-        }
+        subscribeToViewModel(viewModel)
     }
 
     protected open fun onEvent(event: VkEvent) {

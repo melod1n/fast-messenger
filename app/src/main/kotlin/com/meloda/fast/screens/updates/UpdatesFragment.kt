@@ -7,7 +7,6 @@ import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.FragmentUpdatesBinding
 import com.meloda.fast.ext.clear
 import com.meloda.fast.ext.getParcelableCompat
@@ -23,18 +22,16 @@ import com.meloda.fast.util.ViewUtils.showDialog
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import okhttp3.ResponseBody
-import java.util.Timer
 
 @AndroidEntryPoint
 class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
     private val binding by viewBinding(FragmentUpdatesBinding::bind)
+    private val viewModel: IUpdatesViewModel by viewModels<UpdatesViewModel>()
 
-    val viewModel: IUpdatesViewModel by viewModels<UpdatesViewModel>()
-
-    private var downloadId: Long? = null
-    private var timer: Timer? = null
-    private var changelog = ""
+    private val changelogPlaceholder by lazy {
+        string(R.string.fragment_updates_changelog_none)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,7 +72,7 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
     private fun prepareChangelog() {
         binding.changelog.setOnClickListener {
-            showChangelogAlert()
+            viewModel.onChangelogButtonClicked()
         }
     }
 
@@ -87,6 +84,11 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
     private fun listenViewModel() {
         viewModel.screenStateFlow.listenValue(::refreshState)
+        viewModel.isNeedToShowChangelogAlert.listenValue { needToShow ->
+            if (needToShow) {
+                showChangelogAlert()
+            }
+        }
         viewModel.isNeedToShowUnknownSourcesAlert.listenValue { needToShow ->
             if (needToShow) {
                 showUnknownSourcesAlert()
@@ -106,6 +108,10 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
                 onDismissAction = viewModel::onUnknownSourcesAlertDismissed
             )
         }
+    }
+
+    private val maxProgress by lazy {
+        100 * 100
     }
 
     private fun refreshState(screenState: UpdatesScreenState) {
@@ -133,13 +139,6 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
             updateState == UpdateState.Downloading
         )
 
-        if (updateState != UpdateState.Downloading) {
-            timer?.cancel()
-            downloadId?.run { AppGlobal.downloadManager.remove(this) }
-        }
-
-
-
         when (updateState) {
             UpdateState.NewUpdate -> {
                 val item = screenState.updateItem ?: return
@@ -153,17 +152,20 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
                 binding.actionButton.setText(R.string.fragment_updates_download_update)
 
             }
+
             UpdateState.NoUpdates -> {
                 binding.title.setText(R.string.fragment_updates_no_updates)
                 binding.description.setText(R.string.fragment_updates_no_updates_description)
 
                 binding.actionButton.setText(R.string.fragment_updates_check_updates)
             }
+
             UpdateState.Loading -> {
                 binding.title.clear()
                 binding.description.clear()
                 binding.actionButton.clear()
             }
+
             UpdateState.Error -> {
                 val error = screenState.error ?: return
 
@@ -182,11 +184,12 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
                 binding.actionButton.setText(R.string.fragment_updates_try_again)
             }
+
             UpdateState.Downloading -> {
                 binding.loadingProgress.run {
-                    max = 0
-                    progress = 0
-                    isIndeterminate = true
+                    max = maxProgress
+                    progress = screenState.currentProgress ?: 0
+                    isIndeterminate = screenState.isProgressIntermediate
                 }
             }
         }
@@ -244,12 +247,16 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
     }
 
     private fun showChangelogAlert() {
-        val messageText = changelog.ifBlank { string(R.string.fragment_updates_changelog_none) }
+        val messageText =
+            viewModel.screenStateFlow.value.updateItem?.changelog?.ifBlank {
+                changelogPlaceholder
+            } ?: changelogPlaceholder
 
         context?.showDialog(
             title = Text.Resource(R.string.fragment_updates_changelog),
             message = Text.Simple(messageText),
-            positiveText = Text.Resource(R.string.ok)
+            positiveText = Text.Resource(R.string.ok),
+            onDismissAction = viewModel::onChangelogAlertDismissed
         )
     }
 

@@ -1,11 +1,13 @@
 package com.meloda.fast.screens.settings
 
-import android.os.Build
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
@@ -49,7 +51,11 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
 
         val appearanceTitle = SettingsItem.Title(
             title = "Appearance",
-            itemKey = "appearance"
+            itemKey = KEY_APPEARANCE
+        )
+        val appearanceDarkTheme = SettingsItem.TitleSummary(
+            itemKey = KEY_APPEARANCE_DARK_THEME,
+            title = "Dark theme"
         )
         val appearanceMultiline = SettingsItem.Switch(
             itemKey = KEY_APPEARANCE_MULTILINE,
@@ -161,6 +167,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
 
         val appearanceList: List<SettingsItem<*>> = listOf(
             appearanceTitle,
+            appearanceDarkTheme,
             appearanceMultiline,
         )
         val featuresList = listOf(
@@ -232,21 +239,17 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             settingsList.removeAll(debugList)
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            settingsList.remove(featuresLongPollBackground)
-        }
-
         adapter.items = settingsList.toList()
 
         prepareView()
     }
 
     private fun prepareView() {
-        prepareInsets()
+        applyInsets()
         prepareToolbar()
     }
 
-    private fun prepareInsets() {
+    private fun applyInsets() {
         binding.appBar.applyInsetter {
             type(statusBars = true) { padding() }
         }
@@ -261,6 +264,40 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
 
     override fun onClick(key: String) {
         when (key) {
+            KEY_APPEARANCE_DARK_THEME -> {
+                val keys = arrayOf(
+                    AppCompatDelegate.MODE_NIGHT_YES,
+                    AppCompatDelegate.MODE_NIGHT_NO,
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,
+                    AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
+                )
+                val titles = arrayOf(
+                    "Enabled", "Disabled", "Follow system", "Battery saver"
+                )
+
+                val currentDarkThemeValue =
+                    AppGlobal.preferences.getInt(
+                        KEY_APPEARANCE_DARK_THEME,
+                        DEFAULT_VALUE_APPEARANCE_DARK_THEME
+                    )
+
+                val selectedItemIndex = keys.indexOf(currentDarkThemeValue)
+
+                MaterialAlertDialogBuilder(requireContext())
+                    .setSingleChoiceItems(titles, selectedItemIndex) { dialog, which ->
+                        val newMode = keys[which]
+                        AppGlobal.preferences.edit { putInt(KEY_APPEARANCE_DARK_THEME, newMode) }
+
+                        AppCompatDelegate.setDefaultNightMode(newMode)
+
+                        if (newMode != currentDarkThemeValue) {
+                            dialog.dismiss()
+                        }
+                    }
+                    .show()
+
+            }
+
             KEY_UPDATES_CHECK_UPDATES -> {
                 requireActivityRouter().navigateTo(Screens.Updates())
             }
@@ -347,6 +384,9 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
     companion object {
         fun newInstance(): SettingsFragment = SettingsFragment()
 
+        const val KEY_APPEARANCE = "appearance"
+        const val KEY_APPEARANCE_DARK_THEME = "appearance_dark_theme"
+        const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = -1
         const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"
 
         const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"

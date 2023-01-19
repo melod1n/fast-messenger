@@ -41,10 +41,6 @@ sealed class SettingsItem<T>(val key: String) : AdapterDiffItem {
     ) : SettingsItem<Nothing>(itemKey) {
 
         override val id: Int = -1
-
-        companion object {
-            const val ItemType = 1
-        }
     }
 
     data class TitleSummary(
@@ -54,10 +50,6 @@ sealed class SettingsItem<T>(val key: String) : AdapterDiffItem {
     ) : SettingsItem<String>(itemKey) {
 
         override val id: Int = -1
-
-        companion object {
-            const val ItemType = 2
-        }
     }
 
     data class EditText(
@@ -100,10 +92,6 @@ sealed class SettingsItem<T>(val key: String) : AdapterDiffItem {
         init {
             value = AppGlobal.preferences.getString(key, defaultValue)
         }
-
-        companion object {
-            const val ItemType = 3
-        }
     }
 
     data class CheckBox(
@@ -122,10 +110,6 @@ sealed class SettingsItem<T>(val key: String) : AdapterDiffItem {
             } else {
                 AppGlobal.preferences.getBoolean(key, defaultValue)
             }
-        }
-
-        companion object {
-            const val ItemType = 4
         }
     }
 
@@ -146,9 +130,23 @@ sealed class SettingsItem<T>(val key: String) : AdapterDiffItem {
                 AppGlobal.preferences.getBoolean(key, defaultValue)
             }
         }
+    }
 
-        companion object {
-            const val ItemType = 5
+    data class ListItem(
+        val itemKey: String,
+        val values: List<String>,
+        val valueTitles: List<String>,
+        val title: String,
+        val summary: String,
+        private val defaultValue: Int? = null,
+        private val selectedInt: Int? = null,
+    ) : SettingsItem<Int>(itemKey) {
+        override val id: Int = -1
+
+        init {
+            value =
+                if (defaultValue == null) selectedInt
+                else AppGlobal.preferences.getInt(itemKey, defaultValue)
         }
     }
 }

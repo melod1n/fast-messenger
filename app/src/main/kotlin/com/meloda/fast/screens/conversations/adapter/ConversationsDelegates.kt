@@ -69,6 +69,7 @@ fun conversationDelegate(
 
             binding.avatarPlaceholder.visible()
             binding.avatar.setImage(item.avatar) {
+                asCircle = true
                 crossFade = true
                 onLoadedAction = { binding.avatarPlaceholder.gone() }
             }
@@ -140,11 +141,13 @@ fun conversationDelegate(
                 messageText = spanText,
                 resourceProvider.colorPrimary
             )
+
+            val length = prefix.length + coloredMessage.length
             visualizedMessageText.setSpan(
                 ForegroundColorSpan(resourceProvider.colorOutline),
                 0,
-                prefix.length + coloredMessage.length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                length,
+                if (length > 0) Spanned.SPAN_EXCLUSIVE_EXCLUSIVE else 0
             )
 
             binding.message.text = visualizedMessageText

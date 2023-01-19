@@ -1,11 +1,15 @@
 package com.meloda.fast.screens.updates
 
+import android.animation.ValueAnimator
 import android.app.DownloadManager
 import android.content.Context
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.util.Log
+import android.view.animation.DecelerateInterpolator
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.R
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -28,10 +32,13 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Timer
 import javax.inject.Inject
+import kotlin.concurrent.schedule
+import kotlin.math.roundToInt
 
 interface IUpdatesViewModel {
     val screenStateFlow: StateFlow<UpdatesScreenState>
 
+    val isNeedToShowChangelogAlert: Flow<Boolean>
     val isNeedToShowUnknownSourcesAlert: Flow<Boolean>
     val isNeedToShowProgressBar: Flow<Boolean>
 
@@ -39,8 +46,10 @@ interface IUpdatesViewModel {
 
     fun checkUpdates()
 
+    fun onChangelogButtonClicked()
     fun onActionButtonClicked()
 
+    fun onChangelogAlertDismissed()
     fun onUnknownSourcesAlertDismissed()
 }
 
@@ -50,6 +59,8 @@ class UpdatesViewModel @Inject constructor(
 ) : BaseViewModel(), IUpdatesViewModel {
 
     override val screenStateFlow = MutableStateFlow(UpdatesScreenState.EMPTY)
+
+    override val isNeedToShowChangelogAlert = MutableStateFlow(false)
 
     override val isNeedToShowUnknownSourcesAlert = MutableStateFlow(false)
 
@@ -83,12 +94,20 @@ class UpdatesViewModel @Inject constructor(
         }
     }
 
+    override fun onChangelogButtonClicked() {
+        isNeedToShowChangelogAlert.tryEmit(true)
+    }
+
     override fun onActionButtonClicked() {
         when (screenStateFlow.value.updateState) {
             UpdateState.NewUpdate -> checkIsInstallingAllowed()
             UpdateState.NoUpdates, UpdateState.Error -> checkUpdates()
             else -> Unit
         }
+    }
+
+    override fun onChangelogAlertDismissed() {
+        isNeedToShowChangelogAlert.tryEmit(false)
     }
 
     override fun onUnknownSourcesAlertDismissed() {
@@ -148,7 +167,14 @@ class UpdatesViewModel @Inject constructor(
         val file = File(destination)
         if (file.exists()) file.delete()
 
-        val request = DownloadManager.Request(Uri.parse(newUpdate.downloadLink)).apply {
+        val downloadUri = try {
+            Uri.parse(newUpdate.downloadLink)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Uri.EMPTY
+        }
+
+        val request = DownloadManager.Request(downloadUri).apply {
             setTitle("${context.getString(R.string.app_name)} $apkFileName")
             setMimeType(AppConstants.INSTALL_APP_MIME_TYPE)
             setDestinationInExternalFilesDir(
@@ -175,62 +201,63 @@ class UpdatesViewModel @Inject constructor(
             updateUpdateState(UpdateState.NewUpdate)
         }
 
-        context.registerReceiver(
+        ContextCompat.registerReceiver(
+            context,
             receiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
         downloadId = AppGlobal.downloadManager.enqueue(request)
 
         updateUpdateState(UpdateState.Downloading)
 
-//        if (binding.loadingProgress.max != 100 * 100) {
-//            binding.loadingProgress.max = 100 * 100
-//        }
+        timer?.schedule(0, 250) {
+            val query = DownloadManager.Query()
+            query.setFilterById(downloadId ?: -1)
 
-//        timer?.schedule(object : TimerTask() { // for progress
-//            override fun run() {
-//                val query = DownloadManager.Query()
-//                query.setFilterById(downloadId ?: -1)
-//
-//                val cursor = AppGlobal.downloadManager.query(query)
-//                if (cursor.moveToFirst()) {
-//                    val sizeIndex =
-//                        cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-//                    val downloadedIndex =
-//                        cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-//                    val size = cursor.getInt(sizeIndex)
-//                    val downloaded = cursor.getInt(downloadedIndex)
-//
-//                    val progress = if (size != -1) (downloaded * 100.0F / size) else 0.0F
-//
-//                    if (progress.toInt() >= 1) {
-//                        viewModelScope.launch {
-//                            if (view == null) {
-//                                downloadId?.run { AppGlobal.downloadManager.remove(this) }
-//                                timer?.cancel()
-//                                return@launch
-//                            }
-//                            binding.loadingProgress.isIndeterminate = false
-//
-//                            if (binding.loadingProgress.progress != progress.toInt()) {
-//                                ObjectAnimator.ofInt(
-//                                    binding.loadingProgress,
-//                                    "progress",
-//                                    binding.loadingProgress.progress,
-//                                    progress.toInt() * 100
-//                                ).apply {
-//                                    duration = 250
-//                                    setAutoCancel(true)
-//                                    interpolator = DecelerateInterpolator()
-//                                }.start()
-//                            }
-//                        }
-//                    }
-//                    Log.d("Downloading update", "progress $progress%")
-//                }
-//            }
-//        }, 0, 250)
+            val cursor = AppGlobal.downloadManager.query(query)
+            if (cursor.moveToFirst()) {
+                val sizeIndex =
+                    cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                val downloadedIndex =
+                    cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                val size = cursor.getInt(sizeIndex)
+                val downloaded = cursor.getInt(downloadedIndex)
+                val progress = if (size != -1) (downloaded * 100.0F / size) else 0.0F
+                val intProgress = progress.roundToInt()
+                if (intProgress >= 1) {
+                    viewModelScope.launch {
+                        val newState = screenStateFlow.value.copy(
+                            isProgressIntermediate = false,
+                            currentProgress = intProgress
+                        )
+                        screenStateFlow.update { newState }
+
+                        if (intProgress != screenStateFlow.value.currentProgress) {
+                            ValueAnimator.ofInt(
+                                screenStateFlow.value.currentProgress ?: -1,
+                                intProgress * 100
+                            ).apply {
+                                duration = 250
+                                interpolator = DecelerateInterpolator()
+
+                                addUpdateListener {
+                                    val value = it.animatedValue as Int
+                                    val newScreenState = screenStateFlow.value.copy(
+                                        currentProgress = value
+                                    )
+                                    screenStateFlow.update { newScreenState }
+                                }
+
+                                start()
+                            }
+                        }
+                    }
+                }
+                Log.d("Downloading update", "progress: $progress%")
+            }
+        }
     }
 
     private fun installUpdate(context: Context, file: File) {
@@ -245,6 +272,11 @@ class UpdatesViewModel @Inject constructor(
 
     private fun updateUpdateState(newState: UpdateState) {
         viewModelScope.launch { isNeedToShowProgressBar.emit(newState == UpdateState.Loading) }
+
+        if (newState != UpdateState.Downloading) {
+            timer?.cancel()
+            downloadId?.run { AppGlobal.downloadManager.remove(this) }
+        }
 
         val newForm = screenStateFlow.value.copy(
             updateState = newState

@@ -46,8 +46,7 @@
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
 
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-
+        <item name="android:navigationBarColor">@color/colorTranslucentNavigationBar</item>
         <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
 
         <item name="collapsingToolbarLayoutStyle">@style/Ui.Widget.CollapsingToolbar</item>

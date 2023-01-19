@@ -8,6 +8,7 @@ import com.meloda.fast.R
 import com.meloda.fast.databinding.ItemSettingsCheckboxBinding
 import com.meloda.fast.databinding.ItemSettingsEditTextAlertBinding
 import com.meloda.fast.databinding.ItemSettingsEditTextBinding
+import com.meloda.fast.databinding.ItemSettingsListBinding
 import com.meloda.fast.databinding.ItemSettingsSwitchBinding
 import com.meloda.fast.databinding.ItemSettingsTitleBinding
 import com.meloda.fast.databinding.ItemSettingsTitleSummaryBinding
@@ -161,6 +162,22 @@ fun settingsSwitchItemDelegate(
                 item.value = isChecked
                 onChangeListener?.onChange(item.key, isChecked)
             }
+        }
+    }
+
+fun settingsListItemDelegate(
+    onClickListener: OnSettingsClickListener? = null,
+    onLongClickListener: OnSettingsLongClickListener? = null,
+    onChangeListener: OnSettingsChangeListener? = null,
+) =
+    adapterDelegateViewBinding<SettingsItem.ListItem, AdapterDiffItem, ItemSettingsListBinding>(
+        viewBinding = { layoutInflater, parent ->
+            ItemSettingsListBinding.inflate(layoutInflater, parent, false)
+        }
+    ) {
+
+        bind {
+
         }
     }
 

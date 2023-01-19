@@ -48,4 +48,6 @@
 
     <color name="colorLoginFragmentBackground">@color/n1_50</color>
     <color name="colorLoginFieldBackground">@color/n1_10</color>
+
+    <color name="colorTranslucentNavigationBar">#33000000</color>
 </resources>
