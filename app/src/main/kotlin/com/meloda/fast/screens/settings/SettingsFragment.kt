@@ -63,6 +63,15 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             title = "Multiline titles and messages",
             summary = "The title of the dialog and the text of the message can take up two lines"
         )
+        val appearanceLanguage = SettingsItem.ListItem(
+            itemKey = "languages",
+            values = listOf("en", "ru"),
+            valueTitles = listOf("English", "Russian"),
+            title = "Languages",
+            summary = "",
+            defaultValue = null,
+            selectedInt = null
+        )
 
         val featuresTitle = SettingsItem.Title(
             title = "Features",

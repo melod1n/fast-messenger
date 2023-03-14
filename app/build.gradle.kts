@@ -21,6 +21,7 @@ plugins {
     id("kotlin-parcelize")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -44,7 +45,7 @@ android {
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+//                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
             }
         }
     }
@@ -138,7 +139,7 @@ dependencies {
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("androidx.appcompat:appcompat:1.6.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
     implementation("androidx.activity:activity-ktx:1.6.1")
 
@@ -156,14 +157,14 @@ dependencies {
 
     implementation("androidx.room:room-ktx:2.5.0")
     implementation("androidx.room:room-runtime:2.5.0")
-    kapt("androidx.room:room-compiler:2.5.0")
+    ksp("androidx.room:room-compiler:2.5.0")
 
     implementation("com.github.terrakok:cicerone:7.1")
 
     implementation("com.github.massoudss:waveformSeekBar:5.0.0")
 
-    implementation("com.github.bumptech.glide:glide:4.14.2")
-    kapt("com.github.bumptech.glide:compiler:4.14.2")
+    implementation("com.github.bumptech.glide:glide:4.15.0")
+    ksp("com.github.bumptech.glide:compiler:4.15.0")
 
     implementation("com.github.fondesa:kpermissions:3.4.0")
     implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
@@ -171,8 +172,8 @@ dependencies {
     implementation("com.microsoft.appcenter:appcenter-analytics:5.0.0")
     implementation("com.microsoft.appcenter:appcenter-crashes:5.0.0")
 
-    implementation("com.google.dagger:hilt-android:2.44.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.44.2")
+    implementation("com.google.dagger:hilt-android:2.45")
+    kapt("com.google.dagger:hilt-android-compiler:2.45")
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -183,15 +184,15 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.6")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.8")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.google.guava:guava:31.1-jre")
 
-    implementation("com.google.android.material:material:1.7.0")
+    implementation("com.google.android.material:material:1.8.0")
 
-    implementation("org.jsoup:jsoup:1.15.3")
+    implementation("org.jsoup:jsoup:1.15.4")
 
     implementation("com.github.chuckerteam.chucker:library:3.5.2")
 

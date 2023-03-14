@@ -1,5 +1,5 @@
 package com.meloda.fast.ext
 
-val Boolean?.isTrue: Boolean get() = this != null && this == true
+val Boolean?.isTrue: Boolean get() = this == true
 
-val Boolean?.isFalse: Boolean get() = this != null && this == false
+val Boolean?.isFalse: Boolean get() = this == false

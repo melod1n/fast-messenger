@@ -49,7 +49,6 @@ class ConversationsViewModel @Inject constructor(
 ) : BaseViewModel() {
 
     val profiles: MutableStateFlow<HashMap<Int, VkUser>> = MutableStateFlow(hashMapOf())
-
     val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
 
     private val dataConversations: MutableStateFlow<List<BaseVkConversation>> =

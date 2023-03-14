@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -31,6 +32,7 @@ import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.edgeToEdge
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.sdk26AndUp
+import com.meloda.fast.ext.sdkAndUp
 import com.meloda.fast.screens.main.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
@@ -161,7 +163,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     private fun createNotificationChannels() {
-        sdk26AndUp {
+        sdkAndUp(Build.VERSION_CODES.O) {
             val dialogsName = "Dialogs"
             val dialogsDescriptionText = "Channel for dialogs notifications"
             val dialogsImportance = NotificationManager.IMPORTANCE_HIGH

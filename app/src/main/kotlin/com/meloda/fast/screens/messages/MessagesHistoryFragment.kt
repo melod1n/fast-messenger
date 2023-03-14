@@ -21,7 +21,6 @@ import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,9 +50,9 @@ import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.hideKeyboard
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.mimeType
 import com.meloda.fast.ext.orDots
-import com.meloda.fast.ext.requireValue
 import com.meloda.fast.ext.sdk30AndUp
 import com.meloda.fast.ext.selectLast
 import com.meloda.fast.ext.showKeyboard
@@ -76,6 +75,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -233,8 +233,10 @@ class MessagesHistoryFragment :
                         Locale.getDefault()
                     ).format(user?.lastSeen!! * 1000L)
                 }"
+
                 else -> if (user?.lastSeenStatus != null) "Last seen ${user?.lastSeenStatus!!}" else "Last seen recently"
             }
+
             conversation.isGroup() -> if (group?.membersCount != null) "${group?.membersCount} members" else "Group"
             else -> null
         }
@@ -326,13 +328,14 @@ class MessagesHistoryFragment :
                         } else {
                             Action.EDIT
                         }
+
                     canSend -> Action.SEND
                     else -> {
                         Action.RECORD
                     }
                 }
 
-            actionState.value = newValue
+            actionState.update { newValue }
         }
 
         actionState
@@ -357,12 +360,15 @@ class MessagesHistoryFragment :
                     Action.RECORD -> {
                         binding.action.setImageResource(R.drawable.ic_round_mic_24)
                     }
+
                     Action.SEND -> {
                         binding.action.setImageResource(R.drawable.ic_round_send_24)
                     }
+
                     Action.EDIT -> {
                         binding.action.setImageResource(R.drawable.ic_round_done_24)
                     }
+
                     Action.DELETE -> {
                         binding.action.setImageResource(R.drawable.ic_trash_can_outline_24)
                     }
@@ -370,7 +376,7 @@ class MessagesHistoryFragment :
             }
             .launchIn(lifecycleScope)
 
-        attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
+        attachmentController.isPanelVisible.listenValue { isVisible ->
             if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
 
 //            val currentHeight = binding.listAnchor.height
@@ -403,7 +409,7 @@ class MessagesHistoryFragment :
 
         binding.dismissReply.setOnClickListener {
             if (attachmentController.message.value != null)
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
         }
 
         binding.attach.setOnClickListener {
@@ -500,7 +506,6 @@ class MessagesHistoryFragment :
         if (file.exists()) file.delete()
 
         withContext(Dispatchers.IO) {
-            @Suppress("BlockingMethodInNonBlockingContext")
             val inputStream =
                 requireActivity().contentResolver.openInputStream(uri) ?: return@withContext
 
@@ -527,10 +532,12 @@ class MessagesHistoryFragment :
                     val uploadedAttachment = viewModel.uploadPhoto(conversation.id, file, name)
                     addAttachment(uploadedAttachment)
                 }
+
                 MediaType.ANY_VIDEO_TYPE.type() -> {
                     val uploadedAttachment = viewModel.uploadVideo(file, name)
                     addAttachment(uploadedAttachment)
                 }
+
                 MediaType.ANY_AUDIO_TYPE.type() -> {
                     val uploadedAttachment = viewModel.uploadAudio(file, name)
                     addAttachment(uploadedAttachment)
@@ -556,22 +563,27 @@ class MessagesHistoryFragment :
                     clearAttachments()
                     true
                 }
+
                 "Photo" -> {
                     pickPhoto()
                     true
                 }
+
                 "Video" -> {
                     pickVideo()
                     true
                 }
+
                 "Audio" -> {
                     pickAudio()
                     true
                 }
+
                 "File" -> {
                     pickFile()
                     true
                 }
+
                 else -> false
             }
         }
@@ -667,6 +679,7 @@ class MessagesHistoryFragment :
                     binding.action.performHapticFeedback(HapticFeedbackConstants.REJECT)
                 }
             }
+
             Action.SEND -> {
                 val messageText = binding.message.trimmedText
                 if (messageText.isBlank() && attachmentsToLoad.isEmpty()) {
@@ -706,7 +719,7 @@ class MessagesHistoryFragment :
                 })
 
                 val replyMessage = attachmentController.message.value
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
 
                 sdk30AndUp {
                     binding.action.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
@@ -735,11 +748,12 @@ class MessagesHistoryFragment :
                     attachments = attachments
                 )
             }
+
             Action.EDIT -> {
                 val message = attachmentController.message.value ?: return
                 val messageText = binding.message.text.toString().trim()
 
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
 
                 viewModel.editMessage(
                     originalMessage = message,
@@ -749,6 +763,7 @@ class MessagesHistoryFragment :
                     attachments = message.attachments
                 )
             }
+
             Action.DELETE -> attachmentController.message.value?.let {
                 showDeleteMessageDialog(it)
             }
@@ -782,7 +797,7 @@ class MessagesHistoryFragment :
         val toolbarMeasuredHeight = binding.toolbar.measuredHeight
         val bottomMessagePanelMeasuredHeight = binding.bottomMessagePanel.measuredHeight
 
-        binding.recyclerView.doOnApplyWindowInsets { v, insets, _ ->
+        binding.recyclerView.doOnApplyWindowInsets { v, insets, _, _ ->
             val statusBars = AndroidUtils.getStatusBarInsets(insets)
             val ime = AndroidUtils.getImeInsets(insets)
             val navBars = AndroidUtils.getNavBarInsets(insets)
@@ -975,27 +990,32 @@ class MessagesHistoryFragment :
                 when (params[which]) {
                     reply -> {
                         if (attachmentController.message.value != message)
-                            attachmentController.message.value = message
+                            attachmentController.message.update { message }
                     }
+
                     pin -> showPinMessageDialog(
                         peerId = conversation.id,
                         messageId = message.id,
                         pin = !isMessageAlreadyPinned
                     )
+
                     important -> viewModel.markAsImportant(
                         messagesIds = listOf(message.id),
                         important = !message.important
                     )
+
                     read -> viewModel.readMessage(
                         conversation.id,
                         message.id
                     )
+
                     edit -> {
                         attachmentController.isEditing = true
 
                         if (attachmentController.message.value != message)
-                            attachmentController.message.value = message
+                            attachmentController.message.update { message }
                     }
+
                     delete -> showDeleteMessageDialog(message)
                 }
             }.show()
@@ -1044,7 +1064,7 @@ class MessagesHistoryFragment :
             .setTitle(R.string.confirm_delete_message)
             .setView(binding.root)
             .setPositiveButton(R.string.action_delete) { _, _ ->
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
 
                 if (message.isError()) {
                     adapter.searchIndexOf(message)?.let { index ->
@@ -1115,7 +1135,6 @@ class MessagesHistoryFragment :
         }
     }
 
-    @Suppress("NAME_SHADOWING")
     private fun setUnreadCounterVisibility(
         lastCompletelyVisiblePosition: Int,
         dy: Int? = null,
@@ -1188,23 +1207,26 @@ class MessagesHistoryFragment :
                 binding: FragmentMessagesHistoryBinding,
                 isAttachmentsEmpty: () -> Boolean,
             ): AttachmentPanelController {
-                val controller = AttachmentPanelController()
-                controller.context = context
-                controller.binding = binding
-                controller.adapter = adapter
-                controller.isAttachmentsEmpty = isAttachmentsEmpty
-                controller.message.observe(lifecycleOwner) { value ->
-                    controller.onMessageValueChanged(value)
+                val controller = AttachmentPanelController().apply {
+                    this.context = context
+                    this.binding = binding
+                    this.adapter = adapter
+                    this.isAttachmentsEmpty = isAttachmentsEmpty
+                    this.message.listenValue(
+                        lifecycleOwner.lifecycleScope,
+                        this::onMessageValueChanged
+                    )
+
+                    this.message.update { null }
                 }
 
-                controller.message.value = null
 
                 return controller
             }
         }
 
-        val isPanelVisible = MutableLiveData(false)
-        val message = MutableLiveData<VkMessage?>()
+        val isPanelVisible = MutableStateFlow(false)
+        val message = MutableStateFlow<VkMessage?>(null)
 
         var isEditing = false
 
@@ -1275,15 +1297,15 @@ class MessagesHistoryFragment :
         }
 
         fun showPanel() {
-            if (isPanelVisible.requireValue()) return
+            if (isPanelVisible.value) return
 
             binding.attachmentPanel.visible()
 //            binding.attachmentPanel.measure(
 //                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
 //            )
 
-            if (!isPanelVisible.requireValue())
-                isPanelVisible.value = true
+            if (!isPanelVisible.value)
+                isPanelVisible.update { true }
 
 //            binding.attachmentPanel.visible()
 
@@ -1318,13 +1340,13 @@ class MessagesHistoryFragment :
         }
 
         fun hidePanel() {
-            if (!isPanelVisible.requireValue() ||
+            if (!isPanelVisible.value ||
                 !isAttachmentsEmpty() ||
                 message.value != null
             ) return
 
-            if (isPanelVisible.requireValue())
-                isPanelVisible.value = false
+            if (isPanelVisible.value)
+                isPanelVisible.update { false }
 
             binding.attachmentPanel.gone()
 
@@ -1370,7 +1392,7 @@ class MessagesHistoryFragment :
         )
     }
 
-    fun openChatInfoScreen(
+    private fun openChatInfoScreen(
         conversation: VkConversationDomain,
         user: VkUser?,
         group: VkGroup?,

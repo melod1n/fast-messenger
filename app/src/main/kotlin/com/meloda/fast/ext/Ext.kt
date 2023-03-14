@@ -1,14 +1,14 @@
-//@file:Suppress("DeprecatedCallableAddReplaceWith")
-
 package com.meloda.fast.ext
 
-import android.animation.ValueAnimator
+import android.content.Context
 import android.content.res.Resources
 import android.util.DisplayMetrics
-import androidx.lifecycle.MutableLiveData
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.common.net.MediaType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -23,29 +23,6 @@ fun Int.dpToPx(): Int {
 fun Float.dpToPx(): Int {
     val metrics = Resources.getSystem().displayMetrics
     return (this * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)).toInt()
-}
-
-fun ValueAnimator.startWithIntValues(from: Int, to: Int) {
-    setIntValues(from, to)
-    start()
-}
-
-fun ValueAnimator.startWithFloatValues(from: Float, to: Float) {
-    setFloatValues(from, to)
-    start()
-}
-
-inline fun <T, K> Pair<T?, K?>.runIfElementsNotNull(block: (T, K) -> Unit) {
-    val firstCopy = first
-    val secondCopy = second
-    if (firstCopy != null && secondCopy != null) {
-        block(firstCopy, secondCopy)
-    }
-}
-
-@Deprecated("get rid of LiveData")
-fun <T> MutableLiveData<T>.requireValue(): T {
-    return requireNotNull(this.value)
 }
 
 val MediaType.mimeType: String get() = "${type()}/${subtype()}"
@@ -89,8 +66,16 @@ fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
 }
 
 context(ViewModel)
-fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit) {
-    onEach {
-        action.invoke(it)
-    }.launchIn(viewModelScope)
+fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit) = listenValue(viewModelScope, action)
+
+fun <T> Flow<T>.listenValue(
+    coroutineScope: CoroutineScope,
+    action: suspend (T) -> Unit
+): Job = onEach(action::invoke).launchIn(coroutineScope)
+
+fun String.toast(context: Context, duration: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(context, this, duration).show()
 }
+
+context (Context)
+fun String.toast(duration: Int = Toast.LENGTH_LONG) = toast(this@Context, duration)

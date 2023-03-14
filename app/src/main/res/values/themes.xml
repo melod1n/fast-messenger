@@ -58,8 +58,8 @@
 
     <style name="AppTheme.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/colorBackground</item>
-        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_splash</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/colorPrimary</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 

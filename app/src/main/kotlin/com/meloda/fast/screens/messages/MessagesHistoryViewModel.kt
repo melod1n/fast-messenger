@@ -303,7 +303,7 @@ class MessagesHistoryViewModel @Inject constructor(
         peerId: Int,
         photo: File,
         name: String,
-    ) = suspendCoroutine<VkAttachment> {
+    ) = suspendCoroutine {
         launch {
             val uploadServerUrl = getPhotoMessageUploadServer(peerId)
             val uploadedFileInfo = uploadPhotoToServer(uploadServerUrl, photo, name)
@@ -318,7 +318,7 @@ class MessagesHistoryViewModel @Inject constructor(
         }.also { it.invokeOnCompletion { launch { onStop() } } }
     }
 
-    private suspend fun getPhotoMessageUploadServer(peerId: Int) = suspendCoroutine<String> {
+    private suspend fun getPhotoMessageUploadServer(peerId: Int) = suspendCoroutine {
         launch {
             val uploadServerResponse = makeSuspendJob(
                 { photosRepository.getMessagesUploadServer(peerId) }
@@ -385,7 +385,7 @@ class MessagesHistoryViewModel @Inject constructor(
     suspend fun uploadVideo(
         file: File,
         name: String,
-    ) = suspendCoroutine<VkVideo> {
+    ) = suspendCoroutine {
         launch {
             val uploadInfo = getVideoMessageUploadServer()
 
@@ -399,7 +399,7 @@ class MessagesHistoryViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getVideoMessageUploadServer() = suspendCoroutine<Pair<String, VkVideo>> {
+    private suspend fun getVideoMessageUploadServer() = suspendCoroutine {
         launch {
             val saveResponse = makeSuspendJob(
                 { videosRepository.save() }
@@ -445,7 +445,7 @@ class MessagesHistoryViewModel @Inject constructor(
     suspend fun uploadAudio(
         file: File,
         name: String,
-    ) = suspendCoroutine<VkAttachment> {
+    ) = suspendCoroutine {
         launch {
             val uploadUrl = getAudioUploadServer()
             val uploadInfo = uploadAudioToServer(uploadUrl, file, name)
@@ -457,7 +457,7 @@ class MessagesHistoryViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getAudioUploadServer() = suspendCoroutine<String> {
+    private suspend fun getAudioUploadServer() = suspendCoroutine {
         launch {
             val uploadResponse = makeSuspendJob(
                 { audiosRepository.getUploadServer() }
@@ -476,7 +476,7 @@ class MessagesHistoryViewModel @Inject constructor(
         uploadUrl: String,
         file: File,
         name: String,
-    ) = suspendCoroutine<Triple<Int, String, String>> {
+    ) = suspendCoroutine {
         launch {
             val requestBody = file.asRequestBody()
             val body = MultipartBody.Part.createFormData("file", name, requestBody)
@@ -522,7 +522,7 @@ class MessagesHistoryViewModel @Inject constructor(
         file: File,
         name: String,
         type: FilesRepository.FileType,
-    ) = suspendCoroutine<VkAttachment> {
+    ) = suspendCoroutine {
         launch {
             val uploadServerUrl = getFileMessageUploadServer(peerId, type)
             val uploadedFileInfo = uploadFileToServer(uploadServerUrl, file, name)
@@ -535,7 +535,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private suspend fun getFileMessageUploadServer(
         peerId: Int,
         type: FilesRepository.FileType,
-    ) = suspendCoroutine<String> {
+    ) = suspendCoroutine {
         launch {
             val uploadServerResponse = makeSuspendJob(
                 { filesRepository.getMessagesUploadServer(peerId, type) }
@@ -554,7 +554,7 @@ class MessagesHistoryViewModel @Inject constructor(
         uploadUrl: String,
         file: File,
         name: String,
-    ) = suspendCoroutine<String> {
+    ) = suspendCoroutine {
         launch {
             val requestBody = file.asRequestBody()
             val body = MultipartBody.Part.createFormData("file", name, requestBody)
@@ -577,7 +577,7 @@ class MessagesHistoryViewModel @Inject constructor(
     }
 
     private suspend fun saveMessageFile(file: String) =
-        suspendCoroutine<Pair<String, VkAttachment>> {
+        suspendCoroutine {
             launch {
                 val saveResponse = makeSuspendJob(
                     { filesRepository.saveMessageFile(file) }

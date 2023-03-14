@@ -2,8 +2,6 @@ package com.meloda.fast.ext
 
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.os.Parcelable
-import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -17,9 +15,15 @@ import androidx.annotation.Px
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.children
 import androidx.core.view.doOnAttach
 import androidx.core.view.forEach
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
+import androidx.core.view.marginBottom
+import androidx.core.view.marginEnd
+import androidx.core.view.marginStart
+import androidx.core.view.marginTop
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
@@ -58,6 +62,14 @@ fun TextInputLayout.clearError() {
     if (error != null) error = null
 }
 
+fun TextInputLayout.toggleError(errorText: String, isNeedToShow: Boolean) {
+    if (isNeedToShow) {
+        this.error = errorText
+    } else {
+        clearError()
+    }
+}
+
 fun TextInputLayout.clearTextOnErrorIconClick(textField: TextInputEditText) {
     setErrorIconOnClickListener {
         textField.text = null
@@ -81,12 +93,12 @@ fun View.setMarginsPx(
     @Px rightMargin: Int? = null,
     @Px bottomMargin: Int? = null,
 ) {
-    if (layoutParams is ViewGroup.MarginLayoutParams) {
-        val params = layoutParams as ViewGroup.MarginLayoutParams
+    (layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
         leftMargin?.run { params.leftMargin = this }
         topMargin?.run { params.topMargin = this }
         rightMargin?.run { params.rightMargin = this }
         bottomMargin?.run { params.bottomMargin = this }
+
         requestLayout()
     }
 }
@@ -95,20 +107,9 @@ fun TextView.clear() {
     text = null
 }
 
-fun ViewGroup.saveChildViewStates(): SparseArray<Parcelable> {
-    val childViewStates = SparseArray<Parcelable>()
-    children.forEach { child -> child.saveHierarchyState(childViewStates) }
-    return childViewStates
-}
-
-fun ViewGroup.restoreChildViewStates(childViewStates: SparseArray<Parcelable>) {
-    children.forEach { child -> child.restoreHierarchyState(childViewStates) }
-}
-
-fun View.invisible() = run { visibility = View.INVISIBLE }
-
-fun View.visible() = run { visibility = View.VISIBLE }
-fun View.gone() = run { visibility = View.GONE }
+fun View.invisible() = run { isInvisible = true }
+fun View.visible() = run { isVisible = true }
+fun View.gone() = run { isGone = true }
 
 @JvmOverloads
 fun View.toggleVisibility(visible: Boolean?, visibilityWhenFalse: Int = View.GONE) =
@@ -138,6 +139,7 @@ fun Toolbar.addAvatarMenuItem(urlToLoad: String? = null, drawable: Drawable? = n
                 transformations = ImageLoader.userAvatarTransformations
             }
         }
+
         drawable != null -> {
             imageView.loadWithGlide {
                 imageDrawable = drawable
@@ -149,18 +151,29 @@ fun Toolbar.addAvatarMenuItem(urlToLoad: String? = null, drawable: Drawable? = n
     return avatarMenuItem
 }
 
-fun View.doOnApplyWindowInsets(block: (view: View, insets: WindowInsetsCompat, padding: Rect) -> WindowInsetsCompat) {
-    val initialPadding = recordInitialPaddingForView(this)
+fun View.doOnApplyWindowInsets(
+    block: (
+        view: View,
+        insets: WindowInsetsCompat,
+        paddings: Rect,
+        margins: Rect
+    ) -> WindowInsetsCompat
+) {
+    val initialPaddings = recordInitialPaddingsForView(this)
+    val initialMargins = recordInitialMarginsForView(this)
 
-    ViewCompat.setOnApplyWindowInsetsListener(this) { v, insets ->
-        block(v, insets, initialPadding)
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        block(view, insets, initialPaddings, initialMargins)
     }
 
     requestApplyInsetsWhenAttached()
 }
 
-private fun recordInitialPaddingForView(view: View) =
+private fun recordInitialPaddingsForView(view: View) =
     Rect(view.paddingLeft, view.paddingTop, view.paddingRight, view.paddingBottom)
+
+private fun recordInitialMarginsForView(view: View) =
+    Rect(view.marginStart, view.marginTop, view.marginEnd, view.marginBottom)
 
 fun View.requestApplyInsetsWhenAttached() {
     if (isAttachedToWindow) {

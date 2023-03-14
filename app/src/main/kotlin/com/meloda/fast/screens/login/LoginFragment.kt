@@ -36,6 +36,7 @@ import com.meloda.fast.ext.onDone
 import com.meloda.fast.ext.selectLast
 import com.meloda.fast.ext.string
 import com.meloda.fast.ext.toast
+import com.meloda.fast.ext.toggleError
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.model.base.Text
@@ -306,10 +307,10 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         }
 
         viewModel.isNeedToShowLoginError.listenValue { needToShow ->
-            binding.loginContainer.error = if (needToShow) loginErrorText else null
+            binding.loginContainer.toggleError(loginErrorText, needToShow)
         }
         viewModel.isNeedToShowPasswordError.listenValue { needToShow ->
-            binding.passwordContainer.error = if (needToShow) passwordErrorText else null
+            binding.passwordContainer.toggleError(passwordErrorText, needToShow)
         }
         viewModel.isNeedToShowErrorDialog.listenValue { needToShow ->
             if (needToShow) {
