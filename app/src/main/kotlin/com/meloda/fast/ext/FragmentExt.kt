@@ -33,3 +33,8 @@ context(Fragment)
 fun string(@StringRes resId: Int): String {
     return getString(resId)
 }
+
+context(Fragment)
+fun string(@StringRes resId: Int, vararg args: Any?): String {
+    return getString(resId, *args)
+}

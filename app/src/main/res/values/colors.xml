@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="debug_1">#ff0000</color>
+    <color name="debug_2">#00ff00</color>
+    <color name="debug_3">#0000ff</color>
+
     <color name="colorPrimary">@color/a1_600</color>
     <color name="colorOnPrimary">@color/a1_0</color>
     <color name="colorPrimaryContainer">@color/a1_100</color>

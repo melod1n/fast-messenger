@@ -2,11 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/loginRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
-    android:background="@color/colorLoginFragmentBackground">
+    android:animateLayoutChanges="true">
 
     <FrameLayout
         android:id="@+id/web_view_container"
@@ -28,27 +26,16 @@
 
     </FrameLayout>
 
-    <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/use_crash_reporter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:checked="true"
-        android:text="Use crash reporter tool"
-        android:visibility="gone"
-        tools:ignore="HardcodedText,MissingConstraints" />
-
     <androidx.constraintlayout.helper.widget.Flow
         android:id="@+id/flow"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="30dp"
         android:layout_marginTop="64dp"
         android:orientation="vertical"
         app:constraint_referenced_ids="title,login_container,password_container"
         app:flow_verticalGap="16dp"
         app:flow_verticalStyle="packed"
-        app:layout_constraintBottom_toTopOf="@id/sign_in_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -86,6 +73,7 @@
         style="@style/Ui.Widget.TextInputLayout.Password"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+
         app:startIconDrawable="@drawable/ic_key">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -102,36 +90,33 @@
 
     <FrameLayout
         android:id="@+id/sign_in_container"
-        android:layout_width="56dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:animateLayoutChanges="true"
-        android:minHeight="104dp"
-        android:paddingBottom="48dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/flow">
+        app:layout_constraintStart_toStartOf="parent">
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/sign_in"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_arrow_end"
-            app:backgroundTint="?colorTertiary"
-            app:elevation="0dp"
-            app:tint="?colorOnTertiary"
-            tools:ignore="ContentDescription"
-            tools:visibility="visible" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginBottom="48dp"
             android:indeterminateTint="?colorPrimary"
             android:visibility="gone"
             tools:visibility="gone" />
     </FrameLayout>
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/sign_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_arrow_end"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

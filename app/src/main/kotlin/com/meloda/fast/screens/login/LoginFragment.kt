@@ -1,56 +1,36 @@
 package com.meloda.fast.screens.login
 
 import android.animation.ValueAnimator
-import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.animation.LinearInterpolator
-import androidx.core.content.edit
-import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.activityViewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
-import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
 import com.meloda.fast.base.viewmodel.ViewModelUtils
 import com.meloda.fast.base.viewmodel.VkEvent
-import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.DialogCaptchaBinding
 import com.meloda.fast.databinding.DialogFastLoginBinding
 import com.meloda.fast.databinding.DialogValidationBinding
 import com.meloda.fast.databinding.FragmentLoginBinding
+import com.meloda.fast.ext.*
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
-import com.meloda.fast.ext.clearTextOnErrorIconClick
-import com.meloda.fast.ext.color
-import com.meloda.fast.ext.dpToPx
-import com.meloda.fast.ext.hideKeyboard
-import com.meloda.fast.ext.listenValue
-import com.meloda.fast.ext.onDone
-import com.meloda.fast.ext.selectLast
-import com.meloda.fast.ext.string
-import com.meloda.fast.ext.toast
-import com.meloda.fast.ext.toggleError
-import com.meloda.fast.ext.toggleVisibility
-import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.model.base.Text
-import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.util.ViewUtils.showDialog
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginFragment : BaseFragment(R.layout.fragment_login) {
 
-    private val viewModel: ILoginViewModel by viewModels<LoginViewModel>()
+    private val viewModel: ILoginViewModel by activityViewModels<LoginViewModel>()
     private val binding by viewBinding(FragmentLoginBinding::bind)
 
     private val loginErrorText by lazy {
@@ -63,64 +43,45 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         string(R.string.input_code_hint)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val backgroundColor = color(R.color.colorLoginFragmentBackground)
-
-        requireActivity().window.apply {
-            statusBarColor = backgroundColor
-            navigationBarColor = backgroundColor
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prepareView()
         listenViewModel()
+
+
     }
 
-    private fun onEvent(event: VkEvent) {
-        ViewModelUtils.parseEvent(this, event)
+    override fun onDestroyView() {
+        super.onDestroyView()
+    }
 
-        when (event) {
-            is CaptchaRequiredEvent -> viewModel::onCaptchaEventReceived
-            is ValidationRequiredEvent -> viewModel::onValidationEventReceived
-        }
+    private fun handleEvent(event: VkEvent) {
+        ViewModelUtils.parseEvent(this, event)
     }
 
     override fun toggleProgress(isProgressing: Boolean) {
         binding.progressBar.toggleVisibility(isProgressing)
 
-        val newScale = if (binding.signIn.isVisible) 0F else 1F
-
-        ValueAnimator.ofFloat(binding.signIn.scaleX, newScale).apply {
-            duration = FAB_ANIMATION_DURATION
-            interpolator = LinearInterpolator()
-
-            addUpdateListener { animator ->
-                if (view == null) return@addUpdateListener
-
-                val value = animator.animatedValue as Float
-
-                binding.signIn.scaleX = value
-                binding.signIn.scaleY = value
-
-                binding.signIn.toggleVisibility(value > 0)
-            }
-        }.start()
+        if (isProgressing) {
+            binding.signIn.hide()
+        } else {
+            binding.signIn.show()
+        }
     }
 
     private fun prepareView() {
         applyInsets()
         prepareFields()
         prepareAuthButton()
-        prepareCrashManagerCheckbox()
     }
 
     private fun applyInsets() {
         binding.root.applyInsetter {
-            type(ime = true, statusBars = true) { padding() }
+            type(statusBars = true) { padding() }
+        }
+
+        binding.signIn.applyInsetter {
+            type(navigationBars = true) { margin() }
         }
     }
 
@@ -185,19 +146,6 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         }
     }
 
-    private fun prepareCrashManagerCheckbox() {
-        binding.useCrashReporter.isChecked =
-            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, true)
-
-        binding.useCrashReporter.setOnCheckedChangeListener { _, isChecked ->
-            AppGlobal.preferences.edit {
-                putBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, isChecked)
-                requireActivity().finishAffinity()
-                startActivity(Intent(requireContext(), MainActivity::class.java))
-            }
-        }
-    }
-
     private fun showFastLoginDialog() {
         val dialogFastLoginBinding = DialogFastLoginBinding.inflate(layoutInflater, null, false)
 
@@ -233,13 +181,11 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
 
         viewModel.isNeedToShowCaptchaError.listenValue { needToShow ->
-            captchaBinding.captchaLayout.error =
-                if (needToShow) codeErrorText
-                else null
+            captchaBinding.captchaLayout.toggleError(codeErrorText, needToShow)
         }
 
         captchaBinding.image.loadWithGlide {
-            imageUrl = viewModel.formState.value.captchaImage
+            imageUrl = viewModel.screenState.value.captchaImage
             crossFade = true
         }
         captchaBinding.image.shapeAppearanceModel =
@@ -253,6 +199,7 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
 
         val dialog = builder.show()
 
+        captchaBinding.captchaInput.updateTextIfDiffer(viewModel.screenState.value.captchaCode)
         captchaBinding.captchaInput.doAfterTextChanged { editable ->
             viewModel.onCaptchaCodeInputChanged(editable?.toString().orEmpty())
         }
@@ -268,9 +215,7 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
         val validationBinding = DialogValidationBinding.inflate(layoutInflater, null, false)
 
         viewModel.isNeedToShowValidationError.listenValue { needToShow ->
-            validationBinding.codeLayout.error =
-                if (needToShow) codeErrorText
-                else null
+            validationBinding.codeLayout.toggleError(codeErrorText, needToShow)
         }
 
         val builder = MaterialAlertDialogBuilder(requireContext())
@@ -281,6 +226,7 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
 
         val dialog = builder.show()
 
+        validationBinding.codeInput.updateTextIfDiffer(viewModel.screenState.value.validationCode)
         validationBinding.codeInput.doAfterTextChanged { editable ->
             viewModel.onValidationCodeInputChanged(editable?.toString().orEmpty())
         }
@@ -295,58 +241,65 @@ class LoginFragment : BaseFragment(R.layout.fragment_login) {
     private fun showErrorDialog() {
         requireContext().showDialog(
             title = Text.Resource(R.string.title_error),
-            message = Text.Simple(viewModel.formState.value.error.orEmpty()),
+            message = Text.Simple(viewModel.screenState.value.error.orEmpty()),
             positiveText = Text.Resource(R.string.ok),
             onDismissAction = viewModel::onErrorDialogDismissed
         )
     }
 
-    private fun listenViewModel() {
-        lifecycleScope.launch {
-            viewModel.events.collect { onEvent(it) }
-        }
+    private fun listenViewModel() = with(viewModel) {
+        events.listenValue(::handleEvent)
+        screenState.listenValue(::handleScreenState)
+        isNeedToShowLoginError.listenValue(::handleLoginErrorShow)
+        isNeedToShowPasswordError.listenValue(::handlePasswordErrorShow)
+        isNeedToShowErrorDialog.listenValue(::handleErrorAlertShow)
+        isNeedToShowCaptchaDialog.listenValue(::handleCaptchaAlertShow)
+        isNeedToShowValidationDialog.listenValue(::handleValidationAlertShow)
+        isNeedToShowValidationToast.listenValue(::handleValidationToastShow)
+        isNeedToShowFastLoginDialog.listenValue(::handleFastLoginAlertShow)
+    }
 
-        viewModel.isNeedToShowLoginError.listenValue { needToShow ->
-            binding.loginContainer.toggleError(loginErrorText, needToShow)
-        }
-        viewModel.isNeedToShowPasswordError.listenValue { needToShow ->
-            binding.passwordContainer.toggleError(passwordErrorText, needToShow)
-        }
-        viewModel.isNeedToShowErrorDialog.listenValue { needToShow ->
-            if (needToShow) {
-                showErrorDialog()
-            }
-        }
+    private fun handleScreenState(state: LoginScreenState) {
+        state.login.let(binding.login::updateTextIfDiffer)
+        state.password.let(binding.password::updateTextIfDiffer)
+    }
 
-        viewModel.isNeedToShowCaptchaDialog.listenValue { needToShow ->
-            if (needToShow) {
-                showCaptchaDialog()
-            }
-        }
-        viewModel.isNeedToShowValidationDialog.listenValue { needToShow ->
-            if (needToShow) {
-                showValidationDialog()
-            }
-        }
-        viewModel.isNeedToShowValidationToast.listenValue { needToShow ->
-            if (needToShow) {
-                string(R.string.validation_required).toast()
-                viewModel.onValidationToastShown()
-            }
-        }
-        viewModel.isNeedToShowFastLoginDialog.listenValue { needToShow ->
-            if (needToShow) {
-                showFastLoginDialog()
-            }
+    private fun handleLoginErrorShow(isNeedToShow: Boolean) {
+        binding.loginContainer.toggleError(loginErrorText, isNeedToShow)
+    }
+
+    private fun handlePasswordErrorShow(isNeedToShow: Boolean) {
+        binding.passwordContainer.toggleError(passwordErrorText, isNeedToShow)
+    }
+
+    private fun handleErrorAlertShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showErrorDialog()
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun handleCaptchaAlertShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showCaptchaDialog()
+        }
+    }
 
-        requireActivity().window.apply {
-            statusBarColor = Color.TRANSPARENT
-            navigationBarColor = Color.TRANSPARENT
+    private fun handleValidationAlertShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showValidationDialog()
+        }
+    }
+
+    private fun handleValidationToastShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            string(R.string.validation_required).toast()
+            viewModel.onValidationToastShown()
+        }
+    }
+
+    private fun handleFastLoginAlertShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showFastLoginDialog()
         }
     }
 

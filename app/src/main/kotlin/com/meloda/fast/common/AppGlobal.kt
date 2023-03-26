@@ -10,14 +10,18 @@ import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import androidx.room.Room
+import com.google.android.material.color.DynamicColors
 import com.meloda.fast.database.AccountsDatabase
 import com.meloda.fast.database.CacheDatabase
+import com.meloda.fast.screens.settings.SettingsFragment
 import dagger.hilt.android.HiltAndroidApp
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlin.properties.Delegates
 
 @HiltAndroidApp
 class AppGlobal : Application() {
@@ -29,7 +33,7 @@ class AppGlobal : Application() {
         lateinit var clipboardManager: ClipboardManager
         lateinit var downloadManager: DownloadManager
 
-        lateinit var preferences: SharedPreferences
+        var preferences: SharedPreferences by Delegates.notNull()
         lateinit var resources: Resources
         lateinit var packageName: String
         private lateinit var instance: AppGlobal
@@ -52,6 +56,7 @@ class AppGlobal : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
         instance = this
 
         cacheDatabase = Room.databaseBuilder(this, CacheDatabase::class.java, "cache")
@@ -62,6 +67,14 @@ class AppGlobal : Application() {
             .build()
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+        if (preferences.getBoolean(
+                SettingsFragment.KEY_DEBUG_TEST_THEME,
+                SettingsFragment.DEFAULT_VALUE_DEBUG_TEST_THEME
+            )
+        ) {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+        }
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
@@ -95,5 +108,15 @@ class AppGlobal : Application() {
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+
+        applyDarkTheme()
+    }
+
+    private fun applyDarkTheme() {
+        val nightMode = preferences.getInt(
+            SettingsFragment.KEY_APPEARANCE_DARK_THEME,
+            SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+        )
+        AppCompatDelegate.setDefaultNightMode(nightMode)
     }
 }

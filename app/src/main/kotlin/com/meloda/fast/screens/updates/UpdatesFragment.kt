@@ -1,41 +1,236 @@
 package com.meloda.fast.screens.updates
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.databinding.FragmentUpdatesBinding
-import com.meloda.fast.ext.clear
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.string
-import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.model.base.Text
-import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.updates.model.UpdatesScreenState
+import com.meloda.fast.screens.updates.model.UpdateState
+import com.meloda.fast.screens.updates.ui.UpdatesTheme
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ViewUtils.showDialog
 import dagger.hilt.android.AndroidEntryPoint
-import dev.chrisbanes.insetter.applyInsetter
 import okhttp3.ResponseBody
 
 @AndroidEntryPoint
 class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
-    private val binding by viewBinding(FragmentUpdatesBinding::bind)
+    //    private val binding by viewBinding(FragmentUpdatesBinding::bind)
     private val viewModel: IUpdatesViewModel by viewModels<UpdatesViewModel>()
 
     private val changelogPlaceholder by lazy {
         string(R.string.fragment_updates_changelog_none)
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                UpdatesTheme {
+                    UpdatesScreen()
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun UpdatesScreen() {
+        val state by viewModel.screenState.collectAsState()
+        val updateState = state.updateState
+//        val updateState by remember { mutableStateOf(state.updateState) }
+        val downloadProgress by viewModel.currentDownloadProgress.collectAsState()
+        val animatedProgress by animateFloatAsState(
+            targetValue = downloadProgress / 100f,
+            animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+        )
+
+        Scaffold(topBar = { Toolbar() }) { paddingValues ->
+            Surface(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    when {
+                        updateState.isLoading() -> CircularProgressIndicator()
+                        updateState.isDownloading() -> {
+                            Text(
+                                text = getString(R.string.fragment_updates_downloading_update),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            if (animatedProgress > 0) {
+                                LinearProgressIndicator(progress = animatedProgress)
+                            } else {
+                                LinearProgressIndicator()
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            FilledTonalButton(onClick = viewModel::onCancelDownloadButtonClicked) {
+                                Text(text = getString(R.string.action_stop))
+                            }
+                        }
+                        else -> {
+                            getTitle(updateState)?.let { title ->
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.headlineSmall
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            getSubtitle(updateState)?.let { subtitle ->
+                                Text(
+                                    text = subtitle,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
+
+                            state.updateItem?.changelog?.let {
+                                Text(
+                                    text = getString(R.string.fragment_updates_changelog),
+                                    style = TextStyle(textDecoration = TextDecoration.Underline),
+                                    modifier = Modifier.clickable(onClick = viewModel::onChangelogButtonClicked)
+                                )
+                            }
+
+                            getActionButtonText(updateState)?.let { buttonText ->
+                                Spacer(modifier = Modifier.height(24.dp))
+                                ExtendedFloatingActionButton(
+                                    onClick = viewModel::onActionButtonClicked,
+                                    modifier = Modifier
+                                ) {
+                                    Text(text = buttonText)
+                                    getActionButtonIcon(state = updateState)?.let { painter ->
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Icon(painter = painter, contentDescription = null)
+                                    }
+                                }
+                            }
+
+                            if (updateState.isDownloaded()) {
+                                Spacer(modifier = Modifier.height(48.dp))
+                                Text(
+                                    text = getString(R.string.fragment_updates_issues_installing),
+                                    style = TextStyle(textDecoration = TextDecoration.Underline),
+                                    modifier = Modifier.clickable(onClick = viewModel::onIssuesButtonClicked),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getTitle(state: UpdateState): String? {
+        return when (state) {
+            UpdateState.Error -> R.string.error_occurred
+            UpdateState.NewUpdate -> R.string.fragment_updates_new_version
+            UpdateState.NoUpdates -> R.string.fragment_updates_no_updates
+            UpdateState.Downloaded -> R.string.fragment_updates_downloaded
+            else -> null
+        }?.let(requireContext()::getString)
+    }
+
+    private fun getSubtitle(state: UpdateState): String? {
+        return when (state) {
+            UpdateState.Error -> {
+                viewModel.screenState.value.error?.let { error ->
+                    if (error.contains("cannot be converted", ignoreCase = true)
+                        || error.contains("begin_object", ignoreCase = true)
+                    ) {
+                        "OTA Server is unavailable"
+                    } else {
+                        string(R.string.error_occurred_description, error)
+                    }
+                }
+            }
+            UpdateState.NewUpdate, UpdateState.Downloaded -> {
+                viewModel.screenState.value.updateItem?.let { item ->
+                    string(
+                        R.string.fragment_updates_new_version_description, item.versionName
+                    )
+                }
+            }
+            UpdateState.NoUpdates -> string(R.string.fragment_updates_no_updates_description)
+            else -> null
+        }
+    }
+
+    private fun getActionButtonText(state: UpdateState): String? {
+        return when (state) {
+            UpdateState.Error -> R.string.fragment_updates_try_again
+            UpdateState.NewUpdate -> R.string.fragment_updates_download_update
+            UpdateState.NoUpdates -> R.string.fragment_updates_check_updates
+            UpdateState.Downloaded -> R.string.fragment_updates_install
+            else -> null
+        }?.let(requireContext()::getString)
+    }
+
+    @Composable
+    private fun getActionButtonIcon(state: UpdateState): Painter? {
+        return when (state) {
+            UpdateState.Error -> R.drawable.round_restart_alt_24
+            UpdateState.NewUpdate -> R.drawable.round_file_download_24
+            UpdateState.Downloaded -> R.drawable.round_install_mobile_24
+            else -> null
+        }?.let { painterResource(id = it) }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun Toolbar() {
+        TopAppBar(
+            title = { Text(text = "Application updates") },
+            navigationIcon = {
+                IconButton(
+                    onClick = { requireActivity().onBackPressedDispatcher.onBackPressed() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBack,
+                        contentDescription = null,
+                    )
+                }
+            }
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        prepareView()
         listenViewModel()
 
         if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
@@ -49,150 +244,81 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
         }
     }
 
-    private fun prepareView() {
-        applyInsets()
-        prepareToolbar()
-        prepareChangelog()
-        prepareActionButton()
+    private fun listenViewModel() = with(viewModel) {
+        isNeedToShowChangelogAlert.listenValue(::handleNeedToShowChangelogAlert)
+        isNeedToShowUnknownSourcesAlert.listenValue(::handleNeedToShowUnknownSourcesAlert)
+        isNeedToShowIssuesAlert.listenValue(::handleNeedToShowIssuesAlert)
+        isNeedToShowFileNotFoundAlert.listenValue(::handleNeedToShowFileNotFoundAlert)
     }
 
-    private fun applyInsets() {
-        binding.appBar.applyInsetter {
-            type(statusBars = true) { padding() }
-        }
-        binding.root.applyInsetter {
-            type(navigationBars = true) { padding() }
+    private fun handleNeedToShowChangelogAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showChangelogAlert()
         }
     }
 
-    private fun prepareToolbar() {
-        (requireActivity() as MainActivity).setSupportActionBar(binding.toolbar)
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
-    }
-
-    private fun prepareChangelog() {
-        binding.changelog.setOnClickListener {
-            viewModel.onChangelogButtonClicked()
+    private fun handleNeedToShowUnknownSourcesAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showUnknownSourcesAlert()
         }
     }
 
-    private fun prepareActionButton() {
-        binding.actionButton.setOnClickListener {
-            viewModel.onActionButtonClicked()
+    private fun handleNeedToShowIssuesAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showIssuesAlert()
         }
     }
 
-    private fun listenViewModel() {
-        viewModel.screenStateFlow.listenValue(::refreshState)
-        viewModel.isNeedToShowChangelogAlert.listenValue { needToShow ->
-            if (needToShow) {
-                showChangelogAlert()
-            }
+    private fun handleNeedToShowFileNotFoundAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showFileNotFoundAlert()
         }
-        viewModel.isNeedToShowUnknownSourcesAlert.listenValue { needToShow ->
-            if (needToShow) {
-                showUnknownSourcesAlert()
-            }
-        }
-        viewModel.isNeedToShowProgressBar.listenValue(binding.loadingProgress::toggleVisibility)
     }
 
     private fun showUnknownSourcesAlert() {
-        context?.apply {
-            showDialog(
-                title = Text.Resource(R.string.warning),
-                message = Text.Resource(R.string.fragment_updates_unknown_sources_disabled_message),
-                positiveText = Text.Resource(R.string.yes),
-                positiveAction = { AndroidUtils.openInstallUnknownAppsScreen(this) },
-                negativeText = Text.Resource(R.string.no),
-                onDismissAction = viewModel::onUnknownSourcesAlertDismissed
-            )
-        }
+        context?.showDialog(
+            title = Text.Resource(R.string.warning),
+            message = Text.Resource(R.string.fragment_updates_unknown_sources_disabled_message),
+            positiveText = Text.Resource(R.string.yes),
+            positiveAction = { AndroidUtils.openInstallUnknownAppsScreen(requireContext()) },
+            negativeText = Text.Resource(R.string.cancel),
+            onDismissAction = viewModel::onUnknownSourcesAlertDismissed,
+            isCancelable = false
+        )
     }
 
-    private val maxProgress by lazy {
-        100 * 100
+    private fun showChangelogAlert() {
+        val messageText =
+            viewModel.screenState.value.updateItem?.changelog?.ifBlank {
+                changelogPlaceholder
+            } ?: changelogPlaceholder
+
+        context?.showDialog(
+            title = Text.Resource(R.string.fragment_updates_changelog),
+            message = Text.Simple(messageText),
+            positiveText = Text.Resource(R.string.ok),
+            onDismissAction = viewModel::onChangelogAlertDismissed
+        )
     }
 
-    private fun refreshState(screenState: UpdatesScreenState) {
-        val updateState = screenState.updateState
-
-        binding.actionButton.toggleVisibility(
-            !listOf(
-                UpdateState.Downloading,
-                UpdateState.Loading
-            ).contains(updateState)
+    private fun showIssuesAlert() {
+        context?.showDialog(
+            message = Text.Resource(R.string.fragment_updates_issues_description),
+            positiveText = Text.Resource(R.string.action_delete),
+            positiveAction = viewModel::onIssuesAlertPositiveButtonClicked,
+            negativeText = Text.Resource(R.string.cancel),
+            onDismissAction = viewModel::onIssuesAlertDismissed
         )
-        binding.flow.toggleVisibility(
-            !listOf(
-                UpdateState.Downloading,
-                UpdateState.Loading
-            ).contains(updateState)
+    }
+
+    private fun showFileNotFoundAlert() {
+        context?.showDialog(
+            title = Text.Resource(R.string.warning),
+            message = Text.Resource(R.string.fragment_updates_file_not_found_description),
+            positiveText = Text.Resource(R.string.ok),
+            onDismissAction = viewModel::onFileNotFoundAlertDismissed,
+            isCancelable = false
         )
-        binding.progress.toggleVisibility(
-            updateState == UpdateState.Loading
-        )
-        binding.changelog.toggleVisibility(
-            updateState == UpdateState.NewUpdate
-        )
-        binding.loadingProgress.toggleVisibility(
-            updateState == UpdateState.Downloading
-        )
-
-        when (updateState) {
-            UpdateState.NewUpdate -> {
-                val item = screenState.updateItem ?: return
-                binding.title.setText(R.string.fragment_updates_new_version)
-
-                binding.description.text = getString(
-                    R.string.fragment_updates_new_version_description,
-                    item.versionName
-                )
-
-                binding.actionButton.setText(R.string.fragment_updates_download_update)
-
-            }
-
-            UpdateState.NoUpdates -> {
-                binding.title.setText(R.string.fragment_updates_no_updates)
-                binding.description.setText(R.string.fragment_updates_no_updates_description)
-
-                binding.actionButton.setText(R.string.fragment_updates_check_updates)
-            }
-
-            UpdateState.Loading -> {
-                binding.title.clear()
-                binding.description.clear()
-                binding.actionButton.clear()
-            }
-
-            UpdateState.Error -> {
-                val error = screenState.error ?: return
-
-                binding.title.setText(R.string.error_occurred)
-
-                val errorText =
-                    if (error.contains("cannot be converted", ignoreCase = true)
-                        || error.contains("begin_object", ignoreCase = true)
-                    ) {
-                        "OTA Server is unavailable"
-                    } else {
-                        getString(R.string.error_occurred_description, error)
-                    }
-
-                binding.description.text = errorText
-
-                binding.actionButton.setText(R.string.fragment_updates_try_again)
-            }
-
-            UpdateState.Downloading -> {
-                binding.loadingProgress.run {
-                    max = maxProgress
-                    progress = screenState.currentProgress ?: 0
-                    isIndeterminate = screenState.isProgressIntermediate
-                }
-            }
-        }
     }
 
     private fun writeFileToStorage(responseBody: ResponseBody?) {
@@ -244,20 +370,6 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 //        } catch (e: IOException) {
 //
 //        }
-    }
-
-    private fun showChangelogAlert() {
-        val messageText =
-            viewModel.screenStateFlow.value.updateItem?.changelog?.ifBlank {
-                changelogPlaceholder
-            } ?: changelogPlaceholder
-
-        context?.showDialog(
-            title = Text.Resource(R.string.fragment_updates_changelog),
-            message = Text.Simple(messageText),
-            positiveText = Text.Resource(R.string.ok),
-            onDismissAction = viewModel::onChangelogAlertDismissed
-        )
     }
 
     companion object {

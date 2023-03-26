@@ -5,13 +5,14 @@ import android.app.NotificationManager
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +20,7 @@ import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.github.terrakok.cicerone.androidx.FragmentScreen
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
@@ -30,9 +32,8 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.common.UpdateManagerImpl
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.edgeToEdge
+import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.listenValue
-import com.meloda.fast.ext.sdk26AndUp
-import com.meloda.fast.ext.sdkAndUp
 import com.meloda.fast.screens.main.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
@@ -90,13 +91,10 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val testTheme =
-            AppGlobal.preferences.getBoolean(SettingsFragment.KEY_DEBUG_TEST_THEME, false)
-        setTheme(if (testTheme) R.style.TestTheme else R.style.AppTheme)
-
         super.onCreate(savedInstanceState)
         edgeToEdge()
 
+        fillApplicationLocales()
         createNotificationChannels()
 
         AppCenter.configure(application, BuildConfig.msAppCenterAppToken)
@@ -158,12 +156,12 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
+    private fun fillApplicationLocales() {
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en-US,ru-RU"))
     }
 
     private fun createNotificationChannels() {
-        sdkAndUp(Build.VERSION_CODES.O) {
+        isSdkAtLeast(Build.VERSION_CODES.O) {
             val dialogsName = "Dialogs"
             val dialogsDescriptionText = "Channel for dialogs notifications"
             val dialogsImportance = NotificationManager.IMPORTANCE_HIGH

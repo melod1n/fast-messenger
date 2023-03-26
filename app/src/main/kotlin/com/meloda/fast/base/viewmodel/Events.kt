@@ -1,6 +1,9 @@
 package com.meloda.fast.base.viewmodel
 
 abstract class VkEvent
+
+object VkNoneEvent : VkEvent()
+
 abstract class VkErrorEvent(open val errorText: String? = null) : VkEvent()
 abstract class VkProgressEvent : VkEvent()
 

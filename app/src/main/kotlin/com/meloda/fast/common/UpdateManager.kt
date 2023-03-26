@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import kotlin.coroutines.CoroutineContext
@@ -52,7 +51,7 @@ class UpdateManagerImpl(private val repo: OtaApi) : UpdateManager {
                     updateItem = null,
                     throwable = throwable
                 )
-                stateFlow.update { newForm }
+                stateFlow.emit(newForm)
             }
         }
     }
@@ -85,7 +84,7 @@ class UpdateManagerImpl(private val repo: OtaApi) : UpdateManager {
                     throwable = null
                 )
 
-                stateFlow.update { newForm }
+                stateFlow.emit(newForm)
             }
 
             is ApiAnswer.Error -> {
@@ -95,7 +94,7 @@ class UpdateManagerImpl(private val repo: OtaApi) : UpdateManager {
                     updateItem = null,
                     throwable = throwable
                 )
-                stateFlow.update { newForm }
+                stateFlow.emit(newForm)
             }
         }
     }

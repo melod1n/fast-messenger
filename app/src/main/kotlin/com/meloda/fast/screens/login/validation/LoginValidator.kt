@@ -1,12 +1,12 @@
 package com.meloda.fast.screens.login.validation
 
 import com.meloda.fast.ext.addIf
-import com.meloda.fast.screens.login.model.LoginFormState
+import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 
 class LoginValidator {
 
-    fun validate(formState: LoginFormState): List<LoginValidationResult> {
+    fun validate(formState: LoginScreenState): List<LoginValidationResult> {
         val resultList = mutableListOf<LoginValidationResult>()
 
         resultList.addIf(LoginValidationResult.LoginEmpty) {
@@ -18,11 +18,11 @@ class LoginValidator {
         }
 
         resultList.addIf(LoginValidationResult.CaptchaEmpty) {
-            formState.captchaSid != null && formState.captchaCode.isBlank()
+            formState.captchaSid != null && formState.captchaCode.isNullOrBlank()
         }
 
         resultList.addIf(LoginValidationResult.ValidationEmpty) {
-            formState.validationSid != null && formState.validationCode.isBlank()
+            formState.validationSid != null && formState.validationCode.isNullOrBlank()
         }
 
         resultList.addIf(LoginValidationResult.Valid) {

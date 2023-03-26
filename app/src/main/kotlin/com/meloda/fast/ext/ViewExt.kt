@@ -13,17 +13,7 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.Px
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.doOnAttach
-import androidx.core.view.forEach
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
-import androidx.core.view.marginBottom
-import androidx.core.view.marginEnd
-import androidx.core.view.marginStart
-import androidx.core.view.marginTop
+import androidx.core.view.*
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.meloda.fast.R
@@ -181,4 +171,22 @@ fun View.requestApplyInsetsWhenAttached() {
     } else {
         doOnAttach { requestApplyInsets() }
     }
+}
+
+fun EditText.updateTextIfDiffer(text: String?) {
+    if (this.text?.toString() == text) return
+    setText(text)
+}
+
+fun ViewGroup.bulkIsEnabled(isEnabled: Boolean) {
+    this.isEnabled = isEnabled
+    toggleChildrenIsEnabled(isEnabled)
+}
+
+fun ViewGroup.toggleChildrenIsEnabled(isEnabled: Boolean) {
+    children.forEach { view -> view.toggleIsEnabled(isEnabled) }
+}
+
+fun View.toggleIsEnabled(isEnabled: Boolean) {
+    this.isEnabled = isEnabled
 }

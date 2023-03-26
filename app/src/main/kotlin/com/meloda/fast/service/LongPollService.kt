@@ -100,9 +100,9 @@ class LongPollService : Service() {
                     context = this,
                     title = "LongPoll",
                     contentText = "обновление ваших сообщений в фоне",
-                    notRemovable = true,
+                    notRemovable = false,
                     channelId = "long_polling",
-                    priority = NotificationsUtils.NotificationPriority.Min,
+                    priority = NotificationsUtils.NotificationPriority.Low,
                     category = NotificationCompat.CATEGORY_SERVICE,
                     actions = listOf(action)
                 )

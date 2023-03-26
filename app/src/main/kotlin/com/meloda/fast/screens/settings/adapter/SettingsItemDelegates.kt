@@ -1,17 +1,12 @@
 package com.meloda.fast.screens.settings.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import com.meloda.fast.R
-import com.meloda.fast.databinding.ItemSettingsCheckboxBinding
-import com.meloda.fast.databinding.ItemSettingsEditTextAlertBinding
-import com.meloda.fast.databinding.ItemSettingsEditTextBinding
-import com.meloda.fast.databinding.ItemSettingsListBinding
-import com.meloda.fast.databinding.ItemSettingsSwitchBinding
-import com.meloda.fast.databinding.ItemSettingsTitleBinding
-import com.meloda.fast.databinding.ItemSettingsTitleSummaryBinding
+import com.meloda.fast.databinding.*
+import com.meloda.fast.ext.bulkIsEnabled
+import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.showKeyboard
 import com.meloda.fast.ext.toggleVisibilityIfHasContent
 import com.meloda.fast.model.base.AdapterDiffItem
@@ -24,7 +19,12 @@ fun settingsTitleItemDelegate() =
         }
     ) {
         bind {
+            binding.root.bulkIsEnabled(item.isEnabled)
+
             binding.title.text = item.title
+
+            item.onTitleChanged = binding.title::setText
+            item.onEnabledStateChanged = binding.root::bulkIsEnabled
         }
     }
 
@@ -41,10 +41,16 @@ fun settingsTitleSummaryItemDelegate(
         binding.root.setOnLongClickListener { onLongClickListener?.onLongClick(item.key) ?: false }
 
         bind {
+            binding.root.bulkIsEnabled(item.isEnabled)
+
             binding.title.text = item.title
             binding.title.toggleVisibilityIfHasContent()
             binding.summary.text = item.summary
             binding.summary.toggleVisibilityIfHasContent()
+
+            item.onTitleChanged = binding.title::setText
+            item.onSummaryChanged = binding.summary::setText
+            item.onEnabledStateChanged = binding.root::bulkIsEnabled
         }
     }
 
@@ -61,49 +67,50 @@ fun settingsEditTextItemDelegate(
         val onChangeAction: ((key: String, newValue: Any?) -> Unit) =
             { key: String, newValue: Any? ->
                 onChangeListener?.onChange(key, newValue)
-
-                binding.summary.text = item.summaryProvider?.provideSummary(item)
+                item.updateSummary()
             }
+
+        fun showAlert() {
+            val binding =
+                ItemSettingsEditTextAlertBinding.inflate(LayoutInflater.from(context), null, false)
+
+            binding.editText.setText(item.value)
+
+            MaterialAlertDialogBuilder(context)
+                .setView(binding.root)
+                .setTitle(item.title)
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    val newValue = binding.editText.text.toString()
+                    item.value = newValue
+
+                    onChangeAction.invoke(item.key, newValue)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+                .setOnShowListener {
+                    binding.editText.showKeyboard()
+                }
+        }
 
         binding.root.setOnClickListener {
             onClickListener?.onClick(item.key)
-            showAlert(context, item, onChangeAction)
+            showAlert()
         }
         binding.root.setOnLongClickListener { onLongClickListener?.onLongClick(item.key) ?: false }
 
         bind {
+            binding.root.bulkIsEnabled(item.isEnabled)
+
             binding.title.text = item.title
             binding.title.toggleVisibilityIfHasContent()
             binding.summary.text = item.summary
             binding.summary.toggleVisibilityIfHasContent()
+
+            item.onTitleChanged = binding.title::setText
+            item.onSummaryChanged = binding.summary::setText
+            item.onEnabledStateChanged = binding.root::bulkIsEnabled
         }
     }
-
-private fun showAlert(
-    context: Context,
-    item: SettingsItem.EditText,
-    onChangeListener: OnSettingsChangeListener? = null,
-) {
-    val binding =
-        ItemSettingsEditTextAlertBinding.inflate(LayoutInflater.from(context), null, false)
-
-    binding.editText.setText(item.value)
-
-    MaterialAlertDialogBuilder(context)
-        .setView(binding.root)
-        .setTitle(item.title)
-        .setPositiveButton(R.string.ok) { _, _ ->
-            val newValue = binding.editText.text.toString()
-            item.value = newValue
-
-            onChangeListener?.onChange(item.key, newValue)
-        }
-        .setNegativeButton(R.string.cancel, null)
-        .show()
-        .setOnShowListener {
-            binding.editText.showKeyboard()
-        }
-}
 
 fun settingsCheckboxItemDelegate(
     onClickListener: OnSettingsClickListener? = null,
@@ -122,6 +129,8 @@ fun settingsCheckboxItemDelegate(
         binding.root.setOnLongClickListener { onLongClickListener?.onLongClick(item.key) ?: false }
 
         bind {
+            binding.root.bulkIsEnabled(item.isEnabled)
+
             binding.title.text = item.title
             binding.title.toggleVisibilityIfHasContent()
             binding.summary.text = item.summary
@@ -132,6 +141,10 @@ fun settingsCheckboxItemDelegate(
                 item.value = isChecked
                 onChangeListener?.onChange(item.key, isChecked)
             }
+
+            item.onTitleChanged = binding.title::setText
+            item.onSummaryChanged = binding.summary::setText
+            item.onEnabledStateChanged = binding.root::bulkIsEnabled
         }
     }
 
@@ -139,47 +152,96 @@ fun settingsSwitchItemDelegate(
     onClickListener: OnSettingsClickListener? = null,
     onLongClickListener: OnSettingsLongClickListener? = null,
     onChangeListener: OnSettingsChangeListener? = null,
-) =
-    adapterDelegateViewBinding<SettingsItem.Switch, AdapterDiffItem, ItemSettingsSwitchBinding>(
-        viewBinding = { layoutInflater, parent ->
-            ItemSettingsSwitchBinding.inflate(layoutInflater, parent, false)
-        }
-    ) {
-        binding.root.setOnClickListener {
-            onClickListener?.onClick(item.key)
-            binding.viewSwitch.toggle()
-        }
-        binding.root.setOnLongClickListener { onLongClickListener?.onLongClick(item.key) ?: false }
+) = adapterDelegateViewBinding<SettingsItem.Switch, AdapterDiffItem, ItemSettingsSwitchBinding>(
+    viewBinding = { layoutInflater, parent ->
+        ItemSettingsSwitchBinding.inflate(layoutInflater, parent, false)
+    }
+) {
+    binding.root.setOnClickListener {
+        onClickListener?.onClick(item.key)
+        binding.viewSwitch.toggle()
+    }
+    binding.root.setOnLongClickListener { onLongClickListener?.onLongClick(item.key) ?: false }
 
-        bind {
-            binding.title.text = item.title
-            binding.title.toggleVisibilityIfHasContent()
-            binding.summary.text = item.summary
-            binding.summary.toggleVisibilityIfHasContent()
+    bind {
+        binding.root.bulkIsEnabled(item.isEnabled)
 
-            binding.viewSwitch.isChecked = item.requireValue()
-            binding.viewSwitch.setOnCheckedChangeListener { _, isChecked ->
+        binding.title.text = item.title
+        binding.title.toggleVisibilityIfHasContent()
+        binding.summary.text = item.summary
+        binding.summary.toggleVisibilityIfHasContent()
+
+        binding.viewSwitch.isChecked = item.requireValue()
+        binding.viewSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (item.value != isChecked) {
                 item.value = isChecked
                 onChangeListener?.onChange(item.key, isChecked)
             }
         }
+
+        item.onTitleChanged = binding.title::setText
+        item.onSummaryChanged = binding.summary::setText
+        item.onEnabledStateChanged = binding.root::bulkIsEnabled
     }
+}
 
 fun settingsListItemDelegate(
     onClickListener: OnSettingsClickListener? = null,
     onLongClickListener: OnSettingsLongClickListener? = null,
     onChangeListener: OnSettingsChangeListener? = null,
-) =
-    adapterDelegateViewBinding<SettingsItem.ListItem, AdapterDiffItem, ItemSettingsListBinding>(
-        viewBinding = { layoutInflater, parent ->
-            ItemSettingsListBinding.inflate(layoutInflater, parent, false)
+) = adapterDelegateViewBinding<SettingsItem.ListItem, AdapterDiffItem, ItemSettingsListBinding>(
+    viewBinding = { layoutInflater, parent ->
+        ItemSettingsListBinding.inflate(layoutInflater, parent, false)
+    }
+) {
+    val onChangeAction: ((key: String, newValue: Any?) -> Unit) =
+        { key: String, newValue: Any? ->
+            onChangeListener?.onChange(key, newValue)
+            item.updateSummary()
         }
-    ) {
 
-        bind {
+    fun showAlert() {
+        var selectedOption = item.value
+        val items = item.valueTitles.toTypedArray()
+        val checkedItem = item.values.findIndex { it == (selectedOption ?: 0) } ?: 0
 
+        MaterialAlertDialogBuilder(context)
+            .setTitle(item.title)
+            .setSingleChoiceItems(items, checkedItem) { _, which ->
+                selectedOption = item.values[which]
+            }
+            .setPositiveButton(R.string.ok) { dialog, _ ->
+                if (item.value != selectedOption) {
+                    item.value = selectedOption
+                    onChangeAction.invoke(item.key, selectedOption)
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    binding.root.setOnClickListener {
+        onClickListener?.onClick(item.key)
+        if (!item.overrideOnClickAction) {
+            showAlert()
         }
     }
+
+    binding.root.setOnLongClickListener { onLongClickListener?.onLongClick(item.key) ?: false }
+
+    bind {
+        binding.root.bulkIsEnabled(item.isEnabled)
+
+        binding.title.text = item.title
+        binding.title.toggleVisibilityIfHasContent()
+        binding.summary.text = item.summary
+        binding.summary.toggleVisibilityIfHasContent()
+
+        item.onTitleChanged = binding.title::setText
+        item.onSummaryChanged = binding.summary::setText
+        item.onEnabledStateChanged = binding.root::bulkIsEnabled
+    }
+}
 
 fun interface OnSettingsClickListener {
     fun onClick(key: String)

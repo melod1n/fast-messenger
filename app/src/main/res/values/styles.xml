@@ -25,12 +25,9 @@
         <item name="boxCornerRadiusBottomEnd">10dp</item>
         <item name="boxCornerRadiusBottomStart">10dp</item>
         <item name="boxCornerRadiusTopEnd">10dp</item>
-        <item name="boxBackgroundColor">@color/colorLoginFieldBackground</item>
         <item name="boxCornerRadiusTopStart">10dp</item>
         <item name="boxStrokeWidth">0dp</item>
         <item name="boxStrokeErrorColor">@android:color/transparent</item>
-        <item name="startIconTint">?colorOnBackgroundVariantContainer</item>
-        <item name="endIconTint">?colorOnBackgroundVariantContainer</item>
     </style>
 
     <style name="Ui.Widget.TextInputLayout.Password">

@@ -52,8 +52,6 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
             ApiEvent.MessageEdit -> parseMessageEdit(eventType, event)
             ApiEvent.MessageReadIncoming -> parseMessageReadIncoming(eventType, event)
             ApiEvent.MessageReadOutgoing -> parseMessageReadOutgoing(eventType, event)
-            ApiEvent.FriendOnline -> parseFriendOnline(eventType, event)
-            ApiEvent.FriendOffline -> parseFriendOffline(eventType, event)
             ApiEvent.MessagesDeleted -> parseMessagesDeleted(eventType, event)
             ApiEvent.PinUnpinConversation -> parseConversationPinStateChanged(eventType, event)
             ApiEvent.PrivateTyping -> onNewEvent(eventType, event)
@@ -185,21 +183,13 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseFriendOnline(eventType: ApiEvent, event: JsonArray) {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
-    }
-
-    private fun parseFriendOffline(eventType: ApiEvent, event: JsonArray) {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
-    }
-
     private fun parseMessagesDeleted(eventType: ApiEvent, event: JsonArray) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private suspend fun <T : LongPollEvent> loadNormalMessage(eventType: ApiEvent, messageId: Int) =
         coroutineScope {
-            suspendCoroutine<T> {
+            suspendCoroutine {
                 launch {
                     val normalMessageResponse = messagesRepository.getById(
                         MessagesGetByIdRequest(

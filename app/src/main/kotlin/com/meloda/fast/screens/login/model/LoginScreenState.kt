@@ -1,25 +1,25 @@
 package com.meloda.fast.screens.login.model
 
-data class LoginFormState(
+data class LoginScreenState(
     val login: String,
     val password: String,
     val captchaSid: String?,
-    val captchaCode: String,
+    val captchaCode: String?,
     val captchaImage: String?,
     val validationSid: String?,
-    val validationCode: String,
+    val validationCode: String?,
     val error: String?,
 ) {
 
     companion object {
-        val EMPTY = LoginFormState(
+        val EMPTY = LoginScreenState(
             login = "",
             password = "",
             captchaSid = null,
-            captchaCode = "",
+            captchaCode = null,
             captchaImage = null,
             validationSid = null,
-            validationCode = "",
+            validationCode = null,
             error = null
         )
     }

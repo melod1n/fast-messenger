@@ -170,15 +170,21 @@
 
     <string name="pref_updates_check_update_summary">Current version: %s</string>
     <string name="fragment_updates_changelog_none">Changelog is missing</string>
-    <string name="fragment_updates_changelog">Changelog</string>
+    <string name="fragment_updates_changelog">Show changelog</string>
     <string name="fragment_updates_check_updates">Check updates</string>
+    <string name="fragment_updates_install">Install</string>
     <string name="fragment_updates_download_update">Download</string>
     <string name="fragment_updates_try_again">Try again</string>
     <string name="fragment_updates_new_version">New version available!</string>
+    <string name="fragment_updates_downloaded">Update downloaded!</string>
     <string name="fragment_updates_new_version_description">v. %s</string>
     <string name="fragment_updates_no_updates">No updates</string>
+    <string name="fragment_updates_issues_installing">Issues with installing?</string>
     <string name="fragment_updates_no_updates_description">Try again later</string>
     <string name="fragment_updates_unknown_sources_disabled_message">Unknown sources installing is disabled in the settings. Open settings?</string>
+    <string name="fragment_updates_downloading_update">Downloading update…</string>
+    <string name="fragment_updates_issues_description">In case of any kind of problem related to installing new version you can delete and then re-download executable *.apk file. Proceed?</string>
+    <string name="fragment_updates_file_not_found_description">Installed executable *.apk file not found. Try to re-download it</string>
 
     <string name="warning">Warning</string>
 
@@ -209,5 +215,7 @@
     <string name="easter_egg_log_out_dmitry" translatable="false">Выйти внаружу</string>
     <string name="action_search">Search</string>
     <string name="action_stop">Stop</string>
+
+    <string name="value">Value</string>
 
 </resources>

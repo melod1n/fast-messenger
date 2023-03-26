@@ -5,16 +5,13 @@ import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.network.auth.AuthDirectRequest
-import com.meloda.fast.base.viewmodel.BaseViewModel
-import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
-import com.meloda.fast.base.viewmodel.UnknownErrorEvent
-import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
-import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.base.viewmodel.*
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.model.AppAccount
-import com.meloda.fast.screens.login.model.LoginFormState
+import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 import com.meloda.fast.screens.login.validation.LoginValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +29,7 @@ import javax.inject.Inject
 interface ILoginViewModel {
     val events: Flow<VkEvent>
 
-    val formState: StateFlow<LoginFormState>
+    val screenState: StateFlow<LoginScreenState>
 
     val isLoadingInProgress: Flow<Boolean>
 
@@ -81,15 +78,13 @@ class LoginViewModel @Inject constructor(
     private val loginValidator: LoginValidator,
 ) : BaseViewModel(), ILoginViewModel {
 
-    override val events: Flow<VkEvent>
-        get() = tasksEvent
+    override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
 
-    override val formState = MutableStateFlow(LoginFormState.EMPTY)
+    private val validationState: StateFlow<List<LoginValidationResult>> =
+        screenState.map(loginValidator::validate)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
 
-    private val validationState: StateFlow<List<LoginValidationResult>> = formState.map { state ->
-        loginValidator.validate(state)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
-
+    override val events = MutableStateFlow<VkEvent>(VkNoneEvent)
     override val isLoadingInProgress = MutableStateFlow(false)
     override val isNeedToShowLoginError = MutableStateFlow(false)
     override val isNeedToShowPasswordError = MutableStateFlow(false)
@@ -101,50 +96,61 @@ class LoginViewModel @Inject constructor(
     override val isNeedToShowValidationToast = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
 
+    init {
+        tasksEvent.listenValue(::handleEvent)
+    }
+
+    private fun handleEvent(event: VkEvent) {
+        when (event) {
+            is CaptchaRequiredEvent -> onCaptchaEventReceived(event)
+            is ValidationRequiredEvent -> onValidationEventReceived(event)
+            else -> events.update { event }
+        }
+    }
+
     override fun onLoginInputChanged(newLogin: String) {
-        val newState = formState.value.copy(login = newLogin)
-        formState.update { newState }
+        val newState = screenState.value.copy(login = newLogin)
+        screenState.update { newState }
         isNeedToShowLoginError.update { false }
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
-        val newState = formState.value.copy(password = newPassword)
-        formState.update { newState }
+        val newState = screenState.value.copy(password = newPassword)
+        screenState.update { newState }
         isNeedToShowPasswordError.update { false }
     }
 
     override fun onCaptchaCodeInputChanged(newCaptcha: String) {
-        val newState = formState.value.copy(captchaCode = newCaptcha)
-        formState.update { newState }
+        val newState = screenState.value.copy(captchaCode = newCaptcha)
+        screenState.update { newState }
         processValidation()
     }
 
     override fun onValidationCodeInputChanged(newTwoFa: String) {
-        val newState = formState.value.copy()
-        formState.update { newState }
+        val newState = screenState.value.copy(validationCode = newTwoFa)
+        screenState.update { newState }
         processValidation()
     }
 
     override fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
-        val newForm = formState.value.copy(
+        val newForm = screenState.value.copy(
             captchaSid = event.sid,
             captchaImage = event.image
         )
 
-        viewModelScope.launch { formState.emit(newForm) }
+        screenState.update { newForm }
+        isNeedToShowCaptchaDialog.update { true }
     }
 
     override fun onValidationEventReceived(event: ValidationRequiredEvent) {
-        val newForm = formState.value.copy(
+        val newForm = screenState.value.copy(
             validationSid = event.sid
         )
 
-        viewModelScope.launch {
-            formState.emit(newForm)
-            isNeedToShowValidationToast.emit(true)
+        screenState.update { newForm }
+        isNeedToShowValidationToast.update { true }
 
-            sendValidationCode()
-        }
+        sendValidationCode()
     }
 
     override fun onSignInButtonClicked() {
@@ -188,28 +194,28 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun login(forceSms: Boolean = false) {
+        val state = screenState.value.copy()
+
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
-
-        val form = formState.value
 
         viewModelScope.launch(Dispatchers.IO) {
             makeJob(
                 {
-                    authRepository.auth(
-                        AuthDirectRequest(
-                            grantType = VKConstants.Auth.GrantType.PASSWORD,
-                            clientId = VKConstants.VK_APP_ID,
-                            clientSecret = VKConstants.VK_SECRET,
-                            username = form.login,
-                            password = form.password,
-                            scope = VKConstants.Auth.SCOPE,
-                            twoFaForceSms = forceSms,
-                            twoFaCode = form.validationCode,
-                            captchaSid = form.captchaSid,
-                            captchaKey = form.captchaCode
-                        )
+                    val requestModel = AuthDirectRequest(
+                        grantType = VKConstants.Auth.GrantType.PASSWORD,
+                        clientId = VKConstants.VK_APP_ID,
+                        clientSecret = VKConstants.VK_SECRET,
+                        username = state.login,
+                        password = state.password,
+                        scope = VKConstants.Auth.SCOPE,
+                        twoFaForceSms = forceSms,
+                        twoFaCode = state.validationCode,
+                        captchaSid = state.captchaSid,
+                        captchaKey = state.captchaCode
                     )
+
+                    authRepository.auth(requestModel)
                 },
                 onAnswer = {
                     if (it.userId == null || it.accessToken == null) {
@@ -231,23 +237,22 @@ class LoginViewModel @Inject constructor(
                     accounts.insert(listOf(currentAccount))
 
                     router.replaceScreen(Screens.Main())
-                },
-                onAnyResult = {
-                    val newForm = formState.value.copy(
+
+                    val newForm = screenState.value.copy(
                         captchaSid = null,
                         captchaImage = null,
-                        captchaCode = "",
+                        captchaCode = null,
                         validationSid = null,
-                        validationCode = ""
+                        validationCode = null
                     )
-                    formState.update { newForm }
+                    screenState.update { newForm }
                 }
             )
         }
     }
 
     private fun sendValidationCode() {
-        val validationSid = formState.value.validationSid ?: return
+        val validationSid = screenState.value.validationSid ?: return
 
         viewModelScope.launch {
             makeJob(

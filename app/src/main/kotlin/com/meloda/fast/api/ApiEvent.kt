@@ -7,10 +7,6 @@ enum class ApiEvent(val value: Int) {
     MessageEdit(5),
     MessageReadIncoming(6),
     MessageReadOutgoing(7),
-    @Deprecated("")
-    FriendOnline(8),
-    @Deprecated("")
-    FriendOffline(9),
     MessagesDeleted(13),
     PinUnpinConversation(20),
     PrivateTyping(61),
