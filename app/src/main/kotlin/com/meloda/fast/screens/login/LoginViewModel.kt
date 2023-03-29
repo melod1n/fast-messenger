@@ -114,8 +114,8 @@ class LoginViewModelImpl(
             }
         }
 
-        showCaptchaScreen(CaptchaArguments("https://api.vk.com/captcha.php?sid=346849433736"))
-//        showValidationScreen()
+//        showCaptchaScreen(CaptchaArguments("https://api.vk.com/captcha.php?sid=346849433736"))
+        showValidationScreen()
     }
 
     private fun handleEvent(event: VkEvent) {

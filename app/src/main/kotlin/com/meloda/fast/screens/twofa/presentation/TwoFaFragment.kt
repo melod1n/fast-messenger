@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.captcha
+package com.meloda.fast.screens.twofa.presentation
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.border
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -16,33 +16,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.bundleOf
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.ui.*
+import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.ui.widgets.TextFieldErrorText
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
-class CaptchaFragment : BaseFragment() {
+class TwoFaFragment : BaseFragment() {
 
-    private val viewModel: CaptchaViewModel by viewModel<CaptchaViewModelImpl>()
-
-    private val captchaImage by lazy {
-        arguments?.getString("captchaImage") ?: "https://api.vk.com/captcha.php?sid=346849433736"
-    }
+    private val viewModel: TwoFaViewModel by activityViewModel<TwoFaViewModelImpl>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,28 +42,33 @@ class CaptchaFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { CaptchaScreen() }
+        setContent { TwoFaScreen() }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Preview
     @Composable
-    fun CaptchaScreen() {
+    fun TwoFaScreen() {
         val focusManager = LocalFocusManager.current
 
         AppTheme {
-            Surface(color = MaterialTheme.colorScheme.background) {
+            Surface(
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .imePadding()
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(30.dp)
-                        .statusBarsPadding()
-                        .navigationBarsPadding()
-                        .imePadding(),
+                        .padding(30.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     ExtendedFloatingActionButton(
-                        onClick = viewModel::onCancelButtonClicked,
+                        onClick = {
+                            activity?.onBackPressedDispatcher?.onBackPressed()
+                        },
                         text = {
                             Text(
                                 text = "Cancel",
@@ -91,45 +88,20 @@ class CaptchaFragment : BaseFragment() {
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            text = "Captcha",
+                            text = "Two-Factor\nAuthentication",
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 42.sp),
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.height(38.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "To proceed with your action, enter a code from the picture",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier.weight(0.5f)
-                            )
-                            Spacer(modifier = Modifier.width(24.dp))
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(captchaImage)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .border(
-                                        2.dp,
-                                        MaterialTheme.colorScheme.primary,
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .height(48.dp)
-                                    .width(130.dp),
-                                contentScale = ContentScale.FillBounds
-                            )
-                        }
-
+                        Text(
+                            text = "Enter code from your mobile app",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                         Spacer(modifier = Modifier.height(30.dp))
 
                         val state by viewModel.screenState.collectAsState()
-                        var code by remember { mutableStateOf(TextFieldValue(state.captchaCode)) }
+                        var code by remember { mutableStateOf(TextFieldValue(state.twoFaCode)) }
                         val showError by viewModel.isNeedToShowCodeError.collectAsState()
 
                         TextField(
@@ -155,7 +127,10 @@ class CaptchaFragment : BaseFragment() {
                                 )
                             },
                             shape = RoundedCornerShape(10.dp),
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Done,
+                                keyboardType = KeyboardType.Number
+                            ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
                                     focusManager.clearFocus()
@@ -170,16 +145,56 @@ class CaptchaFragment : BaseFragment() {
                         }
                     }
 
-                    FloatingActionButton(
-                        onClick = viewModel::onDoneButtonClicked,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_round_done_24),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
+                        var isVisible by remember {
+                            mutableStateOf(false)
+                        }
+
+                        AnimatedVisibility(
+                            visible = isVisible,
+                        ) {
+                            ExtendedFloatingActionButton(
+                                onClick = viewModel::onRequestSmsButtonClicked,
+                                text = {
+                                    Text(
+                                        text = "Request SMS",
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.round_sms_24),
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        contentDescription = null
+                                    )
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        FloatingActionButton(
+                            onClick = viewModel::onDoneButtonClicked,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_round_done_24),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+
+                        AnimatedVisibility(
+                            visible = !isVisible,
+                            exit = shrinkHorizontally()
+                        ) {
+                            Spacer(modifier = Modifier.width(16.dp))
+                        }
                     }
                 }
             }
@@ -194,11 +209,9 @@ class CaptchaFragment : BaseFragment() {
     }
 
     companion object {
-        fun newInstance(captchaImage: String?): CaptchaFragment {
-            val fragment = CaptchaFragment()
-            fragment.arguments = bundleOf("captchaImage" to captchaImage)
 
-            return fragment
+        fun newInstance(): TwoFaFragment {
+            return TwoFaFragment()
         }
     }
 }

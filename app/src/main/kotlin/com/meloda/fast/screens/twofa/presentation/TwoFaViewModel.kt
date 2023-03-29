@@ -1,18 +1,18 @@
-package com.meloda.fast.screens.captcha
+package com.meloda.fast.screens.twofa.presentation
 
 import androidx.lifecycle.ViewModel
-import com.github.terrakok.cicerone.Router
-import com.meloda.fast.screens.captcha.model.CaptchaScreenState
-import com.meloda.fast.screens.captcha.screen.CaptchaResult
-import com.meloda.fast.screens.captcha.validation.CaptchaValidator
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.meloda.fast.screens.twofa.model.TwoFaScreenState
+import com.meloda.fast.screens.twofa.screen.TwoFaCoordinator
+import com.meloda.fast.screens.twofa.screen.TwoFaResult
+import com.meloda.fast.screens.twofa.validation.TwoFaValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-interface CaptchaViewModel {
 
-    val screenState: StateFlow<CaptchaScreenState>
+interface TwoFaViewModel {
+
+    val screenState: StateFlow<TwoFaScreenState>
 
     val isNeedToShowCodeError: StateFlow<Boolean>
 
@@ -20,22 +20,22 @@ interface CaptchaViewModel {
 
     fun onBackButtonClicked()
     fun onCancelButtonClicked()
+    fun onRequestSmsButtonClicked()
     fun onTextFieldDoneClicked()
     fun onDoneButtonClicked()
 }
 
-class CaptchaViewModelImpl constructor(
-    private val resultFlow: MutableSharedFlow<CaptchaResult>,
-    private val router: Router,
-    private val validator: CaptchaValidator
-) : CaptchaViewModel, ViewModel() {
+class TwoFaViewModelImpl constructor(
+    private val coordinator: TwoFaCoordinator,
+    private val validator: TwoFaValidator
+) : TwoFaViewModel, ViewModel() {
 
-    override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
+    override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
 
     override val isNeedToShowCodeError = MutableStateFlow(false)
 
     override fun onCodeInputChanged(newCode: String) {
-        val newState = screenState.value.copy(captchaCode = newCode.trim())
+        val newState = screenState.value.copy(twoFaCode = newCode.trim())
         screenState.update { newState }
         processValidation()
     }
@@ -46,7 +46,10 @@ class CaptchaViewModelImpl constructor(
 
     override fun onCancelButtonClicked() {
         clearState()
-        finishWithResult(CaptchaResult.Cancelled)
+        coordinator.finishWithResult(TwoFaResult.Cancelled)
+    }
+
+    override fun onRequestSmsButtonClicked() {
     }
 
     override fun onTextFieldDoneClicked() {
@@ -56,10 +59,10 @@ class CaptchaViewModelImpl constructor(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
-        val captchaCode = screenState.value.captchaCode
+        val twoFaCode = screenState.value.twoFaCode
 
         clearState()
-        finishWithResult(CaptchaResult.Success(captchaCode))
+        coordinator.finishWithResult(TwoFaResult.Success(code = twoFaCode))
     }
 
     private fun processValidation(): Boolean {
@@ -69,12 +72,7 @@ class CaptchaViewModelImpl constructor(
     }
 
     private fun clearState() {
-        screenState.tryEmit(CaptchaScreenState.EMPTY)
+        screenState.tryEmit(TwoFaScreenState.EMPTY)
         isNeedToShowCodeError.tryEmit(false)
-    }
-
-    private fun finishWithResult(result: CaptchaResult) {
-        resultFlow.tryEmit(result)
-        router.exit()
     }
 }
