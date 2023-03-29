@@ -5,8 +5,8 @@ import com.meloda.fast.screens.twofa.presentation.TwoFaFragment
 
 object TwoFaScreens {
 
-    fun twoFaScreen() = FragmentScreen(key = "TwoFaScreen") {
-        TwoFaFragment.newInstance()
+    fun twoFaScreen(validationSid: String) = FragmentScreen(key = "TwoFaScreen") {
+        TwoFaFragment.newInstance(validationSid)
     }
 
 }

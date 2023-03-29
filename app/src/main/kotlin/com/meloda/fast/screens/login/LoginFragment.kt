@@ -19,11 +19,11 @@ import com.meloda.fast.model.base.Text
 import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.util.ViewUtils.showDialog
 import dev.chrisbanes.insetter.applyInsetter
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class LoginFragment : BaseFragment(R.layout.fragment_login) {
 
-    private val viewModel: LoginViewModel by viewModel<LoginViewModelImpl>()
+    private val viewModel: LoginViewModel by activityViewModel<LoginViewModelImpl>()
     private val binding by viewBinding(FragmentLoginBinding::bind)
 
     private val loginErrorText by lazy {

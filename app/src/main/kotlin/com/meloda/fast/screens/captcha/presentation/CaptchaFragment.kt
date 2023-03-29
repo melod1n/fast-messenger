@@ -40,7 +40,8 @@ class CaptchaFragment : BaseFragment() {
 
     private val viewModel: CaptchaViewModel by activityViewModel<CaptchaViewModelImpl>()
 
-    private val captchaImage by lazy { arguments?.getString(ARG_CAPTCHA_IMAGE) }
+    private val captchaSid by lazy { requireArguments().getString(ARG_CAPTCHA_SID).orEmpty() }
+    private val captchaImage by lazy { requireArguments().getString(ARG_CAPTCHA_IMAGE).orEmpty() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -186,17 +187,26 @@ class CaptchaFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (savedInstanceState == null) {
+            viewModel.onViewFirstCreation(captchaSid)
+        }
+
         activity?.onBackPressedDispatcher?.addCallback {
             viewModel.onBackButtonClicked()
         }
     }
 
     companion object {
+        private const val ARG_CAPTCHA_SID = "captchaSid"
         private const val ARG_CAPTCHA_IMAGE = "captchaImage"
 
-        fun newInstance(captchaImage: String?): CaptchaFragment {
+        fun newInstance(captchaSid: String, captchaImage: String): CaptchaFragment {
             val fragment = CaptchaFragment()
-            fragment.arguments = bundleOf(ARG_CAPTCHA_IMAGE to captchaImage)
+            fragment.arguments = bundleOf(
+                ARG_CAPTCHA_SID to captchaSid,
+                ARG_CAPTCHA_IMAGE to captchaImage
+            )
 
             return fragment
         }

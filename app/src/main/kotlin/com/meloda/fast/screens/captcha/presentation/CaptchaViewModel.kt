@@ -14,6 +14,8 @@ interface CaptchaViewModel {
 
     val isNeedToShowCodeError: StateFlow<Boolean>
 
+    fun onViewFirstCreation(captchaSid: String)
+
     fun onCodeInputChanged(newCode: String)
 
     fun onBackButtonClicked()
@@ -30,6 +32,11 @@ class CaptchaViewModelImpl constructor(
     override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
 
     override val isNeedToShowCodeError = MutableStateFlow(false)
+
+    override fun onViewFirstCreation(captchaSid: String) {
+        val newState = screenState.value.copy(captchaSid = captchaSid)
+        screenState.update { newState }
+    }
 
     override fun onCodeInputChanged(newCode: String) {
         val newState = screenState.value.copy(captchaCode = newCode.trim())
@@ -53,10 +60,16 @@ class CaptchaViewModelImpl constructor(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
+        val captchaSid = screenState.value.captchaSid
         val captchaCode = screenState.value.captchaCode
 
         clearState()
-        coordinator.finishWithResult(CaptchaResult.Success(captchaCode))
+        coordinator.finishWithResult(
+            CaptchaResult.Success(
+                sid = captchaSid,
+                code = captchaCode
+            )
+        )
     }
 
     private fun processValidation(): Boolean {

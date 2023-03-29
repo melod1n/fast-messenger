@@ -6,10 +6,6 @@ sealed class LoginValidationResult {
 
     object PasswordEmpty : LoginValidationResult()
 
-    object CaptchaEmpty : LoginValidationResult()
-
-    object ValidationEmpty : LoginValidationResult()
-
     object Empty : LoginValidationResult()
 
     object Valid : LoginValidationResult()

@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.login
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
@@ -18,6 +17,7 @@ import com.meloda.fast.screens.captcha.screen.CaptchaScreen
 import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 import com.meloda.fast.screens.login.validation.LoginValidator
+import com.meloda.fast.screens.twofa.model.TwoFaArguments
 import com.meloda.fast.screens.twofa.screen.TwoFaResult
 import com.meloda.fast.screens.twofa.screen.TwoFaScreen
 import kotlinx.coroutines.Dispatchers
@@ -33,16 +33,12 @@ interface LoginViewModel {
 
     val isNeedToShowLoginError: Flow<Boolean>
     val isNeedToShowPasswordError: Flow<Boolean>
-    val isNeedToShowCaptchaError: Flow<Boolean>
-    val isNeedToShowValidationError: Flow<Boolean>
 
     val isNeedToShowFastLoginDialog: Flow<Boolean>
     val isNeedToShowErrorDialog: Flow<Boolean>
 
     fun onLoginInputChanged(newLogin: String)
     fun onPasswordInputChanged(newPassword: String)
-    fun onCaptchaCodeInputChanged(newCaptcha: String)
-    fun onValidationCodeInputChanged(newTwoFa: String)
 
 
     fun onCaptchaEventReceived(event: CaptchaRequiredEvent)
@@ -80,8 +76,6 @@ class LoginViewModelImpl(
     override val isLoadingInProgress = MutableStateFlow(false)
     override val isNeedToShowLoginError = MutableStateFlow(false)
     override val isNeedToShowPasswordError = MutableStateFlow(false)
-    override val isNeedToShowCaptchaError = MutableStateFlow(false)
-    override val isNeedToShowValidationError = MutableStateFlow(false)
     override val isNeedToShowErrorDialog = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
 
@@ -91,11 +85,14 @@ class LoginViewModelImpl(
         captchaResult.listenValue { result ->
             when (result) {
                 is CaptchaResult.Success -> {
+                    val sid = result.sid
                     val code = result.code
-                    val newState = screenState.value.copy(captchaCode = code)
+                    val newState = screenState.value.copy(
+                        captchaSid = sid, captchaCode = code
+                    )
                     screenState.update { newState }
 
-                    Log.d("LoginViewModelImpl", "captchaCode: $code")
+                    login()
                 }
                 else -> Unit
             }
@@ -104,18 +101,18 @@ class LoginViewModelImpl(
         twoFaResult.listenValue { result ->
             when (result) {
                 is TwoFaResult.Success -> {
+                    val sid = result.sid
                     val code = result.code
-                    val newState = screenState.value.copy(validationCode = code)
+                    val newState = screenState.value.copy(
+                        validationSid = sid, validationCode = code
+                    )
                     screenState.update { newState }
 
-                    Log.d("LoginViewModelImpl", "twoFaCode: $code")
+                    login()
                 }
                 else -> Unit
             }
         }
-
-//        showCaptchaScreen(CaptchaArguments("https://api.vk.com/captcha.php?sid=346849433736"))
-        showValidationScreen()
     }
 
     private fun handleEvent(event: VkEvent) {
@@ -129,38 +126,31 @@ class LoginViewModelImpl(
     override fun onLoginInputChanged(newLogin: String) {
         val newState = screenState.value.copy(login = newLogin)
         screenState.update { newState }
-        isNeedToShowLoginError.update { false }
+        isNeedToShowLoginError.tryEmit(false)
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
         val newState = screenState.value.copy(password = newPassword)
         screenState.update { newState }
-        isNeedToShowPasswordError.update { false }
-    }
-
-    override fun onCaptchaCodeInputChanged(newCaptcha: String) {
-        val newState = screenState.value.copy(captchaCode = newCaptcha)
-        screenState.update { newState }
-        processValidation()
-    }
-
-    override fun onValidationCodeInputChanged(newTwoFa: String) {
-        val newState = screenState.value.copy(validationCode = newTwoFa)
-        screenState.update { newState }
-        processValidation()
+        isNeedToShowPasswordError.tryEmit(false)
     }
 
     override fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
-        val newForm = screenState.value.copy(
-            captchaSid = event.sid,
-            captchaImage = event.image
+        val captchaSid = event.sid
+        val captchaImage = event.image
+
+        val newState = screenState.value.copy(
+            captchaSid = captchaSid,
+            captchaImage = captchaImage
         )
+        screenState.update { newState }
 
-        screenState.update { newForm }
-
-        screenState.value.captchaImage?.let { image ->
-            showCaptchaScreen(CaptchaArguments(image))
-        }
+        showCaptchaScreen(
+            CaptchaArguments(
+                captchaSid = captchaSid,
+                captchaImage = captchaImage
+            )
+        )
     }
 
     private fun showCaptchaScreen(args: CaptchaArguments) {
@@ -168,20 +158,19 @@ class LoginViewModelImpl(
     }
 
     override fun onValidationEventReceived(event: ValidationRequiredEvent) {
+        val validationSid = event.sid
         val newForm = screenState.value.copy(
-            validationSid = event.sid
+            validationSid = validationSid
         )
-
         screenState.update { newForm }
 
-        showValidationScreen()
+        showValidationScreen(TwoFaArguments(validationSid))
 
         sendValidationCode()
     }
 
-    private fun showValidationScreen() {
-        twoFaScreen.show(router, Unit)
-//        router.navigateTo(FragmentScreen { TwoFaFragment.newInstance() })
+    private fun showValidationScreen(args: TwoFaArguments) {
+        twoFaScreen.show(router, args)
     }
 
     override fun onSignInButtonClicked() {
@@ -258,15 +247,6 @@ class LoginViewModelImpl(
                     accounts.insert(listOf(currentAccount))
 
                     router.replaceScreen(Screens.Main())
-
-                    val newForm = screenState.value.copy(
-                        captchaSid = null,
-                        captchaImage = null,
-                        captchaCode = null,
-                        validationSid = null,
-                        validationCode = null
-                    )
-                    screenState.update { newForm }
                 }
             )
         }
@@ -286,14 +266,10 @@ class LoginViewModelImpl(
     }
 
     private fun processValidation() {
-        val validationResults = validationState.value
-
-        validationResults.forEach { result ->
+        validationState.value.forEach { result ->
             when (result) {
                 LoginValidationResult.LoginEmpty -> isNeedToShowLoginError.tryEmit(true)
                 LoginValidationResult.PasswordEmpty -> isNeedToShowPasswordError.tryEmit(true)
-                LoginValidationResult.CaptchaEmpty -> isNeedToShowCaptchaError.tryEmit(true)
-                LoginValidationResult.ValidationEmpty -> isNeedToShowValidationError.tryEmit(true)
                 LoginValidationResult.Empty -> Unit
                 LoginValidationResult.Valid -> Unit
             }

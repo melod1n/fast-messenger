@@ -16,6 +16,8 @@ interface TwoFaViewModel {
 
     val isNeedToShowCodeError: StateFlow<Boolean>
 
+    fun onViewFirstCreation(validationSid: String)
+
     fun onCodeInputChanged(newCode: String)
 
     fun onBackButtonClicked()
@@ -33,6 +35,11 @@ class TwoFaViewModelImpl constructor(
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
 
     override val isNeedToShowCodeError = MutableStateFlow(false)
+
+    override fun onViewFirstCreation(validationSid: String) {
+        val newState = screenState.value.copy(twoFaSid = validationSid)
+        screenState.update { newState }
+    }
 
     override fun onCodeInputChanged(newCode: String) {
         val newState = screenState.value.copy(twoFaCode = newCode.trim())
@@ -59,10 +66,11 @@ class TwoFaViewModelImpl constructor(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
+        val twoFaSid = screenState.value.twoFaSid
         val twoFaCode = screenState.value.twoFaCode
 
         clearState()
-        coordinator.finishWithResult(TwoFaResult.Success(code = twoFaCode))
+        coordinator.finishWithResult(TwoFaResult.Success(sid = twoFaSid, code = twoFaCode))
     }
 
     private fun processValidation(): Boolean {

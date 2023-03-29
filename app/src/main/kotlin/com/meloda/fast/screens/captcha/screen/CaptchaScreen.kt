@@ -16,7 +16,12 @@ class CaptchaScreen : AppScreen<CaptchaArguments, CaptchaResult> {
     override val resultFlow = createResultFlow()
 
     override fun show(router: Router, args: CaptchaArguments) {
-        router.navigateTo(CaptchaScreens.captchaScreen(args.captchaImageLink))
+        router.navigateTo(
+            CaptchaScreens.captchaScreen(
+                captchaSid = args.captchaSid,
+                captchaImage = args.captchaImage
+            )
+        )
     }
 }
 

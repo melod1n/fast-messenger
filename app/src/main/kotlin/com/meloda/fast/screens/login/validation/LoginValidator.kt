@@ -17,14 +17,6 @@ class LoginValidator {
             screenState.password.isBlank()
         }
 
-        resultList.addIf(LoginValidationResult.CaptchaEmpty) {
-            screenState.captchaSid != null && screenState.captchaCode.isNullOrBlank()
-        }
-
-        resultList.addIf(LoginValidationResult.ValidationEmpty) {
-            screenState.validationSid != null && screenState.validationCode.isNullOrBlank()
-        }
-
         resultList.addIf(LoginValidationResult.Valid) {
             resultList.isEmpty()
         }

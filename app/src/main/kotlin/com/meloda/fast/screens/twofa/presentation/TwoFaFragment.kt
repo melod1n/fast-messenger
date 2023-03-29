@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.ui.AppTheme
@@ -35,6 +36,8 @@ import org.koin.androidx.viewmodel.ext.android.activityViewModel
 class TwoFaFragment : BaseFragment() {
 
     private val viewModel: TwoFaViewModel by activityViewModel<TwoFaViewModelImpl>()
+
+    private val validationSid by lazy { requireArguments().getString(ARG_VALIDATION_SID).orEmpty() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -203,15 +206,23 @@ class TwoFaFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (savedInstanceState == null) {
+            viewModel.onViewFirstCreation(validationSid)
+        }
+
         activity?.onBackPressedDispatcher?.addCallback {
             viewModel.onBackButtonClicked()
         }
     }
 
     companion object {
+        private const val ARG_VALIDATION_SID = "validationSid"
 
-        fun newInstance(): TwoFaFragment {
-            return TwoFaFragment()
+        fun newInstance(validationSid: String): TwoFaFragment {
+            val fragment = TwoFaFragment()
+            fragment.arguments = bundleOf(ARG_VALIDATION_SID to validationSid)
+            return fragment
         }
     }
 }
