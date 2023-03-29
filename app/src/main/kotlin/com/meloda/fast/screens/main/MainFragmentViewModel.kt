@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.Screen
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 import com.meloda.fast.common.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,11 +13,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(private val router: Router) : BaseViewModel() {
+class MainFragmentViewModel @Inject constructor(private val router: Router) : DeprecatedBaseViewModel() {
 
     val servicesState = MutableStateFlow<ServicesState>(ServicesState.Unknown)
 
-    fun checkSession() {
+    init {
+        checkSession()
+    }
+
+    private fun checkSession() {
         viewModelScope.launch {
             val currentUserId = UserConfig.currentUserId
             val userId = UserConfig.userId

@@ -3,12 +3,7 @@ package com.meloda.fast.base.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.TokenExpiredError
-import com.meloda.fast.api.network.UserBannedError
-import com.meloda.fast.api.network.ValidationRequiredError
+import com.meloda.fast.api.network.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -16,8 +11,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+@Deprecated("rewrite")
 @Suppress("MemberVisibilityCanBePrivate")
-abstract class BaseViewModel : ViewModel() {
+abstract class DeprecatedBaseViewModel : ViewModel() {
 
     protected val tasksEventChannel = Channel<VkEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
@@ -30,8 +26,23 @@ abstract class BaseViewModel : ViewModel() {
         return viewModelScope.launch(exceptionHandler, block = block)
     }
 
+
+    suspend fun <T> ViewModel.makeJob(
+        onError: (suspend (Throwable) -> Unit)? = null,
+        job: suspend () -> ApiAnswer<T>,
+    ): T? {
+        return when (val response = job()) {
+            is ApiAnswer.Success -> response.data
+            is ApiAnswer.Error -> {
+                onError?.invoke(response.error) ?: checkErrors(response.error)
+                null
+            }
+        }
+    }
+
     protected suspend fun <T> makeSuspendJob(
-        job: suspend () -> ApiAnswer<T>, onAnswer: suspend (T) -> Unit = {},
+        job: suspend () -> ApiAnswer<T>,
+        onAnswer: suspend (T) -> Unit = {},
         onStart: (suspend () -> Unit)? = null,
         onEnd: (suspend () -> Unit)? = null,
         onError: (suspend (Throwable) -> Unit)? = null,
@@ -99,12 +110,8 @@ abstract class BaseViewModel : ViewModel() {
 
     protected suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {
-            is AuthorizationError -> {
-                sendEvent(AuthorizationErrorEvent)
-            }
-            is TokenExpiredError -> {
-                sendEvent(TokenExpiredErrorEvent)
-            }
+            is TokenExpiredError -> sendEvent(TokenExpiredErrorEvent)
+            is AuthorizationError -> sendEvent(AuthorizationErrorEvent)
             is UserBannedError -> {
                 val banInfo = throwable.banInfo
                 sendEvent(
@@ -116,35 +123,28 @@ abstract class BaseViewModel : ViewModel() {
                     )
                 )
             }
-            is ValidationRequiredError -> {
-                sendEvent(ValidationRequiredEvent(throwable.validationSid))
-            }
-            is CaptchaRequiredError -> {
-                sendEvent(
-                    CaptchaRequiredEvent(
-                        sid = throwable.captchaSid, image = throwable.captchaImg
-                    )
+            is ValidationRequiredError -> sendEvent(ValidationRequiredEvent(throwable.validationSid))
+            is CaptchaRequiredError -> sendEvent(
+                CaptchaRequiredEvent(
+                    sid = throwable.captchaSid,
+                    image = throwable.captchaImg
                 )
-            }
-            is ApiError -> {
-                sendEvent(
-                    if (throwable.errorMessage == null) {
-                        UnknownErrorEvent
-                    } else {
-                        ErrorTextEvent(errorText = requireNotNull(throwable.errorMessage))
-                    }
-                )
-            }
-            else -> {
-                sendEvent(
-                    if (throwable.message == null) {
-                        UnknownErrorEvent
-                    } else {
-                        ErrorTextEvent(requireNotNull(throwable.message))
-                    }
-                )
-            }
+            )
+
+            is ApiError -> sendEvent(
+                if (throwable.errorMessage == null) {
+                    UnknownErrorEvent
+                } else {
+                    ErrorTextEvent(errorText = requireNotNull(throwable.errorMessage))
+                }
+            )
+            else -> sendEvent(
+                if (throwable.message == null) {
+                    UnknownErrorEvent
+                } else {
+                    ErrorTextEvent(requireNotNull(throwable.message))
+                }
+            )
         }
     }
-
 }

@@ -1,11 +1,10 @@
 package com.meloda.fast.util
 
 import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.content.res.Resources
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -21,27 +20,6 @@ import java.io.File
 
 object AndroidUtils {
 
-    fun isDarkTheme(): Boolean {
-        return when (AppGlobal.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES -> true
-            else -> false
-        }
-    }
-
-    fun hasConnection(): Boolean {
-        val network = AppGlobal.connectivityManager.activeNetwork ?: return false
-        val activeNetwork =
-            AppGlobal.connectivityManager.getNetworkCapabilities(network) ?: return false
-
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-            else -> false
-        }
-    }
-
     fun getDisplayWidth(): Int {
         return Resources.getSystem().displayMetrics.widthPixels
     }
@@ -51,7 +29,10 @@ object AndroidUtils {
     }
 
     fun copyText(label: String? = "", text: String) {
-        AppGlobal.clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))
+        val clipboardManager =
+            AppGlobal.Instance.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))
     }
 
     fun getThemeAttrColor(context: Context, @AttrRes resId: Int): Int {
@@ -62,7 +43,7 @@ object AndroidUtils {
         try {
             color = context.resources.getColor(colorRes, context.theme)
         } catch (e: Exception) {
-
+            e.printStackTrace()
         }
 
         return color

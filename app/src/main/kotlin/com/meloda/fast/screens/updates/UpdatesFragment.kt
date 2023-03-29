@@ -30,7 +30,7 @@ import com.meloda.fast.ext.string
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.model.base.Text
 import com.meloda.fast.screens.updates.model.UpdateState
-import com.meloda.fast.screens.updates.ui.UpdatesTheme
+import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ViewUtils.showDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,9 +54,7 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                UpdatesTheme {
-                    UpdatesScreen()
-                }
+                UpdatesScreen()
             }
         }
     }
@@ -64,90 +62,92 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun UpdatesScreen() {
-        val state by viewModel.screenState.collectAsState()
-        val updateState = state.updateState
+        AppTheme {
+            val state by viewModel.screenState.collectAsState()
+            val updateState = state.updateState
 //        val updateState by remember { mutableStateOf(state.updateState) }
-        val downloadProgress by viewModel.currentDownloadProgress.collectAsState()
-        val animatedProgress by animateFloatAsState(
-            targetValue = downloadProgress / 100f,
-            animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-        )
+            val downloadProgress by viewModel.currentDownloadProgress.collectAsState()
+            val animatedProgress by animateFloatAsState(
+                targetValue = downloadProgress / 100f,
+                animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+            )
 
-        Scaffold(topBar = { Toolbar() }) { paddingValues ->
-            Surface(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxSize(),
+            Scaffold(topBar = { Toolbar() }) { paddingValues ->
+                Surface(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
                 ) {
-                    when {
-                        updateState.isLoading() -> CircularProgressIndicator()
-                        updateState.isDownloading() -> {
-                            Text(
-                                text = getString(R.string.fragment_updates_downloading_update),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            if (animatedProgress > 0) {
-                                LinearProgressIndicator(progress = animatedProgress)
-                            } else {
-                                LinearProgressIndicator()
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
-                            FilledTonalButton(onClick = viewModel::onCancelDownloadButtonClicked) {
-                                Text(text = getString(R.string.action_stop))
-                            }
-                        }
-                        else -> {
-                            getTitle(updateState)?.let { title ->
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        when {
+                            updateState.isLoading() -> CircularProgressIndicator()
+                            updateState.isDownloading() -> {
                                 Text(
-                                    text = title,
-                                    style = MaterialTheme.typography.headlineSmall
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
-                            getSubtitle(updateState)?.let { subtitle ->
-                                Text(
-                                    text = subtitle,
+                                    text = getString(R.string.fragment_updates_downloading_update),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-                                Spacer(modifier = Modifier.height(6.dp))
-                            }
-
-                            state.updateItem?.changelog?.let {
-                                Text(
-                                    text = getString(R.string.fragment_updates_changelog),
-                                    style = TextStyle(textDecoration = TextDecoration.Underline),
-                                    modifier = Modifier.clickable(onClick = viewModel::onChangelogButtonClicked)
-                                )
-                            }
-
-                            getActionButtonText(updateState)?.let { buttonText ->
-                                Spacer(modifier = Modifier.height(24.dp))
-                                ExtendedFloatingActionButton(
-                                    onClick = viewModel::onActionButtonClicked,
-                                    modifier = Modifier
-                                ) {
-                                    Text(text = buttonText)
-                                    getActionButtonIcon(state = updateState)?.let { painter ->
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Icon(painter = painter, contentDescription = null)
-                                    }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                if (animatedProgress > 0) {
+                                    LinearProgressIndicator(progress = animatedProgress)
+                                } else {
+                                    LinearProgressIndicator()
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                FilledTonalButton(onClick = viewModel::onCancelDownloadButtonClicked) {
+                                    Text(text = getString(R.string.action_stop))
                                 }
                             }
+                            else -> {
+                                getTitle(updateState)?.let { title ->
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
 
-                            if (updateState.isDownloaded()) {
-                                Spacer(modifier = Modifier.height(48.dp))
-                                Text(
-                                    text = getString(R.string.fragment_updates_issues_installing),
-                                    style = TextStyle(textDecoration = TextDecoration.Underline),
-                                    modifier = Modifier.clickable(onClick = viewModel::onIssuesButtonClicked),
-                                )
+                                getSubtitle(updateState)?.let { subtitle ->
+                                    Text(
+                                        text = subtitle,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+
+                                state.updateItem?.changelog?.let {
+                                    Text(
+                                        text = getString(R.string.fragment_updates_changelog),
+                                        style = TextStyle(textDecoration = TextDecoration.Underline),
+                                        modifier = Modifier.clickable(onClick = viewModel::onChangelogButtonClicked)
+                                    )
+                                }
+
+                                getActionButtonText(updateState)?.let { buttonText ->
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    ExtendedFloatingActionButton(
+                                        onClick = viewModel::onActionButtonClicked,
+                                        modifier = Modifier
+                                    ) {
+                                        Text(text = buttonText)
+                                        getActionButtonIcon(state = updateState)?.let { painter ->
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Icon(painter = painter, contentDescription = null)
+                                        }
+                                    }
+                                }
+
+                                if (updateState.isDownloaded()) {
+                                    Spacer(modifier = Modifier.height(48.dp))
+                                    Text(
+                                        text = getString(R.string.fragment_updates_issues_installing),
+                                        style = TextStyle(textDecoration = TextDecoration.Underline),
+                                        modifier = Modifier.clickable(onClick = viewModel::onIssuesButtonClicked),
+                                    )
+                                }
                             }
                         }
                     }

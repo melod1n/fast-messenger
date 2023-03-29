@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.login
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
@@ -11,22 +12,19 @@ import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.model.AppAccount
+import com.meloda.fast.screens.captcha.screen.CaptchaArguments
+import com.meloda.fast.screens.captcha.screen.CaptchaResult
+import com.meloda.fast.screens.captcha.screen.CaptchaScreen
 import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 import com.meloda.fast.screens.login.validation.LoginValidator
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.meloda.fast.screens.twofa.screen.TwoFaResult
+import com.meloda.fast.screens.twofa.screen.TwoFaScreen
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-interface ILoginViewModel {
+interface LoginViewModel {
     val events: Flow<VkEvent>
 
     val screenState: StateFlow<LoginScreenState>
@@ -38,9 +36,6 @@ interface ILoginViewModel {
     val isNeedToShowCaptchaError: Flow<Boolean>
     val isNeedToShowValidationError: Flow<Boolean>
 
-    val isNeedToShowCaptchaDialog: Flow<Boolean>
-    val isNeedToShowValidationDialog: Flow<Boolean>
-    val isNeedToShowValidationToast: Flow<Boolean>
     val isNeedToShowFastLoginDialog: Flow<Boolean>
     val isNeedToShowErrorDialog: Flow<Boolean>
 
@@ -57,32 +52,29 @@ interface ILoginViewModel {
     fun onSignInButtonClicked()
     fun onSignInButtonLongClicked()
 
-    fun onCaptchaDialogOkButtonClicked()
-
-    fun onValidationDialogOkButtonClicked()
-
     fun onFastLoginDialogOkButtonClicked()
 
-    fun onCaptchaDialogDismissed()
-    fun onValidationDialogDismissed()
-    fun onValidationToastShown()
     fun onFastLoginDialogDismissed()
     fun onErrorDialogDismissed()
 }
 
-@HiltViewModel
-class LoginViewModel @Inject constructor(
+class LoginViewModelImpl(
     private val authRepository: AuthRepository,
     private val router: Router,
     private val accounts: AccountsDao,
     private val loginValidator: LoginValidator,
-) : BaseViewModel(), ILoginViewModel {
+    private val captchaScreen: CaptchaScreen,
+    private val twoFaScreen: TwoFaScreen
+) : DeprecatedBaseViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
+            .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
+
+    private val captchaResult = captchaScreen.resultFlow
+    private val twoFaResult = twoFaScreen.resultFlow
 
     override val events = MutableStateFlow<VkEvent>(VkNoneEvent)
     override val isLoadingInProgress = MutableStateFlow(false)
@@ -91,13 +83,39 @@ class LoginViewModel @Inject constructor(
     override val isNeedToShowCaptchaError = MutableStateFlow(false)
     override val isNeedToShowValidationError = MutableStateFlow(false)
     override val isNeedToShowErrorDialog = MutableStateFlow(false)
-    override val isNeedToShowCaptchaDialog = MutableStateFlow(false)
-    override val isNeedToShowValidationDialog = MutableStateFlow(false)
-    override val isNeedToShowValidationToast = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
 
     init {
         tasksEvent.listenValue(::handleEvent)
+
+        captchaResult.listenValue { result ->
+            when (result) {
+                is CaptchaResult.Success -> {
+                    val code = result.code
+                    val newState = screenState.value.copy(captchaCode = code)
+                    screenState.update { newState }
+
+                    Log.d("LoginViewModelImpl", "captchaCode: $code")
+                }
+                else -> Unit
+            }
+        }
+
+        twoFaResult.listenValue { result ->
+            when (result) {
+                is TwoFaResult.Success -> {
+                    val code = result.code
+                    val newState = screenState.value.copy(validationCode = code)
+                    screenState.update { newState }
+
+                    Log.d("LoginViewModelImpl", "twoFaCode: $code")
+                }
+                else -> Unit
+            }
+        }
+
+        showCaptchaScreen(CaptchaArguments("https://api.vk.com/captcha.php?sid=346849433736"))
+//        showValidationScreen()
     }
 
     private fun handleEvent(event: VkEvent) {
@@ -139,7 +157,14 @@ class LoginViewModel @Inject constructor(
         )
 
         screenState.update { newForm }
-        isNeedToShowCaptchaDialog.update { true }
+
+        screenState.value.captchaImage?.let { image ->
+            showCaptchaScreen(CaptchaArguments(image))
+        }
+    }
+
+    private fun showCaptchaScreen(args: CaptchaArguments) {
+        captchaScreen.show(router, args)
     }
 
     override fun onValidationEventReceived(event: ValidationRequiredEvent) {
@@ -148,9 +173,15 @@ class LoginViewModel @Inject constructor(
         )
 
         screenState.update { newForm }
-        isNeedToShowValidationToast.update { true }
+
+        showValidationScreen()
 
         sendValidationCode()
+    }
+
+    private fun showValidationScreen() {
+        twoFaScreen.show(router, Unit)
+//        router.navigateTo(FragmentScreen { TwoFaFragment.newInstance() })
     }
 
     override fun onSignInButtonClicked() {
@@ -161,28 +192,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch { isNeedToShowFastLoginDialog.emit(true) }
     }
 
-    override fun onCaptchaDialogOkButtonClicked() {
-        login()
-    }
-
-    override fun onValidationDialogOkButtonClicked() {
-        login()
-    }
-
     override fun onFastLoginDialogOkButtonClicked() {
         login()
-    }
-
-    override fun onCaptchaDialogDismissed() {
-        isNeedToShowCaptchaDialog.tryEmit(false)
-    }
-
-    override fun onValidationDialogDismissed() {
-        isNeedToShowValidationDialog.tryEmit(false)
-    }
-
-    override fun onValidationToastShown() {
-        isNeedToShowValidationToast.tryEmit(false)
     }
 
     override fun onFastLoginDialogDismissed() {
@@ -193,8 +204,18 @@ class LoginViewModel @Inject constructor(
         isNeedToShowErrorDialog.tryEmit(false)
     }
 
-    private fun login(forceSms: Boolean = false) {
+    private fun login(forceSms: Boolean = true) {
         val state = screenState.value.copy()
+
+        val clearedState = screenState.value.copy(
+            captchaSid = null,
+            captchaImage = null,
+            captchaCode = null,
+            validationSid = null,
+            validationCode = null
+        )
+
+        screenState.update { clearedState }
 
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
@@ -258,7 +279,7 @@ class LoginViewModel @Inject constructor(
             makeJob(
                 { authRepository.sendSms(validationSid) },
                 onAnswer = {
-                    isNeedToShowValidationDialog.emit(true)
+                    // TODO: 29.03.2023, Danil Nikolaev: handle response
                 }
             )
         }

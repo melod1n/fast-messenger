@@ -1,6 +1,8 @@
 package com.meloda.fast.screens.conversations
 
 import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -20,8 +22,9 @@ import com.meloda.fast.api.network.conversations.ConversationsGetRequest
 import com.meloda.fast.api.network.conversations.ConversationsPinRequest
 import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
 import com.meloda.fast.api.network.users.UsersGetRequest
-import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
@@ -30,11 +33,7 @@ import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.toMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -46,7 +45,7 @@ class ConversationsViewModel @Inject constructor(
     updatesParser: LongPollUpdatesParser,
     private val router: Router,
     private val messagesRepository: MessagesRepository,
-) : BaseViewModel() {
+) : DeprecatedBaseViewModel() {
 
     val profiles: MutableStateFlow<HashMap<Int, VkUser>> = MutableStateFlow(hashMapOf())
     val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
@@ -63,6 +62,12 @@ class ConversationsViewModel @Inject constructor(
         val pinnedConversations = conversations.filter { it.isPinned() }
         pinnedConversations.size
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    private val imageLoader by lazy {
+        ImageLoader.Builder(AppGlobal.Instance)
+            .crossfade(true)
+            .build()
+    }
 
     init {
         updatesParser.onNewMessage {
@@ -123,6 +128,16 @@ class ConversationsViewModel @Inject constructor(
                         ?.map(BaseVkGroup::mapToDomain)
                         ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
                     groups.update { newGroups }
+
+                    val photos = newProfiles.mapNotNull { profile -> profile.value.photo200 } +
+                            newGroups.mapNotNull { group -> group.value.photo200 }
+
+                    photos.forEach { url ->
+                        ImageRequest.Builder(AppGlobal.Instance)
+                            .data(url)
+                            .build()
+                            .let(imageLoader::enqueue)
+                    }
 
                     val domainConversationsList = dataConversationsList.mapToDomain()
                     emitConversations(domainConversationsList)

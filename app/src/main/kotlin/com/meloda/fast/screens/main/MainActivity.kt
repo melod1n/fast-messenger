@@ -2,7 +2,6 @@ package com.meloda.fast.screens.main
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -13,14 +12,10 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
-import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
@@ -29,6 +24,7 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
+import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.common.UpdateManagerImpl
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.edgeToEdge
@@ -38,6 +34,7 @@ import com.meloda.fast.screens.main.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
+import com.meloda.fast.util.AndroidUtils
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
@@ -45,32 +42,20 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(R.layout.activity_main) {
 
-    private val navigator = object : AppNavigator(this, R.id.root_fragment_container) {
-        override fun setupFragmentTransaction(
-            screen: FragmentScreen,
-            fragmentTransaction: FragmentTransaction,
-            currentFragment: Fragment?,
-            nextFragment: Fragment,
-        ) {
-        }
-    }
+    private val navigator = object : AppNavigator(this, R.id.root_fragment_container) {}
 
-    @Inject
-    lateinit var navigatorHolder: NavigatorHolder
+    private val navigatorHolder: NavigatorHolder by inject()
+    private val router: Router by inject()
 
-    @Inject
-    lateinit var router: Router
+    private val accountsDao: AccountsDao by inject()
 
-    @Inject
-    lateinit var updateManager: UpdateManagerImpl
-
-    @Inject
-    lateinit var accountsDao: AccountsDao
+    private val updateManager: UpdateManager by inject()
 
     @Inject
     lateinit var updatesParser: LongPollUpdatesParser
@@ -206,11 +191,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                         .setMessage("Stacktrace: $stackTrace")
                         .setPositiveButton(R.string.ok, null)
                         .setNegativeButton(R.string.copy) { _, _ ->
-                            AppGlobal.clipboardManager.setPrimaryClip(
-                                ClipData.newPlainText(
-                                    "Fast_Crash_Report",
-                                    stackTrace
-                                )
+                            AndroidUtils.copyText(
+                                label = "Fast_Crash_Report",
+                                text = stackTrace
                             )
                             Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
                         }
@@ -320,6 +303,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             }
         }
     }
+
+    @Deprecated("use DI")
+    fun accessRouter(): Router = router
 
     private fun openMainScreen() {
         router.newRootScreen(Screens.Main())

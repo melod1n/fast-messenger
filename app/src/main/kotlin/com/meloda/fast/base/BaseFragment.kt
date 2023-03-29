@@ -1,6 +1,5 @@
 package com.meloda.fast.base
 
-import android.os.Bundle
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import com.meloda.fast.screens.main.MainActivity
@@ -11,26 +10,19 @@ abstract class BaseFragment : Fragment {
 
     constructor(@LayoutRes resId: Int) : super(resId)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    @Deprecated("use DI")
+    val activityRouter get() = (activity as? MainActivity)?.accessRouter()
 
-        if (arguments == null) arguments = Bundle()
-    }
-
-    val activityRouter
-        get() = run {
-            if (requireActivity() is MainActivity) {
-                (requireActivity() as MainActivity).router
-            } else {
-                null
-            }
-        }
-
+    @Deprecated("use DI")
     fun requireActivityRouter() = requireNotNull(activityRouter)
 
+    @Deprecated("use isInProgress Flow in VM")
     fun startProgress() = toggleProgress(true)
+
+    @Deprecated("use isInProgress Flow in VM")
     fun stopProgress() = toggleProgress(false)
 
-    protected open fun toggleProgress(isProgressing: Boolean) {}
-
+    @Deprecated("use isInProgress Flow in VM")
+    protected open fun toggleProgress(isProgressing: Boolean) {
+    }
 }

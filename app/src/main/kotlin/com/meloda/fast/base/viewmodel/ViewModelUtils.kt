@@ -36,7 +36,7 @@ object ViewModelUtils {
                 activity.startActivity(Intent(activity, MainActivity::class.java))
             }
             is UserBannedEvent -> {
-                (activity as? MainActivity)?.router?.navigateTo(
+                (activity as? MainActivity)?.accessRouter()?.newRootScreen(
                     Screens.UserBanned(
                         memberName = event.memberName,
                         message = event.message,
@@ -45,7 +45,13 @@ object ViewModelUtils {
                     )
                 )
             }
-
+            is UnknownErrorEvent -> {
+                activity.showDialog(
+                    title = Text.Resource(R.string.title_error),
+                    message = Text.Resource(R.string.unknown_error_occurred),
+                    positiveText = Text.Resource(R.string.ok)
+                )
+            }
             is VkErrorEvent -> {
                 event.errorText?.run {
                     activity.showDialog(

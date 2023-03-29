@@ -6,23 +6,23 @@ import com.meloda.fast.screens.login.model.LoginValidationResult
 
 class LoginValidator {
 
-    fun validate(formState: LoginScreenState): List<LoginValidationResult> {
+    fun validate(screenState: LoginScreenState): List<LoginValidationResult> {
         val resultList = mutableListOf<LoginValidationResult>()
 
         resultList.addIf(LoginValidationResult.LoginEmpty) {
-            formState.login.isBlank()
+            screenState.login.isBlank()
         }
 
         resultList.addIf(LoginValidationResult.PasswordEmpty) {
-            formState.password.isBlank()
+            screenState.password.isBlank()
         }
 
         resultList.addIf(LoginValidationResult.CaptchaEmpty) {
-            formState.captchaSid != null && formState.captchaCode.isNullOrBlank()
+            screenState.captchaSid != null && screenState.captchaCode.isNullOrBlank()
         }
 
         resultList.addIf(LoginValidationResult.ValidationEmpty) {
-            formState.validationSid != null && formState.validationCode.isNullOrBlank()
+            screenState.validationSid != null && screenState.validationCode.isNullOrBlank()
         }
 
         resultList.addIf(LoginValidationResult.Valid) {

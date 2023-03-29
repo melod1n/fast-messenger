@@ -1,11 +1,13 @@
 package com.meloda.fast.service
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -24,12 +26,7 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.receiver.StopLongPollServiceReceiver
 import com.meloda.fast.util.NotificationsUtils
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -40,6 +37,8 @@ class LongPollService : Service() {
         const val TAG = "LongPollTask"
 
         const val KeyLongPollWasDestroyed = "long_poll_was_destroyed"
+
+        private const val NOTIFICATION_ID = 1001
     }
 
     private val job = SupervisorJob()
@@ -63,12 +62,34 @@ class LongPollService : Service() {
     @Inject
     lateinit var updatesParser: LongPollUpdatesParser
 
+    private var asForeground = true
+    private var foregroundNotification: Notification? = null
+
+    override fun onCreate() {
+        super.onCreate()
+
+        val notificationBuilder =
+            NotificationsUtils.createNotification(
+                context = this,
+                title = "LongPoll",
+                contentText = "обновление ваших сообщений в фоне",
+                notRemovable = false,
+                channelId = "long_polling",
+                priority = NotificationsUtils.NotificationPriority.Low,
+                category = NotificationCompat.CATEGORY_SERVICE,
+                customNotificationId = NOTIFICATION_ID
+            )
+
+        foregroundNotification = notificationBuilder.build()
+        startForeground(NOTIFICATION_ID, foregroundNotification)
+    }
+
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val asForeground = intent?.getBooleanExtra("foreground", false).isTrue
+        asForeground = intent?.getBooleanExtra("foreground", false).isTrue
 
         Log.d(
             "LongPollService",
@@ -104,13 +125,18 @@ class LongPollService : Service() {
                     channelId = "long_polling",
                     priority = NotificationsUtils.NotificationPriority.Low,
                     category = NotificationCompat.CATEGORY_SERVICE,
-                    actions = listOf(action)
+                    actions = listOf(action),
+                    customNotificationId = NOTIFICATION_ID
                 )
 
-            startForeground(
-                startId,
-                notificationBuilder.build()
-            )
+            foregroundNotification = notificationBuilder.build()
+
+            startForeground(NOTIFICATION_ID, foregroundNotification)
+        } else {
+            if (foregroundNotification != null) {
+                NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID)
+                foregroundNotification = null
+            }
         }
         return START_STICKY
     }

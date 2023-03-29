@@ -127,6 +127,15 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
+    implementation("io.insert-koin:koin-android:3.4.0")
+
+    implementation("org.kodein.di:kodein-di-framework-android-x:7.9.0")
+    implementation("org.kodein.di:kodein-di-framework-android-x-viewmodel:7.9.0")
+    implementation("org.kodein.di:kodein-di-framework-android-x-viewmodel-savedstate:7.9.0")
+
+    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.coil-kt:coil:2.3.0")
+
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
@@ -135,7 +144,6 @@ dependencies {
     implementation("androidx.core:core-ktx:1.9.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.6.1")
@@ -155,8 +163,6 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     implementation("androidx.recyclerview:recyclerview:1.3.0")
-
-    implementation("androidx.cardview:cardview:1.0.0")
 
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 

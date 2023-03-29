@@ -19,7 +19,7 @@ import com.meloda.fast.api.network.messages.MessagesPinMessageRequest
 import com.meloda.fast.api.network.messages.MessagesSendRequest
 import com.meloda.fast.api.network.messages.MessagesUnPinMessageRequest
 import com.meloda.fast.api.network.photos.PhotosSaveMessagePhotoRequest
-import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
@@ -47,7 +47,7 @@ class MessagesHistoryViewModel @Inject constructor(
     private val filesRepository: FilesRepository,
     private val audiosRepository: AudiosRepository,
     private val videosRepository: VideosRepository,
-) : BaseViewModel() {
+) : DeprecatedBaseViewModel() {
 
     init {
         updatesParser.onNewMessage {

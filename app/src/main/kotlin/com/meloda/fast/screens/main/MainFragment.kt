@@ -7,34 +7,36 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
+import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.base.viewmodel.ViewModelUtils
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.ext.listenValue
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainFragment : BaseViewModelFragment<MainViewModel>() {
+class MainFragment : BaseFragment() {
 
     companion object {
         const val START_SERVICES_KEY = "start_services"
         const val START_SERVICES_ARG_ENABLE = "enable"
     }
 
-    override val viewModel: MainViewModel by viewModels()
+    private val viewModel: MainFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ) = View(context)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listenViewModel()
-        viewModel.checkSession()
     }
 
     private fun listenViewModel() {
+        viewModel.tasksEvent.listenValue(::onEvent)
+
         viewModel.servicesState.listenValue { state ->
             val enableServices = state == ServicesState.Started
             setFragmentResult(
@@ -42,5 +44,9 @@ class MainFragment : BaseViewModelFragment<MainViewModel>() {
                 bundleOf(START_SERVICES_ARG_ENABLE to enableServices)
             )
         }
+    }
+
+    private fun onEvent(event: VkEvent) {
+        ViewModelUtils.parseEvent(this, event)
     }
 }

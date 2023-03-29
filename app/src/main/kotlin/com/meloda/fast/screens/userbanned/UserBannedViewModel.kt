@@ -1,6 +1,6 @@
 package com.meloda.fast.screens.userbanned
 
-import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 
-class UserBannedViewModel : BaseViewModel() {
+class UserBannedViewModel : DeprecatedBaseViewModel() {
 }

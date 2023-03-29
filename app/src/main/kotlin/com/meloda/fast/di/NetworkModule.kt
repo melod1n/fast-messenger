@@ -23,13 +23,16 @@ import com.meloda.fast.data.ota.OtaApi
 import com.meloda.fast.data.photos.PhotosApi
 import com.meloda.fast.data.users.UsersApi
 import com.meloda.fast.data.videos.VideosApi
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.kodein.di.*
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -52,6 +55,10 @@ object NetworkModule {
         ChuckerInterceptor.Builder(AppGlobal.Instance)
             .collector(chuckerCollector)
             .build()
+
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(): AuthInterceptor = AuthInterceptor()
 
     @Singleton
     @Provides
@@ -93,10 +100,6 @@ object NetworkModule {
         .addCallAdapterFactory(ResultCallFactory())
         .client(client)
         .build()
-
-    @Provides
-    @Singleton
-    fun provideAuthInterceptor(): AuthInterceptor = AuthInterceptor()
 
     @Provides
     @Singleton
@@ -162,5 +165,44 @@ object NetworkModule {
     @Singleton
     fun provideFilesApi(retrofit: Retrofit): FilesApi =
         retrofit.create(FilesApi::class.java)
+}
 
+val networkModule = module {
+    single { ChuckerCollector(context = get()) }
+    single { ChuckerInterceptor.Builder(context = get()).collector(collector = get()).build() }
+    single { AuthInterceptor() }
+    single {
+        OkHttpClient.Builder()
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(get<AuthInterceptor>())
+            .addInterceptor(
+                get<ChuckerInterceptor>().apply {
+                    redactHeader("Secret-Code")
+                }
+            )
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                }
+            ).build()
+    }
+    single { GsonBuilder().setLenient().create() }
+    single {
+        Retrofit.Builder()
+            .baseUrl("${VkUrls.API}/")
+            .addConverterFactory(GsonConverterFactory.create(get()))
+            .addCallAdapterFactory(ResultCallFactory())
+            .client(get())
+            .build()
+    }
+
+    single { get<Retrofit>().create(AuthApi::class.java) }
+}
+
+val otaModule = module {
+    single { get<Retrofit>().create(OtaApi::class.java) }
+    singleOf(::UpdateManagerImpl) { bind<UpdateManager>() }
 }

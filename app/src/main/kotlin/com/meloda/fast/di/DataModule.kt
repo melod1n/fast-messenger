@@ -1,6 +1,5 @@
 package com.meloda.fast.di
 
-import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.account.AccountApi
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.account.AccountsRepository
@@ -15,6 +14,7 @@ import com.meloda.fast.data.files.FilesApi
 import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.data.groups.GroupsDao
 import com.meloda.fast.data.groups.GroupsRepository
+import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesApi
 import com.meloda.fast.data.messages.MessagesDao
 import com.meloda.fast.data.messages.MessagesRepository
@@ -29,8 +29,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import org.koin.dsl.module
 import javax.inject.Singleton
 
+@Deprecated("use specific repositories in local DI modules")
 @InstallIn(SingletonComponent::class)
 @Module
 object DataModule {
@@ -99,5 +101,8 @@ object DataModule {
     fun provideFilesRepository(
         filesApi: FilesApi
     ): FilesRepository = FilesRepository(filesApi)
+}
 
+val dataModule = module {
+    single { AuthRepository(get()) }
 }

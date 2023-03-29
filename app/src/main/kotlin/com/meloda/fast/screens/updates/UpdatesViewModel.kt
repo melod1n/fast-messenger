@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.updates
 
 import android.app.DownloadManager
+import android.content.Context
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
@@ -9,7 +10,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.R
-import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
@@ -58,7 +59,7 @@ interface IUpdatesViewModel {
 @HiltViewModel
 class UpdatesViewModel @Inject constructor(
     private val updateManager: UpdateManager,
-) : BaseViewModel(), IUpdatesViewModel {
+) : DeprecatedBaseViewModel(), IUpdatesViewModel {
 
     override val screenState = MutableStateFlow(UpdatesScreenState.EMPTY)
     override val currentDownloadProgress = MutableStateFlow(0)
@@ -69,6 +70,10 @@ class UpdatesViewModel @Inject constructor(
     override val isNeedToShowFileNotFoundAlert = MutableStateFlow(false)
 
     private var currentJob: Job? = null
+
+    private val downloadManager by lazy {
+        AppGlobal.Instance.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    }
 
     init {
         updateManager.stateFlow.listenValue(::updateState)
@@ -278,7 +283,7 @@ class UpdatesViewModel @Inject constructor(
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
-        downloadId = AppGlobal.downloadManager.enqueue(request)
+        downloadId = downloadManager.enqueue(request)
 
         updateUpdateState(UpdateState.Downloading)
 
@@ -293,7 +298,7 @@ class UpdatesViewModel @Inject constructor(
                 val query = DownloadManager.Query()
                 query.setFilterById(downloadId ?: -1)
 
-                val cursor = AppGlobal.downloadManager.query(query)
+                val cursor = downloadManager.query(query)
                 if (cursor.moveToFirst()) {
                     val sizeIndex =
                         cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
@@ -363,7 +368,7 @@ class UpdatesViewModel @Inject constructor(
 
     private fun cancelCurrentDownload() {
         currentDownloadProgress.tryEmit(0)
-        downloadId?.run { AppGlobal.downloadManager.remove(this) }
+        downloadId?.run { downloadManager.remove(this) }
         checkUpdates()
     }
 

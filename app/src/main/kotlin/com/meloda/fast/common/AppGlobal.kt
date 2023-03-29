@@ -1,15 +1,9 @@
 package com.meloda.fast.common
 
 import android.app.Application
-import android.app.DownloadManager
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.content.res.Resources
-import android.net.ConnectivityManager
-import android.util.Log
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
@@ -17,42 +11,27 @@ import androidx.room.Room
 import com.google.android.material.color.DynamicColors
 import com.meloda.fast.database.AccountsDatabase
 import com.meloda.fast.database.CacheDatabase
+import com.meloda.fast.di.*
+import com.meloda.fast.screens.captcha.di.captchaModule
+import com.meloda.fast.screens.login.di.loginModule
 import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.twofa.di.twoFaModule
+import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.HiltAndroidApp
+import org.kodein.di.DI
+import org.kodein.di.DIAware
+import org.kodein.di.bindInstance
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.loadKoinModules
+import org.koin.core.context.startKoin
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 import kotlin.properties.Delegates
 
 @HiltAndroidApp
-class AppGlobal : Application() {
+class AppGlobal : Application(), DIAware {
 
-    companion object {
-
-        lateinit var inputMethodManager: InputMethodManager
-        lateinit var connectivityManager: ConnectivityManager
-        lateinit var clipboardManager: ClipboardManager
-        lateinit var downloadManager: DownloadManager
-
-        var preferences: SharedPreferences by Delegates.notNull()
-        lateinit var resources: Resources
-        lateinit var packageName: String
-        private lateinit var instance: AppGlobal
-
-        lateinit var cacheDatabase: CacheDatabase
-        lateinit var accountsDatabase: AccountsDatabase
-
-        lateinit var packageManager: PackageManager
-
-        var versionName = ""
-        var versionCode = 0
-
-        var screenWidth = 0
-        var screenHeight = 0
-
-        var screenWidth80 = 0
-
-        val Instance get() = instance
-    }
+    override val di = appModule
 
     override fun onCreate() {
         super.onCreate()
@@ -80,36 +59,11 @@ class AppGlobal : Application() {
         versionName = info.versionName
         versionCode = PackageInfoCompat.getLongVersionCode(info).toInt()
 
-        Companion.resources = resources
-        Companion.packageName = packageName
-        Companion.packageManager = packageManager
-
-        screenWidth = resources.displayMetrics.widthPixels
-        screenHeight = resources.displayMetrics.heightPixels
-
-        screenWidth80 = (screenWidth * 0.8).roundToInt()
-
-        val density = resources.displayMetrics.density
-        val densityDpi = resources.displayMetrics.densityDpi
-        val densityScaled = resources.displayMetrics.scaledDensity
-        val xDpi = resources.displayMetrics.xdpi
-        val yDpi = resources.displayMetrics.ydpi
-
-        val diagonal = sqrt(
-            (screenWidth * screenWidth - screenHeight * screenHeight).toFloat()
-        )
-
-        Log.i(
-            "Fast::DeviceInfo",
-            "width: $screenWidth; 70% width: $screenWidth80; height: $screenHeight; density: $density; diagonal: $diagonal; dpiDensity: $densityDpi; scaledDensity: $densityScaled; xDpi: $xDpi; yDpi: $yDpi"
-        )
-
-        inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        screenWidth80 = (AndroidUtils.getDisplayWidth() * 0.8).roundToInt()
 
         applyDarkTheme()
+
+        initKoin()
     }
 
     private fun applyDarkTheme() {
@@ -118,5 +72,42 @@ class AppGlobal : Application() {
             SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
         )
         AppCompatDelegate.setDefaultNightMode(nightMode)
+    }
+
+    private fun initKoin() {
+        startKoin {
+            androidLogger()
+            androidContext(this@AppGlobal)
+            modules(
+                databaseModule,
+                dataModule,
+                navigationModule,
+                networkModule,
+                otaModule,
+                loginModule
+            )
+        }
+    }
+
+    companion object {
+        private lateinit var instance: AppGlobal
+
+        val appModule = DI.lazy {
+            bindInstance<Context> { instance }
+            bindInstance { preferences }
+        }
+
+        var preferences: SharedPreferences by Delegates.notNull()
+
+        var cacheDatabase: CacheDatabase by Delegates.notNull()
+        var accountsDatabase: AccountsDatabase by Delegates.notNull()
+
+        var versionName = ""
+        var versionCode = 0
+        var screenWidth80 = 0
+
+        val Instance get() = instance
+        val resources get() = Instance.resources
+        val packageManager get() = Instance.packageManager
     }
 }

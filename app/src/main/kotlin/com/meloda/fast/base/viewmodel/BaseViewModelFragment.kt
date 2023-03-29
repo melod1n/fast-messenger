@@ -8,7 +8,7 @@ import com.meloda.fast.base.BaseFragment
 import kotlinx.coroutines.launch
 
 @Deprecated("", ReplaceWith("BaseFragment"))
-abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
+abstract class BaseViewModelFragment<VM : DeprecatedBaseViewModel> : BaseFragment {
 
     constructor() : super()
 
@@ -25,7 +25,7 @@ abstract class BaseViewModelFragment<VM : BaseViewModel> : BaseFragment {
         ViewModelUtils.parseEvent(this, event)
     }
 
-    protected fun <T : BaseViewModel> subscribeToViewModel(viewModel: T) {
+    protected fun <T : DeprecatedBaseViewModel> subscribeToViewModel(viewModel: T) {
         lifecycleScope.launch {
             viewModel.tasksEvent.collect { onEvent(it) }
         }

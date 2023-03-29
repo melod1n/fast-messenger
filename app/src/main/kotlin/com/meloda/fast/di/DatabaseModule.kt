@@ -1,5 +1,6 @@
 package com.meloda.fast.di
 
+import androidx.room.Room
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.conversations.ConversationsDao
@@ -12,6 +13,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import org.kodein.di.DI
+import org.kodein.di.bindSingleton
+import org.kodein.di.instance
+import org.koin.dsl.module
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -53,4 +58,19 @@ object DatabaseModule {
     fun provideAccountsDao(accountsDatabase: AccountsDatabase): AccountsDao =
         accountsDatabase.accountsDao
 
+}
+
+val databaseModule = module {
+    single {
+        Room.databaseBuilder(get(), CacheDatabase::class.java, "cache")
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+    single { Room.databaseBuilder(get(), AccountsDatabase::class.java, "accounts").build() }
+
+    single { get<CacheDatabase>().conversationsDao }
+    single { get<CacheDatabase>().messagesDao }
+    single { get<CacheDatabase>().usersDao }
+    single { get<CacheDatabase>().groupsDao }
+    single { get<AccountsDatabase>().accountsDao }
 }

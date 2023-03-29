@@ -6,8 +6,12 @@ import android.content.res.Resources
 import android.util.DisplayMetrics
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.screens.settings.SettingsFragment
@@ -87,17 +91,18 @@ fun String.toast(duration: Int = Toast.LENGTH_LONG) = toast(this@Context, durati
 
 
 fun isUsingDarkTheme(): Boolean {
-    val isAppUsingDarkTheme = AppGlobal.preferences.getInt(
+    val nightThemeMode = AppGlobal.preferences.getInt(
         SettingsFragment.KEY_APPEARANCE_DARK_THEME,
         SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
-    ) == AppCompatDelegate.MODE_NIGHT_YES
+    )
+    val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
 
     val systemUiNightMode = AppGlobal.resources.configuration.uiMode
 
     val isSystemUsingDarkTheme =
         systemUiNightMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
-    return isAppUsingDarkTheme || isSystemUsingDarkTheme
+    return appForceDarkMode || isSystemUsingDarkTheme && nightThemeMode != AppCompatDelegate.MODE_NIGHT_NO
 }
 
 fun isUsingDynamicColors(): Boolean =
@@ -147,3 +152,10 @@ fun createTimerFlow(
             delay(interval)
         }
     }
+
+@Suppress("DeprecatedCallableAddReplaceWith")
+@Deprecated("replace with proper DI")
+inline fun <reified VM : ViewModel> Fragment.nonKillableViewModels(
+    noinline extrasProducer: (() -> CreationExtras)? = null,
+    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
+): Lazy<VM> = activityViewModels(extrasProducer, factoryProducer)
