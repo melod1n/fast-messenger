@@ -130,14 +130,15 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
                                     Spacer(modifier = Modifier.height(24.dp))
                                     ExtendedFloatingActionButton(
                                         onClick = viewModel::onActionButtonClicked,
-                                        modifier = Modifier
-                                    ) {
-                                        Text(text = buttonText)
-                                        getActionButtonIcon(state = updateState)?.let { painter ->
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Icon(painter = painter, contentDescription = null)
+                                        modifier = Modifier,
+                                        text = { Text(text = buttonText) },
+                                        icon = {
+                                            getActionButtonIcon(state = updateState)?.let { painter ->
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Icon(painter = painter, contentDescription = null)
+                                            }
                                         }
-                                    }
+                                    )
                                 }
 
                                 if (updateState.isDownloaded()) {

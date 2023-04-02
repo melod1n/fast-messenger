@@ -129,10 +129,6 @@ val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 dependencies {
     implementation("io.insert-koin:koin-android:3.4.0")
 
-    implementation("org.kodein.di:kodein-di-framework-android-x:7.9.0")
-    implementation("org.kodein.di:kodein-di-framework-android-x-viewmodel:7.9.0")
-    implementation("org.kodein.di:kodein-di-framework-android-x-viewmodel-savedstate:7.9.0")
-
     implementation("io.coil-kt:coil-compose:2.3.0")
     implementation("io.coil-kt:coil:2.3.0")
 
@@ -219,8 +215,6 @@ dependencies {
 
     implementation("androidx.compose.ui:ui-tooling-preview:1.4.0")
     debugImplementation("androidx.compose.ui:ui-tooling:1.4.0")
-
-    implementation("androidx.compose.material:material-icons-extended:1.3.1")
 
     implementation("androidx.compose.material3:material3-window-size-class:1.0.1")
 

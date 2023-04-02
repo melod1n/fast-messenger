@@ -13,9 +13,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import org.kodein.di.instance
 import org.koin.dsl.module
 import javax.inject.Singleton
 

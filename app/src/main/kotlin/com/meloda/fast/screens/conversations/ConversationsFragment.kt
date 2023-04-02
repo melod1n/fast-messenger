@@ -163,7 +163,7 @@ class ConversationsFragment :
             setOnMenuItemClickListener { item ->
                 return@setOnMenuItemClickListener when (item.itemId) {
                     R.id.settings -> {
-                        requireActivityRouter().navigateTo(Screens.Settings())
+                        activityRouter?.navigateTo(Screens.Settings())
                         true
                     }
 

@@ -157,31 +157,6 @@ sealed class SettingsItem<Value>(
         }
     }
 
-    data class CheckBox(override val key: String) : SettingsItem<Boolean>(key) {
-
-        override val id: Int = -1
-
-        companion object {
-            fun build(
-                key: String,
-                title: String? = null,
-                summary: String? = null,
-                isEnabled: Boolean = true,
-                isChecked: Boolean? = null,
-                defaultValue: Boolean? = null,
-            ): CheckBox {
-                return CheckBox(key).apply {
-                    this.title = title
-                    this.summary = summary
-                    this.isEnabled = isEnabled
-                    this.value = defaultValue
-                        ?.let { value -> AppGlobal.preferences.getBoolean(key, value) }
-                        ?: isChecked
-                }
-            }
-        }
-    }
-
     data class Switch(override val key: String) : SettingsItem<Boolean>(key) {
 
         override val id: Int = -1
@@ -212,20 +187,18 @@ sealed class SettingsItem<Value>(
     data class ListItem(override val key: String) : SettingsItem<Int>(key) {
         override val id: Int = -1
 
-        var overrideOnClickAction: Boolean = false
-
         var values: List<Int> = emptyList()
         var valueTitles: List<String> = emptyList()
 
         companion object {
-            fun <T> build(
+            fun build(
                 key: String,
                 title: String? = null,
                 summary: String? = null,
                 isEnabled: Boolean = true,
                 values: List<Int>,
                 valueTitles: List<String>,
-                defaultValue: T? = null,
+                defaultValue: Int? = null,
                 selectedIndex: Int? = null,
                 builder: ListItem.() -> Unit = {}
             ): ListItem {

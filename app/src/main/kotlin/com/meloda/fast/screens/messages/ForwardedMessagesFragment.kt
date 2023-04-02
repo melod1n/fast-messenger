@@ -127,7 +127,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf()
     ) {
-        requireActivityRouter().navigateTo(
+        activityRouter?.navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
         )
     }

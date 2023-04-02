@@ -13,9 +13,6 @@ abstract class BaseFragment : Fragment {
     @Deprecated("use DI")
     val activityRouter get() = (activity as? MainActivity)?.accessRouter()
 
-    @Deprecated("use DI")
-    fun requireActivityRouter() = requireNotNull(activityRouter)
-
     @Deprecated("use isInProgress Flow in VM")
     fun startProgress() = toggleProgress(true)
 

@@ -8,10 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
@@ -25,7 +23,6 @@ import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.common.UpdateManager
-import com.meloda.fast.common.UpdateManagerImpl
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.edgeToEdge
 import com.meloda.fast.ext.isSdkAtLeast
@@ -79,7 +76,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         super.onCreate(savedInstanceState)
         edgeToEdge()
 
-        fillApplicationLocales()
         createNotificationChannels()
 
         AppCenter.configure(application, BuildConfig.msAppCenterAppToken)
@@ -139,10 +135,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 else -> Unit
             }
         }
-    }
-
-    private fun fillApplicationLocales() {
-        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en-US,ru-RU"))
     }
 
     private fun createNotificationChannels() {

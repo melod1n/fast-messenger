@@ -1387,7 +1387,7 @@ class MessagesHistoryFragment :
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) {
-        requireActivityRouter().navigateTo(
+        activityRouter?.navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
         )
     }
@@ -1397,7 +1397,7 @@ class MessagesHistoryFragment :
         user: VkUser?,
         group: VkGroup?,
     ) {
-        requireActivityRouter().navigateTo(
+        activityRouter?.navigateTo(
             Screens.ChatInfo(conversation, user, group)
         )
     }

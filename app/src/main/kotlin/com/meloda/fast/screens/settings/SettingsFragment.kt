@@ -1,57 +1,96 @@
 package com.meloda.fast.screens.settings
 
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.core.content.edit
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
-import com.meloda.fast.databinding.FragmentSettingsBinding
-import com.meloda.fast.ext.ifEmpty
-import com.meloda.fast.ext.isSdkAtLeast
-import com.meloda.fast.model.base.AdapterDiffItem
+import com.meloda.fast.ext.*
 import com.meloda.fast.model.settings.SettingsItem
 import com.meloda.fast.screens.main.LongPollState
 import com.meloda.fast.screens.main.LongPollUtils
 import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.settings.adapter.*
+import com.meloda.fast.screens.settings.items.*
+import com.meloda.fast.ui.AppTheme
 import com.microsoft.appcenter.crashes.model.TestCrashException
-import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
-class SettingsFragment : BaseFragment(R.layout.fragment_settings),
+class SettingsFragment : BaseFragment(),
     OnSettingsClickListener,
     OnSettingsLongClickListener,
     OnSettingsChangeListener {
 
-    private val binding by viewBinding(FragmentSettingsBinding::bind)
+    private var useDynamicColors by mutableStateOf(
+        AppGlobal.preferences.getBoolean(
+            KEY_USE_DYNAMIC_COLORS,
+            DEFAULT_VALUE_USE_DYNAMIC_COLORS
+        )
+    )
+    private var useLargeAppBar by mutableStateOf(
+        AppGlobal.preferences.getBoolean(
+            "useLargeTopAppBar", false
+        )
+    )
+    private var isMultilineEnabled by mutableStateOf(
+        AppGlobal.preferences.getBoolean(
+            KEY_APPEARANCE_MULTILINE,
+            DEFAULT_VALUE_MULTILINE
+        )
+    )
+    private var settingsList: List<SettingsItem<*>> by mutableStateOf(emptyList())
 
-    private var testAppearanceList = mutableListOf<SettingsItem<*>>()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        generateSettings()
+    }
 
-    private val debugList = mutableListOf<SettingsItem<*>>()
-
-    private var adapter by Delegates.notNull<AsyncDiffItemAdapter>()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        (view as? ComposeView)?.apply {
+            setContent {
+                SettingsScreen(
+                    useDynamicColors = useDynamicColors,
+                    useLargeAppBar = useLargeAppBar,
+                    isMultiline = isMultilineEnabled,
+                    items = settingsList
+                )
+            }
+        }
+    }
+
+    private fun generateSettings() {
         val appearanceTitle = SettingsItem.Title.build(
             key = KEY_APPEARANCE,
             title = "Appearance"
         )
         val appearanceMultiline = SettingsItem.Switch.build(
             key = KEY_APPEARANCE_MULTILINE,
-            defaultValue = true,
+            defaultValue = DEFAULT_VALUE_MULTILINE,
             title = "Multiline titles and messages",
             summary = "The title of the dialog and the text of the message can take up two lines"
         )
@@ -140,51 +179,36 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             title = "Show alert after crash",
             summary = "Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually))"
         )
-        val debugTestThemeSwitch = SettingsItem.Switch.build(
-            key = KEY_DEBUG_TEST_THEME,
+        val debugUseDynamicColors = SettingsItem.Switch.build(
+            key = KEY_USE_DYNAMIC_COLORS,
             title = "[WIP] Use dynamic colors",
             isEnabled = isSdkAtLeast(Build.VERSION_CODES.S),
             summary = "Requires Android 12 or higher;\nUnstable - you may need to manually kill app via it's info screen in order for changes to applied",
             defaultValue = false
         )
-        val debugListUpdateSwitch = SettingsItem.Switch.build(
-            key = KEY_DEBUG_LIST_UPDATE,
-            title = "Show Appearance Category",
-            defaultValue = true
-        )
-        val debugDarkTheme = SettingsItem.TitleSummary.build(
+        val debugDarkTheme = SettingsItem.ListItem.build(
             key = KEY_APPEARANCE_DARK_THEME,
-            title = "Dark theme"
+            title = "[WIP] Dark theme",
+            values = listOf(
+                AppCompatDelegate.MODE_NIGHT_YES,
+                AppCompatDelegate.MODE_NIGHT_NO,
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,
+                AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
+            ),
+            valueTitles = listOf(
+                "Enabled",
+                "Disabled",
+                "Follow system",
+                "Battery saver"
+            ),
+            defaultValue = AppCompatDelegate.MODE_NIGHT_NO
         )
-        val applicationLocales = AppCompatDelegate.getApplicationLocales()
-        val locales = List(applicationLocales.size()) { index ->
-            applicationLocales[index]
-        }.mapNotNull { it }
 
-        var localeIndex = 0
-        val localesMap = mutableMapOf<String, Int>(
-            *locales.map { locale -> locale.language to localeIndex++ }.toTypedArray()
+        val debugUseLargeTopAppBar = SettingsItem.Switch.build(
+            key = "useLargeTopAppBar",
+            title = "Use LargeTopAppBar",
+            defaultValue = false
         )
-        val titlesMap = mutableMapOf("en" to "English", "ru" to "Russian")
-
-        val keys = localesMap.keys.toList()
-        val values = localesMap.values.toList()
-        val valueTitles = List(values.size) { index -> titlesMap[keys[index]] }.mapNotNull { it }
-
-        val debugLanguages = SettingsItem.ListItem.build(
-            key = "languages",
-            values = values,
-            valueTitles = valueTitles,
-            title = "Select application language",
-            defaultValue = 0
-        ) {
-//            overrideOnClickAction = isSdkAtLeast(Build.VERSION_CODES.TIRAMISU)
-            summaryProvider = SettingsItem.SummaryProvider { settingsItem ->
-                (settingsItem as? SettingsItem.ListItem)?.let { item ->
-                    "Current: ${item.valueTitles[item.value ?: 0]}"
-                }.orEmpty()
-            }
-        }
 
         val debugHideDebugList = SettingsItem.TitleSummary.build(
             key = KEY_DEBUG_HIDE_DEBUG_LIST,
@@ -214,17 +238,18 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             msAppCenterTitle,
             msAppCenterEnable,
         )
+        val debugList = mutableListOf<SettingsItem<*>>()
         listOf(
             debugTitle,
             debugPerformCrash,
             debugShowDestroyedLongPollAlert,
             debugShowCrashAlert,
-            debugTestThemeSwitch,
-            debugListUpdateSwitch,
+            debugUseDynamicColors,
             debugDarkTheme,
-            debugLanguages,
-            debugHideDebugList,
+            debugUseLargeTopAppBar,
         ).forEach(debugList::add)
+
+        debugList += debugHideDebugList
 
         val settingsList = mutableListOf<SettingsItem<*>>()
         listOf(
@@ -236,102 +261,116 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
             debugList,
         ).forEach(settingsList::addAll)
 
-        testAppearanceList = appearanceList.toMutableList()
-
-        val titleDelegate = settingsTitleItemDelegate()
-        val titleSummaryDelegate = settingsTitleSummaryItemDelegate(
-            onClickListener = this, onLongClickListener = this
-        )
-        val editTextDelegate = settingsEditTextItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-        val checkboxDelegate = settingsCheckboxItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-        val switchDelegate = settingsSwitchItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-        val listDelegate = settingsListItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-
-        val adapter = AsyncDiffItemAdapter(
-            titleDelegate,
-            titleSummaryDelegate,
-            editTextDelegate,
-            checkboxDelegate,
-            switchDelegate,
-            listDelegate
-        )
-        this.adapter = adapter
-        binding.recyclerView.adapter = adapter
-
         if (!AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)) {
             settingsList.removeAll(debugList)
         }
 
-        adapter.items = settingsList.toList()
-
-        prepareView()
+        this.settingsList = settingsList
     }
 
-    private fun prepareView() {
-        applyInsets()
-        prepareToolbar()
-    }
-
-    private fun applyInsets() {
-        binding.appBar.applyInsetter {
-            type(statusBars = true) { padding() }
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun SettingsScreen(
+        useDynamicColors: Boolean,
+        useLargeAppBar: Boolean,
+        isMultiline: Boolean,
+        items: List<SettingsItem<*>>
+    ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState()
+        )
+        val scaffoldModifier = if (useLargeAppBar) {
+            Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+        } else {
+            Modifier.fillMaxSize()
         }
-        binding.recyclerView.applyInsetter {
-            type(navigationBars = true) { padding() }
-        }
-    }
 
-    private fun prepareToolbar() {
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        val listenersContext = this
+
+        AppTheme(dynamicColors = useDynamicColors) {
+            Scaffold(
+                modifier = scaffoldModifier,
+                topBar = {
+                    val title = @Composable { Text(text = "Settings") }
+                    val navigationIcon = @Composable {
+                        IconButton(onClick = { activity?.onBackPressedDispatcher?.onBackPressed() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_round_arrow_back_24),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    if (useLargeAppBar) {
+                        LargeTopAppBar(
+                            title = title,
+                            navigationIcon = navigationIcon,
+                            scrollBehavior = scrollBehavior
+                        )
+                    } else {
+                        TopAppBar(
+                            title = title,
+                            navigationIcon = navigationIcon
+                        )
+                    }
+                }
+            ) { padding ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(padding)
+                ) {
+                    items(
+                        count = items.size,
+                        key = { index ->
+                            val item = items[index]
+                            (item.title ?: item.summary).notNull()
+                        }
+                    ) { index ->
+                        when (val item = items[index]) {
+                            is SettingsItem.Title -> TitleSettingsItem(
+                                item = item,
+                                isMultiline = isMultiline
+                            )
+                            is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
+                                item = item,
+                                isMultiline = isMultiline,
+                                onSettingsClickListener = listenersContext,
+                                onSettingsLongClickListener = listenersContext
+                            )
+                            is SettingsItem.Switch -> SwitchSettingsItem(
+                                item = item,
+                                isMultiline = isMultiline,
+                                onSettingsClickListener = listenersContext,
+                                onSettingsLongClickListener = listenersContext,
+                                onSettingsChangeListener = listenersContext
+                            )
+                            is SettingsItem.EditText -> EditTestSettingsItem(
+                                item = item,
+                                isMultiline = isMultiline,
+                                onSettingsClickListener = listenersContext,
+                                onSettingsLongClickListener = listenersContext,
+                                onSettingsChangeListener = listenersContext
+                            )
+                            is SettingsItem.ListItem -> ListSettingsItem(
+                                item = item,
+                                isMultiline = isMultiline,
+                                onSettingsClickListener = listenersContext,
+                                onSettingsLongClickListener = listenersContext,
+                                onSettingsChangeListener = listenersContext
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onClick(key: String) {
         when (key) {
-            KEY_APPEARANCE_DARK_THEME -> {
-                val keys = arrayOf(
-                    AppCompatDelegate.MODE_NIGHT_YES,
-                    AppCompatDelegate.MODE_NIGHT_NO,
-                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,
-                    AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
-                )
-                val titles = arrayOf(
-                    "Enabled", "Disabled", "Follow system", "Battery saver"
-                )
-
-                val currentDarkThemeValue =
-                    AppGlobal.preferences.getInt(
-                        KEY_APPEARANCE_DARK_THEME,
-                        DEFAULT_VALUE_APPEARANCE_DARK_THEME
-                    )
-
-                val selectedItemIndex = keys.indexOf(currentDarkThemeValue)
-
-                MaterialAlertDialogBuilder(requireContext())
-                    .setSingleChoiceItems(titles, selectedItemIndex) { dialog, which ->
-                        val newMode = keys[which]
-                        AppGlobal.preferences.edit { putInt(KEY_APPEARANCE_DARK_THEME, newMode) }
-
-
-                        AppCompatDelegate.setDefaultNightMode(newMode)
-
-                        if (newMode != currentDarkThemeValue) {
-                            dialog.dismiss()
-                        }
-                    }
-                    .show()
-
-            }
-
             KEY_UPDATES_CHECK_UPDATES -> {
-                requireActivityRouter().navigateTo(Screens.Updates())
+                activityRouter?.navigateTo(Screens.Updates())
             }
 
             KEY_DEBUG_PERFORM_CRASH -> {
@@ -347,11 +386,7 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                     putBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
                 }
 
-                adapter.items =
-                    adapter.items.castAsSettings().filter { !it.key.startsWith("debug") }
-            }
-            "languages" -> {
-
+                generateSettings()
             }
             else -> Unit
         }
@@ -367,17 +402,18 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                 AppGlobal.preferences.edit {
                     putBoolean(KEY_SHOW_DEBUG_CATEGORY, true)
                 }
-
-                adapter.items = adapter.items.castAsSettings() + debugList
+                generateSettings()
                 true
             }
-
             else -> false
         }
     }
 
     override fun onChange(key: String, newValue: Any?) {
         when (key) {
+            KEY_APPEARANCE_MULTILINE -> {
+                isMultilineEnabled = (newValue as? Boolean).isTrue
+            }
             KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 LongPollUtils.requestNotificationsPermission(
                     fragmentActivity = requireActivity(),
@@ -385,22 +421,15 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
                     fromSettings = true
                 )
             }
-            KEY_DEBUG_LIST_UPDATE -> {
-                val showAppearanceCategory = newValue as Boolean
-
-                val currentItems = adapter.items.castAsSettings()
-
-                if (showAppearanceCategory) {
-                    adapter.items = testAppearanceList + currentItems
-                } else {
-                    adapter.items = currentItems.filter { !it.key.startsWith("appearance") }
-                }
+            KEY_USE_DYNAMIC_COLORS -> {
+                useDynamicColors = (newValue as? Boolean).isTrue
             }
-            "languages" -> {
-                val localesMap = mapOf(0 to "en", 1 to "ru")
-                val newLocale = localesMap[newValue as? Int ?: 0]
-
-                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(newLocale))
+            KEY_APPEARANCE_DARK_THEME -> {
+                val newMode = newValue as? Int ?: return
+                AppCompatDelegate.setDefaultNightMode(newMode)
+            }
+            "useLargeTopAppBar" -> {
+                useLargeAppBar = (newValue as? Boolean).isTrue
             }
             else -> Unit
         }
@@ -410,16 +439,12 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         MainActivity.longPollState.emit(state)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun List<AdapterDiffItem>.castAsSettings(): List<SettingsItem<*>> {
-        return (this as List<SettingsItem<*>>).toList()
-    }
-
     companion object {
         fun newInstance(): SettingsFragment = SettingsFragment()
 
         const val KEY_APPEARANCE = "appearance"
         const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"
+        const val DEFAULT_VALUE_MULTILINE = true
 
         const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
         const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
@@ -435,9 +460,8 @@ class SettingsFragment : BaseFragment(R.layout.fragment_settings),
         const val KEY_MS_APPCENTER_ENABLE = "msappcenter.enable"
 
         const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
-        const val KEY_DEBUG_TEST_THEME = "debug_test_theme"
-        const val DEFAULT_VALUE_DEBUG_TEST_THEME = false
-        const val KEY_DEBUG_LIST_UPDATE = "debug_list_update"
+        const val KEY_USE_DYNAMIC_COLORS = "debug_use_dynamic_colors"
+        const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
         const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
         const val KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT = "debug_show_destroyed_long_poll_alert"
         const val KEY_APPEARANCE_DARK_THEME = "debug_appearance_dark_theme"

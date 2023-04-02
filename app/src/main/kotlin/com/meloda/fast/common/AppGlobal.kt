@@ -1,9 +1,9 @@
 package com.meloda.fast.common
 
 import android.app.Application
-import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
@@ -12,26 +12,18 @@ import com.google.android.material.color.DynamicColors
 import com.meloda.fast.database.AccountsDatabase
 import com.meloda.fast.database.CacheDatabase
 import com.meloda.fast.di.*
-import com.meloda.fast.screens.captcha.di.captchaModule
 import com.meloda.fast.screens.login.di.loginModule
 import com.meloda.fast.screens.settings.SettingsFragment
-import com.meloda.fast.screens.twofa.di.twoFaModule
 import com.meloda.fast.util.AndroidUtils
 import dagger.hilt.android.HiltAndroidApp
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.bindInstance
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 @HiltAndroidApp
-class AppGlobal : Application(), DIAware {
-
-    override val di = appModule
+class AppGlobal : Application() {
 
     override fun onCreate() {
         super.onCreate()
@@ -48,8 +40,8 @@ class AppGlobal : Application(), DIAware {
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         if (preferences.getBoolean(
-                SettingsFragment.KEY_DEBUG_TEST_THEME,
-                SettingsFragment.DEFAULT_VALUE_DEBUG_TEST_THEME
+                SettingsFragment.KEY_USE_DYNAMIC_COLORS,
+                SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
             )
         ) {
             DynamicColors.applyToActivitiesIfAvailable(this)
@@ -92,11 +84,6 @@ class AppGlobal : Application(), DIAware {
     companion object {
         private lateinit var instance: AppGlobal
 
-        val appModule = DI.lazy {
-            bindInstance<Context> { instance }
-            bindInstance { preferences }
-        }
-
         var preferences: SharedPreferences by Delegates.notNull()
 
         var cacheDatabase: CacheDatabase by Delegates.notNull()
@@ -106,8 +93,8 @@ class AppGlobal : Application(), DIAware {
         var versionCode = 0
         var screenWidth80 = 0
 
-        val Instance get() = instance
-        val resources get() = Instance.resources
-        val packageManager get() = Instance.packageManager
+        val Instance: AppGlobal get() = instance
+        val resources: Resources get() = Instance.resources
+        val packageManager: PackageManager get() = Instance.packageManager
     }
 }

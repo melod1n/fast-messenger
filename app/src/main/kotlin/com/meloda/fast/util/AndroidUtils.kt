@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.TypedValue
 import androidx.annotation.AttrRes
@@ -15,6 +16,7 @@ import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.ext.isTrue
 import java.io.File
 
 
@@ -112,5 +114,9 @@ object AndroidUtils {
 
     fun getImeInsets(insets: WindowInsetsCompat): Insets {
         return insets.getInsets(WindowInsetsCompat.Type.ime())
+    }
+
+    fun isBatterySaverOn(): Boolean {
+        return (AppGlobal.Instance.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isPowerSaveMode.isTrue
     }
 }
