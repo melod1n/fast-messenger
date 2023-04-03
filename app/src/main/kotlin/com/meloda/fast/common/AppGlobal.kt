@@ -1,9 +1,11 @@
 package com.meloda.fast.common
 
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.media.AudioManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
@@ -53,6 +55,8 @@ class AppGlobal : Application() {
 
         screenWidth80 = (AndroidUtils.getDisplayWidth() * 0.8).roundToInt()
 
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
         applyDarkTheme()
 
         initKoin()
@@ -96,5 +100,7 @@ class AppGlobal : Application() {
         val Instance: AppGlobal get() = instance
         val resources: Resources get() = Instance.resources
         val packageManager: PackageManager get() = Instance.packageManager
+
+        var audioManager: AudioManager by Delegates.notNull()
     }
 }

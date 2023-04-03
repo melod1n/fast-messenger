@@ -67,6 +67,9 @@ fun AppTheme(
     }
 
     val typography = MaterialTheme.typography.copy(
+        displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = googleSansFonts),
+        displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = googleSansFonts),
+        displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = googleSansFonts),
         headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = googleSansFonts),
         headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = googleSansFonts),
         headlineSmall = MaterialTheme.typography.headlineSmall.copy(fontFamily = googleSansFonts),

@@ -1,6 +1,7 @@
 package com.meloda.fast.util
 
 import android.content.Context
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.model.base.Text
@@ -19,6 +20,7 @@ object ViewUtils {
         neutralText: Text? = null,
         neutralAction: (() -> Unit)? = null,
         onDismissAction: (() -> Unit)? = null,
+        view: View? = null,
     ): AlertDialog {
         val builder = MaterialAlertDialogBuilder(this)
             .setCancelable(isCancelable)
@@ -26,6 +28,8 @@ object ViewUtils {
 
         title?.asString()?.let(builder::setTitle)
         message?.asString()?.let(builder::setMessage)
+
+        view?.let(builder::setView)
 
         positiveText?.let { text ->
             builder.setPositiveButton(text.asString()) { _, _ -> positiveAction?.invoke() }

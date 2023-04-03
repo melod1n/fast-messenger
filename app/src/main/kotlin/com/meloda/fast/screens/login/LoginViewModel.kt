@@ -27,15 +27,23 @@ import kotlinx.coroutines.launch
 interface LoginViewModel {
     val events: Flow<VkEvent>
 
+    val isNeedToShowLogo: StateFlow<Boolean>
+
     val screenState: StateFlow<LoginScreenState>
 
-    val isLoadingInProgress: Flow<Boolean>
+    val isLoadingInProgress: StateFlow<Boolean>
 
-    val isNeedToShowLoginError: Flow<Boolean>
-    val isNeedToShowPasswordError: Flow<Boolean>
+    val isNeedToShowLoginError: StateFlow<Boolean>
+    val isNeedToShowPasswordError: StateFlow<Boolean>
+
+    val isPasswordVisible: StateFlow<Boolean>
 
     val isNeedToShowFastLoginDialog: Flow<Boolean>
     val isNeedToShowErrorDialog: Flow<Boolean>
+
+    fun onPasswordVisibilityButtonClicked()
+
+    fun onLogoNextButtonClicked()
 
     fun onLoginInputChanged(newLogin: String)
     fun onPasswordInputChanged(newPassword: String)
@@ -63,6 +71,8 @@ class LoginViewModelImpl(
     private val twoFaScreen: TwoFaScreen
 ) : DeprecatedBaseViewModel(), LoginViewModel {
 
+    override val isNeedToShowLogo = MutableStateFlow(true)
+
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
@@ -76,6 +86,7 @@ class LoginViewModelImpl(
     override val isLoadingInProgress = MutableStateFlow(false)
     override val isNeedToShowLoginError = MutableStateFlow(false)
     override val isNeedToShowPasswordError = MutableStateFlow(false)
+    override val isPasswordVisible = MutableStateFlow(false)
     override val isNeedToShowErrorDialog = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
 
@@ -121,6 +132,15 @@ class LoginViewModelImpl(
             is ValidationRequiredEvent -> onValidationEventReceived(event)
             else -> events.update { event }
         }
+    }
+
+    override fun onPasswordVisibilityButtonClicked() {
+        val newVisibility = !isPasswordVisible.value
+        isPasswordVisible.tryEmit(newVisibility)
+    }
+
+    override fun onLogoNextButtonClicked() {
+        isNeedToShowLogo.tryEmit(false)
     }
 
     override fun onLoginInputChanged(newLogin: String) {
@@ -209,6 +229,8 @@ class LoginViewModelImpl(
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
 
+        isLoadingInProgress.update { true }
+
         viewModelScope.launch(Dispatchers.IO) {
             makeJob(
                 {
@@ -247,7 +269,8 @@ class LoginViewModelImpl(
                     accounts.insert(listOf(currentAccount))
 
                     router.replaceScreen(Screens.Main())
-                }
+                },
+                onAnyResult = { isLoadingInProgress.update { false } }
             )
         }
     }
@@ -256,11 +279,10 @@ class LoginViewModelImpl(
         val validationSid = screenState.value.validationSid ?: return
 
         viewModelScope.launch {
-            makeJob(
-                { authRepository.sendSms(validationSid) },
-                onAnswer = {
-                    // TODO: 29.03.2023, Danil Nikolaev: handle response
-                }
+            // TODO: 03.04.2023, Danil Nikolaev: handle response and error
+            val response = sendRequest(
+                request = { authRepository.sendSms(validationSid) },
+                onError = { error -> false }
             )
         }
     }

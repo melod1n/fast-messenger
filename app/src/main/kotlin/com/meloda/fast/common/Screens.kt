@@ -1,10 +1,10 @@
 package com.meloda.fast.common
 
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.screens.chatinfo.ChatInfoFragment
 import com.meloda.fast.screens.conversations.ConversationsFragment

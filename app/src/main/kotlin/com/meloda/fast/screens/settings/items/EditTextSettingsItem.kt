@@ -3,7 +3,6 @@ package com.meloda.fast.screens.settings.items
 import android.content.Context
 import android.view.LayoutInflater
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
 import com.meloda.fast.databinding.ItemSettingsEditTextAlertBinding
+import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.model.settings.SettingsItem
 import com.meloda.fast.screens.settings.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.OnSettingsClickListener
@@ -23,7 +23,7 @@ import com.meloda.fast.screens.settings.OnSettingsLongClickListener
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EditTestSettingsItem(
+fun EditTextSettingsItem(
     item: SettingsItem.EditText,
     isMultiline: Boolean,
     onSettingsClickListener: OnSettingsClickListener,
@@ -41,10 +41,11 @@ fun EditTestSettingsItem(
         modifier = Modifier
             .heightIn(min = 56.dp)
             .fillMaxWidth()
-            .combinedClickable(
+            .combinedClickableSound(
                 enabled = enabled,
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
+
                     showEditTextAlert(
                         context = context,
                         item = item,

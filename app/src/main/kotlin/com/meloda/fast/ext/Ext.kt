@@ -1,17 +1,11 @@
 package com.meloda.fast.ext
 
-import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.util.DisplayMetrics
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.screens.settings.SettingsFragment
@@ -38,22 +32,12 @@ fun Float.dpToPx(): Int {
 val MediaType.mimeType: String get() = "${type()}/${subtype()}"
 
 @Throws(NullPointerException::class)
-fun <T> T?.notNull(): T {
-    return requireNotNull(this)
-}
-
-
-fun String?.orDots(count: Int = 3): String {
-    return this ?: ("." * count)
-}
-
-private operator fun String.times(count: Int): String {
-    val builder = StringBuilder()
-    for (i in 0 until count) {
-        builder.append(this)
+fun <T> T?.notNull(lazyMessage: (() -> Any)? = null): T {
+    return if (lazyMessage != null) {
+        requireNotNull(this, lazyMessage)
+    } else {
+        requireNotNull(this)
     }
-
-    return builder.toString()
 }
 
 inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
@@ -82,14 +66,6 @@ fun <T> Flow<T>.listenValue(
     coroutineScope: CoroutineScope,
     action: suspend (T) -> Unit
 ): Job = onEach(action::invoke).launchIn(coroutineScope)
-
-fun String.toast(context: Context, duration: Int = Toast.LENGTH_LONG) {
-    Toast.makeText(context, this, duration).show()
-}
-
-context (Context)
-fun String.toast(duration: Int = Toast.LENGTH_LONG) = toast(this@Context, duration)
-
 
 fun isUsingDarkTheme(): Boolean {
     val nightThemeMode = AppGlobal.preferences.getInt(

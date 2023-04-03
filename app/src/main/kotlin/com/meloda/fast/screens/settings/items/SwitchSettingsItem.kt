@@ -1,7 +1,6 @@
 package com.meloda.fast.screens.settings.items
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -11,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.model.settings.SettingsItem
 import com.meloda.fast.screens.settings.OnSettingsChangeListener
@@ -31,15 +31,24 @@ fun SwitchSettingsItem(
     }
     val enabled = item.isEnabled
 
+    val onCheckedChange = { newValue: Boolean ->
+        isChecked = newValue
+
+        if (item.value != isChecked) {
+            item.value = isChecked
+            onSettingsChangeListener.onChange(item.key, isChecked)
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxSize()
             .heightIn(min = 56.dp)
-            .combinedClickable(
+            .combinedClickableSound(
                 enabled = enabled,
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
-                    isChecked = !isChecked
+                    onCheckedChange.invoke(!isChecked)
                 },
                 onLongClick = { onSettingsLongClickListener.onLongClick(item.key) },
             ),
@@ -74,14 +83,7 @@ fun SwitchSettingsItem(
             Switch(
                 enabled = enabled,
                 checked = isChecked,
-                onCheckedChange = {
-                    isChecked = !isChecked
-
-                    if (item.value != isChecked) {
-                        item.value = isChecked
-                        onSettingsChangeListener.onChange(item.key, isChecked)
-                    }
-                }
+                onCheckedChange = onCheckedChange
             )
         }
         Spacer(modifier = Modifier.width(16.dp))

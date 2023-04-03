@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.*
+import com.meloda.fast.ext.isTrue
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -26,15 +27,21 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         return viewModelScope.launch(exceptionHandler, block = block)
     }
 
+    protected var isFirstCreated = true
 
-    suspend fun <T> ViewModel.makeJob(
-        onError: (suspend (Throwable) -> Unit)? = null,
-        job: suspend () -> ApiAnswer<T>,
+    suspend fun <T> ViewModel.sendRequest(
+        onError: ErrorHandler? = null,
+        request: suspend () -> ApiAnswer<T>,
     ): T? {
-        return when (val response = job()) {
+        return when (val response = request()) {
             is ApiAnswer.Success -> response.data
             is ApiAnswer.Error -> {
-                onError?.invoke(response.error) ?: checkErrors(response.error)
+                val error = response.error
+
+                if (!onError?.handleError(error).isTrue) {
+                    checkErrors(error)
+                }
+
                 null
             }
         }
@@ -65,6 +72,43 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         onEnd?.invoke()
 
         return response
+    }
+
+    protected fun <T> makeJobWithErrorHandler(
+        job: suspend () -> ApiAnswer<T>,
+        onAnswer: suspend (T) -> Unit = {},
+        onStart: (suspend () -> Unit)? = null,
+        onEnd: (suspend () -> Unit)? = null,
+        onError: ErrorHandler? = null,
+        onAnyResult: (suspend () -> Unit)? = null,
+    ): Job = viewModelScope.launch {
+        onStart?.invoke() ?: onStart()
+        when (val response = job()) {
+            is ApiAnswer.Success -> {
+                onAnswer(response.data)
+                onAnyResult?.invoke()
+            }
+            is ApiAnswer.Error -> {
+                if (!onError?.handleError(response.error).isTrue) {
+                    checkErrors(response.error)
+                }
+                onAnyResult?.invoke()
+            }
+        }
+    }.also {
+        it.invokeOnCompletion {
+            viewModelScope.launch {
+                onEnd?.invoke() ?: onStop()
+            }
+        }
+    }
+
+    fun interface ErrorHandler {
+
+        /**
+         * @return true is error has been handled manually
+         */
+        suspend fun handleError(error: Throwable): Boolean
     }
 
     protected fun <T> makeJob(

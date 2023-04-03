@@ -346,7 +346,7 @@ class SettingsFragment : BaseFragment(),
                                 onSettingsLongClickListener = listenersContext,
                                 onSettingsChangeListener = listenersContext
                             )
-                            is SettingsItem.EditText -> EditTestSettingsItem(
+                            is SettingsItem.EditText -> EditTextSettingsItem(
                                 item = item,
                                 isMultiline = isMultiline,
                                 onSettingsClickListener = listenersContext,

@@ -1,7 +1,6 @@
 package com.meloda.fast.screens.settings.items
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.model.settings.SettingsItem
 import com.meloda.fast.screens.settings.OnSettingsClickListener
 import com.meloda.fast.screens.settings.OnSettingsLongClickListener
@@ -28,7 +28,7 @@ fun TitleSummarySettingsItem(
         modifier = Modifier
             .heightIn(min = 56.dp)
             .fillMaxWidth()
-            .combinedClickable(
+            .combinedClickableSound(
                 enabled = enabled,
                 onClick = { onSettingsClickListener.onClick(item.key) },
                 onLongClick = { onSettingsLongClickListener.onLongClick(item.key) },

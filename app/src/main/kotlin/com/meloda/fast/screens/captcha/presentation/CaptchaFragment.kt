@@ -26,7 +26,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -91,7 +90,7 @@ class CaptchaFragment : BaseFragment() {
                     ) {
                         Text(
                             text = "Captcha",
-                            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 42.sp),
+                            style = MaterialTheme.typography.displayMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.height(38.dp))

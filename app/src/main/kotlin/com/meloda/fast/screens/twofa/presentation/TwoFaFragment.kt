@@ -25,7 +25,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
@@ -92,7 +91,7 @@ class TwoFaFragment : BaseFragment() {
                     ) {
                         Text(
                             text = "Two-Factor\nAuthentication",
-                            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 42.sp),
+                            style = MaterialTheme.typography.displayMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.height(38.dp))
