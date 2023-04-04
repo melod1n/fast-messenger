@@ -17,38 +17,11 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.attachments.VkAudio
-import com.meloda.fast.api.model.attachments.VkCall
-import com.meloda.fast.api.model.attachments.VkCurator
-import com.meloda.fast.api.model.attachments.VkEvent
-import com.meloda.fast.api.model.attachments.VkFile
-import com.meloda.fast.api.model.attachments.VkGift
-import com.meloda.fast.api.model.attachments.VkGraffiti
-import com.meloda.fast.api.model.attachments.VkGroupCall
-import com.meloda.fast.api.model.attachments.VkLink
-import com.meloda.fast.api.model.attachments.VkMiniApp
-import com.meloda.fast.api.model.attachments.VkPhoto
-import com.meloda.fast.api.model.attachments.VkPoll
-import com.meloda.fast.api.model.attachments.VkSticker
-import com.meloda.fast.api.model.attachments.VkStory
-import com.meloda.fast.api.model.attachments.VkVideo
-import com.meloda.fast.api.model.attachments.VkVoiceMessage
-import com.meloda.fast.api.model.attachments.VkWall
-import com.meloda.fast.api.model.attachments.VkWallReply
-import com.meloda.fast.api.model.attachments.VkWidget
+import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.TokenExpiredError
-import com.meloda.fast.api.network.UserBannedError
-import com.meloda.fast.api.network.ValidationRequiredError
-import com.meloda.fast.api.network.VkErrorCodes
-import com.meloda.fast.api.network.VkErrorMessages
-import com.meloda.fast.api.network.VkErrors
+import com.meloda.fast.api.network.*
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.Text
 
@@ -134,12 +107,18 @@ object VkUtils {
         }
     }
 
-    fun getConversationUser(conversation: VkConversationDomain, profiles: Map<Int, VkUser>): VkUser? {
+    fun getConversationUser(
+        conversation: VkConversationDomain,
+        profiles: Map<Int, VkUser>
+    ): VkUser? {
         return if (!conversation.isUser()) null
         else profiles[conversation.id]
     }
 
-    fun getConversationGroup(conversation: VkConversationDomain, groups: Map<Int, VkGroup>): VkGroup? {
+    fun getConversationGroup(
+        conversation: VkConversationDomain,
+        groups: Map<Int, VkGroup>
+    ): VkGroup? {
         return if (!conversation.isGroup()) null
         else groups[conversation.id]
     }
@@ -220,11 +199,20 @@ object VkUtils {
         return user to group
     }
 
-    fun prepareMessageText(text: String, forConversations: Boolean? = null): String {
+    fun prepareMessageText(text: String, forConversations: Boolean = false): String {
         return text.apply {
-            if (forConversations == true) replace("\n", "")
+            if (forConversations) {
+                replace("\n", "")
+            }
 
-            replace("&amp", "&")
+            replace("&amp;", "&")
+            replace("&quot;", "\"")
+            replace("<br>", "\n")
+            replace("&gt;", ">")
+            replace("&lt;", "<")
+            replace("<br/>", "\n")
+            replace("&ndash;", "-")
+            trim()
         }
     }
 
@@ -874,7 +862,7 @@ object VkUtils {
         var newMessageText = messageText
 
         val idsIndexes = mutableListOf<Triple<Int, Int, Int>>()
-        val mentions = hashMapOf<String, String>()
+        val mentions = mutableListOf<Pair<String, String>>()
 
         var startFrom = 0
 
@@ -900,15 +888,27 @@ object VkUtils {
 
             val str = "[$idPart|$text]"
 
-            mentions[str] = text
+            mentions += str to text
 
             idsIndexes += Triple(actualId, leftBracketIndex, leftBracketIndex + text.length)
 
             startFrom = rightBracketIndex + 1
         }
 
-        mentions.forEach {
-            newMessageText = newMessageText.replace(it.key, it.value)
+        idsIndexes.reverse()
+
+        mentions.forEachIndexed { index, pair ->
+            val old = pair.first
+            val new = pair.second
+
+            val oldIndexStart = newMessageText.indexOf(old)
+
+            idsIndexes[index].copy(
+                second = oldIndexStart,
+                third = oldIndexStart + new.length
+            ).let { idsIndexes[index] = it }
+
+            newMessageText = newMessageText.replace(old, new)
         }
 
         val spanBuilder = SpannableStringBuilder(newMessageText)
