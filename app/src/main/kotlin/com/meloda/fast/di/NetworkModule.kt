@@ -96,7 +96,7 @@ object NetworkModule {
     ): Retrofit = Retrofit.Builder()
         .baseUrl("${VkUrls.API}/")
         .addConverterFactory(GsonConverterFactory.create(gson))
-        .addCallAdapterFactory(ResultCallFactory())
+        .addCallAdapterFactory(ResultCallFactory(gson))
         .client(client)
         .build()
 
@@ -193,7 +193,7 @@ val networkModule = module {
         Retrofit.Builder()
             .baseUrl("${VkUrls.API}/")
             .addConverterFactory(GsonConverterFactory.create(get()))
-            .addCallAdapterFactory(ResultCallFactory())
+            .addCallAdapterFactory(ResultCallFactory(get()))
             .client(get())
             .build()
     }

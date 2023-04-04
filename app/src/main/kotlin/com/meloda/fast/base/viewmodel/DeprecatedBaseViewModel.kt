@@ -29,7 +29,7 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
 
     protected var isFirstCreated = true
 
-    suspend fun <T> ViewModel.sendRequest(
+    suspend fun <T> sendRequest(
         onError: ErrorHandler? = null,
         request: suspend () -> ApiAnswer<T>,
     ): T? {
@@ -74,39 +74,10 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         return response
     }
 
-    protected fun <T> makeJobWithErrorHandler(
-        job: suspend () -> ApiAnswer<T>,
-        onAnswer: suspend (T) -> Unit = {},
-        onStart: (suspend () -> Unit)? = null,
-        onEnd: (suspend () -> Unit)? = null,
-        onError: ErrorHandler? = null,
-        onAnyResult: (suspend () -> Unit)? = null,
-    ): Job = viewModelScope.launch {
-        onStart?.invoke() ?: onStart()
-        when (val response = job()) {
-            is ApiAnswer.Success -> {
-                onAnswer(response.data)
-                onAnyResult?.invoke()
-            }
-            is ApiAnswer.Error -> {
-                if (!onError?.handleError(response.error).isTrue) {
-                    checkErrors(response.error)
-                }
-                onAnyResult?.invoke()
-            }
-        }
-    }.also {
-        it.invokeOnCompletion {
-            viewModelScope.launch {
-                onEnd?.invoke() ?: onStop()
-            }
-        }
-    }
-
     fun interface ErrorHandler {
 
         /**
-         * @return true is error has been handled manually
+         * @return true if error has been handled manually
          */
         suspend fun handleError(error: Throwable): Boolean
     }

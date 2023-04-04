@@ -16,7 +16,7 @@ fun TitleSettingsItem(
     isMultiline: Boolean
 ) {
     Text(
-        text = item.title.notNull {},
+        text = item.title.notNull(),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(

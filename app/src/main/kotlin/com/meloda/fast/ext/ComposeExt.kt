@@ -24,7 +24,6 @@ fun Modifier.clickableSound(
     }
 )
 
-
 @ExperimentalFoundationApi
 fun Modifier.combinedClickableSound(
     enabled: Boolean = true,

@@ -191,7 +191,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.8")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -206,9 +206,8 @@ dependencies {
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
-    val composeBom = platform("androidx.compose:compose-bom:2023.01.00")
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
+    implementation("androidx.compose:compose-bom:2023.03.00")
+    androidTestImplementation("androidx.compose:compose-bom:2023.03.00")
 
     implementation("androidx.compose.material3:material3:1.0.1")
     implementation("androidx.compose.ui:ui:1.4.0")

@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -317,7 +316,7 @@ class LoginFragment : BaseFragment() {
                             viewModel.onSignInButtonClicked()
                         }
                     },
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_arrow_end),

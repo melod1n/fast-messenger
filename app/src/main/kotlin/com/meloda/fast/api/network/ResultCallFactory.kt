@@ -14,7 +14,7 @@ import java.lang.reflect.Type
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-class ResultCallFactory : CallAdapter.Factory() {
+class ResultCallFactory(private val gson: Gson) : CallAdapter.Factory() {
     override fun get(
         returnType: Type,
         annotations: Array<out Annotation>,
@@ -27,9 +27,9 @@ class ResultCallFactory : CallAdapter.Factory() {
                 if (getRawType(callInnerType) == ApiAnswer::class.java) {
                     if (callInnerType is ParameterizedType) {
                         val resultInnerType = getParameterUpperBound(0, callInnerType)
-                        return ResultCallAdapter<Any?>(resultInnerType)
+                        return ResultCallAdapter<Any?>(resultInnerType, gson)
                     }
-                    return ResultCallAdapter<Nothing>(Nothing::class.java)
+                    return ResultCallAdapter<Nothing>(Nothing::class.java, gson)
                 }
             }
         }
@@ -58,29 +58,28 @@ internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : C
     abstract fun cloneImpl(): Call<Out>
 }
 
-private class ResultCallAdapter<R>(private val type: Type) : CallAdapter<R, Call<ApiAnswer<R>>> {
+private class ResultCallAdapter<R>(private val type: Type, private val gson: Gson) : CallAdapter<R, Call<ApiAnswer<R>>> {
 
     override fun responseType() = type
 
-    override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call)
+    override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call, gson)
 }
 
-internal class ResultCall<T>(proxy: Call<T>) : CallDelegate<T, ApiAnswer<T>>(proxy) {
+internal class ResultCall<T>(proxy: Call<T>, private val gson: Gson) : CallDelegate<T, ApiAnswer<T>>(proxy) {
 
     override fun enqueueImpl(callback: Callback<ApiAnswer<T>>) {
-        proxy.enqueue(ResultCallback(this, callback))
+        proxy.enqueue(ResultCallback(this, callback, gson))
     }
 
     override fun cloneImpl(): ResultCall<T> {
-        return ResultCall(proxy.clone())
+        return ResultCall(proxy.clone(), gson)
     }
 
     private class ResultCallback<T>(
         private val proxy: ResultCall<T>,
         private val callback: Callback<ApiAnswer<T>>,
+        private val gson: Gson
     ) : Callback<T> {
-
-        val gson = Gson()
 
         override fun onResponse(call: Call<T>, response: Response<T>) {
             val result: ApiAnswer<T> =
