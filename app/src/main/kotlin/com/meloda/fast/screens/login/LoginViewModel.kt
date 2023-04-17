@@ -4,13 +4,23 @@ import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.network.WrongTwoFaCodeError
+import com.meloda.fast.api.network.WrongTwoFaCodeFormatError
 import com.meloda.fast.api.network.auth.AuthDirectRequest
-import com.meloda.fast.base.viewmodel.*
+import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
+import com.meloda.fast.base.viewmodel.UnknownErrorEvent
+import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
+import com.meloda.fast.ext.emitOnMainScope
+import com.meloda.fast.ext.emitOnScope
+import com.meloda.fast.ext.emitWithMain
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.model.AppAccount
+import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.captcha.screen.CaptchaArguments
 import com.meloda.fast.screens.captcha.screen.CaptchaResult
 import com.meloda.fast.screens.captcha.screen.CaptchaScreen
@@ -18,10 +28,19 @@ import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 import com.meloda.fast.screens.login.validation.LoginValidator
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
-import com.meloda.fast.screens.twofa.screen.TwoFaResult
+import com.meloda.fast.screens.twofa.model.TwoFaResult
+import com.meloda.fast.screens.twofa.model.TwoFaValidationType
 import com.meloda.fast.screens.twofa.screen.TwoFaScreen
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 interface LoginViewModel {
@@ -41,17 +60,14 @@ interface LoginViewModel {
     val isNeedToShowFastLoginDialog: Flow<Boolean>
     val isNeedToShowErrorDialog: Flow<Boolean>
 
+    fun onBackPressed()
+
     fun onPasswordVisibilityButtonClicked()
 
     fun onLogoNextButtonClicked()
 
     fun onLoginInputChanged(newLogin: String)
     fun onPasswordInputChanged(newPassword: String)
-
-
-    fun onCaptchaEventReceived(event: CaptchaRequiredEvent)
-
-    fun onValidationEventReceived(event: ValidationRequiredEvent)
 
     fun onSignInButtonClicked()
     fun onSignInButtonLongClicked()
@@ -60,9 +76,10 @@ interface LoginViewModel {
 
     fun onFastLoginDialogDismissed()
     fun onErrorDialogDismissed()
+    fun onLogoLongClicked()
 }
 
-class LoginViewModelImpl(
+class LoginViewModelImpl constructor(
     private val authRepository: AuthRepository,
     private val router: Router,
     private val accounts: AccountsDao,
@@ -82,13 +99,18 @@ class LoginViewModelImpl(
     private val captchaResult = captchaScreen.resultFlow
     private val twoFaResult = twoFaScreen.resultFlow
 
-    override val events = MutableStateFlow<VkEvent>(VkNoneEvent)
+    override val events = MutableSharedFlow<VkEvent>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override val isLoadingInProgress = MutableStateFlow(false)
     override val isNeedToShowLoginError = MutableStateFlow(false)
     override val isNeedToShowPasswordError = MutableStateFlow(false)
     override val isPasswordVisible = MutableStateFlow(false)
     override val isNeedToShowErrorDialog = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
+
+    private var currentValidationEvent: ValidationRequiredEvent? = null
 
     init {
         tasksEvent.listenValue(::handleEvent)
@@ -105,6 +127,7 @@ class LoginViewModelImpl(
 
                     login()
                 }
+
                 else -> Unit
             }
         }
@@ -121,6 +144,7 @@ class LoginViewModelImpl(
 
                     login()
                 }
+
                 else -> Unit
             }
         }
@@ -130,32 +154,40 @@ class LoginViewModelImpl(
         when (event) {
             is CaptchaRequiredEvent -> onCaptchaEventReceived(event)
             is ValidationRequiredEvent -> onValidationEventReceived(event)
-            else -> events.update { event }
+            else -> events.emitOnScope(event)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (isNeedToShowLogo.value) {
+            router.exit()
+        } else {
+            isNeedToShowLogo.emitOnMainScope(true)
         }
     }
 
     override fun onPasswordVisibilityButtonClicked() {
         val newVisibility = !isPasswordVisible.value
-        isPasswordVisible.tryEmit(newVisibility)
+        isPasswordVisible.emitOnMainScope(newVisibility)
     }
 
     override fun onLogoNextButtonClicked() {
-        isNeedToShowLogo.tryEmit(false)
+        isNeedToShowLogo.emitOnMainScope(false)
     }
 
     override fun onLoginInputChanged(newLogin: String) {
-        val newState = screenState.value.copy(login = newLogin)
+        val newState = screenState.value.copy(login = newLogin.trim())
         screenState.update { newState }
-        isNeedToShowLoginError.tryEmit(false)
+        isNeedToShowLoginError.emitOnMainScope(false)
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
-        val newState = screenState.value.copy(password = newPassword)
+        val newState = screenState.value.copy(password = newPassword.trim())
         screenState.update { newState }
-        isNeedToShowPasswordError.tryEmit(false)
+        isNeedToShowPasswordError.emitOnMainScope(false)
     }
 
-    override fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
+    private fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
         val captchaSid = event.sid
         val captchaImage = event.image
 
@@ -177,16 +209,25 @@ class LoginViewModelImpl(
         captchaScreen.show(router, args)
     }
 
-    override fun onValidationEventReceived(event: ValidationRequiredEvent) {
+    private fun onValidationEventReceived(event: ValidationRequiredEvent) {
+        currentValidationEvent = event
+
         val validationSid = event.sid
         val newForm = screenState.value.copy(
             validationSid = validationSid
         )
         screenState.update { newForm }
 
-        showValidationScreen(TwoFaArguments(validationSid))
-
-        sendValidationCode()
+        showValidationScreen(
+            TwoFaArguments(
+                validationSid = event.sid,
+                redirectUri = event.redirectUri,
+                phoneMask = event.phoneMask,
+                validationType = TwoFaValidationType.parse(event.validationType),
+                canResendSms = event.canResendSms,
+                wrongCodeError = event.codeError
+            )
+        )
     }
 
     private fun showValidationScreen(args: TwoFaArguments) {
@@ -198,7 +239,7 @@ class LoginViewModelImpl(
     }
 
     override fun onSignInButtonLongClicked() {
-        viewModelScope.launch { isNeedToShowFastLoginDialog.emit(true) }
+        isNeedToShowFastLoginDialog.emitOnMainScope(true)
     }
 
     override fun onFastLoginDialogOkButtonClicked() {
@@ -206,14 +247,25 @@ class LoginViewModelImpl(
     }
 
     override fun onFastLoginDialogDismissed() {
-        isNeedToShowFastLoginDialog.tryEmit(false)
+        isNeedToShowFastLoginDialog.emitOnMainScope(false)
     }
 
     override fun onErrorDialogDismissed() {
-        isNeedToShowErrorDialog.tryEmit(false)
+        isNeedToShowErrorDialog.emitOnMainScope(false)
     }
 
-    private fun login(forceSms: Boolean = true) {
+    override fun onLogoLongClicked() {
+        router.navigateTo(Screens.Settings())
+    }
+
+    private fun login(forceSms: Boolean = false) {
+        currentValidationEvent?.let { event ->
+            if (!screenState.value.validationSid.isNullOrBlank() && screenState.value.validationCode == null) {
+                handleEvent(event)
+                return
+            }
+        }
+
         val state = screenState.value.copy()
 
         val clearedState = screenState.value.copy(
@@ -232,8 +284,26 @@ class LoginViewModelImpl(
         isLoadingInProgress.update { true }
 
         viewModelScope.launch(Dispatchers.IO) {
-            makeJob(
-                {
+            isLoadingInProgress.emitWithMain(true)
+
+            sendRequest(
+                onError = { error ->
+                    when (error) {
+                        is WrongTwoFaCodeError, WrongTwoFaCodeFormatError -> {
+                            currentValidationEvent?.let { event ->
+                                val codeError = UiText.Simple(
+                                    if (error is WrongTwoFaCodeError) "Wrong code"
+                                    else "Wrong code format"
+                                )
+                                handleEvent(event.copy(codeError = codeError))
+                                true
+                            } ?: false
+                        }
+
+                        else -> false
+                    }
+                },
+                request = {
                     val requestModel = AuthDirectRequest(
                         grantType = VKConstants.Auth.GrantType.PASSWORD,
                         clientId = VKConstants.VK_APP_ID,
@@ -248,50 +318,51 @@ class LoginViewModelImpl(
                     )
 
                     authRepository.auth(requestModel)
-                },
-                onAnswer = {
-                    if (it.userId == null || it.accessToken == null) {
-                        sendEvent(UnknownErrorEvent)
-                        return@makeJob
-                    }
+                }
+            )?.let { response ->
+                val userId = response.userId
+                val accessToken = response.accessToken
 
-                    val currentAccount = AppAccount(
-                        userId = it.userId,
-                        accessToken = it.accessToken,
-                        fastToken = null
-                    ).also { account ->
-                        UserConfig.currentUserId = account.userId
-                        UserConfig.userId = account.userId
-                        UserConfig.accessToken = account.accessToken
-                        UserConfig.fastToken = account.fastToken
-                    }
+                if (userId == null || accessToken == null) {
+                    sendEvent(UnknownErrorEvent)
+                    return@let
+                }
 
-                    accounts.insert(listOf(currentAccount))
+                if (currentValidationEvent != null) {
+                    currentValidationEvent = null
+                }
 
-                    router.replaceScreen(Screens.Main())
-                },
-                onAnyResult = { isLoadingInProgress.update { false } }
-            )
-        }
-    }
+                val currentAccount = AppAccount(
+                    userId = userId,
+                    accessToken = accessToken,
+                    fastToken = null
+                ).also { account ->
+                    UserConfig.currentUserId = account.userId
+                    UserConfig.userId = account.userId
+                    UserConfig.accessToken = account.accessToken
+                    UserConfig.fastToken = account.fastToken
+                }
 
-    private fun sendValidationCode() {
-        val validationSid = screenState.value.validationSid ?: return
+                accounts.insert(listOf(currentAccount))
 
-        viewModelScope.launch {
-            // TODO: 03.04.2023, Danil Nikolaev: handle response and error
-            val response = sendRequest(
-                request = { authRepository.sendSms(validationSid) },
-                onError = { error -> false }
-            )
+                router.replaceScreen(Screens.Main())
+            }
+
+            isLoadingInProgress.emitWithMain(false)
         }
     }
 
     private fun processValidation() {
         validationState.value.forEach { result ->
             when (result) {
-                LoginValidationResult.LoginEmpty -> isNeedToShowLoginError.tryEmit(true)
-                LoginValidationResult.PasswordEmpty -> isNeedToShowPasswordError.tryEmit(true)
+                LoginValidationResult.LoginEmpty -> {
+                    isNeedToShowLoginError.emitOnMainScope(true)
+                }
+
+                LoginValidationResult.PasswordEmpty -> {
+                    isNeedToShowPasswordError.emitOnMainScope(true)
+                }
+
                 LoginValidationResult.Empty -> Unit
                 LoginValidationResult.Valid -> Unit
             }

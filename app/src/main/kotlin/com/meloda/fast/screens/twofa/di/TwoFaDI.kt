@@ -9,6 +9,7 @@ import com.meloda.fast.screens.twofa.validation.TwoFaValidator
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -17,7 +18,8 @@ val twoFaModule = module {
 
     includes(navigationModule)
 
-    single(moduleQualifier) { get<TwoFaScreen>().resultFlow }
+    single(moduleQualifier) { screen().resultFlow }
+    single { screen().retrieveArguments() }
 
     single {
         TwoFaCoordinatorImpl(
@@ -29,3 +31,5 @@ val twoFaModule = module {
     singleOf(::TwoFaValidator)
     viewModelOf(::TwoFaViewModelImpl)
 }
+
+private fun Scope.screen(): TwoFaScreen = get()

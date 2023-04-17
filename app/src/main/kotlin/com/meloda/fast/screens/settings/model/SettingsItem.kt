@@ -1,39 +1,50 @@
-package com.meloda.fast.model.settings
+package com.meloda.fast.screens.settings.model
 
 import androidx.core.content.edit
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.AdapterDiffItem
+import com.meloda.fast.model.base.UiText
 import kotlin.properties.Delegates
 
 sealed class SettingsItem<Value>(
     open val key: String,
 ) : AdapterDiffItem {
 
-    var onTitleChanged: ((newTitle: String?) -> Unit)? = null
+    var onTitleChanged: ((newTitle: UiText?) -> Unit)? = null
 
-    var title: String? by Delegates.observable(null) { _, _, newValue ->
+    var title: UiText? by Delegates.observable(null) { _, _, newValue ->
         onTitleChanged?.invoke(newValue)
     }
 
-    var onSummaryChanged: ((newSummary: String?) -> Unit)? = null
+    var onSummaryChanged: ((newSummary: UiText?) -> Unit)? = null
 
-    var summary: String? by Delegates.observable(null) { _, _, newValue ->
+    var summary: UiText? by Delegates.observable(null) { _, _, newValue ->
         onSummaryChanged?.invoke(newValue)
     }
 
-    var onEnabledStateChanged: ((isEnabled: Boolean) -> Unit)? = null
+    var onEnabledStateChanged: ((newEnabled: Boolean) -> Unit)? = null
 
     var isEnabled: Boolean by Delegates.observable(true) { _, _, newValue ->
         onEnabledStateChanged?.invoke(newValue)
     }
 
+    var onVisibleStateChanged: ((newVisible: Boolean) -> Unit)? = null
+
+    var isVisible: Boolean by Delegates.observable(true) { _, _, newValue ->
+        onVisibleStateChanged?.invoke(newValue)
+    }
+
+    var onValueChanged: ((newValue: Value?) -> Unit)? = null
+
     var value: Value? by Delegates.observable(null) { _, oldValue, newValue ->
         if (key.trim().isEmpty() || oldValue == newValue) return@observable
+
+        onValueChanged?.invoke(newValue)
 
         saveValueToPreferences(key, value)
     }
 
-    protected fun saveValueToPreferences(key: String, value: Any?) {
+    private fun saveValueToPreferences(key: String, value: Any?) {
         AppGlobal.preferences.edit {
             when (value) {
                 is String -> putString(key, value)
@@ -89,11 +100,11 @@ sealed class SettingsItem<Value>(
     }
 
     fun interface TitleProvider<Item : SettingsItem<*>> {
-        fun provideTitle(settingsItem: Item): String?
+        fun provideTitle(settingsItem: Item): UiText?
     }
 
     fun interface SummaryProvider<Item : SettingsItem<*>> {
-        fun provideSummary(settingsItem: Item): String?
+        fun provideSummary(settingsItem: Item): UiText?
     }
 
     data class Title(override val key: String) : SettingsItem<Nothing>(key) {
@@ -103,13 +114,14 @@ sealed class SettingsItem<Value>(
         companion object {
             fun build(
                 key: String,
-                title: String,
-                isEnabled: Boolean = true
+                title: UiText,
+                isEnabled: Boolean = true,
+                builder: Title.() -> Unit = {}
             ): Title {
                 return Title(key).apply {
                     this.title = title
                     this.isEnabled = isEnabled
-                }
+                }.apply(builder)
             }
         }
     }
@@ -121,38 +133,40 @@ sealed class SettingsItem<Value>(
         companion object {
             fun build(
                 key: String,
-                title: String? = null,
-                summary: String? = null,
-                isEnabled: Boolean = true
+                title: UiText? = null,
+                summary: UiText? = null,
+                isEnabled: Boolean = true,
+                builder: TitleSummary.() -> Unit = {}
             ): TitleSummary {
                 return TitleSummary(key).apply {
                     this.title = title
                     this.summary = summary
                     this.isEnabled = isEnabled
-                }
+                }.apply(builder)
             }
         }
     }
 
-    data class EditText(override val key: String) : SettingsItem<String>(key) {
+    data class TextField(override val key: String) : SettingsItem<String>(key) {
 
         override val id: Int = -1
 
         companion object {
             fun build(
                 key: String,
-                title: String? = null,
-                summary: String? = null,
+                title: UiText? = null,
+                summary: UiText? = null,
                 defaultValue: String? = null,
-                isEnabled: Boolean = true
-            ): EditText {
-                return EditText(key).apply {
+                isEnabled: Boolean = true,
+                builder: TextField.() -> Unit = {}
+            ): TextField {
+                return TextField(key).apply {
                     this.title = title
                     this.summary = summary
                     this.defaultValue = defaultValue
                     this.isEnabled = isEnabled
                     this.value = AppGlobal.preferences.getString(key, defaultValue)
-                }
+                }.apply(builder)
             }
         }
     }
@@ -165,11 +179,12 @@ sealed class SettingsItem<Value>(
 
             fun build(
                 key: String,
-                title: String? = null,
-                summary: String? = null,
+                title: UiText? = null,
+                summary: UiText? = null,
                 isEnabled: Boolean = true,
                 isChecked: Boolean? = null,
                 defaultValue: Boolean? = null,
+                builder: Switch.() -> Unit = {}
             ): Switch {
                 return Switch(key).apply {
                     this.title = title
@@ -179,7 +194,7 @@ sealed class SettingsItem<Value>(
                     this.value = defaultValue
                         ?.let { value -> AppGlobal.preferences.getBoolean(key, value) }
                         ?: isChecked
-                }
+                }.apply(builder)
             }
         }
     }
@@ -188,16 +203,16 @@ sealed class SettingsItem<Value>(
         override val id: Int = -1
 
         var values: List<Int> = emptyList()
-        var valueTitles: List<String> = emptyList()
+        var valueTitles: List<UiText> = emptyList()
 
         companion object {
             fun build(
                 key: String,
-                title: String? = null,
-                summary: String? = null,
+                title: UiText? = null,
+                summary: UiText? = null,
                 isEnabled: Boolean = true,
                 values: List<Int>,
-                valueTitles: List<String>,
+                valueTitles: List<UiText>,
                 defaultValue: Int? = null,
                 selectedIndex: Int? = null,
                 builder: ListItem.() -> Unit = {}

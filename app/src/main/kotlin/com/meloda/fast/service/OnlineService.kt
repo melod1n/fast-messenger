@@ -10,7 +10,6 @@ import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsRepository
 import com.meloda.fast.screens.settings.SettingsFragment
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,12 +17,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import java.util.Timer
-import javax.inject.Inject
 import kotlin.concurrent.schedule
 import kotlin.coroutines.CoroutineContext
 
-@AndroidEntryPoint
 class OnlineService : Service(), CoroutineScope {
 
     private val job = SupervisorJob()
@@ -36,8 +34,7 @@ class OnlineService : Service(), CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Default + job + exceptionHandler
 
-    @Inject
-    lateinit var repository: AccountsRepository
+    private val repository: AccountsRepository by inject()
 
     private var timer: Timer? = null
 

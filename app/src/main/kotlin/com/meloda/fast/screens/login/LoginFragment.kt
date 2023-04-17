@@ -4,10 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.activity.OnBackPressedCallback
+import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -15,8 +16,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
@@ -29,24 +33,38 @@ import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.base.viewmodel.ViewModelUtils
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.DialogFastLoginBinding
-import com.meloda.fast.ext.listenValue
-import com.meloda.fast.ext.trimmedText
+import com.meloda.fast.ext.*
+import com.meloda.fast.model.base.UiText
 import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.ui.widgets.TextFieldErrorText
-import com.meloda.fast.util.ViewUtils.showDialog
-import org.koin.androidx.viewmodel.ext.android.activityViewModel
-import com.meloda.fast.model.base.Text as UiText
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class LoginFragment : BaseFragment() {
 
-    private val viewModel: LoginViewModel by activityViewModel<LoginViewModelImpl>()
+    private val viewModel: LoginViewModel by viewModel<LoginViewModelImpl>()
+
+    private val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            viewModel.onBackPressed()
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        activity?.onBackPressedDispatcher?.addCallback(backPressedCallback)
+
+        viewModel.isNeedToShowLogo.listenValue { needToShow ->
+            backPressedCallback.isEnabled = !needToShow
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -67,9 +85,9 @@ class LoginFragment : BaseFragment() {
                             .navigationBarsPadding()
                     ) {
                         if (showLogo) {
-                            LoginLogo()
+                            LoginLogo(viewModel)
                         } else {
-                            LoginSignIn()
+                            LoginSignIn(viewModel)
                         }
                     }
                 }
@@ -137,8 +155,9 @@ class LoginFragment : BaseFragment() {
         )
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun LoginLogo() {
+    fun LoginLogo(viewModel: LoginViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -153,7 +172,12 @@ class LoginFragment : BaseFragment() {
                 Image(
                     painter = painterResource(id = R.drawable.ic_logo_big),
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.combinedClickableSound(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onLongClick = viewModel::onLogoLongClicked
+                    )
                 )
                 Spacer(modifier = Modifier.height(46.dp))
                 Text(
@@ -177,10 +201,23 @@ class LoginFragment : BaseFragment() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
     @Composable
-    fun LoginSignIn() {
+    fun LoginSignIn(viewModel: LoginViewModel) {
         val focusManager = LocalFocusManager.current
+        val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
+        val isLoading by viewModel.isLoadingInProgress.collectAsState()
+
+        val goButtonClickAction = {
+            if (!isLoading) {
+                focusManager.clearFocus()
+                viewModel.onSignInButtonClicked()
+            }
+        }
+        val loginFieldTabClick = {
+            passwordFocusable.requestFocus()
+            true
+        }
 
         Box(
             modifier = Modifier
@@ -207,6 +244,12 @@ class LoginFragment : BaseFragment() {
                 val showLoginError by viewModel.isNeedToShowLoginError.collectAsState()
 
                 TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .handleEnterKey(loginFieldTabClick::invoke)
+                        .handleTabKey(loginFieldTabClick::invoke)
+                        .focusRequester(loginFocusable),
                     value = loginText,
                     onValueChange = { newText ->
                         loginText = newText
@@ -214,9 +257,6 @@ class LoginFragment : BaseFragment() {
                     },
                     label = { Text(text = "Login") },
                     placeholder = { Text(text = "Login") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp)),
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_round_person_24),
@@ -230,7 +270,7 @@ class LoginFragment : BaseFragment() {
                     },
                     shape = RoundedCornerShape(10.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(),
+                    keyboardActions = KeyboardActions(onNext = { passwordFocusable.requestFocus() }),
                     isError = showLoginError,
                     singleLine = true
                 )
@@ -245,6 +285,14 @@ class LoginFragment : BaseFragment() {
                 val passwordVisible by viewModel.isPasswordVisible.collectAsState()
 
                 TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .handleEnterKey {
+                            goButtonClickAction.invoke()
+                            true
+                        }
+                        .focusRequester(passwordFocusable),
                     value = passwordText,
                     onValueChange = { newText ->
                         passwordText = newText
@@ -252,9 +300,6 @@ class LoginFragment : BaseFragment() {
                     },
                     label = { Text(text = "Password") },
                     placeholder = { Text(text = "Password") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp)),
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.round_vpn_key_24),
@@ -284,10 +329,7 @@ class LoginFragment : BaseFragment() {
                         keyboardType = KeyboardType.Password
                     ),
                     keyboardActions = KeyboardActions(
-                        onGo = {
-                            focusManager.clearFocus()
-                            viewModel.onSignInButtonClicked()
-                        }
+                        onGo = { goButtonClickAction.invoke() }
                     ),
                     isError = showPasswordError,
                     visualTransformation = if (passwordVisible) {
@@ -303,19 +345,12 @@ class LoginFragment : BaseFragment() {
             }
 
             Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .height(72.dp),
+                modifier = Modifier.align(Alignment.BottomCenter),
                 contentAlignment = Alignment.Center
             ) {
-                val isLoading by viewModel.isLoadingInProgress.collectAsState()
 
                 FloatingActionButton(
-                    onClick = {
-                        if (!isLoading) {
-                            viewModel.onSignInButtonClicked()
-                        }
-                    },
+                    onClick = goButtonClickAction::invoke,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Icon(

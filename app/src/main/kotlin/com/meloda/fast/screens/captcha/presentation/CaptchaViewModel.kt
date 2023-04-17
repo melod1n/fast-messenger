@@ -54,7 +54,7 @@ class CaptchaViewModelImpl constructor(
     }
 
     override fun onTextFieldDoneClicked() {
-        processValidation()
+        onDoneButtonClicked()
     }
 
     override fun onDoneButtonClicked() {

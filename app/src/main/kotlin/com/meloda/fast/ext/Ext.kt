@@ -10,9 +10,7 @@ import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -90,6 +88,37 @@ fun isUsingDynamicColors(): Boolean =
         SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
     )
 
+fun isUsingBlur(): Boolean =
+    AppGlobal.preferences.getBoolean(
+        SettingsFragment.KEY_USE_BLUR,
+        SettingsFragment.DEFAULT_VALUE_USE_BLUR
+    )
+
+fun isUsingCompose(): Boolean =
+    AppGlobal.preferences.getBoolean(
+        SettingsFragment.KEY_USE_COMPOSE,
+        SettingsFragment.DEFAULT_VALUE_USE_COMPOSE
+    )
+
+fun createTimerFlow(
+    time: Int,
+    onStartAction: suspend () -> Unit,
+    onTickAction: suspend (remainedTime: Int) -> Unit,
+    onTimeoutAction: suspend () -> Unit,
+    interval: Duration = 1.seconds
+): Flow<Int> = (time downTo 0)
+    .asSequence()
+    .asFlow()
+    .onStart { onStartAction() }
+    .onEach { timeLeft ->
+        onTickAction(timeLeft)
+        if (timeLeft == 0) {
+            onTimeoutAction()
+        } else {
+            delay(interval)
+        }
+    }
+
 fun createTimerFlow(
     isNeedToEndCondition: suspend () -> Boolean,
     onStartAction: (suspend () -> Unit)? = null,
@@ -112,3 +141,23 @@ fun createTimerFlow(
             delay(interval)
         }
     }
+
+context(ViewModel)
+fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(value, Dispatchers.Main)
+
+context(ViewModel)
+fun <T> MutableSharedFlow<T>.emitOnScope(
+    value: T,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
+) {
+    viewModelScope.launch(dispatcher) {
+        emit(value)
+    }
+}
+
+context(CoroutineScope)
+        suspend fun <T> MutableSharedFlow<T>.emitWithMain(value: T) {
+    withContext(Dispatchers.Main) {
+        emit(value)
+    }
+}

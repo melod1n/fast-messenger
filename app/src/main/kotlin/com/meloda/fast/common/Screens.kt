@@ -18,7 +18,7 @@ import com.meloda.fast.screens.userbanned.UserBannedFragment
 
 @Suppress("FunctionName")
 object Screens {
-    fun Main() = FragmentScreen { MainFragment() }
+    fun Main() = FragmentScreen { MainFragment.newInstance() }
 
     fun Login() = FragmentScreen { LoginFragment.newInstance() }
 

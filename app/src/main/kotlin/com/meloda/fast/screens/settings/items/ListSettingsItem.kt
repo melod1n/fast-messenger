@@ -2,6 +2,7 @@ package com.meloda.fast.screens.settings.items
 
 import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -11,14 +12,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
-import com.meloda.fast.ext.combinedClickableSound
-import com.meloda.fast.ext.findIndex
-import com.meloda.fast.model.settings.SettingsItem
-import com.meloda.fast.screens.settings.OnSettingsChangeListener
-import com.meloda.fast.screens.settings.OnSettingsClickListener
-import com.meloda.fast.screens.settings.OnSettingsLongClickListener
+import com.meloda.fast.ext.ItemsChoiceType
+import com.meloda.fast.ext.showDialog
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.model.base.asString
+import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
+import com.meloda.fast.screens.settings.model.OnSettingsClickListener
+import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
+import com.meloda.fast.screens.settings.model.SettingsItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -30,18 +32,26 @@ fun ListSettingsItem(
     onSettingsChangeListener: OnSettingsChangeListener
 ) {
     val context = LocalContext.current
-    val enabled = item.isEnabled
 
-    var summary by remember {
-        mutableStateOf(item.summary)
-    }
+    var title by remember { mutableStateOf(item.title) }
+    item.onTitleChanged = { newTitle -> title = newTitle }
 
+    var summary by remember { mutableStateOf(item.summary) }
+    item.onSummaryChanged = { newSummary -> summary = newSummary }
+
+    var isEnabled by remember { mutableStateOf(item.isEnabled) }
+    item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
+
+    var isVisible by remember { mutableStateOf(item.isVisible) }
+    item.onVisibleStateChanged = { newVisible -> isVisible = newVisible }
+
+    if (!isVisible) return
     Row(
         modifier = Modifier
             .heightIn(min = 56.dp)
             .fillMaxWidth()
-            .combinedClickableSound(
-                enabled = enabled,
+            .combinedClickable(
+                enabled = isEnabled,
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
                     showListAlertDialog(
@@ -63,7 +73,7 @@ fun ListSettingsItem(
             horizontalAlignment = Alignment.Start
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            item.title?.let { title ->
+            title?.asString()?.let { title ->
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
@@ -71,7 +81,7 @@ fun ListSettingsItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            summary?.let { summary ->
+            summary?.asString()?.let { summary ->
                 Text(
                     text = summary,
                     style = MaterialTheme.typography.bodyMedium,
@@ -91,20 +101,22 @@ private fun showListAlertDialog(
     onSettingsChangeListener: OnSettingsChangeListener
 ) {
     var selectedOption = item.value
-    val items = item.valueTitles.toTypedArray()
-    val checkedItem = item.values.findIndex { it == (selectedOption ?: 0) } ?: 0
+    val checkedItem = item.values.indexOf(selectedOption)
 
-    MaterialAlertDialogBuilder(context)
-        .setTitle(item.title)
-        .setSingleChoiceItems(items, checkedItem) { _, which ->
-            selectedOption = item.values[which]
-        }
-        .setPositiveButton(R.string.ok) { dialog, _ ->
+    context.showDialog(
+        title = item.title,
+        items = item.valueTitles,
+        checkedItems = listOf(checkedItem),
+        itemsChoiceType = ItemsChoiceType.SingleChoice,
+        itemsClickAction = { index, _ ->
+            selectedOption = item.values[index]
+        },
+        positiveText = UiText.Resource(R.string.ok),
+        positiveAction = {
             if (item.value != selectedOption) {
                 item.value = selectedOption
                 onSettingsChangeListener.onChange(item.key, selectedOption)
             }
-            dialog.dismiss()
         }
-        .show()
+    )
 }

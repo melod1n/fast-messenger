@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.settings.items
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -10,12 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.ext.isTrue
-import com.meloda.fast.model.settings.SettingsItem
-import com.meloda.fast.screens.settings.OnSettingsChangeListener
-import com.meloda.fast.screens.settings.OnSettingsClickListener
-import com.meloda.fast.screens.settings.OnSettingsLongClickListener
+import com.meloda.fast.model.base.asString
+import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
+import com.meloda.fast.screens.settings.model.OnSettingsClickListener
+import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
+import com.meloda.fast.screens.settings.model.SettingsItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -29,7 +30,6 @@ fun SwitchSettingsItem(
     var isChecked by remember {
         mutableStateOf(item.value.isTrue)
     }
-    val enabled = item.isEnabled
 
     val onCheckedChange = { newValue: Boolean ->
         isChecked = newValue
@@ -40,12 +40,32 @@ fun SwitchSettingsItem(
         }
     }
 
+    var title by remember { mutableStateOf(item.title) }
+    item.onTitleChanged = { newTitle -> title = newTitle }
+
+    var summary by remember { mutableStateOf(item.summary) }
+    item.onSummaryChanged = { newSummary -> summary = newSummary }
+
+    var value by remember { mutableStateOf(item.value) }
+    item.onValueChanged = { newValue ->
+        value = newValue
+        isChecked = newValue.isTrue
+    }
+
+    // TODO: 07.04.2023, Danil Nikolaev: handle isEnabled
+    var isEnabled by remember { mutableStateOf(item.isEnabled) }
+    item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
+
+    var isVisible by remember { mutableStateOf(item.isVisible) }
+    item.onVisibleStateChanged = { newVisible -> isVisible = newVisible }
+
+    if (!isVisible) return
     Row(
         modifier = Modifier
             .fillMaxSize()
             .heightIn(min = 56.dp)
-            .combinedClickableSound(
-                enabled = enabled,
+            .combinedClickable(
+                enabled = isEnabled,
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
                     onCheckedChange.invoke(!isChecked)
@@ -60,7 +80,7 @@ fun SwitchSettingsItem(
             modifier = Modifier.weight(1f)
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            item.title?.let { title ->
+            title?.asString()?.let { title ->
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
@@ -68,10 +88,10 @@ fun SwitchSettingsItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            item.summary?.let { summary ->
+            summary?.asString()?.let { summary ->
                 Text(
                     text = summary,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = if (isMultiline) Int.MAX_VALUE else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -81,7 +101,7 @@ fun SwitchSettingsItem(
         Row {
             Spacer(modifier = Modifier.width(16.dp))
             Switch(
-                enabled = enabled,
+                enabled = isEnabled,
                 checked = isChecked,
                 onCheckedChange = onCheckedChange
             )

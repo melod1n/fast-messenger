@@ -2,6 +2,7 @@ package com.meloda.fast.ext
 
 import android.content.Context
 import android.widget.Toast
+import com.meloda.fast.model.base.UiText
 
 inline fun String?.ifEmpty(defaultValue: () -> String?): String? =
     if (this?.isEmpty() == true) defaultValue() else this
@@ -25,3 +26,5 @@ fun String.toast(context: Context, duration: Int = Toast.LENGTH_LONG) {
 
 context (Context)
 fun String.toast(duration: Int = Toast.LENGTH_LONG) = toast(this@Context, duration)
+
+fun String.asUiText(): UiText = UiText.Simple(this)

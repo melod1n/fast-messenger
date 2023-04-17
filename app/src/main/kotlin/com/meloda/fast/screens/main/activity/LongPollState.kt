@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.main
+package com.meloda.fast.screens.main.activity
 
 sealed class LongPollState {
     object ForegroundService : LongPollState()

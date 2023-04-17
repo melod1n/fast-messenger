@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.main
+package com.meloda.fast.screens.main.activity
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -22,12 +22,12 @@ import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.base.BaseActivity
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
-import com.meloda.fast.common.UpdateManager
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.edgeToEdge
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.listenValue
-import com.meloda.fast.screens.main.LongPollUtils.requestNotificationsPermission
+import com.meloda.fast.screens.main.MainFragment
+import com.meloda.fast.screens.main.activity.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
@@ -35,29 +35,25 @@ import com.meloda.fast.util.AndroidUtils
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class MainActivity : BaseActivity(R.layout.activity_main) {
 
     private val navigator = object : AppNavigator(this, R.id.root_fragment_container) {}
 
     private val navigatorHolder: NavigatorHolder by inject()
+
     private val router: Router by inject()
 
     private val accountsDao: AccountsDao by inject()
 
-    private val updateManager: UpdateManager by inject()
-
-    @Inject
-    lateinit var updatesParser: LongPollUpdatesParser
+    private val updatesParser: LongPollUpdatesParser by inject()
 
     private var isOnlineServiceWasLaunched: Boolean = false
+
+    private var savedInstanceState: Bundle? = null
 
     override fun onResumeFragments() {
         navigatorHolder.setNavigator(navigator)
@@ -74,6 +70,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        this.savedInstanceState = savedInstanceState
         edgeToEdge()
 
         createNotificationChannels()
@@ -95,18 +92,9 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             initUserConfig()
         }
 
-        if (AppGlobal.preferences.getBoolean(SettingsFragment.KEY_UPDATES_CHECK_AT_STARTUP, true)) {
-            var listener: Job? = null
-            listener = updateManager.stateFlow.listenValue { state ->
-                if (state.updateItem != null) {
-                    listener?.cancel()
-                    listener = null
-                }
-            }
+        // TODO: 09.04.2023, Danil Nikolaev: implement checking updates on startup
 
-            updateManager.checkUpdates()
-        }
-
+        // TODO: 09.04.2023, Danil Nikolaev: rewrite this
         supportFragmentManager.setFragmentResultListener(
             MainFragment.START_SERVICES_KEY,
             this
@@ -126,6 +114,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             }
         }
 
+        // TODO: 09.04.2023, Danil Nikolaev: rewrite this
         longPollState.listenValue { state ->
             stopLongPollService()
 
@@ -296,10 +285,8 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         }
     }
 
-    @Deprecated("use DI")
-    fun accessRouter(): Router = router
-
     private fun openMainScreen() {
+        if (savedInstanceState != null) return
         router.newRootScreen(Screens.Main())
     }
 

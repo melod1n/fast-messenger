@@ -47,7 +47,6 @@ object VkErrorCodes {
     const val AccessTokenExpired = 1117
 }
 
-@Suppress("unused")
 object VkErrors {
     const val Unknown = "unknown_error"
 
@@ -57,7 +56,11 @@ object VkErrors {
 
 }
 
-@Suppress("unused")
+object VkErrorTypes {
+    const val OtpFormatIncorrect = "otp_format_is_incorrect"
+    const val WrongOtp = "wrong_otp"
+}
+
 object VkErrorMessages {
     const val UserBanned = "user has been banned"
 }
@@ -85,6 +88,10 @@ data class CaptchaRequiredError(
     @SerializedName("captcha_img")
     val captchaImg: String
 ) : ApiError()
+
+object WrongTwoFaCodeFormatError : ApiError()
+
+object WrongTwoFaCodeError : ApiError()
 
 data class UserBannedError(
     @SerializedName("ban_info")

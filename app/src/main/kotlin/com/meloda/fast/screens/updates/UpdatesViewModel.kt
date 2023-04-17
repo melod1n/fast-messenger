@@ -23,15 +23,13 @@ import com.meloda.fast.receiver.DownloadManagerReceiver
 import com.meloda.fast.screens.updates.model.UpdateState
 import com.meloda.fast.screens.updates.model.UpdatesScreenState
 import com.meloda.fast.util.AndroidUtils
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import java.io.File
-import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
-interface IUpdatesViewModel {
+interface UpdatesViewModel {
     val screenState: MutableStateFlow<UpdatesScreenState>
     val currentDownloadProgress: StateFlow<Int>
 
@@ -56,10 +54,9 @@ interface IUpdatesViewModel {
     fun onFileNotFoundAlertDismissed()
 }
 
-@HiltViewModel
-class UpdatesViewModel @Inject constructor(
+class UpdatesViewModelImpl constructor(
     private val updateManager: UpdateManager,
-) : DeprecatedBaseViewModel(), IUpdatesViewModel {
+) : DeprecatedBaseViewModel(), UpdatesViewModel {
 
     override val screenState = MutableStateFlow(UpdatesScreenState.EMPTY)
     override val currentDownloadProgress = MutableStateFlow(0)

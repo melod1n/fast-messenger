@@ -23,7 +23,7 @@ import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.network.*
 import com.meloda.fast.ext.orDots
-import com.meloda.fast.model.base.Text
+import com.meloda.fast.model.base.UiText
 
 @Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
@@ -630,22 +630,22 @@ object VkUtils {
         )?.toString()
     }
 
-    fun getForwardsText(message: VkMessage?): Text? {
+    fun getForwardsText(message: VkMessage?): UiText? {
         if (message?.forwards.isNullOrEmpty()) return null
 
         return message?.forwards?.let { forwards ->
-            Text.Resource(
+            UiText.Resource(
                 if (forwards.size == 1) R.string.forwarded_message
                 else R.string.forwarded_messages
             )
         }
     }
 
-    fun getAttachmentText(message: VkMessage?): Text? {
+    fun getAttachmentText(message: VkMessage?): UiText? {
         message?.geo?.let {
             return when (it.type) {
-                "point" -> Text.Resource(R.string.message_geo_point)
-                else -> Text.Resource(R.string.message_geo)
+                "point" -> UiText.Resource(R.string.message_geo_point)
+                else -> UiText.Resource(R.string.message_geo)
             }
         }
         if (message?.attachments.isNullOrEmpty()) return null
@@ -661,7 +661,7 @@ object VkUtils {
                         getAttachmentTextByType(it, attachments.size)
                     }
                 } else {
-                    Text.Resource(R.string.message_attachments_many)
+                    UiText.Resource(R.string.message_attachments_many)
                 }
             }
         }
@@ -760,47 +760,47 @@ object VkUtils {
     fun getAttachmentTextByType(
         attachmentType: BaseVkAttachmentItem.AttachmentType,
         size: Int = 1,
-    ): Text {
+    ): UiText {
         return when (attachmentType) {
             BaseVkAttachmentItem.AttachmentType.Photo ->
-                Text.QuantityResource(R.plurals.attachment_photos, size)
+                UiText.QuantityResource(R.plurals.attachment_photos, size)
             BaseVkAttachmentItem.AttachmentType.Video ->
-                Text.QuantityResource(R.plurals.attachment_videos, size)
+                UiText.QuantityResource(R.plurals.attachment_videos, size)
             BaseVkAttachmentItem.AttachmentType.Audio ->
-                Text.QuantityResource(R.plurals.attachment_audios, size)
+                UiText.QuantityResource(R.plurals.attachment_audios, size)
             BaseVkAttachmentItem.AttachmentType.File ->
-                Text.QuantityResource(R.plurals.attachment_files, size)
+                UiText.QuantityResource(R.plurals.attachment_files, size)
             BaseVkAttachmentItem.AttachmentType.Link ->
-                Text.Resource(R.string.message_attachments_link)
+                UiText.Resource(R.string.message_attachments_link)
             BaseVkAttachmentItem.AttachmentType.Voice ->
-                Text.Resource(R.string.message_attachments_voice)
+                UiText.Resource(R.string.message_attachments_voice)
             BaseVkAttachmentItem.AttachmentType.MiniApp ->
-                Text.Resource(R.string.message_attachments_mini_app)
+                UiText.Resource(R.string.message_attachments_mini_app)
             BaseVkAttachmentItem.AttachmentType.Sticker ->
-                Text.Resource(R.string.message_attachments_sticker)
+                UiText.Resource(R.string.message_attachments_sticker)
             BaseVkAttachmentItem.AttachmentType.Gift ->
-                Text.Resource(R.string.message_attachments_gift)
+                UiText.Resource(R.string.message_attachments_gift)
             BaseVkAttachmentItem.AttachmentType.Wall ->
-                Text.Resource(R.string.message_attachments_wall)
+                UiText.Resource(R.string.message_attachments_wall)
             BaseVkAttachmentItem.AttachmentType.Graffiti ->
-                Text.Resource(R.string.message_attachments_graffiti)
+                UiText.Resource(R.string.message_attachments_graffiti)
             BaseVkAttachmentItem.AttachmentType.Poll ->
-                Text.Resource(R.string.message_attachments_poll)
+                UiText.Resource(R.string.message_attachments_poll)
             BaseVkAttachmentItem.AttachmentType.WallReply ->
-                Text.Resource(R.string.message_attachments_wall_reply)
+                UiText.Resource(R.string.message_attachments_wall_reply)
             BaseVkAttachmentItem.AttachmentType.Call ->
-                Text.Resource(R.string.message_attachments_call)
+                UiText.Resource(R.string.message_attachments_call)
             BaseVkAttachmentItem.AttachmentType.GroupCallInProgress ->
-                Text.Resource(R.string.message_attachments_call_in_progress)
+                UiText.Resource(R.string.message_attachments_call_in_progress)
             BaseVkAttachmentItem.AttachmentType.Event ->
-                Text.Resource(R.string.message_attachments_event)
+                UiText.Resource(R.string.message_attachments_event)
             BaseVkAttachmentItem.AttachmentType.Curator ->
-                Text.Resource(R.string.message_attachments_curator)
+                UiText.Resource(R.string.message_attachments_curator)
             BaseVkAttachmentItem.AttachmentType.Story ->
-                Text.Resource(R.string.message_attachments_story)
+                UiText.Resource(R.string.message_attachments_story)
             BaseVkAttachmentItem.AttachmentType.Widget ->
-                Text.Resource(R.string.message_attachments_widget)
-            else -> Text.Simple(attachmentType.value)
+                UiText.Resource(R.string.message_attachments_widget)
+            else -> UiText.Simple(attachmentType.value)
         }
     }
 
@@ -840,6 +840,13 @@ object VkUtils {
                             gson.fromJson(errorString, CaptchaRequiredError::class.java)
 
                         captchaRequiredError
+                    }
+                    VkErrors.InvalidRequest -> {
+                        when (defaultError.errorType) {
+                            VkErrorTypes.OtpFormatIncorrect -> WrongTwoFaCodeFormatError
+                            VkErrorTypes.WrongOtp -> WrongTwoFaCodeError
+                            else -> defaultError
+                        }
                     }
                     else -> defaultError
                 }

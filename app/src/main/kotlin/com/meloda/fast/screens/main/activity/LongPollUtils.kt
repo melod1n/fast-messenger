@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.main
+package com.meloda.fast.screens.main.activity
 
 import android.Manifest
 import android.content.Intent
@@ -14,9 +14,9 @@ import com.fondesa.kpermissions.isPermanentlyDenied
 import com.meloda.fast.R
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.sdk33AndUp
-import com.meloda.fast.model.base.Text
+import com.meloda.fast.ext.showDialog
+import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.settings.SettingsFragment
-import com.meloda.fast.util.ViewUtils.showDialog
 import kotlinx.coroutines.launch
 
 object LongPollUtils {
@@ -79,7 +79,7 @@ object LongPollUtils {
         permanentlyDenied: Boolean,
     ) {
         val positiveText =
-            Text.Simple(if (permanentlyDenied) "Open settings" else "Grant")
+            UiText.Simple(if (permanentlyDenied) "Open settings" else "Grant")
         val positiveAction = {
             if (permanentlyDenied) {
                 val intent = Intent(
@@ -100,8 +100,8 @@ object LongPollUtils {
         }
 
         val neutralText =
-            if (permanentlyDenied) Text.Resource(R.string.ok)
-            else Text.Simple("Dismiss")
+            if (permanentlyDenied) UiText.Resource(R.string.ok)
+            else UiText.Simple("Dismiss")
         val neutralAction = {
             if (permanentlyDenied) {
                 AppGlobal.preferences.edit {
@@ -112,8 +112,8 @@ object LongPollUtils {
         }
 
         fragmentActivity.showDialog(
-            title = Text.Resource(R.string.warning),
-            message = Text.Simple(
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Simple(
                 "You denied notifications permission." +
                         "\nWithout notifications LongPoll service will work only inside app." +
                         "\nThis means that messages will only be updated while app is on the screen"

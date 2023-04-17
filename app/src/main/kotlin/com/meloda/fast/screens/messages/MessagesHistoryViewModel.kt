@@ -10,7 +10,6 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkVideo
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
 import com.meloda.fast.api.network.messages.MessagesGetHistoryRequest
@@ -27,20 +26,15 @@ import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
 import com.meloda.fast.ext.notNull
-import com.meloda.fast.screens.conversations.MessagesNewEvent
-import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
-@HiltViewModel
-class MessagesHistoryViewModel @Inject constructor(
+class MessagesHistoryViewModel constructor(
     private val messagesRepository: MessagesRepository,
     updatesParser: LongPollUpdatesParser,
     private val photosRepository: PhotosRepository,
@@ -315,42 +309,41 @@ class MessagesHistoryViewModel @Inject constructor(
             )
 
             it.resume(savedAttachment)
-        }.also { it.invokeOnCompletion { launch { onStop() } } }
+        }
     }
 
-    private suspend fun getPhotoMessageUploadServer(peerId: Int) = suspendCoroutine {
-        launch {
-            val uploadServerResponse = makeSuspendJob(
-                { photosRepository.getMessagesUploadServer(peerId) }
-            )
-            if (uploadServerResponse.isError()) {
-                throw requireNotNull(uploadServerResponse.error.throwable)
-            } else {
-                (uploadServerResponse as ApiAnswer.Success).run {
-                    it.resume(requireNotNull(this.data.response?.uploadUrl))
+    private suspend fun getPhotoMessageUploadServer(peerId: Int) =
+        suspendCoroutine { continuation ->
+            launch {
+                sendRequestNotNull(
+                    onError = { exception ->
+                        continuation.resumeWithException(exception)
+                        true
+                    },
+                    request = { photosRepository.getMessagesUploadServer(peerId) }
+                ).response?.let { response ->
+                    continuation.resume(response.uploadUrl)
                 }
             }
         }
-    }
 
     private suspend fun uploadPhotoToServer(
         uploadUrl: String,
         photo: File,
         name: String,
-    ) = suspendCoroutine {
+    ) = suspendCoroutine { continuation ->
         launch {
             val requestBody = photo.asRequestBody("image/*".toMediaType())
             val body = MultipartBody.Part.createFormData("photo", name, requestBody)
 
-            val uploadFileResponse = makeSuspendJob(
-                { photosRepository.uploadPhoto(uploadUrl, body) }
-            )
-            if (uploadFileResponse.isError()) {
-                throw uploadFileResponse.error.throwable.notNull()
-            } else {
-                (uploadFileResponse as ApiAnswer.Success).data.run {
-                    it.resume(Triple(this.server, this.photo, this.hash))
-                }
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { photosRepository.uploadPhoto(uploadUrl, body) }
+            ).let { response ->
+                continuation.resume(Triple(response.server, response.photo, response.hash))
             }
         }
     }
@@ -359,26 +352,19 @@ class MessagesHistoryViewModel @Inject constructor(
         server: Int,
         photo: String,
         hash: String,
-    ) = suspendCoroutine<VkAttachment> {
+    ) = suspendCoroutine<VkAttachment> { continuation ->
         launch {
-            val saveResponse = makeSuspendJob(
-                {
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = {
                     photosRepository.saveMessagePhoto(
-                        PhotosSaveMessagePhotoRequest(
-                            photo,
-                            server,
-                            hash
-                        )
+                        PhotosSaveMessagePhotoRequest(photo, server, hash)
                     )
                 }
-            )
-            if (saveResponse.isError()) {
-                throw saveResponse.error.throwable.notNull()
-            } else {
-                (saveResponse as ApiAnswer.Success).data.response?.run {
-                    it.resume(requireNotNull(first().asVkPhoto()))
-                }
-            }
+            ).response?.first()?.asVkPhoto()?.let(continuation::resume)
         }
     }
 
@@ -399,18 +385,15 @@ class MessagesHistoryViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getVideoMessageUploadServer() = suspendCoroutine {
+    private suspend fun getVideoMessageUploadServer() = suspendCoroutine { continuation ->
         launch {
-            val saveResponse = makeSuspendJob(
-                { videosRepository.save() }
-            )
-
-            if (saveResponse.isError()) {
-                it.resumeWithException(saveResponse.error.throwable.notNull())
-                return@launch
-            } else {
-                val response = (saveResponse as ApiAnswer.Success).data.response ?: return@launch
-
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { videosRepository.save() }
+            ).response?.let { response ->
                 val uploadUrl = response.uploadUrl
                 val video = VkVideo(
                     id = response.videoId,
@@ -421,7 +404,7 @@ class MessagesHistoryViewModel @Inject constructor(
                     title = response.title
                 )
 
-                it.resume(uploadUrl to video)
+                continuation.resume(uploadUrl to video)
             }
         }
     }
@@ -434,12 +417,10 @@ class MessagesHistoryViewModel @Inject constructor(
         val requestBody = file.asRequestBody()
         val body = MultipartBody.Part.createFormData("video_file", name, requestBody)
 
-        val response = makeSuspendJob(
-            { videosRepository.upload(uploadUrl, body) }
+        sendRequest(
+            onError = { exception -> throw exception },
+            request = { videosRepository.upload(uploadUrl, body) }
         )
-        if (response.isError()) {
-            throw response.error.throwable.notNull()
-        }
     }
 
     suspend fun uploadAudio(
@@ -457,18 +438,15 @@ class MessagesHistoryViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getAudioUploadServer() = suspendCoroutine {
+    private suspend fun getAudioUploadServer() = suspendCoroutine { continuation ->
         launch {
-            val uploadResponse = makeSuspendJob(
-                { audiosRepository.getUploadServer() }
-            )
-            if (uploadResponse.isError()) {
-                throw uploadResponse.error.throwable.notNull()
-            } else {
-                (uploadResponse as ApiAnswer.Success).data.response.run {
-                    it.resume(requireNotNull(this).uploadUrl)
-                }
-            }
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { audiosRepository.getUploadServer() }
+            ).response?.uploadUrl?.let(continuation::resume)
         }
     }
 
@@ -476,24 +454,23 @@ class MessagesHistoryViewModel @Inject constructor(
         uploadUrl: String,
         file: File,
         name: String,
-    ) = suspendCoroutine {
+    ) = suspendCoroutine { continuation ->
         launch {
             val requestBody = file.asRequestBody()
             val body = MultipartBody.Part.createFormData("file", name, requestBody)
 
-            val uploadResponse = makeSuspendJob(
-                { audiosRepository.upload(uploadUrl, body) }
-            )
-            if (uploadResponse.isError()) {
-                throw uploadResponse.error.throwable.notNull()
-            } else {
-                (uploadResponse as ApiAnswer.Success).data.run {
-                    if (this.error != null) {
-                        throw ApiError(error = error)
-                    } else {
-                        it.resume(Triple(this.server, requireNotNull(this.audio), this.hash))
-                    }
-                }
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { audiosRepository.upload(uploadUrl, body) }
+            ).let { response ->
+                response.error?.let { error -> throw ApiError(error = error) }
+
+                continuation.resume(
+                    Triple(response.server, response.audio.notNull(), response.hash)
+                )
             }
         }
     }
@@ -502,18 +479,15 @@ class MessagesHistoryViewModel @Inject constructor(
         server: Int,
         audio: String,
         hash: String,
-    ) = suspendCoroutine<VkAttachment> {
+    ) = suspendCoroutine<VkAttachment> { continuation ->
         launch {
-            val saveResponse = makeSuspendJob(
-                { audiosRepository.save(server, audio, hash) }
-            )
-            if (saveResponse.isError()) {
-                throw saveResponse.error.throwable.notNull()
-            } else {
-                (saveResponse as ApiAnswer.Success).data.response.run {
-                    it.resume(requireNotNull(this).asVkAudio())
-                }
-            }
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { audiosRepository.save(server, audio, hash) }
+            ).response?.asVkAudio()?.let(continuation::resume)
         }
     }
 
@@ -522,31 +496,30 @@ class MessagesHistoryViewModel @Inject constructor(
         file: File,
         name: String,
         type: FilesRepository.FileType,
-    ) = suspendCoroutine {
+    ) = suspendCoroutine { continuation ->
         launch {
             val uploadServerUrl = getFileMessageUploadServer(peerId, type)
             val uploadedFileInfo = uploadFileToServer(uploadServerUrl, file, name)
             val savedAttachmentPair = saveMessageFile(uploadedFileInfo)
 
-            it.resume(savedAttachmentPair.second)
-        }.also { it.invokeOnCompletion { launch { onStop() } } }
+            continuation.resume(savedAttachmentPair.second)
+        }
     }
 
     private suspend fun getFileMessageUploadServer(
         peerId: Int,
         type: FilesRepository.FileType,
-    ) = suspendCoroutine {
+    ) = suspendCoroutine { continuation ->
         launch {
-            val uploadServerResponse = makeSuspendJob(
-                { filesRepository.getMessagesUploadServer(peerId, type) }
-            )
-            if (uploadServerResponse.isError()) {
-                throw uploadServerResponse.error.throwable.notNull()
-            } else {
-                (uploadServerResponse as ApiAnswer.Success).data.response.run {
-                    it.resume(requireNotNull(this).uploadUrl)
-                }
-            }
+            val uploadServerResponse = sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { filesRepository.getMessagesUploadServer(peerId, type) }
+            ).response.notNull()
+
+            continuation.resume(uploadServerResponse.uploadUrl)
         }
     }
 
@@ -554,46 +527,40 @@ class MessagesHistoryViewModel @Inject constructor(
         uploadUrl: String,
         file: File,
         name: String,
-    ) = suspendCoroutine {
+    ) = suspendCoroutine { continuation ->
         launch {
             val requestBody = file.asRequestBody()
             val body = MultipartBody.Part.createFormData("file", name, requestBody)
 
-            val uploadFileResponse = makeSuspendJob(
-                { filesRepository.uploadFile(uploadUrl, body) }
-            )
-            if (uploadFileResponse.isError()) {
-                throw uploadFileResponse.error.throwable.notNull()
-            } else {
-                (uploadFileResponse as ApiAnswer.Success).data.run {
-                    if (this.error != null) {
-                        throw ApiError(error = this.error)
-                    } else {
-                        it.resume(this.file.notNull())
-                    }
-                }
+            sendRequestNotNull(
+                onError = { exception ->
+                    continuation.resumeWithException(exception)
+                    true
+                },
+                request = { filesRepository.uploadFile(uploadUrl, body) }
+            ).let { response ->
+                response.error?.let { error -> throw ApiError(error = error) }
+
+                continuation.resume(response.file.notNull())
             }
         }
     }
 
     private suspend fun saveMessageFile(file: String) =
-        suspendCoroutine {
+        suspendCoroutine { continuation ->
             launch {
-                val saveResponse = makeSuspendJob(
-                    { filesRepository.saveMessageFile(file) }
-                )
-                if (saveResponse.isError()) {
-                    throw saveResponse.error.throwable.notNull()
-                } else {
-                    (saveResponse as ApiAnswer.Success).data.run {
-                        val response = this.response.notNull()
-                        it.resume(
-                            response.type to (
-                                    response.file?.asVkFile()
-                                        ?: response.voiceMessage?.asVkVoiceMessage()
-                                    ).notNull()
-                        )
-                    }
+                sendRequestNotNull(
+                    onError = { exception ->
+                        continuation.resumeWithException(exception)
+                        true
+                    },
+                    request = { filesRepository.saveMessageFile(file) }
+                ).response?.let { response ->
+                    val type = response.type
+                    val attachmentFile =
+                        response.file?.asVkFile() ?: response.voiceMessage?.asVkVoiceMessage()
+
+                    continuation.resume(type to attachmentFile.notNull())
                 }
             }
         }
@@ -622,4 +589,10 @@ data class MessagesReadEvent(
     val isOut: Boolean,
     val peerId: Int,
     val messageId: Int,
+) : VkEvent()
+
+data class MessagesNewEvent(
+    val message: VkMessage,
+    val profiles: HashMap<Int, VkUser>,
+    val groups: HashMap<Int, VkGroup>,
 ) : VkEvent()

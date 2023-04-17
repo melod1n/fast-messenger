@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 context(Fragment)
 fun <T> Flow<T>.listenValue(
     action: suspend (T) -> Unit
-) = listenValue(viewLifecycleOwner.lifecycleScope, action)
+) = listenValue(lifecycleScope, action)
 
 
 context(Fragment)

@@ -19,13 +19,13 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.github.terrakok.cicerone.Router
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.net.MediaType
 import com.meloda.fast.R
@@ -60,13 +60,11 @@ import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
 import com.meloda.fast.model.base.asString
-import com.meloda.fast.screens.conversations.MessagesNewEvent
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.util.TimeUtils
 import com.meloda.fast.view.SpaceItemDecoration
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +76,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -87,12 +87,13 @@ import kotlin.math.abs
 import kotlin.properties.Delegates
 import kotlin.random.Random
 
-@AndroidEntryPoint
 class MessagesHistoryFragment :
     BaseViewModelFragment<MessagesHistoryViewModel>(R.layout.fragment_messages_history) {
 
+    private val router: Router by inject()
+
     private val binding by viewBinding(FragmentMessagesHistoryBinding::bind)
-    override val viewModel: MessagesHistoryViewModel by viewModels()
+    override val viewModel: MessagesHistoryViewModel by viewModel()
 
     private var pickFile: Boolean = false
 
@@ -437,7 +438,8 @@ class MessagesHistoryFragment :
         }
     }
 
-    override fun toggleProgress(isProgressing: Boolean) {
+    // TODO: 17.04.2023, Danil Nikolaev: handle loading progress
+    private fun toggleProgress(isProgressing: Boolean) {
         view?.run {
             findViewById<View>(R.id.progress_bar).toggleVisibility(
                 if (isProgressing) adapter.isEmpty() else false
@@ -1387,7 +1389,7 @@ class MessagesHistoryFragment :
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) {
-        activityRouter?.navigateTo(
+        router.navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
         )
     }
@@ -1397,7 +1399,7 @@ class MessagesHistoryFragment :
         user: VkUser?,
         group: VkGroup?,
     ) {
-        activityRouter?.navigateTo(
+        router.navigateTo(
             Screens.ChatInfo(conversation, user, group)
         )
     }

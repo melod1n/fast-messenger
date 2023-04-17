@@ -8,12 +8,9 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.data.messages.MessagesRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ChatInfoViewModel @Inject constructor(
+class ChatInfoViewModel constructor(
     private val messagesRepository: MessagesRepository
 ) : DeprecatedBaseViewModel() {
 

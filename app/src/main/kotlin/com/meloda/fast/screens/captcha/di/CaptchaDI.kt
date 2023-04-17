@@ -9,6 +9,7 @@ import com.meloda.fast.screens.captcha.validation.CaptchaValidator
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -17,7 +18,7 @@ val captchaModule = module {
 
     includes(navigationModule)
 
-    single(moduleQualifier) { get<CaptchaScreen>().resultFlow }
+    single(moduleQualifier) { screen().resultFlow }
 
     single {
         CaptchaCoordinatorImpl(
@@ -29,4 +30,6 @@ val captchaModule = module {
     singleOf(::CaptchaValidator)
     viewModelOf(::CaptchaViewModelImpl)
 }
+
+private fun Scope.screen(): CaptchaScreen = get()
 

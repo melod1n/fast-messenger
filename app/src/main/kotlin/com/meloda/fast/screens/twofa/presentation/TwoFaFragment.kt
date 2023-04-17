@@ -25,18 +25,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.model.base.asString
 import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.ui.widgets.TextFieldErrorText
-import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class TwoFaFragment : BaseFragment() {
 
-    private val viewModel: TwoFaViewModel by activityViewModel<TwoFaViewModelImpl>()
-
-    private val validationSid by lazy { requireArguments().getString(ARG_VALIDATION_SID).orEmpty() }
+    private val viewModel: TwoFaViewModel by viewModel<TwoFaViewModelImpl>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,7 +42,18 @@ class TwoFaFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { TwoFaScreen() }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        activity?.onBackPressedDispatcher?.addCallback {
+            viewModel.onBackButtonClicked()
+        }
+
+        (view as? ComposeView)?.apply {
+            setContent { TwoFaScreen() }
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -85,10 +94,12 @@ class TwoFaFragment : BaseFragment() {
                             )
                         }
                     )
+                    val state by viewModel.screenState.collectAsState()
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
+
                         Text(
                             text = "Two-Factor\nAuthentication",
                             style = MaterialTheme.typography.displayMedium,
@@ -96,15 +107,19 @@ class TwoFaFragment : BaseFragment() {
                         )
                         Spacer(modifier = Modifier.height(38.dp))
                         Text(
-                            text = "Enter code from your mobile app",
+                            text = state.twoFaText.asString().orEmpty(),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.height(30.dp))
 
-                        val state by viewModel.screenState.collectAsState()
+                        val delayRemainedTime by viewModel.delayTime.collectAsState()
+                        AnimatedVisibility(visible = delayRemainedTime > 0) {
+                            Text(text = "Can resend after $delayRemainedTime seconds")
+                        }
+
                         var code by remember { mutableStateOf(TextFieldValue(state.twoFaCode)) }
-                        val showError by viewModel.isNeedToShowCodeError.collectAsState()
+                        val codeError by viewModel.isNeedToShowCodeError.collectAsState()
 
                         TextField(
                             value = code,
@@ -121,7 +136,7 @@ class TwoFaFragment : BaseFragment() {
                                 Icon(
                                     painter = painterResource(id = R.drawable.round_qr_code_24),
                                     contentDescription = null,
-                                    tint = if (showError) {
+                                    tint = if (codeError != null) {
                                         MaterialTheme.colorScheme.error
                                     } else {
                                         MaterialTheme.colorScheme.primary
@@ -139,25 +154,25 @@ class TwoFaFragment : BaseFragment() {
                                     viewModel.onTextFieldDoneClicked()
                                 }
                             ),
-                            isError = showError
+                            isError = codeError != null
                         )
 
-                        AnimatedVisibility(visible = showError) {
-                            TextFieldErrorText(text = "Field must not be empty")
+                        AnimatedVisibility(visible = codeError != null) {
+                            TextFieldErrorText(text = codeError.asString().orEmpty())
                         }
                     }
+
+                    // TODO: 09.04.2023, Danil Nikolaev: проверить работоспособность 2фа
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        var isVisible by remember {
-                            mutableStateOf(false)
-                        }
+                        val canResendSms = state.canResendSms
 
                         AnimatedVisibility(
-                            visible = isVisible,
+                            visible = canResendSms,
                         ) {
                             ExtendedFloatingActionButton(
                                 onClick = viewModel::onRequestSmsButtonClicked,
@@ -192,7 +207,7 @@ class TwoFaFragment : BaseFragment() {
                         }
 
                         AnimatedVisibility(
-                            visible = !isVisible,
+                            visible = !canResendSms,
                             exit = shrinkHorizontally()
                         ) {
                             Spacer(modifier = Modifier.width(16.dp))
@@ -203,25 +218,11 @@ class TwoFaFragment : BaseFragment() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        if (savedInstanceState == null) {
-            viewModel.onViewFirstCreation(validationSid)
-        }
-
-        activity?.onBackPressedDispatcher?.addCallback {
-            viewModel.onBackButtonClicked()
-        }
-    }
 
     companion object {
-        private const val ARG_VALIDATION_SID = "validationSid"
 
-        fun newInstance(validationSid: String): TwoFaFragment {
-            val fragment = TwoFaFragment()
-            fragment.arguments = bundleOf(ARG_VALIDATION_SID to validationSid)
-            return fragment
+        fun newInstance(): TwoFaFragment {
+            return TwoFaFragment()
         }
     }
 }

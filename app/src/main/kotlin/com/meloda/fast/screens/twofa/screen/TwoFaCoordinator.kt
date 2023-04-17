@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.twofa.screen
 
 import com.github.terrakok.cicerone.Router
+import com.meloda.fast.screens.twofa.model.TwoFaResult
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 interface TwoFaCoordinator {

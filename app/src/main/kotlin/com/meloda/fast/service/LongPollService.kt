@@ -20,17 +20,19 @@ import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.longpoll.LongPollApi
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.receiver.StopLongPollServiceReceiver
 import com.meloda.fast.util.NotificationsUtils
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
 
-@AndroidEntryPoint
 class LongPollService : Service() {
 
     companion object {
@@ -53,14 +55,9 @@ class LongPollService : Service() {
 
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    @Inject
-    lateinit var repository: MessagesRepository
+    private val repository: MessagesRepository by inject()
 
-    @Inject
-    lateinit var longPollApi: LongPollApi
-
-    @Inject
-    lateinit var updatesParser: LongPollUpdatesParser
+    private val updatesParser: LongPollUpdatesParser by inject()
 
     private var asForeground = true
     private var foregroundNotification: Notification? = null

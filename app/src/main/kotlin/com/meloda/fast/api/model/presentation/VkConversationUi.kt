@@ -7,18 +7,18 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.model.base.AdapterDiffItem
-import com.meloda.fast.model.base.Image
-import com.meloda.fast.model.base.Text
+import com.meloda.fast.model.base.UiImage
+import com.meloda.fast.model.base.UiText
 
 data class VkConversationUi(
     val conversationId: Int,
     val lastMessageId: Int,
-    val avatar: Image,
-    val title: Text,
+    val avatar: UiImage,
+    val title: UiText,
     val unreadCount: String?,
     val date: Int?,
     val message: SpannableString?,
-    val attachmentImage: Image?,
+    val attachmentImage: UiImage?,
     val isPinned: Boolean,
     val actionState: ActionState,
     val isBirthday: Boolean,

@@ -4,7 +4,6 @@ import android.graphics.drawable.Drawable
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import coil.ImageLoader
-import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import com.meloda.fast.api.UserConfig
@@ -17,7 +16,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ItemConversationBinding
 import com.meloda.fast.ext.*
 import com.meloda.fast.model.base.AdapterDiffItem
-import com.meloda.fast.model.base.Image
+import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.asString
 import com.meloda.fast.model.base.setImage
 import com.meloda.fast.screens.conversations.ConversationsResourceProvider
@@ -72,7 +71,7 @@ fun conversationDelegate(
 
         binding.avatarPlaceholder.visible()
 
-        (item.avatar as? Image.Url)?.let { image ->
+        (item.avatar as? UiImage.Url)?.let { image ->
             ImageRequest.Builder(context)
                 .data(image.url)
                 .target(

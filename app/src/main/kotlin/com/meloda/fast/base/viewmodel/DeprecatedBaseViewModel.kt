@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.*
 import com.meloda.fast.ext.isTrue
+import com.meloda.fast.ext.notNull
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -13,13 +14,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 @Deprecated("rewrite")
-@Suppress("MemberVisibilityCanBePrivate")
 abstract class DeprecatedBaseViewModel : ViewModel() {
 
-    protected val tasksEventChannel = Channel<VkEvent>()
+    private val tasksEventChannel = Channel<VkEvent>()
     val tasksEvent = tasksEventChannel.receiveAsFlow()
 
-    protected val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         viewModelScope.launch { onException(throwable) }
     }
 
@@ -27,7 +27,10 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         return viewModelScope.launch(exceptionHandler, block = block)
     }
 
-    protected var isFirstCreated = true
+    suspend fun <T> sendRequestNotNull(
+        onError: ErrorHandler? = null,
+        request: suspend () -> ApiAnswer<T>
+    ): T = sendRequest(onError, request).notNull()
 
     suspend fun <T> sendRequest(
         onError: ErrorHandler? = null,
@@ -47,40 +50,8 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         }
     }
 
-    protected suspend fun <T> makeSuspendJob(
-        job: suspend () -> ApiAnswer<T>,
-        onAnswer: suspend (T) -> Unit = {},
-        onStart: (suspend () -> Unit)? = null,
-        onEnd: (suspend () -> Unit)? = null,
-        onError: (suspend (Throwable) -> Unit)? = null,
-        onAnyResult: (suspend () -> Unit)? = null,
-    ): ApiAnswer<T> {
-        onStart?.invoke() ?: onStart()
-        val response = job()
-
-        when (response) {
-            is ApiAnswer.Success -> {
-                onAnswer(response.data)
-                onAnyResult?.invoke()
-            }
-            is ApiAnswer.Error -> {
-                onError?.invoke(response.error) ?: checkErrors(response.error)
-                onAnyResult?.invoke()
-            }
-        }
-
-        onEnd?.invoke()
-
-        return response
-    }
-
-    fun interface ErrorHandler {
-
-        /**
-         * @return true if error has been handled manually
-         */
-        suspend fun handleError(error: Throwable): Boolean
-    }
+    // TODO: 05.04.2023, Danil Nikolaev: переписать makeJob на sendRequest (oh boy, писать дохуя)
+    // TODO: 05.04.2023, Danil Nikolaev: переписать Conversations Screen на новую архитектуру, пока что оставить View
 
     protected fun <T> makeJob(
         job: suspend () -> ApiAnswer<T>,
@@ -90,7 +61,7 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         onError: (suspend (Throwable) -> Unit)? = null,
         onAnyResult: (suspend () -> Unit)? = null,
     ): Job = viewModelScope.launch {
-        onStart?.invoke() ?: onStart()
+        onStart?.invoke()
         when (val response = job()) {
             is ApiAnswer.Success -> {
                 onAnswer(response.data)
@@ -104,21 +75,13 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
     }.also {
         it.invokeOnCompletion {
             viewModelScope.launch {
-                onEnd?.invoke() ?: onStop()
+                onEnd?.invoke()
             }
         }
     }
 
     protected open suspend fun onException(throwable: Throwable) {
         checkErrors(throwable)
-    }
-
-    protected suspend fun onStart() {
-        sendEvent(StartProgressEvent)
-    }
-
-    protected suspend fun onStop() {
-        sendEvent(StopProgressEvent)
     }
 
     protected suspend fun <T : VkEvent> sendEvent(event: T) = tasksEventChannel.send(event)
@@ -138,7 +101,18 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
                     )
                 )
             }
-            is ValidationRequiredError -> sendEvent(ValidationRequiredEvent(throwable.validationSid))
+            is ValidationRequiredError -> {
+                sendEvent(
+                    ValidationRequiredEvent(
+                        sid = throwable.validationSid,
+                        redirectUri = throwable.redirectUri,
+                        phoneMask = throwable.phoneMask,
+                        validationType = throwable.validationType,
+                        canResendSms = throwable.validationResend == "sms",
+                        codeError = null
+                    )
+                )
+            }
             is CaptchaRequiredError -> sendEvent(
                 CaptchaRequiredEvent(
                     sid = throwable.captchaSid,

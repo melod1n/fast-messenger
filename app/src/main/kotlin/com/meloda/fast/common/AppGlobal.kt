@@ -9,35 +9,22 @@ import android.media.AudioManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
-import androidx.room.Room
 import com.google.android.material.color.DynamicColors
-import com.meloda.fast.database.AccountsDatabase
-import com.meloda.fast.database.CacheDatabase
-import com.meloda.fast.di.*
-import com.meloda.fast.screens.login.di.loginModule
+import com.meloda.fast.common.di.applicationModule
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
-import dagger.hilt.android.HiltAndroidApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
+import org.koin.core.context.GlobalContext.startKoin
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-@HiltAndroidApp
 class AppGlobal : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
         instance = this
-
-        cacheDatabase = Room.databaseBuilder(this, CacheDatabase::class.java, "cache")
-            .fallbackToDestructiveMigration()
-            .build()
-
-        accountsDatabase = Room.databaseBuilder(this, AccountsDatabase::class.java, "accounts")
-            .build()
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
@@ -74,14 +61,7 @@ class AppGlobal : Application() {
         startKoin {
             androidLogger()
             androidContext(this@AppGlobal)
-            modules(
-                databaseModule,
-                dataModule,
-                navigationModule,
-                networkModule,
-                otaModule,
-                loginModule
-            )
+            modules(applicationModule)
         }
     }
 
@@ -89,9 +69,6 @@ class AppGlobal : Application() {
         private lateinit var instance: AppGlobal
 
         var preferences: SharedPreferences by Delegates.notNull()
-
-        var cacheDatabase: CacheDatabase by Delegates.notNull()
-        var accountsDatabase: AccountsDatabase by Delegates.notNull()
 
         var versionName = ""
         var versionCode = 0

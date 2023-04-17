@@ -4,19 +4,22 @@ import com.github.terrakok.cicerone.Router
 import com.meloda.fast.base.screen.AppScreen
 import com.meloda.fast.base.screen.createResultFlow
 import com.meloda.fast.screens.twofa.TwoFaScreens
-import com.meloda.fast.screens.twofa.di.twoFaModule
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
-import org.koin.core.context.loadKoinModules
+import com.meloda.fast.screens.twofa.model.TwoFaResult
+import kotlin.properties.Delegates
 
 class TwoFaScreen : AppScreen<TwoFaArguments, TwoFaResult> {
 
-    init {
-        loadKoinModules(twoFaModule)
-    }
-
     override val resultFlow = createResultFlow()
 
+    var args: TwoFaArguments by Delegates.notNull()
+
+    fun retrieveArguments(): TwoFaArguments {
+        return args
+    }
+
     override fun show(router: Router, args: TwoFaArguments) {
-        router.navigateTo(TwoFaScreens.twoFaScreen(args.validationSid))
+        this.args = args
+        router.navigateTo(TwoFaScreens.twoFaScreen())
     }
 }

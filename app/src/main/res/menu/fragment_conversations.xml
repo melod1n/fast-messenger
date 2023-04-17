@@ -10,4 +10,8 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="collapseActionView|ifRoom" />
 
+    <item
+        android:id="@+id/settings"
+        android:title="@string/title_settings" />
+
 </menu>

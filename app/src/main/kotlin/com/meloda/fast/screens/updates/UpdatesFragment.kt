@@ -21,26 +21,24 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
-import androidx.fragment.app.viewModels
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.showDialog
 import com.meloda.fast.ext.string
 import com.meloda.fast.model.UpdateItem
-import com.meloda.fast.model.base.Text
+import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.updates.model.UpdateState
 import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.ViewUtils.showDialog
-import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.ResponseBody
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
+
 class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
-    //    private val binding by viewBinding(FragmentUpdatesBinding::bind)
-    private val viewModel: IUpdatesViewModel by viewModels<UpdatesViewModel>()
+    private val viewModel: UpdatesViewModel by viewModel<UpdatesViewModelImpl>()
 
     private val changelogPlaceholder by lazy {
         string(R.string.fragment_updates_changelog_none)
@@ -65,7 +63,6 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
         AppTheme {
             val state by viewModel.screenState.collectAsState()
             val updateState = state.updateState
-//        val updateState by remember { mutableStateOf(state.updateState) }
             val downloadProgress by viewModel.currentDownloadProgress.collectAsState()
             val animatedProgress by animateFloatAsState(
                 targetValue = downloadProgress / 100f,
@@ -101,6 +98,7 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
                                     Text(text = getString(R.string.action_stop))
                                 }
                             }
+
                             else -> {
                                 getTitle(updateState)?.let { title ->
                                     Text(
@@ -180,6 +178,7 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
                     }
                 }
             }
+
             UpdateState.NewUpdate, UpdateState.Downloaded -> {
                 viewModel.screenState.value.updateItem?.let { item ->
                     string(
@@ -187,6 +186,7 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
                     )
                 }
             }
+
             UpdateState.NoUpdates -> string(R.string.fragment_updates_no_updates_description)
             else -> null
         }
@@ -278,11 +278,11 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
     private fun showUnknownSourcesAlert() {
         context?.showDialog(
-            title = Text.Resource(R.string.warning),
-            message = Text.Resource(R.string.fragment_updates_unknown_sources_disabled_message),
-            positiveText = Text.Resource(R.string.yes),
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Resource(R.string.fragment_updates_unknown_sources_disabled_message),
+            positiveText = UiText.Resource(R.string.yes),
             positiveAction = { AndroidUtils.openInstallUnknownAppsScreen(requireContext()) },
-            negativeText = Text.Resource(R.string.cancel),
+            negativeText = UiText.Resource(R.string.cancel),
             onDismissAction = viewModel::onUnknownSourcesAlertDismissed,
             isCancelable = false
         )
@@ -295,28 +295,28 @@ class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
             } ?: changelogPlaceholder
 
         context?.showDialog(
-            title = Text.Resource(R.string.fragment_updates_changelog),
-            message = Text.Simple(messageText),
-            positiveText = Text.Resource(R.string.ok),
+            title = UiText.Resource(R.string.fragment_updates_changelog),
+            message = UiText.Simple(messageText),
+            positiveText = UiText.Resource(R.string.ok),
             onDismissAction = viewModel::onChangelogAlertDismissed
         )
     }
 
     private fun showIssuesAlert() {
         context?.showDialog(
-            message = Text.Resource(R.string.fragment_updates_issues_description),
-            positiveText = Text.Resource(R.string.action_delete),
+            message = UiText.Resource(R.string.fragment_updates_issues_description),
+            positiveText = UiText.Resource(R.string.action_delete),
             positiveAction = viewModel::onIssuesAlertPositiveButtonClicked,
-            negativeText = Text.Resource(R.string.cancel),
+            negativeText = UiText.Resource(R.string.cancel),
             onDismissAction = viewModel::onIssuesAlertDismissed
         )
     }
 
     private fun showFileNotFoundAlert() {
         context?.showDialog(
-            title = Text.Resource(R.string.warning),
-            message = Text.Resource(R.string.fragment_updates_file_not_found_description),
-            positiveText = Text.Resource(R.string.ok),
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Resource(R.string.fragment_updates_file_not_found_description),
+            positiveText = UiText.Resource(R.string.ok),
             onDismissAction = viewModel::onFileNotFoundAlertDismissed,
             isCancelable = false
         )

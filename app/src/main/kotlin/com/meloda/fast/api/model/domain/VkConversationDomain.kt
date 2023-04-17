@@ -15,8 +15,8 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.ext.isFalse
 import com.meloda.fast.ext.isTrue
-import com.meloda.fast.model.base.Image
-import com.meloda.fast.model.base.Text
+import com.meloda.fast.model.base.UiImage
+import com.meloda.fast.model.base.UiText
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
@@ -101,8 +101,8 @@ data class VkConversationDomain(
 
     fun isPinned() = majorId > 0
 
-    fun extractAvatar(): Image {
-        val placeholderImage = Image.ColorResource(R.color.colorOnPrimary)
+    fun extractAvatar(): UiImage {
+        val placeholderImage = UiImage.ColorResource(R.color.colorOnPrimary)
 
         val avatarLink = when {
             peerType.isUser() -> conversationUser?.photo200
@@ -113,19 +113,19 @@ data class VkConversationDomain(
 
         val avatarImage = when {
             isAccount() -> null
-            else -> avatarLink?.let { Image.Url(it) }
+            else -> avatarLink?.let { UiImage.Url(it) }
         } ?: placeholderImage
 
         return avatarImage
     }
 
-    fun extractTitle(): Text {
+    fun extractTitle(): UiText {
         return when {
-            isAccount() -> Text.Resource(R.string.favorites)
-            peerType.isChat() -> Text.Simple(conversationTitle ?: "...")
-            peerType.isUser() -> Text.Simple(conversationUser?.fullName ?: "...")
-            peerType.isGroup() -> Text.Simple(conversationGroup?.name ?: "...")
-            else -> Text.Simple("...")
+            isAccount() -> UiText.Resource(R.string.favorites)
+            peerType.isChat() -> UiText.Simple(conversationTitle ?: "...")
+            peerType.isUser() -> UiText.Simple(conversationUser?.fullName ?: "...")
+            peerType.isGroup() -> UiText.Simple(conversationGroup?.name ?: "...")
+            else -> UiText.Simple("...")
         }
     }
 

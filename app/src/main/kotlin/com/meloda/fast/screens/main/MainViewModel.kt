@@ -6,16 +6,27 @@ import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.Screen
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.Screens
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.meloda.fast.screens.main.activity.ServicesState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class MainFragmentViewModel @Inject constructor(private val router: Router) : DeprecatedBaseViewModel() {
+interface MainViewModel {
+    val events: Flow<VkEvent>
 
-    val servicesState = MutableStateFlow<ServicesState>(ServicesState.Unknown)
+    val servicesState: Flow<ServicesState>
+}
+
+class MainViewModelImpl constructor(
+    private val router: Router
+) : MainViewModel, DeprecatedBaseViewModel() {
+
+    override val events = tasksEvent.map { it }
+
+    override val servicesState = MutableStateFlow<ServicesState>(ServicesState.Unknown)
 
     init {
         checkSession()

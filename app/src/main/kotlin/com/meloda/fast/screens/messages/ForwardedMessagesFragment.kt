@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.github.terrakok.cicerone.Router
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
@@ -16,8 +17,11 @@ import com.meloda.fast.ext.getParcelableArrayListCompat
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.getSerializableCompat
 import dev.chrisbanes.insetter.applyInsetter
+import org.koin.android.ext.android.inject
 
 class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messages) {
+
+    private val router: Router by inject()
 
     private val binding by viewBinding(FragmentForwardedMessagesBinding::bind)
 
@@ -83,7 +87,7 @@ class ForwardedMessagesFragment : BaseFragment(R.layout.fragment_forwarded_messa
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf()
     ) {
-        activityRouter?.navigateTo(
+        router.navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
         )
     }

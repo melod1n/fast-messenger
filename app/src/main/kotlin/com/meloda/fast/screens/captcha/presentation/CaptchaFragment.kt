@@ -33,11 +33,11 @@ import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.ui.*
 import com.meloda.fast.ui.widgets.TextFieldErrorText
-import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class CaptchaFragment : BaseFragment() {
 
-    private val viewModel: CaptchaViewModel by activityViewModel<CaptchaViewModelImpl>()
+    private val viewModel: CaptchaViewModel by viewModel<CaptchaViewModelImpl>()
 
     private val captchaSid by lazy { requireArguments().getString(ARG_CAPTCHA_SID).orEmpty() }
     private val captchaImage by lazy { requireArguments().getString(ARG_CAPTCHA_IMAGE).orEmpty() }
