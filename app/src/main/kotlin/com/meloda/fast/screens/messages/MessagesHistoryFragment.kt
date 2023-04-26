@@ -59,7 +59,7 @@ import com.meloda.fast.ext.showKeyboard
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.model.base.parseString
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
@@ -1258,11 +1258,11 @@ class MessagesHistoryFragment :
 
             val attachmentText = (if (message.text == null) VkUtils.getAttachmentText(
                 message = message
-            ) else null)?.asString(context)
+            ) else null)?.parseString(context)
 
             val forwardsMessage = (if (message.text == null) VkUtils.getForwardsText(
                 message = message
-            ) else null)?.asString(context)
+            ) else null)?.parseString(context)
 
             val messageText = forwardsMessage ?: attachmentText
             ?: (message.text ?: "").run { VkUtils.prepareMessageText(this) }

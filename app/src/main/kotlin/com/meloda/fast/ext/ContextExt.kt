@@ -5,7 +5,7 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.model.base.parseString
 
 fun Context.showDialog(
     title: UiText? = null,
@@ -54,6 +54,7 @@ fun Context.showDialog(
                     itemsClickAction?.invoke(which, stringItems[which])
                 }
             }
+
             ItemsChoiceType.SingleChoice -> {
                 builder.setSingleChoiceItems(
                     stringItems.toTypedArray(),
@@ -62,6 +63,7 @@ fun Context.showDialog(
                     itemsClickAction?.invoke(which, stringItems[which])
                 }
             }
+
             ItemsChoiceType.MultiChoice -> {
                 builder.setMultiChoiceItems(
                     stringItems.toTypedArray(),
@@ -80,4 +82,9 @@ sealed class ItemsChoiceType {
     object None : ItemsChoiceType()
     object SingleChoice : ItemsChoiceType()
     object MultiChoice : ItemsChoiceType()
+}
+
+context(Context)
+fun UiText?.asString(): String? {
+    return this.parseString(this@Context)
 }

@@ -161,3 +161,6 @@ context(CoroutineScope)
         emit(value)
     }
 }
+
+context(ViewModel)
+fun <T> MutableStateFlow<T>.updateValue(newValue: T) = this.update { newValue }

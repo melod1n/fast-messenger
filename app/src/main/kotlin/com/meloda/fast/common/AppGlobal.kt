@@ -26,8 +26,6 @@ class AppGlobal : Application() {
 
         instance = this
 
-        preferences = PreferenceManager.getDefaultSharedPreferences(this)
-
         if (preferences.getBoolean(
                 SettingsFragment.KEY_USE_DYNAMIC_COLORS,
                 SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
@@ -68,7 +66,9 @@ class AppGlobal : Application() {
     companion object {
         private lateinit var instance: AppGlobal
 
-        var preferences: SharedPreferences by Delegates.notNull()
+        val preferences: SharedPreferences by lazy {
+            PreferenceManager.getDefaultSharedPreferences(instance)
+        }
 
         var versionName = ""
         var versionCode = 0

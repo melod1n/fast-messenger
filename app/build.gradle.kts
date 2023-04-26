@@ -135,24 +135,20 @@ dependencies {
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.20")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
 
     implementation("androidx.core:core-ktx:1.10.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.6.1")
 
-    implementation("androidx.core:core-splashscreen:1.0.0")
-
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
 
-    implementation("androidx.activity:activity-ktx:1.7.0")
+    implementation("androidx.activity:activity-ktx:1.7.1")
 
-    implementation("androidx.fragment:fragment-ktx:1.5.6")
+    implementation("androidx.fragment:fragment-ktx:1.5.7")
 
     implementation("androidx.preference:preference-ktx:1.2.0")
 
@@ -186,9 +182,8 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
 
-    val coroutinesVersion = "1.6.3"
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
 
@@ -198,28 +193,25 @@ dependencies {
 
     implementation("com.google.android.material:material:1.8.0")
 
-    implementation("org.jsoup:jsoup:1.15.4")
-
     implementation("com.github.chuckerteam.chucker:library:3.5.2")
 
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
-    implementation("androidx.compose:compose-bom:2023.04.00")
-    androidTestImplementation("androidx.compose:compose-bom:2023.04.00")
+    implementation("androidx.compose:compose-bom:2023.04.01")
 
     implementation("androidx.compose.material3:material3:1.0.1")
-    implementation("androidx.compose.ui:ui:1.4.1")
+    implementation("androidx.compose.ui:ui:1.4.2")
 
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.1")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.4.1")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.4.2")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.4.2")
 
     implementation("androidx.compose.material3:material3-window-size-class:1.0.1")
 
-    implementation("androidx.activity:activity-compose:1.7.0")
+    implementation("androidx.activity:activity-compose:1.7.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
 
-    implementation("androidx.compose.runtime:runtime-saveable:1.5.0-alpha02")
+    implementation("androidx.compose.runtime:runtime-saveable:1.5.0-alpha03")
     // end of Compose zone
 }

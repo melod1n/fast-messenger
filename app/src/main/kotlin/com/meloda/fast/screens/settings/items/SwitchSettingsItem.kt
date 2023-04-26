@@ -11,8 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.isTrue
-import com.meloda.fast.model.base.asString
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
@@ -80,7 +80,7 @@ fun SwitchSettingsItem(
             modifier = Modifier.weight(1f)
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            title?.asString()?.let { title ->
+            title?.getString()?.let { title ->
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
@@ -88,7 +88,7 @@ fun SwitchSettingsItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            summary?.asString()?.let { summary ->
+            summary?.getString()?.let { summary ->
                 Text(
                     text = summary,
                     style = MaterialTheme.typography.bodyMedium,

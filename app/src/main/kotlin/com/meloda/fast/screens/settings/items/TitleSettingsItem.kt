@@ -3,11 +3,15 @@ package com.meloda.fast.screens.settings.items
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.ext.getString
 import com.meloda.fast.screens.settings.model.SettingsItem
 
 @Composable
@@ -28,7 +32,7 @@ fun TitleSettingsItem(
     if (!isVisible) return
 
     Text(
-        text = title.asString().orEmpty(),
+        text = title.getString().orEmpty(),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(

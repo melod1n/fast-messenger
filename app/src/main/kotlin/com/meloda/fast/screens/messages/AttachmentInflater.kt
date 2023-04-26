@@ -65,7 +65,7 @@ import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.toggleVisibilityIfHasContent
 import com.meloda.fast.ext.visible
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.AndroidUtils
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -220,11 +220,11 @@ class AttachmentInflater constructor(
 
         val attachmentText = (VkUtils.getAttachmentText(
             message = replyMessage
-        ))?.asString(context)
+        ))?.parseString(context)
 
         val forwardsMessage = (if (replyMessage.text == null) VkUtils.getForwardsText(
             message = replyMessage
-        ) else null)?.asString(context)
+        ) else null)?.parseString(context)
 
         val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text.orDots()).run {
             VkUtils.prepareMessageText(this)

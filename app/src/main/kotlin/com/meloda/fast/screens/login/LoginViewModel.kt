@@ -17,8 +17,8 @@ import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.emitOnScope
-import com.meloda.fast.ext.emitWithMain
 import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.AppAccount
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.captcha.screen.CaptchaArguments
@@ -49,13 +49,6 @@ interface LoginViewModel {
     val isNeedToShowLogo: StateFlow<Boolean>
 
     val screenState: StateFlow<LoginScreenState>
-
-    val isLoadingInProgress: StateFlow<Boolean>
-
-    val isNeedToShowLoginError: StateFlow<Boolean>
-    val isNeedToShowPasswordError: StateFlow<Boolean>
-
-    val isPasswordVisible: StateFlow<Boolean>
 
     val isNeedToShowFastLoginDialog: Flow<Boolean>
     val isNeedToShowErrorDialog: Flow<Boolean>
@@ -103,10 +96,6 @@ class LoginViewModelImpl constructor(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    override val isLoadingInProgress = MutableStateFlow(false)
-    override val isNeedToShowLoginError = MutableStateFlow(false)
-    override val isNeedToShowPasswordError = MutableStateFlow(false)
-    override val isPasswordVisible = MutableStateFlow(false)
     override val isNeedToShowErrorDialog = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
 
@@ -123,7 +112,7 @@ class LoginViewModelImpl constructor(
                     val newState = screenState.value.copy(
                         captchaSid = sid, captchaCode = code
                     )
-                    screenState.update { newState }
+                    screenState.updateValue(newState)
 
                     login()
                 }
@@ -140,7 +129,7 @@ class LoginViewModelImpl constructor(
                     val newState = screenState.value.copy(
                         validationSid = sid, validationCode = code
                     )
-                    screenState.update { newState }
+                    screenState.updateValue(newState)
 
                     login()
                 }
@@ -162,13 +151,15 @@ class LoginViewModelImpl constructor(
         if (isNeedToShowLogo.value) {
             router.exit()
         } else {
-            isNeedToShowLogo.emitOnMainScope(true)
+            isNeedToShowLogo.updateValue(true)
         }
     }
 
     override fun onPasswordVisibilityButtonClicked() {
-        val newVisibility = !isPasswordVisible.value
-        isPasswordVisible.emitOnMainScope(newVisibility)
+        val newState = screenState.value.copy(
+            passwordVisible = !screenState.value.passwordVisible
+        )
+        screenState.updateValue(newState)
     }
 
     override fun onLogoNextButtonClicked() {
@@ -176,15 +167,19 @@ class LoginViewModelImpl constructor(
     }
 
     override fun onLoginInputChanged(newLogin: String) {
-        val newState = screenState.value.copy(login = newLogin.trim())
-        screenState.update { newState }
-        isNeedToShowLoginError.emitOnMainScope(false)
+        val newState = screenState.value.copy(
+            login = newLogin.trim(),
+            loginError = false
+        )
+        screenState.updateValue(newState)
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
-        val newState = screenState.value.copy(password = newPassword.trim())
-        screenState.update { newState }
-        isNeedToShowPasswordError.emitOnMainScope(false)
+        val newState = screenState.value.copy(
+            password = newPassword.trim(),
+            passwordError = false
+        )
+        screenState.updateValue(newState)
     }
 
     private fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
@@ -281,10 +276,11 @@ class LoginViewModelImpl constructor(
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
 
-        isLoadingInProgress.update { true }
-
         viewModelScope.launch(Dispatchers.IO) {
-            isLoadingInProgress.emitWithMain(true)
+            var newState = screenState.value.copy(
+                isLoading = true
+            )
+            screenState.update { newState }
 
             sendRequest(
                 onError = { error ->
@@ -348,7 +344,10 @@ class LoginViewModelImpl constructor(
                 router.replaceScreen(Screens.Main())
             }
 
-            isLoadingInProgress.emitWithMain(false)
+            newState = screenState.value.copy(
+                isLoading = false
+            )
+            screenState.update { newState }
         }
     }
 
@@ -356,11 +355,11 @@ class LoginViewModelImpl constructor(
         validationState.value.forEach { result ->
             when (result) {
                 LoginValidationResult.LoginEmpty -> {
-                    isNeedToShowLoginError.emitOnMainScope(true)
+                    screenState.updateValue(screenState.value.copy(loginError = true))
                 }
 
                 LoginValidationResult.PasswordEmpty -> {
-                    isNeedToShowPasswordError.emitOnMainScope(true)
+                    screenState.updateValue(screenState.value.copy(passwordError = true))
                 }
 
                 LoginValidationResult.Empty -> Unit

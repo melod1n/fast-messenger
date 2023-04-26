@@ -10,8 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.meloda.fast.ext.getString
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.asString
 import com.meloda.fast.ui.AppTheme
 
 @Composable
@@ -58,7 +58,7 @@ fun MaterialDialog(
                         )
                     ) {
                         Row {
-                            title?.asString()?.let { title ->
+                            title?.getString()?.let { title ->
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = title,
@@ -79,7 +79,7 @@ fun MaterialDialog(
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Row {
-                                message?.asString()?.let { message ->
+                                message?.getString()?.let { message ->
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
                                         text = message,
@@ -103,7 +103,7 @@ fun MaterialDialog(
                         }
 
                         Row {
-                            neutralText?.asString()?.let { text ->
+                            neutralText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
                                         onDismissRequest.invoke()
@@ -116,7 +116,7 @@ fun MaterialDialog(
 
                             Spacer(modifier = Modifier.weight(1f))
 
-                            negativeText?.asString()?.let { text ->
+                            negativeText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
                                         onDismissRequest.invoke()
@@ -129,7 +129,7 @@ fun MaterialDialog(
 
                             Spacer(modifier = Modifier.width(2.dp))
 
-                            positiveText?.asString()?.let { text ->
+                            positiveText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
                                         onDismissRequest.invoke()

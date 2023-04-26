@@ -9,6 +9,11 @@ data class LoginScreenState(
     val validationSid: String?,
     val validationCode: String?,
     val error: String?,
+    val isLoading: Boolean,
+    val loginError: Boolean,
+    val passwordError: Boolean,
+    val passwordVisible: Boolean,
+    val copiedCode: String?
 ) {
 
     companion object {
@@ -20,7 +25,12 @@ data class LoginScreenState(
             captchaImage = null,
             validationSid = null,
             validationCode = null,
-            error = null
+            error = null,
+            isLoading = false,
+            loginError = false,
+            passwordError = false,
+            passwordVisible = false,
+            copiedCode = null
         )
     }
 }

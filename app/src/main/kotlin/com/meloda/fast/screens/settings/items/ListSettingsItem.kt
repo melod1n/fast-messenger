@@ -14,9 +14,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.fast.R
 import com.meloda.fast.ext.ItemsChoiceType
+import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.asString
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
@@ -73,7 +73,7 @@ fun ListSettingsItem(
             horizontalAlignment = Alignment.Start
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            title?.asString()?.let { title ->
+            title?.getString()?.let { title ->
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
@@ -81,7 +81,7 @@ fun ListSettingsItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            summary?.asString()?.let { summary ->
+            summary?.getString()?.let { summary ->
                 Text(
                     text = summary,
                     style = MaterialTheme.typography.bodyMedium,

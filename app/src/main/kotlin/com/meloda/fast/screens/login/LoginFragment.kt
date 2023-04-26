@@ -27,7 +27,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.*
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.base.viewmodel.ViewModelUtils
@@ -35,6 +37,7 @@ import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.DialogFastLoginBinding
 import com.meloda.fast.ext.*
 import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.ui.widgets.TextFieldErrorText
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -85,9 +88,17 @@ class LoginFragment : BaseFragment() {
                             .navigationBarsPadding()
                     ) {
                         if (showLogo) {
-                            LoginLogo(viewModel)
+                            LoginLogo()
                         } else {
-                            LoginSignIn(viewModel)
+                            val state by viewModel.screenState.collectAsStateWithLifecycle()
+
+                            LoginSignIn(
+                                onSignInClick = viewModel::onSignInButtonClicked,
+                                onLoginInputChanged = viewModel::onLoginInputChanged,
+                                onPasswordInputChanged = viewModel::onPasswordInputChanged,
+                                onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+                                state = state,
+                            )
                         }
                     }
                 }
@@ -157,7 +168,7 @@ class LoginFragment : BaseFragment() {
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun LoginLogo(viewModel: LoginViewModel) {
+    fun LoginLogo() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -201,17 +212,42 @@ class LoginFragment : BaseFragment() {
         }
     }
 
+    @Preview
+    @Composable
+    fun LoginSignInPreview() {
+        AppTheme(
+            darkTheme = false,
+            dynamicColors = false
+        ) {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                LoginSignIn(
+                    state = LoginScreenState.EMPTY,
+                    onSignInClick = { },
+                    onLoginInputChanged = {},
+                    onPasswordInputChanged = {},
+                    onPasswordVisibilityButtonClicked = {}
+                )
+            }
+        }
+    }
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
     @Composable
-    fun LoginSignIn(viewModel: LoginViewModel) {
+    fun LoginSignIn(
+        onSignInClick: () -> Unit,
+        onLoginInputChanged: (String) -> Unit,
+        onPasswordInputChanged: (String) -> Unit,
+        onPasswordVisibilityButtonClicked: () -> Unit,
+        state: LoginScreenState
+    ) {
         val focusManager = LocalFocusManager.current
         val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
-        val isLoading by viewModel.isLoadingInProgress.collectAsState()
+        val isLoading = state.isLoading
 
         val goButtonClickAction = {
             if (!isLoading) {
                 focusManager.clearFocus()
-                viewModel.onSignInButtonClicked()
+                onSignInClick.invoke()
             }
         }
         val loginFieldTabClick = {
@@ -238,10 +274,8 @@ class LoginFragment : BaseFragment() {
 
                 Spacer(modifier = Modifier.height(58.dp))
 
-                val state by viewModel.screenState.collectAsState()
-
                 var loginText by remember { mutableStateOf(TextFieldValue(state.login)) }
-                val showLoginError by viewModel.isNeedToShowLoginError.collectAsState()
+                val showLoginError = state.loginError
 
                 TextField(
                     modifier = Modifier
@@ -253,7 +287,7 @@ class LoginFragment : BaseFragment() {
                     value = loginText,
                     onValueChange = { newText ->
                         loginText = newText
-                        viewModel.onLoginInputChanged(newText.text)
+                        onLoginInputChanged.invoke(newText.text)
                     },
                     label = { Text(text = "Login") },
                     placeholder = { Text(text = "Login") },
@@ -281,8 +315,8 @@ class LoginFragment : BaseFragment() {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 var passwordText by remember { mutableStateOf(TextFieldValue(state.password)) }
-                val showPasswordError by viewModel.isNeedToShowPasswordError.collectAsState()
-                val passwordVisible by viewModel.isPasswordVisible.collectAsState()
+                val showPasswordError = state.passwordError
+                var passwordVisible = state.passwordVisible
 
                 TextField(
                     modifier = Modifier
@@ -296,7 +330,7 @@ class LoginFragment : BaseFragment() {
                     value = passwordText,
                     onValueChange = { newText ->
                         passwordText = newText
-                        viewModel.onPasswordInputChanged(newText.text)
+                        onPasswordInputChanged.invoke(newText.text)
                     },
                     label = { Text(text = "Password") },
                     placeholder = { Text(text = "Password") },
@@ -318,7 +352,10 @@ class LoginFragment : BaseFragment() {
                         )
 
                         IconButton(
-                            onClick = viewModel::onPasswordVisibilityButtonClicked
+                            onClick = {
+                                onPasswordVisibilityButtonClicked.invoke()
+                                passwordVisible = !passwordVisible
+                            }
                         ) {
                             Icon(painter = imagePainter, contentDescription = null)
                         }

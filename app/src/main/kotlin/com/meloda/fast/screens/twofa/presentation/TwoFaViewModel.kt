@@ -4,8 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.createTimerFlow
-import com.meloda.fast.ext.emitOnMainScope
-import com.meloda.fast.ext.emitOnScope
+import com.meloda.fast.ext.updateValue
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
@@ -18,16 +17,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
 interface TwoFaViewModel {
 
     val screenState: StateFlow<TwoFaScreenState>
-    val delayTime: StateFlow<Int>
-
-    val isNeedToShowCodeError: StateFlow<UiText?>
 
     fun onCodeInputChanged(newCode: String)
 
@@ -47,30 +42,31 @@ class TwoFaViewModelImpl constructor(
 
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
 
-    override val delayTime = MutableStateFlow(0)
-
-    override val isNeedToShowCodeError = MutableStateFlow<UiText?>(null)
-
     private var delayJob: Job? = null
-
 
     init {
         if (arguments.wrongCodeError != null) {
-            isNeedToShowCodeError.emitOnMainScope(arguments.wrongCodeError)
+            screenState.updateValue(
+                screenState.value.copy(codeError = arguments.wrongCodeError)
+            )
         }
 
-        val newState = screenState.value.copy(
-            twoFaSid = arguments.validationSid,
-            twoFaText = getTwoFaText(arguments.validationType),
-            canResendSms = arguments.canResendSms
+        screenState.updateValue(
+            screenState.value.copy(
+                twoFaSid = arguments.validationSid,
+                twoFaText = getTwoFaText(arguments.validationType),
+                canResendSms = arguments.canResendSms
+            )
         )
-        screenState.update { newState }
     }
 
     override fun onCodeInputChanged(newCode: String) {
-        val newState = screenState.value.copy(twoFaCode = newCode.trim())
-        screenState.update { newState }
-
+        screenState.updateValue(
+            screenState.value.copy(
+                twoFaCode = newCode.trim(),
+                codeError = null
+            )
+        )
 
         processValidation()
     }
@@ -80,7 +76,6 @@ class TwoFaViewModelImpl constructor(
     }
 
     override fun onCancelButtonClicked() {
-        clearState()
         coordinator.finishWithResult(TwoFaResult.Cancelled)
     }
 
@@ -98,25 +93,20 @@ class TwoFaViewModelImpl constructor(
         val twoFaSid = screenState.value.twoFaSid
         val twoFaCode = screenState.value.twoFaCode
 
-        clearState()
         coordinator.finishWithResult(TwoFaResult.Success(sid = twoFaSid, code = twoFaCode))
     }
 
     private fun processValidation(): Boolean {
         val isValid = validator.validate(screenState.value).isValid()
 
-        if (!isValid) {
-            isNeedToShowCodeError.emitOnMainScope(UiText.Simple("Field must not be empty"))
-        } else {
-            isNeedToShowCodeError.emitOnMainScope(null)
-        }
+        screenState.updateValue(
+            screenState.value.copy(
+                codeError = if (isValid) null
+                else UiText.Simple("Field must not be empty")
+            )
+        )
 
         return isValid
-    }
-
-    private fun clearState() {
-        screenState.emitOnScope(TwoFaScreenState.EMPTY)
-        isNeedToShowCodeError.emitOnMainScope(null)
     }
 
     private fun sendValidationCode() {
@@ -129,15 +119,16 @@ class TwoFaViewModelImpl constructor(
                 val newValidationType = response.validationType
                 val newCanResendSms = response.validationResend == "sms"
 
-                val newState = screenState.value.copy(
-                    canResendSms = newCanResendSms,
-                    twoFaText = getTwoFaText(
-                        TwoFaValidationType.parse(
-                            newValidationType ?: "null"
+                screenState.updateValue(
+                    screenState.value.copy(
+                        canResendSms = newCanResendSms,
+                        twoFaText = getTwoFaText(
+                            TwoFaValidationType.parse(
+                                newValidationType ?: "null"
+                            )
                         )
                     )
                 )
-                screenState.update { newState }
 
                 startTickTimer(response.delay)
             }
@@ -150,13 +141,21 @@ class TwoFaViewModelImpl constructor(
         delayJob = createTimerFlow(
             time = delay,
             onStartAction = {
-                val newState = screenState.value.copy(canResendSms = false)
-                screenState.update { newState }
+                screenState.updateValue(
+                    screenState.value.copy(canResendSms = false)
+                )
             },
-            onTickAction = delayTime::emit,
+            onTickAction = { remainedTime ->
+                screenState.updateValue(
+                    screenState.value.copy(delayTime = remainedTime)
+                )
+            },
             onTimeoutAction = {
-                val newState = screenState.value.copy(canResendSms = true)
-                screenState.update { newState }
+                screenState.updateValue(
+                    screenState.value.copy(
+                        canResendSms = true
+                    )
+                )
             },
         ).launchIn(viewModelScope)
     }

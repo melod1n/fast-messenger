@@ -210,22 +210,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 putBoolean(LongPollService.KeyLongPollWasDestroyed, false)
             }
 
-            if (AppGlobal.preferences.getBoolean(
-                    SettingsFragment.KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT,
-                    false
-                )
-            ) {
-                MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.warning)
-                    .setMessage("Long poll was destroyed.")
-                    .setPositiveButton("Restart this shit") { _, _ ->
-                        startServices()
-                    }
-                    .setCancelable(false)
-                    .show()
-            } else {
-                startServices()
-            }
+            startServices()
         }
     }
 
@@ -295,6 +280,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         stopServices()
         updatesParser.clearListeners()
         isOnlineServiceWasLaunched = false
+        savedInstanceState = null
     }
 
     companion object {

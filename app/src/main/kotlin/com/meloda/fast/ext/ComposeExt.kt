@@ -2,14 +2,22 @@ package com.meloda.fast.ext
 
 import android.media.AudioManager
 import android.view.KeyEvent
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.model.base.parseString
 
 @ExperimentalFoundationApi
 fun Modifier.clickableSound(
@@ -93,4 +101,9 @@ fun Modifier.handleEnterKey(
     if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
         action.invoke()
     } else false
+}
+
+@Composable
+fun UiText?.getString(): String? {
+    return this.parseString(LocalContext.current)
 }

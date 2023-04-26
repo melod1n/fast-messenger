@@ -16,7 +16,7 @@ import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.model.base.parseString
 import com.meloda.fast.screens.main.activity.LongPollState
 import com.meloda.fast.screens.main.activity.MainActivity
 import com.meloda.fast.screens.settings.model.SettingsItem
@@ -183,11 +183,6 @@ class SettingsViewModelImpl constructor(
                 title = UiText.Simple("Perform crash"),
                 summary = UiText.Simple("App will be crashed. Obviously")
             )
-            val debugShowDestroyedLongPollAlert = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT,
-                defaultValue = false,
-                title = UiText.Simple("Show destroyed LP alert")
-            )
             val debugShowCrashAlert = SettingsItem.Switch.build(
                 key = SettingsFragment.KEY_DEBUG_SHOW_CRASH_ALERT,
                 defaultValue = true,
@@ -215,7 +210,7 @@ class SettingsViewModelImpl constructor(
                 UiText.Simple("Battery saver")
             )
             val darkThemeValuesMap = List(darkThemeValues.size) { index ->
-                darkThemeValues[index] to darkThemeTitles[index].asString(AppGlobal.Instance)
+                darkThemeValues[index] to darkThemeTitles[index].parseString(AppGlobal.Instance)
             }.toMap()
 
             val debugDarkTheme = SettingsItem.ListItem.build(
@@ -290,7 +285,6 @@ class SettingsViewModelImpl constructor(
             listOf(
                 debugTitle,
                 debugPerformCrash,
-                debugShowDestroyedLongPollAlert,
                 debugShowCrashAlert,
                 debugUseDynamicColors,
                 debugDarkTheme,
@@ -340,7 +334,7 @@ class SettingsViewModelImpl constructor(
             UserConfig.clear()
 
             withContext(Dispatchers.Main) {
-                router.replaceScreen(Screens.Main())
+                router.newRootScreen(Screens.Main())
             }
         }
     }

@@ -25,9 +25,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.ext.getString
+import com.meloda.fast.screens.twofa.model.TwoFaScreenState
 import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.ui.widgets.TextFieldErrorText
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -52,172 +54,204 @@ class TwoFaFragment : BaseFragment() {
         }
 
         (view as? ComposeView)?.apply {
-            setContent { TwoFaScreen() }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Preview
-    @Composable
-    fun TwoFaScreen() {
-        val focusManager = LocalFocusManager.current
-
-        AppTheme {
-            Surface(
-                color = MaterialTheme.colorScheme.background,
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .imePadding()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(30.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            activity?.onBackPressedDispatcher?.onBackPressed()
-                        },
-                        text = {
-                            Text(
-                                text = "Cancel",
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_round_close_24),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    )
-                    val state by viewModel.screenState.collectAsState()
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
+            setContent {
+                AppTheme {
+                    Surface(
+                        color = MaterialTheme.colorScheme.background,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .navigationBarsPadding()
+                            .imePadding()
                     ) {
+                        val state by viewModel.screenState.collectAsStateWithLifecycle()
 
-                        Text(
-                            text = "Two-Factor\nAuthentication",
-                            style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.onBackground
+                        TwoFaScreen(
+                            onCodeInputChanged = viewModel::onCodeInputChanged,
+                            onTextFieldDoneClicked = viewModel::onTextFieldDoneClicked,
+                            onRequestSmsButtonClicked = viewModel::onRequestSmsButtonClicked,
+                            onDoneButtonClicked = viewModel::onDoneButtonClicked,
+                            state = state
                         )
-                        Spacer(modifier = Modifier.height(38.dp))
-                        Text(
-                            text = state.twoFaText.asString().orEmpty(),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Spacer(modifier = Modifier.height(30.dp))
-
-                        val delayRemainedTime by viewModel.delayTime.collectAsState()
-                        AnimatedVisibility(visible = delayRemainedTime > 0) {
-                            Text(text = "Can resend after $delayRemainedTime seconds")
-                        }
-
-                        var code by remember { mutableStateOf(TextFieldValue(state.twoFaCode)) }
-                        val codeError by viewModel.isNeedToShowCodeError.collectAsState()
-
-                        TextField(
-                            value = code,
-                            onValueChange = { newText ->
-                                code = newText
-                                viewModel.onCodeInputChanged(newText.text)
-                            },
-                            label = { Text(text = "Code") },
-                            placeholder = { Text(text = "Code") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp)),
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.round_qr_code_24),
-                                    contentDescription = null,
-                                    tint = if (codeError != null) {
-                                        MaterialTheme.colorScheme.error
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    }
-                                )
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                imeAction = ImeAction.Done,
-                                keyboardType = KeyboardType.Number
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    focusManager.clearFocus()
-                                    viewModel.onTextFieldDoneClicked()
-                                }
-                            ),
-                            isError = codeError != null
-                        )
-
-                        AnimatedVisibility(visible = codeError != null) {
-                            TextFieldErrorText(text = codeError.asString().orEmpty())
-                        }
-                    }
-
-                    // TODO: 09.04.2023, Danil Nikolaev: проверить работоспособность 2фа
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        val canResendSms = state.canResendSms
-
-                        AnimatedVisibility(
-                            visible = canResendSms,
-                        ) {
-                            ExtendedFloatingActionButton(
-                                onClick = viewModel::onRequestSmsButtonClicked,
-                                text = {
-                                    Text(
-                                        text = "Request SMS",
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.round_sms_24),
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        contentDescription = null
-                                    )
-                                },
-                                containerColor = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        FloatingActionButton(
-                            onClick = viewModel::onDoneButtonClicked,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_round_done_24),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-
-                        AnimatedVisibility(
-                            visible = !canResendSms,
-                            exit = shrinkHorizontally()
-                        ) {
-                            Spacer(modifier = Modifier.width(16.dp))
-                        }
                     }
                 }
             }
         }
     }
 
+    @Preview
+    @Composable
+    fun TwoFaScreenPreview() {
+        AppTheme(
+            darkTheme = false,
+            dynamicColors = false
+        ) {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                TwoFaScreen(
+                    onCodeInputChanged = {},
+                    onTextFieldDoneClicked = {},
+                    onRequestSmsButtonClicked = {},
+                    onDoneButtonClicked = {},
+                    state = TwoFaScreenState.EMPTY
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun TwoFaScreen(
+        onCodeInputChanged: (String) -> Unit,
+        onTextFieldDoneClicked: () -> Unit,
+        onRequestSmsButtonClicked: () -> Unit,
+        onDoneButtonClicked: () -> Unit,
+        state: TwoFaScreenState,
+    ) {
+        val focusManager = LocalFocusManager.current
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    activity?.onBackPressedDispatcher?.onBackPressed()
+                },
+                text = {
+                    Text(
+                        text = "Cancel",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_round_close_24),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+
+                Text(
+                    text = "Two-Factor\nAuthentication",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(38.dp))
+                Text(
+                    text = state.twoFaText.getString().orEmpty(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(30.dp))
+
+                val delayRemainedTime = state.delayTime
+                AnimatedVisibility(visible = delayRemainedTime > 0) {
+                    Text(text = "Can resend after $delayRemainedTime seconds")
+                }
+
+                var code by remember { mutableStateOf(TextFieldValue(state.twoFaCode)) }
+                val codeError = state.codeError
+
+                TextField(
+                    value = code,
+                    onValueChange = { newText ->
+                        code = newText
+                        onCodeInputChanged.invoke(newText.text)
+                    },
+                    label = { Text(text = "Code") },
+                    placeholder = { Text(text = "Code") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp)),
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.round_qr_code_24),
+                            contentDescription = null,
+                            tint = if (codeError != null) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
+                        )
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Number
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            onTextFieldDoneClicked.invoke()
+                        }
+                    ),
+                    isError = codeError != null
+                )
+
+                AnimatedVisibility(visible = codeError != null) {
+                    TextFieldErrorText(text = codeError.getString().orEmpty())
+                }
+            }
+
+            // TODO: 09.04.2023, Danil Nikolaev: проверить работоспособность 2фа
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                val canResendSms = state.canResendSms
+
+                AnimatedVisibility(
+                    visible = canResendSms,
+                ) {
+                    ExtendedFloatingActionButton(
+                        onClick = onRequestSmsButtonClicked,
+                        text = {
+                            Text(
+                                text = "Request SMS",
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.round_sms_24),
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                contentDescription = null
+                            )
+                        },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                FloatingActionButton(
+                    onClick = onDoneButtonClicked,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_round_done_24),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = !canResendSms,
+                    exit = shrinkHorizontally()
+                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+            }
+        }
+    }
 
     companion object {
 

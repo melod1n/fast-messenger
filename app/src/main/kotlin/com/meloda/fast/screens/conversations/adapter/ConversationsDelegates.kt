@@ -17,7 +17,7 @@ import com.meloda.fast.databinding.ItemConversationBinding
 import com.meloda.fast.ext.*
 import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.UiImage
-import com.meloda.fast.model.base.asString
+import com.meloda.fast.model.base.parseString
 import com.meloda.fast.model.base.setImage
 import com.meloda.fast.screens.conversations.ConversationsResourceProvider
 import com.meloda.fast.screens.settings.SettingsFragment
@@ -51,7 +51,7 @@ fun conversationDelegate(
         binding.container.background =
             if (item.isRead) resourceProvider.conversationUnreadBackground else null
 
-        binding.title.text = item.title.asString(context)
+        binding.title.text = item.title.parseString(context)
 
         binding.date.toggleVisibility(item.date != null)
         binding.date.text = TimeUtils.getLocalizedTime(context, (item.date ?: -1) * 1000L)
@@ -117,11 +117,11 @@ fun conversationDelegate(
 
         val attachmentText = (if (attachmentIcon == null) VkUtils.getAttachmentText(
             message = item.lastMessage
-        ) else null)?.asString(context)
+        ) else null)?.parseString(context)
 
         val forwardsMessage = (if (item.lastMessage?.text == null) VkUtils.getForwardsText(
             message = item.lastMessage
-        ) else null)?.asString(context)
+        ) else null)?.parseString(context)
 
         val messageText = (if (
             actionMessage != null ||

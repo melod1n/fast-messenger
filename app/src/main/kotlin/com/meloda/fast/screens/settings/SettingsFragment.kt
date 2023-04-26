@@ -284,7 +284,6 @@ class SettingsFragment : BaseFragment() {
         const val KEY_USE_DYNAMIC_COLORS = "debug_use_dynamic_colors"
         const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
         const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
-        const val KEY_DEBUG_SHOW_DESTROYED_LONG_POLL_ALERT = "debug_show_destroyed_long_poll_alert"
         const val KEY_APPEARANCE_DARK_THEME = "debug_appearance_dark_theme"
         const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = AppCompatDelegate.MODE_NIGHT_NO
         const val KEY_USE_LARGE_TOP_APP_BAR = "debug_large_top_app_bar"

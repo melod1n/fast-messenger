@@ -12,6 +12,7 @@ val navigationModule = module {
     single { Cicerone.create() }
     single { cicerone().router }
     single { cicerone().getNavigatorHolder() }
+
     singleOf(::CaptchaScreen)
     singleOf(::TwoFaScreen)
 }
