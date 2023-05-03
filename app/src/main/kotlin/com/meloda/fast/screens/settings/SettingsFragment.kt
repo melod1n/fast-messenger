@@ -137,7 +137,7 @@ class SettingsFragment : BaseFragment() {
         // TODO: 17.04.2023, Danil Nikolaev: make it work
         val systemUiController = rememberSystemUiController()
         DisposableEffect(systemUiController) {
-            systemUiController.systemBarsDarkContentEnabled = !isUsingDarkTheme()
+            systemUiController.systemBarsDarkContentEnabled = !isSystemUsingDarkMode()
             onDispose {}
         }
 
@@ -287,11 +287,11 @@ class SettingsFragment : BaseFragment() {
         const val KEY_APPEARANCE_DARK_THEME = "debug_appearance_dark_theme"
         const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = AppCompatDelegate.MODE_NIGHT_NO
         const val KEY_USE_LARGE_TOP_APP_BAR = "debug_large_top_app_bar"
-        const val DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR = false
+        const val DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR = true
         const val KEY_USE_BLUR = "debug_use_blur"
         const val DEFAULT_VALUE_USE_BLUR = false
         const val KEY_USE_COMPOSE = "debug_use_compose"
-        const val DEFAULT_VALUE_USE_COMPOSE = false
+        const val DEFAULT_VALUE_USE_COMPOSE = true
 
         const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
 

@@ -6,13 +6,13 @@ buildscript {
     }
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10")
-        classpath("com.android.tools.build:gradle:8.0.0")
+        classpath("com.android.tools.build:gradle:8.0.1")
     }
 }
 
 plugins {
     id("org.jetbrains.kotlin.android") version "1.8.20" apply false
-    id("com.google.devtools.ksp") version "1.8.20-1.0.10" apply false
+    id("com.google.devtools.ksp") version "1.8.20-1.0.11" apply false
 }
 
 allprojects {

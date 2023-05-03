@@ -14,12 +14,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.meloda.fast.R
+import com.meloda.fast.ext.isSystemUsingDarkMode
 import com.meloda.fast.ext.isUsingDarkTheme
 import com.meloda.fast.ext.isUsingDynamicColors
 
 
 val StandardColorScheme
-    get() = if (isUsingDarkTheme()) DarkColorScheme
+    get() = if (isSystemUsingDarkMode()) DarkColorScheme
     else LightColorScheme
 
 private val LightColorScheme = lightColorScheme()
@@ -28,7 +29,7 @@ private val DarkColorScheme = darkColorScheme()
 @Composable
 fun dynamicColorScheme(): ColorScheme {
     val context = LocalContext.current
-    return if (isUsingDarkTheme()) dynamicDarkColorScheme(context)
+    return if (isSystemUsingDarkMode()) dynamicDarkColorScheme(context)
     else dynamicLightColorScheme(context)
 }
 

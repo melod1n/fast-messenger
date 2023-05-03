@@ -19,7 +19,7 @@ val twoFaModule = module {
     includes(navigationModule)
 
     single(moduleQualifier) { screen().resultFlow }
-    single { screen().retrieveArguments() }
+    single { screen().getArguments() }
 
     single {
         TwoFaCoordinatorImpl(

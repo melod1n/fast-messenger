@@ -5,10 +5,7 @@ import com.meloda.fast.screens.captcha.presentation.CaptchaFragment
 
 object CaptchaScreens {
 
-    fun captchaScreen(captchaSid: String, captchaImage: String) =
-        FragmentScreen(key = "CaptchaScreen") {
-            CaptchaFragment.newInstance(
-                captchaSid = captchaSid, captchaImage = captchaImage
-            )
-        }
+    fun captchaScreen() = FragmentScreen(key = "CaptchaScreen") {
+        CaptchaFragment.newInstance()
+    }
 }

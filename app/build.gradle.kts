@@ -110,7 +110,7 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.5"
-        useLiveLiterals = false
+        useLiveLiterals = true
     }
 }
 
@@ -198,13 +198,13 @@ dependencies {
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
-    implementation("androidx.compose:compose-bom:2023.04.01")
+    implementation(platform("androidx.compose:compose-bom:2023.04.01"))
 
     implementation("androidx.compose.material3:material3:1.0.1")
-    implementation("androidx.compose.ui:ui:1.4.2")
+    implementation("androidx.compose.ui:ui:1.4.3")
 
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.2")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.4.2")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.4.3")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.4.3")
 
     implementation("androidx.compose.material3:material3-window-size-class:1.0.1")
 

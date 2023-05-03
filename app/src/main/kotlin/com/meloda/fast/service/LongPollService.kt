@@ -23,6 +23,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.receiver.StopLongPollServiceReceiver
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.NotificationsUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -65,20 +66,26 @@ class LongPollService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        val notificationBuilder =
-            NotificationsUtils.createNotification(
-                context = this,
-                title = "LongPoll",
-                contentText = "обновление ваших сообщений в фоне",
-                notRemovable = false,
-                channelId = "long_polling",
-                priority = NotificationsUtils.NotificationPriority.Low,
-                category = NotificationCompat.CATEGORY_SERVICE,
-                customNotificationId = NOTIFICATION_ID
+        if (AppGlobal.preferences.getBoolean(
+                SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+                SettingsFragment.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
             )
+        ) {
+            val notificationBuilder =
+                NotificationsUtils.createNotification(
+                    context = this,
+                    title = "LongPoll",
+                    contentText = "обновление ваших сообщений в фоне",
+                    notRemovable = false,
+                    channelId = "long_polling",
+                    priority = NotificationsUtils.NotificationPriority.Low,
+                    category = NotificationCompat.CATEGORY_SERVICE,
+                    customNotificationId = NOTIFICATION_ID
+                )
 
-        foregroundNotification = notificationBuilder.build()
-        startForeground(NOTIFICATION_ID, foregroundNotification)
+            foregroundNotification = notificationBuilder.build()
+            startForeground(NOTIFICATION_ID, foregroundNotification)
+        }
     }
 
     override fun onBind(p0: Intent?): IBinder? {

@@ -7,7 +7,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 interface AppScreen<ArgType, ResultType> {
     val resultFlow: MutableSharedFlow<ResultType>
 
+    var args: ArgType
+
     fun show(router: Router, args: ArgType)
+
+    fun getArguments(): ArgType = args
 }
 
 @Suppress("unused")

@@ -12,11 +12,7 @@ class TwoFaScreen : AppScreen<TwoFaArguments, TwoFaResult> {
 
     override val resultFlow = createResultFlow()
 
-    var args: TwoFaArguments by Delegates.notNull()
-
-    fun retrieveArguments(): TwoFaArguments {
-        return args
-    }
+    override var args: TwoFaArguments by Delegates.notNull()
 
     override fun show(router: Router, args: TwoFaArguments) {
         this.args = args

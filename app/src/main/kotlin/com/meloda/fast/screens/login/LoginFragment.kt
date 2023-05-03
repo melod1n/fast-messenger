@@ -303,7 +303,10 @@ class LoginFragment : BaseFragment() {
                         )
                     },
                     shape = RoundedCornerShape(10.dp),
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next,
+                        keyboardType = KeyboardType.Email
+                    ),
                     keyboardActions = KeyboardActions(onNext = { passwordFocusable.requestFocus() }),
                     isError = showLoginError,
                     singleLine = true

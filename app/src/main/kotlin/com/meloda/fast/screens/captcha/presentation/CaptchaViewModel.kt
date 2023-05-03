@@ -1,7 +1,9 @@
 package com.meloda.fast.screens.captcha.presentation
 
 import androidx.lifecycle.ViewModel
+import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.captcha.model.CaptchaScreenState
+import com.meloda.fast.screens.captcha.screen.CaptchaArguments
 import com.meloda.fast.screens.captcha.screen.CaptchaResult
 import com.meloda.fast.screens.captcha.validation.CaptchaValidator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,10 +13,6 @@ import kotlinx.coroutines.flow.update
 interface CaptchaViewModel {
 
     val screenState: StateFlow<CaptchaScreenState>
-
-    val isNeedToShowCodeError: StateFlow<Boolean>
-
-    fun onViewFirstCreation(captchaSid: String)
 
     fun onCodeInputChanged(newCode: String)
 
@@ -26,16 +24,19 @@ interface CaptchaViewModel {
 
 class CaptchaViewModelImpl constructor(
     private val coordinator: CaptchaCoordinator,
-    private val validator: CaptchaValidator
+    private val validator: CaptchaValidator,
+    arguments: CaptchaArguments
 ) : CaptchaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
 
-    override val isNeedToShowCodeError = MutableStateFlow(false)
-
-    override fun onViewFirstCreation(captchaSid: String) {
-        val newState = screenState.value.copy(captchaSid = captchaSid)
-        screenState.update { newState }
+    init {
+        screenState.updateValue(
+            screenState.value.copy(
+                captchaSid = arguments.captchaSid,
+                captchaImage = arguments.captchaImage
+            )
+        )
     }
 
     override fun onCodeInputChanged(newCode: String) {
@@ -49,7 +50,6 @@ class CaptchaViewModelImpl constructor(
     }
 
     override fun onCancelButtonClicked() {
-        clearState()
         coordinator.finishWithResult(CaptchaResult.Cancelled)
     }
 
@@ -63,7 +63,6 @@ class CaptchaViewModelImpl constructor(
         val captchaSid = screenState.value.captchaSid
         val captchaCode = screenState.value.captchaCode
 
-        clearState()
         coordinator.finishWithResult(
             CaptchaResult.Success(
                 sid = captchaSid,
@@ -74,12 +73,7 @@ class CaptchaViewModelImpl constructor(
 
     private fun processValidation(): Boolean {
         val isValid = validator.validate(screenState.value).isValid()
-        isNeedToShowCodeError.tryEmit(!isValid)
+        screenState.updateValue(screenState.value.copy(codeError = !isValid))
         return isValid
-    }
-
-    private fun clearState() {
-        screenState.tryEmit(CaptchaScreenState.EMPTY)
-        isNeedToShowCodeError.tryEmit(false)
     }
 }

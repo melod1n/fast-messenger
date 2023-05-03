@@ -2,13 +2,17 @@ package com.meloda.fast.screens.captcha.model
 
 data class CaptchaScreenState(
     val captchaSid: String,
-    val captchaCode: String
+    val captchaImage: String,
+    val captchaCode: String,
+    val codeError: Boolean
 ) {
 
     companion object {
         val EMPTY = CaptchaScreenState(
             captchaSid = "",
-            captchaCode = ""
+            captchaImage = "",
+            captchaCode = "",
+            codeError = false
         )
     }
 }

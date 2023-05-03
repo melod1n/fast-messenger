@@ -2,12 +2,8 @@ package com.meloda.fast.screens.conversations
 
 import android.animation.ValueAnimator
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.animation.doOnEnd
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,7 +18,6 @@ import com.meloda.fast.ext.color
 import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.isTrue
-import com.meloda.fast.ext.isUsingCompose
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.ext.string
@@ -30,7 +25,6 @@ import com.meloda.fast.ext.tintMenuItemIcons
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.conversations.adapter.conversationDelegate
-import com.meloda.fast.screens.conversations.screen.ConversationsScreen
 import com.meloda.fast.util.AndroidUtils
 import dev.chrisbanes.insetter.applyInsetter
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -42,28 +36,11 @@ class ConversationsFragment : BaseFragment(R.layout.fragment_conversations) {
     private val binding by viewBinding(FragmentConversationsBinding::bind)
     private val adapter by lazy { AsyncDiffItemAdapter() }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if (isUsingCompose()) {
-            return ComposeView(requireContext()).apply {
-                setViewCompositionStrategy(
-                    ViewCompositionStrategy.DisposeOnDetachedFromWindow
-                )
-            }
-        }
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (view as? ComposeView)?.apply { setContent { ConversationsScreen(viewModel) } } ?: run {
-            prepareView()
-            listenViewModel()
-        }
+        prepareView()
+        listenViewModel()
     }
 
     private fun prepareView() {

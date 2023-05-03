@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.createTimerFlow
-import com.meloda.fast.ext.updateValue
 import com.meloda.fast.ext.isTrue
+import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
 import com.meloda.fast.screens.twofa.model.TwoFaResult
@@ -68,7 +68,9 @@ class TwoFaViewModelImpl constructor(
             )
         )
 
-        processValidation()
+        if (newCode.length == 6) {
+            onDoneButtonClicked()
+        }
     }
 
     override fun onBackButtonClicked() {

@@ -65,7 +65,7 @@ fun <T> Flow<T>.listenValue(
     action: suspend (T) -> Unit
 ): Job = onEach(action::invoke).launchIn(coroutineScope)
 
-fun isUsingDarkTheme(): Boolean {
+fun isSystemUsingDarkMode(): Boolean {
     val nightThemeMode = AppGlobal.preferences.getInt(
         SettingsFragment.KEY_APPEARANCE_DARK_THEME,
         SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
@@ -81,12 +81,6 @@ fun isUsingDarkTheme(): Boolean {
 
     return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 }
-
-fun isUsingDynamicColors(): Boolean =
-    AppGlobal.preferences.getBoolean(
-        SettingsFragment.KEY_USE_DYNAMIC_COLORS,
-        SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
-    )
 
 fun isUsingBlur(): Boolean =
     AppGlobal.preferences.getBoolean(

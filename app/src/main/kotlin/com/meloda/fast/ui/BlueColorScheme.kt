@@ -2,11 +2,11 @@ package com.meloda.fast.ui
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import com.meloda.fast.ext.isUsingDarkTheme
+import com.meloda.fast.ext.isSystemUsingDarkMode
 import com.meloda.fast.ui.colors.Blue
 
 val BlueColorScheme
-    get() = if (isUsingDarkTheme()) BlueDarkColorScheme
+    get() = if (isSystemUsingDarkMode()) BlueDarkColorScheme
     else BlueLightColorScheme
 
 val BlueLightColorScheme = lightColorScheme(

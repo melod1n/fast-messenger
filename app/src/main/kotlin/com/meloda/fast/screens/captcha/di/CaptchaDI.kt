@@ -19,6 +19,7 @@ val captchaModule = module {
     includes(navigationModule)
 
     single(moduleQualifier) { screen().resultFlow }
+    single { screen().getArguments() }
 
     single {
         CaptchaCoordinatorImpl(
