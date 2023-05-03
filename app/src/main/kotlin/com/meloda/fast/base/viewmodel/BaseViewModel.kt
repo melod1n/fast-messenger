@@ -1,133 +1,81 @@
 package com.meloda.fast.base.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.TokenExpiredError
-import com.meloda.fast.api.network.UserBannedError
-import com.meloda.fast.api.network.ValidationRequiredError
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
+import com.meloda.fast.api.network.*
+import com.meloda.fast.ext.isTrue
+import com.meloda.fast.ext.notNull
 
-@Suppress("MemberVisibilityCanBePrivate")
 abstract class BaseViewModel : ViewModel() {
 
-    protected val tasksEventChannel = Channel<VkEvent>()
-    val tasksEvent = tasksEventChannel.receiveAsFlow()
+    open suspend fun sendSingleEvent(event: VkEvent) {}
 
-    protected val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        viewModelScope.launch { onException(throwable) }
-    }
+    suspend fun <T> sendRequestNotNull(
+        onError: ErrorHandler? = null,
+        request: suspend () -> ApiAnswer<T>
+    ): T = sendRequest(onError, request).notNull()
 
-    fun launch(block: suspend CoroutineScope.() -> Unit): Job {
-        return viewModelScope.launch(exceptionHandler, block = block)
-    }
-
-    protected suspend fun <T> makeSuspendJob(
-        job: suspend () -> ApiAnswer<T>, onAnswer: suspend (T) -> Unit = {},
-        onStart: (suspend () -> Unit)? = null,
-        onEnd: (suspend () -> Unit)? = null,
-        onError: (suspend (Throwable) -> Unit)? = null,
-        onAnyResult: (suspend () -> Unit)? = null,
-    ): ApiAnswer<T> {
-        onStart?.invoke() ?: onStart()
-        val response = job()
-
-        when (response) {
-            is ApiAnswer.Success -> {
-                onAnswer(response.data)
-                onAnyResult?.invoke()
-            }
+    suspend fun <T> sendRequest(
+        onError: ErrorHandler? = null,
+        request: suspend () -> ApiAnswer<T>,
+    ): T? {
+        return when (val response = request()) {
+            is ApiAnswer.Success -> response.data
             is ApiAnswer.Error -> {
-                onError?.invoke(response.error) ?: checkErrors(response.error)
-                onAnyResult?.invoke()
-            }
-        }
+                val error = response.error
 
-        onEnd?.invoke()
+                if (!onError?.handleError(error).isTrue) {
+                    checkErrors(error)
+                }
 
-        return response
-    }
-
-    protected fun <T> makeJob(
-        job: suspend () -> ApiAnswer<T>,
-        onAnswer: suspend (T) -> Unit = {},
-        onStart: (suspend () -> Unit)? = null,
-        onEnd: (suspend () -> Unit)? = null,
-        onError: (suspend (Throwable) -> Unit)? = null,
-        onAnyResult: (suspend () -> Unit)? = null,
-    ): Job = viewModelScope.launch {
-        onStart?.invoke() ?: onStart()
-        when (val response = job()) {
-            is ApiAnswer.Success -> {
-                onAnswer(response.data)
-                onAnyResult?.invoke()
-            }
-            is ApiAnswer.Error -> {
-                onError?.invoke(response.error) ?: checkErrors(response.error)
-                onAnyResult?.invoke()
-            }
-        }
-    }.also {
-        it.invokeOnCompletion {
-            viewModelScope.launch {
-                onEnd?.invoke() ?: onStop()
+                null
             }
         }
     }
-
-    protected open suspend fun onException(throwable: Throwable) {
-        checkErrors(throwable)
-    }
-
-    protected suspend fun onStart() {
-        sendEvent(StartProgressEvent)
-    }
-
-    protected suspend fun onStop() {
-        sendEvent(StopProgressEvent)
-    }
-
-    protected suspend fun <T : VkEvent> sendEvent(event: T) = tasksEventChannel.send(event)
 
     protected suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {
-            is AuthorizationError -> {
-                sendEvent(AuthorizationErrorEvent)
-            }
             is TokenExpiredError -> {
-                sendEvent(TokenExpiredErrorEvent)
+                sendSingleEvent(TokenExpiredErrorEvent)
+            }
+            is AuthorizationError -> {
+                sendSingleEvent(AuthorizationErrorEvent)
             }
             is UserBannedError -> {
-                val banInfo = throwable.banInfo
-                sendEvent(
-                    UserBannedEvent(
-                        memberName = banInfo.memberName,
-                        message = banInfo.message,
-                        restoreUrl = banInfo.restoreUrl,
-                        accessToken = banInfo.accessToken
+                throwable.banInfo.let { banInfo ->
+                    sendSingleEvent(
+                        UserBannedEvent(
+                            memberName = banInfo.memberName,
+                            message = banInfo.message,
+                            restoreUrl = banInfo.restoreUrl,
+                            accessToken = banInfo.accessToken
+                        )
                     )
-                )
+                }
             }
             is ValidationRequiredError -> {
-                sendEvent(ValidationRequiredEvent(throwable.validationSid))
-            }
-            is CaptchaRequiredError -> {
-                sendEvent(
-                    CaptchaRequiredEvent(
-                        sid = throwable.captchaSid, image = throwable.captchaImg
+                sendSingleEvent(
+                    ValidationRequiredEvent(
+                        sid = throwable.validationSid,
+                        redirectUri = throwable.redirectUri,
+                        phoneMask = throwable.phoneMask,
+                        validationType = throwable.validationType,
+                        canResendSms = throwable.validationResend == "sms",
+                        codeError = null
                     )
                 )
             }
+            is CaptchaRequiredError -> {
+                sendSingleEvent(
+                    CaptchaRequiredEvent(
+                        sid = throwable.captchaSid,
+                        image = throwable.captchaImg
+                    )
+                )
+            }
+
             is ApiError -> {
-                sendEvent(
+                sendSingleEvent(
                     if (throwable.errorMessage == null) {
                         UnknownErrorEvent
                     } else {
@@ -136,7 +84,7 @@ abstract class BaseViewModel : ViewModel() {
                 )
             }
             else -> {
-                sendEvent(
+                sendSingleEvent(
                     if (throwable.message == null) {
                         UnknownErrorEvent
                     } else {
@@ -146,5 +94,4 @@ abstract class BaseViewModel : ViewModel() {
             }
         }
     }
-
 }

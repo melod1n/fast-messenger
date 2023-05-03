@@ -5,18 +5,15 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.meloda.fast.R
 import com.meloda.fast.api.model.VkChat
-import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.StartProgressEvent
-import com.meloda.fast.base.viewmodel.StopProgressEvent
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.FragmentChatInfoBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
@@ -25,12 +22,11 @@ import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.visible
 import com.meloda.fast.screens.messages.MessagesHistoryFragment
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@AndroidEntryPoint
 class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragment_chat_info) {
 
     companion object {
@@ -43,9 +39,9 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         private const val ArgGroup = "group"
 
         fun newInstance(
-            conversation: VkConversation,
+            conversation: VkConversationDomain,
             user: VkUser?,
-            group: VkGroup?
+            group: VkGroup?,
         ): ChatInfoFragment {
             val fragment = ChatInfoFragment()
             fragment.arguments = bundleOf(
@@ -58,7 +54,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         }
     }
 
-    override val viewModel: ChatInfoViewModel by viewModels()
+    override val viewModel: ChatInfoViewModel by viewModel()
 
     private val binding by viewBinding(FragmentChatInfoBinding::bind)
 
@@ -73,11 +69,11 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         )
     }
 
-    private val conversation: VkConversation by lazy {
+    private val conversation: VkConversationDomain by lazy {
         requireNotNull(
             requireArguments().getParcelableCompat(
                 MessagesHistoryFragment.ARG_CONVERSATION,
-                VkConversation::class.java
+                VkConversationDomain::class.java
             )
         )
     }
@@ -92,7 +88,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         viewModel.getConversationMembers(conversation.id)
 
         val title = when {
-            conversation.isChat() -> conversation.title
+            conversation.isChat() -> conversation.conversationTitle
             conversation.isUser() -> user?.toString()
             conversation.isGroup() -> group?.name
             else -> null
@@ -112,18 +108,23 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         val avatar = when {
             conversation.isUser() -> user?.photo200
             conversation.isGroup() -> group?.photo200
-            conversation.isChat() -> conversation.photo200
+            conversation.isChat() -> conversation.conversationPhoto
             else -> null
         }
 
         val avatarImageView = binding.toolbar.avatarImageView
         avatarImageView.visible()
-        avatarImageView.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
+        avatarImageView.loadWithGlide {
+            imageUrl = avatar
+            asCircle = true
+            crossFade = true
+        }
 
         binding.toolbar.avatarClickAction = {
             showAvatarOptions()
         }
-        binding.toolbar.startButtonClickAction = { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        binding.toolbar.startButtonClickAction =
+            { requireActivity().onBackPressedDispatcher.onBackPressed() }
 
         binding.viewPager.offscreenPageLimit = getTabsCount() - 1
 
@@ -140,12 +141,10 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         super.onEvent(event)
 
         when (event) {
-            StartProgressEvent -> onProgressStart()
-            StopProgressEvent -> onProgressStop()
-
             is GetConversationMembersEvent -> {
                 fillChatInfo(event)
             }
+
             is RemoveChatUserEvent -> {
                 val memberId = event.memberId
                 childFragmentManager.setFragmentResult(
@@ -157,6 +156,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
         }
     }
 
+    // TODO: 17.04.2023, Danil Nikolaev: handle loading
     private fun onProgressStart() {
         binding.tabs.gone()
         binding.viewPager.gone()
@@ -213,6 +213,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
                     "$membersCountText, $onlineMembersCount online"
                 }
             }
+
             conversation.isUser() -> when {
                 // TODO: 9/15/2021 user normal time
                 user?.online == true -> "Online"
@@ -222,8 +223,10 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
                         Locale.getDefault()
                     ).format(user?.lastSeen!! * 1000L)
                 }"
+
                 else -> if (user?.lastSeenStatus != null) "Last seen ${user?.lastSeenStatus!!}" else "Last seen recently"
             }
+
             conversation.isGroup() -> if (group?.membersCount != null) "${group?.membersCount} members" else "Group"
             else -> null
         }
@@ -286,6 +289,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
                     "Open" -> {
                         Toast.makeText(requireContext(), "Open photo", Toast.LENGTH_SHORT).show()
                     }
+
                     else ->
                         Toast.makeText(requireContext(), "Change info", Toast.LENGTH_SHORT).show()
                 }

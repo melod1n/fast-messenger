@@ -1,319 +1,303 @@
 package com.meloda.fast.screens.settings
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import androidx.core.content.edit
-import by.kirich1409.viewbindingdelegate.viewBinding
+import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.core.os.bundleOf
+import androidx.fragment.app.setFragmentResult
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.base.adapter.AsyncDiffItemAdapter
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.Screens
-import com.meloda.fast.databinding.FragmentSettingsBinding
-import com.meloda.fast.ext.ifEmpty
-import com.meloda.fast.model.base.AdapterDiffItem
-import com.meloda.fast.model.settings.SettingsItem
-import com.meloda.fast.screens.settings.adapter.OnSettingsChangeListener
-import com.meloda.fast.screens.settings.adapter.OnSettingsClickListener
-import com.meloda.fast.screens.settings.adapter.OnSettingsLongClickListener
-import com.meloda.fast.screens.settings.adapter.settingsCheckboxItemDelegate
-import com.meloda.fast.screens.settings.adapter.settingsEditTextItemDelegate
-import com.meloda.fast.screens.settings.adapter.settingsSwitchItemDelegate
-import com.meloda.fast.screens.settings.adapter.settingsTitleItemDelegate
-import com.meloda.fast.screens.settings.adapter.settingsTitleSummaryItemDelegate
-import com.microsoft.appcenter.crashes.model.TestCrashException
-import dev.chrisbanes.insetter.applyInsetter
-import kotlin.properties.Delegates
+import com.meloda.fast.compose.MaterialDialog
+import com.meloda.fast.ext.*
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.main.MainFragment
+import com.meloda.fast.screens.main.activity.LongPollUtils
+import com.meloda.fast.screens.main.activity.MainActivity
+import com.meloda.fast.screens.settings.items.*
+import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
+import com.meloda.fast.screens.settings.model.OnSettingsClickListener
+import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
+import com.meloda.fast.screens.settings.model.SettingsItem
+import com.meloda.fast.ui.AppTheme
+import kotlinx.coroutines.flow.update
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class SettingsFragment : BaseFragment(R.layout.fragment_settings),
-    OnSettingsClickListener,
-    OnSettingsLongClickListener,
-    OnSettingsChangeListener {
+class SettingsFragment : BaseFragment() {
 
-    init {
-        useInsets = false
+    private val viewModel: SettingsViewModel by viewModel<SettingsViewModelImpl>()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     }
-
-    private val binding by viewBinding(FragmentSettingsBinding::bind)
-
-    private var testAppearanceList = mutableListOf<SettingsItem<*>>()
-
-    private val debugList = mutableListOf<SettingsItem<*>>()
-
-    private var adapter by Delegates.notNull<AsyncDiffItemAdapter>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        listenViewModel()
 
-        val appearanceTitle = SettingsItem.Title(
-            title = "Appearance",
-            itemKey = "appearance"
+        (view as? ComposeView)?.setContent { SettingsScreen() }
+    }
+
+    private fun listenViewModel() {
+        viewModel.isNeedToShowLogOutAlert.listenValue(::handleNeedToShowLogOutAlert)
+        viewModel.isLongPollBackgroundEnabled.listenValue(::handleLongPollEnabled)
+    }
+
+    private fun handleNeedToShowLogOutAlert(isNeedToShow: Boolean) {
+        if (!isUsingCompose() && isNeedToShow) {
+            showLogOutConfirmationDialog()
+        }
+    }
+
+    private fun handleLongPollEnabled(newValue: Boolean?) {
+        if (newValue == null) return
+
+        // TODO: 08.04.2023, Danil Nikolaev: rewrite this
+        LongPollUtils.requestNotificationsPermission(
+            fragmentActivity = requireActivity(),
+            onStateChangedAction = { newState -> MainActivity.longPollState.update { newState } },
+            fromSettings = true
         )
-        val appearanceMultiline = SettingsItem.Switch(
-            itemKey = "appearance_multiline",
-            defaultValue = true,
-            title = "Multiline titles and messages",
-            summary = "The title of the dialog and the text of the message can take up two lines"
+    }
+
+    private fun showLogOutConfirmationDialog() {
+        val isEasterEgg = UserConfig.userId == ID_DMITRY
+
+        val title = UiText.Resource(
+            if (isEasterEgg) R.string.easter_egg_log_out_dmitry
+            else R.string.sign_out_confirm_title
         )
 
-        val featuresTitle = SettingsItem.Title(
-            title = "Features",
-            itemKey = "features"
-        )
-        val featuresHideKeyboardOnScroll = SettingsItem.Switch(
-            itemKey = "hide_keyboard_on_scroll",
-            defaultValue = true,
-            title = "Hide keyboard on scroll"
+        val positiveText = UiText.Resource(
+            if (isEasterEgg) R.string.easter_egg_log_out_dmitry
+            else R.string.action_sign_out
         )
 
-        val featuresFastText = SettingsItem.EditText(
-            itemKey = "fast_text",
-            title = "Fast text",
-            defaultValue = "¯\\_(ツ)_/¯",
-        ).apply {
-            summaryProvider = object : SettingsItem.SummaryProvider<SettingsItem.EditText> {
-                override fun provideSummary(settingsItem: SettingsItem.EditText): String {
-                    return getString(
-                        R.string.pref_message_fast_text_summary,
-                        settingsItem.value.ifEmpty { null }
+        context?.showDialog(
+            title = title,
+            message = UiText.Resource(R.string.sign_out_confirm),
+            positiveText = positiveText,
+            positiveAction = {
+                setFragmentResult(
+                    MainFragment.START_SERVICES_KEY,
+                    bundleOf(MainFragment.START_SERVICES_ARG_ENABLE to false)
+                )
+                viewModel.onLogOutAlertPositiveClick()
+            },
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onLogOutAlertDismissed
+        )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun SettingsScreen() {
+        val useDynamicColors by viewModel.useDynamicColors.collectAsState()
+        val useLargeTopAppBar by viewModel.useLargeTopAppBar.collectAsState()
+        val isMultilineEnabled by viewModel.isMultilineEnabled.collectAsState()
+        val settings by viewModel.settings.collectAsState()
+
+        val isNeedToShowLogOutDialog by viewModel.isNeedToShowLogOutAlert.collectAsState()
+
+        HandleDialogs(
+            isNeedToShowLogOutDialog = isNeedToShowLogOutDialog
+        )
+
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState()
+        )
+        val scaffoldModifier = if (useLargeTopAppBar) {
+            Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+        } else {
+            Modifier.fillMaxSize()
+        }
+
+        val clickListener = OnSettingsClickListener(viewModel::onSettingsItemClicked)
+        val longClickListener = OnSettingsLongClickListener(viewModel::onSettingsItemLongClicked)
+        val changeListener = OnSettingsChangeListener(viewModel::onSettingsItemChanged)
+
+        // TODO: 17.04.2023, Danil Nikolaev: make it work
+        val systemUiController = rememberSystemUiController()
+        DisposableEffect(systemUiController) {
+            systemUiController.systemBarsDarkContentEnabled = !isSystemUsingDarkMode()
+            onDispose {}
+        }
+
+        AppTheme(dynamicColors = useDynamicColors) {
+            Scaffold(
+                modifier = scaffoldModifier,
+                topBar = {
+                    val title = @Composable { Text(text = "Settings") }
+                    val navigationIcon = @Composable {
+                        IconButton(onClick = { activity?.onBackPressedDispatcher?.onBackPressed() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_round_arrow_back_24),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    if (useLargeTopAppBar) {
+                        LargeTopAppBar(
+                            title = title,
+                            navigationIcon = navigationIcon,
+                            scrollBehavior = scrollBehavior
+                        )
+                    } else {
+                        TopAppBar(
+                            title = title,
+                            navigationIcon = navigationIcon
+                        )
+                    }
+                }
+            ) { padding ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(padding)
+                ) {
+                    items(
+                        count = settings.size,
+                        key = { index ->
+                            val item = settings[index]
+                            (item.title ?: item.summary).notNull()
+                        }
+                    ) { index ->
+                        when (val item = settings[index]) {
+                            is SettingsItem.Title -> TitleSettingsItem(
+                                item = item,
+                                isMultiline = isMultilineEnabled
+                            )
+
+                            is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
+                                item = item,
+                                isMultiline = isMultilineEnabled,
+                                onSettingsClickListener = clickListener,
+                                onSettingsLongClickListener = longClickListener
+                            )
+
+                            is SettingsItem.Switch -> SwitchSettingsItem(
+                                item = item,
+                                isMultiline = isMultilineEnabled,
+                                onSettingsClickListener = clickListener,
+                                onSettingsLongClickListener = longClickListener,
+                                onSettingsChangeListener = changeListener
+                            )
+
+                            is SettingsItem.TextField -> EditTextSettingsItem(
+                                item = item,
+                                isMultiline = isMultilineEnabled,
+                                onSettingsClickListener = clickListener,
+                                onSettingsLongClickListener = longClickListener,
+                                onSettingsChangeListener = changeListener
+                            )
+
+                            is SettingsItem.ListItem -> ListSettingsItem(
+                                item = item,
+                                isMultiline = isMultilineEnabled,
+                                onSettingsClickListener = clickListener,
+                                onSettingsLongClickListener = longClickListener,
+                                onSettingsChangeListener = changeListener
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun HandleDialogs(
+        isNeedToShowLogOutDialog: Boolean
+    ) {
+        if (isUsingCompose() && isNeedToShowLogOutDialog) {
+            val isEasterEgg = UserConfig.userId == ID_DMITRY
+
+            val title = UiText.Resource(
+                if (isEasterEgg) R.string.easter_egg_log_out_dmitry
+                else R.string.sign_out_confirm_title
+            )
+
+            val positiveText = UiText.Resource(
+                if (isEasterEgg) R.string.easter_egg_log_out_dmitry
+                else R.string.action_sign_out
+            )
+
+            MaterialDialog(
+                title = title,
+                message = UiText.Resource(R.string.sign_out_confirm),
+                positiveText = positiveText,
+                positiveAction = {
+                    setFragmentResult(
+                        MainFragment.START_SERVICES_KEY,
+                        bundleOf(MainFragment.START_SERVICES_ARG_ENABLE to false)
                     )
-                }
-            }
+                    viewModel.onLogOutAlertPositiveClick()
+                },
+                negativeText = UiText.Resource(R.string.cancel),
+                onDismissAction = viewModel::onLogOutAlertDismissed
+            )
         }
-
-        val visibilityTitle = SettingsItem.Title(
-            itemKey = "visibility",
-            title = "Visibility"
-        )
-        val visibilitySendOnlineStatus = SettingsItem.Switch(
-            itemKey = "send_online_status",
-            defaultValue = true,
-            title = "Send online status",
-            summary = "Online status will be sent every five minutes"
-        )
-
-        val updatesTitle = SettingsItem.Title(
-            itemKey = "updates",
-            title = "Updates"
-        )
-        val updatesCheckUpdates = SettingsItem.TitleSummary(
-            itemKey = KEY_UPDATES_CHECK_UPDATES,
-            title = "Check updates"
-        )
-
-        val msAppCenterTitle = SettingsItem.Title(
-            itemKey = "msappcenter",
-            title = "MS AppCenter Crash Reporter"
-        )
-        val msAppCenterEnable = SettingsItem.Switch(
-            itemKey = "msappcenter.enable",
-            defaultValue = true,
-            title = "Enable Crash Reporter"
-        )
-
-        val debugTitle = SettingsItem.Title(
-            itemKey = "debug",
-            title = "Debug"
-        )
-        val debugPerformCrash = SettingsItem.TitleSummary(
-            itemKey = KEY_DEBUG_PERFORM_CRASH,
-            title = "Perform crash",
-            summary = "App will be crashed. Obviously"
-        )
-        val debugShowDestroyedLongPollAlert = SettingsItem.Switch(
-            itemKey = "debug_show_destroyed_long_poll_alert",
-            defaultValue = false,
-            title = "Show destroyed LP alert"
-        )
-        val debugShowCrashAlert = SettingsItem.Switch(
-            itemKey = "debug_show_crash_alert",
-            defaultValue = true,
-            title = "Show alert after crash",
-            summary = "Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually))"
-        )
-        val debugTestThemeSwitch = SettingsItem.Switch(
-            itemKey = KEY_DEBUG_TEST_THEME,
-            title = "Test theme switch",
-            defaultValue = false
-        )
-        val debugListUpdateSwitch = SettingsItem.Switch(
-            itemKey = KEY_DEBUG_LIST_UPDATE,
-            title = "Show Appearance Category",
-            defaultValue = true
-        )
-        val debugHideDebugList = SettingsItem.TitleSummary(
-            itemKey = KEY_DEBUG_HIDE_DEBUG_LIST,
-            title = "Hide debug list"
-        )
-
-        val appearanceList: List<SettingsItem<*>> = listOf(
-            appearanceTitle,
-            appearanceMultiline,
-        )
-        val featuresList = listOf(
-            featuresTitle,
-            featuresHideKeyboardOnScroll,
-            featuresFastText,
-        )
-        val visibilityList = listOf(
-            visibilityTitle,
-            visibilitySendOnlineStatus,
-        )
-        val updatesList = listOf(
-            updatesTitle,
-            updatesCheckUpdates,
-        )
-        val msAppCenterList = listOf(
-            msAppCenterTitle,
-            msAppCenterEnable,
-        )
-        listOf(
-            debugTitle,
-            debugPerformCrash,
-            debugShowDestroyedLongPollAlert,
-            debugShowCrashAlert,
-            debugTestThemeSwitch,
-            debugListUpdateSwitch,
-            debugHideDebugList,
-        ).forEach(debugList::add)
-
-        val settingsList = mutableListOf<SettingsItem<*>>()
-        listOf(
-            appearanceList, featuresList, visibilityList,
-            updatesList, msAppCenterList, debugList
-        ).forEach(settingsList::addAll)
-
-        testAppearanceList = appearanceList.toMutableList()
-
-        val titleDelegate = settingsTitleItemDelegate()
-        val titleSummaryDelegate = settingsTitleSummaryItemDelegate(
-            onClickListener = this, onLongClickListener = this
-        )
-        val editTextDelegate = settingsEditTextItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-        val checkboxDelegate = settingsCheckboxItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-        val switchDelegate = settingsSwitchItemDelegate(
-            onClickListener = this, onLongClickListener = this, onChangeListener = this
-        )
-
-        val adapter = AsyncDiffItemAdapter(
-            titleDelegate,
-            titleSummaryDelegate,
-            editTextDelegate,
-            checkboxDelegate,
-            switchDelegate
-        )
-        this.adapter = adapter
-        binding.recyclerView.adapter = adapter
-
-        if (!AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)) {
-            settingsList.removeAll(debugList)
-        }
-
-        adapter.items = settingsList.toList()
-
-        prepareView()
-    }
-
-    private fun prepareView() {
-        prepareInsets()
-        prepareToolbar()
-    }
-
-    private fun prepareInsets() {
-        binding.appBar.applyInsetter {
-            type(statusBars = true) { padding() }
-        }
-        binding.recyclerView.applyInsetter {
-            type(navigationBars = true) { padding() }
-        }
-    }
-
-    private fun prepareToolbar() {
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
-    }
-
-    override fun onClick(key: String) {
-        when (key) {
-            KEY_UPDATES_CHECK_UPDATES -> {
-                requireActivityRouter().navigateTo(Screens.Updates())
-            }
-            KEY_DEBUG_PERFORM_CRASH -> {
-                throw TestCrashException()
-            }
-            KEY_DEBUG_HIDE_DEBUG_LIST -> {
-                val showDebugCategory =
-                    AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
-                if (!showDebugCategory) return
-
-                AppGlobal.preferences.edit {
-                    putBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
-                }
-
-                adapter.items =
-                    adapter.items.castAsSettings().filter { !it.key.startsWith("debug") }
-            }
-            else -> Unit
-        }
-    }
-
-    override fun onLongClick(key: String): Boolean {
-        return when (key) {
-            KEY_UPDATES_CHECK_UPDATES -> {
-                val showDebugCategory =
-                    AppGlobal.preferences.getBoolean(KEY_SHOW_DEBUG_CATEGORY, false)
-                if (showDebugCategory) return false
-
-                AppGlobal.preferences.edit {
-                    putBoolean(KEY_SHOW_DEBUG_CATEGORY, true)
-                }
-
-                adapter.items = adapter.items.castAsSettings() + debugList
-                true
-            }
-            else -> false
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun onChange(key: String, newValue: Any?) {
-        when (key) {
-            KEY_DEBUG_TEST_THEME -> {
-                requireActivity().recreate()
-            }
-            KEY_DEBUG_LIST_UPDATE -> {
-                val showAppearanceCategory = newValue as Boolean
-
-                val currentItems = adapter.items.castAsSettings()
-
-                if (showAppearanceCategory) {
-                    adapter.items = testAppearanceList + currentItems
-                } else {
-                    adapter.items = currentItems.filter { !it.key.startsWith("appearance") }
-                }
-            }
-            else -> Unit
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun List<AdapterDiffItem>.castAsSettings(): List<SettingsItem<*>> {
-        return (this as List<SettingsItem<*>>).toList()
     }
 
     companion object {
         fun newInstance(): SettingsFragment = SettingsFragment()
 
+        const val KEY_ACCOUNT = "account"
+        const val KEY_ACCOUNT_LOGOUT = "account_logout"
+
+        const val KEY_APPEARANCE = "appearance"
+        const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"
+        const val DEFAULT_VALUE_MULTILINE = true
+
+        const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
+        const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
+        const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"
+        const val KEY_FEATURES_LONG_POLL_IN_BACKGROUND = "features_lp_background"
+        const val DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND = true
+
+        const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
+
+        const val KEY_UPDATES_CHECK_AT_STARTUP = "updates_check_at_startup"
         const val KEY_UPDATES_CHECK_UPDATES = "updates_check_updates"
 
-        const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
-        const val KEY_DEBUG_TEST_THEME = "debug_test_theme"
-        const val KEY_DEBUG_LIST_UPDATE = "debug_list_update"
-        private const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
+        const val KEY_MS_APPCENTER_ENABLE = "msappcenter.enable"
 
-        private const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
+        const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
+        const val KEY_USE_DYNAMIC_COLORS = "debug_use_dynamic_colors"
+        const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
+        const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
+        const val KEY_APPEARANCE_DARK_THEME = "debug_appearance_dark_theme"
+        const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = AppCompatDelegate.MODE_NIGHT_NO
+        const val KEY_USE_LARGE_TOP_APP_BAR = "debug_large_top_app_bar"
+        const val DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR = true
+        const val KEY_USE_BLUR = "debug_use_blur"
+        const val DEFAULT_VALUE_USE_BLUR = false
+        const val KEY_USE_COMPOSE = "debug_use_compose"
+        const val DEFAULT_VALUE_USE_COMPOSE = true
+
+        const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
+
+        const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
+
+
+        const val ID_DMITRY = 37610580
     }
 }

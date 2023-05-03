@@ -6,13 +6,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.common.Screens
-import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.util.ViewUtils.showErrorDialog
+import com.meloda.fast.ext.showDialog
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.main.activity.MainActivity
 
 object ViewModelUtils {
 
+    @Deprecated("rewrite")
     @Suppress("MemberVisibilityCanBePrivate")
     fun parseEvent(activity: FragmentActivity, event: VkEvent) {
         when (event) {
@@ -35,35 +35,37 @@ object ViewModelUtils {
                 activity.startActivity(Intent(activity, MainActivity::class.java))
             }
             is UserBannedEvent -> {
-                (activity as? MainActivity)?.router?.navigateTo(
-                    Screens.UserBanned(
-                        memberName = event.memberName,
-                        message = event.message,
-                        restoreUrl = event.restoreUrl,
-                        accessToken = event.accessToken
-                    )
+                // TODO: 17.04.2023, Danil Nikolaev: handle banned event
+//                (activity as? MainActivity)?.accessRouter()?.newRootScreen(
+//                    Screens.UserBanned(
+//                        memberName = event.memberName,
+//                        message = event.message,
+//                        restoreUrl = event.restoreUrl,
+//                        accessToken = event.accessToken
+//                    )
+//                )
+            }
+            is UnknownErrorEvent -> {
+                activity.showDialog(
+                    title = UiText.Resource(R.string.title_error),
+                    message = UiText.Resource(R.string.unknown_error_occurred),
+                    positiveText = UiText.Resource(R.string.ok)
                 )
             }
-
             is VkErrorEvent -> {
                 event.errorText?.run {
-                    activity.showErrorDialog(this)
+                    activity.showDialog(
+                        title = UiText.Resource(R.string.title_error),
+                        message = UiText.Simple(this),
+                        positiveText = UiText.Resource(R.string.ok)
+                    )
                 }
             }
         }
     }
 
+    @Deprecated("rewrite")
     fun parseEvent(fragment: Fragment, event: VkEvent) {
-        if (event is VkProgressEvent) {
-            if (fragment is BaseFragment) {
-                if (event is StartProgressEvent) {
-                    fragment.startProgress()
-                } else if (event is StopProgressEvent) {
-                    fragment.stopProgress()
-                }
-            }
-        } else {
-            parseEvent(fragment.requireActivity(), event)
-        }
+        parseEvent(fragment.requireActivity(), event)
     }
 }

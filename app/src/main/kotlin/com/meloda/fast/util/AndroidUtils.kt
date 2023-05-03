@@ -1,13 +1,13 @@
 package com.meloda.fast.util
 
 import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.content.res.Resources
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.TypedValue
 import androidx.annotation.AttrRes
@@ -15,33 +15,12 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import com.meloda.fast.BuildConfig
-import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.ext.isTrue
 import java.io.File
 
 
 object AndroidUtils {
-
-    fun isDarkTheme(): Boolean {
-        return when (AppGlobal.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES -> true
-            else -> false
-        }
-    }
-
-    fun hasConnection(): Boolean {
-        val network = AppGlobal.connectivityManager.activeNetwork ?: return false
-        val activeNetwork =
-            AppGlobal.connectivityManager.getNetworkCapabilities(network) ?: return false
-
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-            else -> false
-        }
-    }
 
     fun getDisplayWidth(): Int {
         return Resources.getSystem().displayMetrics.widthPixels
@@ -52,7 +31,10 @@ object AndroidUtils {
     }
 
     fun copyText(label: String? = "", text: String) {
-        AppGlobal.clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))
+        val clipboardManager =
+            AppGlobal.Instance.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))
     }
 
     fun getThemeAttrColor(context: Context, @AttrRes resId: Int): Int {
@@ -63,7 +45,7 @@ object AndroidUtils {
         try {
             color = context.resources.getColor(colorRes, context.theme)
         } catch (e: Exception) {
-
+            e.printStackTrace()
         }
 
         return color
@@ -76,19 +58,19 @@ object AndroidUtils {
     fun bytesToHumanReadableSize(bytes: Double): String = when {
         bytes >= 1 shl 30 -> "%.1f GB".format(bytes / (1 shl 30))
         bytes >= 1 shl 20 -> "%.1f MB".format(bytes / (1 shl 20))
-        bytes >= 1 shl 10 -> "%.0f KB".format(bytes / (1 shl 10))
+        bytes >= 1 shl 10 -> "%.1f KB".format(bytes / (1 shl 10))
         else -> "$bytes B"
     }
 
     @Suppress("DEPRECATION")
-    fun isCanInstallUnknownApps(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            AppGlobal.packageManager.canRequestPackageInstalls()
-        } else {
+    fun isCanInstallUnknownApps(): Boolean {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             Settings.Secure.getInt(
-                context.contentResolver,
+                AppGlobal.Instance.contentResolver,
                 Settings.Secure.INSTALL_NON_MARKET_APPS
             ) == 1
+        } else {
+            AppGlobal.packageManager.canRequestPackageInstalls()
         }
     }
 
@@ -106,23 +88,18 @@ object AndroidUtils {
     fun getInstallPackageIntent(
         context: Context,
         providerPath: String,
-        fileToRead: File
+        fileToRead: File,
     ): Intent {
         val intent = Intent(Intent.ACTION_VIEW)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-            intent.data = FileProvider.getUriForFile(
-                context,
-                BuildConfig.APPLICATION_ID + providerPath,
-                fileToRead
-            )
-        } else {
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            intent.setDataAndType(Uri.fromFile(fileToRead), AppConstants.INSTALL_APP_MIME_TYPE)
-        }
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+        intent.data = FileProvider.getUriForFile(
+            context,
+            BuildConfig.APPLICATION_ID + providerPath,
+            fileToRead
+        )
 
         return intent
     }
@@ -137,5 +114,9 @@ object AndroidUtils {
 
     fun getImeInsets(insets: WindowInsetsCompat): Insets {
         return insets.getInsets(WindowInsetsCompat.Type.ime())
+    }
+
+    fun isBatterySaverOn(): Boolean {
+        return (AppGlobal.Instance.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isPowerSaveMode.isTrue
     }
 }

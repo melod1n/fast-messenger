@@ -14,11 +14,11 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.adapter.BaseAdapter
 import com.meloda.fast.base.adapter.BaseHolder
 import com.meloda.fast.databinding.ItemMessageInBinding
@@ -29,7 +29,7 @@ import com.meloda.fast.ext.dpToPx
 
 class MessagesHistoryAdapter constructor(
     context: Context,
-    val conversation: VkConversation,
+    val conversation: VkConversationDomain,
     val profiles: HashMap<Int, VkUser> = hashMapOf(),
     val groups: HashMap<Int, VkGroup> = hashMapOf(),
 ) : BaseAdapter<VkMessage, MessagesHistoryAdapter.BasicHolder>(
@@ -39,7 +39,7 @@ class MessagesHistoryAdapter constructor(
 
     constructor(
         fragment: MessagesHistoryFragment,
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) : this(fragment.requireContext(), conversation, profiles, groups) {
@@ -48,9 +48,9 @@ class MessagesHistoryAdapter constructor(
 
     constructor(
         fragment: ForwardedMessagesFragment,
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
-        groups: HashMap<Int, VkGroup> = hashMapOf()
+        groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) : this(fragment.requireContext(), conversation, profiles, groups) {
         this.isForwards = true
         this.forwardedMessagesFragment = fragment
@@ -117,7 +117,7 @@ class MessagesHistoryAdapter constructor(
     inner class Footer(v: View) : BasicHolder(v)
 
     inner class IncomingMessage(
-        private val binding: ItemMessageInBinding
+        private val binding: ItemMessageInBinding,
     ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int, payloads: MutableList<Any>?) {
@@ -184,7 +184,7 @@ class MessagesHistoryAdapter constructor(
     }
 
     inner class OutgoingMessage(
-        private val binding: ItemMessageOutBinding
+        private val binding: ItemMessageOutBinding,
     ) : BasicHolder(binding.root) {
 
         override fun bind(position: Int, payloads: MutableList<Any>?) {
@@ -238,7 +238,7 @@ class MessagesHistoryAdapter constructor(
     }
 
     inner class ServiceMessage(
-        private val binding: ItemMessageServiceBinding
+        private val binding: ItemMessageServiceBinding,
     ) : BasicHolder(binding.root) {
 
         private val youPrefix = context.getString(R.string.you_message_prefix)
@@ -265,10 +265,11 @@ class MessagesHistoryAdapter constructor(
                 context = context,
                 message = message,
                 youPrefix = youPrefix,
-                profiles = profiles,
-                groups = groups,
                 messageUser = messageUser,
-                messageGroup = messageGroup
+                messageGroup = messageGroup,
+                action = message.getPreparedAction(),
+                actionUser = null,
+                actionGroup = null,
             )
 
             val attachments = message.attachments ?: return
@@ -284,11 +285,11 @@ class MessagesHistoryAdapter constructor(
                     size.height
                 )
 
-                binding.photo.loadWithGlide(
-                    url = size.url,
-                    crossFade = true,
+                binding.photo.loadWithGlide {
+                    imageUrl = size.url
+                    crossFade = true
                     placeholderDrawable = ColorDrawable(Color.LTGRAY)
-                )
+                }
 
                 binding.photo.setOnClickListener {
                     Intent(Intent.ACTION_VIEW, Uri.parse(size.url)).run {
@@ -360,14 +361,14 @@ class MessagesHistoryAdapter constructor(
         private val Comparator = object : DiffUtil.ItemCallback<VkMessage>() {
             override fun areItemsTheSame(
                 oldItem: VkMessage,
-                newItem: VkMessage
+                newItem: VkMessage,
             ): Boolean {
                 return oldItem.id == newItem.id
             }
 
             override fun areContentsTheSame(
                 oldItem: VkMessage,
-                newItem: VkMessage
+                newItem: VkMessage,
             ): Boolean {
                 return ObjectsCompat.equals(oldItem, newItem) && (oldItem.state == newItem.state)
             }

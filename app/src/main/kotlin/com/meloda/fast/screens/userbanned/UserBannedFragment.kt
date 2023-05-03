@@ -3,15 +3,13 @@ package com.meloda.fast.screens.userbanned
 import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
-import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.meloda.fast.R
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
+import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.databinding.FragmentUserBannedBinding
 import dev.chrisbanes.insetter.applyInsetter
 
-class UserBannedFragment :
-    BaseViewModelFragment<UserBannedViewModel>(R.layout.fragment_user_banned) {
+class UserBannedFragment : BaseFragment(R.layout.fragment_user_banned) {
 
     companion object {
 
@@ -37,7 +35,6 @@ class UserBannedFragment :
         }
     }
 
-    override val viewModel: UserBannedViewModel by viewModels()
     private val binding by viewBinding(FragmentUserBannedBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,5 +52,4 @@ class UserBannedFragment :
         binding.name.text = requireArguments().getString(ArgMemberName)
         binding.reason.text = requireArguments().getString(ArgMessage)
     }
-
 }

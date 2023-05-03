@@ -1,10 +1,10 @@
 package com.meloda.fast.api
 
 import androidx.core.content.edit
-import androidx.lifecycle.MutableLiveData
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.AppAccount
+import kotlinx.coroutines.flow.MutableStateFlow
 
 object UserConfig {
 
@@ -42,6 +42,6 @@ object UserConfig {
         return currentUserId > 0 && userId > 0 && accessToken.isNotBlank()
     }
 
-    val vkUser = MutableLiveData<VkUser?>(null)
+    val vkUser: MutableStateFlow<VkUser?> = MutableStateFlow(null)
 
 }

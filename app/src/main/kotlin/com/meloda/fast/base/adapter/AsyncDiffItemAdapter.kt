@@ -29,6 +29,9 @@ class AsyncDiffItemAdapter(
         (delegate as? AdapterDelegate<List<AdapterDiffItem>>)?.let(delegatesManager::addDelegate)
     }
 
+    fun isEmpty() = itemCount == 0
+    fun isNotEmpty() = itemCount > 0
+
     companion object {
         val DIFF_CALLBACK = object : DiffUtil.ItemCallback<AdapterDiffItem>() {
             override fun areItemsTheSame(

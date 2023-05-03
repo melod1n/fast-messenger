@@ -10,7 +10,12 @@ import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.base.viewmodel.VkEventCallback
 import com.meloda.fast.data.messages.MessagesRepository
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -47,10 +52,8 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
             ApiEvent.MessageEdit -> parseMessageEdit(eventType, event)
             ApiEvent.MessageReadIncoming -> parseMessageReadIncoming(eventType, event)
             ApiEvent.MessageReadOutgoing -> parseMessageReadOutgoing(eventType, event)
-            ApiEvent.FriendOnline -> parseFriendOnline(eventType, event)
-            ApiEvent.FriendOffline -> parseFriendOffline(eventType, event)
             ApiEvent.MessagesDeleted -> parseMessagesDeleted(eventType, event)
-            ApiEvent.PinUnpinConversation -> onNewEvent(eventType, event)
+            ApiEvent.PinUnpinConversation -> parseConversationPinStateChanged(eventType, event)
             ApiEvent.PrivateTyping -> onNewEvent(eventType, event)
             ApiEvent.ChatTyping -> onNewEvent(eventType, event)
             ApiEvent.OneMoreTyping -> onNewEvent(eventType, event)
@@ -65,6 +68,27 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
     private fun onNewEvent(eventType: ApiEvent, event: JsonArray) {
         Log.d("LongPollUpdatesParser", "newEvent: $eventType: $event")
+    }
+
+    private fun parseConversationPinStateChanged(eventType: ApiEvent, event: JsonArray) {
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
+
+        val peerId = event[1].asInt
+        val majorId = event[2].asInt
+
+        launch {
+            listenersMap[ApiEvent.PinUnpinConversation]?.let { listeners ->
+                listeners.forEach { vkEventCallback ->
+                    (vkEventCallback as VkEventCallback<LongPollEvent.VkConversationPinStateChangedEvent>)
+                        .onEvent(
+                            LongPollEvent.VkConversationPinStateChangedEvent(
+                                peerId = peerId,
+                                majorId = majorId
+                            )
+                        )
+                }
+            }
+        }
     }
 
     private fun parseMessageSetFlags(eventType: ApiEvent, event: JsonArray) {
@@ -119,6 +143,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val peerId = event[1].asInt
         val messageId = event[2].asInt
+        val unreadCount = event[3].asInt
 
         launch {
             listenersMap[ApiEvent.MessageReadIncoming]?.let { listeners ->
@@ -127,7 +152,8 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                         .onEvent(
                             LongPollEvent.VkMessageReadIncomingEvent(
                                 peerId = peerId,
-                                messageId = messageId
+                                messageId = messageId,
+                                unreadCount = unreadCount
                             )
                         )
                 }
@@ -139,6 +165,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val peerId = event[1].asInt
         val messageId = event[2].asInt
+        val unreadCount = event[3].asInt
 
         launch {
             listenersMap[ApiEvent.MessageReadOutgoing]?.let { listeners ->
@@ -147,20 +174,13 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                         .onEvent(
                             LongPollEvent.VkMessageReadOutgoingEvent(
                                 peerId = peerId,
-                                messageId = messageId
+                                messageId = messageId,
+                                unreadCount = unreadCount
                             )
                         )
                 }
             }
         }
-    }
-
-    private fun parseFriendOnline(eventType: ApiEvent, event: JsonArray) {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
-    }
-
-    private fun parseFriendOffline(eventType: ApiEvent, event: JsonArray) {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
     private fun parseMessagesDeleted(eventType: ApiEvent, event: JsonArray) {
@@ -169,7 +189,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
     private suspend fun <T : LongPollEvent> loadNormalMessage(eventType: ApiEvent, messageId: Int) =
         coroutineScope {
-            suspendCoroutine<T> {
+            suspendCoroutine {
                 launch {
                     val normalMessageResponse = messagesRepository.getById(
                         MessagesGetByIdRequest(
@@ -179,7 +199,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                         )
                     )
 
-                    if (!normalMessageResponse.isSuccessful()) {
+                    if (normalMessageResponse.isError()) {
                         normalMessageResponse.error.throwable?.run { throw this }
                     }
 
@@ -195,12 +215,12 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
                     val profiles = hashMapOf<Int, VkUser>()
                     messagesResponse.profiles?.forEach { baseUser ->
-                        baseUser.asVkUser().let { user -> profiles[user.id] = user }
+                        baseUser.mapToDomain().let { user -> profiles[user.id] = user }
                     }
 
                     val groups = hashMapOf<Int, VkGroup>()
                     messagesResponse.groups?.forEach { baseGroup ->
-                        baseGroup.asVkGroup().let { group -> groups[group.id] = group }
+                        baseGroup.mapToDomain().let { group -> groups[group.id] = group }
                     }
 
                     val resumeValue: LongPollEvent? = when (eventType) {
@@ -226,6 +246,14 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                 it.add(listener)
             }
         }
+    }
+
+    fun onConversationPinStateChanged(listener: VkEventCallback<LongPollEvent.VkConversationPinStateChangedEvent>) {
+        registerListener(ApiEvent.PinUnpinConversation, listener)
+    }
+
+    fun onConversationPinStateChanged(block: (LongPollEvent.VkConversationPinStateChangedEvent) -> Unit) {
+        onConversationPinStateChanged(assembleEventCallback(block))
     }
 
     fun onMessageIncomingRead(listener: VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>) {
@@ -265,8 +293,8 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
     }
 }
 
-internal inline fun <R : Any> assembleEventCallback(crossinline block: (R) -> Unit): VkEventCallback<R> {
-    return object : VkEventCallback<R> {
-        override fun onEvent(event: R) = block.invoke(event)
-    }
+internal inline fun <R : Any> assembleEventCallback(
+    crossinline block: (R) -> Unit,
+): VkEventCallback<R> {
+    return VkEventCallback { event -> block.invoke(event) }
 }

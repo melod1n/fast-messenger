@@ -14,7 +14,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -41,7 +41,7 @@ class MessagesPreparator constructor(
 
     private val root: View? = null,
 
-    private val conversation: VkConversation,
+    private val conversation: VkConversationDomain,
     private val message: VkMessage,
     private val prevMessage: VkMessage? = null,
     private val nextMessage: VkMessage? = null,
@@ -294,10 +294,10 @@ class MessagesPreparator constructor(
         if (avatar != null) {
             val avatarUrl = VkUtils.getMessageAvatar(message, messageUser, messageGroup)
 
-            avatar.loadWithGlide(
-                url = avatarUrl,
+            avatar.loadWithGlide {
+                imageUrl = avatarUrl
                 crossFade = true
-            )
+            }
         }
     }
 }

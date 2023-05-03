@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,13 +9,10 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputLayout"
+        style="@style/Ui.Widget.TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:boxBackgroundColor="@android:color/transparent"
-        app:boxBackgroundMode="filled"
-        app:boxCornerRadiusTopEnd="10dp"
-        app:boxCornerRadiusTopStart="10dp"
-        tools:hint="Hint">
+        android:hint="@string/value">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editText"
@@ -25,5 +21,4 @@
             tools:text="Text" />
 
     </com.google.android.material.textfield.TextInputLayout>
-
 </FrameLayout>

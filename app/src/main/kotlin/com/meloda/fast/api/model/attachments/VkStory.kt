@@ -1,5 +1,6 @@
 package com.meloda.fast.api.model.attachments
 
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -13,5 +14,8 @@ data class VkStory(
     fun isFromUser() = ownerId > 0
 
     fun isFromGroup() = ownerId < 0
+
+    @IgnoredOnParcel
+    val className: String = this::class.java.name
 
 }

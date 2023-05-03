@@ -1,52 +1,59 @@
 package com.meloda.fast.screens.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.viewModels
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
+import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.base.viewmodel.ViewModelUtils
 import com.meloda.fast.base.viewmodel.VkEvent
-import dagger.hilt.android.AndroidEntryPoint
+import com.meloda.fast.ext.listenValue
+import com.meloda.fast.screens.main.activity.ServicesState
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
-class MainFragment : BaseViewModelFragment<MainViewModel>() {
+class MainFragment : BaseFragment() {
 
-    companion object {
-        const val KeyStartServices = "start_services"
+    private val viewModel: MainViewModel by viewModel<MainViewModelImpl>()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        Log.d("MainFragment", "onCreate: viewModel: $viewModel")
     }
-
-    override val viewModel: MainViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        return View(context)
-    }
+    ) = View(context)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        viewModel.checkSession()
+        listenViewModel()
     }
 
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
+    private fun listenViewModel() {
+        viewModel.events.listenValue(::onEvent)
 
-        when (event) {
-            StartServicesEvent -> {
-                setFragmentResult(KeyStartServices, bundleOf("enable" to true))
-            }
-            StopServicesEvent -> {
-                setFragmentResult(KeyStartServices, bundleOf("enable" to false))
-            }
-            is SetNavBarVisibilityEvent -> {
-                (requireActivity() as MainActivity).toggleNavBarVisibility(event.isVisible)
-            }
+        viewModel.servicesState.listenValue { state ->
+            val enableServices = state == ServicesState.Started
+            setFragmentResult(
+                START_SERVICES_KEY,
+                bundleOf(START_SERVICES_ARG_ENABLE to enableServices)
+            )
         }
+    }
+
+    private fun onEvent(event: VkEvent) {
+        ViewModelUtils.parseEvent(this, event)
+    }
+
+    companion object {
+        const val START_SERVICES_KEY = "start_services"
+        const val START_SERVICES_ARG_ENABLE = "enable"
+
+        fun newInstance(): MainFragment = MainFragment()
     }
 }

@@ -14,7 +14,11 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.*
+import androidx.core.view.isNotEmpty
+import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updateMarginsRelative
+import androidx.core.view.updatePadding
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.meloda.fast.R
@@ -23,21 +27,48 @@ import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkAudio
+import com.meloda.fast.api.model.attachments.VkCall
+import com.meloda.fast.api.model.attachments.VkFile
+import com.meloda.fast.api.model.attachments.VkGift
+import com.meloda.fast.api.model.attachments.VkGraffiti
+import com.meloda.fast.api.model.attachments.VkLink
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkSticker
+import com.meloda.fast.api.model.attachments.VkStory
+import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.attachments.VkVoiceMessage
+import com.meloda.fast.api.model.attachments.VkWall
 import com.meloda.fast.api.model.base.BaseVkMessage
-import com.meloda.fast.databinding.*
+import com.meloda.fast.databinding.ItemMessageAttachmentAudioBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentCallBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentFileBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentForwardsBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentGeoBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentGiftBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentGraffitiBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentLinkBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentPhotoBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentReplyBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentStickerBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentStoryBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentVideoBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentVoiceBinding
+import com.meloda.fast.databinding.ItemMessageAttachmentWallPostBinding
+import com.meloda.fast.ext.ImageLoader.clear
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.TypeTransformations
 import com.meloda.fast.ext.dpToPx
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.toggleVisibilityIfHasContent
 import com.meloda.fast.ext.visible
-import com.meloda.fast.ext.ImageLoader.clear
-import com.meloda.fast.ext.ImageLoader.loadWithGlide
-import com.meloda.fast.ext.TypeTransformations
+import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.AndroidUtils
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 import kotlin.math.roundToInt
 
 class AttachmentInflater constructor(
@@ -47,7 +78,7 @@ class AttachmentInflater constructor(
     private val timeReadContainer: View,
     private val message: VkMessage,
     private val profiles: Map<Int, VkUser>,
-    private val groups: Map<Int, VkGroup>
+    private val groups: Map<Int, VkGroup>,
 ) {
     private lateinit var attachments: List<VkAttachment>
 
@@ -187,15 +218,13 @@ class AttachmentInflater constructor(
         val binding = ItemMessageAttachmentReplyBinding.inflate(inflater, replyContainer, true)
         binding.root.setOnClickListener { replyClickListener?.invoke(replyMessage) }
 
-        val attachmentText = VkUtils.getAttachmentText(
-            context = context,
+        val attachmentText = (VkUtils.getAttachmentText(
             message = replyMessage
-        )
+        ))?.parseString(context)
 
-        val forwardsMessage = if (replyMessage.text == null) VkUtils.getForwardsText(
-            context = context,
+        val forwardsMessage = (if (replyMessage.text == null) VkUtils.getForwardsText(
             message = replyMessage
-        ) else null
+        ) else null)?.parseString(context)
 
         val messageText = attachmentText ?: forwardsMessage ?: (replyMessage.text.orDots()).run {
             VkUtils.prepareMessageText(this)
@@ -259,11 +288,11 @@ class AttachmentInflater constructor(
                 width = (displayMetrics.widthPixels * widthMultiplier).roundToInt()
                 dimensionRatio = ratio
             }
-            loadWithGlide(
-                drawable = ColorDrawable(colorSecondary),
-                priority = Priority.IMMEDIATE,
+            loadWithGlide {
+                imageDrawable = ColorDrawable(colorSecondary)
+                loadPriority = Priority.IMMEDIATE
                 cacheStrategy = DiskCacheStrategy.NONE
-            )
+            }
         }
 
         binding.image.run {
@@ -273,12 +302,12 @@ class AttachmentInflater constructor(
                 photo.getMaxSize()?.let { size -> photoClickListener?.invoke(size.url) }
             }
 
-            loadWithGlide(
-                url = size.url,
-                crossFade = true,
-                placeholderDrawable = ColorDrawable(colorBackground),
-                priority = Priority.LOW
-            )
+            loadWithGlide {
+                imageUrl = size.url
+                crossFade = true
+                placeholderDrawable = ColorDrawable(colorBackground)
+                loadPriority = Priority.LOW
+            }
         }
     }
 
@@ -311,22 +340,22 @@ class AttachmentInflater constructor(
                 width = (displayMetrics.widthPixels * widthMultiplier).roundToInt()
                 dimensionRatio = ratio
             }
-            loadWithGlide(
-                drawable = ColorDrawable(colorSecondary),
-                priority = Priority.IMMEDIATE,
+            loadWithGlide {
+                imageDrawable = ColorDrawable(colorSecondary)
+                loadPriority = Priority.IMMEDIATE
                 cacheStrategy = DiskCacheStrategy.NONE
-            )
+            }
         }
 
         binding.image.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius * 0.8F)
 
-            loadWithGlide(
-                url = size.url,
-                crossFade = true,
-                placeholderDrawable = ColorDrawable(colorBackground),
-                priority = Priority.LOW
-            )
+            loadWithGlide {
+                imageUrl = size.url
+                crossFade = true
+                placeholderDrawable = ColorDrawable(colorBackground)
+                loadPriority = Priority.LOW
+            }
         }
     }
 
@@ -362,7 +391,10 @@ class AttachmentInflater constructor(
         binding.caption.toggleVisibility(!link.caption.isNullOrBlank())
 
         link.photo?.getSizeOrSmaller('y')?.let { size ->
-            binding.preview.loadWithGlide(url = size.url, crossFade = true)
+            binding.preview.loadWithGlide {
+                imageUrl = size.url
+                crossFade = true
+            }
             binding.linkIcon.gone()
             return
         }
@@ -388,7 +420,10 @@ class AttachmentInflater constructor(
 
             layoutParams = LinearLayoutCompat.LayoutParams(size, size)
 
-            loadWithGlide(url = url, crossFade = true)
+            loadWithGlide {
+                imageUrl = url
+                crossFade = true
+            }
         }
     }
 
@@ -422,7 +457,10 @@ class AttachmentInflater constructor(
         binding.avatar.toggleVisibility(group != null || user != null)
 
         if (binding.avatar.isVisible) {
-            binding.avatar.loadWithGlide(url = avatar, crossFade = true)
+            binding.avatar.loadWithGlide {
+                imageUrl = avatar
+                crossFade = true
+            }
         } else {
             binding.avatar.clear()
         }
@@ -504,7 +542,10 @@ class AttachmentInflater constructor(
                 (graffiti.height / heightCoefficient).roundToInt()
             )
 
-            loadWithGlide(url = url, crossFade = true)
+            loadWithGlide {
+                imageUrl = url
+                crossFade = true
+            }
         }
     }
 
@@ -520,7 +561,10 @@ class AttachmentInflater constructor(
 
             layoutParams = LinearLayoutCompat.LayoutParams(size, size)
 
-            loadWithGlide(url = url, crossFade = true)
+            loadWithGlide {
+                imageUrl = url
+                crossFade = true
+            }
         }
     }
 
@@ -544,21 +588,21 @@ class AttachmentInflater constructor(
             )
         }
 
-        binding.dimmer.loadWithGlide(
-            drawable = dimmerDrawable,
-            transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius)),
-            priority = Priority.IMMEDIATE,
+        binding.dimmer.loadWithGlide {
+            imageDrawable = dimmerDrawable
+            transformations = listOf(TypeTransformations.RoundedCornerCrop(cornersRadius))
+            loadPriority = Priority.IMMEDIATE
             cacheStrategy = DiskCacheStrategy.NONE
-        )
+        }
 
         binding.image.run {
             shapeAppearanceModel = shapeAppearanceModel.withCornerSize(cornersRadius.toFloat())
 
-            loadWithGlide(
-                url = photoUrl,
-                crossFade = true,
+            loadWithGlide {
+                imageUrl = photoUrl
+                crossFade = true
                 placeholderDrawable = ColorDrawable(Color.GRAY)
-            )
+            }
         }
 
         if (story.ownerId == UserConfig.userId) {

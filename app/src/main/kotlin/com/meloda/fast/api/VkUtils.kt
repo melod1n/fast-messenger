@@ -14,42 +14,16 @@ import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.meloda.fast.R
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.attachments.VkAudio
-import com.meloda.fast.api.model.attachments.VkCall
-import com.meloda.fast.api.model.attachments.VkCurator
-import com.meloda.fast.api.model.attachments.VkEvent
-import com.meloda.fast.api.model.attachments.VkFile
-import com.meloda.fast.api.model.attachments.VkGift
-import com.meloda.fast.api.model.attachments.VkGraffiti
-import com.meloda.fast.api.model.attachments.VkGroupCall
-import com.meloda.fast.api.model.attachments.VkLink
-import com.meloda.fast.api.model.attachments.VkMiniApp
-import com.meloda.fast.api.model.attachments.VkPhoto
-import com.meloda.fast.api.model.attachments.VkPoll
-import com.meloda.fast.api.model.attachments.VkSticker
-import com.meloda.fast.api.model.attachments.VkStory
-import com.meloda.fast.api.model.attachments.VkVideo
-import com.meloda.fast.api.model.attachments.VkVoiceMessage
-import com.meloda.fast.api.model.attachments.VkWall
-import com.meloda.fast.api.model.attachments.VkWallReply
-import com.meloda.fast.api.model.attachments.VkWidget
+import com.meloda.fast.api.model.attachments.*
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
-import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.TokenExpiredError
-import com.meloda.fast.api.network.UserBannedError
-import com.meloda.fast.api.network.ValidationRequiredError
-import com.meloda.fast.api.network.VkErrorCodes
-import com.meloda.fast.api.network.VkErrorMessages
-import com.meloda.fast.api.network.VkErrors
+import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.api.network.*
 import com.meloda.fast.ext.orDots
+import com.meloda.fast.model.base.UiText
 
 @Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
@@ -59,7 +33,7 @@ object VkUtils {
         id: Int,
         ownerId: Int,
         withAccessKey: Boolean,
-        accessKey: String?
+        accessKey: String?,
     ): String {
         val type = when (attachmentClass) {
             VkAudio::class.java -> "audio"
@@ -84,15 +58,25 @@ object VkUtils {
         else profiles[message.fromId]).also { message.user = it }
     }
 
+    fun getMessageActionUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+        return if (message.actionMemberId == null || message.actionMemberId <= 0) null
+        else profiles[message.actionMemberId]
+    }
+
     fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!message.isGroup()) null
         else groups[message.fromId]).also { message.group = it }
     }
 
+    fun getMessageActionGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
+        return if (message.actionMemberId == null || message.actionMemberId >= 0) null
+        else groups[message.actionMemberId]
+    }
+
     fun getMessageAvatar(
         message: VkMessage,
         messageUser: VkUser?,
-        messageGroup: VkGroup?
+        messageGroup: VkGroup?,
     ): String? {
         return when {
             message.isUser() -> messageUser?.photo200
@@ -106,7 +90,7 @@ object VkUtils {
         defMessageUser: VkUser? = null,
         defMessageGroup: VkGroup? = null,
         profiles: Map<Int, VkUser>? = null,
-        groups: Map<Int, VkGroup>? = null
+        groups: Map<Int, VkGroup>? = null,
     ): String? {
         val messageUser: VkUser? =
             defMessageUser ?: if (profiles == null) null
@@ -123,37 +107,43 @@ object VkUtils {
         }
     }
 
-    fun getConversationUser(conversation: VkConversation, profiles: Map<Int, VkUser>): VkUser? {
-        return (if (!conversation.isUser()) null
-        else profiles[conversation.id]).also { conversation.user.postValue(it) }
+    fun getConversationUser(
+        conversation: VkConversationDomain,
+        profiles: Map<Int, VkUser>
+    ): VkUser? {
+        return if (!conversation.isUser()) null
+        else profiles[conversation.id]
     }
 
-    fun getConversationGroup(conversation: VkConversation, groups: Map<Int, VkGroup>): VkGroup? {
-        return (if (!conversation.isGroup()) null
-        else groups[conversation.id]).also { conversation.group.postValue(it) }
+    fun getConversationGroup(
+        conversation: VkConversationDomain,
+        groups: Map<Int, VkGroup>
+    ): VkGroup? {
+        return if (!conversation.isGroup()) null
+        else groups[conversation.id]
     }
 
     fun getConversationAvatar(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         conversationUser: VkUser?,
-        conversationGroup: VkGroup?
+        conversationGroup: VkGroup?,
     ): String? {
         return when {
             conversation.isAccount() -> null
             conversation.isUser() -> conversationUser?.photo200
             conversation.isGroup() -> conversationGroup?.photo200
-            conversation.isChat() -> conversation.photo200
+            conversation.isChat() -> conversation.conversationPhoto
             else -> null
         }
     }
 
     fun getConversationTitle(
         context: Context,
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         defConversationUser: VkUser? = null,
         defConversationGroup: VkGroup? = null,
         profiles: Map<Int, VkUser>? = null,
-        groups: Map<Int, VkGroup>? = null
+        groups: Map<Int, VkGroup>? = null,
     ): String? {
         val conversationUser: VkUser? =
             defConversationUser ?: if (profiles == null) null
@@ -165,7 +155,7 @@ object VkUtils {
 
         return when {
             conversation.isAccount() -> context.getString(R.string.favorites)
-            conversation.isChat() -> conversation.title
+            conversation.isChat() -> conversation.conversationTitle
             conversation.isUser() -> conversationUser?.fullName
             conversation.isGroup() -> conversationGroup?.name
             else -> null
@@ -173,9 +163,9 @@ object VkUtils {
     }
 
     fun getConversationUserGroup(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         profiles: Map<Int, VkUser>,
-        groups: Map<Int, VkGroup>
+        groups: Map<Int, VkGroup>,
     ): Pair<VkUser?, VkGroup?> {
         val user: VkUser? = getConversationUser(conversation, profiles)
         val group: VkGroup? = getConversationGroup(conversation, groups)
@@ -184,21 +174,45 @@ object VkUtils {
     }
 
     fun getMessageUserGroup(
-        message: VkMessage,
+        message: VkMessage?,
         profiles: Map<Int, VkUser>,
-        groups: Map<Int, VkGroup>
+        groups: Map<Int, VkGroup>,
     ): Pair<VkUser?, VkGroup?> {
+        if (message == null) return null to null
+
         val user: VkUser? = getMessageUser(message, profiles)
         val group: VkGroup? = getMessageGroup(message, groups)
 
         return user to group
     }
 
-    fun prepareMessageText(text: String, forConversations: Boolean? = null): String {
-        return text.apply {
-            if (forConversations == true) replace("\n", "")
+    fun getMessageActionUserGroup(
+        message: VkMessage?,
+        profiles: Map<Int, VkUser>,
+        groups: Map<Int, VkGroup>,
+    ): Pair<VkUser?, VkGroup?> {
+        if (message == null) return null to null
 
-            replace("&amp", "&")
+        val user: VkUser? = getMessageActionUser(message, profiles)
+        val group: VkGroup? = getMessageActionGroup(message, groups)
+
+        return user to group
+    }
+
+    fun prepareMessageText(text: String, forConversations: Boolean = false): String {
+        return text.apply {
+            if (forConversations) {
+                replace("\n", "")
+            }
+
+            replace("&amp;", "&")
+            replace("&quot;", "\"")
+            replace("<br>", "\n")
+            replace("&gt;", ">")
+            replace("&lt;", "<")
+            replace("<br/>", "\n")
+            replace("&ndash;", "-")
+            trim()
         }
     }
 
@@ -318,15 +332,17 @@ object VkUtils {
 
     fun getActionMessageText(
         context: Context,
-        message: VkMessage,
+        message: VkMessage?,
         youPrefix: String,
-        profiles: Map<Int, VkUser>? = null,
-        groups: Map<Int, VkGroup>? = null,
-        messageUser: VkUser? = null,
-        messageGroup: VkGroup? = null
+        messageUser: VkUser?,
+        messageGroup: VkGroup?,
+        action: VkMessage.Action?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
     ): SpannableString? {
-        @Suppress("REDUNDANT_ELSE_IN_WHEN")
-        return when (message.getPreparedAction()) {
+        if (message == null) return null
+
+        return when (action) {
             VkMessage.Action.CHAT_CREATE -> {
                 val text = message.actionText ?: return null
 
@@ -407,9 +423,6 @@ object VkUtils {
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
 
-                val actionUser = profiles?.get(memberId)
-                val actionGroup = groups?.get(memberId)
-
                 if (isUser && actionUser == null) return null
                 if (isGroup && actionGroup == null) return null
 
@@ -452,9 +465,6 @@ object VkUtils {
                 val memberId = message.actionMemberId ?: 0
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
-
-                val actionUser = profiles?.get(memberId)
-                val actionGroup = groups?.get(memberId)
 
                 if (isUser && actionUser == null) return null
                 if (isGroup && actionGroup == null) return null
@@ -595,73 +605,73 @@ object VkUtils {
                 }
             }
             null -> null
-            else -> SpannableString("[${message.action}]")
         }
     }
 
     fun getActionConversationText(
         context: Context,
-        message: VkMessage,
+        message: VkMessage?,
         youPrefix: String,
-        profiles: HashMap<Int, VkUser>? = null,
-        groups: HashMap<Int, VkGroup>? = null,
         messageUser: VkUser? = null,
-        messageGroup: VkGroup? = null
+        messageGroup: VkGroup? = null,
+        action: VkMessage.Action?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
     ): String? {
         return getActionMessageText(
             context = context,
             message = message,
             youPrefix = youPrefix,
-            profiles = profiles,
-            groups = groups,
             messageUser = messageUser,
-            messageGroup = messageGroup
+            messageGroup = messageGroup,
+            action = action,
+            actionUser = actionUser,
+            actionGroup = actionGroup,
         )?.toString()
     }
 
-    fun getForwardsText(context: Context, message: VkMessage): String? {
-        if (message.forwards.isNullOrEmpty()) return null
+    fun getForwardsText(message: VkMessage?): UiText? {
+        if (message?.forwards.isNullOrEmpty()) return null
 
-        return message.forwards?.let { forwards ->
-            context.getString(
+        return message?.forwards?.let { forwards ->
+            UiText.Resource(
                 if (forwards.size == 1) R.string.forwarded_message
                 else R.string.forwarded_messages
             )
         }
     }
 
-    fun getAttachmentText(context: Context, message: VkMessage): String? {
-        message.geo?.let {
+    fun getAttachmentText(message: VkMessage?): UiText? {
+        message?.geo?.let {
             return when (it.type) {
-                "point" -> context.getString(R.string.message_geo_point)
-                else -> context.getString(R.string.message_geo)
+                "point" -> UiText.Resource(R.string.message_geo_point)
+                else -> UiText.Resource(R.string.message_geo)
             }
         }
-        if (message.attachments.isNullOrEmpty()) return null
+        if (message?.attachments.isNullOrEmpty()) return null
 
-        return message.attachments?.let { attachments ->
+        return message?.attachments?.let { attachments ->
             if (attachments.size == 1) {
                 getAttachmentTypeByClass(attachments[0])?.let {
-                    getAttachmentTextByType(
-                        context,
-                        it
-                    )
+                    getAttachmentTextByType(it)
                 }
             } else {
                 if (isAttachmentsHaveOneType(attachments)) {
                     getAttachmentTypeByClass(attachments[0])?.let {
-                        getAttachmentTextByType(
-                            context, it, attachments.size
-                        )
+                        getAttachmentTextByType(it, attachments.size)
                     }
                 } else {
-                    context.getString(R.string.message_attachments_many)
+                    UiText.Resource(R.string.message_attachments_many)
                 }
             }
         }
     }
 
-    fun getAttachmentConversationIcon(context: Context, message: VkMessage): Drawable? {
+    fun getAttachmentConversationIcon(
+        context: Context,
+        message: VkMessage?,
+    ): Drawable? {
+        if (message == null) return null
         return message.attachments?.let { attachments ->
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 message.geo?.let {
@@ -684,7 +694,7 @@ object VkUtils {
 
     fun getAttachmentIconByType(
         context: Context,
-        attachmentType: BaseVkAttachmentItem.AttachmentType
+        attachmentType: BaseVkAttachmentItem.AttachmentType,
     ): Drawable? {
         val resId = when (attachmentType) {
             BaseVkAttachmentItem.AttachmentType.Photo -> R.drawable.ic_attachment_photo
@@ -748,50 +758,49 @@ object VkUtils {
     }
 
     fun getAttachmentTextByType(
-        context: Context,
         attachmentType: BaseVkAttachmentItem.AttachmentType,
-        size: Int = 1
-    ): String {
+        size: Int = 1,
+    ): UiText {
         return when (attachmentType) {
             BaseVkAttachmentItem.AttachmentType.Photo ->
-                context.resources.getQuantityString(R.plurals.attachment_photos, size, size)
+                UiText.QuantityResource(R.plurals.attachment_photos, size)
             BaseVkAttachmentItem.AttachmentType.Video ->
-                context.resources.getQuantityString(R.plurals.attachment_videos, size, size)
+                UiText.QuantityResource(R.plurals.attachment_videos, size)
             BaseVkAttachmentItem.AttachmentType.Audio ->
-                context.resources.getQuantityString(R.plurals.attachment_audios, size, size)
+                UiText.QuantityResource(R.plurals.attachment_audios, size)
             BaseVkAttachmentItem.AttachmentType.File ->
-                context.resources.getQuantityString(R.plurals.attachment_files, size, size)
+                UiText.QuantityResource(R.plurals.attachment_files, size)
             BaseVkAttachmentItem.AttachmentType.Link ->
-                context.resources.getString(R.string.message_attachments_link)
+                UiText.Resource(R.string.message_attachments_link)
             BaseVkAttachmentItem.AttachmentType.Voice ->
-                context.resources.getString(R.string.message_attachments_voice)
+                UiText.Resource(R.string.message_attachments_voice)
             BaseVkAttachmentItem.AttachmentType.MiniApp ->
-                context.resources.getString(R.string.message_attachments_mini_app)
+                UiText.Resource(R.string.message_attachments_mini_app)
             BaseVkAttachmentItem.AttachmentType.Sticker ->
-                context.resources.getString(R.string.message_attachments_sticker)
+                UiText.Resource(R.string.message_attachments_sticker)
             BaseVkAttachmentItem.AttachmentType.Gift ->
-                context.resources.getString(R.string.message_attachments_gift)
+                UiText.Resource(R.string.message_attachments_gift)
             BaseVkAttachmentItem.AttachmentType.Wall ->
-                context.resources.getString(R.string.message_attachments_wall)
+                UiText.Resource(R.string.message_attachments_wall)
             BaseVkAttachmentItem.AttachmentType.Graffiti ->
-                context.resources.getString(R.string.message_attachments_graffiti)
+                UiText.Resource(R.string.message_attachments_graffiti)
             BaseVkAttachmentItem.AttachmentType.Poll ->
-                context.resources.getString(R.string.message_attachments_poll)
+                UiText.Resource(R.string.message_attachments_poll)
             BaseVkAttachmentItem.AttachmentType.WallReply ->
-                context.resources.getString(R.string.message_attachments_wall_reply)
+                UiText.Resource(R.string.message_attachments_wall_reply)
             BaseVkAttachmentItem.AttachmentType.Call ->
-                context.resources.getString(R.string.message_attachments_call)
+                UiText.Resource(R.string.message_attachments_call)
             BaseVkAttachmentItem.AttachmentType.GroupCallInProgress ->
-                context.resources.getString(R.string.message_attachments_call_in_progress)
+                UiText.Resource(R.string.message_attachments_call_in_progress)
             BaseVkAttachmentItem.AttachmentType.Event ->
-                context.resources.getString(R.string.message_attachments_event)
+                UiText.Resource(R.string.message_attachments_event)
             BaseVkAttachmentItem.AttachmentType.Curator ->
-                context.resources.getString(R.string.message_attachments_curator)
+                UiText.Resource(R.string.message_attachments_curator)
             BaseVkAttachmentItem.AttachmentType.Story ->
-                context.resources.getString(R.string.message_attachments_story)
+                UiText.Resource(R.string.message_attachments_story)
             BaseVkAttachmentItem.AttachmentType.Widget ->
-                context.resources.getString(R.string.message_attachments_widget)
-            else -> attachmentType.value
+                UiText.Resource(R.string.message_attachments_widget)
+            else -> UiText.Simple(attachmentType.value)
         }
     }
 
@@ -832,6 +841,13 @@ object VkUtils {
 
                         captchaRequiredError
                     }
+                    VkErrors.InvalidRequest -> {
+                        when (defaultError.errorType) {
+                            VkErrorTypes.OtpFormatIncorrect -> WrongTwoFaCodeFormatError
+                            VkErrorTypes.WrongOtp -> WrongTwoFaCodeError
+                            else -> defaultError
+                        }
+                    }
                     else -> defaultError
                 }
 
@@ -844,7 +860,7 @@ object VkUtils {
     fun visualizeMentions(
         messageText: String,
         mentionColor: Int,
-        onMentionClick: ((id: Int) -> Unit)? = null
+        onMentionClick: ((id: Int) -> Unit)? = null,
     ): SpannableStringBuilder {
         if (messageText.isEmpty()) {
             return SpannableStringBuilder("")
@@ -853,7 +869,7 @@ object VkUtils {
         var newMessageText = messageText
 
         val idsIndexes = mutableListOf<Triple<Int, Int, Int>>()
-        val mentions = hashMapOf<String, String>()
+        val mentions = mutableListOf<Pair<String, String>>()
 
         var startFrom = 0
 
@@ -879,15 +895,27 @@ object VkUtils {
 
             val str = "[$idPart|$text]"
 
-            mentions[str] = text
+            mentions += str to text
 
             idsIndexes += Triple(actualId, leftBracketIndex, leftBracketIndex + text.length)
 
             startFrom = rightBracketIndex + 1
         }
 
-        mentions.forEach {
-            newMessageText = newMessageText.replace(it.key, it.value)
+        idsIndexes.reverse()
+
+        mentions.forEachIndexed { index, pair ->
+            val old = pair.first
+            val new = pair.second
+
+            val oldIndexStart = newMessageText.indexOf(old)
+
+            idsIndexes[index].copy(
+                second = oldIndexStart,
+                third = oldIndexStart + new.length
+            ).let { idsIndexes[index] = it }
+
+            newMessageText = newMessageText.replace(old, new)
         }
 
         val spanBuilder = SpannableStringBuilder(newMessageText)
@@ -911,7 +939,7 @@ object VkUtils {
     private fun createClickableSpan(
         id: Int,
         mentionColor: Int,
-        onMentionClick: ((id: Int) -> Unit)? = null
+        onMentionClick: ((id: Int) -> Unit)? = null,
     ): ClickableSpan {
         return object : ClickableSpan() {
             override fun onClick(widget: View) {

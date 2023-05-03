@@ -7,8 +7,6 @@ enum class ApiEvent(val value: Int) {
     MessageEdit(5),
     MessageReadIncoming(6),
     MessageReadOutgoing(7),
-    FriendOnline(8),
-    FriendOffline(9),
     MessagesDeleted(13),
     PinUnpinConversation(20),
     PrivateTyping(61),

@@ -1,375 +1,381 @@
 package com.meloda.fast.screens.updates
 
-import android.animation.ObjectAnimator
-import android.app.DownloadManager
-import android.content.IntentFilter
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.view.animation.DecelerateInterpolator
+import android.view.ViewGroup
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.meloda.fast.R
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.common.AppConstants
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.UpdateManager
-import com.meloda.fast.databinding.FragmentUpdatesBinding
-import com.meloda.fast.ext.clear
+import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.listenValue
-import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.showDialog
+import com.meloda.fast.ext.string
 import com.meloda.fast.model.UpdateItem
-import com.meloda.fast.receiver.DownloadManagerReceiver
-import com.meloda.fast.screens.main.MainActivity
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.updates.model.UpdateState
+import com.meloda.fast.ui.AppTheme
 import com.meloda.fast.util.AndroidUtils
-import dagger.hilt.android.AndroidEntryPoint
-import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.util.Timer
-import java.util.TimerTask
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-// TODO: 29.12.2022, Danil Nikolaev: переписать работу с Flow
-@AndroidEntryPoint
-class UpdatesFragment : BaseViewModelFragment<UpdatesViewModel>(R.layout.fragment_updates) {
 
-    private val binding by viewBinding(FragmentUpdatesBinding::bind)
+class UpdatesFragment : BaseFragment(R.layout.fragment_updates) {
 
-    override val viewModel: UpdatesViewModel by viewModels()
+    private val viewModel: UpdatesViewModel by viewModel<UpdatesViewModelImpl>()
 
-    private var downloadId: Long? = null
+    private val changelogPlaceholder by lazy {
+        string(R.string.fragment_updates_changelog_none)
+    }
 
-    private var timer: Timer? = null
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        binding.appBar.applyInsetter {
-            type(statusBars = true) { padding() }
-        }
-
-        (requireActivity() as MainActivity).setSupportActionBar(binding.toolbar)
-
-        binding.root.applyInsetter {
-            type(navigationBars = true) { padding() }
-        }
-
-        UpdateManager.newUpdate.observe(viewLifecycleOwner) { item ->
-            viewModel.currentItem.update { item }
-        }
-
-        viewModel.updateState.listenValue(::refreshState)
-
-        if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
-            val updateItem: UpdateItem =
-                requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java)
-                    ?: return
-            viewModel.currentItem.update { updateItem }
-            viewModel.updateState.update { UpdateState.NewUpdate }
-        } else {
-            viewModel.checkUpdates()
-        }
-
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
-
-        binding.changelog.setOnClickListener {
-            showChangelogAlert()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                UpdatesScreen()
+            }
         }
     }
 
-    private fun refreshState(state: UpdateState) {
-        binding.actionButton.toggleVisibility(
-            !listOf(
-                UpdateState.Downloading,
-                UpdateState.Loading
-            ).contains(viewModel.updateState.value)
-        )
-        binding.flow.toggleVisibility(
-            !listOf(
-                UpdateState.Downloading,
-                UpdateState.Loading
-            ).contains(viewModel.updateState.value)
-        )
-        binding.progress.toggleVisibility(
-            viewModel.updateState.value == UpdateState.Loading
-        )
-        binding.changelog.toggleVisibility(
-            viewModel.updateState.value == UpdateState.NewUpdate
-        )
-        binding.loadingProgress.toggleVisibility(
-            viewModel.updateState.value == UpdateState.Downloading
-        )
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun UpdatesScreen() {
+        AppTheme {
+            val state by viewModel.screenState.collectAsState()
+            val updateState = state.updateState
+            val downloadProgress by viewModel.currentDownloadProgress.collectAsState()
+            val animatedProgress by animateFloatAsState(
+                targetValue = downloadProgress / 100f,
+                animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+            )
 
-        if (state != UpdateState.Downloading) {
-            timer?.cancel()
-            downloadId?.run { AppGlobal.downloadManager.remove(this) }
+            Scaffold(topBar = { Toolbar() }) { paddingValues ->
+                Surface(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        when {
+                            updateState.isLoading() -> CircularProgressIndicator()
+                            updateState.isDownloading() -> {
+                                Text(
+                                    text = getString(R.string.fragment_updates_downloading_update),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                if (animatedProgress > 0) {
+                                    LinearProgressIndicator(progress = animatedProgress)
+                                } else {
+                                    LinearProgressIndicator()
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                FilledTonalButton(onClick = viewModel::onCancelDownloadButtonClicked) {
+                                    Text(text = getString(R.string.action_stop))
+                                }
+                            }
+
+                            else -> {
+                                getTitle(updateState)?.let { title ->
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+
+                                getSubtitle(updateState)?.let { subtitle ->
+                                    Text(
+                                        text = subtitle,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+
+                                state.updateItem?.changelog?.let {
+                                    Text(
+                                        text = getString(R.string.fragment_updates_changelog),
+                                        style = TextStyle(textDecoration = TextDecoration.Underline),
+                                        modifier = Modifier.clickable(onClick = viewModel::onChangelogButtonClicked)
+                                    )
+                                }
+
+                                getActionButtonText(updateState)?.let { buttonText ->
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    ExtendedFloatingActionButton(
+                                        onClick = viewModel::onActionButtonClicked,
+                                        modifier = Modifier,
+                                        text = { Text(text = buttonText) },
+                                        icon = {
+                                            getActionButtonIcon(state = updateState)?.let { painter ->
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Icon(painter = painter, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                }
+
+                                if (updateState.isDownloaded()) {
+                                    Spacer(modifier = Modifier.height(48.dp))
+                                    Text(
+                                        text = getString(R.string.fragment_updates_issues_installing),
+                                        style = TextStyle(textDecoration = TextDecoration.Underline),
+                                        modifier = Modifier.clickable(onClick = viewModel::onIssuesButtonClicked),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
 
-        when (state) {
-            UpdateState.NewUpdate -> {
-                val item = viewModel.currentItem.value ?: return
-                binding.title.setText(R.string.fragment_updates_new_version)
+    private fun getTitle(state: UpdateState): String? {
+        return when (state) {
+            UpdateState.Error -> R.string.error_occurred
+            UpdateState.NewUpdate -> R.string.fragment_updates_new_version
+            UpdateState.NoUpdates -> R.string.fragment_updates_no_updates
+            UpdateState.Downloaded -> R.string.fragment_updates_downloaded
+            else -> null
+        }?.let(requireContext()::getString)
+    }
 
-                binding.description.text = getString(
-                    R.string.fragment_updates_new_version_description,
-                    item.versionName
-                )
-
-                binding.actionButton.setText(R.string.fragment_updates_download_update)
-                binding.actionButton.setOnClickListener { checkIsInstallingAllowed(item) }
-            }
-            UpdateState.NoUpdates -> {
-                binding.title.setText(R.string.fragment_updates_no_updates)
-                binding.description.setText(R.string.fragment_updates_no_updates_description)
-
-                binding.actionButton.setText(R.string.fragment_updates_check_updates)
-                binding.actionButton.setOnClickListener { viewModel.checkUpdates() }
-            }
-            UpdateState.Loading -> {
-                binding.title.clear()
-                binding.description.clear()
-                binding.actionButton.clear()
-            }
+    private fun getSubtitle(state: UpdateState): String? {
+        return when (state) {
             UpdateState.Error -> {
-                val error = viewModel.currentError.value ?: return
-
-                binding.title.setText(R.string.fragment_updates_error_occurred)
-
-                val errorText =
+                viewModel.screenState.value.error?.let { error ->
                     if (error.contains("cannot be converted", ignoreCase = true)
                         || error.contains("begin_object", ignoreCase = true)
                     ) {
                         "OTA Server is unavailable"
                     } else {
-                        getString(R.string.fragment_updates_error_occurred_description, error)
+                        string(R.string.error_occurred_description, error)
                     }
-
-                binding.description.text = errorText
-
-                binding.actionButton.setText(R.string.fragment_updates_try_again)
-                binding.actionButton.setOnClickListener { viewModel.checkUpdates() }
-            }
-            UpdateState.Downloading -> {
-                binding.loadingProgress.run {
-                    max = 0
-                    progress = 0
-                    isIndeterminate = true
                 }
             }
+
+            UpdateState.NewUpdate, UpdateState.Downloaded -> {
+                viewModel.screenState.value.updateItem?.let { item ->
+                    string(
+                        R.string.fragment_updates_new_version_description, item.versionName
+                    )
+                }
+            }
+
+            UpdateState.NoUpdates -> string(R.string.fragment_updates_no_updates_description)
+            else -> null
         }
     }
 
-    private fun checkIsInstallingAllowed(item: UpdateItem) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O &&
-            !AndroidUtils.isCanInstallUnknownApps(requireContext())
-        ) {
-            val builder = MaterialAlertDialogBuilder(requireContext())
-            builder.setTitle(R.string.warning)
-            builder.setMessage(R.string.fragment_updates_unknown_sources_disabled_message)
-            builder.setPositiveButton(R.string.yes) { _, _ ->
-                AndroidUtils.openInstallUnknownAppsScreen(requireContext())
+    private fun getActionButtonText(state: UpdateState): String? {
+        return when (state) {
+            UpdateState.Error -> R.string.fragment_updates_try_again
+            UpdateState.NewUpdate -> R.string.fragment_updates_download_update
+            UpdateState.NoUpdates -> R.string.fragment_updates_check_updates
+            UpdateState.Downloaded -> R.string.fragment_updates_install
+            else -> null
+        }?.let(requireContext()::getString)
+    }
+
+    @Composable
+    private fun getActionButtonIcon(state: UpdateState): Painter? {
+        return when (state) {
+            UpdateState.Error -> R.drawable.round_restart_alt_24
+            UpdateState.NewUpdate -> R.drawable.round_file_download_24
+            UpdateState.Downloaded -> R.drawable.round_install_mobile_24
+            else -> null
+        }?.let { painterResource(id = it) }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun Toolbar() {
+        TopAppBar(
+            title = { Text(text = "Application updates") },
+            navigationIcon = {
+                IconButton(
+                    onClick = { requireActivity().onBackPressedDispatcher.onBackPressed() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBack,
+                        contentDescription = null,
+                    )
+                }
             }
-            builder.setNegativeButton(R.string.no, null)
-            builder.show()
+        )
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        listenViewModel()
+
+        if (requireArguments().containsKey(ARG_UPDATE_ITEM)) {
+            val updateItem: UpdateItem =
+                requireArguments().getParcelableCompat(ARG_UPDATE_ITEM, UpdateItem::class.java)
+                    ?: return
+
+            viewModel.onUpdateItemExists(updateItem)
         } else {
-            downloadUpdate(item)
+            viewModel.checkUpdates()
         }
     }
 
-    private fun downloadUpdate(newUpdate: UpdateItem) {
-        viewModel.updateState.update { UpdateState.Loading }
+    private fun listenViewModel() = with(viewModel) {
+        isNeedToShowChangelogAlert.listenValue(::handleNeedToShowChangelogAlert)
+        isNeedToShowUnknownSourcesAlert.listenValue(::handleNeedToShowUnknownSourcesAlert)
+        isNeedToShowIssuesAlert.listenValue(::handleNeedToShowIssuesAlert)
+        isNeedToShowFileNotFoundAlert.listenValue(::handleNeedToShowFileNotFoundAlert)
+    }
 
-        timer = Timer()
-
-        val apkName = newUpdate.versionName
-
-        val destination = requireContext()
-            .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/$apkName.apk"
-
-        val file = File(destination)
-        if (file.exists()) file.delete()
-
-        val request = DownloadManager.Request(Uri.parse(newUpdate.downloadLink)).apply {
-            setTitle("${getString(R.string.app_name)} ${apkName}.apk")
-            setMimeType(AppConstants.INSTALL_APP_MIME_TYPE)
-            setDestinationInExternalFilesDir(
-                requireContext(),
-                Environment.DIRECTORY_DOWNLOADS,
-                "$apkName.apk"
-            )
-            setAllowedNetworkTypes(
-                DownloadManager.Request.NETWORK_WIFI or
-                        DownloadManager.Request.NETWORK_MOBILE
-            )
-            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+    private fun handleNeedToShowChangelogAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showChangelogAlert()
         }
+    }
 
-        val receiver = DownloadManagerReceiver()
-        receiver.onReceiveAction = {
-            timer?.cancel()
-            downloadId = null
-
-            installUpdate(file)
-
-            requireContext().unregisterReceiver(receiver)
-
-            viewModel.updateState.update { UpdateState.NewUpdate }
+    private fun handleNeedToShowUnknownSourcesAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showUnknownSourcesAlert()
         }
+    }
 
-        requireContext().registerReceiver(
-            receiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+    private fun handleNeedToShowIssuesAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showIssuesAlert()
+        }
+    }
+
+    private fun handleNeedToShowFileNotFoundAlert(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showFileNotFoundAlert()
+        }
+    }
+
+    private fun showUnknownSourcesAlert() {
+        context?.showDialog(
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Resource(R.string.fragment_updates_unknown_sources_disabled_message),
+            positiveText = UiText.Resource(R.string.yes),
+            positiveAction = { AndroidUtils.openInstallUnknownAppsScreen(requireContext()) },
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onUnknownSourcesAlertDismissed,
+            isCancelable = false
         )
-
-        downloadId = AppGlobal.downloadManager.enqueue(request)
-
-        viewModel.updateState.update { UpdateState.Downloading }
-
-        if (binding.loadingProgress.max != 100 * 100) {
-            binding.loadingProgress.max = 100 * 100
-        }
-
-        timer?.schedule(object : TimerTask() { // for progress
-            override fun run() {
-                val query = DownloadManager.Query()
-                query.setFilterById(downloadId ?: -1)
-
-                val cursor = AppGlobal.downloadManager.query(query)
-                if (cursor.moveToFirst()) {
-                    val sizeIndex =
-                        cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                    val downloadedIndex =
-                        cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                    val size = cursor.getInt(sizeIndex)
-                    val downloaded = cursor.getInt(downloadedIndex)
-
-                    val progress =
-                        if (size != -1) (downloaded * 100.0F / size) else 0.0F
-
-                    if (progress.toInt() >= 1) {
-                        lifecycleScope.launch(Dispatchers.Main) {
-                            if (view == null) {
-                                downloadId?.run { AppGlobal.downloadManager.remove(this) }
-                                timer?.cancel()
-                                return@launch
-                            }
-                            binding.loadingProgress.isIndeterminate = false
-
-                            if (binding.loadingProgress.progress != progress.toInt()) {
-                                ObjectAnimator.ofInt(
-                                    binding.loadingProgress,
-                                    "progress",
-                                    binding.loadingProgress.progress,
-                                    progress.toInt() * 100
-                                ).apply {
-                                    duration = 250
-                                    setAutoCancel(true)
-                                    interpolator = DecelerateInterpolator()
-                                }.start()
-                            }
-                        }
-                    }
-
-                    Log.d("Downloading update", "progress $progress%")
-                }
-            }
-
-        }, 0, 250)
-    }
-
-    private fun writeFileToStorage(responseBody: ResponseBody?) {
-        if (responseBody == null) return
-
-        val updateItem = requireNotNull(viewModel.currentItem.value)
-
-        try {
-            val destination = requireContext()
-                .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
-                    "${File.separator}${updateItem.fileName}.${updateItem.extension}"
-
-            val file = File(destination)
-            if (file.exists()) file.delete()
-
-            var inputStream: InputStream? = null
-            var outputStream: OutputStream? = null
-            try {
-                val fileReader = ByteArray(4096)
-                val fileSize: Long = responseBody.contentLength()
-
-                requireActivity().runOnUiThread {
-                    binding.loadingProgress.max = fileSize.toInt()
-                    binding.loadingProgress.progress = 0
-                }
-
-                var fileSizeDownloaded: Long = 0
-                inputStream = responseBody.byteStream()
-                outputStream = FileOutputStream(file)
-                while (true) {
-                    val read: Int = inputStream.read(fileReader)
-                    if (read == -1) {
-                        break
-                    }
-                    outputStream.write(fileReader, 0, read)
-                    fileSizeDownloaded += read.toLong()
-                }
-                outputStream.flush()
-
-                requireActivity().runOnUiThread {
-                    installUpdate(file)
-                }
-            } catch (e: IOException) {
-
-            } finally {
-                inputStream?.close()
-                outputStream?.close()
-            }
-        } catch (e: IOException) {
-
-        }
-    }
-
-    private fun installUpdate(file: File) {
-        val installIntent = AndroidUtils.getInstallPackageIntent(
-            requireContext(),
-            ARG_PROVIDER_PATH,
-            file
-        )
-
-        requireContext().startActivity(installIntent)
     }
 
     private fun showChangelogAlert() {
-        val changelog = viewModel.currentItem.value?.changelog
-
         val messageText =
-            if (changelog.isNullOrBlank()) getString(R.string.fragment_updates_changelog_none)
-            else changelog
+            viewModel.screenState.value.updateItem?.changelog?.ifBlank {
+                changelogPlaceholder
+            } ?: changelogPlaceholder
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.fragment_updates_changelog)
-            .setMessage(messageText)
-            .setPositiveButton(R.string.ok, null)
-            .show()
+        context?.showDialog(
+            title = UiText.Resource(R.string.fragment_updates_changelog),
+            message = UiText.Simple(messageText),
+            positiveText = UiText.Resource(R.string.ok),
+            onDismissAction = viewModel::onChangelogAlertDismissed
+        )
+    }
+
+    private fun showIssuesAlert() {
+        context?.showDialog(
+            message = UiText.Resource(R.string.fragment_updates_issues_description),
+            positiveText = UiText.Resource(R.string.action_delete),
+            positiveAction = viewModel::onIssuesAlertPositiveButtonClicked,
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onIssuesAlertDismissed
+        )
+    }
+
+    private fun showFileNotFoundAlert() {
+        context?.showDialog(
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Resource(R.string.fragment_updates_file_not_found_description),
+            positiveText = UiText.Resource(R.string.ok),
+            onDismissAction = viewModel::onFileNotFoundAlertDismissed,
+            isCancelable = false
+        )
+    }
+
+    private fun writeFileToStorage(responseBody: ResponseBody?) {
+//        if (responseBody == null) return
+//
+//        val updateItem = requireNotNull(viewModel.currentItem.value)
+//
+//        try {
+//            val destination = requireContext()
+//                .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
+//                    "${File.separator}${updateItem.fileName}.${updateItem.extension}"
+//
+//            val file = File(destination)
+//            if (file.exists()) file.delete()
+//
+//            var inputStream: InputStream? = null
+//            var outputStream: OutputStream? = null
+//            try {
+//                val fileReader = ByteArray(4096)
+//                val fileSize: Long = responseBody.contentLength()
+//
+//                requireActivity().runOnUiThread {
+//                    binding.loadingProgress.max = fileSize.toInt()
+//                    binding.loadingProgress.progress = 0
+//                }
+//
+//                var fileSizeDownloaded: Long = 0
+//                inputStream = responseBody.byteStream()
+//                outputStream = FileOutputStream(file)
+//                while (true) {
+//                    val read: Int = inputStream.read(fileReader)
+//                    if (read == -1) {
+//                        break
+//                    }
+//                    outputStream.write(fileReader, 0, read)
+//                    fileSizeDownloaded += read.toLong()
+//                }
+//                outputStream.flush()
+//
+//                requireActivity().runOnUiThread {
+//                    installUpdate(file)
+//                }
+//            } catch (e: IOException) {
+//
+//            } finally {
+//                inputStream?.close()
+//                outputStream?.close()
+//            }
+//        } catch (e: IOException) {
+//
+//        }
     }
 
     companion object {
         private const val ARG_UPDATE_ITEM = "arg_update_item"
         private const val ARG_FILE_BASE_PATH = "file://"
-        private const val ARG_PROVIDER_PATH = ".provider"
 
         fun newInstance(updateItem: UpdateItem? = null): UpdatesFragment {
             val fragment = UpdatesFragment()

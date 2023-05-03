@@ -5,17 +5,14 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.VkChatMember
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.data.messages.MessagesRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ChatInfoViewModel @Inject constructor(
+class ChatInfoViewModel constructor(
     private val messagesRepository: MessagesRepository
-) : BaseViewModel() {
+) : DeprecatedBaseViewModel() {
 
     fun getConversationMembers(peerId: Int) = viewModelScope.launch {
         makeJob(
@@ -30,8 +27,8 @@ class ChatInfoViewModel @Inject constructor(
                 val response = it.response ?: return@makeJob
 
                 val items = response.items.map { member -> member.asVkChatMember() }
-                val profiles = response.profiles.orEmpty().map { profile -> profile.asVkUser() }
-                val groups = response.groups.orEmpty().map { group -> group.asVkGroup() }
+                val profiles = response.profiles.orEmpty().map { profile -> profile.mapToDomain() }
+                val groups = response.groups.orEmpty().map { group -> group.mapToDomain() }
 
                 sendEvent(GetConversationMembersEvent(response.count, items, profiles, groups))
             }

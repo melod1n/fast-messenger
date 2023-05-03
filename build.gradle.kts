@@ -5,13 +5,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0-RC2")
-        classpath("com.android.tools.build:gradle:7.4.0-rc03")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10")
+        classpath("com.android.tools.build:gradle:8.0.1")
     }
 }
 
 plugins {
-    id("com.google.dagger.hilt.android").version("2.44.2").apply(false)
+    id("org.jetbrains.kotlin.android") version "1.8.20" apply false
+    id("com.google.devtools.ksp") version "1.8.20-1.0.11" apply false
 }
 
 allprojects {
