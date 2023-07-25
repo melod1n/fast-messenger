@@ -12,6 +12,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.database.CacheDatabase
+import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.isTrue
@@ -40,6 +41,8 @@ interface SettingsViewModel {
 
     val isNeedToShowLogOutAlert: StateFlow<Boolean>
 
+    val isNeedToOpenTestingActivity: StateFlow<Boolean>
+
     fun onLogOutAlertDismissed()
 
     fun onLogOutAlertPositiveClick()
@@ -47,6 +50,8 @@ interface SettingsViewModel {
     fun onSettingsItemClicked(key: String)
     fun onSettingsItemLongClicked(key: String): Boolean
     fun onSettingsItemChanged(key: String, newValue: Any?)
+
+    fun onTestingActivityOpened()
 }
 
 class SettingsViewModelImpl constructor(
@@ -77,6 +82,8 @@ class SettingsViewModelImpl constructor(
     override val isLongPollBackgroundEnabled = MutableStateFlow<Boolean?>(null)
 
     override val isNeedToShowLogOutAlert = MutableStateFlow(false)
+
+    override val isNeedToOpenTestingActivity = MutableStateFlow(false)
 
     init {
         createSettings()
@@ -236,17 +243,21 @@ class SettingsViewModelImpl constructor(
                 summary = UiText.Simple("Only in settings screen"),
                 defaultValue = SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
             )
-            val useBlur = SettingsItem.Switch.build(
+            val debugUseBlur = SettingsItem.Switch.build(
                 key = SettingsFragment.KEY_USE_BLUR,
                 defaultValue = SettingsFragment.DEFAULT_VALUE_USE_BLUR,
                 title = UiText.Simple("[WIP] Use blur"),
                 summary = UiText.Simple("Use blur wherever it's possible")
             )
-            val useCompose = SettingsItem.Switch.build(
+            val debugUseCompose = SettingsItem.Switch.build(
                 key = SettingsFragment.KEY_USE_COMPOSE,
                 defaultValue = SettingsFragment.DEFAULT_VALUE_USE_COMPOSE,
                 title = UiText.Simple("Use Compose"),
                 summary = UiText.Simple("Use Compose on those screens where there is a test implementation of it")
+            )
+            val debugOpenTestingActivity = SettingsItem.TitleSummary.build(
+                key = SettingsFragment.KEY_OPEN_TESTING_ACTIVITY,
+                title = UiText.Simple("Open testing activity")
             )
 
             val debugHideDebugList = SettingsItem.TitleSummary.build(
@@ -289,8 +300,9 @@ class SettingsViewModelImpl constructor(
                 debugUseDynamicColors,
                 debugDarkTheme,
                 debugUseLargeTopAppBar,
-                useBlur,
-                useCompose
+                debugUseBlur,
+                debugUseCompose,
+                debugOpenTestingActivity
             ).forEach(debugList::add)
 
             debugList += debugHideDebugList
@@ -346,12 +358,15 @@ class SettingsViewModelImpl constructor(
                     isNeedToShowLogOutAlert.emit(true)
                 }
             }
+
             SettingsFragment.KEY_UPDATES_CHECK_UPDATES -> {
                 openUpdatesScreen()
             }
+
             SettingsFragment.KEY_DEBUG_PERFORM_CRASH -> {
                 throw TestCrashException()
             }
+
             SettingsFragment.KEY_DEBUG_HIDE_DEBUG_LIST -> {
                 val showDebugCategory =
                     AppGlobal.preferences.getBoolean(
@@ -365,6 +380,10 @@ class SettingsViewModelImpl constructor(
                 }
 
                 createSettings()
+            }
+
+            SettingsFragment.KEY_OPEN_TESTING_ACTIVITY -> {
+                isNeedToOpenTestingActivity.emitOnMainScope(true)
             }
         }
     }
@@ -385,6 +404,7 @@ class SettingsViewModelImpl constructor(
                 createSettings()
                 true
             }
+
             else -> false
         }
     }
@@ -395,23 +415,31 @@ class SettingsViewModelImpl constructor(
                 val newMode = newValue as? Int ?: return
                 AppCompatDelegate.setDefaultNightMode(newMode)
             }
+
             SettingsFragment.KEY_APPEARANCE_MULTILINE -> {
                 val isEnabled = (newValue as? Boolean).isTrue
                 isMultilineEnabled.update { isEnabled }
             }
+
             SettingsFragment.KEY_USE_DYNAMIC_COLORS -> {
                 val isEnabled = (newValue as? Boolean).isTrue
                 useDynamicColors.update { isEnabled }
             }
+
             SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR -> {
                 val isEnabled = (newValue as? Boolean).isTrue
                 useLargeTopAppBar.update { isEnabled }
             }
+
             SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 val isEnabled = (newValue as? Boolean).isTrue
                 isLongPollBackgroundEnabled.update { isEnabled }
             }
         }
+    }
+
+    override fun onTestingActivityOpened() {
+        isNeedToOpenTestingActivity.emitOnMainScope(false)
     }
 
     private fun openUpdatesScreen() {

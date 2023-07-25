@@ -28,10 +28,17 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
+import com.meloda.fast.ext.emitOnMainScope
+import com.meloda.fast.ext.emitWithMain
 import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.toMap
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -48,7 +55,7 @@ interface ConversationsViewModel {
 
     fun onOptionsDialogDismissed()
 
-    fun onOptionsDialogOptionClicked(conversation: VkConversationDomain, key: String)
+    fun onOptionsDialogOptionClicked(conversation: VkConversationDomain, key: String): Boolean
 
     fun onDeleteDialogDismissed()
 
@@ -104,23 +111,35 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onOptionsDialogDismissed() {
-        viewModelScope.launch(Dispatchers.Main) {
-            isNeedToShowOptionsDialog.emit(null)
-        }
+        isNeedToShowOptionsDialog.emitOnMainScope(null)
     }
 
-    override fun onOptionsDialogOptionClicked(conversation: VkConversationDomain, key: String) {
-        when (key) {
-            "read" -> readConversation(conversation)
-            "delete" -> isNeedToShowDeleteDialog.tryEmit(conversation.id)
-            "pin" -> isNeedToShowPinDialog.tryEmit(conversation)
+    override fun onOptionsDialogOptionClicked(
+        conversation: VkConversationDomain,
+        key: String
+    ): Boolean {
+        return when (key) {
+            "read" -> {
+                readConversation(conversation)
+                true
+            }
+
+            "delete" -> {
+                isNeedToShowDeleteDialog.emitOnMainScope(conversation.id)
+                true
+            }
+
+            "pin" -> {
+                isNeedToShowPinDialog.emitOnMainScope(conversation)
+                true
+            }
+
+            else -> false
         }
     }
 
     override fun onDeleteDialogDismissed() {
-        viewModelScope.launch(Dispatchers.Main) {
-            isNeedToShowDeleteDialog.emit(null)
-        }
+        isNeedToShowDeleteDialog.emitOnMainScope(null)
     }
 
     override fun onDeleteDialogPositiveClick(conversationId: Int) {
@@ -141,14 +160,12 @@ class ConversationsViewModelImpl constructor(
 
     override fun onConversationItemLongClick(conversationUi: VkConversationUi): Boolean {
         val domainConversation = domainConversations.value.find { it.id == conversationUi.id }
-        isNeedToShowOptionsDialog.tryEmit(domainConversation)
+        isNeedToShowOptionsDialog.emitOnMainScope(domainConversation)
         return true
     }
 
     override fun onPinDialogDismissed() {
-        viewModelScope.launch(Dispatchers.Main) {
-            isNeedToShowPinDialog.emit(null)
-        }
+        isNeedToShowPinDialog.emitOnMainScope(null)
     }
 
     override fun onPinDialogPositiveClick(conversation: VkConversationDomain) {
@@ -161,6 +178,7 @@ class ConversationsViewModelImpl constructor(
                 router.navigateTo(Screens.Settings())
                 true
             }
+
             else -> false
         }
     }
@@ -178,7 +196,13 @@ class ConversationsViewModelImpl constructor(
 
     private fun loadConversations(offset: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-            sendRequest {
+            isLoading.emitWithMain(true)
+            sendRequest(
+                onError = {
+                    isLoading.emitWithMain(false)
+                    false
+                }
+            ) {
                 conversationsRepository.get(
                     ConversationsGetRequest(
                         count = 30,
@@ -223,6 +247,8 @@ class ConversationsViewModelImpl constructor(
 
                 val domainConversationsList = dataConversationsList.mapToDomain()
                 emitConversations(domainConversationsList)
+
+                isLoading.emitWithMain(false)
             }
         }
     }

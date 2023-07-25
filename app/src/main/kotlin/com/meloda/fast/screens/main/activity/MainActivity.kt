@@ -2,12 +2,15 @@ package com.meloda.fast.screens.main.activity
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.StatusBarManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
@@ -29,6 +32,7 @@ import com.meloda.fast.ext.listenValue
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.main.activity.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.service.LongPollQSTileService
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
 import com.meloda.fast.util.AndroidUtils
@@ -272,7 +276,28 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     private fun openMainScreen() {
         if (savedInstanceState != null) return
-        router.newRootScreen(Screens.Main())
+
+        var needToOpenSettings = false
+
+        if (intent.dataString != null) {
+            intent.dataString?.let { data ->
+                if (data == "shortcut_settings") {
+                    needToOpenSettings = true
+                }
+            }
+        }
+
+        if (intent.hasExtra("data")) {
+            if (intent.getStringExtra("data") == "open_settings") {
+                needToOpenSettings = true
+            }
+        }
+
+        if (needToOpenSettings) {
+            router.newRootScreen(Screens.Settings())
+        } else {
+            router.newRootScreen(Screens.Main())
+        }
     }
 
     override fun onDestroy() {

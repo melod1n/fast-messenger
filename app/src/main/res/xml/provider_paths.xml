@@ -12,4 +12,7 @@
     <files-path
         name="files"
         path="." />
+    <cache-path
+        name="shared_images"
+        path="images/" />
 </paths>

@@ -203,6 +203,10 @@ class ConversationsFragment : BaseFragment(R.layout.fragment_conversations) {
             if (!this.isRead(conversation) && !isOut) {
                 params += "read" to read
             }
+
+            if (!this.text.isNullOrBlank()) {
+                params += "share" to "Share"
+            }
         }
 
         if (canPinOneMoreDialog) params += "pin" to pin

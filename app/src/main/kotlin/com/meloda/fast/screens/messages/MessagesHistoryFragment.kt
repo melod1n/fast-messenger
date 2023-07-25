@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.bumptech.glide.Glide
 import com.github.terrakok.cicerone.Router
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.net.MediaType
@@ -35,6 +36,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
@@ -56,13 +58,13 @@ import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.sdk30AndUp
 import com.meloda.fast.ext.selectLast
 import com.meloda.fast.ext.showKeyboard
-import com.meloda.fast.ext.toggleVisibility
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
+import com.meloda.fast.util.ShareContent
 import com.meloda.fast.util.TimeUtils
 import com.meloda.fast.view.SpaceItemDecoration
 import dev.chrisbanes.insetter.applyInsetter
@@ -435,15 +437,6 @@ class MessagesHistoryFragment :
             is MessagesEditEvent -> editMessage(event)
             is MessagesReadEvent -> readMessages(event)
             is MessagesNewEvent -> addNewMessage(event)
-        }
-    }
-
-    // TODO: 17.04.2023, Danil Nikolaev: handle loading progress
-    private fun toggleProgress(isProgressing: Boolean) {
-        view?.run {
-            findViewById<View>(R.id.progress_bar).toggleVisibility(
-                if (isProgressing) adapter.isEmpty() else false
-            )
         }
     }
 
@@ -952,6 +945,10 @@ class MessagesHistoryFragment :
 
         val edit = getString(R.string.message_context_action_edit)
 
+        val copy = "Copy"
+
+        val share = "Share"
+
         val delete = getString(R.string.message_context_action_delete)
 
         val params = mutableListOf<String>()
@@ -976,6 +973,18 @@ class MessagesHistoryFragment :
         if (message.canEdit()) {
             params += edit
             onlySentParams += edit
+        }
+
+        val notNullText = message.text.orEmpty()
+        val messageTextIsNotNull = !message.text.isNullOrBlank()
+
+        val notNullAttachments = message.attachments.orEmpty()
+        val attachmentsIsOnePhoto = notNullAttachments.size == 1 &&
+                notNullAttachments.first() is VkPhoto
+
+        if (messageTextIsNotNull || attachmentsIsOnePhoto) {
+            params += copy
+            params += share
         }
 
         params += delete
@@ -1016,6 +1025,96 @@ class MessagesHistoryFragment :
 
                         if (attachmentController.message.value != message)
                             attachmentController.message.update { message }
+                    }
+
+                    copy -> {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            when {
+                                messageTextIsNotNull && !attachmentsIsOnePhoto -> {
+                                    withContext(Dispatchers.Main) {
+                                        AndroidUtils.copyText(
+                                            text = notNullText,
+                                            withToast = true
+                                        )
+                                    }
+                                }
+
+                                else -> {
+                                    val imageUrl =
+                                        ((notNullAttachments.first() as? VkPhoto)?.getMaxSize()
+                                            ?: return@launch).url
+
+                                    val preloadedImageFileUri = Glide
+                                        .with(requireContext())
+                                        .downloadOnly()
+                                        .load(imageUrl)
+                                        .submit()
+                                        .get().let { file ->
+                                            val newFile =
+                                                AndroidUtils.getImageToShare(requireContext(), file)
+
+                                            newFile!!
+                                        }
+
+                                    withContext(Dispatchers.Main) {
+                                        if (messageTextIsNotNull) {
+                                            AndroidUtils.copyText(text = notNullText)
+                                            AndroidUtils.copyImage(
+                                                label = "Image",
+                                                imageUri = preloadedImageFileUri,
+                                                withToast = true
+                                            )
+                                        } else {
+                                            AndroidUtils.copyImage(
+                                                label = "Image",
+                                                imageUri = preloadedImageFileUri,
+                                                withToast = true
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    share -> {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val content = when {
+                                messageTextIsNotNull && !attachmentsIsOnePhoto -> {
+                                    ShareContent.Text(notNullText)
+                                }
+
+                                else -> {
+                                    val imageUrl =
+                                        ((notNullAttachments.first() as? VkPhoto)?.getMaxSize()
+                                            ?: return@launch).url
+
+                                    val preloadedImageFileUri = Glide
+                                        .with(requireContext())
+                                        .downloadOnly()
+                                        .load(imageUrl)
+                                        .submit()
+                                        .get().let { file ->
+                                            val newFile =
+                                                AndroidUtils.getImageToShare(requireContext(), file)
+
+                                            newFile!!
+                                        }
+
+                                    if (messageTextIsNotNull) {
+                                        ShareContent.TextWithImage(
+                                            notNullText, preloadedImageFileUri
+                                        )
+                                    } else {
+                                        ShareContent.Image(preloadedImageFileUri)
+                                    }
+                                }
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                AndroidUtils.showShareSheet(requireActivity(), content)
+                            }
+                        }
                     }
 
                     delete -> showDeleteMessageDialog(message)

@@ -1,5 +1,11 @@
 package com.meloda.fast.screens.settings
 
+import android.annotation.SuppressLint
+import android.app.StatusBarManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,12 +20,14 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.ext.*
 import com.meloda.fast.model.base.UiText
@@ -31,6 +39,8 @@ import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
 import com.meloda.fast.screens.settings.model.SettingsItem
+import com.meloda.fast.screens.testing.TestActivity
+import com.meloda.fast.service.LongPollQSTileService
 import com.meloda.fast.ui.AppTheme
 import kotlinx.coroutines.flow.update
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -38,6 +48,34 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class SettingsFragment : BaseFragment() {
 
     private val viewModel: SettingsViewModel by viewModel<SettingsViewModelImpl>()
+
+    @SuppressLint("WrongConstant")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        if (AppGlobal.preferences.getBoolean("first_open_settings", true)) {
+            AppGlobal.preferences.edit {
+                putBoolean("first_open_settings", false)
+            }
+
+            if (Build.VERSION.SDK_INT >= 33) {
+                val statusBarManager =
+                    requireContext().getSystemService(Context.STATUS_BAR_SERVICE) as StatusBarManager
+                statusBarManager.requestAddTileService(
+                    ComponentName(
+                        requireActivity(), LongPollQSTileService::class.java
+                    ),
+                    "Open Settings",
+                    android.graphics.drawable.Icon.createWithResource(
+                        requireActivity(),
+                        R.drawable.ic_round_settings_24
+                    ),
+                    {},
+                    {}
+                )
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,6 +95,7 @@ class SettingsFragment : BaseFragment() {
     private fun listenViewModel() {
         viewModel.isNeedToShowLogOutAlert.listenValue(::handleNeedToShowLogOutAlert)
         viewModel.isLongPollBackgroundEnabled.listenValue(::handleLongPollEnabled)
+        viewModel.isNeedToOpenTestingActivity.listenValue(::handleOpenTestingActivity)
     }
 
     private fun handleNeedToShowLogOutAlert(isNeedToShow: Boolean) {
@@ -74,6 +113,13 @@ class SettingsFragment : BaseFragment() {
             onStateChangedAction = { newState -> MainActivity.longPollState.update { newState } },
             fromSettings = true
         )
+    }
+
+    private fun handleOpenTestingActivity(newValue: Boolean) {
+        if (newValue) {
+            viewModel.onTestingActivityOpened()
+            context?.startActivity(Intent(context, TestActivity::class.java))
+        }
     }
 
     private fun showLogOutConfirmationDialog() {
@@ -292,6 +338,7 @@ class SettingsFragment : BaseFragment() {
         const val DEFAULT_VALUE_USE_BLUR = false
         const val KEY_USE_COMPOSE = "debug_use_compose"
         const val DEFAULT_VALUE_USE_COMPOSE = true
+        const val KEY_OPEN_TESTING_ACTIVITY = "debug_open_testing_activity"
 
         const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
 

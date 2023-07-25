@@ -123,6 +123,8 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
+
+
     // DI zone
     implementation("io.insert-koin:koin-android:3.4.0")
     // end of DI zone
@@ -183,7 +185,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.6.4")
 
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
 

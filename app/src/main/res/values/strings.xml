@@ -8,6 +8,7 @@
     <string name="navigation_profile">Profile</string>
     <string name="navigation_favorites">Favorites</string>
     <string name="navigation_settings">Settings</string>
+    <string name="static_settings">Static Settings</string>
 
     <string name="error_occurred">Error occurred</string>
     <string name="error_occurred_description">Error: %s</string>
