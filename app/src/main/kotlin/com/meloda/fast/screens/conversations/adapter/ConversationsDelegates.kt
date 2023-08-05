@@ -14,14 +14,17 @@ import com.meloda.fast.base.adapter.OnItemClickListener
 import com.meloda.fast.base.adapter.OnItemLongClickListener
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.databinding.ItemConversationBinding
-import com.meloda.fast.ext.*
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.isFalse
+import com.meloda.fast.ext.isTrue
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.visible
 import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.model.base.setImage
 import com.meloda.fast.screens.conversations.ConversationsResourceProvider
 import com.meloda.fast.screens.settings.SettingsFragment
-import com.meloda.fast.util.TimeUtils
 
 fun conversationDelegate(
     onItemClickListener: OnItemClickListener<VkConversationUi>,
@@ -49,12 +52,11 @@ fun conversationDelegate(
         binding.message.maxLines = maxLines
 
         binding.container.background =
-            if (item.isRead) resourceProvider.conversationUnreadBackground else null
+            if (item.isUnread) resourceProvider.conversationUnreadBackground else null
 
         binding.title.text = item.title.parseString(context)
 
-        binding.date.toggleVisibility(item.date != null)
-        binding.date.text = TimeUtils.getLocalizedTime(context, (item.date ?: -1) * 1000L)
+        binding.date.text = item.date
 
         binding.service.toggleVisibility(item.actionState != ActionState.None)
         binding.phantomIcon.toggleVisibility(item.actionState == ActionState.Phantom)
@@ -93,11 +95,11 @@ fun conversationDelegate(
             context = context,
             message = item.lastMessage,
             youPrefix = resourceProvider.youPrefix,
-            messageUser = item.messageUser,
-            messageGroup = item.messageGroup,
-            action = item.action,
-            actionUser = item.actionUser,
-            actionGroup = item.actionGroup
+            messageUser = item.lastMessage?.user,
+            messageGroup = item.lastMessage?.group,
+            action = item.lastMessage?.getPreparedAction(),
+            actionUser = item.lastMessage?.actionUser,
+            actionGroup = item.lastMessage?.actionGroup
         )
 
         val attachmentIcon: Drawable? = when {
@@ -137,11 +139,11 @@ fun conversationDelegate(
             item.lastMessage?.isOut.isTrue -> "${resourceProvider.youPrefix}: "
             else ->
                 when {
-                    item.lastMessage?.isUser().isTrue && item.messageUser != null && item.messageUser?.firstName?.isNotBlank().isTrue -> {
-                        "${item.messageUser?.firstName}: "
+                    item.lastMessage?.isUser().isTrue && item.lastMessage?.user != null && item.lastMessage?.user?.firstName?.isNotBlank().isTrue -> {
+                        "${item.lastMessage?.user?.firstName}: "
                     }
-                    item.lastMessage?.isGroup().isTrue && item.messageGroup != null && item.messageGroup?.name?.isNotBlank().isTrue -> {
-                        "${item.messageGroup?.name}: "
+                    item.lastMessage?.isGroup().isTrue && item.lastMessage?.group != null && item.lastMessage?.group?.name?.isNotBlank().isTrue -> {
+                        "${item.lastMessage?.group?.name}: "
                     }
                     else -> ""
                 }

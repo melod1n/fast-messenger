@@ -16,18 +16,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
-import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.BaseFragment
-import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.ext.*
 import com.meloda.fast.model.base.UiText
@@ -49,32 +51,8 @@ class SettingsFragment : BaseFragment() {
 
     private val viewModel: SettingsViewModel by viewModel<SettingsViewModelImpl>()
 
-    @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (AppGlobal.preferences.getBoolean("first_open_settings", true)) {
-            AppGlobal.preferences.edit {
-                putBoolean("first_open_settings", false)
-            }
-
-            if (Build.VERSION.SDK_INT >= 33) {
-                val statusBarManager =
-                    requireContext().getSystemService(Context.STATUS_BAR_SERVICE) as StatusBarManager
-                statusBarManager.requestAddTileService(
-                    ComponentName(
-                        requireActivity(), LongPollQSTileService::class.java
-                    ),
-                    "Open Settings",
-                    android.graphics.drawable.Icon.createWithResource(
-                        requireActivity(),
-                        R.drawable.ic_round_settings_24
-                    ),
-                    {},
-                    {}
-                )
-            }
-        }
     }
 
     override fun onCreateView(
@@ -93,15 +71,10 @@ class SettingsFragment : BaseFragment() {
     }
 
     private fun listenViewModel() {
-        viewModel.isNeedToShowLogOutAlert.listenValue(::handleNeedToShowLogOutAlert)
         viewModel.isLongPollBackgroundEnabled.listenValue(::handleLongPollEnabled)
         viewModel.isNeedToOpenTestingActivity.listenValue(::handleOpenTestingActivity)
-    }
-
-    private fun handleNeedToShowLogOutAlert(isNeedToShow: Boolean) {
-        if (!isUsingCompose() && isNeedToShow) {
-            showLogOutConfirmationDialog()
-        }
+        viewModel.isNeedToShowPerformCrashAlert.listenValue(::handlePerformCrashAlert)
+        viewModel.isNeedToShowAddQuickSettingsTileAlert.listenValue(::handleShowAddQuickSettingsTileAlert)
     }
 
     private fun handleLongPollEnabled(newValue: Boolean?) {
@@ -122,44 +95,58 @@ class SettingsFragment : BaseFragment() {
         }
     }
 
-    private fun showLogOutConfirmationDialog() {
-        val isEasterEgg = UserConfig.userId == ID_DMITRY
+    private fun handlePerformCrashAlert(newValue: Boolean) {
+        if (newValue) {
+            context?.showDialog(
+                title = UiText.Simple("Perform Crash"),
+                message = UiText.Simple("App will be crashed. Are you sure?"),
+                positiveText = UiText.Resource(R.string.yes),
+                positiveAction = viewModel::onPerformCrashPositiveButtonClicked,
+                negativeText = UiText.Resource(R.string.cancel),
+                onDismissAction = viewModel::onPerformCrashAlertDismissed
+            )
+        }
+    }
 
-        val title = UiText.Resource(
-            if (isEasterEgg) R.string.easter_egg_log_out_dmitry
-            else R.string.sign_out_confirm_title
-        )
+    @SuppressLint("WrongConstant")
+    private fun handleShowAddQuickSettingsTileAlert(newValue: Boolean) {
+        if (newValue) {
+            viewModel.onAddQuickSettingsTileAlertShown()
 
-        val positiveText = UiText.Resource(
-            if (isEasterEgg) R.string.easter_egg_log_out_dmitry
-            else R.string.action_sign_out
-        )
-
-        context?.showDialog(
-            title = title,
-            message = UiText.Resource(R.string.sign_out_confirm),
-            positiveText = positiveText,
-            positiveAction = {
-                setFragmentResult(
-                    MainFragment.START_SERVICES_KEY,
-                    bundleOf(MainFragment.START_SERVICES_ARG_ENABLE to false)
+            if (Build.VERSION.SDK_INT >= 33) {
+                val statusBarManager =
+                    requireContext().getSystemService(Context.STATUS_BAR_SERVICE) as StatusBarManager
+                statusBarManager.requestAddTileService(
+                    ComponentName(
+                        requireActivity(), LongPollQSTileService::class.java
+                    ),
+                    "Open Settings",
+                    android.graphics.drawable.Icon.createWithResource(
+                        requireActivity(),
+                        R.drawable.ic_round_settings_24
+                    ),
+                    {},
+                    {}
                 )
-                viewModel.onLogOutAlertPositiveClick()
-            },
-            negativeText = UiText.Resource(R.string.cancel),
-            onDismissAction = viewModel::onLogOutAlertDismissed
-        )
+            }
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SettingsScreen() {
-        val useDynamicColors by viewModel.useDynamicColors.collectAsState()
-        val useLargeTopAppBar by viewModel.useLargeTopAppBar.collectAsState()
-        val isMultilineEnabled by viewModel.isMultilineEnabled.collectAsState()
-        val settings by viewModel.settings.collectAsState()
+        val view = LocalView.current
 
-        val isNeedToShowLogOutDialog by viewModel.isNeedToShowLogOutAlert.collectAsState()
+        val useDynamicColors by viewModel.useDynamicColors.collectAsStateWithLifecycle()
+        val useLargeTopAppBar by viewModel.useLargeTopAppBar.collectAsStateWithLifecycle()
+        val isMultilineEnabled by viewModel.isMultilineEnabled.collectAsStateWithLifecycle()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+
+        val isNeedToShowLogOutDialog by viewModel.isNeedToShowLogOutAlert.collectAsStateWithLifecycle()
+
+        val useHaptics by viewModel.isNeedToUseHaptics.collectAsStateWithLifecycle()
+        val hapticType = useHaptics.getHaptic()
+        view.performHapticFeedback(hapticType)
 
         HandleDialogs(
             isNeedToShowLogOutDialog = isNeedToShowLogOutDialog
@@ -187,7 +174,7 @@ class SettingsFragment : BaseFragment() {
             onDispose {}
         }
 
-        AppTheme(dynamicColors = useDynamicColors) {
+        AppTheme(useDynamicColors = useDynamicColors) {
             Scaffold(
                 modifier = scaffoldModifier,
                 topBar = {
@@ -273,7 +260,7 @@ class SettingsFragment : BaseFragment() {
     fun HandleDialogs(
         isNeedToShowLogOutDialog: Boolean
     ) {
-        if (isUsingCompose() && isNeedToShowLogOutDialog) {
+        if (isNeedToShowLogOutDialog) {
             val isEasterEgg = UserConfig.userId == ID_DMITRY
 
             val title = UiText.Resource(
@@ -325,6 +312,7 @@ class SettingsFragment : BaseFragment() {
         const val KEY_UPDATES_CHECK_UPDATES = "updates_check_updates"
 
         const val KEY_MS_APPCENTER_ENABLE = "msappcenter.enable"
+        const val KEY_MS_APPCENTER_ENABLE_ON_DEBUG = "msappcenter.enable_on_debug"
 
         const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
         const val KEY_USE_DYNAMIC_COLORS = "debug_use_dynamic_colors"
@@ -334,15 +322,15 @@ class SettingsFragment : BaseFragment() {
         const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = AppCompatDelegate.MODE_NIGHT_NO
         const val KEY_USE_LARGE_TOP_APP_BAR = "debug_large_top_app_bar"
         const val DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR = true
-        const val KEY_USE_BLUR = "debug_use_blur"
-        const val DEFAULT_VALUE_USE_BLUR = false
-        const val KEY_USE_COMPOSE = "debug_use_compose"
-        const val DEFAULT_VALUE_USE_COMPOSE = true
         const val KEY_OPEN_TESTING_ACTIVITY = "debug_open_testing_activity"
 
         const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
 
         const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
+
+        const val KEY_SHOW_EXACT_TIME_ON_TIME_STAMP = "show_exact_time_on_time_stamp"
+
+        const val KEY_SHOW_ADD_QS_TILE_ALERT = "show_add_qs_tile_alert"
 
 
         const val ID_DMITRY = 37610580

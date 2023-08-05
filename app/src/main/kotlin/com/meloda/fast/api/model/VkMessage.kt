@@ -13,6 +13,7 @@ import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
+// TODO: 05.08.2023, Danil Nikolaev: create other class for storing in database
 @Entity(tableName = "messages")
 @Parcelize
 data class VkMessage constructor(
@@ -48,6 +49,14 @@ data class VkMessage constructor(
     @Ignore
     @IgnoredOnParcel
     var group: VkGroup? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var actionUser: VkUser? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var actionGroup: VkGroup? = null
 
     @Ignore
     @IgnoredOnParcel

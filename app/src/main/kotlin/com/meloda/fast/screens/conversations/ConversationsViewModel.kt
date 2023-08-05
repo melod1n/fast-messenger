@@ -42,6 +42,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+// TODO: 04.08.2023, Danil Nikolaev: calculate time here and give ui ready to be shown date
+
 interface ConversationsViewModel {
 
     val pinnedConversationsCount: StateFlow<Int>
@@ -49,13 +51,16 @@ interface ConversationsViewModel {
     val conversationsList: StateFlow<List<VkConversationUi>>
     val isLoading: StateFlow<Boolean>
 
-    val isNeedToShowOptionsDialog: StateFlow<VkConversationDomain?>
+    val isNeedToShowOptionsDialog: StateFlow<VkConversationUi?>
     val isNeedToShowDeleteDialog: StateFlow<Int?>
-    val isNeedToShowPinDialog: StateFlow<VkConversationDomain?>
+    val isNeedToShowPinDialog: StateFlow<VkConversationUi?>
+
+    val profiles: StateFlow<HashMap<Int, VkUser>>
+    val groups: StateFlow<HashMap<Int, VkGroup>>
 
     fun onOptionsDialogDismissed()
 
-    fun onOptionsDialogOptionClicked(conversation: VkConversationDomain, key: String): Boolean
+    fun onOptionsDialogOptionClicked(conversation: VkConversationUi, key: String): Boolean
 
     fun onDeleteDialogDismissed()
 
@@ -67,7 +72,7 @@ interface ConversationsViewModel {
     fun onConversationItemLongClick(conversationUi: VkConversationUi): Boolean
 
     fun onPinDialogDismissed()
-    fun onPinDialogPositiveClick(conversation: VkConversationDomain)
+    fun onPinDialogPositiveClick(conversation: VkConversationUi)
     fun onToolbarMenuItemClicked(itemId: Int): Boolean
 }
 
@@ -92,12 +97,12 @@ class ConversationsViewModelImpl constructor(
 
     override val isLoading = MutableStateFlow(false)
 
-    override val isNeedToShowOptionsDialog = MutableStateFlow<VkConversationDomain?>(null)
+    override val isNeedToShowOptionsDialog = MutableStateFlow<VkConversationUi?>(null)
     override val isNeedToShowDeleteDialog = MutableStateFlow<Int?>(null)
-    override val isNeedToShowPinDialog = MutableStateFlow<VkConversationDomain?>(null)
+    override val isNeedToShowPinDialog = MutableStateFlow<VkConversationUi?>(null)
 
-    private val profiles: MutableStateFlow<HashMap<Int, VkUser>> = MutableStateFlow(hashMapOf())
-    private val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
+    override val profiles: MutableStateFlow<HashMap<Int, VkUser>> = MutableStateFlow(hashMapOf())
+    override val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
 
     override val pinnedConversationsCount = domainConversations.map { conversations ->
         val pinnedConversations = conversations.filter { it.isPinned() }
@@ -115,12 +120,15 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onOptionsDialogOptionClicked(
-        conversation: VkConversationDomain,
+        conversation: VkConversationUi,
         key: String
     ): Boolean {
         return when (key) {
             "read" -> {
-                readConversation(conversation)
+                readConversation(
+                    conversationId = conversation.conversationId,
+                    startMessageId = conversation.lastMessageId
+                )
                 true
             }
 
@@ -159,7 +167,7 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onConversationItemLongClick(conversationUi: VkConversationUi): Boolean {
-        val domainConversation = domainConversations.value.find { it.id == conversationUi.id }
+        val domainConversation = conversationsList.value.find { it.id == conversationUi.id }
         isNeedToShowOptionsDialog.emitOnMainScope(domainConversation)
         return true
     }
@@ -168,8 +176,8 @@ class ConversationsViewModelImpl constructor(
         isNeedToShowPinDialog.emitOnMainScope(null)
     }
 
-    override fun onPinDialogPositiveClick(conversation: VkConversationDomain) {
-        pinConversation(conversation.id, !conversation.isPinned())
+    override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
+        pinConversation(conversation.id, !conversation.isPinned)
     }
 
     override fun onToolbarMenuItemClicked(itemId: Int): Boolean {
@@ -218,13 +226,6 @@ class ConversationsViewModelImpl constructor(
                 val dataConversationsList = dataConversationsMessages.map { pair -> pair.first }
                 dataConversations.emit(dataConversationsList)
 
-                val messages =
-                    dataConversationsMessages
-                        .map { pair -> pair.second }
-                        .mapNotNull { message -> message?.asVkMessage() }
-
-                messagesRepository.store(messages)
-
                 val newProfiles = response.profiles
                     ?.map(BaseVkUser::mapToDomain)
                     ?.toMap(hashMapOf(), VkUser::id) ?: hashMapOf()
@@ -234,6 +235,20 @@ class ConversationsViewModelImpl constructor(
                     ?.map(BaseVkGroup::mapToDomain)
                     ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
                 groups.emit(newGroups)
+
+                val messages = dataConversationsMessages
+                    .map { pair -> pair.second }
+                    .mapNotNull { message -> message?.asVkMessage() }
+                    .map { message ->
+                        message.apply {
+                            message.user = newProfiles[message.fromId]
+                            message.group = newGroups[message.fromId]
+                            message.actionUser = newProfiles[message.actionMemberId]
+                            message.actionGroup = newGroups[message.actionMemberId]
+                        }
+                    }
+
+                messagesRepository.store(messages)
 
                 val photos = newProfiles.mapNotNull { profile -> profile.value.photo200 } +
                         newGroups.mapNotNull { group -> group.value.photo200 }
@@ -245,7 +260,14 @@ class ConversationsViewModelImpl constructor(
                         .let(imageLoader::enqueue)
                 }
 
-                val domainConversationsList = dataConversationsList.mapToDomain()
+                val domainConversationsList =
+                    dataConversationsList.mapToDomain().map { conversation ->
+                        conversation.apply {
+                            conversation.conversationUser = newProfiles[conversation.id]
+                            conversation.conversationGroup = newGroups[conversation.id]
+                        }
+
+                    }
                 emitConversations(domainConversationsList)
 
                 isLoading.emitWithMain(false)
@@ -266,7 +288,6 @@ class ConversationsViewModelImpl constructor(
         val messages = messagesRepository.getCached(conversation.id)
 
         val lastMessage = messages.find { it.id == conversation.lastMessageId }
-        conversation.lastMessage = lastMessage
 
         val userGroup =
             VkUtils.getConversationUserGroup(
@@ -289,11 +310,15 @@ class ConversationsViewModelImpl constructor(
 
         conversation.conversationUser = userGroup.first
         conversation.conversationGroup = userGroup.second
-        conversation.action = lastMessage?.getPreparedAction()
-        conversation.actionUser = actionUserGroup.first
-        conversation.actionGroup = actionUserGroup.second
-        conversation.messageUser = messageUserGroup.first
-        conversation.messageGroup = messageUserGroup.second
+
+        val newMessage = lastMessage?.copy()?.apply {
+            this.user = messageUserGroup.first
+            this.group = messageUserGroup.second
+            this.actionUser = actionUserGroup.first
+            this.actionGroup = actionUserGroup.second
+        }
+
+        conversation.lastMessage = newMessage
 
         return conversation
     }
@@ -527,16 +552,16 @@ class ConversationsViewModelImpl constructor(
         router.navigateTo(Screens.MessagesHistory(conversation, user, group))
     }
 
-    private fun readConversation(conversation: VkConversationDomain) {
+    private fun readConversation(conversationId: Int, startMessageId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             sendRequest {
                 messagesRepository.markAsRead(
-                    peerId = conversation.id,
-                    startMessageId = conversation.lastMessageId
+                    peerId = conversationId,
+                    startMessageId = startMessageId
                 )
             }?.response?.let { messageId ->
                 domainConversations.value.toMutableList().let { list ->
-                    val index = list.indexOf(conversation)
+                    val index = list.findIndex { it.id == conversationId } ?: return@launch
                     val newConversation = list[index].copy(inRead = messageId)
                     list[index] = newConversation
 

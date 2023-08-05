@@ -2,15 +2,12 @@ package com.meloda.fast.screens.main.activity
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.StatusBarManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
@@ -32,7 +29,6 @@ import com.meloda.fast.ext.listenValue
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.main.activity.LongPollUtils.requestNotificationsPermission
 import com.meloda.fast.screens.settings.SettingsFragment
-import com.meloda.fast.service.LongPollQSTileService
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
 import com.meloda.fast.util.AndroidUtils
@@ -85,10 +81,16 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             AppCenter.start(Analytics::class.java)
         }
 
-        AppCenter.start(Crashes::class.java)
-        Crashes.setEnabled(
+        val enableCrashLogs =
             AppGlobal.preferences.getBoolean(SettingsFragment.KEY_MS_APPCENTER_ENABLE, true)
-        )
+                    || (BuildConfig.DEBUG && AppGlobal.preferences.getBoolean(
+                SettingsFragment.KEY_MS_APPCENTER_ENABLE_ON_DEBUG,
+                false
+            ))
+
+        if (enableCrashLogs) {
+            AppCenter.start(Crashes::class.java)
+        }
 
         if (UserConfig.currentUserId == -1) {
             openMainScreen()

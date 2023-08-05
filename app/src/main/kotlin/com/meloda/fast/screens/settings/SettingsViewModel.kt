@@ -1,11 +1,13 @@
 package com.meloda.fast.screens.settings
 
 import android.os.Build
+import android.view.HapticFeedbackConstants
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
+import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
@@ -43,7 +45,17 @@ interface SettingsViewModel {
 
     val isNeedToOpenTestingActivity: StateFlow<Boolean>
 
+    val isNeedToShowPerformCrashAlert: StateFlow<Boolean>
+
+    val isNeedToShowAddQuickSettingsTileAlert: StateFlow<Boolean>
+
+    val isNeedToUseHaptics: StateFlow<HapticType>
+
     fun onLogOutAlertDismissed()
+
+    fun onPerformCrashAlertDismissed()
+
+    fun onPerformCrashPositiveButtonClicked()
 
     fun onLogOutAlertPositiveClick()
 
@@ -52,6 +64,10 @@ interface SettingsViewModel {
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
     fun onTestingActivityOpened()
+
+    fun onAddQuickSettingsTileAlertShown()
+
+    fun onHapticsUsed()
 }
 
 class SettingsViewModelImpl constructor(
@@ -85,7 +101,21 @@ class SettingsViewModelImpl constructor(
 
     override val isNeedToOpenTestingActivity = MutableStateFlow(false)
 
+    override val isNeedToShowPerformCrashAlert = MutableStateFlow(false)
+
+    override val isNeedToShowAddQuickSettingsTileAlert = MutableStateFlow(false)
+
+    override val isNeedToUseHaptics = MutableStateFlow<HapticType>(HapticType.None)
+
     init {
+        if (AppGlobal.preferences.getBoolean("first_open_settings", true)) {
+            AppGlobal.preferences.edit {
+                putBoolean("first_open_settings", false)
+            }
+
+            isNeedToShowAddQuickSettingsTileAlert.emitOnMainScope(true)
+        }
+
         createSettings()
     }
 
@@ -124,7 +154,8 @@ class SettingsViewModelImpl constructor(
             val featuresHideKeyboardOnScroll = SettingsItem.Switch.build(
                 key = SettingsFragment.KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
                 defaultValue = true,
-                title = UiText.Simple("Hide keyboard on scroll")
+                title = UiText.Simple("Hide keyboard on scroll"),
+                summary = UiText.Simple("Hides keyboard when you scrolling messages up in messages history screen")
             )
             val featuresFastText = SettingsItem.TextField.build(
                 key = SettingsFragment.KEY_FEATURES_FAST_TEXT,
@@ -179,6 +210,12 @@ class SettingsViewModelImpl constructor(
                 key = SettingsFragment.KEY_MS_APPCENTER_ENABLE,
                 defaultValue = true,
                 title = UiText.Simple("Enable Crash Reporter")
+            )
+            val msAppCenterEnableOnDebug = SettingsItem.Switch.build(
+                key = SettingsFragment.KEY_MS_APPCENTER_ENABLE_ON_DEBUG,
+                defaultValue = false,
+                title = UiText.Simple("Enable Crash Reporter on debug builds"),
+                summary = UiText.Simple("Requires application restart")
             )
 
             val debugTitle = SettingsItem.Title.build(
@@ -240,24 +277,22 @@ class SettingsViewModelImpl constructor(
             val debugUseLargeTopAppBar = SettingsItem.Switch.build(
                 key = SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR,
                 title = UiText.Simple("[WIP] Use LargeTopAppBar"),
-                summary = UiText.Simple("Only in settings screen"),
+                summary = UiText.Simple("Using large top appbar instead of default toolbar everywhere in app"),
                 defaultValue = SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
-            )
-            val debugUseBlur = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_USE_BLUR,
-                defaultValue = SettingsFragment.DEFAULT_VALUE_USE_BLUR,
-                title = UiText.Simple("[WIP] Use blur"),
-                summary = UiText.Simple("Use blur wherever it's possible")
-            )
-            val debugUseCompose = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_USE_COMPOSE,
-                defaultValue = SettingsFragment.DEFAULT_VALUE_USE_COMPOSE,
-                title = UiText.Simple("Use Compose"),
-                summary = UiText.Simple("Use Compose on those screens where there is a test implementation of it")
             )
             val debugOpenTestingActivity = SettingsItem.TitleSummary.build(
                 key = SettingsFragment.KEY_OPEN_TESTING_ACTIVITY,
                 title = UiText.Simple("Open testing activity")
+            )
+            val debugShowExactTimeOnTimeStamp = SettingsItem.Switch.build(
+                key = SettingsFragment.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP,
+                title = UiText.Simple("Show exact time on time stamp"),
+                summary = UiText.Simple("Shows hours and minutes on time stamp in messages history"),
+                defaultValue = false
+            )
+            val debugShowAddQuickSettingsTileAlert = SettingsItem.TitleSummary.build(
+                key = SettingsFragment.KEY_SHOW_ADD_QS_TILE_ALERT,
+                title = UiText.Simple("Add QuickSettings Tile")
             )
 
             val debugHideDebugList = SettingsItem.TitleSummary.build(
@@ -288,10 +323,14 @@ class SettingsViewModelImpl constructor(
                 updatesCheckAtStartup,
                 updatesCheckUpdates,
             )
-            val msAppCenterList = listOf(
+            val msAppCenterList = mutableListOf(
                 msAppCenterTitle,
                 msAppCenterEnable,
-            )
+            ).apply {
+                if (BuildConfig.DEBUG) {
+                    this += msAppCenterEnableOnDebug
+                }
+            }
             val debugList = mutableListOf<SettingsItem<*>>()
             listOf(
                 debugTitle,
@@ -300,9 +339,9 @@ class SettingsViewModelImpl constructor(
                 debugUseDynamicColors,
                 debugDarkTheme,
                 debugUseLargeTopAppBar,
-                debugUseBlur,
-                debugUseCompose,
-                debugOpenTestingActivity
+                debugOpenTestingActivity,
+                debugShowExactTimeOnTimeStamp,
+                debugShowAddQuickSettingsTileAlert
             ).forEach(debugList::add)
 
             debugList += debugHideDebugList
@@ -336,6 +375,15 @@ class SettingsViewModelImpl constructor(
         }
     }
 
+    override fun onPerformCrashAlertDismissed() {
+        isNeedToShowPerformCrashAlert.emitOnMainScope(false)
+    }
+
+    override fun onPerformCrashPositiveButtonClicked() {
+        isNeedToShowPerformCrashAlert.emitOnMainScope(false)
+        throw TestCrashException()
+    }
+
     override fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
             accountsDao.deleteById(UserConfig.userId)
@@ -364,7 +412,7 @@ class SettingsViewModelImpl constructor(
             }
 
             SettingsFragment.KEY_DEBUG_PERFORM_CRASH -> {
-                throw TestCrashException()
+                isNeedToShowPerformCrashAlert.emitOnMainScope(true)
             }
 
             SettingsFragment.KEY_DEBUG_HIDE_DEBUG_LIST -> {
@@ -380,10 +428,16 @@ class SettingsViewModelImpl constructor(
                 }
 
                 createSettings()
+
+                isNeedToUseHaptics.emitOnMainScope(HapticType.HideDebugMenu)
             }
 
             SettingsFragment.KEY_OPEN_TESTING_ACTIVITY -> {
                 isNeedToOpenTestingActivity.emitOnMainScope(true)
+            }
+
+            SettingsFragment.KEY_SHOW_ADD_QS_TILE_ALERT -> {
+                isNeedToShowAddQuickSettingsTileAlert.emitOnMainScope(true)
             }
         }
     }
@@ -402,6 +456,8 @@ class SettingsViewModelImpl constructor(
                     putBoolean(SettingsFragment.KEY_SHOW_DEBUG_CATEGORY, true)
                 }
                 createSettings()
+
+                isNeedToUseHaptics.emitOnMainScope(HapticType.ShowDebugMenu)
                 true
             }
 
@@ -442,7 +498,29 @@ class SettingsViewModelImpl constructor(
         isNeedToOpenTestingActivity.emitOnMainScope(false)
     }
 
+    override fun onAddQuickSettingsTileAlertShown() {
+        isNeedToShowAddQuickSettingsTileAlert.emitOnMainScope(false)
+    }
+
+    override fun onHapticsUsed() {
+        isNeedToUseHaptics.emitOnMainScope(HapticType.None)
+    }
+
     private fun openUpdatesScreen() {
         router.navigateTo(Screens.Updates())
+    }
+}
+
+sealed interface HapticType {
+    object ShowDebugMenu : HapticType
+    object HideDebugMenu : HapticType
+    object None : HapticType
+
+    fun getHaptic(): Int {
+        return when (this) {
+            ShowDebugMenu -> HapticFeedbackConstants.LONG_PRESS
+            HideDebugMenu -> HapticFeedbackConstants.REJECT
+            None -> -1
+        }
     }
 }

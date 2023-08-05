@@ -82,18 +82,6 @@ fun isSystemUsingDarkMode(): Boolean {
     return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 }
 
-fun isUsingBlur(): Boolean =
-    AppGlobal.preferences.getBoolean(
-        SettingsFragment.KEY_USE_BLUR,
-        SettingsFragment.DEFAULT_VALUE_USE_BLUR
-    )
-
-fun isUsingCompose(): Boolean =
-    AppGlobal.preferences.getBoolean(
-        SettingsFragment.KEY_USE_COMPOSE,
-        SettingsFragment.DEFAULT_VALUE_USE_COMPOSE
-    )
-
 fun createTimerFlow(
     time: Int,
     onStartAction: suspend () -> Unit,
@@ -150,7 +138,7 @@ fun <T> MutableSharedFlow<T>.emitOnScope(
 }
 
 context(CoroutineScope)
-        suspend fun <T> MutableSharedFlow<T>.emitWithMain(value: T) {
+suspend fun <T> MutableSharedFlow<T>.emitWithMain(value: T) {
     withContext(Dispatchers.Main) {
         emit(value)
     }

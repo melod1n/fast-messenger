@@ -82,8 +82,8 @@ class TwoFaFragment : BaseFragment() {
     @Composable
     fun TwoFaScreenPreview() {
         AppTheme(
-            darkTheme = false,
-            dynamicColors = false
+            useDarkTheme = false,
+            useDynamicColors = false
         ) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 TwoFaScreen(

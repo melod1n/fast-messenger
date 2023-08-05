@@ -58,18 +58,18 @@ private val robotoFonts = FontFamily(
 @Composable
 fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
-    darkTheme: Boolean = isUsingDarkTheme(),
-    dynamicColors: Boolean = isUsingDynamicColors(),
+    useDarkTheme: Boolean = isUsingDarkTheme(),
+    useDynamicColors: Boolean = isUsingDynamicColors(),
     content: @Composable () -> Unit
 ) {
     val colorScheme: ColorScheme = when {
-        dynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        useDynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
+            if (useDarkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
+        useDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 

@@ -288,17 +288,19 @@ class MessagesHistoryFragment :
                 adapter.getOrNull(firstPosition)?.let {
                     binding.timestamp.visible()
 
+                    val showExactTime = AppGlobal.preferences.getBoolean(SettingsFragment.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP, false)
+
+                    val exactTime = SimpleDateFormat(
+                        "HH:mm",
+                        Locale.getDefault()
+                    ).format(it.date * 1000L)
+
                     val time = "${
                         TimeUtils.getLocalizedDate(
                             requireContext(),
                             it.date * 1000L
                         )
-                    }, ${
-                        SimpleDateFormat(
-                            "HH:mm",
-                            Locale.getDefault()
-                        ).format(it.date * 1000L)
-                    }"
+                    }${if (showExactTime) ", $exactTime" else ""}"
 
                     binding.timestamp.text = time
 

@@ -1,6 +1,5 @@
 package com.meloda.fast.api.model.presentation
 
-import android.text.SpannableString
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.VkGroup
@@ -16,23 +15,18 @@ data class VkConversationUi(
     val avatar: UiImage,
     val title: UiText,
     val unreadCount: String?,
-    val date: Int?,
-    val message: SpannableString?,
+    val date: String,
+    val message: String,
     val attachmentImage: UiImage?,
     val isPinned: Boolean,
     val actionState: ActionState,
     val isBirthday: Boolean,
-    val isRead: Boolean,
+    val isUnread: Boolean,
     val isAccount: Boolean,
     val isOnline: Boolean,
     val lastMessage: VkMessage?,
     val conversationUser: VkUser?,
     val conversationGroup: VkGroup?,
-    val actionUser: VkUser?,
-    val actionGroup: VkGroup?,
-    val action: VkMessage.Action?,
-    val messageUser: VkUser?,
-    val messageGroup: VkGroup?,
     val peerType: ConversationPeerType,
 ) : AdapterDiffItem {
     override val id = conversationId

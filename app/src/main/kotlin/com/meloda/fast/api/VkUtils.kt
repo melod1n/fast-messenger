@@ -23,6 +23,7 @@ import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.network.*
 import com.meloda.fast.ext.orDots
+import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -251,83 +252,313 @@ object VkUtils {
                     val photo = baseAttachment.photo ?: continue
                     attachments += photo.asVkPhoto()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Video -> {
                     val video = baseAttachment.video ?: continue
                     attachments += video.asVkVideo()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Audio -> {
                     val audio = baseAttachment.audio ?: continue
                     attachments += audio.asVkAudio()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.File -> {
                     val file = baseAttachment.file ?: continue
                     attachments += file.asVkFile()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Link -> {
                     val link = baseAttachment.link ?: continue
                     attachments += link.asVkLink()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.MiniApp -> {
                     val miniApp = baseAttachment.miniApp ?: continue
                     attachments += miniApp.asVkMiniApp()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Voice -> {
                     val voiceMessage = baseAttachment.voiceMessage ?: continue
                     attachments += voiceMessage.asVkVoiceMessage()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Sticker -> {
                     val sticker = baseAttachment.sticker ?: continue
                     attachments += sticker.asVkSticker()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Gift -> {
                     val gift = baseAttachment.gift ?: continue
                     attachments += gift.asVkGift()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Wall -> {
                     val wall = baseAttachment.wall ?: continue
                     attachments += wall.asVkWall()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Graffiti -> {
                     val graffiti = baseAttachment.graffiti ?: continue
                     attachments += graffiti.asVkGraffiti()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Poll -> {
                     val poll = baseAttachment.poll ?: continue
                     attachments += poll.asVkPoll()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.WallReply -> {
                     val wallReply = baseAttachment.wallReply ?: continue
                     attachments += wallReply.asVkWallReply()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Call -> {
                     val call = baseAttachment.call ?: continue
                     attachments += call.asVkCall()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.GroupCallInProgress -> {
                     val groupCall = baseAttachment.groupCall ?: continue
                     attachments += groupCall.asVkGroupCall()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Curator -> {
                     val curator = baseAttachment.curator ?: continue
                     attachments += curator.asVkCurator()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Event -> {
                     val event = baseAttachment.event ?: continue
                     attachments += event.asVkEvent()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Story -> {
                     val story = baseAttachment.story ?: continue
                     attachments += story.asVkStory()
                 }
+
                 BaseVkAttachmentItem.AttachmentType.Widget -> {
                     val widget = baseAttachment.widget ?: continue
                     attachments += widget.asVkWidget()
                 }
+
                 else -> continue
             }
         }
 
         return attachments
+    }
+
+    fun getActionMessageText(
+        message: VkMessage?,
+        youPrefix: String,
+        messageUser: VkUser?,
+        messageGroup: VkGroup?,
+        action: VkMessage.Action?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
+    ): UiText? {
+        if (message == null) return null
+
+        return when (action) {
+            VkMessage.Action.CHAT_CREATE -> {
+                val text = message.actionText ?: return null
+
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(
+                    R.string.message_action_chat_created,
+                    listOf(prefix, text)
+                )
+            }
+
+            VkMessage.Action.CHAT_TITLE_UPDATE -> {
+                val text = message.actionText ?: return null
+
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(
+                    R.string.message_action_chat_renamed,
+                    listOf(prefix, text)
+                )
+            }
+
+            VkMessage.Action.CHAT_PHOTO_UPDATE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(R.string.message_action_chat_photo_update, listOf(prefix))
+            }
+
+            VkMessage.Action.CHAT_PHOTO_REMOVE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(R.string.message_action_chat_photo_remove, listOf(prefix))
+            }
+
+            VkMessage.Action.CHAT_KICK_USER -> {
+                val memberId = message.actionMemberId ?: return null
+                val isUser = memberId > 0
+                val isGroup = memberId < 0
+
+                if (isUser && actionUser == null) return null
+                if (isGroup && actionGroup == null) return null
+
+                if (memberId == message.fromId) {
+                    val prefix = if (memberId == UserConfig.userId) youPrefix
+                    else actionUser.toString()
+
+                    UiText.ResourceParams(R.string.message_action_chat_user_left, listOf(prefix))
+                } else {
+                    val prefix =
+                        if (message.fromId == UserConfig.userId) youPrefix
+                        else messageUser?.toString() ?: messageGroup?.toString().orDots()
+
+                    val postfix =
+                        if (memberId == UserConfig.userId) youPrefix.lowercase()
+                        else actionUser.toString()
+
+                    UiText.ResourceParams(
+                        R.string.message_action_chat_user_kicked, listOf(prefix, postfix)
+                    )
+                }
+            }
+
+            VkMessage.Action.CHAT_INVITE_USER -> {
+                val memberId = message.actionMemberId ?: 0
+                val isUser = memberId > 0
+                val isGroup = memberId < 0
+
+                if (isUser && actionUser == null) return null
+                if (isGroup && actionGroup == null) return null
+
+                if (memberId == message.fromId) {
+                    val prefix = if (memberId == UserConfig.userId) youPrefix
+                    else actionUser.toString()
+
+                    UiText.ResourceParams(
+                        R.string.message_action_chat_user_returned,
+                        listOf(prefix)
+                    )
+                } else {
+                    val prefix = if (message.fromId == UserConfig.userId) youPrefix
+                    else messageUser?.toString() ?: messageGroup?.toString().orDots()
+
+                    val postfix =
+                        if (memberId == UserConfig.userId) youPrefix.lowercase()
+                        else actionUser.toString()
+
+                    UiText.ResourceParams(
+                        R.string.message_action_chat_user_invited,
+                        listOf(prefix, postfix)
+                    )
+                }
+            }
+
+            VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(
+                    R.string.message_action_chat_user_joined_by_link,
+                    listOf(prefix)
+                )
+            }
+
+            VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(
+                    R.string.message_action_chat_user_joined_by_call,
+                    listOf(prefix)
+                )
+            }
+
+            VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(
+                    R.string.message_action_chat_user_joined_by_call_link,
+                    listOf(prefix)
+                )
+            }
+
+            VkMessage.Action.CHAT_PIN_MESSAGE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(R.string.message_action_chat_pin_message, listOf(prefix))
+            }
+
+            VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(R.string.message_action_chat_unpin_message, listOf(prefix))
+            }
+
+            VkMessage.Action.CHAT_SCREENSHOT -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isGroup() -> messageGroup?.name
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(R.string.message_action_chat_screenshot, listOf(prefix))
+            }
+
+            VkMessage.Action.CHAT_STYLE_UPDATE -> {
+                val prefix = when {
+                    message.fromId == UserConfig.userId -> youPrefix
+                    message.isUser() -> messageUser?.toString()
+                    else -> return null
+                } ?: return null
+
+                UiText.ResourceParams(R.string.message_action_chat_style_update, listOf(prefix))
+            }
+
+            null -> null
+        }
     }
 
     fun getActionMessageText(
@@ -367,6 +598,7 @@ object VkUtils {
                     )
                 }
             }
+
             VkMessage.Action.CHAT_TITLE_UPDATE -> {
                 val text = message.actionText ?: return null
 
@@ -388,6 +620,7 @@ object VkUtils {
                     )
                 }
             }
+
             VkMessage.Action.CHAT_PHOTO_UPDATE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -403,6 +636,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_PHOTO_REMOVE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -418,6 +652,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_KICK_USER -> {
                 val memberId = message.actionMemberId ?: return null
                 val isUser = memberId > 0
@@ -461,6 +696,7 @@ object VkUtils {
                     }
                 }
             }
+
             VkMessage.Action.CHAT_INVITE_USER -> {
                 val memberId = message.actionMemberId ?: 0
                 val isUser = memberId > 0
@@ -503,6 +739,7 @@ object VkUtils {
                     }
                 }
             }
+
             VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -517,6 +754,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -531,6 +769,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -545,6 +784,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_PIN_MESSAGE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -560,6 +800,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -575,6 +816,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_SCREENSHOT -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -590,6 +832,7 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             VkMessage.Action.CHAT_STYLE_UPDATE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
@@ -604,8 +847,29 @@ object VkUtils {
                     it.setSpan(StyleSpan(Typeface.BOLD), 0, prefix.length, 0)
                 }
             }
+
             null -> null
         }
+    }
+
+    fun getActionConversationText(
+        message: VkMessage?,
+        youPrefix: String,
+        messageUser: VkUser? = null,
+        messageGroup: VkGroup? = null,
+        action: VkMessage.Action?,
+        actionUser: VkUser?,
+        actionGroup: VkGroup?,
+    ): UiText? {
+        return getActionMessageText(
+            message = message,
+            youPrefix = youPrefix,
+            messageUser = messageUser,
+            messageGroup = messageGroup,
+            action = action,
+            actionUser = actionUser,
+            actionGroup = actionGroup,
+        )
     }
 
     fun getActionConversationText(
@@ -667,6 +931,23 @@ object VkUtils {
         }
     }
 
+    fun getAttachmentConversationIcon(message: VkMessage?): UiImage? {
+        return message?.attachments?.let { attachments ->
+            if (attachments.isEmpty()) return null
+            if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
+                message.geo?.let {
+                    return UiImage.Resource(R.drawable.ic_map_marker)
+                }
+
+                getAttachmentTypeByClass(attachments[0])?.let {
+                    getAttachmentIconByType(it)
+                }
+            } else {
+                UiImage.Resource(R.drawable.ic_baseline_attach_file_24)
+            }
+        }
+    }
+
     fun getAttachmentConversationIcon(
         context: Context,
         message: VkMessage?,
@@ -692,6 +973,29 @@ object VkUtils {
         }
     }
 
+    fun getAttachmentIconByType(attachmentType: BaseVkAttachmentItem.AttachmentType): UiImage? {
+        return when (attachmentType) {
+            BaseVkAttachmentItem.AttachmentType.Photo -> R.drawable.ic_attachment_photo
+            BaseVkAttachmentItem.AttachmentType.Video -> R.drawable.ic_attachment_video
+            BaseVkAttachmentItem.AttachmentType.Audio -> R.drawable.ic_attachment_audio
+            BaseVkAttachmentItem.AttachmentType.File -> R.drawable.ic_attachment_file
+            BaseVkAttachmentItem.AttachmentType.Link -> R.drawable.ic_attachment_link
+            BaseVkAttachmentItem.AttachmentType.Voice -> R.drawable.ic_attachment_voice
+            BaseVkAttachmentItem.AttachmentType.MiniApp -> R.drawable.ic_attachment_mini_app
+            BaseVkAttachmentItem.AttachmentType.Sticker -> R.drawable.ic_attachment_sticker
+            BaseVkAttachmentItem.AttachmentType.Gift -> R.drawable.ic_attachment_gift
+            BaseVkAttachmentItem.AttachmentType.Wall -> R.drawable.ic_attachment_wall
+            BaseVkAttachmentItem.AttachmentType.Graffiti -> R.drawable.ic_attachment_graffiti
+            BaseVkAttachmentItem.AttachmentType.Poll -> R.drawable.ic_attachment_poll
+            BaseVkAttachmentItem.AttachmentType.WallReply -> R.drawable.ic_attachment_wall_reply
+            BaseVkAttachmentItem.AttachmentType.Call -> R.drawable.ic_attachment_call
+            BaseVkAttachmentItem.AttachmentType.GroupCallInProgress -> R.drawable.ic_attachment_group_call
+            BaseVkAttachmentItem.AttachmentType.Story -> R.drawable.ic_attachment_story
+            else -> null
+        }?.let(UiImage::Resource)
+    }
+
+    @Deprecated("Use new with UiImage")
     fun getAttachmentIconByType(
         context: Context,
         attachmentType: BaseVkAttachmentItem.AttachmentType,
@@ -764,42 +1068,61 @@ object VkUtils {
         return when (attachmentType) {
             BaseVkAttachmentItem.AttachmentType.Photo ->
                 UiText.QuantityResource(R.plurals.attachment_photos, size)
+
             BaseVkAttachmentItem.AttachmentType.Video ->
                 UiText.QuantityResource(R.plurals.attachment_videos, size)
+
             BaseVkAttachmentItem.AttachmentType.Audio ->
                 UiText.QuantityResource(R.plurals.attachment_audios, size)
+
             BaseVkAttachmentItem.AttachmentType.File ->
                 UiText.QuantityResource(R.plurals.attachment_files, size)
+
             BaseVkAttachmentItem.AttachmentType.Link ->
                 UiText.Resource(R.string.message_attachments_link)
+
             BaseVkAttachmentItem.AttachmentType.Voice ->
                 UiText.Resource(R.string.message_attachments_voice)
+
             BaseVkAttachmentItem.AttachmentType.MiniApp ->
                 UiText.Resource(R.string.message_attachments_mini_app)
+
             BaseVkAttachmentItem.AttachmentType.Sticker ->
                 UiText.Resource(R.string.message_attachments_sticker)
+
             BaseVkAttachmentItem.AttachmentType.Gift ->
                 UiText.Resource(R.string.message_attachments_gift)
+
             BaseVkAttachmentItem.AttachmentType.Wall ->
                 UiText.Resource(R.string.message_attachments_wall)
+
             BaseVkAttachmentItem.AttachmentType.Graffiti ->
                 UiText.Resource(R.string.message_attachments_graffiti)
+
             BaseVkAttachmentItem.AttachmentType.Poll ->
                 UiText.Resource(R.string.message_attachments_poll)
+
             BaseVkAttachmentItem.AttachmentType.WallReply ->
                 UiText.Resource(R.string.message_attachments_wall_reply)
+
             BaseVkAttachmentItem.AttachmentType.Call ->
                 UiText.Resource(R.string.message_attachments_call)
+
             BaseVkAttachmentItem.AttachmentType.GroupCallInProgress ->
                 UiText.Resource(R.string.message_attachments_call_in_progress)
+
             BaseVkAttachmentItem.AttachmentType.Event ->
                 UiText.Resource(R.string.message_attachments_event)
+
             BaseVkAttachmentItem.AttachmentType.Curator ->
                 UiText.Resource(R.string.message_attachments_curator)
+
             BaseVkAttachmentItem.AttachmentType.Story ->
                 UiText.Resource(R.string.message_attachments_story)
+
             BaseVkAttachmentItem.AttachmentType.Widget ->
                 UiText.Resource(R.string.message_attachments_widget)
+
             else -> UiText.Simple(attachmentType.value)
         }
     }
@@ -816,12 +1139,14 @@ object VkUtils {
 
                         authorizationError
                     }
+
                     VkErrorCodes.AccessTokenExpired.toString() -> {
                         val tokenExpiredError =
                             gson.fromJson(errorString, TokenExpiredError::class.java)
 
                         tokenExpiredError
                     }
+
                     VkErrors.NeedValidation -> {
                         val validationError =
                             gson.fromJson(
@@ -835,12 +1160,14 @@ object VkUtils {
 
                         validationError
                     }
+
                     VkErrors.NeedCaptcha -> {
                         val captchaRequiredError =
                             gson.fromJson(errorString, CaptchaRequiredError::class.java)
 
                         captchaRequiredError
                     }
+
                     VkErrors.InvalidRequest -> {
                         when (defaultError.errorType) {
                             VkErrorTypes.OtpFormatIncorrect -> WrongTwoFaCodeFormatError
@@ -848,6 +1175,7 @@ object VkUtils {
                             else -> defaultError
                         }
                     }
+
                     else -> defaultError
                 }
 

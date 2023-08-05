@@ -216,8 +216,8 @@ class LoginFragment : BaseFragment() {
     @Composable
     fun LoginSignInPreview() {
         AppTheme(
-            darkTheme = false,
-            dynamicColors = false
+            useDarkTheme = false,
+            useDynamicColors = false
         ) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 LoginSignIn(

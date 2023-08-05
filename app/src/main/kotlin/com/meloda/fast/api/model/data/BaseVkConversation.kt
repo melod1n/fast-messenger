@@ -116,11 +116,6 @@ data class BaseVkConversation(
         lastMessage: VkMessage? = null,
         conversationUser: VkUser? = null,
         conversationGroup: VkGroup? = null,
-        action: VkMessage.Action? = null,
-        actionUser: VkUser? = null,
-        actionGroup: VkGroup? = null,
-        messageUser: VkUser? = null,
-        messageGroup: VkGroup? = null,
     ) = VkConversationDomain(
         id = peer.id,
         localId = peer.local_id,
@@ -148,10 +143,5 @@ data class BaseVkConversation(
         it.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()
         it.conversationUser = conversationUser
         it.conversationGroup = conversationGroup
-        it.actionUser = actionUser
-        it.actionGroup = actionGroup
-        it.action = action
-        it.messageUser = messageUser
-        it.messageGroup = messageGroup
     }
 }

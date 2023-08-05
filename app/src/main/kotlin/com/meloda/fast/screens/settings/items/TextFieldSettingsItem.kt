@@ -22,7 +22,6 @@ import com.meloda.fast.R
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.databinding.ItemSettingsEditTextAlertBinding
 import com.meloda.fast.ext.getString
-import com.meloda.fast.ext.isUsingCompose
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
@@ -78,20 +77,7 @@ fun EditTextSettingsItem(
                 enabled = isEnabled,
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
-
-                    if (isUsingCompose()) {
-                        showDialog = true
-                        return@combinedClickable
-                    }
-
-                    showEditTextAlert(
-                        context = context,
-                        item = item,
-                        onSettingsChangeListener = { key, newValue ->
-                            summary = item.summaryProvider?.provideSummary(item)
-                            onSettingsChangeListener.onChange(key, newValue)
-                        }
-                    )
+                    showDialog = true
                 },
                 onLongClick = { onSettingsLongClickListener.onLongClick(item.key) },
             )

@@ -25,7 +25,16 @@ sealed class UiText : Parcelable {
 fun UiText?.parseString(context: Context): String? {
     return when (this) {
         is UiText.Resource -> context.getString(resId)
-        is UiText.ResourceParams -> context.getString(value, *args.toTypedArray())
+        is UiText.ResourceParams -> {
+            val processedArgs = args.map { any ->
+                when (any) {
+                    is UiText -> any.parseString(context)
+                    else -> any
+                }
+            }
+            context.getString(value, *processedArgs.toTypedArray())
+        }
+
         is UiText.QuantityResource -> context.resources.getQuantityString(resId, quantity, quantity)
         is UiText.Simple -> text
         else -> null
