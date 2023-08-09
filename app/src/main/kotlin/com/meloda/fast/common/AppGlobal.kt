@@ -1,94 +1,83 @@
 package com.meloda.fast.common
 
 import android.app.Application
-import android.app.DownloadManager
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.net.ConnectivityManager
-import android.util.Log
-import android.view.inputmethod.InputMethodManager
+import android.media.AudioManager
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
-import androidx.room.Room
-import com.meloda.fast.database.AppDatabase
-import dagger.hilt.android.HiltAndroidApp
+import com.google.android.material.color.DynamicColors
+import com.meloda.fast.common.di.applicationModule
+import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.util.AndroidUtils
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.GlobalContext.startKoin
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
+import kotlin.properties.Delegates
 
-@HiltAndroidApp
 class AppGlobal : Application() {
-
-    companion object {
-
-        lateinit var inputMethodManager: InputMethodManager
-        lateinit var connectivityManager: ConnectivityManager
-        lateinit var clipboardManager: ClipboardManager
-        lateinit var downloadManager: DownloadManager
-
-        lateinit var preferences: SharedPreferences
-        lateinit var resources: Resources
-        lateinit var packageName: String
-        private lateinit var instance: AppGlobal
-
-        lateinit var appDatabase: AppDatabase
-
-        lateinit var packageManager: PackageManager
-
-        var versionName = ""
-        var versionCode = 0
-
-        var screenWidth = 0
-        var screenHeight = 0
-
-        var screenWidth80 = 0
-
-        val Instance get() = instance
-    }
 
     override fun onCreate() {
         super.onCreate()
+
         instance = this
 
-        appDatabase = Room.databaseBuilder(this, AppDatabase::class.java, "cache")
-//            .fallbackToDestructiveMigration()
-            .build()
-
-        preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        if (preferences.getBoolean(
+                SettingsFragment.KEY_USE_DYNAMIC_COLORS,
+                SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
+            )
+        ) {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+        }
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
         versionCode = PackageInfoCompat.getLongVersionCode(info).toInt()
 
-        Companion.resources = resources
-        Companion.packageName = packageName
-        Companion.packageManager = packageManager
+        screenWidth80 = (AndroidUtils.getDisplayWidth() * 0.8).roundToInt()
 
-        screenWidth = resources.displayMetrics.widthPixels
-        screenHeight = resources.displayMetrics.heightPixels
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        screenWidth80 = (screenWidth * 0.8).roundToInt()
+        applyDarkTheme()
 
-        val density = resources.displayMetrics.density
-        val densityDpi = resources.displayMetrics.densityDpi
-        val densityScaled = resources.displayMetrics.scaledDensity
-        val xDpi = resources.displayMetrics.xdpi
-        val yDpi = resources.displayMetrics.ydpi
+        initKoin()
+    }
 
-        val diagonal = sqrt(
-            (screenWidth * screenWidth - screenHeight * screenHeight).toFloat()
+    private fun applyDarkTheme() {
+        val nightMode = preferences.getInt(
+            SettingsFragment.KEY_APPEARANCE_DARK_THEME,
+            SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
         )
+        AppCompatDelegate.setDefaultNightMode(nightMode)
+    }
 
-        Log.i(
-            "Fast::DeviceInfo",
-            "width: $screenWidth; 70% width: $screenWidth80; height: $screenHeight; density: $density; diagonal: $diagonal; dpiDensity: $densityDpi; scaledDensity: $densityScaled; xDpi: $xDpi; yDpi: $yDpi"
-        )
+    private fun initKoin() {
+        startKoin {
+            androidLogger()
+            androidContext(this@AppGlobal)
+            modules(applicationModule)
+        }
+    }
 
-        inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    companion object {
+        private lateinit var instance: AppGlobal
+
+        val preferences: SharedPreferences by lazy {
+            PreferenceManager.getDefaultSharedPreferences(instance)
+        }
+
+        var versionName = ""
+        var versionCode = 0
+        var screenWidth80 = 0
+
+        val Instance: AppGlobal get() = instance
+        val resources: Resources get() = Instance.resources
+        val packageManager: PackageManager get() = Instance.packageManager
+
+        var audioManager: AudioManager by Delegates.notNull()
     }
 }

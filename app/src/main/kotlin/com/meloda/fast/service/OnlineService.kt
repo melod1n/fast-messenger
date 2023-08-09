@@ -9,15 +9,19 @@ import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsRepository
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
-import java.util.*
-import javax.inject.Inject
+import com.meloda.fast.screens.settings.SettingsFragment
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import java.util.Timer
 import kotlin.concurrent.schedule
 import kotlin.coroutines.CoroutineContext
 
-@AndroidEntryPoint
 class OnlineService : Service(), CoroutineScope {
 
     private val job = SupervisorJob()
@@ -30,58 +34,57 @@ class OnlineService : Service(), CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Default + job + exceptionHandler
 
-    @Inject
-    lateinit var repository: AccountsRepository
+    private val repository: AccountsRepository by inject()
 
     private var timer: Timer? = null
+
+    private var currentJob: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("OnlineService", "onStartCommand: flags: $flags; startId: $startId")
-        createTimer()
+
+        if (AppGlobal.preferences.getBoolean(
+                SettingsFragment.KEY_VISIBILITY_SEND_ONLINE_STATUS, true
+            )
+        ) {
+            createTimer()
+        }
 
         return START_STICKY_COMPATIBILITY
     }
 
     private fun createTimer() {
         timer = Timer().apply {
-            schedule(delay = 0, period = 60 * 1000L) {
-                launch { performJob() }
+            schedule(delay = 0, period = 300 * 1000L) {
+                setOnline()
             }
         }
     }
 
-    private suspend fun performJob() {
-        if (!AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefSendOnlineStatus, true)) {
-            return
-        }
+    private fun setOnline() {
+        if (currentJob != null) return
 
-        setOffline()
-        delay(5000)
-        setOnline()
-    }
+        currentJob = launch {
+            Log.d("OnlineService", "setOnline()")
 
-    private suspend fun setOnline() {
-        Log.d("OnlineService", "setOnline()")
+            val token = UserConfig.fastToken ?: UserConfig.accessToken
 
-        val fastToken = UserConfig.fastToken
-
-        val token =
-            if (fastToken == null) {
-                Log.d("OnlineService", "setOnline: Fast token is null. Using VK token")
-                UserConfig.accessToken
-            } else {
-                fastToken
+            if (token.isBlank()) {
+                Log.d("OnlineService", "setOnline: token is empty")
+                return@launch
             }
 
-        val response = repository.setOnline(
-            AccountSetOnlineRequest(
-                voip = false,
-                accessToken = token
+            val response = repository.setOnline(
+                AccountSetOnlineRequest(
+                    voip = false,
+                    accessToken = token
+                )
             )
-        )
-        Log.d("OnlineService", "setOnline: response: $response")
+            Log.d("OnlineService", "setOnline: response: $response")
+            currentJob = null
+        }
     }
 
     private suspend fun setOffline() {
@@ -96,7 +99,8 @@ class OnlineService : Service(), CoroutineScope {
 
     override fun onDestroy() {
         super.onDestroy()
+        timer?.cancel()
+        currentJob?.cancel("OnlineService destroyed")
         Log.d("OnlineService", "onDestroy")
     }
-
 }

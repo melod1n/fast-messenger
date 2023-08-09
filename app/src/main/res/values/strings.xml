@@ -8,8 +8,12 @@
     <string name="navigation_profile">Profile</string>
     <string name="navigation_favorites">Favorites</string>
     <string name="navigation_settings">Settings</string>
+    <string name="static_settings">Static Settings</string>
 
-    <string name="error">Error: %s</string>
+    <string name="error_occurred">Error occurred</string>
+    <string name="error_occurred_description">Error: %s</string>
+
+    <string name="title_error">Error</string>
 
     <string name="password_login_hint">Password</string>
 
@@ -54,6 +58,7 @@
     <string name="validation_required">Validation required</string>
     <string name="unknown_error_occurred">Unknown error occurred</string>
     <string name="authorization_failed">Authorization failed</string>
+    <string name="token_expired">Access token expired</string>
 
 
     <string name="message_action_chat_created">%s created «%s»</string>
@@ -140,7 +145,7 @@
     <string name="conversation_context_action_delete">Delete</string>
     <string name="confirm_delete_conversation">Delete the conversation?</string>
     <string name="action_sign_out">Sign out</string>
-    <string name="sign_out_confirm_title">Sign out</string>
+    <string name="sign_out_confirm_title">Sign out?</string>
     <string name="conversation_context_action_unpin">Unpin</string>
     <string name="conversation_context_action_pin">Pin</string>
     <string name="confirm_unpin_conversation">Unpin the conversation?</string>
@@ -166,17 +171,21 @@
 
     <string name="pref_updates_check_update_summary">Current version: %s</string>
     <string name="fragment_updates_changelog_none">Changelog is missing</string>
-    <string name="fragment_updates_changelog">Changelog</string>
+    <string name="fragment_updates_changelog">Show changelog</string>
     <string name="fragment_updates_check_updates">Check updates</string>
+    <string name="fragment_updates_install">Install</string>
     <string name="fragment_updates_download_update">Download</string>
     <string name="fragment_updates_try_again">Try again</string>
     <string name="fragment_updates_new_version">New version available!</string>
+    <string name="fragment_updates_downloaded">Update downloaded!</string>
     <string name="fragment_updates_new_version_description">v. %s</string>
     <string name="fragment_updates_no_updates">No updates</string>
+    <string name="fragment_updates_issues_installing">Issues with installing?</string>
     <string name="fragment_updates_no_updates_description">Try again later</string>
-    <string name="fragment_updates_error_occurred">Error occurred</string>
-    <string name="fragment_updates_error_occurred_description">Error: %s</string>
     <string name="fragment_updates_unknown_sources_disabled_message">Unknown sources installing is disabled in the settings. Open settings?</string>
+    <string name="fragment_updates_downloading_update">Downloading update…</string>
+    <string name="fragment_updates_issues_description">In case of any kind of problem related to installing new version you can delete and then re-download executable *.apk file. Proceed?</string>
+    <string name="fragment_updates_file_not_found_description">Installed executable *.apk file not found. Try to re-download it</string>
 
     <string name="warning">Warning</string>
 
@@ -196,5 +205,18 @@
 
     <string name="fast_login_title">Fast login</string>
     <string name="fast_login_hint">$login;$password</string>
+    <string name="confirm_remove_chat_user">Are you sure you want to remove this member?</string>
+    <string name="user_banned_error">User banned</string>
+    <string name="blocking_reason_title">Blocking reason</string>
+    <string name="account_temporarily_blocked">Account temporarily blocked</string>
+    <string name="user_name">User name</string>
+    <string name="sign_in_to_vk">Sign in to VK</string>
+
+
+    <string name="easter_egg_log_out_dmitry" translatable="false">Выйти внаружу?</string>
+    <string name="action_search">Search</string>
+    <string name="action_stop">Stop</string>
+
+    <string name="value">Value</string>
 
 </resources>

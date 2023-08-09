@@ -2,6 +2,7 @@ package com.meloda.fast.database
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
+import com.meloda.fast.api.base.AttachmentClassNameIsEmptyException
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
@@ -18,25 +19,37 @@ class Converters {
     fun fromGeoToString(geo: BaseVkMessage.Geo?): String? {
         if (geo == null) return null
 
-        val string = Gson().toJson(geo)
+        return try {
+            val string = Gson().toJson(geo)
 
-        return string
+            return string
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromStringToGeo(string: String?): BaseVkMessage.Geo? {
         if (string == null) return null
 
-        val geo = Gson().fromJson(string, BaseVkMessage.Geo::class.java)
+        return try {
+            val geo = Gson().fromJson(string, BaseVkMessage.Geo::class.java)
 
-        return geo
+            return geo
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromListVkMessageToString(messages: List<VkMessage>?): String? {
         if (messages == null) return null
 
-        val string = messages.map { fromVkMessageToString(it)!! }.joinToString { CACHE_SEPARATOR }
+        val string = messages
+            .mapNotNull(::fromVkMessageToString)
+            .joinToString(separator = CACHE_SEPARATOR)
 
         return string
     }
@@ -46,40 +59,52 @@ class Converters {
         if (string == null) return null
 
         if (string.contains(CACHE_SEPARATOR)) {
-            val messages =
-                string.split(CACHE_SEPARATOR).map { fromStringToVkMessage(it)!! }
+            val messages = string
+                .split(CACHE_SEPARATOR)
+                .mapNotNull(::fromStringToVkMessage)
             return messages
         }
 
 
-        val message = fromStringToVkMessage(string)!!
-
-        return listOf(message)
+        val message = fromStringToVkMessage(string)
+        return message?.let { listOf(it) }
     }
 
     @TypeConverter
     fun fromVkMessageToString(message: VkMessage?): String? {
         if (message == null) return null
 
-        return Gson().toJson(message)
+        return try {
+            val string = Gson().toJson(message)
+
+            return string
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromStringToVkMessage(string: String?): VkMessage? {
         if (string == null) return null
 
-        val message = Gson().fromJson(string, VkMessage::class.java)
+        return try {
+            val message = Gson().fromJson(string, VkMessage::class.java)
 
-        return message
+            return message
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromListVkAttachmentToString(attachments: List<VkAttachment>?): String? {
         if (attachments == null) return null
 
-        val string =
-            attachments.map { fromVkAttachmentToString(it)!! }.joinToString { CACHE_SEPARATOR }
-
+        val string = attachments
+            .mapNotNull(::fromVkAttachmentToString)
+            .joinToString(separator = CACHE_SEPARATOR)
         return string
     }
 
@@ -88,34 +113,48 @@ class Converters {
         if (string == null) return null
 
         if (string.contains(CACHE_SEPARATOR)) {
-            val attachments =
-                string.split(CACHE_SEPARATOR).map { fromStringToVkAttachment(it)!! }
+            val attachments = string
+                .split(CACHE_SEPARATOR)
+                .mapNotNull(::fromStringToVkAttachment)
             return attachments
         }
 
+        val attachment = fromStringToVkAttachment(string)
 
-        val attachment = fromStringToVkAttachment(string)!!
-
-        return listOf(attachment)
+        return attachment?.let { listOf(it) }
     }
 
     @TypeConverter
     fun fromVkAttachmentToString(attachment: VkAttachment?): String? {
         if (attachment == null) return null
 
-        val string = Gson().toJson(attachment)
-
-        return string
+        try {
+            attachment.javaClass.getDeclaredField("className")
+        } catch (e: NoSuchFieldException) {
+            throw AttachmentClassNameIsEmptyException(attachment)
+        }
+        return try {
+            val string = Gson().toJson(attachment)
+            string
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     @TypeConverter
     fun fromStringToVkAttachment(string: String?): VkAttachment? {
-        if (string == null) return null
+        if (string.isNullOrBlank()) return null
 
-        val className = JSONObject(string).optString("className")
+        return try {
+            val className = JSONObject(string).optString("className")
 
-        val attachment = Gson().fromJson(string, Class.forName(className)) as? VkAttachment?
+            val attachment = Gson().fromJson(string, Class.forName(className)) as? VkAttachment?
 
-        return attachment
+            return attachment
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

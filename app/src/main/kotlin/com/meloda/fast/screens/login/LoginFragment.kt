@@ -1,475 +1,419 @@
 package com.meloda.fast.screens.login
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
-import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.viewbinding.library.fragment.viewBinding
-import android.webkit.CookieManager
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.activity.addCallback
-import androidx.core.content.edit
-import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputLayout
-import com.meloda.fast.BuildConfig
+import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.*
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
-import com.meloda.fast.base.viewmodel.*
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.databinding.DialogCaptchaBinding
+import com.meloda.fast.base.BaseFragment
+import com.meloda.fast.base.viewmodel.ViewModelUtils
+import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.databinding.DialogFastLoginBinding
-import com.meloda.fast.databinding.DialogValidationBinding
-import com.meloda.fast.databinding.FragmentLoginBinding
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.net.URLEncoder
-import java.util.*
-import java.util.regex.Pattern
-import kotlin.concurrent.schedule
+import com.meloda.fast.ext.*
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.login.model.LoginScreenState
+import com.meloda.fast.ui.AppTheme
+import com.meloda.fast.ui.widgets.TextFieldErrorText
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
-class LoginFragment : BaseViewModelFragment<LoginViewModel>(R.layout.fragment_login) {
 
-    companion object {
-        private const val ArgGetFastToken = "get_fast_token"
+class LoginFragment : BaseFragment() {
 
-        fun newInstance(getFastToken: Boolean = false): LoginFragment {
-            val fragment = LoginFragment()
-            fragment.arguments = bundleOf(
-                ArgGetFastToken to getFastToken
-            )
+    private val viewModel: LoginViewModel by viewModel<LoginViewModelImpl>()
 
-            return fragment
+    private val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            viewModel.onBackPressed()
         }
     }
 
-    override val viewModel: LoginViewModel by viewModels()
-    private val binding: FragmentLoginBinding by viewBinding()
-
-    private var lastLogin: String = ""
-    private var lastPassword: String = ""
-
-    private var errorTimer: Timer? = null
-
-    private var captchaInputLayout: TextInputLayout? = null
-    private var validationInputLayout: TextInputLayout? = null
-
-    private var isGetFastToken: Boolean = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.unknownErrorDefaultText = getString(R.string.unknown_error_occurred)
-        isGetFastToken = requireArguments().getBoolean(ArgGetFastToken, false)
+        activity?.onBackPressedDispatcher?.addCallback(backPressedCallback)
+
+        viewModel.isNeedToShowLogo.listenValue { needToShow ->
+            backPressedCallback.isEnabled = !needToShow
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prepareViews()
+        listenViewModel()
 
-        binding.loginInput.clearFocus()
+        (view as? ComposeView)?.apply {
+            setContent {
+                val showLogo by viewModel.isNeedToShowLogo.collectAsState()
 
-        binding.useCrashReporter.isChecked =
-            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefEnableReporter, true)
-        binding.useCrashReporter.setOnCheckedChangeListener { _, isChecked ->
-            AppGlobal.preferences.edit {
-                putBoolean(SettingsPrefsFragment.PrefEnableReporter, isChecked)
-                requireActivity().finishAffinity()
-                startActivity(Intent(requireContext(), MainActivity::class.java))
-            }
-        }
+                AppTheme {
+                    Surface(
+                        color = MaterialTheme.colorScheme.background,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .statusBarsPadding()
+                            .navigationBarsPadding()
+                    ) {
+                        if (showLogo) {
+                            LoginLogo()
+                        } else {
+                            val state by viewModel.screenState.collectAsStateWithLifecycle()
 
-        requireActivity().onBackPressedDispatcher.addCallback {
-            if (getView() == null) {
-                isEnabled = false
-                return@addCallback
-            }
-
-            if (binding.webView.canGoBack()) {
-                binding.webView.goBack()
-            } else {
-                isEnabled = false
-            }
-        }
-    }
-
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
-
-        when (event) {
-            StartProgressEvent -> onProgressStarted()
-            StopProgressEvent -> onProgressStopped()
-
-            is CaptchaRequiredEvent -> showCaptchaDialog(event.sid, event.image)
-            is ValidationRequiredEvent -> showValidationRequired(event.sid)
-
-            LoginSuccessAuth -> {
-                viewModel.initUserConfig()
-                viewModel.openPrimaryScreen()
-            }
-            LoginCodeSent -> showValidationDialog()
-        }
-    }
-
-    private fun onProgressStarted() {
-        binding.loginContainer.gone()
-        binding.passwordContainer.gone()
-        binding.auth.gone()
-        binding.progressBar.visible()
-    }
-
-    private fun onProgressStopped() {
-        binding.loginContainer.visible()
-        binding.passwordContainer.visible()
-        binding.auth.visible()
-        binding.progressBar.gone()
-    }
-
-    private fun prepareViews() {
-        prepareWebView()
-        prepareEmailEditText()
-        preparePasswordEditText()
-        prepareAuthButton()
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun prepareWebView() {
-        with(binding.webView) {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-
-            clearCache(true)
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                    if (getView() == null) return
-                    binding.webViewProgressBar.visible()
-                    binding.webView.gone()
-
-                    super.onPageStarted(view, url, favicon)
-                    parseAuthUrl(url)
-                }
-
-                override fun onPageFinished(view: WebView, url: String) {
-                    if (getView() == null) return
-                    binding.webViewProgressBar.gone()
-                    binding.webView.visible()
-
-                    super.onPageFinished(view, url)
+                            LoginSignIn(
+                                onSignInClick = viewModel::onSignInButtonClicked,
+                                onLoginInputChanged = viewModel::onLoginInputChanged,
+                                onPasswordInputChanged = viewModel::onPasswordInputChanged,
+                                onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+                                state = state,
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
 
-        CookieManager.getInstance().apply {
-            removeAllCookies(null)
-            flush()
-            setAcceptCookie(true)
+    private fun listenViewModel() = with(viewModel) {
+        events.listenValue(::handleEvent)
+        isNeedToShowErrorDialog.listenValue(::handleErrorAlertShow)
+        isNeedToShowFastLoginDialog.listenValue(::handleFastLoginAlertShow)
+    }
+
+    private fun handleEvent(event: VkEvent) {
+        ViewModelUtils.parseEvent(this, event)
+    }
+
+    private fun handleErrorAlertShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showErrorDialog()
         }
     }
 
-    private fun launchWebView() {
-        binding.webViewContainer.visible()
-
-        val urlToLoad = "https://oauth.vk.com/authorize?client_id=${UserConfig.FAST_APP_ID}&" +
-                "access_token=${UserConfig.accessToken}&" +
-                "sdk_package=${BuildConfig.sdkPackage}&" +
-                "sdk_fingerprint=${BuildConfig.sdkFingerprint}&" +
-                "display=page&" +
-                "revoke=1&" +
-                "scope=${VKConstants.Auth.SCOPE.replace("messages,", "")}&" +
-                "redirect_uri=${
-                    URLEncoder.encode(
-                        "https://oauth.vk.com/blank.html",
-                        "utf-8"
-                    )
-                }&" +
-                "response_type=token&" +
-                "v=${VKConstants.API_VERSION}"
-
-        binding.webView.loadUrl(urlToLoad)
-    }
-
-    private fun parseAuthUrl(url: String) {
-        if (url.isBlank()) return
-
-        if (url.startsWith("https://oauth.vk.com/blank.html")) {
-            if (url.contains("error")) {
-                Log.e("Fast::Login", "errorUrl: $url")
-                return
-            }
-
-            val authData = parseRedirectUrl(url)
-            if (authData == null) {
-                Log.e("Fast::Login", "errorUrl: $url")
-                return
-            }
-
-            val fastToken = authData.first
-
-            if (isGetFastToken) {
-                val userId = UserConfig.userId
-                val accessToken = UserConfig.accessToken
-
-                UserConfig.fastToken = fastToken
-
-                viewModel.saveAccount(userId, accessToken, fastToken)
-            } else {
-                val account = requireNotNull(viewModel.currentAccount)
-                viewModel.currentAccount = account.copy(fastToken = fastToken)
-                viewModel.initUserConfig()
-            }
-
-            viewModel.openPrimaryScreen()
+    private fun handleFastLoginAlertShow(isNeedToShow: Boolean) {
+        if (isNeedToShow) {
+            showFastLoginDialog()
         }
     }
 
-    private fun parseRedirectUrl(url: String): Pair<String, Int>? {
-        val accessToken = extractPattern(url, "access_token=(.*?)&") ?: return null
-        val userId = extractPattern(url, "id=(\\d*)")?.toIntOrNull() ?: return null
-
-        return accessToken to userId
+    private fun showErrorDialog() {
+        context?.showDialog(
+            title = UiText.Resource(R.string.title_error),
+            message = UiText.Simple(viewModel.screenState.value.error.orEmpty()),
+            positiveText = UiText.Resource(R.string.ok),
+            onDismissAction = viewModel::onErrorDialogDismissed
+        )
     }
 
-    private fun extractPattern(string: String, pattern: String): String? {
-        val p = Pattern.compile(pattern)
-        val m = p.matcher(string)
-        return if (m.find()) {
-            m.group(1)
-        } else null
-    }
-
-    private fun prepareEmailEditText() {
-        binding.loginInput.addTextChangedListener {
-            if (!binding.loginLayout.error.isNullOrBlank()) binding.loginLayout.error = ""
-        }
-    }
-
-    private fun preparePasswordEditText() {
-        binding.passwordInput.typeface = Typeface.DEFAULT
-        binding.passwordLayout.endIconMode = TextInputLayout.END_ICON_NONE
-
-        binding.passwordInput.addTextChangedListener {
-            if (!binding.passwordLayout.error.isNullOrBlank()) binding.passwordLayout.error = ""
-        }
-
-        binding.passwordInput.setOnFocusChangeListener { _, hasFocus ->
-            binding.passwordLayout.endIconMode =
-                if (hasFocus) TextInputLayout.END_ICON_PASSWORD_TOGGLE
-                else TextInputLayout.END_ICON_NONE
-        }
-
-        binding.passwordInput.setOnEditorActionListener edit@{ _, _, event ->
-            if (event == null) return@edit false
-            return@edit if (event.action == EditorInfo.IME_ACTION_GO ||
-                (event.action == KeyEvent.ACTION_DOWN && (event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER))
-            ) {
-                binding.passwordInput.hideKeyboard()
-                binding.auth.performClick()
-                true
-            } else false
-        }
-    }
-
-    private fun prepareAuthButton() {
-        binding.auth.setOnClickListener { validateDataAndAuth() }
-        binding.auth.setOnLongClickListener {
-            showFastLoginAlert()
-            true
-        }
-    }
-
-    private fun showFastLoginAlert() {
+    private fun showFastLoginDialog() {
         val dialogFastLoginBinding = DialogFastLoginBinding.inflate(layoutInflater, null, false)
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.fast_login_title)
-            .setView(dialogFastLoginBinding.root)
-            .setPositiveButton(R.string.ok) { _, _ ->
+        context?.showDialog(
+            title = UiText.Resource(R.string.fast_login_title),
+            view = dialogFastLoginBinding.root,
+            positiveText = UiText.Resource(R.string.ok),
+            positiveAction = {
                 val text = dialogFastLoginBinding.fastLoginText.trimmedText
-                if (text.isEmpty()) return@setPositiveButton
+                if (text.isEmpty()) return@showDialog
 
                 val split = text.split(";")
                 try {
                     val login = split[0]
                     val password = split[1]
 
-                    binding.loginInput.setText(login)
-                    binding.loginInput.selectLast()
+                    viewModel.onLoginInputChanged(login)
+                    viewModel.onPasswordInputChanged(password)
 
-                    binding.passwordInput.setText(password)
-                    binding.passwordInput.selectLast()
+                    viewModel.onFastLoginDialogOkButtonClicked()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            },
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onFastLoginDialogDismissed
+        )
+    }
 
-                    validateDataAndAuth(login to password)
-                } catch (ignored: Exception) {
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    fun LoginLogo() {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_logo_big),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.combinedClickableSound(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onLongClick = viewModel::onLogoLongClicked
+                    )
+                )
+                Spacer(modifier = Modifier.height(46.dp))
+                Text(
+                    text = "Fast Messenger",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            FloatingActionButton(
+                onClick = viewModel::onLogoNextButtonClicked,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_arrow_end),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+
+    @Preview
+    @Composable
+    fun LoginSignInPreview() {
+        AppTheme(
+            useDarkTheme = false,
+            useDynamicColors = false
+        ) {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                LoginSignIn(
+                    state = LoginScreenState.EMPTY,
+                    onSignInClick = { },
+                    onLoginInputChanged = {},
+                    onPasswordInputChanged = {},
+                    onPasswordVisibilityButtonClicked = {}
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+    @Composable
+    fun LoginSignIn(
+        onSignInClick: () -> Unit,
+        onLoginInputChanged: (String) -> Unit,
+        onPasswordInputChanged: (String) -> Unit,
+        onPasswordVisibilityButtonClicked: () -> Unit,
+        state: LoginScreenState
+    ) {
+        val focusManager = LocalFocusManager.current
+        val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
+        val isLoading = state.isLoading
+
+        val goButtonClickAction = {
+            if (!isLoading) {
+                focusManager.clearFocus()
+                onSignInClick.invoke()
+            }
+        }
+        val loginFieldTabClick = {
+            passwordFocusable.requestFocus()
+            true
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
+                .imePadding()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+            ) {
+                Text(
+                    text = "Sign in to VK",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.displayMedium
+                )
+
+                Spacer(modifier = Modifier.height(58.dp))
+
+                var loginText by remember { mutableStateOf(TextFieldValue(state.login)) }
+                val showLoginError = state.loginError
+
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .handleEnterKey(loginFieldTabClick::invoke)
+                        .handleTabKey(loginFieldTabClick::invoke)
+                        .focusRequester(loginFocusable),
+                    value = loginText,
+                    onValueChange = { newText ->
+                        loginText = newText
+                        onLoginInputChanged.invoke(newText.text)
+                    },
+                    label = { Text(text = "Login") },
+                    placeholder = { Text(text = "Login") },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_round_person_24),
+                            contentDescription = null,
+                            tint = if (showLoginError) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
+                        )
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next,
+                        keyboardType = KeyboardType.Email
+                    ),
+                    keyboardActions = KeyboardActions(onNext = { passwordFocusable.requestFocus() }),
+                    isError = showLoginError,
+                    singleLine = true
+                )
+                AnimatedVisibility(visible = showLoginError) {
+                    TextFieldErrorText(text = "Field must not be empty")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                var passwordText by remember { mutableStateOf(TextFieldValue(state.password)) }
+                val showPasswordError = state.passwordError
+                var passwordVisible = state.passwordVisible
+
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .handleEnterKey {
+                            goButtonClickAction.invoke()
+                            true
+                        }
+                        .focusRequester(passwordFocusable),
+                    value = passwordText,
+                    onValueChange = { newText ->
+                        passwordText = newText
+                        onPasswordInputChanged.invoke(newText.text)
+                    },
+                    label = { Text(text = "Password") },
+                    placeholder = { Text(text = "Password") },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.round_vpn_key_24),
+                            contentDescription = null,
+                            tint = if (showPasswordError) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
+                        )
+                    },
+                    trailingIcon = {
+                        val imagePainter = painterResource(
+                            id = if (passwordVisible) R.drawable.round_visibility_off_24
+                            else R.drawable.round_visibility_24
+                        )
+
+                        IconButton(
+                            onClick = {
+                                onPasswordVisibilityButtonClicked.invoke()
+                                passwordVisible = !passwordVisible
+                            }
+                        ) {
+                            Icon(painter = imagePainter, contentDescription = null)
+                        }
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Go,
+                        keyboardType = KeyboardType.Password
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onGo = { goButtonClickAction.invoke() }
+                    ),
+                    isError = showPasswordError,
+                    visualTransformation = if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    singleLine = true
+                )
+                AnimatedVisibility(visible = showPasswordError) {
+                    TextFieldErrorText(text = "Field must not be empty")
                 }
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
 
-    private fun validateDataAndAuth(data: Pair<String, String>? = null) {
-        if (binding.progressBar.isVisible) return
-        val loginString = data?.first ?: binding.loginInput.text.toString().trim()
-        val passwordString = data?.second ?: binding.passwordInput.text.toString().trim()
+            Box(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                contentAlignment = Alignment.Center
+            ) {
 
-        if (!validateInputData(loginString, passwordString)) return
-
-        lastLogin = loginString
-        lastPassword = passwordString
-
-        requireView().findFocus()?.hideKeyboard()
-
-        viewModel.login(
-            login = loginString,
-            password = passwordString
-        )
-    }
-
-    private fun validateInputData(
-        loginString: String?,
-        passwordString: String?,
-        captchaCode: String? = null,
-        validationCode: String? = null
-    ): Boolean {
-        var isValidated = true
-
-        if (loginString?.isEmpty() == true) {
-            isValidated = false
-            setError(getString(R.string.input_login_hint), binding.loginLayout)
-        }
-
-        if (passwordString?.isEmpty() == true) {
-            isValidated = false
-            setError(getString(R.string.input_password_hint), binding.passwordLayout)
-        }
-
-        if (captchaCode?.isEmpty() == true && captchaInputLayout != null) {
-            isValidated = false
-            setError(getString(R.string.input_code_hint), captchaInputLayout!!)
-        }
-
-        if (validationCode?.isEmpty() == true && validationInputLayout != null) {
-            isValidated = false
-            setError(getString(R.string.input_code_hint), validationInputLayout!!)
-        }
-
-        return isValidated
-    }
-
-    private fun setError(error: String, inputLayout: TextInputLayout) {
-        inputLayout.error = error
-
-        if (errorTimer != null) {
-            errorTimer?.cancel()
-            errorTimer = null
-        }
-
-        if (errorTimer == null) {
-            errorTimer = Timer()
-        }
-
-        errorTimer?.schedule(2500) {
-            lifecycleScope.launch(Dispatchers.Main) { clearErrors() }
+                FloatingActionButton(
+                    onClick = goButtonClickAction::invoke,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow_end),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+                AnimatedVisibility(
+                    visible = isLoading,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 
-    private fun clearErrors() {
-        binding.loginLayout.error = ""
-        binding.passwordLayout.error = ""
+    companion object {
 
-        captchaInputLayout?.error = ""
-    }
-
-    private fun showCaptchaDialog(captchaSid: String, captchaImage: String) {
-        val captchaBinding = DialogCaptchaBinding.inflate(layoutInflater, null, false)
-        captchaInputLayout = captchaBinding.captchaLayout
-
-        captchaBinding.image.loadWithGlide(
-            url = captchaImage,
-            crossFade = true
-        )
-        captchaBinding.image.shapeAppearanceModel =
-            captchaBinding.image.shapeAppearanceModel.withCornerSize(16.dpToPx().toFloat())
-
-        val builder = MaterialAlertDialogBuilder(requireContext())
-            .setView(captchaBinding.root)
-            .setCancelable(false)
-            .setTitle(R.string.input_captcha)
-
-        val dialog = builder.show()
-
-        captchaBinding.ok.setOnClickListener {
-            val captchaCode = captchaBinding.captchaInput.text.toString().trim()
-
-            if (!validateInputData(
-                    loginString = null,
-                    passwordString = null,
-                    captchaCode = captchaCode
-                )
-            ) return@setOnClickListener
-
-            dialog.dismiss()
-
-            viewModel.login(
-                login = lastLogin,
-                password = lastPassword,
-                captcha = captchaSid to captchaCode
-            )
+        fun newInstance(): LoginFragment {
+            return LoginFragment()
         }
-        captchaBinding.cancel.setOnClickListener { dialog.dismiss() }
-    }
-
-    private fun showValidationDialog() {
-        val validationBinding = DialogValidationBinding.inflate(layoutInflater, null, false)
-        validationInputLayout = validationBinding.codeLayout
-
-        val builder = MaterialAlertDialogBuilder(requireContext())
-            .setView(validationBinding.root)
-            .setCancelable(false)
-            .setTitle(R.string.input_validation_code)
-
-        val dialog = builder.show()
-
-        validationBinding.ok.setOnClickListener {
-            val validationCode = validationBinding.codeInput.trimmedText
-
-            if (!validateInputData(
-                    loginString = null,
-                    passwordString = null,
-                    validationCode = validationCode
-                )
-            ) return@setOnClickListener
-
-            dialog.dismiss()
-
-            viewModel.login(
-                login = lastLogin,
-                password = lastPassword,
-                twoFaCode = validationCode
-            )
-        }
-        validationBinding.cancel.setOnClickListener { dialog.dismiss() }
-    }
-
-    private fun showValidationRequired(validationSid: String) {
-        Toast.makeText(requireContext(), R.string.validation_required, Toast.LENGTH_LONG).show()
-        viewModel.sendSms(validationSid)
     }
 }

@@ -1,5 +1,7 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+@file:Suppress("UnstableApiUsage")
+
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage", "\"\"")
 val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint", "\"\"")
@@ -17,13 +19,14 @@ plugins {
     id("kotlin-android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "com.meloda.fast"
 
-    compileSdk = 32
+    compileSdk = 34
 
     applicationVariants.all {
         outputs.all {
@@ -34,14 +37,14 @@ android {
 
     defaultConfig {
         applicationId = "com.meloda.fast"
-        minSdk = 23
-        targetSdk = 32
+        minSdk = 24
+        targetSdk = 34
         versionCode = 1
         versionName = "alpha"
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+//                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
             }
         }
     }
@@ -73,18 +76,51 @@ android {
         }
     }
 
+    val flavorDimension = "version"
+
+    flavorDimensions += flavorDimension
+
+    productFlavors {
+        create("dev") {
+            resourceConfigurations += listOf("en", "xxhdpi")
+
+            dimension = flavorDimension
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+        create("full") {
+            dimension = flavorDimension
+        }
+    }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xjvm-default=compatibility", "-opt-in=kotlin.RequiresOptIn")
+        jvmTarget = JavaVersion.VERSION_17.toString()
+        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
     }
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.5"
+        useLiveLiterals = true
+    }
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
@@ -92,74 +128,99 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
-    implementation(kotlin("reflect", "1.6.10"))
 
-    implementation(libs.androidx.core)
 
-    implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.androidx.lifecycle.livedata)
-    implementation(libs.androidx.lifecycle.runtime)
-    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
-    implementation(libs.androidx.lifecycle.common.java8)
+    // DI zone
+    implementation("io.insert-koin:koin-android:3.4.0")
+    // end of DI zone
 
-    implementation(libs.androidx.splashScreen)
+    implementation("com.github.skydoves:cloudy:0.1.2")
 
-    implementation(libs.androidx.dataStore)
+    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.coil-kt:coil:2.3.0")
 
-    implementation(libs.androidx.appCompat)
+    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
+    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
-    implementation(libs.androidx.activity)
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
 
-    implementation(libs.androidx.fragment)
+    implementation("androidx.core:core-ktx:1.10.1")
 
-    implementation(libs.androidx.preference)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
 
-    implementation(libs.androidx.swipeRefreshLayout)
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
-    implementation(libs.androidx.recyclerView)
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
-    implementation(libs.androidx.cardView)
+    implementation("androidx.activity:activity-ktx:1.7.2")
 
-    implementation(libs.androidx.constraintLayout)
+    implementation("androidx.fragment:fragment-ktx:1.6.1")
 
-    implementation(libs.androidx.room)
-    implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    implementation("androidx.preference:preference-ktx:1.2.0")
 
-    implementation(libs.cicerone)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
-    implementation(libs.waveformSeekBar)
+    implementation("androidx.recyclerview:recyclerview:1.3.1")
 
-    implementation(libs.glide)
-    kapt(libs.glide.compiler)
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    implementation(libs.kPermissions)
-    implementation(libs.kPermissions.coroutines)
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
 
-    implementation(libs.appCenter.analytics)
-    implementation(libs.appCenter.crashes)
+    implementation("androidx.room:room-ktx:2.5.2")
+    implementation("androidx.room:room-runtime:2.5.2")
+    ksp("androidx.room:room-compiler:2.5.2")
 
-    implementation(libs.hilt)
-    kapt(libs.hilt.compiler)
+    implementation("com.github.terrakok:cicerone:7.1")
 
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson.converter)
+    implementation("com.github.massoudss:waveformSeekBar:5.0.0")
 
-    implementation(libs.okhttp3)
-    implementation(libs.okhttp3.interceptor)
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    ksp("com.github.bumptech.glide:compiler:4.15.1")
 
-    implementation(libs.coroutines.core)
-    implementation(libs.coroutines.android)
+    implementation("com.github.fondesa:kpermissions:3.4.0")
+    implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
 
-    implementation(libs.viewBindingDelegate)
+    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.1")
+    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.1")
 
-    implementation(libs.google.gson)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    implementation(libs.google.guava)
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
 
-    implementation(libs.google.material)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.1")
 
-    implementation(libs.jsoup)
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
 
-    implementation(libs.chucker)
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.google.guava:guava:31.1-jre")
+
+    implementation("com.google.android.material:material:1.9.0")
+
+    implementation("com.github.chuckerteam.chucker:library:3.5.2")
+
+    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
+
+    // Compose zone
+    implementation(platform("androidx.compose:compose-bom:2023.04.01"))
+
+    implementation("androidx.compose.material3:material3:1.1.1")
+//    implementation("androidx.compose.material:material:1.4.3")
+    implementation("androidx.compose.ui:ui:1.4.3")
+
+    implementation("androidx.compose.ui:ui-tooling-preview:1.4.3")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.4.3")
+
+    implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
+
+    implementation("androidx.activity:activity-compose:1.7.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
+
+    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha02")
+    // end of Compose zone
 }

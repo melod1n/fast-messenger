@@ -15,5 +15,8 @@ object MessagesUrls {
     const val Edit = "${VkUrls.API}/messages.edit"
     const val GetById = "${VkUrls.API}/messages.getById"
     const val MarkAsRead = "${VkUrls.API}/messages.markAsRead"
+    const val GetChat = "${VkUrls.API}/messages.getChat"
+    const val GetConversationMembers = "${VkUrls.API}/messages.getConversationMembers"
+    const val RemoveChatUser = "${VkUrls.API}/messages.removeChatUser"
 
 }

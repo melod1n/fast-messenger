@@ -1,50 +1,28 @@
 package com.meloda.fast.di
 
+import androidx.room.Room
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.account.AccountsDao
-import com.meloda.fast.data.conversations.ConversationsDao
-import com.meloda.fast.data.groups.GroupsDao
-import com.meloda.fast.data.messages.MessagesDao
-import com.meloda.fast.data.users.UsersDao
-import com.meloda.fast.database.AppDatabase
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import com.meloda.fast.database.AccountsDatabase
+import com.meloda.fast.database.CacheDatabase
+import org.koin.core.scope.Scope
+import org.koin.dsl.module
 
-@InstallIn(SingletonComponent::class)
-@Module
-object DatabaseModule {
-
-    @Provides
-    @Singleton
-    fun provideAppDatabase(): AppDatabase =
-        AppGlobal.appDatabase
-
-    @Provides
-    @Singleton
-    fun provideAccountsDao(appDatabase: AppDatabase): AccountsDao =
-        appDatabase.accountsDao
-
-    @Provides
-    @Singleton
-    fun provideConversationsDao(appDatabase: AppDatabase): ConversationsDao =
-        appDatabase.conversationsDao
-
-    @Provides
-    @Singleton
-    fun provideMessagesDao(appDatabase: AppDatabase): MessagesDao =
-        appDatabase.messagesDao
-
-    @Provides
-    @Singleton
-    fun provideUsersDao(appDatabase: AppDatabase): UsersDao =
-        appDatabase.usersDao
-
-    @Provides
-    @Singleton
-    fun provideGroupsDao(appDatabase: AppDatabase): GroupsDao =
-        appDatabase.groupsDao
-
+val databaseModule = module {
+    single {
+        Room.databaseBuilder(AppGlobal.Instance, CacheDatabase::class.java, "cache")
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+    single {
+        Room.databaseBuilder(AppGlobal.Instance, AccountsDatabase::class.java, "accounts")
+            .build()
+    }
+    single { cache().conversationsDao }
+    single { cache().messagesDao }
+    single { cache().usersDao }
+    single { cache().groupsDao }
+    single { accounts().accountsDao }
 }
+
+private fun Scope.cache(): CacheDatabase = get()
+private fun Scope.accounts(): AccountsDatabase = get()

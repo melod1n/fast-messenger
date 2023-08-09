@@ -1,508 +1,342 @@
 package com.meloda.fast.screens.conversations
 
 import android.os.Bundle
-import android.view.Gravity
-import android.view.MenuItem
+import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.addCallback
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.widget.PopupMenu
-import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
-import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.view.ViewGroup
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.api.model.presentation.VkConversationUi
+import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.Screens
-import com.meloda.fast.databinding.FragmentConversationsBinding
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.extensions.addAvatarMenuItem
-import com.meloda.fast.extensions.gone
-import com.meloda.fast.extensions.tintMenuItemIcons
-import com.meloda.fast.extensions.toggleVisibility
-import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.main.MainFragment
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
-import com.meloda.fast.util.AndroidUtils
-import com.meloda.fast.util.NotificationsUtils
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.meloda.fast.ext.asUiText
+import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.showDialog
+import com.meloda.fast.ext.string
+import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.ui.AppTheme
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
-class ConversationsFragment :
-    BaseViewModelFragment<ConversationsViewModel>(R.layout.fragment_conversations) {
+class ConversationsFragment : BaseFragment(R.layout.fragment_conversations) {
 
-    override val viewModel: ConversationsViewModel by viewModels()
-    private val binding: FragmentConversationsBinding by viewBinding()
-
-    private val adapter: ConversationsAdapter by lazy {
-        ConversationsAdapter(
-            requireContext(),
-            ConversationsResourceProvider(requireContext())
-        ).also {
-            it.itemClickListener = this::onItemClick
-            it.itemLongClickListener = this::onItemLongClick
-        }
+    private val viewModel: ConversationsViewModel by viewModel<ConversationsViewModelImpl>()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     }
-
-    private val avatarPopupMenu: PopupMenu
-        get() =
-            PopupMenu(
-                requireContext(),
-                binding.toolbar,
-                Gravity.BOTTOM or Gravity.END
-            ).apply {
-                menu.add("Settings")
-                menu.add(getString(R.string.log_out))
-                setOnMenuItemClickListener { item ->
-                    return@setOnMenuItemClickListener when (item.title) {
-                        getString(R.string.log_out) -> {
-                            showLogOutDialog()
-                            true
-                        }
-                        "Settings" -> {
-                            requireActivityRouter().navigateTo(Screens.Settings())
-                            true
-                        }
-                        else -> false
-                    }
-                }
-            }
-
-    private var toggle: ActionBarDrawerToggle? = null
-
-    private val useNavDrawer: Boolean get() = (requireActivity() as MainActivity).useNavDrawer
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        listenViewModel()
 
-        adapter.isMultilineEnabled =
-            AppGlobal.preferences.getBoolean(SettingsPrefsFragment.PrefMultiline, true)
+        (view as? ComposeView)?.setContent {
+            ConversationsScreen()
+        }
+    }
 
-        prepareViews()
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ConversationsScreen() {
+        val conversations by viewModel.conversationsList.collectAsStateWithLifecycle()
+        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        binding.recyclerView.adapter = adapter
-
-        binding.createChat.setOnClickListener {}
-
-        binding.toolbar.tintMenuItemIcons(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.colorPrimary
-            )
+        val useLargeTopAppBar = AppGlobal.preferences.getBoolean(
+            SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR,
+            SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
         )
+        val useMultiline = AppGlobal.preferences.getBoolean(
+            SettingsFragment.KEY_APPEARANCE_MULTILINE,
+            SettingsFragment.DEFAULT_VALUE_MULTILINE
+        )
+        val topAppBarState = rememberTopAppBarState()
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
-        val searchMenuItem = binding.toolbar.menu.findItem(R.id.search)
-        val actionView = searchMenuItem.actionView as SearchView
-
-        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
-                if (!adapter.isSearching)
-                    adapter.isSearching = true
-                return true
-            }
-
-            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
-                if (adapter.isSearching)
-                    adapter.isSearching = false
-                return true
-            }
-
-        })
-
-        actionView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                Toast.makeText(requireContext(), "API Search: $query", Toast.LENGTH_SHORT).show()
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                adapter.filter.filter(newText)
-                return false
-            }
-
-        })
-
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (searchMenuItem.isActionViewExpanded) {
-                searchMenuItem.collapseActionView()
-            } else {
-                isEnabled = false
-                requireActivity().onBackPressed()
-            }
+        val scaffoldModifier = if (useLargeTopAppBar) {
+            Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+        } else {
+            Modifier.fillMaxSize()
         }
 
-        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
-        syncAvatarMenuItem(avatarMenuItem)
+        val lazyListState = rememberLazyListState()
 
-        UserConfig.vkUser.observe(viewLifecycleOwner) { user ->
-            user?.run {
-                avatarMenuItem.actionView?.findViewById<ImageView>(R.id.avatar)
-                    ?.loadWithGlide(
-                        url = this.photo200, crossFade = true, asCircle = true
+        AppTheme {
+            Scaffold(
+                modifier = scaffoldModifier,
+                topBar = {
+                    var dropDownMenuExpanded by remember {
+                        mutableStateOf(false)
+                    }
+
+                    val actions: @Composable RowScope.() -> Unit = @Composable {
+                        IconButton(
+                            onClick = {
+                                dropDownMenuExpanded = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreVert,
+                                contentDescription = "Options"
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = dropDownMenuExpanded,
+                            onDismissRequest = {
+                                dropDownMenuExpanded = false
+                            },
+                            offset = DpOffset(x = 0.dp, y = (-60).dp)
+                        ) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    viewModel.onToolbarMenuItemClicked(R.id.settings)
+                                    dropDownMenuExpanded = false
+                                },
+                                text = {
+                                    Text(text = "Settings")
+                                }
+                            )
+                            DropdownMenuItem(
+                                onClick = {
+                                    viewModel.onRefresh()
+                                    dropDownMenuExpanded = false
+                                },
+                                text = {
+                                    Text(text = "Refresh")
+                                }
+                            )
+                        }
+                    }
+
+                    val title = @Composable {
+                        Text(text = if (isLoading) "Loading..." else "Conversations")
+                    }
+
+                    if (useLargeTopAppBar) {
+                        LargeTopAppBar(
+                            title = title,
+                            scrollBehavior = scrollBehavior,
+                            actions = actions
+                        )
+                    } else {
+                        TopAppBar(
+                            title = title,
+                            actions = actions
+                        )
+                    }
+                },
+                floatingActionButton = {
+                    if (!isLoading || conversations.isNotEmpty()) {
+                        AnimatedVisibility(
+                            visible = !lazyListState.isScrollInProgress || conversations.isNotEmpty(),
+                            enter = slideIn(initialOffset = { IntOffset(x = 0, y = 300) }),
+                            exit = slideOut(targetOffset = { IntOffset(x = 0, y = 300) })
+                        ) {
+                            FloatingActionButton(
+                                onClick = {
+                                    view?.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_baseline_create_24),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+                }
+            ) { padding ->
+                if (isLoading && conversations.isEmpty()) {
+                    Loader()
+                } else {
+                    ConversationsList(
+                        conversations = conversations,
+                        padding = padding,
+                        state = lazyListState,
+                        useMultiline = useMultiline,
                     )
-
-                val header = (requireActivity() as MainActivity).binding.drawer.getHeaderView(0)
-                header.findViewById<TextView>(R.id.name).text = user.fullName
-                header.findViewById<ImageView>(R.id.avatar).loadWithGlide(
-                    url = this.photo200, crossFade = true, asCircle = true
-                )
-            }
-        }
-
-        avatarMenuItem.actionView?.run {
-            setOnClickListener { avatarPopupMenu.show() }
-        }
-
-        viewModel.loadProfileUser()
-        viewModel.loadConversations()
-
-        syncToolbarToggle()
-
-        binding.createChat.gone()
-
-        setFragmentResultListener(SettingsPrefsFragment.KeyChangeMultiline) { _, bundle ->
-            val enabled = bundle.getBoolean(SettingsPrefsFragment.ArgEnabled)
-
-            if (adapter.isMultilineEnabled != enabled) {
-                adapter.isMultilineEnabled = enabled
-                adapter.refreshList()
-            }
-        }
-    }
-
-    private fun syncAvatarMenuItem(item: MenuItem) {
-        item.isVisible = !useNavDrawer
-    }
-
-    private fun syncToolbarToggle() {
-        (requireActivity() as MainActivity).let { activity ->
-            if (useNavDrawer) {
-                toggle = ActionBarDrawerToggle(
-                    activity, activity.binding.drawerLayout,
-                    binding.toolbar, R.string.app_name, R.string.app_name
-                ).apply {
-                    isDrawerSlideAnimationEnabled = false
-                    activity.binding.drawerLayout.addDrawerListener(this)
-                    syncState()
-                }
-            } else {
-                toggle?.let { toggle ->
-                    activity.binding.drawerLayout.removeDrawerListener(toggle)
                 }
             }
         }
     }
 
-    private fun showLogOutDialog() {
-        val isEasterEgg = UserConfig.userId == 37610580
+    @Composable
+    fun Loader() {
+        AppTheme {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(
-                if (isEasterEgg) "Выйти внаружу?"
-                else getString(R.string.sign_out_confirm_title)
-            )
-            .setMessage(R.string.sign_out_confirm)
-            .setPositiveButton(
-                if (isEasterEgg) "Выйти внаружу"
-                else getString(R.string.action_sign_out)
-            ) { _, _ ->
-                lifecycleScope.launch(Dispatchers.Default) {
-                    UserConfig.clear()
-                    AppGlobal.appDatabase.clearAllTables()
-                    setFragmentResult(
-                        MainFragment.KeyStartServices,
-                        bundleOf("enable" to false)
-                    )
+    @Composable
+    fun ConversationsList(
+        conversations: List<VkConversationUi>,
+        padding: PaddingValues,
+        state: LazyListState,
+        useMultiline: Boolean,
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(padding),
+            state = state
+        ) {
+            items(
+                count = conversations.size,
+                key = { index ->
+                    val item = conversations[index]
+                    item.conversationId
+                }
+            ) { index ->
+                Conversation(
+                    onItemClick = viewModel::onConversationItemClick,
+                    onItemLongClick = viewModel::onConversationItemLongClick,
+                    conversation = conversations[index],
+                    maxLines = if (useMultiline) 2 else 1,
+                )
 
-                    viewModel.openRootScreen()
+                if (index < conversations.size - 1) {
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
-            .setNegativeButton(R.string.no, null)
-            .show()
-    }
-
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
-        when (event) {
-            is ConversationsLoadedEvent -> refreshConversations(event)
-            is ConversationsDeleteEvent -> deleteConversation(event.peerId)
-
-            is ConversationsPinEvent -> {
-                adapter.pinnedCount++
-                viewModel.loadConversations()
-            }
-            is ConversationsUnpinEvent -> {
-                adapter.pinnedCount--
-                viewModel.loadConversations()
-            }
-
-            is MessagesNewEvent -> onMessageNew(event)
-            is MessagesEditEvent -> onMessageEdit(event)
-            is MessagesReadEvent -> onMessageRead(event)
         }
     }
 
-    override fun toggleProgress(isProgressing: Boolean) {
-        view?.run {
-            findViewById<View>(R.id.progress_bar).toggleVisibility(
-                if (isProgressing) adapter.isEmpty() else false
-            )
-            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
-                if (isProgressing) adapter.isNotEmpty() else false
-        }
+    // TODO: 05.08.2023, Danil Nikolaev: remove and use compose dialogs
+    private fun listenViewModel() = with(viewModel) {
+        isNeedToShowOptionsDialog.listenValue(::showOptionsDialog)
+        isNeedToShowDeleteDialog.listenValue(::showDeleteConversationDialog)
+        isNeedToShowPinDialog.listenValue(::showPinConversationDialog)
     }
 
-    private fun prepareViews() {
-        prepareRecyclerView()
-        prepareRefreshLayout()
-    }
-
-    private fun prepareRecyclerView() {
-        binding.recyclerView.itemAnimator = null
-    }
-
-    private fun prepareRefreshLayout() {
-        with(binding.refreshLayout) {
-            setProgressViewOffset(
-                true, progressViewStartOffset, progressViewEndOffset
-            )
-            setProgressBackgroundColorSchemeColor(
-                AndroidUtils.getThemeAttrColor(
-                    requireContext(),
-                    R.attr.colorSurface
-                )
-            )
-            setColorSchemeColors(
-                AndroidUtils.getThemeAttrColor(
-                    requireContext(),
-                    R.attr.colorPrimary
-                )
-            )
-            setOnRefreshListener { viewModel.loadConversations() }
-        }
-    }
-
-    private fun refreshConversations(event: ConversationsLoadedEvent) {
-        adapter.profiles += event.profiles
-        adapter.groups += event.groups
-
-        if (event.avatars != null) {
-            event.avatars.forEach { avatar ->
-                Glide.with(requireContext())
-                    .load(avatar)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .preload(200, 200)
-            }
-        }
-
-        val pinnedConversations = event.conversations.filter { it.isPinned() }
-        adapter.pinnedCount = pinnedConversations.count()
-
-        fillRecyclerView(event.conversations)
-    }
-
-    private fun fillRecyclerView(values: List<VkConversation>) {
-        adapter.submitList(values)
-    }
-
-    private fun onItemClick(position: Int) {
-        val conversation = adapter[position]
-
-        val user =
-            if (conversation.isUser()) adapter.profiles[conversation.id]
-            else null
-
-        val group =
-            if (conversation.isGroup()) adapter.groups[conversation.id]
-            else null
-
-        viewModel.openMessagesHistoryScreen(conversation, user, group)
-    }
-
-    private fun onItemLongClick(position: Int): Boolean {
-        showOptionsDialog(position)
-        return true
-    }
-
-    private fun showOptionsDialog(position: Int) {
-        val conversation = adapter[position]
+    // TODO: 06.04.2023, Danil Nikolaev: extract creating options to VM
+    private fun showOptionsDialog(conversation: VkConversationUi?) {
+        if (conversation == null) return
 
         var canPinOneMoreDialog = true
-        if (adapter.itemCount > 4) {
-            val pinnedConversations = adapter.cloneCurrentList().filter { it.majorId > 0 }
-
-            if (pinnedConversations.size == 5 && position > 4) {
+        if (viewModel.conversationsList.value.size > 4) {
+            if (viewModel.pinnedConversationsCount.value == 5 && !conversation.isPinned) {
                 canPinOneMoreDialog = false
             }
         }
 
         val read = "Mark as read"
 
-        val pin = getString(
-            if (conversation.isPinned()) R.string.conversation_context_action_unpin
+        val pin = string(
+            if (conversation.isPinned) R.string.conversation_context_action_unpin
             else R.string.conversation_context_action_pin
         )
 
-        val delete = getString(R.string.conversation_context_action_delete)
+        val delete = string(R.string.conversation_context_action_delete)
 
-        val params = mutableListOf<String>()
+        val params = mutableListOf<Pair<String, String>>()
 
         conversation.lastMessage?.run {
-            if (!this.isRead(conversation) && !isOut) {
-                params += read
+            if (!conversation.isUnread && !this.isOut) {
+                params += "read" to read
+            }
+
+            if (!this.text.isNullOrBlank()) {
+                params += "share" to "Share"
             }
         }
 
-        if (canPinOneMoreDialog) params += pin
+        if (canPinOneMoreDialog) params += "pin" to pin
 
-        params += delete
+        params += "delete" to delete
 
-        val arrayParams = params.toTypedArray()
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setItems(arrayParams) { _, which ->
-                when (params[which]) {
-                    read -> viewModel.readConversation(conversation)
-                    pin -> showPinConversationDialog(conversation)
-                    delete -> showDeleteConversationDialog(conversation.id)
-                }
-            }.show()
+        context?.showDialog(
+            items = params.map { param -> param.second.asUiText() },
+            itemsClickAction = { index, _ ->
+                val key = params[index].first
+                viewModel.onOptionsDialogOptionClicked(conversation, key)
+            },
+            onDismissAction = viewModel::onOptionsDialogDismissed
+        )
     }
 
-    private fun showDeleteConversationDialog(conversationId: Int) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.confirm_delete_conversation)
-            .setPositiveButton(R.string.action_delete) { _, _ ->
-                viewModel.deleteConversation(conversationId)
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+    private fun showDeleteConversationDialog(conversationId: Int?) {
+        if (conversationId == null) return
+
+        context?.showDialog(
+            title = UiText.Resource(R.string.confirm_delete_conversation),
+            positiveText = UiText.Resource(R.string.action_delete),
+            positiveAction = { viewModel.onDeleteDialogPositiveClick(conversationId) },
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onDeleteDialogDismissed
+        )
     }
 
-    private fun deleteConversation(conversationId: Int) {
-        adapter.removeConversation(conversationId)
-    }
+    private fun showPinConversationDialog(conversation: VkConversationUi?) {
+        if (conversation == null) return
 
-    private fun showPinConversationDialog(conversation: VkConversation) {
-        val isPinned = conversation.isPinned()
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(
-                if (isPinned) R.string.confirm_unpin_conversation
+        context?.showDialog(
+            title = UiText.Resource(
+                if (conversation.isPinned) R.string.confirm_unpin_conversation
                 else R.string.confirm_pin_conversation
-            )
-            .setPositiveButton(
-                if (isPinned) R.string.action_unpin
+            ),
+            positiveText = UiText.Resource(
+                if (conversation.isPinned) R.string.action_unpin
                 else R.string.action_pin
-            ) { _, _ ->
-                viewModel.pinConversation(
-                    peerId = conversation.id,
-                    pin = !isPinned
-                )
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
-    private fun onMessageNew(event: MessagesNewEvent) {
-        adapter.profiles += event.profiles
-        adapter.groups += event.groups
-
-        val message = event.message
-
-        val conversationIndex = adapter.searchConversationIndex(message.peerId)
-        if (conversationIndex == null) { // диалога нет в списке
-            // pizdets
-        } else {
-            val conversation = adapter[conversationIndex]
-            val newConversation = conversation.copy(
-                lastMessage = message,
-                lastMessageId = message.id,
-                lastConversationMessageId = -1
-            )
-            if (!message.isOut) {
-                newConversation.unreadCount += 1
-            }
-
-//            if (!message.isOut) {
-//                NotificationsUtils.showSimpleNotification(
-//                    requireContext(),
-//                    VkUtils.getConversationTitle(
-//                        requireContext(), conversation, profiles = event.profiles,
-//                        groups = event.groups
-//                    ) ?: "...",
-//                    "${
-//                        VkUtils.getMessageTitle(
-//                            message,
-//                            profiles = event.profiles,
-//                            groups = event.groups
-//                        ) ?: "..."
-//                    }: ${message.text}",
-//                    customNotificationId = message.id,
-//                    showWhen = true,
-//                    timeStampWhen = message.date * 1000L
-//                )
-//            }
-
-            if (conversation.isPinned()) {
-                adapter[conversationIndex] = newConversation
-                return
-            }
-
-            val newList = adapter.cloneCurrentList()
-            newList.removeAt(conversationIndex)
-
-            val toPosition = adapter.pinnedCount
-            newList.add(toPosition, newConversation)
-
-            adapter.submitList(newList)
-        }
-    }
-
-    private fun onMessageEdit(event: MessagesEditEvent) {
-        val message = event.message
-
-        val conversationIndex = adapter.searchConversationIndex(message.peerId)
-        if (conversationIndex == null) { // диалога нет в списке
-
-        } else {
-            val conversation = adapter[conversationIndex]
-            adapter[conversationIndex] = conversation.copy(
-                lastMessage = message,
-                lastMessageId = message.id,
-                lastConversationMessageId = -1
-            )
-        }
-    }
-
-    private fun onMessageRead(event: MessagesReadEvent) {
-        val conversationIndex = adapter.searchConversationIndex(event.peerId) ?: return
-
-        val newConversation = adapter[conversationIndex].copy()
-
-        if (event.isOut) {
-            newConversation.outRead = event.messageId
-        } else {
-            newConversation.inRead = event.messageId
-        }
-
-        adapter[conversationIndex] = newConversation
+            ),
+            positiveAction = {
+                viewModel.onPinDialogPositiveClick(conversation)
+            },
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onPinDialogDismissed
+        )
     }
 }

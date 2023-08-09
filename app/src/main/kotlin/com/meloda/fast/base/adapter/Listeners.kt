@@ -1,9 +1,9 @@
 package com.meloda.fast.base.adapter
 
-interface OnItemClickListener {
-    fun onItemClick(position: Int)
+fun interface OnItemClickListener<T> {
+    fun onItemClick(item: T)
 }
 
-interface OnItemLongClickListener {
-    fun onItemLongClick(position: Int)
+fun interface OnItemLongClickListener<T> {
+    fun onLongItemClick(item: T): Boolean
 }

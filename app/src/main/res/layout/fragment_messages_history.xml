@@ -5,46 +5,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refresh_layout"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/list_anchor"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:itemCount="100"
+        tools:listitem="@layout/item_message_out"
+        tools:paddingBottom="72dp"
+        tools:paddingTop="56dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:overScrollMode="never"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:itemCount="100"
-            tools:listitem="@layout/item_message_out" />
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
-        android:layout_width="0dp"
+    <com.meloda.fast.view.DialogToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:navigationIcon="@drawable/ic_round_arrow_back_24"
-            app:navigationIconTint="?colorOnBackground"
-            app:subtitleCentered="true"
-            app:titleCentered="true"
-            tools:subtitle="Last seen at 05.26.21, 17:55"
-            tools:title="@tools:sample/full_names" />
-
-    </com.google.android.material.appbar.AppBarLayout>
+        app:layout_constraintTop_toTopOf="parent"
+        app:startIcon="@drawable/ic_round_arrow_back_24"
+        app:useTranslucentBackgroundColor="true"
+        tools:avatar="#ff0000"
+        tools:subtitle="Last seen at 05.26.21, 17:55"
+        tools:title="@tools:sample/full_names" />
 
     <com.google.android.material.chip.Chip
         android:id="@+id/timestamp"
@@ -62,7 +49,7 @@
         app:chipStrokeWidth="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:textEndPadding="12dp"
         app:textStartPadding="12dp"
         tools:text="today"
@@ -159,6 +146,7 @@
         android:layout_height="50dp"
         android:background="@drawable/ic_message_panel_gradient"
         android:backgroundTint="?colorBackground"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -166,12 +154,14 @@
     <View
         android:id="@+id/bottom_alpha"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="0dp"
         android:alpha="0.85"
         android:background="?colorBackground"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/bottom_message_panel" />
 
     <View
         android:id="@+id/list_anchor"
@@ -182,6 +172,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottom_message_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -292,12 +283,12 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/unread_counter"
+        style="@style/Widget.Material3.FloatingActionButton.Tertiary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:src="@drawable/ic_round_keyboard_arrow_down_24"
         android:visibility="gone"
-        app:fabSize="mini"
         app:layout_constraintBottom_toTopOf="@id/attachment_panel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_goneMarginBottom="88dp"

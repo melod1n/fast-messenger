@@ -20,7 +20,7 @@ data class BaseVkGroup(
     val members_count: Int?
 ) : Parcelable {
 
-    fun asVkGroup() = VkGroup(
+    fun mapToDomain() = VkGroup(
         id = -id,
         name = name,
         screenName = screen_name,

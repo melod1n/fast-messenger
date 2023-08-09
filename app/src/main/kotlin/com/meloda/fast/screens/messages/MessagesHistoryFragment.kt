@@ -1,35 +1,43 @@
 package com.meloda.fast.screens.messages
 
+import android.animation.ValueAnimator
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.View
-import android.viewbinding.library.fragment.viewBinding
-import android.widget.ImageView
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.bumptech.glide.Glide
+import com.github.terrakok.cicerone.Router
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.net.MediaType
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.base.viewmodel.BaseViewModelFragment
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
@@ -37,55 +45,57 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
-import com.meloda.fast.screens.conversations.MessagesNewEvent
-import com.meloda.fast.screens.settings.SettingsPrefsFragment
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.doOnApplyWindowInsets
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.getParcelableCompat
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.hideKeyboard
+import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.mimeType
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.sdk30AndUp
+import com.meloda.fast.ext.selectLast
+import com.meloda.fast.ext.showKeyboard
+import com.meloda.fast.ext.trimmedText
+import com.meloda.fast.ext.visible
+import com.meloda.fast.model.base.parseString
+import com.meloda.fast.screens.settings.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
+import com.meloda.fast.util.ColorUtils
+import com.meloda.fast.util.ShareContent
 import com.meloda.fast.util.TimeUtils
 import com.meloda.fast.view.SpaceItemDecoration
-import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import java.util.Timer
 import kotlin.concurrent.schedule
 import kotlin.math.abs
+import kotlin.properties.Delegates
 import kotlin.random.Random
 
-@AndroidEntryPoint
 class MessagesHistoryFragment :
     BaseViewModelFragment<MessagesHistoryViewModel>(R.layout.fragment_messages_history) {
 
-    companion object {
-        const val ARG_USER: String = "user"
-        const val ARG_GROUP: String = "group"
-        const val ARG_CONVERSATION: String = "conversation"
+    private val router: Router by inject()
 
-        private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
-
-        fun newInstance(
-            conversation: VkConversation,
-            user: VkUser?,
-            group: VkGroup?
-        ): MessagesHistoryFragment {
-            val fragment = MessagesHistoryFragment()
-            fragment.arguments = bundleOf(
-                ARG_CONVERSATION to conversation,
-                ARG_USER to user,
-                ARG_GROUP to group
-            )
-
-            return fragment
-        }
-    }
-
-    override val viewModel: MessagesHistoryViewModel by viewModels()
-    private val binding: FragmentMessagesHistoryBinding by viewBinding()
+    private val binding by viewBinding(FragmentMessagesHistoryBinding::bind)
+    override val viewModel: MessagesHistoryViewModel by viewModel()
 
     private var pickFile: Boolean = false
 
@@ -119,23 +129,21 @@ class MessagesHistoryFragment :
         }
 
 
-    private val actionState = MutableLiveData<Action>()
+    private val actionState = MutableStateFlow(Action.RECORD)
 
     private enum class Action {
         RECORD, SEND, EDIT, DELETE
     }
 
     private val user: VkUser? by lazy {
-        requireArguments().getParcelable(ARG_USER)
+        requireArguments().getParcelableCompat(ARG_USER, VkUser::class.java)
     }
 
     private val group: VkGroup? by lazy {
-        requireArguments().getParcelable(ARG_GROUP)
+        requireArguments().getParcelableCompat(ARG_GROUP, VkGroup::class.java)
     }
 
-    private val conversation: VkConversation by lazy {
-        requireNotNull(requireArguments().getParcelable(ARG_CONVERSATION))
-    }
+    private var conversation: VkConversationDomain by Delegates.notNull()
 
     private val adapter: MessagesHistoryAdapter by lazy {
         MessagesHistoryAdapter(this, conversation).also {
@@ -158,25 +166,64 @@ class MessagesHistoryFragment :
 
     private lateinit var attachmentController: AttachmentPanelController
 
-    init {
-        shouldNavBarShown = false
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        conversation = requireNotNull(
+            requireArguments().getParcelableCompat(
+                ARG_CONVERSATION,
+                VkConversationDomain::class.java
+            )
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressed() }
+        val colorBackground = ContextCompat.getColor(requireContext(), R.color.colorBackground)
+        val alphaColorBackground = ColorUtils.alphaColor(colorBackground, 0.85F)
+        binding.bottomMessagePanel.setBackgroundColor(alphaColorBackground)
 
-        attachmentController = AttachmentPanelController().init()
+        binding.toolbar.startButtonClickAction = {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        attachmentController = AttachmentPanelController.init(
+            context = requireContext(),
+            adapter = adapter,
+            lifecycleOwner = viewLifecycleOwner,
+            binding = binding,
+            isAttachmentsEmpty = { attachmentsToLoad.isEmpty() }
+        )
 
         val title = when {
-            conversation.isChat() -> conversation.title
+            conversation.isChat() -> conversation.conversationTitle
             conversation.isUser() -> user?.toString()
             conversation.isGroup() -> group?.name
             else -> null
         }
 
+//        listOf(
+//            binding.bottomAlpha,
+//            binding.bottomGradient
+//        ).forEach { v ->
+//            v.applyInsetter {
+//                type(navigationBars = true) { padding() }
+//            }
+//        }
+        binding.bottomMessagePanel.applyInsetter {
+            type(navigationBars = true, ime = true) { padding(animated = true) }
+        }
+//        binding.recyclerView.applyInsetter {
+//            type(navigationBars = true, ime = true) { padding(animated = true) }
+//        }
+        binding.toolbar.applyInsetter {
+            type(statusBars = true) { padding() }
+        }
         binding.toolbar.title = title.orDots()
+        binding.toolbar.setOnClickListener {
+            openChatInfoScreen(conversation, user, group)
+        }
 
         val status = when {
             conversation.isChat() -> "${conversation.membersCount} members"
@@ -189,8 +236,10 @@ class MessagesHistoryFragment :
                         Locale.getDefault()
                     ).format(user?.lastSeen!! * 1000L)
                 }"
+
                 else -> if (user?.lastSeenStatus != null) "Last seen ${user?.lastSeenStatus!!}" else "Last seen recently"
             }
+
             conversation.isGroup() -> if (group?.membersCount != null) "${group?.membersCount} members" else "Group"
             else -> null
         }
@@ -205,20 +254,14 @@ class MessagesHistoryFragment :
 
         viewModel.loadHistory(conversation.id)
 
-        binding.action.setOnClickListener { performAction() }
-
-        binding.recyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-            if (bottom >= oldBottom) return@addOnLayoutChangeListener
-            val lastVisiblePosition =
-                (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-
-            if (lastVisiblePosition <= adapter.lastPosition - 10) return@addOnLayoutChangeListener
-
-            binding.recyclerView.postDelayed({
-                if (getView() == null) return@postDelayed
-                binding.recyclerView.scrollToPosition(adapter.lastPosition)
-            }, 25)
+        binding.action.setOnClickListener {
+            performAction()
         }
+
+//        binding.recyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+//            if (bottom >= oldBottom) return@addOnLayoutChangeListener
+//            checkIfNeedToScrollToBottom()
+//        }
 
         binding.unreadCounter.setOnClickListener {
             binding.recyclerView.scrollToPosition(adapter.lastPosition)
@@ -233,7 +276,7 @@ class MessagesHistoryFragment :
                 val lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
                 if (AppGlobal.preferences.getBoolean(
-                        SettingsPrefsFragment.PrefHideKeyboardOnScroll,
+                        SettingsFragment.KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
                         true
                     ) && dy < 0
                 ) {
@@ -243,20 +286,21 @@ class MessagesHistoryFragment :
                 setUnreadCounterVisibility(lastPosition, dy)
 
                 adapter.getOrNull(firstPosition)?.let {
-                    if (it !is VkMessage) return
                     binding.timestamp.visible()
+
+                    val showExactTime = AppGlobal.preferences.getBoolean(SettingsFragment.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP, false)
+
+                    val exactTime = SimpleDateFormat(
+                        "HH:mm",
+                        Locale.getDefault()
+                    ).format(it.date * 1000L)
 
                     val time = "${
                         TimeUtils.getLocalizedDate(
                             requireContext(),
                             it.date * 1000L
                         )
-                    }, ${
-                        SimpleDateFormat(
-                            "HH:mm",
-                            Locale.getDefault()
-                        ).format(it.date * 1000L)
-                    }"
+                    }${if (showExactTime) ", $exactTime" else ""}"
 
                     binding.timestamp.text = time
 
@@ -267,7 +311,10 @@ class MessagesHistoryFragment :
 
                     timestampTimer = Timer()
                     timestampTimer?.schedule(2500) {
-                        recyclerView.post { binding.timestamp.gone() }
+                        recyclerView.post {
+                            if (getView() == null) return@post
+                            binding.timestamp.gone()
+                        }
                     }
                 }
 
@@ -275,62 +322,66 @@ class MessagesHistoryFragment :
             }
         })
 
-        binding.message.doAfterTextChanged {
-            val canSend = it.toString().isNotBlank()
+        binding.message.doAfterTextChanged { text ->
+            val canSend = text.toString().isNotBlank() || attachmentsToLoad.isNotEmpty()
 
             val newValue: Action =
                 when {
-                    attachmentController.isEditing -> if (it.isNullOrBlank()) Action.DELETE else Action.EDIT
+                    attachmentController.isEditing ->
+                        if (text.isNullOrBlank() && attachmentsToLoad.isEmpty()) {
+                            Action.DELETE
+                        } else {
+                            Action.EDIT
+                        }
+
                     canSend -> Action.SEND
                     else -> {
-                        if (attachmentsToLoad.isNotEmpty()) {
-                            if (attachmentController.isEditing) {
-                                Action.EDIT
-                            } else {
-                                Action.SEND
-                            }
-                        } else {
-                            Action.RECORD
-                        }
+                        Action.RECORD
                     }
                 }
 
-            actionState.setIfNotEquals(newValue)
+            actionState.update { newValue }
         }
 
-        actionState.observe(viewLifecycleOwner) {
-            binding.action.animate()
-                .scaleX(1.25f)
-                .scaleY(1.25f)
-                .setDuration(100)
-                .withEndAction {
-                    if (getView() == null) return@withEndAction
+        actionState
+            .asStateFlow()
+            .flowWithLifecycle(lifecycle)
+            .onEach { state ->
+                binding.action.animate()
+                    .scaleX(1.25f)
+                    .scaleY(1.25f)
+                    .setDuration(100)
+                    .withEndAction {
+                        if (getView() == null) return@withEndAction
 
-                    binding.action.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(100)
-                        .start()
-                }.start()
+                        binding.action.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(100)
+                            .start()
+                    }.start()
 
-            when (it) {
-                Action.RECORD -> {
-                    binding.action.setImageResource(R.drawable.ic_round_mic_24)
+                when (state) {
+                    Action.RECORD -> {
+                        binding.action.setImageResource(R.drawable.ic_round_mic_24)
+                    }
+
+                    Action.SEND -> {
+                        binding.action.setImageResource(R.drawable.ic_round_send_24)
+                    }
+
+                    Action.EDIT -> {
+                        binding.action.setImageResource(R.drawable.ic_round_done_24)
+                    }
+
+                    Action.DELETE -> {
+                        binding.action.setImageResource(R.drawable.ic_trash_can_outline_24)
+                    }
                 }
-                Action.SEND -> {
-                    binding.action.setImageResource(R.drawable.ic_round_send_24)
-                }
-                Action.EDIT -> {
-                    binding.action.setImageResource(R.drawable.ic_round_done_24)
-                }
-                Action.DELETE -> {
-                    binding.action.setImageResource(R.drawable.ic_trash_can_outline_24)
-                }
-                else -> return@observe
             }
-        }
+            .launchIn(lifecycleScope)
 
-        attachmentController.isPanelVisible.observe(viewLifecycleOwner) { isVisible ->
+        attachmentController.isPanelVisible.listenValue { isVisible ->
             if (isVisible) binding.message.setSelection(binding.message.text.toString().length)
 
 //            val currentHeight = binding.listAnchor.height
@@ -363,7 +414,7 @@ class MessagesHistoryFragment :
 
         binding.dismissReply.setOnClickListener {
             if (attachmentController.message.value != null)
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
         }
 
         binding.attach.setOnClickListener {
@@ -391,14 +442,18 @@ class MessagesHistoryFragment :
         }
     }
 
-    override fun toggleProgress(isProgressing: Boolean) {
-        view?.run {
-            findViewById<View>(R.id.progress_bar).toggleVisibility(
-                if (isProgressing) adapter.isEmpty() else false
-            )
-            findViewById<SwipeRefreshLayout>(R.id.refresh_layout).isRefreshing =
-                if (isProgressing) adapter.isNotEmpty() else false
-        }
+    private fun checkIfNeedToScrollToBottom() {
+        if (adapter.isEmpty()) return
+
+        val lastVisiblePosition =
+            (binding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+
+        if (lastVisiblePosition <= adapter.lastPosition - 10) return
+
+        binding.recyclerView.postDelayed({
+            if (view == null) return@postDelayed
+            binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
+        }, 0)
     }
 
     private suspend fun processFileFromStorage(uri: Uri) {
@@ -448,7 +503,6 @@ class MessagesHistoryFragment :
         if (file.exists()) file.delete()
 
         withContext(Dispatchers.IO) {
-            @Suppress("BlockingMethodInNonBlockingContext")
             val inputStream =
                 requireActivity().contentResolver.openInputStream(uri) ?: return@withContext
 
@@ -475,10 +529,12 @@ class MessagesHistoryFragment :
                     val uploadedAttachment = viewModel.uploadPhoto(conversation.id, file, name)
                     addAttachment(uploadedAttachment)
                 }
+
                 MediaType.ANY_VIDEO_TYPE.type() -> {
                     val uploadedAttachment = viewModel.uploadVideo(file, name)
                     addAttachment(uploadedAttachment)
                 }
+
                 MediaType.ANY_AUDIO_TYPE.type() -> {
                     val uploadedAttachment = viewModel.uploadAudio(file, name)
                     addAttachment(uploadedAttachment)
@@ -504,22 +560,27 @@ class MessagesHistoryFragment :
                     clearAttachments()
                     true
                 }
+
                 "Photo" -> {
                     pickPhoto()
                     true
                 }
+
                 "Video" -> {
                     pickVideo()
                     true
                 }
+
                 "Audio" -> {
                     pickAudio()
                     true
                 }
+
                 "File" -> {
                     pickFile()
                     true
                 }
+
                 else -> false
             }
         }
@@ -536,10 +597,9 @@ class MessagesHistoryFragment :
 
         attachmentController.showPanel()
 
-        actionState.setIfNotEquals(
+        actionState.value =
             if (attachmentController.isEditing) Action.EDIT
             else Action.SEND
-        )
     }
 
     private fun removeAttachment(attachment: VkAttachment) {
@@ -596,20 +656,27 @@ class MessagesHistoryFragment :
         val avatar = when {
             conversation.isUser() -> user?.photo200
             conversation.isGroup() -> group?.photo200
-            conversation.isChat() -> conversation.photo200
+            conversation.isChat() -> conversation.conversationPhoto
             else -> null
         }
 
-        val avatarMenuItem = binding.toolbar.addAvatarMenuItem()
-        val avatarImageView: ImageView? = avatarMenuItem.actionView?.findViewById(R.id.avatar)
-
-        avatarImageView?.loadWithGlide(url = avatar, asCircle = true, crossFade = true)
+        val avatarImageView = binding.toolbar.avatarImageView
+        avatarImageView.visible()
+        avatarImageView.loadWithGlide {
+            imageUrl = avatar
+            asCircle = true
+            crossFade = true
+        }
     }
 
     private fun performAction() {
         when (actionState.value) {
             Action.RECORD -> {
+                sdk30AndUp {
+                    binding.action.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                }
             }
+
             Action.SEND -> {
                 val messageText = binding.message.trimmedText
                 if (messageText.isBlank() && attachmentsToLoad.isEmpty()) {
@@ -643,13 +710,17 @@ class MessagesHistoryFragment :
 
                 Log.d("LongPollUpdatesParser", "newMessageRandomId: ${message.randomId}")
 
-                adapter.add(message, beforeFooter = true, commitCallback = {
+                adapter.add(message, commitCallback = {
                     binding.recyclerView.scrollToPosition(adapter.lastPosition)
                     binding.message.clear()
                 })
 
                 val replyMessage = attachmentController.message.value
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
+
+                sdk30AndUp {
+                    binding.action.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                }
 
                 viewModel.sendMessage(
                     peerId = conversation.id,
@@ -657,7 +728,7 @@ class MessagesHistoryFragment :
                     randomId = message.randomId,
                     replyTo = replyMessage?.id,
                     setId = { messageId ->
-                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        val messageToUpdate = adapter[messageIndex]
                         messageToUpdate.id = messageId
                         messageToUpdate.state = VkMessage.State.Sent
                         adapter.notifyItemChanged(messageIndex, "kek")
@@ -665,7 +736,7 @@ class MessagesHistoryFragment :
                         attachmentsAdapter.clear()
                     },
                     onError = {
-                        val messageToUpdate = adapter[messageIndex] as VkMessage
+                        val messageToUpdate = adapter[messageIndex]
                         messageToUpdate.state = VkMessage.State.Error
                         adapter.notifyItemChanged(messageIndex, "kek")
 //                        adapter[messageIndex] = messageToUpdate
@@ -674,11 +745,12 @@ class MessagesHistoryFragment :
                     attachments = attachments
                 )
             }
+
             Action.EDIT -> {
                 val message = attachmentController.message.value ?: return
                 val messageText = binding.message.text.toString().trim()
 
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
 
                 viewModel.editMessage(
                     originalMessage = message,
@@ -688,50 +760,87 @@ class MessagesHistoryFragment :
                     attachments = message.attachments
                 )
             }
+
             Action.DELETE -> attachmentController.message.value?.let {
                 showDeleteMessageDialog(it)
             }
-            else -> {}
         }
     }
 
     private fun prepareViews() {
         prepareRecyclerView()
-        prepareRefreshLayout()
         prepareEmojiButton()
         prepareAttachmentsList()
     }
 
     private fun prepareRecyclerView() {
         binding.recyclerView.itemAnimator = null
-    }
 
-    private fun prepareRefreshLayout() {
-        with(binding.refreshLayout) {
-            setProgressViewOffset(
-                true, progressViewStartOffset, progressViewEndOffset
-            )
-            setProgressBackgroundColorSchemeColor(
-                AndroidUtils.getThemeAttrColor(
-                    requireContext(),
-                    R.attr.colorSurface
-                )
-            )
-            setColorSchemeColors(
-                AndroidUtils.getThemeAttrColor(
-                    requireContext(),
-                    R.attr.colorPrimary
-                )
-            )
-            setOnRefreshListener { viewModel.loadHistory(peerId = conversation.id) }
+        binding.toolbar.measure(
+            View.MeasureSpec.AT_MOST,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+        binding.bottomMessagePanel.measure(
+            View.MeasureSpec.AT_MOST,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+//        binding.recyclerView.updatePaddingRelative(
+//            top = binding.toolbar.measuredHeight,
+//            bottom = binding.bottomMessagePanel.measuredHeight
+//        )
+
+        val toolbarMeasuredHeight = binding.toolbar.measuredHeight
+        val bottomMessagePanelMeasuredHeight = binding.bottomMessagePanel.measuredHeight
+
+        binding.recyclerView.doOnApplyWindowInsets { v, insets, _, _ ->
+            val statusBars = AndroidUtils.getStatusBarInsets(insets)
+            val ime = AndroidUtils.getImeInsets(insets)
+            val navBars = AndroidUtils.getNavBarInsets(insets)
+
+            val topPadding = toolbarMeasuredHeight + statusBars.top
+
+            val bottomPadding = bottomMessagePanelMeasuredHeight +
+                    ime.bottom + (if (ime.bottom == 0) navBars.bottom else 0)
+
+            val currentPadding = v.paddingBottom
+
+            v.updatePaddingRelative(top = topPadding)
+            ValueAnimator.ofInt(currentPadding, bottomPadding).apply {
+                interpolator = LinearInterpolator()
+                duration = if (currentPadding > bottomPadding) 125 else 50
+
+                addUpdateListener {
+                    if (view == null) return@addUpdateListener
+                    val value = it.animatedValue as Int
+                    v.updatePaddingRelative(bottom = value)
+                }
+
+                doOnEnd {
+                    if (view == null) return@doOnEnd
+                    checkIfNeedToScrollToBottom()
+                }
+            }.start()
+
+//            v.updatePaddingRelative(top = topPadding, bottom = bottomPadding)
+
+            insets
         }
     }
 
     private fun prepareEmojiButton() {
+        binding.emoji.setOnClickListener {
+            sdk30AndUp {
+                binding.emoji.performHapticFeedback(HapticFeedbackConstants.REJECT)
+            }
+        }
         binding.emoji.setOnLongClickListener {
-            val text = binding.message.text.toString() + AppGlobal.preferences.getString(
-                SettingsPrefsFragment.PrefFastText, SettingsPrefsFragment.PrefFastTextDefaultValue
-            )
+            val text = binding.message.text.toString() +
+                    AppGlobal.preferences.getString(
+                        SettingsFragment.KEY_FEATURES_FAST_TEXT,
+                        SettingsFragment.DEFAULT_VALUE_FEATURES_FAST_TEXT
+                    )
             binding.message.setText(text)
             binding.message.selectLast()
 
@@ -748,6 +857,8 @@ class MessagesHistoryFragment :
                         .setDuration(100)
                         .start()
                 }.start()
+
+            binding.emoji.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             true
         }
     }
@@ -763,8 +874,7 @@ class MessagesHistoryFragment :
         val newList = adapter.cloneCurrentList()
 
         for (i in newList.indices) {
-            val item = newList[i]
-            val message: VkMessage = (if (item !is VkMessage) null else item) ?: continue
+            val message = newList[i]
             if (event.messagesIds.contains(message.id)) {
                 newList[i] = message.copy(important = event.important)
             }
@@ -785,8 +895,6 @@ class MessagesHistoryFragment :
 
         adapter.setItems(
             values.sortedBy { it.date },
-            withHeader = true,
-            withFooter = true,
             commitCallback = {
                 if (view == null) return@setItems
                 if (smoothScroll) binding.recyclerView.smoothScrollToPosition(adapter.lastPosition)
@@ -800,7 +908,7 @@ class MessagesHistoryFragment :
     }
 
     private fun onAvatarLongClickListener(position: Int) {
-        val message = adapter[position] as VkMessage
+        val message = adapter[position]
 
         val messageUser = VkUtils.getMessageUser(message, adapter.profiles)
         val messageGroup = VkUtils.getMessageGroup(message, adapter.groups)
@@ -810,7 +918,7 @@ class MessagesHistoryFragment :
     }
 
     private fun showOptionsDialog(position: Int) {
-        val message = adapter[position] as VkMessage
+        val message = adapter[position]
         if (message.action != null) return
 
         val time = getString(
@@ -839,6 +947,10 @@ class MessagesHistoryFragment :
 
         val edit = getString(R.string.message_context_action_edit)
 
+        val copy = "Copy"
+
+        val share = "Share"
+
         val delete = getString(R.string.message_context_action_delete)
 
         val params = mutableListOf<String>()
@@ -865,6 +977,18 @@ class MessagesHistoryFragment :
             onlySentParams += edit
         }
 
+        val notNullText = message.text.orEmpty()
+        val messageTextIsNotNull = !message.text.isNullOrBlank()
+
+        val notNullAttachments = message.attachments.orEmpty()
+        val attachmentsIsOnePhoto = notNullAttachments.size == 1 &&
+                notNullAttachments.first() is VkPhoto
+
+        if (messageTextIsNotNull || attachmentsIsOnePhoto) {
+            params += copy
+            params += share
+        }
+
         params += delete
 
         if (!message.isSent()) {
@@ -879,27 +1003,122 @@ class MessagesHistoryFragment :
                 when (params[which]) {
                     reply -> {
                         if (attachmentController.message.value != message)
-                            attachmentController.message.value = message
+                            attachmentController.message.update { message }
                     }
+
                     pin -> showPinMessageDialog(
                         peerId = conversation.id,
                         messageId = message.id,
                         pin = !isMessageAlreadyPinned
                     )
+
                     important -> viewModel.markAsImportant(
                         messagesIds = listOf(message.id),
                         important = !message.important
                     )
+
                     read -> viewModel.readMessage(
                         conversation.id,
                         message.id
                     )
+
                     edit -> {
                         attachmentController.isEditing = true
 
                         if (attachmentController.message.value != message)
-                            attachmentController.message.value = message
+                            attachmentController.message.update { message }
                     }
+
+                    copy -> {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            when {
+                                messageTextIsNotNull && !attachmentsIsOnePhoto -> {
+                                    withContext(Dispatchers.Main) {
+                                        AndroidUtils.copyText(
+                                            text = notNullText,
+                                            withToast = true
+                                        )
+                                    }
+                                }
+
+                                else -> {
+                                    val imageUrl =
+                                        ((notNullAttachments.first() as? VkPhoto)?.getMaxSize()
+                                            ?: return@launch).url
+
+                                    val preloadedImageFileUri = Glide
+                                        .with(requireContext())
+                                        .downloadOnly()
+                                        .load(imageUrl)
+                                        .submit()
+                                        .get().let { file ->
+                                            val newFile =
+                                                AndroidUtils.getImageToShare(requireContext(), file)
+
+                                            newFile!!
+                                        }
+
+                                    withContext(Dispatchers.Main) {
+                                        if (messageTextIsNotNull) {
+                                            AndroidUtils.copyText(text = notNullText)
+                                            AndroidUtils.copyImage(
+                                                label = "Image",
+                                                imageUri = preloadedImageFileUri,
+                                                withToast = true
+                                            )
+                                        } else {
+                                            AndroidUtils.copyImage(
+                                                label = "Image",
+                                                imageUri = preloadedImageFileUri,
+                                                withToast = true
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    share -> {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val content = when {
+                                messageTextIsNotNull && !attachmentsIsOnePhoto -> {
+                                    ShareContent.Text(notNullText)
+                                }
+
+                                else -> {
+                                    val imageUrl =
+                                        ((notNullAttachments.first() as? VkPhoto)?.getMaxSize()
+                                            ?: return@launch).url
+
+                                    val preloadedImageFileUri = Glide
+                                        .with(requireContext())
+                                        .downloadOnly()
+                                        .load(imageUrl)
+                                        .submit()
+                                        .get().let { file ->
+                                            val newFile =
+                                                AndroidUtils.getImageToShare(requireContext(), file)
+
+                                            newFile!!
+                                        }
+
+                                    if (messageTextIsNotNull) {
+                                        ShareContent.TextWithImage(
+                                            notNullText, preloadedImageFileUri
+                                        )
+                                    } else {
+                                        ShareContent.Image(preloadedImageFileUri)
+                                    }
+                                }
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                AndroidUtils.showShareSheet(requireActivity(), content)
+                            }
+                        }
+                    }
+
                     delete -> showDeleteMessageDialog(message)
                 }
             }.show()
@@ -908,7 +1127,7 @@ class MessagesHistoryFragment :
     private fun showPinMessageDialog(
         peerId: Int,
         messageId: Int?,
-        pin: Boolean
+        pin: Boolean,
     ) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(
@@ -933,7 +1152,7 @@ class MessagesHistoryFragment :
         val binding = DialogMessageDeleteBinding.inflate(layoutInflater, null, false)
 
         binding.check.setText(
-            if (message.isOut) R.string.message_delete_for_all
+            if (message.isOut || conversation.canChangeInfo) R.string.message_delete_for_all
             else R.string.message_mark_as_spam
         )
 
@@ -948,7 +1167,7 @@ class MessagesHistoryFragment :
             .setTitle(R.string.confirm_delete_message)
             .setView(binding.root)
             .setPositiveButton(R.string.action_delete) { _, _ ->
-                attachmentController.message.value = null
+                attachmentController.message.update { null }
 
                 if (message.isError()) {
                     adapter.searchIndexOf(message)?.let { index ->
@@ -990,17 +1209,15 @@ class MessagesHistoryFragment :
         val oldOutRead = conversation.outRead
         val oldInRead = conversation.inRead
 
-        if (event.isOut) {
-            conversation.outRead = event.messageId
-        } else {
-            conversation.inRead = event.messageId
-        }
+        conversation = conversation.copy(
+            outRead = if (event.isOut) event.messageId else conversation.outRead,
+            inRead = if (!event.isOut) event.messageId else conversation.inRead
+        )
 
         val positionsToUpdate = mutableListOf<Int>()
         val newList = adapter.cloneCurrentList()
         for (i in newList.indices) {
             val message = newList[i]
-            if (message !is VkMessage) continue
 
             if ((message.isOut && conversation.outRead - oldOutRead > 0 && message.id > oldOutRead) ||
                 (!message.isOut && conversation.inRead - oldInRead > 0 && message.id > oldInRead)
@@ -1021,10 +1238,9 @@ class MessagesHistoryFragment :
         }
     }
 
-    @Suppress("NAME_SHADOWING")
     private fun setUnreadCounterVisibility(
         lastCompletelyVisiblePosition: Int,
-        dy: Int? = null
+        dy: Int? = null,
     ) {
         if (lastCompletelyVisiblePosition >= adapter.lastPosition - 1) {
             setUnreadCounterVisibility(false)
@@ -1057,7 +1273,7 @@ class MessagesHistoryFragment :
 
         val itemCount = adapter.itemCount
 
-        adapter.add(event.message, beforeFooter = true) {
+        adapter.add(event.message) {
             if (view == null) return@add
 
             val lastVisiblePosition =
@@ -1085,23 +1301,49 @@ class MessagesHistoryFragment :
         }
     }
 
-    private inner class AttachmentPanelController {
-        val isPanelVisible = MutableLiveData(false)
-        val message = MutableLiveData<VkMessage?>()
+    private class AttachmentPanelController {
+        companion object {
+            fun init(
+                context: Context,
+                adapter: MessagesHistoryAdapter,
+                lifecycleOwner: LifecycleOwner,
+                binding: FragmentMessagesHistoryBinding,
+                isAttachmentsEmpty: () -> Boolean,
+            ): AttachmentPanelController {
+                val controller = AttachmentPanelController().apply {
+                    this.context = context
+                    this.binding = binding
+                    this.adapter = adapter
+                    this.isAttachmentsEmpty = isAttachmentsEmpty
+                    this.message.listenValue(
+                        lifecycleOwner.lifecycleScope,
+                        this::onMessageValueChanged
+                    )
+
+                    this.message.update { null }
+                }
+
+
+                return controller
+            }
+        }
+
+        val isPanelVisible = MutableStateFlow(false)
+        val message = MutableStateFlow<VkMessage?>(null)
 
         var isEditing = false
 
-        fun init(): AttachmentPanelController {
-            message.observe(viewLifecycleOwner) { value ->
-                if (value != null) {
-                    applyMessage(value)
-                } else {
-                    clearMessage()
-                }
-            }
+        var adapter: MessagesHistoryAdapter by Delegates.notNull()
+        var binding: FragmentMessagesHistoryBinding by Delegates.notNull()
+        var context: Context by Delegates.notNull()
+        var isAttachmentsEmpty: () -> Boolean by Delegates.notNull()
 
-            message.value = null
-            return this
+        fun onMessageValueChanged(value: VkMessage?) {
+            if (value != null) {
+                applyMessage(value)
+            } else {
+                clearMessage()
+            }
         }
 
         private fun applyMessage(message: VkMessage) {
@@ -1115,15 +1357,13 @@ class MessagesHistoryFragment :
                 message, messageUser, messageGroup
             )
 
-            val attachmentText = if (message.text == null) VkUtils.getAttachmentText(
-                context = requireContext(),
+            val attachmentText = (if (message.text == null) VkUtils.getAttachmentText(
                 message = message
-            ) else null
+            ) else null)?.parseString(context)
 
-            val forwardsMessage = if (message.text == null) VkUtils.getForwardsText(
-                context = requireContext(),
+            val forwardsMessage = (if (message.text == null) VkUtils.getForwardsText(
                 message = message
-            ) else null
+            ) else null)?.parseString(context)
 
             val messageText = forwardsMessage ?: attachmentText
             ?: (message.text ?: "").run { VkUtils.prepareMessageText(this) }
@@ -1144,7 +1384,7 @@ class MessagesHistoryFragment :
         }
 
         private fun clearMessage() {
-            if (attachmentsToLoad.isEmpty()) {
+            if (isAttachmentsEmpty()) {
                 hidePanel()
             }
 
@@ -1160,15 +1400,15 @@ class MessagesHistoryFragment :
         }
 
         fun showPanel() {
-            if (isPanelVisible.requireValue()) return
+            if (isPanelVisible.value) return
 
             binding.attachmentPanel.visible()
 //            binding.attachmentPanel.measure(
 //                View.MeasureSpec.AT_MOST, View.MeasureSpec.UNSPECIFIED
 //            )
 
-            if (!attachmentController.isPanelVisible.requireValue())
-                attachmentController.isPanelVisible.value = true
+            if (!isPanelVisible.value)
+                isPanelVisible.update { true }
 
 //            binding.attachmentPanel.visible()
 
@@ -1203,13 +1443,13 @@ class MessagesHistoryFragment :
         }
 
         fun hidePanel() {
-            if (!isPanelVisible.requireValue() ||
-                attachmentsToLoad.isNotEmpty() ||
+            if (!isPanelVisible.value ||
+                !isAttachmentsEmpty() ||
                 message.value != null
             ) return
 
-            if (attachmentController.isPanelVisible.requireValue())
-                attachmentController.isPanelVisible.value = false
+            if (isPanelVisible.value)
+                isPanelVisible.update { false }
 
             binding.attachmentPanel.gone()
 
@@ -1245,14 +1485,47 @@ class MessagesHistoryFragment :
     }
 
     fun openForwardsScreen(
-        conversation: VkConversation,
+        conversation: VkConversationDomain,
         messages: List<VkMessage>,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
-        groups: HashMap<Int, VkGroup> = hashMapOf()
+        groups: HashMap<Int, VkGroup> = hashMapOf(),
     ) {
-        requireActivityRouter().navigateTo(
+        router.navigateTo(
             Screens.ForwardedMessages(conversation, messages, profiles, groups)
         )
+    }
+
+    private fun openChatInfoScreen(
+        conversation: VkConversationDomain,
+        user: VkUser?,
+        group: VkGroup?,
+    ) {
+        router.navigateTo(
+            Screens.ChatInfo(conversation, user, group)
+        )
+    }
+
+    companion object {
+        const val ARG_USER: String = "user"
+        const val ARG_GROUP: String = "group"
+        const val ARG_CONVERSATION: String = "conversation"
+
+        private const val ATTACHMENT_PANEL_ANIMATION_DURATION = 150L
+
+        fun newInstance(
+            conversation: VkConversationDomain,
+            user: VkUser?,
+            group: VkGroup?,
+        ): MessagesHistoryFragment {
+            val fragment = MessagesHistoryFragment()
+            fragment.arguments = bundleOf(
+                ARG_CONVERSATION to conversation,
+                ARG_USER to user,
+                ARG_GROUP to group
+            )
+
+            return fragment
+        }
     }
 
 }

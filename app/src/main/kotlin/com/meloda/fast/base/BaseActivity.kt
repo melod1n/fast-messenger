@@ -8,5 +8,4 @@ abstract class BaseActivity : AppCompatActivity {
     constructor() : super()
 
     constructor(@LayoutRes resId: Int) : super(resId)
-
 }

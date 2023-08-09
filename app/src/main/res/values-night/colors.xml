@@ -1,48 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">@color/a1_200</color>
-    <color name="colorOnPrimary">@color/a1_800</color>
-    <color name="colorPrimaryContainer">@color/a1_700</color>
-    <color name="colorOnPrimaryContainer">@color/a1_100</color>
-    <color name="colorPrimaryInverse">@color/a1_600</color>
-    <color name="colorPrimaryVariant">@color/a3_100</color>
 
-    <color name="colorSecondary">@color/a2_200</color>
-    <color name="colorOnSecondary">@color/a2_800</color>
-    <color name="colorSecondaryContainer">@color/a2_700</color>
-    <color name="colorOnSecondaryContainer">@color/a2_100</color>
-
-    <color name="colorTertiary">@color/a3_200</color>
-    <color name="colorOnTertiary">@color/a3_800</color>
-    <color name="colorTertiaryContainer">@color/a3_700</color>
-    <color name="colorOnTertiaryContainer">@color/a3_100</color>
-
-    <color name="colorError">#f2b8b5</color>
-    <color name="colorOnError">#601410</color>
-    <color name="colorErrorContainer">#8c1d18</color>
-    <color name="colorOnErrorContainer">#f2b8b5</color>
-
-    <color name="colorOutline">@color/n2_400</color>
-
-    <color name="colorBackground">@color/n1_900</color>
-    <color name="colorOnBackground">@color/n1_100</color>
-    <color name="colorOnBackground50">@color/n1_100_50</color>
-    <color name="colorBackgroundVariant">@color/n2_800</color>
-    <color name="colorOnBackgroundVariantContainer">@color/a1_200</color>
-    <color name="colorOnBackgroundVariantOnContainer">@color/a1_900</color>
-
-    <color name="colorSurface">@color/n1_900</color>
-    <color name="colorOnSurface">@color/n1_100</color>
-    <color name="colorSurfaceVariant">@color/n2_700</color>
-    <color name="colorOnSurfaceVariant">@color/n2_200</color>
-    <color name="colorSurfaceInverse">@color/n1_100</color>
-    <color name="colorOnSurfaceInverse">@color/n1_800</color>
-
-    <color name="colorUserAvatarAction">@color/n2_500</color>
-    <color name="colorOnUserAvatarAction">@color/n2_10</color>
-
-    <color name="colorWaveformProgress">@color/n2_100</color>
-    <color name="colorWaveformBackground">@color/n2_400</color>
-
-    <color name="colorMessagesHistoryPanel">@color/a1_1000</color>
+    <color name="colorTranslucentNavigationBar">#40000000</color>
 </resources>

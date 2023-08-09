@@ -5,14 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.fragment.app.viewModels
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import dagger.hilt.android.AndroidEntryPoint
+import com.meloda.fast.base.BaseFragment
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
-class PhotoViewFragment : BaseViewModelFragment<PhotoViewViewModel>() {
+class PhotoViewFragment : BaseFragment() {
 
-    override val viewModel: PhotoViewViewModel by viewModels()
+    private val viewModel: PhotoViewViewModel by viewModel()
 
 //    private val photosList: MutableList<VkPhoto> = mutableListOf()
 
@@ -44,5 +42,4 @@ class PhotoViewFragment : BaseViewModelFragment<PhotoViewViewModel>() {
 
         photoLink?.let { viewModel.loadImageFromUrl(it, requireView() as ImageView) }
     }
-
 }

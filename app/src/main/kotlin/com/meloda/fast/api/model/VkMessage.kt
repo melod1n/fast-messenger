@@ -7,11 +7,13 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
+// TODO: 05.08.2023, Danil Nikolaev: create other class for storing in database
 @Entity(tableName = "messages")
 @Parcelize
 data class VkMessage constructor(
@@ -38,7 +40,7 @@ data class VkMessage constructor(
     var replyMessage: VkMessage? = null,
 
     val geo: BaseVkMessage.Geo? = null,
-) : SelectableItem(id) {
+) : SelectableItem() {
 
     @Ignore
     @IgnoredOnParcel
@@ -50,6 +52,14 @@ data class VkMessage constructor(
 
     @Ignore
     @IgnoredOnParcel
+    var actionUser: VkUser? = null
+
+    @Ignore
+    @IgnoredOnParcel
+    var actionGroup: VkGroup? = null
+
+    @Ignore
+    @IgnoredOnParcel
     var state: State = State.Sent
 
     fun isPeerChat() = peerId > 2_000_000_000
@@ -58,7 +68,7 @@ data class VkMessage constructor(
 
     fun isGroup() = fromId < 0
 
-    fun isRead(conversation: VkConversation) =
+    fun isRead(conversation: VkConversationDomain) =
         if (isOut) {
             conversation.outRead - id >= 0
         } else {

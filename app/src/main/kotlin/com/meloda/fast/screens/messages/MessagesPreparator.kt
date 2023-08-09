@@ -3,12 +3,10 @@ package com.meloda.fast.screens.messages
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.Space
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -16,13 +14,18 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkConversation
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.extensions.*
-import com.meloda.fast.extensions.ImageLoader.loadWithGlide
+import com.meloda.fast.ext.clear
+import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.ext.gone
+import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.toggleVisibility
+import com.meloda.fast.ext.visible
+import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,11 +33,15 @@ import java.util.*
 class MessagesPreparator constructor(
     private val context: Context,
 
+    private val position: Int,
+
+    private val adapterClickListener: ((position: Int) -> Unit)? = null,
+
     private val payloads: MutableList<Any>? = null,
 
     private val root: View? = null,
 
-    private val conversation: VkConversation,
+    private val conversation: VkConversationDomain,
     private val message: VkMessage,
     private val prevMessage: VkMessage? = null,
     private val nextMessage: VkMessage? = null,
@@ -58,6 +65,9 @@ class MessagesPreparator constructor(
 
     private val rootHighlightedColor =
         ContextCompat.getColor(context, R.color.n2_100)
+
+    private val mentionColor =
+        ContextCompat.getColor(context, R.color.colorPrimary)
 
     private var photoClickListener: ((url: String) -> Unit)? = null
     private var replyClickListener: ((replyMessage: VkMessage) -> Unit)? = null
@@ -239,8 +249,10 @@ class MessagesPreparator constructor(
 
     private fun prepareText() {
         if (text != null) {
+            text.setOnClickListener { adapterClickListener?.invoke(position) }
+            text.movementMethod = LinkMovementMethod.getInstance()
             text.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                val topMargin = if (title != null && title.isVisible) 6 else 0.dpToPx()
+                val topMargin = (if (title != null && title.isVisible) 6 else 0).dpToPx()
 
                 goneTopMargin = topMargin
             }
@@ -261,7 +273,16 @@ class MessagesPreparator constructor(
                             timeSpacer +
                             (if (!message.isOut && message.isRead(conversation)) "" else messageStateSpacer)
 
-                text.text = preparedText
+                val visualizedText =
+                    VkUtils.visualizeMentions(
+                        preparedText,
+                        mentionColor,
+                        onMentionClick = { id ->
+                            Toast.makeText(context, "id: $id", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+
+                text.text = visualizedText
             }
         }
     }
@@ -273,10 +294,10 @@ class MessagesPreparator constructor(
         if (avatar != null) {
             val avatarUrl = VkUtils.getMessageAvatar(message, messageUser, messageGroup)
 
-            avatar.loadWithGlide(
-                url = avatarUrl,
+            avatar.loadWithGlide {
+                imageUrl = avatarUrl
                 crossFade = true
-            )
+            }
         }
     }
 }

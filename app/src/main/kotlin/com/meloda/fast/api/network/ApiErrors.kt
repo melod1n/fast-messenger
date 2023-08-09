@@ -43,9 +43,10 @@ object VkErrorCodes {
     const val InvalidDocId = 1150
     const val InvalidDocTitle = 1152
     const val AccessToDocDenied = 1153
+
+    const val AccessTokenExpired = 1117
 }
 
-@Suppress("unused")
 object VkErrors {
     const val Unknown = "unknown_error"
 
@@ -55,7 +56,18 @@ object VkErrors {
 
 }
 
-class AuthorizationError : ApiError()
+object VkErrorTypes {
+    const val OtpFormatIncorrect = "otp_format_is_incorrect"
+    const val WrongOtp = "wrong_otp"
+}
+
+object VkErrorMessages {
+    const val UserBanned = "user has been banned"
+}
+
+open class AuthorizationError : ApiError()
+
+class TokenExpiredError : AuthorizationError()
 
 data class ValidationRequiredError(
     @SerializedName("validation_type")
@@ -76,3 +88,23 @@ data class CaptchaRequiredError(
     @SerializedName("captcha_img")
     val captchaImg: String
 ) : ApiError()
+
+object WrongTwoFaCodeFormatError : ApiError()
+
+object WrongTwoFaCodeError : ApiError()
+
+data class UserBannedError(
+    @SerializedName("ban_info")
+    val banInfo: BanInfo
+) : ApiError() {
+
+    data class BanInfo(
+        @SerializedName("member_name")
+        val memberName: String,
+        val message: String,
+        @SerializedName("access_token")
+        val accessToken: String,
+        @SerializedName("restore_url")
+        val restoreUrl: String
+    )
+}

@@ -2,24 +2,19 @@ package com.meloda.fast.di
 
 import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.Router
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
+import com.meloda.fast.screens.captcha.screen.CaptchaScreen
+import com.meloda.fast.screens.twofa.screen.TwoFaScreen
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.scope.Scope
+import org.koin.dsl.module
 
-@InstallIn(SingletonComponent::class)
-@Module
-object NavigationModule {
-    @Provides
-    @Singleton
-    fun getCicerone(): Cicerone<Router> = Cicerone.create()
+val navigationModule = module {
+    single { Cicerone.create() }
+    single { cicerone().router }
+    single { cicerone().getNavigatorHolder() }
 
-    @Provides
-    @Singleton
-    fun getRouter(cicerone: Cicerone<Router>) = cicerone.router
-
-    @Provides
-    @Singleton
-    fun getNavigationHolder(cicerone: Cicerone<Router>) = cicerone.getNavigatorHolder()
+    singleOf(::CaptchaScreen)
+    singleOf(::TwoFaScreen)
 }
+
+private fun Scope.cicerone(): Cicerone<Router> = get()

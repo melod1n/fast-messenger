@@ -17,4 +17,25 @@
         <item name="cornerRadius">15dp</item>
     </style>
 
+    <style name="Ui" />
+
+    <style name="Ui.Widget" />
+
+    <style name="Ui.Widget.TextInputLayout" parent="@style/Widget.Material3.TextInputLayout.FilledBox">
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxStrokeWidth">0dp</item>
+        <item name="boxStrokeErrorColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Ui.Widget.TextInputLayout.Password">
+        <item name="endIconMode">password_toggle</item>
+    </style>
+
+    <style name="Ui.Widget.CollapsingToolbar" parent="Widget.Material3.CollapsingToolbar">
+        <item name="scrimVisibleHeightTrigger">60dp</item>
+    </style>
+
 </resources>

@@ -1,37 +1,39 @@
 package com.meloda.fast.common
 
-import androidx.lifecycle.MutableLiveData
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.ota.OtaGetLatestReleaseResponse
 import com.meloda.fast.data.ota.OtaApi
-import com.meloda.fast.extensions.setIfNotEquals
 import com.meloda.fast.model.UpdateActualUrl
 import com.meloda.fast.model.UpdateItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import kotlin.coroutines.CoroutineContext
 
-class UpdateManager(private val repo: OtaApi) : CoroutineScope {
+interface UpdateManager {
+    val stateFlow: Flow<UpdateManagerState>
 
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Default
+    fun checkUpdates(): Job
+}
 
-    companion object {
-        val newUpdate = MutableLiveData<UpdateItem?>(null)
-        val updateError = MutableLiveData<Throwable?>(null)
+class UpdateManagerImpl(private val repo: OtaApi) : UpdateManager {
 
-        var otaBaseUrl: String? = null
-            private set
-    }
+    private val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO
 
-    private var listener: ((item: UpdateItem?, error: Throwable?) -> Unit)? = null
+    private val coroutineScope = CoroutineScope(coroutineContext)
 
-    private fun getActualUrl() = launch {
+    private var otaBaseUrl: String? = null
+
+    override val stateFlow = MutableStateFlow(UpdateManagerState.EMPTY)
+
+    override fun checkUpdates() = coroutineScope.launch {
         val job: suspend () -> ApiAnswer<UpdateActualUrl> = { repo.getActualUrl() }
 
         when (val jobResponse = job()) {
@@ -44,47 +46,55 @@ class UpdateManager(private val repo: OtaApi) : CoroutineScope {
             is ApiAnswer.Error -> {
                 otaBaseUrl = null
                 val throwable = jobResponse.error.throwable
-                listener?.invoke(null, throwable)
 
-                withContext(Dispatchers.Main) {
-                    updateError.setIfNotEquals(throwable)
-                }
+                val newForm = stateFlow.value.copy(
+                    updateItem = null,
+                    throwable = throwable
+                )
+                stateFlow.emit(newForm)
             }
         }
     }
 
-    private fun getLatestRelease() = launch {
+    private fun getLatestRelease() = coroutineScope.launch {
         val url = "$otaBaseUrl/releases-latest"
 
         val job: suspend () -> ApiAnswer<ApiResponse<OtaGetLatestReleaseResponse>> = {
             repo.getLatestRelease(url = url, secretCode = getOtaSecret())
         }
 
-        withContext(Dispatchers.Main) {
-            when (val jobResponse = job()) {
-                is ApiAnswer.Success -> {
-                    val response = jobResponse.data.response ?: return@withContext
-                    val latestRelease = response.release
+        when (val jobResponse = job()) {
+            is ApiAnswer.Success -> {
+                val response = jobResponse.data.response ?: return@launch
+                val latestRelease = response.release
 
-                    if (latestRelease != null &&
-                        (AppGlobal.versionName
-                            .split("_")
-                            .getOrNull(1) != latestRelease.versionName ||
-                                AppGlobal.versionCode < latestRelease.versionCode)
-                    ) {
-                        newUpdate.setIfNotEquals(latestRelease)
-                        listener?.invoke(latestRelease, null)
-                    } else {
-                        newUpdate.setIfNotEquals(null)
-                        listener?.invoke(null, null)
-                    }
+                val updateItem = if (latestRelease != null &&
+                    (AppGlobal.versionName
+                        .split("_")
+                        .getOrNull(1) != latestRelease.versionName ||
+                            AppGlobal.versionCode < latestRelease.versionCode)
+                ) {
+                    latestRelease
+                } else {
+                    null
                 }
 
-                is ApiAnswer.Error -> {
-                    val throwable = jobResponse.error.throwable
-                    updateError.setIfNotEquals(throwable)
-                    listener?.invoke(null, throwable)
-                }
+                val newForm = stateFlow.value.copy(
+                    updateItem = updateItem,
+                    throwable = null
+                )
+
+                stateFlow.emit(newForm)
+            }
+
+            is ApiAnswer.Error -> {
+                val throwable = jobResponse.error.throwable
+
+                val newForm = stateFlow.value.copy(
+                    updateItem = null,
+                    throwable = throwable
+                )
+                stateFlow.emit(newForm)
             }
         }
     }
@@ -92,9 +102,15 @@ class UpdateManager(private val repo: OtaApi) : CoroutineScope {
     private fun getOtaSecret(): String {
         return URLEncoder.encode(BuildConfig.otaSecretCode, "utf-8")
     }
+}
 
-    fun checkUpdates(block: ((item: UpdateItem?, error: Throwable?) -> Unit)? = null) = launch {
-        this@UpdateManager.listener = block
-        getActualUrl()
+data class UpdateManagerState(
+    val updateItem: UpdateItem?,
+    val throwable: Throwable?,
+) {
+    companion object {
+        val EMPTY = UpdateManagerState(
+            updateItem = null, throwable = null
+        )
     }
 }

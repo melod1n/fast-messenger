@@ -6,10 +6,15 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class AuthDirectResponse(
-    @SerializedName("access_token") val accessToken: String? = null,
-    @SerializedName("user_id") val userId: Int? = null,
-    @SerializedName("trusted_hash") val twoFaHash: String? = null,
-    @SerializedName("validation_sid") val validationSid: String? = null
+    @SerializedName("access_token") val accessToken: String?,
+    @SerializedName("user_id") val userId: Int?,
+    @SerializedName("trusted_hash") val twoFaHash: String?,
+    @SerializedName("validation_sid") val validationSid: String?,
+    @SerializedName("validation_type") val validationType: String?,
+    @SerializedName("phone_mask") val phoneMask: String?,
+    @SerializedName("redirect_uri") val redirectUrl: String?,
+    @SerializedName("validation_resend") val validationResend: String?,
+    @SerializedName("cant_get_code_open_restore") val isCanNotGetCodeNeedToOpenRestore: Boolean
 ) : Parcelable
 
 @Parcelize

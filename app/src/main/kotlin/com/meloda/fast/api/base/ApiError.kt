@@ -9,6 +9,8 @@ open class ApiError(
     val error: String? = null,
     @SerializedName("error_msg", alternate = ["error_description"])
     open val errorMessage: String? = null,
+    @SerializedName("error_type")
+    val errorType: String? = null,
     val throwable: Throwable? = null
 ) : IOException() {
 

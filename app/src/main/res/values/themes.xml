@@ -2,60 +2,30 @@
 <resources>
 
     <style name="Base.V21.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorOnPrimary">@color/colorOnPrimary</item>
-        <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
-        <item name="colorOnPrimaryContainer">@color/colorOnPrimaryContainer</item>
-        <item name="colorPrimaryInverse">@color/colorPrimaryInverse</item>
-        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
-
-        <item name="colorSecondary">@color/colorSecondary</item>
-        <item name="colorOnSecondary">@color/colorOnSecondary</item>
-        <item name="colorSecondaryContainer">@color/colorSecondaryContainer</item>
-        <item name="colorOnSecondaryContainer">@color/colorOnSecondaryContainer</item>
-
-        <item name="colorTertiary">@color/colorTertiary</item>
-        <item name="colorOnTertiary">@color/colorOnTertiary</item>
-        <item name="colorTertiaryContainer">@color/colorTertiaryContainer</item>
-        <item name="colorOnTertiaryContainer">@color/colorOnTertiaryContainer</item>
-
-        <item name="colorError">@color/colorError</item>
-        <item name="colorOnError">@color/colorOnError</item>
-        <item name="colorErrorContainer">@color/colorErrorContainer</item>
-        <item name="colorOnErrorContainer">@color/colorOnErrorContainer</item>
-
-        <item name="colorOutline">@color/colorOutline</item>
-
         <item name="colorBackground">@color/colorBackground</item>
         <item name="colorBackgroundVariant">@color/colorBackgroundVariant</item>
-        <item name="colorOnBackground">@color/colorOnBackground</item>
         <item name="colorOnBackgroundVariantContainer">@color/colorOnBackgroundVariantContainer
         </item>
         <item name="colorOnBackgroundVariantOnContainer">
             @color/colorOnBackgroundVariantOnContainer
         </item>
-        <item name="android:windowBackground">?colorBackground</item>
 
-        <item name="colorSurface">@color/colorSurface</item>
-        <item name="colorOnSurface">@color/colorOnSurface</item>
-        <item name="colorSurfaceVariant">@color/colorSurfaceVariant</item>
-        <item name="colorOnSurfaceVariant">@color/colorOnSurfaceVariant</item>
-        <item name="colorSurfaceInverse">@color/colorSurfaceInverse</item>
-        <item name="colorOnSurfaceInverse">@color/colorOnSurfaceInverse</item>
-
-        <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimation</item>
-
-        <item name="android:statusBarColor">@color/colorBackground</item>
-
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/colorTranslucentNavigationBar</item>
         <item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="AppTheme" parent="Base.V21.AppTheme" />
 
-    <style name="AppTheme.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/colorBackground</item>
-        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_splash</item>
+    <style name="TestTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+
+    <style name="AppTheme.Splash" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenBackground">?colorBackground</item>
+        <item name="windowSplashScreenIconBackgroundColor">?colorPrimary</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 
