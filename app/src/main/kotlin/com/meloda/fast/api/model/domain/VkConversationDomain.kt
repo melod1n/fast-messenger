@@ -23,6 +23,7 @@ import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
+import java.util.Calendar
 
 @Suppress("MemberVisibilityCanBePrivate")
 @Entity(tableName = "conversations")
@@ -206,7 +207,19 @@ data class VkConversationDomain(
 
     // TODO: 05.08.2023, Danil Nikolaev: rewrite
     fun extractBirthday(): Boolean {
-        return lastMessage?.user?.id != 0
+        val birthday = conversationUser?.birthday ?: return false
+        val splitBirthday = birthday.split(".")
+
+        return if (splitBirthday.size > 1) {
+            val birthdayCalendar = Calendar.getInstance().apply {
+                this[Calendar.DAY_OF_MONTH] = splitBirthday.first().toIntOrNull() ?: -1
+                this[Calendar.MONTH] = (splitBirthday[1].toIntOrNull() ?: 0) - 1
+            }
+            val nowCalendar = Calendar.getInstance()
+
+            (nowCalendar[Calendar.DAY_OF_MONTH] == birthdayCalendar[Calendar.DAY_OF_MONTH]
+                    && nowCalendar[Calendar.MONTH] == birthdayCalendar[Calendar.MONTH])
+        } else false
     }
 
     fun mapToPresentation() = VkConversationUi(

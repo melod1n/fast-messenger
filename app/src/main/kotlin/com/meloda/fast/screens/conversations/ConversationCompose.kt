@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -146,6 +147,38 @@ fun Conversation(
                                     .matchParentSize()
                                     .background(MaterialTheme.colorScheme.primary)
                             )
+                        }
+                    }
+
+                    if (conversation.isBirthday) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(16.dp)
+                                .background(
+                                    if (conversation.isUnread) {
+                                        MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
+                                    } else {
+                                        MaterialTheme.colorScheme.background
+                                    }
+                                )
+                                .padding(2.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .matchParentSize()
+                                    .background(Color(0xFFB00B69))
+                            ) {
+                                Image(
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(10.dp),
+                                    painter = painterResource(id = R.drawable.round_cake_24),
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
                 }

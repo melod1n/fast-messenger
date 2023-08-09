@@ -18,7 +18,8 @@ data class BaseVkUser(
     val photo_200: String?,
     val online: Int?,
     val online_info: OnlineInfo?,
-    val screen_name: String
+    val screen_name: String,
+    val bdate: String?
     //...other fields
 ) : Parcelable {
 
@@ -39,7 +40,8 @@ data class BaseVkUser(
         online = online == 1,
         photo200 = photo_200,
         lastSeen = online_info?.last_seen,
-        lastSeenStatus = online_info?.status
+        lastSeenStatus = online_info?.status,
+        birthday = bdate
     )
 
 }
