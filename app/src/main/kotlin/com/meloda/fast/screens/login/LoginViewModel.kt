@@ -310,7 +310,7 @@ class LoginViewModelImpl constructor(
                         twoFaForceSms = forceSms,
                         twoFaCode = state.validationCode,
                         captchaSid = state.captchaSid,
-                        captchaKey = state.captchaCode
+                        captchaKey = state.captchaCode,
                     )
 
                     authRepository.auth(requestModel)
@@ -331,12 +331,14 @@ class LoginViewModelImpl constructor(
                 val currentAccount = AppAccount(
                     userId = userId,
                     accessToken = accessToken,
-                    fastToken = null
+                    fastToken = null,
+                    trustedHash = response.twoFaHash
                 ).also { account ->
                     UserConfig.currentUserId = account.userId
                     UserConfig.userId = account.userId
                     UserConfig.accessToken = account.accessToken
                     UserConfig.fastToken = account.fastToken
+                    UserConfig.trustedHash = account.trustedHash
                 }
 
                 accounts.insert(listOf(currentAccount))

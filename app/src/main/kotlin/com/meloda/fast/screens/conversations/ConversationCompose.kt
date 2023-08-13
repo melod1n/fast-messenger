@@ -25,15 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.ext.combinedClickableSound
-import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.getImage
 import com.meloda.fast.ui.widgets.CoilImage
@@ -46,12 +48,17 @@ fun Conversation(
     conversation: VkConversationUi,
     maxLines: Int
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickableSound(
                 onClick = { onItemClick(conversation) },
-                onLongClick = { onItemLongClick(conversation) }
+                onLongClick = {
+                    onItemLongClick(conversation)
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
             )
     ) {
         if (conversation.isUnread) {
@@ -189,7 +196,7 @@ fun Conversation(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = conversation.title.getString().orDots(),
+                        text = conversation.title.orDots(),
                         modifier = Modifier,
                         minLines = 1,
                         maxLines = maxLines,
@@ -197,12 +204,12 @@ fun Conversation(
                     )
 
                     Row {
-                        conversation.attachmentImage?.getResourceId()?.let { resId ->
+                        conversation.attachmentImage?.let { drawable ->
                             Column {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Image(
                                     modifier = Modifier.size(14.dp),
-                                    painter = painterResource(id = resId),
+                                    painter = rememberDrawablePainter(drawable),
                                     contentDescription = null,
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                 )
@@ -254,3 +261,5 @@ fun Conversation(
         }
     }
 }
+
+

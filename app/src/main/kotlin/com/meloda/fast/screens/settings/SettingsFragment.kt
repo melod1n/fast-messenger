@@ -304,7 +304,7 @@ class SettingsFragment : BaseFragment() {
         const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
         const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"
         const val KEY_FEATURES_LONG_POLL_IN_BACKGROUND = "features_lp_background"
-        const val DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND = true
+        const val DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND = false
 
         const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
 

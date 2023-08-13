@@ -1,5 +1,6 @@
 package com.meloda.fast.api.model.domain
 
+import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
@@ -19,6 +20,8 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
+import com.meloda.fast.model.base.asDrawable
+import com.meloda.fast.model.base.getImage
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -106,14 +109,14 @@ data class VkConversationDomain(
         return avatarLink?.let(UiImage::Url) ?: placeholderImage
     }
 
-    fun extractTitle(): UiText {
+    fun extractTitle(): String {
         return when {
             isAccount() -> UiText.Resource(R.string.favorites)
             peerType.isChat() -> UiText.Simple(conversationTitle ?: "...")
             peerType.isUser() -> UiText.Simple(conversationUser?.fullName ?: "...")
             peerType.isGroup() -> UiText.Simple(conversationGroup?.name ?: "...")
             else -> UiText.Simple("...")
-        }
+        }.parseString(AppGlobal.Instance).orEmpty()
     }
 
     fun extractUnreadCounterText(): String? {
@@ -191,9 +194,9 @@ data class VkConversationDomain(
         return finalText.orDots()
     }
 
-    fun extractAttachmentImage(): UiImage? {
+    fun extractAttachmentImage(): Drawable? {
         if (lastMessage?.text == null) return null
-        return VkUtils.getAttachmentConversationIcon(lastMessage)
+        return VkUtils.getAttachmentConversationIcon(lastMessage).asDrawable(AppGlobal.Instance)
     }
 
     fun extractReadCondition(): Boolean {

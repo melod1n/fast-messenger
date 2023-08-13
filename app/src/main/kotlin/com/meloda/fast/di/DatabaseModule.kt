@@ -14,7 +14,9 @@ val databaseModule = module {
             .build()
     }
     single {
+        // TODO: 09.08.2023, Danil Nikolaev: write migration to trusted_hash
         Room.databaseBuilder(AppGlobal.Instance, AccountsDatabase::class.java, "accounts")
+            .fallbackToDestructiveMigration()
             .build()
     }
     single { cache().conversationsDao }

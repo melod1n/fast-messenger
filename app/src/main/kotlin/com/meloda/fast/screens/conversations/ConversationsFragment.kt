@@ -1,7 +1,6 @@
 package com.meloda.fast.screens.conversations
 
 import android.os.Bundle
-import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -48,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.model.presentation.VkConversationUi
@@ -183,7 +183,7 @@ class ConversationsFragment : BaseFragment(R.layout.fragment_conversations) {
                         ) {
                             FloatingActionButton(
                                 onClick = {
-                                    view?.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                                    view?.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                 }
                             ) {
                                 Icon(

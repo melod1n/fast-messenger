@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
-import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.Toast
@@ -16,6 +15,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.doAfterTextChanged
@@ -673,7 +673,7 @@ class MessagesHistoryFragment :
         when (actionState.value) {
             Action.RECORD -> {
                 sdk30AndUp {
-                    binding.action.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                    binding.action.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                 }
             }
 
@@ -719,7 +719,7 @@ class MessagesHistoryFragment :
                 attachmentController.message.update { null }
 
                 sdk30AndUp {
-                    binding.action.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                    binding.action.performHapticFeedback(HapticFeedbackConstantsCompat.CONFIRM)
                 }
 
                 viewModel.sendMessage(
@@ -832,7 +832,7 @@ class MessagesHistoryFragment :
     private fun prepareEmojiButton() {
         binding.emoji.setOnClickListener {
             sdk30AndUp {
-                binding.emoji.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                binding.emoji.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
             }
         }
         binding.emoji.setOnLongClickListener {
@@ -858,7 +858,7 @@ class MessagesHistoryFragment :
                         .start()
                 }.start()
 
-            binding.emoji.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            binding.emoji.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
             true
         }
     }

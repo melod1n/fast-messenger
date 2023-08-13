@@ -11,5 +11,6 @@ data class AppAccount(
     @PrimaryKey(autoGenerate = false)
     val userId: Int,
     val accessToken: String,
-    val fastToken: String?
+    val fastToken: String?,
+    val trustedHash: String?
 ) : Parcelable

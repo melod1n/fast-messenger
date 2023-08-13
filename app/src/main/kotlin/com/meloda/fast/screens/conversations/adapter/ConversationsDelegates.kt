@@ -54,7 +54,7 @@ fun conversationDelegate(
         binding.container.background =
             if (item.isUnread) resourceProvider.conversationUnreadBackground else null
 
-        binding.title.text = item.title.parseString(context)
+        binding.title.text = item.title
 
         binding.date.text = item.date
 

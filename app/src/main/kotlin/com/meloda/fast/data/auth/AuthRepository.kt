@@ -9,6 +9,4 @@ class AuthRepository(
     suspend fun auth(params: AuthDirectRequest) = authApi.auth(params.map)
 
     suspend fun sendSms(validationSid: String) = authApi.sendSms(validationSid)
-
-
 }

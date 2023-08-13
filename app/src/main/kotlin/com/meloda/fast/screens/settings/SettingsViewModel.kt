@@ -1,9 +1,9 @@
 package com.meloda.fast.screens.settings
 
 import android.os.Build
-import android.view.HapticFeedbackConstants
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
@@ -73,7 +73,7 @@ interface SettingsViewModel {
 class SettingsViewModelImpl constructor(
     private val accountsDao: AccountsDao,
     private val cacheDatabase: CacheDatabase,
-    private val router: Router
+    private val router: Router,
 ) : SettingsViewModel, ViewModel() {
 
     override val settings = MutableStateFlow<SettingsList>(emptyList())
@@ -386,7 +386,9 @@ class SettingsViewModelImpl constructor(
 
     override fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
-            accountsDao.deleteById(UserConfig.userId)
+            val newAccount = UserConfig.getAccount().copy(accessToken = "")
+//            accountsDao.deleteById(UserConfig.userId)
+            accountsDao.insert(newAccount)
             cacheDatabase.clearAllTables()
 
             MainActivity.longPollState.emit(LongPollState.Stop)
@@ -518,8 +520,8 @@ sealed interface HapticType {
 
     fun getHaptic(): Int {
         return when (this) {
-            ShowDebugMenu -> HapticFeedbackConstants.LONG_PRESS
-            HideDebugMenu -> HapticFeedbackConstants.REJECT
+            ShowDebugMenu -> HapticFeedbackConstantsCompat.LONG_PRESS
+            HideDebugMenu -> HapticFeedbackConstantsCompat.REJECT
             None -> -1
         }
     }

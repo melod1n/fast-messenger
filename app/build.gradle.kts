@@ -37,10 +37,12 @@ android {
 
     defaultConfig {
         applicationId = "com.meloda.fast"
-        minSdk = 24
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "alpha"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -109,13 +111,8 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.5"
+        kotlinCompilerExtensionVersion = "1.5.1"
         useLiveLiterals = true
-    }
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging = false
-        }
     }
 }
 
@@ -131,18 +128,18 @@ dependencies {
 
 
     // DI zone
-    implementation("io.insert-koin:koin-android:3.4.0")
+    implementation("io.insert-koin:koin-android:3.4.3")
     // end of DI zone
 
     implementation("com.github.skydoves:cloudy:0.1.2")
 
-    implementation("io.coil-kt:coil-compose:2.3.0")
-    implementation("io.coil-kt:coil:2.3.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil:2.4.0")
 
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
 
     implementation("androidx.core:core-ktx:1.10.1")
 
@@ -181,32 +178,32 @@ dependencies {
     implementation("com.github.fondesa:kpermissions:3.4.0")
     implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
 
-    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.1")
-    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.1")
+    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.2")
+    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.2")
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.3")
 
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
-    implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.google.guava:guava:32.1.2-jre")
 
     implementation("com.google.android.material:material:1.9.0")
 
-    implementation("com.github.chuckerteam.chucker:library:3.5.2")
+    implementation("com.github.chuckerteam.chucker:library:4.0.0")
 
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
-    implementation(platform("androidx.compose:compose-bom:2023.04.01"))
+    implementation(platform("androidx.compose:compose-bom:2023.06.01"))
 
     implementation("androidx.compose.material3:material3:1.1.1")
 //    implementation("androidx.compose.material:material:1.4.3")
@@ -222,5 +219,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
 
     implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha02")
+
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.0-alpha")
     // end of Compose zone
+
+    // Tests zone
+    testImplementation("junit:junit:4.13.2")
+    // end of Tests zone
 }

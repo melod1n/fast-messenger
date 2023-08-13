@@ -66,6 +66,12 @@ class OnlineService : Service(), CoroutineScope {
     private fun setOnline() {
         if (currentJob != null) return
 
+        if (!AppGlobal.preferences.getBoolean(
+                SettingsFragment.KEY_VISIBILITY_SEND_ONLINE_STATUS,
+                false
+            )
+        ) return
+
         currentJob = launch {
             Log.d("OnlineService", "setOnline()")
 

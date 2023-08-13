@@ -24,6 +24,7 @@ object UserConfig {
     var userId: Int = -1
     var accessToken: String = ""
     var fastToken: String? = ""
+    var trustedHash: String? = null
 
     fun parse(account: AppAccount) {
         this.userId = account.userId
@@ -44,4 +45,10 @@ object UserConfig {
 
     val vkUser: MutableStateFlow<VkUser?> = MutableStateFlow(null)
 
+    fun getAccount(): AppAccount = AppAccount(
+        userId = userId,
+        accessToken = accessToken,
+        fastToken = fastToken,
+        trustedHash = trustedHash
+    )
 }

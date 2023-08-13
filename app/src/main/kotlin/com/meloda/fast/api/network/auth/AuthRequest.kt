@@ -18,6 +18,7 @@ data class AuthDirectRequest(
     val twoFaCode: String? = null,
     val captchaSid: String? = null,
     val captchaKey: String? = null,
+    val trustedHash: String? = null
 ) : Parcelable {
 
     val map
@@ -35,6 +36,7 @@ data class AuthDirectRequest(
                 twoFaCode?.let { this["code"] = it }
                 captchaSid?.let { this["captcha_sid"] = it }
                 captchaKey?.let { this["captcha_key"] = it }
+                trustedHash?.let { this["trusted_hash"] = it }
             }
 }
 
