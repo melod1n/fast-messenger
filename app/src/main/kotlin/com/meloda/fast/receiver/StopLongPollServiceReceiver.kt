@@ -8,7 +8,7 @@ import androidx.core.content.edit
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.screens.main.activity.LongPollState
 import com.meloda.fast.screens.main.activity.MainActivity
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import kotlinx.coroutines.flow.update
 
 class StopLongPollServiceReceiver : BroadcastReceiver() {

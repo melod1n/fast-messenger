@@ -5,7 +5,7 @@ fun interface OnSettingsClickListener {
 }
 
 fun interface OnSettingsLongClickListener {
-    fun onLongClick(key: String): Boolean
+    fun onLongClick(key: String)
 }
 
 fun interface OnSettingsChangeListener {

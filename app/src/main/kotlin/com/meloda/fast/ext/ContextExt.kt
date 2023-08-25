@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.meloda.fast.compose.ItemsSelectionType
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
 
@@ -20,10 +21,10 @@ fun Context.showDialog(
     onDismissAction: (() -> Unit)? = null,
     view: View? = null,
     items: List<UiText>? = null,
-    itemsChoiceType: ItemsChoiceType = ItemsChoiceType.None,
-    itemsClickAction: ((index: Int, value: String) -> Unit)? = null,
+    itemsSelectionType: ItemsSelectionType = ItemsSelectionType.None,
+    onItemClick: ((index: Int, value: String) -> Unit)? = null,
     itemsMultiChoiceClickAction: ((index: Int, value: String, isChecked: Boolean) -> Unit)? = null,
-    checkedItems: List<Int>? = null
+    preSelectedItems: List<Int>? = null
 ): AlertDialog {
     val builder = MaterialAlertDialogBuilder(this)
         .setCancelable(isCancelable)
@@ -45,29 +46,29 @@ fun Context.showDialog(
     }
 
     items?.mapNotNull { it.asString() }?.let { stringItems ->
-        when (itemsChoiceType) {
-            ItemsChoiceType.None -> {
+        when (itemsSelectionType) {
+            ItemsSelectionType.None -> {
                 builder.setItems(
                     stringItems.toTypedArray()
                 ) { dialog, which ->
                     dialog.dismiss()
-                    itemsClickAction?.invoke(which, stringItems[which])
+                    onItemClick?.invoke(which, stringItems[which])
                 }
             }
 
-            ItemsChoiceType.SingleChoice -> {
+            ItemsSelectionType.Single -> {
                 builder.setSingleChoiceItems(
                     stringItems.toTypedArray(),
-                    checkedItems?.first() ?: -1
+                    preSelectedItems?.first() ?: -1
                 ) { _, which ->
-                    itemsClickAction?.invoke(which, stringItems[which])
+                    onItemClick?.invoke(which, stringItems[which])
                 }
             }
 
-            ItemsChoiceType.MultiChoice -> {
+            ItemsSelectionType.Multi -> {
                 builder.setMultiChoiceItems(
                     stringItems.toTypedArray(),
-                    BooleanArray(stringItems.size) { index -> checkedItems?.contains(index).isTrue }
+                    BooleanArray(stringItems.size) { index -> preSelectedItems?.contains(index).isTrue }
                 ) { _, which, isChecked ->
                     itemsMultiChoiceClickAction?.invoke(which, stringItems[which], isChecked)
                 }
@@ -76,12 +77,6 @@ fun Context.showDialog(
     }
 
     return builder.show()
-}
-
-sealed class ItemsChoiceType {
-    object None : ItemsChoiceType()
-    object SingleChoice : ItemsChoiceType()
-    object MultiChoice : ItemsChoiceType()
 }
 
 context(Context)

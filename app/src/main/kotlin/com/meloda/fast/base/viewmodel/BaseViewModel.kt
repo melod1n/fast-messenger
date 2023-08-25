@@ -1,21 +1,31 @@
 package com.meloda.fast.base.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.network.*
+import com.meloda.fast.api.network.ApiAnswer
+import com.meloda.fast.api.network.AuthorizationError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.TokenExpiredError
+import com.meloda.fast.api.network.UserBannedError
+import com.meloda.fast.api.network.ValidationRequiredError
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 abstract class BaseViewModel : ViewModel() {
 
     open suspend fun sendSingleEvent(event: VkEvent) {}
 
-    suspend fun <T> sendRequestNotNull(
+    protected suspend fun <T> sendRequestNotNull(
         onError: ErrorHandler? = null,
         request: suspend () -> ApiAnswer<T>
     ): T = sendRequest(onError, request).notNull()
 
-    suspend fun <T> sendRequest(
+    protected suspend fun <T> sendRequest(
         onError: ErrorHandler? = null,
         request: suspend () -> ApiAnswer<T>,
     ): T? {
@@ -33,14 +43,50 @@ abstract class BaseViewModel : ViewModel() {
         }
     }
 
+    protected suspend fun <T> sendRequest(
+        request: suspend () -> ApiAnswer<T>,
+        onResponse: ResponseHandler<T>? = null,
+        onError: ErrorHandler? = null,
+        onStart: (suspend () -> Unit)? = null,
+        onEnd: (suspend () -> Unit)? = null,
+        onAnyResult: (suspend () -> Unit)? = null,
+        coroutineContext: CoroutineContext = Dispatchers.IO
+    ): Job {
+        val job = viewModelScope.launch(coroutineContext) {
+            onStart?.invoke()
+
+            when (val response = request.invoke()) {
+                is ApiAnswer.Error -> {
+                    onError?.handleError(response.error) ?: checkErrors(response.error)
+                    onAnyResult?.invoke()
+                }
+
+                is ApiAnswer.Success -> {
+                    onResponse?.handleResponse(response.data)
+                    onAnyResult?.invoke()
+                }
+            }
+        }
+
+        job.invokeOnCompletion {
+            viewModelScope.launch {
+                onEnd?.invoke()
+            }
+        }
+
+        return job
+    }
+
     protected suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {
             is TokenExpiredError -> {
                 sendSingleEvent(TokenExpiredErrorEvent)
             }
+
             is AuthorizationError -> {
                 sendSingleEvent(AuthorizationErrorEvent)
             }
+
             is UserBannedError -> {
                 throwable.banInfo.let { banInfo ->
                     sendSingleEvent(
@@ -53,6 +99,7 @@ abstract class BaseViewModel : ViewModel() {
                     )
                 }
             }
+
             is ValidationRequiredError -> {
                 sendSingleEvent(
                     ValidationRequiredEvent(
@@ -65,6 +112,7 @@ abstract class BaseViewModel : ViewModel() {
                     )
                 )
             }
+
             is CaptchaRequiredError -> {
                 sendSingleEvent(
                     CaptchaRequiredEvent(
@@ -83,6 +131,7 @@ abstract class BaseViewModel : ViewModel() {
                     }
                 )
             }
+
             else -> {
                 sendSingleEvent(
                     if (throwable.message == null) {

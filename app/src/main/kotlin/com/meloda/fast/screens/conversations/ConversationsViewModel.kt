@@ -4,17 +4,15 @@ import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.github.terrakok.cicerone.Router
-import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.VkUtils
+import com.meloda.fast.api.VkUtils.fill
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.base.BaseVkGroup
 import com.meloda.fast.api.model.base.BaseVkUser
-import com.meloda.fast.api.model.data.BaseVkConversation
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
@@ -28,35 +26,28 @@ import com.meloda.fast.common.Screens
 import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
-import com.meloda.fast.ext.emitOnMainScope
-import com.meloda.fast.ext.emitWithMain
+import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.ext.findIndex
+import com.meloda.fast.ext.findWithIndex
+import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.toMap
+import com.meloda.fast.screens.conversations.model.ConversationsScreenState
+import com.meloda.fast.screens.conversations.model.ConversationsShowOptions
+import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
+import com.meloda.fast.screens.messages.screen.MessagesHistoryScreen
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// TODO: 04.08.2023, Danil Nikolaev: calculate time here and give ui ready to be shown date
-
 interface ConversationsViewModel {
 
-    val pinnedConversationsCount: StateFlow<Int>
-
-    val conversationsList: StateFlow<List<VkConversationUi>>
-    val isLoading: StateFlow<Boolean>
-
-    val isNeedToShowOptionsDialog: StateFlow<VkConversationUi?>
-    val isNeedToShowDeleteDialog: StateFlow<Int?>
-    val isNeedToShowPinDialog: StateFlow<VkConversationUi?>
-
-    val profiles: StateFlow<HashMap<Int, VkUser>>
-    val groups: StateFlow<HashMap<Int, VkGroup>>
+    val screenState: StateFlow<ConversationsScreenState>
 
     fun onOptionsDialogDismissed()
 
@@ -69,7 +60,7 @@ interface ConversationsViewModel {
     fun onRefresh()
 
     fun onConversationItemClick(conversationUi: VkConversationUi)
-    fun onConversationItemLongClick(conversationUi: VkConversationUi): Boolean
+    fun onConversationItemLongClick(conversationUi: VkConversationUi)
 
     fun onPinDialogDismissed()
     fun onPinDialogPositiveClick(conversation: VkConversationUi)
@@ -82,41 +73,47 @@ class ConversationsViewModelImpl constructor(
     updatesParser: LongPollUpdatesParser,
     private val router: Router,
     private val messagesRepository: MessagesRepository,
+    private val messagesHistoryScreen: MessagesHistoryScreen
 ) : ConversationsViewModel, BaseViewModel() {
 
-    private val dataConversations: MutableStateFlow<List<BaseVkConversation>> =
-        MutableStateFlow(emptyList())
+    override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
 
-    private val domainConversations: MutableStateFlow<List<VkConversationDomain>> =
-        MutableStateFlow(emptyList())
+    private val pinnedConversationsCount = MutableStateFlow(0)
 
-    override val conversationsList: StateFlow<List<VkConversationUi>> =
-        domainConversations.map { list ->
-            list.map(VkConversationDomain::mapToPresentation)
-        }.stateIn(viewModelScope, SharingStarted.Lazily, initialValue = emptyList())
+    private val domainConversations = MutableStateFlow<List<VkConversationDomain>>(emptyList())
 
-    override val isLoading = MutableStateFlow(false)
 
-    override val isNeedToShowOptionsDialog = MutableStateFlow<VkConversationUi?>(null)
-    override val isNeedToShowDeleteDialog = MutableStateFlow<Int?>(null)
-    override val isNeedToShowPinDialog = MutableStateFlow<VkConversationUi?>(null)
-
-    override val profiles: MutableStateFlow<HashMap<Int, VkUser>> = MutableStateFlow(hashMapOf())
-    override val groups: MutableStateFlow<HashMap<Int, VkGroup>> = MutableStateFlow(hashMapOf())
-
-    override val pinnedConversationsCount = domainConversations.map { conversations ->
-        val pinnedConversations = conversations.filter { it.isPinned() }
-        pinnedConversations.size
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
-
+    // TODO: 25.08.2023, Danil Nikolaev: extract to DI
     private val imageLoader by lazy {
         ImageLoader.Builder(AppGlobal.Instance)
             .crossfade(true)
             .build()
     }
 
+    private val settingsCategories = listOf(
+        "account", "appearance", "features", "visibility", "updates", "msappcenter", "wip", "debug"
+    )
+
+    init {
+        val useLargeTopAppBar = AppGlobal.preferences.getBoolean(
+            SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR,
+            SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
+        )
+        val multilineEnabled = AppGlobal.preferences.getBoolean(
+            SettingsFragment.KEY_APPEARANCE_MULTILINE,
+            SettingsFragment.DEFAULT_VALUE_MULTILINE
+        )
+
+        screenState.setValue { old ->
+            old.copy(
+                useLargeTopAppBar = useLargeTopAppBar,
+                multilineEnabled = multilineEnabled
+            )
+        }
+    }
+
     override fun onOptionsDialogDismissed() {
-        isNeedToShowOptionsDialog.emitOnMainScope(null)
+        emitShowOptions { old -> old.copy(showOptionsDialog = null) }
     }
 
     override fun onOptionsDialogOptionClicked(
@@ -126,19 +123,19 @@ class ConversationsViewModelImpl constructor(
         return when (key) {
             "read" -> {
                 readConversation(
-                    conversationId = conversation.conversationId,
+                    peerId = conversation.conversationId,
                     startMessageId = conversation.lastMessageId
                 )
                 true
             }
 
             "delete" -> {
-                isNeedToShowDeleteDialog.emitOnMainScope(conversation.id)
+                emitShowOptions { old -> old.copy(showDeleteDialog = conversation.id) }
                 true
             }
 
             "pin" -> {
-                isNeedToShowPinDialog.emitOnMainScope(conversation)
+                emitShowOptions { old -> old.copy(showPinDialog = conversation) }
                 true
             }
 
@@ -147,7 +144,7 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onDeleteDialogDismissed() {
-        isNeedToShowDeleteDialog.emitOnMainScope(null)
+        emitShowOptions { old -> old.copy(showDeleteDialog = null) }
     }
 
     override fun onDeleteDialogPositiveClick(conversationId: Int) {
@@ -159,31 +156,31 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onConversationItemClick(conversationUi: VkConversationUi) {
-        openMessagesHistoryScreen(
-            conversationUi,
-            conversationUi.conversationUser,
-            conversationUi.conversationGroup
-        )
+        openMessagesHistoryScreen(conversationUi)
     }
 
-    override fun onConversationItemLongClick(conversationUi: VkConversationUi): Boolean {
-        val domainConversation = conversationsList.value.find { it.id == conversationUi.id }
-        isNeedToShowOptionsDialog.emitOnMainScope(domainConversation)
-        return true
+    override fun onConversationItemLongClick(conversationUi: VkConversationUi) {
+        emitShowOptions { old -> old.copy(showOptionsDialog = conversationUi) }
     }
 
     override fun onPinDialogDismissed() {
-        isNeedToShowPinDialog.emitOnMainScope(null)
+        emitShowOptions { old -> old.copy(showPinDialog = null) }
     }
 
     override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
         pinConversation(conversation.id, !conversation.isPinned)
     }
 
+    // TODO: 25.08.2023, Danil Nikolaev: rewrite
     override fun onToolbarMenuItemClicked(itemId: Int): Boolean {
         return when (itemId) {
-            R.id.settings -> {
+            0 -> {
                 router.navigateTo(Screens.Settings())
+                true
+            }
+
+            1 -> {
+                onRefresh()
                 true
             }
 
@@ -197,181 +194,160 @@ class ConversationsViewModelImpl constructor(
         updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
         updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
+        updatesParser.onInteractions(::handleInteraction)
 
         loadProfileUser()
         loadConversations()
     }
 
-    private fun loadConversations(offset: Int? = null) {
-        viewModelScope.launch(Dispatchers.IO) {
-            isLoading.emitWithMain(true)
-            sendRequest(
-                onError = {
-                    isLoading.emitWithMain(false)
-                    false
-                }
-            ) {
-                conversationsRepository.get(
-                    ConversationsGetRequest(
-                        count = 30,
-                        extended = true,
-                        offset = offset,
-                        fields = VKConstants.ALL_FIELDS
-                    )
-                )
-            }?.response?.let { response ->
-                val dataConversationsMessages = response.items.map { item ->
-                    item.conversation to item.lastMessage
-                }
-                val dataConversationsList = dataConversationsMessages.map { pair -> pair.first }
-                dataConversations.emit(dataConversationsList)
+    private fun emitDomainConversations(conversations: List<VkConversationDomain>) {
+        val pinnedConversationsCount = conversations.filter(VkConversationDomain::isPinned).size
 
-                val newProfiles = response.profiles
-                    ?.map(BaseVkUser::mapToDomain)
-                    ?.toMap(hashMapOf(), VkUser::id) ?: hashMapOf()
-                profiles.emit(newProfiles)
-
-                val newGroups = response.groups
-                    ?.map(BaseVkGroup::mapToDomain)
-                    ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
-                groups.emit(newGroups)
-
-                val messages = dataConversationsMessages
-                    .map { pair -> pair.second }
-                    .mapNotNull { message -> message?.asVkMessage() }
-                    .map { message ->
-                        message.apply {
-                            message.user = newProfiles[message.fromId]
-                            message.group = newGroups[message.fromId]
-                            message.actionUser = newProfiles[message.actionMemberId]
-                            message.actionGroup = newGroups[message.actionMemberId]
-                        }
-                    }
-
-                messagesRepository.store(messages)
-
-                val photos = newProfiles.mapNotNull { profile -> profile.value.photo200 } +
-                        newGroups.mapNotNull { group -> group.value.photo200 }
-
-                photos.forEach { url ->
-                    ImageRequest.Builder(AppGlobal.Instance)
-                        .data(url)
-                        .build()
-                        .let(imageLoader::enqueue)
-                }
-
-                val domainConversationsList =
-                    dataConversationsList.mapToDomain().map { conversation ->
-                        conversation.apply {
-                            conversation.conversationUser = newProfiles[conversation.id]
-                            conversation.conversationGroup = newGroups[conversation.id]
-                        }
-
-                    }
-                emitConversations(domainConversationsList)
-
-                isLoading.emitWithMain(false)
-            }
-        }
-    }
-
-    private suspend fun emitConversations(conversations: List<VkConversationDomain>) =
-        withContext(Dispatchers.Default) {
+        viewModelScope.launch {
             domainConversations.emit(conversations)
         }
 
-    private suspend fun List<BaseVkConversation>.mapToDomain(): List<VkConversationDomain> =
-        this.map { baseConversation -> getFilledDomainVkConversation(baseConversation) }
+        val uiConversations = conversations.map(VkConversationDomain::mapToPresentation)
 
-    private suspend fun VkConversationDomain.fill(): VkConversationDomain {
-        val conversation = this
-        val messages = messagesRepository.getCached(conversation.id)
-
-        val lastMessage = messages.find { it.id == conversation.lastMessageId }
-
-        val userGroup =
-            VkUtils.getConversationUserGroup(
-                conversation,
-                profiles.value,
-                groups.value
+        screenState.setValue { old ->
+            old.copy(
+                conversations = uiConversations,
+                pinnedConversationsCount = pinnedConversationsCount
             )
-        val actionUserGroup =
-            VkUtils.getMessageActionUserGroup(
-                lastMessage,
-                profiles.value,
-                groups.value
-            )
-        val messageUserGroup =
-            VkUtils.getMessageUserGroup(
-                lastMessage,
-                profiles.value,
-                groups.value
-            )
-
-        conversation.conversationUser = userGroup.first
-        conversation.conversationGroup = userGroup.second
-
-        val newMessage = lastMessage?.copy()?.apply {
-            this.user = messageUserGroup.first
-            this.group = messageUserGroup.second
-            this.actionUser = actionUserGroup.first
-            this.actionGroup = actionUserGroup.second
         }
-
-        conversation.lastMessage = newMessage
-
-        return conversation
     }
 
-    private suspend fun getFilledDomainVkConversation(
-        baseConversation: BaseVkConversation,
-        defDomainConversation: VkConversationDomain? = null,
-    ): VkConversationDomain {
-        val conversation = defDomainConversation ?: baseConversation.mapToDomain()
-        return conversation.fill()
+    private fun emitShowOptions(function: (ConversationsShowOptions) -> ConversationsShowOptions) {
+        val newShowOptions = function.invoke(screenState.value.showOptions)
+        screenState.setValue { old -> old.copy(showOptions = newShowOptions) }
+    }
+
+    private fun loadConversations(offset: Int? = null) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            screenState.setValue { old -> old.copy(isLoading = true) }
+
+            sendRequest(
+                request = {
+                    conversationsRepository.get(
+                        ConversationsGetRequest(
+                            count = 30,
+                            extended = true,
+                            offset = offset,
+                            fields = VKConstants.ALL_FIELDS
+                        )
+                    )
+                },
+                onResponse = { response ->
+                    val answer = response.response ?: return@sendRequest
+
+                    val profiles = answer.profiles
+                        ?.map(BaseVkUser::mapToDomain)
+                        ?.toMap(hashMapOf(), VkUser::id) ?: hashMapOf()
+
+                    val groups = answer.groups
+                        ?.map(BaseVkGroup::mapToDomain)
+                        ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
+
+                    val conversations = answer.items
+                        .map { item ->
+                            val lastMessage = item.lastMessage?.asVkMessage()
+                            item.conversation.mapToDomain()
+                                .fill(
+                                    lastMessage = lastMessage,
+                                    profiles = profiles,
+                                    groups = groups
+                                )
+                        }
+
+                    val messages = conversations.mapNotNull { conversation ->
+                        conversation.lastMessage?.also { message ->
+                            message.user = profiles[message.fromId]
+                            message.group = groups[message.fromId]
+                            message.actionUser = profiles[message.actionMemberId]
+                            message.actionGroup = groups[message.actionMemberId]
+                        }
+                    }
+
+                    val conversationsUi = conversations.map(VkConversationDomain::mapToPresentation)
+                    screenState.setValue { old -> old.copy(conversations = conversationsUi) }
+
+                    val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +
+                            groups.mapNotNull { group -> group.value.photo200 }
+                    conversationsUi.mapNotNull { conversation -> conversation.avatar.extractUrl() }
+
+                    photos.forEach { url ->
+                        ImageRequest.Builder(AppGlobal.Instance)
+                            .data(url)
+                            .build()
+                            .let(imageLoader::enqueue)
+                    }
+
+                    conversationsRepository.store(conversations)
+                    messagesRepository.store(messages)
+                },
+                onAnyResult = {
+                    screenState.setValue { old -> old.copy(isLoading = false) }
+                }
+            )
+        }
     }
 
     private fun loadProfileUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            sendRequest {
-                usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS))
-            }?.response?.let { response ->
-                val users = response.map(BaseVkUser::mapToDomain)
-                usersRepository.storeUsers(users)
+            sendRequest(
+                request = {
+                    usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS))
+                },
+                onResponse = { response ->
+                    val accountUser = response.response?.firstOrNull() ?: return@sendRequest
+                    val mappedUser = accountUser.mapToDomain()
 
-                UserConfig.vkUser.emit(users.first())
-            }
+                    usersRepository.storeUsers(listOf(mappedUser))
+                }
+            )
         }
     }
 
     private fun deleteConversation(peerId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            sendRequest {
-                conversationsRepository.delete(ConversationsDeleteRequest(peerId))
-            }?.let {
-                domainConversations.value.toMutableList().let { list ->
-                    val index = list.indexOfFirst { conversation -> conversation.id == peerId }
-                    if (index != -1) {
-                        list.removeAt(index)
-                        domainConversations.emit(list)
-                    }
+            sendRequest(
+                request = {
+                    conversationsRepository.delete(ConversationsDeleteRequest(peerId))
+                },
+                onResponse = {
+                    val newConversations = domainConversations.value.toMutableList()
+                    val conversationIndex =
+                        newConversations.findIndex { it.id == peerId } ?: return@sendRequest
+
+                    newConversations.removeAt(conversationIndex)
+
+                    emitDomainConversations(newConversations)
                 }
-            }
+            )
         }
     }
 
     private fun pinConversation(peerId: Int, pin: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             if (pin) {
-                sendRequest {
-                    conversationsRepository.pin(ConversationsPinRequest(peerId))
-                }?.let { handleConversationPinStateUpdate(peerId, true) }
+                sendRequest(
+                    request = {
+                        conversationsRepository.pin(ConversationsPinRequest(peerId))
+                    },
+                    onResponse = {
+                        handleConversationPinStateUpdate(peerId, true)
+                    }
+                )
             } else {
-                sendRequest {
-                    conversationsRepository.unpin(ConversationsUnpinRequest(peerId))
-                }?.let {
-                    handleConversationPinStateUpdate(peerId, false)
-                }
+                sendRequest(
+                    request = {
+                        conversationsRepository.unpin(ConversationsUnpinRequest(peerId))
+                    },
+                    onResponse = {
+                        handleConversationPinStateUpdate(peerId, false)
+                    }
+                )
             }
         }
     }
@@ -379,24 +355,20 @@ class ConversationsViewModelImpl constructor(
     // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
     private suspend fun handleConversationPinStateUpdate(peerId: Int, pin: Boolean) {
         withContext(Dispatchers.IO) {
-            val conversationsList = domainConversations.value.toMutableList()
+            val newConversations = domainConversations.value.toMutableList()
             val conversationIndex =
-                conversationsList.findIndex { it.id == peerId } ?: return@withContext
+                newConversations.findIndex { it.id == peerId } ?: return@withContext
 
-            val conversation = conversationsList[conversationIndex].copy(
-                majorId = if (pin) (pinnedConversationsCount.value + 1) * 16
-                else 0
-            ).fill()
-
-            conversationsList.removeAt(conversationIndex)
+            val conversation = newConversations[conversationIndex]
+            newConversations.removeAt(conversationIndex)
 
             if (pin) {
-                conversationsList.add(0, conversation)
+                newConversations.add(0, conversation)
             } else {
-                conversationsList.add(pinnedConversationsCount.value - 1, conversation)
+                newConversations.add(pinnedConversationsCount.value - 1, conversation)
             }
 
-            emitConversations(conversationsList)
+            emitDomainConversations(newConversations)
         }
     }
 
@@ -406,47 +378,36 @@ class ConversationsViewModelImpl constructor(
 
             messagesRepository.store(message)
 
-            val newProfiles: HashMap<Int, VkUser> =
-                (profiles.value + event.profiles) as HashMap<Int, VkUser>
-            profiles.update { newProfiles }
+            val newConversations = domainConversations.value.toMutableList()
+            val conversationIndex =
+                newConversations.findIndex { it.id == message.peerId }
 
-            val newGroups: HashMap<Int, VkGroup> =
-                (groups.value + event.groups) as HashMap<Int, VkGroup>
-            groups.update { newGroups }
-
-            val dataConversationsList = domainConversations.value.toMutableList()
-            val dataConversationIndex = dataConversationsList.findIndex { it.id == message.peerId }
-
-            if (dataConversationIndex == null) { // диалога нет в списке
+            if (conversationIndex == null) { // диалога нет в списке
                 // pizdets
             } else {
-                val dataConversation = dataConversationsList[dataConversationIndex]
-                var newConversation = dataConversation.copy(
-                    lastMessageId = message.id,
-                    lastConversationMessageId = -1
-                ).fill().also {
-                    it.lastMessage = message
+                val conversation = newConversations[conversationIndex]
+                val newConversation = conversation.copyWithEssentials { old ->
+                    old.copy(
+                        lastMessageId = message.id,
+                        lastConversationMessageId = -1,
+                        unreadCount = if (!message.isOut) {
+                            old.unreadCount + 1
+                        } else {
+                            old.unreadCount
+                        }
+                    )
+                }.also { old -> old.lastMessage = message }
+
+                if (conversation.isPinned()) {
+                    newConversations[conversationIndex] = newConversation
+                } else {
+                    newConversations.removeAt(conversationIndex)
+
+                    val toPosition = pinnedConversationsCount.value
+                    newConversations.add(toPosition, newConversation)
                 }
-                if (!message.isOut) {
-                    newConversation = newConversation.copy(
-                        unreadCount = newConversation.unreadCount + 1
-                    ).fill().also {
-                        it.lastMessage = message
-                    }
-                }
 
-                if (dataConversation.isPinned()) {
-                    dataConversationsList[dataConversationIndex] = newConversation
-                    emitConversations(dataConversationsList)
-                    return@launch
-                }
-
-                dataConversationsList.removeAt(dataConversationIndex)
-
-                val toPosition = pinnedConversationsCount.value
-                dataConversationsList.add(toPosition, newConversation)
-
-                emitConversations(dataConversationsList)
+                emitDomainConversations(newConversations)
             }
         }
     }
@@ -457,117 +418,189 @@ class ConversationsViewModelImpl constructor(
 
             messagesRepository.store(message)
 
-            val conversationsList = domainConversations.value.toMutableList()
+            val newConversations = domainConversations.value.toMutableList()
 
-            val conversationIndex = conversationsList.findIndex { it.id == message.peerId }
+            val conversationIndex = newConversations.findIndex { it.id == message.peerId }
             if (conversationIndex == null) { // диалога нет в списке
-
+                //  pizdets
             } else {
-                val conversation = conversationsList[conversationIndex]
-                conversationsList[conversationIndex] = conversation.copy(
-                    lastMessageId = message.id,
-                    lastConversationMessageId = -1
-                ).fill().also {
-                    it.lastMessage = message
-                }
+                val conversation = newConversations[conversationIndex]
+                newConversations[conversationIndex] = conversation.copyWithEssentials { old ->
+                    old.copy(
+                        lastMessageId = message.id,
+                        lastConversationMessageId = -1
+                    )
+                }.also { old -> old.lastMessage = message }
 
-                emitConversations(conversationsList)
+                emitDomainConversations(newConversations)
             }
         }
     }
 
     private fun handleReadIncomingMessage(event: LongPollEvent.VkMessageReadIncomingEvent) {
         viewModelScope.launch(Dispatchers.IO) {
-            val conversationsList = domainConversations.value.toMutableList()
+            val newConversations = domainConversations.value.toMutableList()
 
             val conversationIndex =
-                conversationsList.findIndex { it.id == event.peerId } ?: return@launch
+                newConversations.findIndex { it.id == event.peerId } ?: return@launch
 
-            var conversation = conversationsList[conversationIndex]
-            conversation = conversation.copy(
-                inRead = event.messageId,
-                unreadCount = event.unreadCount
-            ).fill()
+            newConversations[conversationIndex] =
+                newConversations[conversationIndex].copyWithEssentials { old ->
+                    old.copy(
+                        inRead = event.messageId,
+                        unreadCount = event.unreadCount
+                    )
+                }
 
-            conversationsList[conversationIndex] = conversation
-
-            emitConversations(conversationsList)
+            emitDomainConversations(newConversations)
         }
     }
 
     private fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) =
         viewModelScope.launch(Dispatchers.IO) {
-            val conversationsList = domainConversations.value.toMutableList()
+            val newConversations = domainConversations.value.toMutableList()
 
             val conversationIndex =
-                conversationsList.findIndex { it.id == event.peerId } ?: return@launch
+                newConversations.findIndex { it.id == event.peerId } ?: return@launch
 
-            var conversation = conversationsList[conversationIndex]
-            conversation = conversation.copy(
-                outRead = event.messageId,
-                unreadCount = event.unreadCount
-            ).fill()
+            newConversations[conversationIndex] =
+                newConversations[conversationIndex].copyWithEssentials { old ->
+                    old.copy(
+                        outRead = event.messageId,
+                        unreadCount = event.unreadCount
+                    )
+                }
 
-            conversationsList[conversationIndex] = conversation
-
-            emitConversations(conversationsList)
+            emitDomainConversations(newConversations)
         }
 
     // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
     private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) =
         viewModelScope.launch(Dispatchers.IO) {
-            val conversationsList = domainConversations.value.toMutableList()
+            val newConversations = domainConversations.value.toMutableList()
 
             val conversationIndex =
-                conversationsList.findIndex { it.id == event.peerId } ?: return@launch
+                newConversations.findIndex { it.id == event.peerId } ?: return@launch
 
             val pin = event.majorId > 0
 
-            var conversation = conversationsList[conversationIndex]
-            conversation = conversation.copy(
-                majorId = event.majorId
-            ).fill()
+            val conversation = newConversations[conversationIndex]
 
-            conversationsList.removeAt(conversationIndex)
+            newConversations.removeAt(conversationIndex)
 
             if (pin) {
-                conversationsList.add(0, conversation)
+                newConversations.add(0, conversation)
             } else {
-                conversationsList.add(pinnedConversationsCount.value - 1, conversation)
+                newConversations.add(pinnedConversationsCount.value - 1, conversation)
             }
 
-            emitConversations(conversationsList)
+            emitDomainConversations(newConversations)
         }
 
+    private val interactionsTimers = hashMapOf<Int, InteractionJob>()
 
-    private fun openMessagesHistoryScreen(
-        conversationUi: VkConversationUi,
-        user: VkUser?,
-        group: VkGroup?,
-    ) {
-        val conversation = domainConversations.value.find { domainConversation ->
-            domainConversation.id == conversationUi.id
-        } ?: return
+    private data class InteractionJob(
+        val interactionType: InteractionType,
+        val timerJob: Job
+    )
 
-        router.navigateTo(Screens.MessagesHistory(conversation, user, group))
-    }
+    private object NewInteractionException : CancellationException()
 
-    private fun readConversation(conversationId: Int, startMessageId: Int) {
+    private fun handleInteraction(event: LongPollEvent.Interaction) {
+        val interactionType = event.interactionType
+        val peerId = event.peerId
+        val userIds = event.userIds
+
         viewModelScope.launch(Dispatchers.IO) {
-            sendRequest {
-                messagesRepository.markAsRead(
-                    peerId = conversationId,
-                    startMessageId = startMessageId
-                )
-            }?.response?.let { messageId ->
-                domainConversations.value.toMutableList().let { list ->
-                    val index = list.findIndex { it.id == conversationId } ?: return@launch
-                    val newConversation = list[index].copy(inRead = messageId)
-                    list[index] = newConversation
+            val newConversations = domainConversations.value.toMutableList()
+            val conversationAndIndex =
+                newConversations.findWithIndex { it.id == peerId } ?: return@launch
 
-                    domainConversations.emit(list)
+            newConversations[conversationAndIndex.first] =
+                conversationAndIndex.second.copyWithEssentials { old ->
+                    old.copy(
+                        interactionType = interactionType.value,
+                        interactionIds = userIds
+                    )
+                }
+
+            emitDomainConversations(newConversations)
+
+            interactionsTimers[peerId]?.let { interactionJob ->
+                if (interactionJob.interactionType == interactionType) {
+                    interactionJob.timerJob.cancel(NewInteractionException)
                 }
             }
+
+            var timeoutAction: (() -> Unit)? = null
+
+            val timerJob = createTimerFlow(
+                time = 5,
+                onTimeoutAction = { timeoutAction?.invoke() }
+            ).launchIn(viewModelScope)
+
+            val newInteractionJob = InteractionJob(
+                interactionType = interactionType,
+                timerJob = timerJob
+            )
+
+            interactionsTimers[peerId] = newInteractionJob
+
+            timeoutAction = {
+                stopInteraction(peerId, newInteractionJob)
+            }
+        }
+    }
+
+    private fun stopInteraction(peerId: Int, interactionJob: InteractionJob) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newConversations = domainConversations.value.toMutableList()
+            val conversationAndIndex =
+                newConversations.findWithIndex { it.id == peerId } ?: return@launch
+
+            newConversations[conversationAndIndex.first] =
+                conversationAndIndex.second.copyWithEssentials { old ->
+                    old.copy(
+                        interactionType = -1,
+                        interactionIds = emptyList()
+                    )
+                }
+
+            emitDomainConversations(newConversations)
+        }
+    }
+
+    private fun openMessagesHistoryScreen(conversationUi: VkConversationUi) {
+        messagesHistoryScreen.show(
+            router = router,
+            args = MessagesHistoryArguments(conversation = conversationUi)
+        )
+    }
+
+    private fun readConversation(peerId: Int, startMessageId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sendRequest(
+                request = {
+                    messagesRepository.markAsRead(
+                        peerId = peerId,
+                        startMessageId = startMessageId
+                    )
+                },
+                onResponse = { response ->
+                    val messageId = response.response ?: return@sendRequest
+
+                    val newConversations = domainConversations.value.toMutableList()
+                    val conversationIndex =
+                        newConversations.findIndex { it.id == peerId } ?: return@sendRequest
+
+                    newConversations[conversationIndex] =
+                        newConversations[conversationIndex].copyWithEssentials { old ->
+                            old.copy(inRead = messageId)
+                        }
+
+                    emitDomainConversations(newConversations)
+                }
+            )
         }
     }
 }

@@ -21,7 +21,7 @@ import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.gone
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.ext.visible
-import com.meloda.fast.screens.messages.MessagesHistoryFragment
+import com.meloda.fast.screens.messages.MessagesHistoryFragmentOld
 import dev.chrisbanes.insetter.applyInsetter
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
@@ -59,12 +59,12 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
     private val binding by viewBinding(FragmentChatInfoBinding::bind)
 
     private val user: VkUser? by lazy {
-        requireArguments().getParcelableCompat(MessagesHistoryFragment.ARG_USER, VkUser::class.java)
+        requireArguments().getParcelableCompat(MessagesHistoryFragmentOld.ARG_USER, VkUser::class.java)
     }
 
     private val group: VkGroup? by lazy {
         requireArguments().getParcelableCompat(
-            MessagesHistoryFragment.ARG_GROUP,
+            MessagesHistoryFragmentOld.ARG_GROUP,
             VkGroup::class.java
         )
     }
@@ -72,7 +72,7 @@ class ChatInfoFragment : BaseViewModelFragment<ChatInfoViewModel>(R.layout.fragm
     private val conversation: VkConversationDomain by lazy {
         requireNotNull(
             requireArguments().getParcelableCompat(
-                MessagesHistoryFragment.ARG_CONVERSATION,
+                MessagesHistoryFragmentOld.ARG_CONVERSATION,
                 VkConversationDomain::class.java
             )
         )

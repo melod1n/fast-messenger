@@ -1,7 +1,6 @@
 package com.meloda.fast.ext
 
 import android.content.res.Configuration
-import android.media.AudioManager
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,7 +20,7 @@ import androidx.compose.ui.semantics.Role
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 
 @ExperimentalFoundationApi
@@ -35,7 +34,7 @@ fun Modifier.clickableSound(
     onClickLabel = onClickLabel,
     role = role,
     onClick = {
-        AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
+//        AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
         onClick?.invoke()
     }
 )
@@ -60,7 +59,7 @@ fun Modifier.combinedClickableSound(
         onLongClick = onLongClick,
         onDoubleClick = onDoubleClick,
         onClick = {
-            AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
+//            AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
             onClick?.invoke()
         }
     )
@@ -87,7 +86,7 @@ fun Modifier.combinedClickableSound(
     onLongClick = onLongClick,
     onDoubleClick = onDoubleClick,
     onClick = {
-        AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
+//        AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
         onClick?.invoke()
     }
 )

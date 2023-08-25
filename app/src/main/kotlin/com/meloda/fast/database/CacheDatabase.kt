@@ -19,10 +19,10 @@ import com.meloda.fast.data.users.UsersDao
         VkUser::class,
         VkGroup::class
     ],
-    version = 42,
+    version = 43,
     exportSchema = false
 )
-@TypeConverters(Converters::class)
+@TypeConverters(Converters::class, IntListToStringConverter::class)
 abstract class CacheDatabase : RoomDatabase() {
 
     abstract val conversationsDao: ConversationsDao

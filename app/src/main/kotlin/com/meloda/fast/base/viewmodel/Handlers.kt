@@ -7,3 +7,8 @@ fun interface ErrorHandler {
      */
     suspend fun handleError(error: Throwable): Boolean
 }
+
+fun interface ResponseHandler<T> {
+
+    suspend fun handleResponse(response: T)
+}

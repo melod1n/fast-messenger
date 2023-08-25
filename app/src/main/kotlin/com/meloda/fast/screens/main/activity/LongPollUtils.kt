@@ -16,7 +16,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.sdk33AndUp
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import kotlinx.coroutines.launch
 
 object LongPollUtils {

@@ -3,12 +3,12 @@ package com.meloda.fast.api.model.presentation
 import android.graphics.drawable.Drawable
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.UiImage
-import com.meloda.fast.model.base.UiText
 
 data class VkConversationUi(
     val conversationId: Int,
@@ -29,6 +29,8 @@ data class VkConversationUi(
     val conversationUser: VkUser?,
     val conversationGroup: VkGroup?,
     val peerType: ConversationPeerType,
+    val interactionType: InteractionType?,
+    val interactiveUsers: List<String>
 ) : AdapterDiffItem {
     override val id = conversationId
 }

@@ -26,6 +26,7 @@ import com.meloda.fast.databinding.ItemMessageOutBinding
 import com.meloda.fast.databinding.ItemMessageServiceBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
 import com.meloda.fast.ext.dpToPx
+import com.meloda.fast.screens.messages.presentation.ForwardedMessagesFragment
 
 class MessagesHistoryAdapter constructor(
     context: Context,
@@ -38,7 +39,7 @@ class MessagesHistoryAdapter constructor(
 ) {
 
     constructor(
-        fragment: MessagesHistoryFragment,
+        fragment: MessagesHistoryFragmentOld,
         conversation: VkConversationDomain,
         profiles: HashMap<Int, VkUser> = hashMapOf(),
         groups: HashMap<Int, VkGroup> = hashMapOf(),
@@ -58,7 +59,7 @@ class MessagesHistoryAdapter constructor(
 
     private var isForwards: Boolean = false
 
-    private var messagesHistoryFragment: MessagesHistoryFragment? = null
+    private var messagesHistoryFragment: MessagesHistoryFragmentOld? = null
     private var forwardedMessagesFragment: ForwardedMessagesFragment? = null
 
     var avatarLongClickListener: ((position: Int) -> Unit)? = null

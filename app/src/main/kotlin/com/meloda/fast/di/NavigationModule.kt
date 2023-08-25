@@ -3,6 +3,7 @@ package com.meloda.fast.di
 import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.Router
 import com.meloda.fast.screens.captcha.screen.CaptchaScreen
+import com.meloda.fast.screens.messages.screen.MessagesHistoryScreen
 import com.meloda.fast.screens.twofa.screen.TwoFaScreen
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.scope.Scope
@@ -15,6 +16,7 @@ val navigationModule = module {
 
     singleOf(::CaptchaScreen)
     singleOf(::TwoFaScreen)
+    singleOf(::MessagesHistoryScreen)
 }
 
 private fun Scope.cicerone(): Cicerone<Router> = get()

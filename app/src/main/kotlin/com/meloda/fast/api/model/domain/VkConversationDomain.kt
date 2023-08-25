@@ -10,6 +10,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -21,7 +22,6 @@ import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.asDrawable
-import com.meloda.fast.model.base.getImage
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -54,6 +54,8 @@ data class VkConversationDomain(
     val minorId: Int,
     val pinnedMessageId: Int?,
     val type: String,
+    val interactionType: Int,
+    val interactionIds: List<Int>
 ) : Parcelable {
 
     @Ignore
@@ -162,7 +164,11 @@ data class VkConversationDomain(
             message = lastMessage
         ) else null)
 
-        val messageText = lastMessage?.text?.let(UiText::Simple)
+        val messageText =
+            lastMessage?.text
+                ?.let { VkUtils.prepareMessageText(it, forConversations = true) }
+                ?.let { VkUtils.visualizeMentions(it, 0).toString() }
+                ?.let(UiText::Simple)
 
         var prefix = when {
             actionMessage != null -> ""
@@ -208,6 +214,11 @@ data class VkConversationDomain(
         return TimeUtils.getLocalizedTime(AppGlobal.Instance, (lastMessage?.date ?: -1) * 1000L)
     }
 
+    // TODO: 13.08.2023, Danil Nikolaev: rewrite
+    fun extractInteractionUsers(): List<String> {
+        return interactionIds.map { it.toString() }
+    }
+
     // TODO: 05.08.2023, Danil Nikolaev: rewrite
     fun extractBirthday(): Boolean {
         val birthday = conversationUser?.birthday ?: return false
@@ -223,6 +234,15 @@ data class VkConversationDomain(
             (nowCalendar[Calendar.DAY_OF_MONTH] == birthdayCalendar[Calendar.DAY_OF_MONTH]
                     && nowCalendar[Calendar.MONTH] == birthdayCalendar[Calendar.MONTH])
         } else false
+    }
+
+    fun copyWithEssentials(function: (VkConversationDomain) -> VkConversationDomain): VkConversationDomain {
+        return function(this).also {
+            it.lastMessage = this.lastMessage
+            it.pinnedMessage = this.pinnedMessage
+            it.conversationUser = this.conversationUser
+            it.conversationGroup = this.conversationGroup
+        }
     }
 
     fun mapToPresentation() = VkConversationUi(
@@ -243,6 +263,8 @@ data class VkConversationDomain(
         lastMessage = lastMessage,
         conversationUser = conversationUser,
         conversationGroup = conversationGroup,
-        peerType = peerType
+        peerType = peerType,
+        interactionType = InteractionType.parse(interactionType),
+        interactiveUsers = extractInteractionUsers()
     )
 }

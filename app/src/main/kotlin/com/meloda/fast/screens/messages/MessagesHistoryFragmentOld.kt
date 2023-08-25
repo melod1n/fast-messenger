@@ -38,11 +38,9 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkPhoto
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.base.viewmodel.BaseViewModelFragment
-import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.base.BaseFragment
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
-import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.databinding.DialogMessageDeleteBinding
 import com.meloda.fast.databinding.FragmentMessagesHistoryBinding
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
@@ -61,7 +59,7 @@ import com.meloda.fast.ext.showKeyboard
 import com.meloda.fast.ext.trimmedText
 import com.meloda.fast.ext.visible
 import com.meloda.fast.model.base.parseString
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import com.meloda.fast.util.ColorUtils
 import com.meloda.fast.util.ShareContent
@@ -89,13 +87,12 @@ import kotlin.math.abs
 import kotlin.properties.Delegates
 import kotlin.random.Random
 
-class MessagesHistoryFragment :
-    BaseViewModelFragment<MessagesHistoryViewModel>(R.layout.fragment_messages_history) {
+class MessagesHistoryFragmentOld : BaseFragment(R.layout.fragment_messages_history) {
 
     private val router: Router by inject()
 
     private val binding by viewBinding(FragmentMessagesHistoryBinding::bind)
-    override val viewModel: MessagesHistoryViewModel by viewModel()
+    private val viewModel: MessagesHistoryViewModel by viewModel<MessagesHistoryViewModelImpl>()
 
     private var pickFile: Boolean = false
 
@@ -252,8 +249,6 @@ class MessagesHistoryFragment :
 
         binding.recyclerView.adapter = adapter
 
-        viewModel.loadHistory(conversation.id)
-
         binding.action.setOnClickListener {
             performAction()
         }
@@ -288,7 +283,10 @@ class MessagesHistoryFragment :
                 adapter.getOrNull(firstPosition)?.let {
                     binding.timestamp.visible()
 
-                    val showExactTime = AppGlobal.preferences.getBoolean(SettingsFragment.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP, false)
+                    val showExactTime = AppGlobal.preferences.getBoolean(
+                        SettingsFragment.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP,
+                        false
+                    )
 
                     val exactTime = SimpleDateFormat(
                         "HH:mm",
@@ -427,20 +425,20 @@ class MessagesHistoryFragment :
         }
     }
 
-    override fun onEvent(event: VkEvent) {
-        super.onEvent(event)
-
-        when (event) {
-            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
-            is MessagesLoadedEvent -> refreshMessages(event)
-            is MessagesPinEvent -> conversation.pinnedMessage = event.message
-            is MessagesUnpinEvent -> conversation.pinnedMessage = null
-            is MessagesDeleteEvent -> deleteMessages(event)
-            is MessagesEditEvent -> editMessage(event)
-            is MessagesReadEvent -> readMessages(event)
-            is MessagesNewEvent -> addNewMessage(event)
-        }
-    }
+//    override fun onEvent(event: VkEvent) {
+//        super.onEvent(event)
+//
+//        when (event) {
+//            is MessagesMarkAsImportantEvent -> markMessagesAsImportant(event)
+//            is MessagesLoadedEvent -> refreshMessages(event)
+//            is MessagesPinEvent -> conversation.pinnedMessage = event.message
+//            is MessagesUnpinEvent -> conversation.pinnedMessage = null
+//            is MessagesDeleteEvent -> deleteMessages(event)
+//            is MessagesEditEvent -> editMessage(event)
+//            is MessagesReadEvent -> readMessages(event)
+//            is MessagesNewEvent -> addNewMessage(event)
+//        }
+//    }
 
     private fun checkIfNeedToScrollToBottom() {
         if (adapter.isEmpty()) return
@@ -515,32 +513,32 @@ class MessagesHistoryFragment :
 
         val mimeType = contentResolver.getType(uri) ?: return
 
-        if (pickFile) {
-            val uploadedAttachment = viewModel.uploadFile(
-                conversation.id,
-                file,
-                name,
-                FilesRepository.FileType.File
-            )
-            addAttachment(uploadedAttachment)
-        } else {
-            when (MediaType.parse(mimeType).type()) {
-                MediaType.ANY_IMAGE_TYPE.type() -> {
-                    val uploadedAttachment = viewModel.uploadPhoto(conversation.id, file, name)
-                    addAttachment(uploadedAttachment)
-                }
-
-                MediaType.ANY_VIDEO_TYPE.type() -> {
-                    val uploadedAttachment = viewModel.uploadVideo(file, name)
-                    addAttachment(uploadedAttachment)
-                }
-
-                MediaType.ANY_AUDIO_TYPE.type() -> {
-                    val uploadedAttachment = viewModel.uploadAudio(file, name)
-                    addAttachment(uploadedAttachment)
-                }
-            }
-        }
+//        if (pickFile) {
+//            val uploadedAttachment = viewModel.uploadFile(
+//                conversation.id,
+//                file,
+//                name,
+//                FilesRepository.FileType.File
+//            )
+//            addAttachment(uploadedAttachment)
+//        } else {
+//            when (MediaType.parse(mimeType).type()) {
+//                MediaType.ANY_IMAGE_TYPE.type() -> {
+//                    val uploadedAttachment = viewModel.uploadPhoto(conversation.id, file, name)
+//                    addAttachment(uploadedAttachment)
+//                }
+//
+//                MediaType.ANY_VIDEO_TYPE.type() -> {
+//                    val uploadedAttachment = viewModel.uploadVideo(file, name)
+//                    addAttachment(uploadedAttachment)
+//                }
+//
+//                MediaType.ANY_AUDIO_TYPE.type() -> {
+//                    val uploadedAttachment = viewModel.uploadAudio(file, name)
+//                    addAttachment(uploadedAttachment)
+//                }
+//            }
+//        }
     }
 
     private fun showAttachmentsPopupMenu() {
@@ -722,28 +720,28 @@ class MessagesHistoryFragment :
                     binding.action.performHapticFeedback(HapticFeedbackConstantsCompat.CONFIRM)
                 }
 
-                viewModel.sendMessage(
-                    peerId = conversation.id,
-                    message = messageText.ifBlank { null },
-                    randomId = message.randomId,
-                    replyTo = replyMessage?.id,
-                    setId = { messageId ->
-                        val messageToUpdate = adapter[messageIndex]
-                        messageToUpdate.id = messageId
-                        messageToUpdate.state = VkMessage.State.Sent
-                        adapter.notifyItemChanged(messageIndex, "kek")
-//                        adapter[messageIndex] = messageToUpdate
-                        attachmentsAdapter.clear()
-                    },
-                    onError = {
-                        val messageToUpdate = adapter[messageIndex]
-                        messageToUpdate.state = VkMessage.State.Error
-                        adapter.notifyItemChanged(messageIndex, "kek")
-//                        adapter[messageIndex] = messageToUpdate
-                        attachmentsAdapter.clear()
-                    },
-                    attachments = attachments
-                )
+//                viewModel.sendMessage(
+//                    peerId = conversation.id,
+//                    message = messageText.ifBlank { null },
+//                    randomId = message.randomId,
+//                    replyTo = replyMessage?.id,
+//                    setId = { messageId ->
+//                        val messageToUpdate = adapter[messageIndex]
+//                        messageToUpdate.id = messageId
+//                        messageToUpdate.state = VkMessage.State.Sent
+//                        adapter.notifyItemChanged(messageIndex, "kek")
+////                        adapter[messageIndex] = messageToUpdate
+//                        attachmentsAdapter.clear()
+//                    },
+//                    onError = {
+//                        val messageToUpdate = adapter[messageIndex]
+//                        messageToUpdate.state = VkMessage.State.Error
+//                        adapter.notifyItemChanged(messageIndex, "kek")
+////                        adapter[messageIndex] = messageToUpdate
+//                        attachmentsAdapter.clear()
+//                    },
+//                    attachments = attachments
+//                )
             }
 
             Action.EDIT -> {
@@ -752,13 +750,13 @@ class MessagesHistoryFragment :
 
                 attachmentController.message.update { null }
 
-                viewModel.editMessage(
-                    originalMessage = message,
-                    peerId = conversation.id,
-                    messageId = message.id,
-                    message = messageText,
-                    attachments = message.attachments
-                )
+//                viewModel.editMessage(
+//                    originalMessage = message,
+//                    peerId = conversation.id,
+//                    messageId = message.id,
+//                    message = messageText,
+//                    attachments = message.attachments
+//                )
             }
 
             Action.DELETE -> attachmentController.message.value?.let {
@@ -1012,15 +1010,15 @@ class MessagesHistoryFragment :
                         pin = !isMessageAlreadyPinned
                     )
 
-                    important -> viewModel.markAsImportant(
-                        messagesIds = listOf(message.id),
-                        important = !message.important
-                    )
-
-                    read -> viewModel.readMessage(
-                        conversation.id,
-                        message.id
-                    )
+//                    important -> viewModel.markAsImportant(
+//                        messagesIds = listOf(message.id),
+//                        important = !message.important
+//                    )
+//
+//                    read -> viewModel.readMessage(
+//                        conversation.id,
+//                        message.id
+//                    )
 
                     edit -> {
                         attachmentController.isEditing = true
@@ -1138,11 +1136,11 @@ class MessagesHistoryFragment :
                 if (pin) R.string.action_pin
                 else R.string.action_unpin
             ) { _, _ ->
-                viewModel.pinMessage(
-                    peerId = peerId,
-                    messageId = messageId,
-                    pin = pin
-                )
+//                viewModel.pinMessage(
+//                    peerId = peerId,
+//                    messageId = messageId,
+//                    pin = pin
+//                )
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -1177,12 +1175,12 @@ class MessagesHistoryFragment :
                     return@setPositiveButton
                 }
 
-                viewModel.deleteMessage(
-                    peerId = conversation.id,
-                    messagesIds = listOf(message.id),
-                    isSpam = if (message.isOut) null else binding.check.isChecked,
-                    deleteForAll = if (!binding.check.isEnabled) null else binding.check.isChecked
-                )
+//                viewModel.deleteMessage(
+//                    peerId = conversation.id,
+//                    messagesIds = listOf(message.id),
+//                    isSpam = if (message.isOut) null else binding.check.isChecked,
+//                    deleteForAll = if (!binding.check.isEnabled) null else binding.check.isChecked
+//                )
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -1516,8 +1514,8 @@ class MessagesHistoryFragment :
             conversation: VkConversationDomain,
             user: VkUser?,
             group: VkGroup?,
-        ): MessagesHistoryFragment {
-            val fragment = MessagesHistoryFragment()
+        ): MessagesHistoryFragmentOld {
+            val fragment = MessagesHistoryFragmentOld()
             fragment.arguments = bundleOf(
                 ARG_CONVERSATION to conversation,
                 ARG_USER to user,

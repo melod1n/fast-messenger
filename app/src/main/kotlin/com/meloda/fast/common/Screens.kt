@@ -7,12 +7,11 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.model.UpdateItem
 import com.meloda.fast.screens.chatinfo.ChatInfoFragment
-import com.meloda.fast.screens.conversations.ConversationsFragment
+import com.meloda.fast.screens.conversations.presentation.ConversationsFragment
 import com.meloda.fast.screens.login.LoginFragment
 import com.meloda.fast.screens.main.MainFragment
-import com.meloda.fast.screens.messages.ForwardedMessagesFragment
-import com.meloda.fast.screens.messages.MessagesHistoryFragment
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.messages.presentation.ForwardedMessagesFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.screens.updates.UpdatesFragment
 import com.meloda.fast.screens.userbanned.UserBannedFragment
 
@@ -23,12 +22,6 @@ object Screens {
     fun Login() = FragmentScreen { LoginFragment.newInstance() }
 
     fun Conversations() = FragmentScreen { ConversationsFragment() }
-
-    fun MessagesHistory(
-        conversation: VkConversationDomain,
-        user: VkUser?,
-        group: VkGroup?
-    ) = FragmentScreen { MessagesHistoryFragment.newInstance(conversation, user, group) }
 
     fun ForwardedMessages(
         conversation: VkConversationDomain,

@@ -1,5 +1,6 @@
 package com.meloda.fast.api.longpoll
 
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -31,4 +32,11 @@ sealed class LongPollEvent {
         val majorId: Int,
     ) : LongPollEvent()
 
+    data class Interaction(
+        val interactionType: InteractionType,
+        val peerId: Int,
+        val userIds: List<Int>,
+        val totalCount: Int,
+        val timestamp: Int
+    ) : LongPollEvent()
 }

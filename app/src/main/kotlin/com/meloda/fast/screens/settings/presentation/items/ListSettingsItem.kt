@@ -1,26 +1,20 @@
-package com.meloda.fast.screens.settings.items
+package com.meloda.fast.screens.settings.presentation.items
 
 import android.content.Context
-import android.view.LayoutInflater
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.fast.R
+import com.meloda.fast.compose.ItemsSelectionType
 import com.meloda.fast.compose.MaterialDialog
-import com.meloda.fast.databinding.ItemSettingsEditTextAlertBinding
 import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
@@ -31,8 +25,8 @@ import com.meloda.fast.screens.settings.model.SettingsItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EditTextSettingsItem(
-    item: SettingsItem.TextField,
+fun ListSettingsItem(
+    item: SettingsItem.ListItem,
     isMultiline: Boolean,
     onSettingsClickListener: OnSettingsClickListener,
     onSettingsLongClickListener: OnSettingsLongClickListener,
@@ -40,33 +34,19 @@ fun EditTextSettingsItem(
 ) {
     val context = LocalContext.current
 
+    var showDialog by remember { mutableStateOf(false) }
+
     var title by remember { mutableStateOf(item.title) }
     item.onTitleChanged = { newTitle -> title = newTitle }
 
     var summary by remember { mutableStateOf(item.summary) }
     item.onSummaryChanged = { newSummary -> summary = newSummary }
 
-    // TODO: 07.04.2023, Danil Nikolaev: handle isEnabled
     var isEnabled by remember { mutableStateOf(item.isEnabled) }
     item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
 
     var isVisible by remember { mutableStateOf(item.isVisible) }
     item.onVisibleStateChanged = { newVisible -> isVisible = newVisible }
-
-    var showDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showDialog) {
-        ShowEditTextAlert(
-            item = item,
-            onSettingsChangeListener = { key, newValue ->
-                summary = item.summaryProvider?.provideSummary(item)
-                onSettingsChangeListener.onChange(key, newValue)
-            },
-            onDismiss = { showDialog = false }
-        )
-    }
 
     if (!isVisible) return
     Row(
@@ -78,6 +58,14 @@ fun EditTextSettingsItem(
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
                     showDialog = true
+//                    showListAlertDialog(
+//                        context = context,
+//                        item = item,
+//                        onSettingsChangeListener = { key, newValue ->
+//                            summary = item.summaryProvider?.provideSummary(item)
+//                            onSettingsChangeListener.onChange(key, newValue)
+//                        }
+//                    )
                 },
                 onLongClick = { onSettingsLongClickListener.onLongClick(item.key) },
             )
@@ -109,79 +97,71 @@ fun EditTextSettingsItem(
         }
         Spacer(modifier = Modifier.width(16.dp))
     }
+
+    if (showDialog) {
+        ListAlertDialog(
+            onDismissAction = {
+                showDialog = false
+            },
+            item = item,
+            onSettingsChangeListener = { key, newValue ->
+                onSettingsChangeListener.onChange(key, newValue)
+                item.updateSummary()
+            }
+        )
+    }
 }
 
-private fun showEditTextAlert(
-    context: Context,
-    item: SettingsItem.TextField,
+@Composable
+fun ListAlertDialog(
+    onDismissAction: () -> Unit,
+    item: SettingsItem.ListItem,
     onSettingsChangeListener: OnSettingsChangeListener
 ) {
-    val binding = ItemSettingsEditTextAlertBinding.inflate(
-        LayoutInflater.from(context), null, false
-    )
+    var selectedOption = item.value
+    val checkedItem = item.values.indexOf(selectedOption)
 
-    binding.editText.setText(item.value)
+    MaterialDialog(
+        onDismissAction = onDismissAction,
+        title = item.title,
+        items = item.valueTitles,
+        preSelectedItems = listOf(checkedItem),
+        itemsSelectionType = ItemsSelectionType.Single,
+        onItemClick = { index ->
+            selectedOption = item.values[index]
+        },
+        positiveText = UiText.Resource(R.string.ok),
+        positiveAction = {
+            if (item.value != selectedOption) {
+                item.value = selectedOption
+                onSettingsChangeListener.onChange(item.key, selectedOption)
+            }
+        }
+    )
+}
+
+private fun showListAlertDialog(
+    context: Context,
+    item: SettingsItem.ListItem,
+    onSettingsChangeListener: OnSettingsChangeListener
+) {
+    var selectedOption = item.value
+    val checkedItem = item.values.indexOf(selectedOption)
 
     context.showDialog(
         title = item.title,
-        view = binding.root,
+        items = item.valueTitles,
+        preSelectedItems = listOf(checkedItem),
+        itemsSelectionType = ItemsSelectionType.Single,
+        onItemClick = { index, _ ->
+            selectedOption = item.values[index]
+        },
         positiveText = UiText.Resource(R.string.ok),
         positiveAction = {
-            val newValue = binding.editText.text.toString()
-
-            if (item.value != newValue) {
-                item.value = newValue
-                onSettingsChangeListener.onChange(item.key, newValue)
+            if (item.value != selectedOption) {
+                item.value = selectedOption
+                onSettingsChangeListener.onChange(item.key, selectedOption)
             }
-        },
-        negativeText = UiText.Resource(R.string.cancel)
+        }
     )
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-@Composable
-fun ShowEditTextAlert(
-    item: SettingsItem.TextField,
-    onSettingsChangeListener: OnSettingsChangeListener,
-    onDismiss: () -> Unit
-) {
-    val (textFieldFocusable) = FocusRequester.createRefs()
-
-    var textFieldValue by remember {
-        mutableStateOf(TextFieldValue(item.value.orEmpty()))
-    }
-
-    MaterialDialog(
-        title = item.title,
-        positiveText = UiText.Resource(R.string.ok),
-        positiveAction = {
-            val newValue = textFieldValue.text.trim()
-
-            if (item.value != newValue) {
-                item.value = newValue
-                onSettingsChangeListener.onChange(item.key, newValue)
-            }
-        },
-        negativeText = UiText.Resource(R.string.cancel),
-        onDismissAction = onDismiss
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .focusRequester(textFieldFocusable),
-            value = textFieldValue,
-            onValueChange = { newText ->
-                textFieldValue = newText
-            },
-            label = { Text(text = "Value") },
-            placeholder = { Text(text = "Value") },
-            shape = RoundedCornerShape(10.dp),
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        textFieldFocusable.requestFocus()
-        textFieldValue = textFieldValue.copy(selection = TextRange(textFieldValue.text.length))
-    }
 }

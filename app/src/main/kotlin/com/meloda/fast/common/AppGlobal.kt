@@ -11,7 +11,7 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.meloda.fast.common.di.applicationModule
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger

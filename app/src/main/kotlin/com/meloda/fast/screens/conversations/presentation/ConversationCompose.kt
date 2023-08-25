@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.conversations
+package com.meloda.fast.screens.conversations.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,10 +37,12 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.getImage
+import com.meloda.fast.screens.conversations.DotsFlashing
 import com.meloda.fast.ui.widgets.CoilImage
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -204,28 +209,58 @@ fun Conversation(
                     )
 
                     Row {
-                        conversation.attachmentImage?.let { drawable ->
-                            Column {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Image(
-                                    modifier = Modifier.size(14.dp),
-                                    painter = rememberDrawablePainter(drawable),
-                                    contentDescription = null,
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
-                                )
+                        if (conversation.interactionType != null) {
+                            val typingText =
+                                if (!conversation.peerType.isChat() && conversation.interactiveUsers.size == 1) {
+                                    when (conversation.interactionType) {
+                                        InteractionType.File -> "Uploading file"
+                                        InteractionType.Photo -> "Uploading photo"
+                                        InteractionType.Typing -> "Typing"
+                                        InteractionType.Video -> "Uploading Video"
+                                        InteractionType.VoiceMessage -> "Recording voice message"
+                                    }
+                                } else {
+                                    "${conversation.interactiveUsers} are typing"
+                                }
+
+                            Text(
+                                text = typingText,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            DotsFlashing(
+                                modifier = Modifier
+                                    .align(Alignment.Bottom)
+                                    .padding(bottom = 7.dp),
+                                dotSize = 4.dp,
+                                dotColor = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            conversation.attachmentImage?.let { drawable ->
+                                Column {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Image(
+                                        modifier = Modifier.size(14.dp),
+                                        painter = rememberDrawablePainter(drawable),
+                                        contentDescription = null,
+                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(2.dp))
                             }
 
-                            Spacer(modifier = Modifier.width(2.dp))
+                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                                Text(
+                                    modifier = Modifier.weight(1f),
+                                    text = conversation.message,
+                                    minLines = 1,
+                                    maxLines = maxLines,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
-
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = conversation.message,
-                            minLines = 1,
-                            maxLines = maxLines,
-                            style = MaterialTheme.typography.bodyLarge,
-                            overflow = TextOverflow.Ellipsis
-                        )
                     }
                 }
 

@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -39,7 +39,12 @@ fun <T> T?.notNull(lazyMessage: (() -> Any)? = null): T {
 }
 
 inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
-    return indexOf(firstOrNull(predicate)).let { if (it == -1) null else it }
+    return indexOf(firstOrNull(predicate)).let { index -> if (index == -1) null else index }
+}
+
+inline fun <T> Iterable<T>.findWithIndex(predicate: (T) -> Boolean): Pair<Int, T>? {
+    val value = firstOrNull(predicate) ?: return null
+    return indexOf(value).let { index -> if (index == -1) null else index to value }
 }
 
 inline fun <reified T, K, M : MutableMap<in K, T>> Iterable<T>.toMap(
@@ -84,18 +89,18 @@ fun isSystemUsingDarkMode(): Boolean {
 
 fun createTimerFlow(
     time: Int,
-    onStartAction: suspend () -> Unit,
-    onTickAction: suspend (remainedTime: Int) -> Unit,
-    onTimeoutAction: suspend () -> Unit,
+    onStartAction: (suspend () -> Unit)? = null,
+    onTickAction: (suspend (remainedTime: Int) -> Unit)? = null,
+    onTimeoutAction: (suspend () -> Unit)? = null,
     interval: Duration = 1.seconds
 ): Flow<Int> = (time downTo 0)
     .asSequence()
     .asFlow()
-    .onStart { onStartAction() }
+    .onStart { onStartAction?.invoke() }
     .onEach { timeLeft ->
-        onTickAction(timeLeft)
+        onTickAction?.invoke(timeLeft)
         if (timeLeft == 0) {
-            onTimeoutAction()
+            onTimeoutAction?.invoke()
         } else {
             delay(interval)
         }
@@ -146,3 +151,9 @@ suspend fun <T> MutableSharedFlow<T>.emitWithMain(value: T) {
 
 context(ViewModel)
 fun <T> MutableStateFlow<T>.updateValue(newValue: T) = this.update { newValue }
+
+context(ViewModel)
+fun <T> MutableStateFlow<T>.setValue(function: (T) -> T) {
+    val newValue = function(value)
+    update { newValue }
+}

@@ -138,6 +138,8 @@ data class BaseVkConversation(
         pinnedMessageId = chat_settings?.pinned_message?.id,
         inReadCmId = in_read_cmid,
         outReadCmId = out_read_cmid,
+        interactionType = -1,
+        interactionIds = emptyList()
     ).also {
         it.lastMessage = lastMessage
         it.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()

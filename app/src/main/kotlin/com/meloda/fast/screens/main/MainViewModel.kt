@@ -44,6 +44,7 @@ class MainViewModelImpl constructor(
                 "checkSession: currentUserId: $currentUserId; userId: $userId; accessToken: $accessToken; fastToken: $fastToken"
             )
 
+            // TODO: 14.08.2023, Danil Nikolaev: rewrite
             if (UserConfig.isLoggedIn()) {
                 servicesState.emit(ServicesState.Started)
                 openScreen(Screens.Conversations())

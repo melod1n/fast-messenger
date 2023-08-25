@@ -43,8 +43,6 @@ object UserConfig {
         return currentUserId > 0 && userId > 0 && accessToken.isNotBlank()
     }
 
-    val vkUser: MutableStateFlow<VkUser?> = MutableStateFlow(null)
-
     fun getAccount(): AppAccount = AppAccount(
         userId = userId,
         accessToken = accessToken,

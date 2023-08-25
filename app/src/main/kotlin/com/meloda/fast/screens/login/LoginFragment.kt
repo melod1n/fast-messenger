@@ -231,7 +231,7 @@ class LoginFragment : BaseFragment() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun LoginSignIn(
         onSignInClick: () -> Unit,

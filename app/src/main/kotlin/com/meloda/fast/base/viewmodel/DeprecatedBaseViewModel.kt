@@ -8,10 +8,12 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 @Deprecated("rewrite")
 abstract class DeprecatedBaseViewModel : ViewModel() {
@@ -50,7 +52,40 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
         }
     }
 
-    // TODO: 05.04.2023, Danil Nikolaev: переписать makeJob на sendRequest (oh boy, писать дохуя)
+    protected suspend fun <T> sendRequest(
+        request: suspend () -> ApiAnswer<T>,
+        onResponse: ResponseHandler<T>? = null,
+        onError: ErrorHandler? = null,
+        onStart: (suspend () -> Unit)? = null,
+        onEnd: (suspend () -> Unit)? = null,
+        onAnyResult: (suspend () -> Unit)? = null,
+        coroutineContext: CoroutineContext = Dispatchers.IO
+    ): Job {
+        val job = viewModelScope.launch(coroutineContext) {
+            onStart?.invoke()
+
+            when (val response = request.invoke()) {
+                is ApiAnswer.Error -> {
+                    onError?.handleError(response.error) ?: checkErrors(response.error)
+                    onAnyResult?.invoke()
+                }
+
+                is ApiAnswer.Success -> {
+                    onResponse?.handleResponse(response.data)
+                    onAnyResult?.invoke()
+                }
+            }
+        }
+
+        job.invokeOnCompletion {
+            viewModelScope.launch {
+                onEnd?.invoke()
+            }
+        }
+
+        return job
+    }
+
     // TODO: 05.04.2023, Danil Nikolaev: переписать Conversations Screen на новую архитектуру, пока что оставить View
 
     protected fun <T> makeJob(
@@ -67,6 +102,7 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
                 onAnswer(response.data)
                 onAnyResult?.invoke()
             }
+
             is ApiAnswer.Error -> {
                 onError?.invoke(response.error) ?: checkErrors(response.error)
                 onAnyResult?.invoke()
@@ -101,6 +137,7 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
                     )
                 )
             }
+
             is ValidationRequiredError -> {
                 sendEvent(
                     ValidationRequiredEvent(
@@ -113,6 +150,7 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
                     )
                 )
             }
+
             is CaptchaRequiredError -> sendEvent(
                 CaptchaRequiredEvent(
                     sid = throwable.captchaSid,
@@ -127,6 +165,7 @@ abstract class DeprecatedBaseViewModel : ViewModel() {
                     ErrorTextEvent(errorText = requireNotNull(throwable.errorMessage))
                 }
             )
+
             else -> sendEvent(
                 if (throwable.message == null) {
                     UnknownErrorEvent

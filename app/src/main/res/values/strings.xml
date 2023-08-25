@@ -219,4 +219,15 @@
 
     <string name="value">Value</string>
 
+    <string name="settings_dark_theme">Dark Theme</string>
+    <string name="settings_dark_theme_value_enabled">Enabled</string>
+    <string name="settings_dark_theme_value_follow_system">Follow System</string>
+    <string name="settings_dark_theme_value_battery_saver">Follow Battery Saver</string>
+    <string name="settings_dark_theme_value_disabled">Disabled</string>
+    <string name="settings_dark_theme_current_value">Current value: %s</string>
+    <string name="settings_dark_theme_current_value_unknown">Unknown</string>
+
+    <string name="settings_dynamic_colors">Dynamic Coloring</string>
+    <string name="settings_dynamic_colors_description">Requires Android 12 or higher</string>
+
 </resources>

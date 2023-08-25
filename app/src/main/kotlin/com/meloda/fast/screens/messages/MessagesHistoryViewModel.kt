@@ -1,6 +1,10 @@
 package com.meloda.fast.screens.messages
 
+import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkUtils.fill
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
@@ -9,7 +13,10 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.base.BaseVkGroup
+import com.meloda.fast.api.model.base.BaseVkUser
 import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
 import com.meloda.fast.api.network.messages.MessagesGetHistoryRequest
@@ -18,14 +25,25 @@ import com.meloda.fast.api.network.messages.MessagesPinMessageRequest
 import com.meloda.fast.api.network.messages.MessagesSendRequest
 import com.meloda.fast.api.network.messages.MessagesUnPinMessageRequest
 import com.meloda.fast.api.network.photos.PhotosSaveMessagePhotoRequest
-import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
+import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.VkEvent
+import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
+import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.notNull
+import com.meloda.fast.ext.setValue
+import com.meloda.fast.ext.toMap
+import com.meloda.fast.ext.updateValue
+import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
+import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -34,116 +52,174 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class MessagesHistoryViewModel constructor(
+interface MessagesHistoryViewModel {
+
+    val screenState: StateFlow<MessagesHistoryScreenState>
+
+    fun onAttachmentButtonClicked()
+    fun onInputChanged(newText: String)
+    fun onEmojiButtonClicked()
+    fun onActionButtonClicked()
+    fun onTopAppBarMenuClicked(id: Int)
+}
+
+class MessagesHistoryViewModelImpl constructor(
     private val messagesRepository: MessagesRepository,
     updatesParser: LongPollUpdatesParser,
     private val photosRepository: PhotosRepository,
     private val filesRepository: FilesRepository,
     private val audiosRepository: AudiosRepository,
     private val videosRepository: VideosRepository,
-) : DeprecatedBaseViewModel() {
+    arguments: MessagesHistoryArguments
+) : MessagesHistoryViewModel, BaseViewModel() {
+
+    override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
+
+    private var conversation: VkConversationUi = arguments.conversation
+
+    private val messages = MutableStateFlow<List<VkMessage>>(emptyList())
+
+    // TODO: 25.08.2023, Danil Nikolaev: extract to DI
+    private val imageLoader by lazy {
+        ImageLoader.Builder(AppGlobal.Instance)
+            .crossfade(true)
+            .build()
+    }
 
     init {
-        updatesParser.onNewMessage {
-            launch { handleNewMessage(it) }
-        }
+        updatesParser.onNewMessage(::handleNewMessage)
+        updatesParser.onMessageEdited(::handleEditedMessage)
+        updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
+        updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
 
-        updatesParser.onMessageEdited {
-            launch { handleEditedMessage(it) }
-        }
+        val conversation = arguments.conversation
+        val title = conversation.title
+        val avatar = conversation.avatar
 
-        updatesParser.onMessageIncomingRead {
-            launch { handleReadIncomingEvent(it) }
-        }
-
-        updatesParser.onMessageOutgoingRead {
-            launch { handleReadOutgoingEvent(it) }
-        }
-    }
-
-    private suspend fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
-        sendEvent(MessagesNewEvent(event.message, event.profiles, event.groups))
-    }
-
-    private suspend fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
-        sendEvent(MessagesEditEvent(event.message))
-    }
-
-    private suspend fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
-        sendEvent(
-            MessagesReadEvent(
-                isOut = false,
-                peerId = event.peerId,
-                messageId = event.messageId
+        screenState.emitOnMainScope(
+            screenState.value.copy(
+                title = title,
+                avatar = avatar
             )
         )
+
+        loadMessagesHistory()
     }
 
-    private suspend fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
-        sendEvent(
-            MessagesReadEvent(
-                isOut = true,
-                peerId = event.peerId,
-                messageId = event.messageId
-            )
-        )
+    override fun onAttachmentButtonClicked() {
+        TODO("Not yet implemented")
     }
 
-    fun loadHistory(peerId: Int) = launch {
-        makeJob({
-            messagesRepository.getHistory(
-                MessagesGetHistoryRequest(
-                    count = 100,
-                    peerId = peerId,
-                    extended = true,
-                    fields = VKConstants.ALL_FIELDS
-                )
-            )
-        },
-            onAnswer = {
-                val response = it.response ?: return@makeJob
+    override fun onInputChanged(newText: String) {
+        screenState.value.copy(message = newText).let { newValue ->
+            screenState.updateValue(newValue)
+        }
+    }
 
-                val profiles = hashMapOf<Int, VkUser>()
-                response.profiles?.let { baseProfiles ->
-                    baseProfiles.forEach { baseProfile ->
-                        baseProfile.mapToDomain().let { profile -> profiles[profile.id] = profile }
-                    }
-                }
+    override fun onEmojiButtonClicked() {
 
-                val groups = hashMapOf<Int, VkGroup>()
-                response.groups?.let { baseGroups ->
-                    baseGroups.forEach { baseGroup ->
-                        baseGroup.mapToDomain().let { group -> groups[group.id] = group }
-                    }
-                }
+    }
 
-                val hashMessages = hashMapOf<Int, VkMessage>()
-                response.items.forEach { baseMessage ->
-                    baseMessage.asVkMessage()
-                        .let { message -> hashMessages[message.id] = message }
-                }
+    override fun onActionButtonClicked() {
 
-                messagesRepository.store(hashMessages.values.toList())
+    }
 
-                val conversations = hashMapOf<Int, VkConversationDomain>()
-                response.conversations?.let { baseConversations ->
-                    baseConversations.forEach { baseConversation ->
-                        baseConversation.mapToDomain(
-                            hashMessages[baseConversation.last_message_id]
-                        ).let { conversation -> conversations[conversation.id] = conversation }
-                    }
-                }
+    override fun onTopAppBarMenuClicked(id: Int) {
+        when (id) {
+            0 -> loadMessagesHistory()
+            else -> Unit
+        }
+    }
 
-                sendEvent(
-                    MessagesLoadedEvent(
-                        count = response.count,
-                        profiles = profiles,
-                        groups = groups,
-                        conversations = conversations,
-                        messages = hashMessages.values.toList()
+    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+
+    }
+
+    private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+
+    }
+
+    private fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
+
+    }
+
+    private fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+
+    }
+
+    // TODO: 25.08.2023, Danil Nikolaev: rewrite
+    private fun loadMessagesHistory() {
+        viewModelScope.launch(Dispatchers.IO) {
+            screenState.setValue { old -> old.copy(isLoading = true) }
+
+            sendRequest(
+                request = {
+                    messagesRepository.getHistory(
+                        MessagesGetHistoryRequest(
+                            count = 100,
+                            peerId = conversation.conversationId,
+                            extended = true,
+                            fields = VKConstants.ALL_FIELDS,
+                        )
                     )
-                )
-            })
+                },
+                onResponse = { response ->
+                    val answer = response.response ?: return@sendRequest
+
+                    val profiles = answer.profiles
+                        ?.map(BaseVkUser::mapToDomain)
+                        ?.toMap(hashMapOf(), VkUser::id) ?: hashMapOf()
+
+                    val groups = answer.groups
+                        ?.map(BaseVkGroup::mapToDomain)
+                        ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
+
+                    val newMessages = answer.items
+                        .map { message -> message.asVkMessage() }
+                        .map { message ->
+                            message.apply {
+                                message.user = profiles[message.fromId]
+                                message.group = groups[message.fromId]
+                                message.actionUser = profiles[message.actionMemberId]
+                                message.actionGroup = groups[message.actionMemberId]
+                            }
+                        }.sortedBy { message -> message.date }
+
+                    messages.emit(newMessages)
+                    messagesRepository.store(newMessages)
+
+                    val conversations = answer.conversations?.map { base ->
+                        val lastMessage =
+                            newMessages.find { message -> message.id == base.last_message_id }
+
+                        base.mapToDomain(lastMessage = lastMessage)
+                            .fill(lastMessage = lastMessage, profiles = profiles, groups = groups)
+                            .mapToPresentation()
+                    } ?: emptyList()
+
+                    val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +
+                            groups.mapNotNull { group -> group.value.photo200 } +
+                            conversations.mapNotNull { conversation -> conversation.avatar.extractUrl() }
+
+                    photos.forEach { url ->
+                        ImageRequest.Builder(AppGlobal.Instance)
+                            .data(url)
+                            .build()
+                            .let(imageLoader::enqueue)
+                    }
+
+                    screenState.emitOnMainScope(
+                        screenState.value.copy(
+                            messages = newMessages,
+                            isLoading = false
+                        )
+                    )
+                },
+                onAnyResult = {
+                    screenState.setValue { old -> old.copy(isLoading = true) }
+                }
+            )
+        }
     }
 
     fun sendMessage(
@@ -152,51 +228,51 @@ class MessagesHistoryViewModel constructor(
         randomId: Int = 0,
         replyTo: Int? = null,
         setId: ((messageId: Int) -> Unit)? = null,
-        onError: ((error: Throwable) -> Unit)? = null,
         attachments: List<VkAttachment>? = null,
-    ) = launch {
-        makeJob(
-            {
-                messagesRepository.send(
-                    MessagesSendRequest(
-                        peerId = peerId,
-                        randomId = randomId,
-                        message = message,
-                        replyTo = replyTo,
-                        attachments = attachments
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            sendRequest(
+                request = {
+                    messagesRepository.send(
+                        MessagesSendRequest(
+                            peerId = peerId,
+                            randomId = randomId,
+                            message = message,
+                            replyTo = replyTo,
+                            attachments = attachments
+
+                        )
                     )
-                )
-            },
-            onAnswer = {
-                val response = it.response ?: return@makeJob
-                setId?.invoke(response)
-            },
-            onError = {
-                onError?.invoke(it)
-            })
+                },
+                onResponse = { response ->
+                    val sentMessageId = response.response ?: -1
+                    setId?.invoke(sentMessageId)
+                },
+            )
+        }
     }
 
     fun markAsImportant(
         messagesIds: List<Int>,
         important: Boolean,
-    ) = launch {
-        makeJob({
-            messagesRepository.markAsImportant(
-                MessagesMarkAsImportantRequest(
-                    messagesIds = messagesIds,
-                    important = important
-                )
-            )
-        },
-            onAnswer = {
-                val response = it.response ?: return@makeJob
-                sendEvent(
-                    MessagesMarkAsImportantEvent(
-                        messagesIds = response,
-                        important = important
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sendRequest(
+                request = {
+                    messagesRepository.markAsImportant(
+                        MessagesMarkAsImportantRequest(
+                            messagesIds = messagesIds,
+                            important = important
+                        )
                     )
-                )
-            })
+                },
+                onResponse = { response ->
+                    val markedIds = response.response ?: emptyList()
+                    // TODO: 25.08.2023, Danil Nikolaev: update messages
+                }
+            )
+        }
     }
 
     fun pinMessage(
@@ -204,29 +280,27 @@ class MessagesHistoryViewModel constructor(
         messageId: Int? = null,
         conversationMessageId: Int? = null,
         pin: Boolean,
-    ) = launch {
-        if (pin) {
-            makeJob({
-                messagesRepository.pin(
-                    MessagesPinMessageRequest(
-                        peerId = peerId,
-                        messageId = messageId,
-                        conversationMessageId = conversationMessageId
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (pin) {
+                val pinnedMessage = sendRequest {
+                    messagesRepository.pin(
+                        MessagesPinMessageRequest(
+                            peerId = peerId,
+                            messageId = messageId,
+                            conversationMessageId = conversationMessageId
+                        )
                     )
-                )
-            },
-                onAnswer = {
-                    val response = it.response ?: return@makeJob
-                    sendEvent(MessagesPinEvent(response.asVkMessage()))
-                }
-            )
-        } else {
-            makeJob({ messagesRepository.unpin(MessagesUnPinMessageRequest(peerId = peerId)) },
-                onAnswer = {
-                    println("Fast::MessagesHistoryViewModel::unPin::Response::${it.response}")
-                    sendEvent(MessagesUnpinEvent)
-                }
-            )
+                } ?: return@launch
+
+                // TODO: 25.08.2023, Danil Nikolaev: update message
+            } else {
+                val unpinnedMessage = sendRequest {
+                    messagesRepository.unpin(MessagesUnPinMessageRequest(peerId = peerId))
+                } ?: return@launch
+
+                // TODO: 25.08.2023, Danil Nikolaev: update message
+            }
         }
     }
 
@@ -236,9 +310,9 @@ class MessagesHistoryViewModel constructor(
         conversationsMessagesIds: List<Int>? = null,
         isSpam: Boolean? = null,
         deleteForAll: Boolean? = null,
-    ) = launch {
-        makeJob(
-            {
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sendRequest {
                 messagesRepository.delete(
                     MessagesDeleteRequest(
                         peerId = peerId,
@@ -248,57 +322,53 @@ class MessagesHistoryViewModel constructor(
                         deleteForAll = deleteForAll
                     )
                 )
-            },
-            onAnswer = {
-                sendEvent(
-                    MessagesDeleteEvent(
-                        peerId = peerId,
-                        messagesIds = messagesIds ?: emptyList()
-                    )
-                )
-            })
+            } ?: return@launch
+
+            // TODO: 25.08.2023, Danil Nikolaev: handle deleting
+        }
     }
 
     fun editMessage(
         originalMessage: VkMessage,
         peerId: Int,
         messageId: Int,
-        message: String? = null,
+        newText: String? = null,
         attachments: List<VkAttachment>? = null,
-    ) = launch {
-        makeJob(
-            {
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sendRequest {
                 messagesRepository.edit(
                     MessagesEditRequest(
                         peerId = peerId,
                         messageId = messageId,
-                        message = message,
+                        message = newText,
                         attachments = attachments
                     )
                 )
-            },
-            onAnswer = {
-                originalMessage.text = message
-                sendEvent(MessagesEditEvent(originalMessage))
-            }
-        )
+            } ?: return@launch
+
+            // TODO: 25.08.2023, Danil Nikolaev: update message
+        }
     }
 
     fun readMessage(peerId: Int, messageId: Int) {
-        makeJob(
-            { messagesRepository.markAsRead(peerId, startMessageId = messageId) },
-            onAnswer = {
-                sendEvent(MessagesReadEvent(false, peerId, messageId))
-            }
-        )
+        viewModelScope.launch(Dispatchers.IO) {
+            sendRequest {
+                messagesRepository.markAsRead(peerId, startMessageId = messageId)
+            } ?: return@launch
+
+            // TODO: 25.08.2023, Danil Nikolaev: update messages
+        }
     }
 
+
+    // TODO: 25.08.2023, Danil Nikolaev: this and down below - rewrite
     suspend fun uploadPhoto(
         peerId: Int,
         photo: File,
         name: String,
     ) = suspendCoroutine {
-        launch {
+        viewModelScope.launch {
             val uploadServerUrl = getPhotoMessageUploadServer(peerId)
             val uploadedFileInfo = uploadPhotoToServer(uploadServerUrl, photo, name)
 
@@ -314,7 +384,7 @@ class MessagesHistoryViewModel constructor(
 
     private suspend fun getPhotoMessageUploadServer(peerId: Int) =
         suspendCoroutine { continuation ->
-            launch {
+            viewModelScope.launch {
                 sendRequestNotNull(
                     onError = { exception ->
                         continuation.resumeWithException(exception)
@@ -332,7 +402,7 @@ class MessagesHistoryViewModel constructor(
         photo: File,
         name: String,
     ) = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             val requestBody = photo.asRequestBody("image/*".toMediaType())
             val body = MultipartBody.Part.createFormData("photo", name, requestBody)
 
@@ -353,7 +423,7 @@ class MessagesHistoryViewModel constructor(
         photo: String,
         hash: String,
     ) = suspendCoroutine<VkAttachment> { continuation ->
-        launch {
+        viewModelScope.launch {
             sendRequestNotNull(
                 onError = { exception ->
                     continuation.resumeWithException(exception)
@@ -372,7 +442,7 @@ class MessagesHistoryViewModel constructor(
         file: File,
         name: String,
     ) = suspendCoroutine {
-        launch {
+        viewModelScope.launch {
             val uploadInfo = getVideoMessageUploadServer()
 
             uploadVideoToServer(
@@ -386,7 +456,7 @@ class MessagesHistoryViewModel constructor(
     }
 
     private suspend fun getVideoMessageUploadServer() = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             sendRequestNotNull(
                 onError = { exception ->
                     continuation.resumeWithException(exception)
@@ -413,7 +483,7 @@ class MessagesHistoryViewModel constructor(
         uploadUrl: String,
         file: File,
         name: String,
-    ) = launch {
+    ) = viewModelScope.launch {
         val requestBody = file.asRequestBody()
         val body = MultipartBody.Part.createFormData("video_file", name, requestBody)
 
@@ -427,7 +497,7 @@ class MessagesHistoryViewModel constructor(
         file: File,
         name: String,
     ) = suspendCoroutine {
-        launch {
+        viewModelScope.launch {
             val uploadUrl = getAudioUploadServer()
             val uploadInfo = uploadAudioToServer(uploadUrl, file, name)
             val saveInfo = saveMessageAudio(
@@ -439,7 +509,7 @@ class MessagesHistoryViewModel constructor(
     }
 
     private suspend fun getAudioUploadServer() = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             sendRequestNotNull(
                 onError = { exception ->
                     continuation.resumeWithException(exception)
@@ -455,7 +525,7 @@ class MessagesHistoryViewModel constructor(
         file: File,
         name: String,
     ) = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             val requestBody = file.asRequestBody()
             val body = MultipartBody.Part.createFormData("file", name, requestBody)
 
@@ -480,7 +550,7 @@ class MessagesHistoryViewModel constructor(
         audio: String,
         hash: String,
     ) = suspendCoroutine<VkAttachment> { continuation ->
-        launch {
+        viewModelScope.launch {
             sendRequestNotNull(
                 onError = { exception ->
                     continuation.resumeWithException(exception)
@@ -497,7 +567,7 @@ class MessagesHistoryViewModel constructor(
         name: String,
         type: FilesRepository.FileType,
     ) = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             val uploadServerUrl = getFileMessageUploadServer(peerId, type)
             val uploadedFileInfo = uploadFileToServer(uploadServerUrl, file, name)
             val savedAttachmentPair = saveMessageFile(uploadedFileInfo)
@@ -510,7 +580,7 @@ class MessagesHistoryViewModel constructor(
         peerId: Int,
         type: FilesRepository.FileType,
     ) = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             val uploadServerResponse = sendRequestNotNull(
                 onError = { exception ->
                     continuation.resumeWithException(exception)
@@ -528,7 +598,7 @@ class MessagesHistoryViewModel constructor(
         file: File,
         name: String,
     ) = suspendCoroutine { continuation ->
-        launch {
+        viewModelScope.launch {
             val requestBody = file.asRequestBody()
             val body = MultipartBody.Part.createFormData("file", name, requestBody)
 
@@ -548,7 +618,7 @@ class MessagesHistoryViewModel constructor(
 
     private suspend fun saveMessageFile(file: String) =
         suspendCoroutine { continuation ->
-            launch {
+            viewModelScope.launch {
                 sendRequestNotNull(
                     onError = { exception ->
                         continuation.resumeWithException(exception)

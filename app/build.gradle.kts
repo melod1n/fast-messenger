@@ -128,7 +128,11 @@ dependencies {
 
 
     // DI zone
+    //Koin for Default Android
     implementation("io.insert-koin:koin-android:3.4.3")
+
+    // Koin for Compose
+    implementation("io.insert-koin:koin-androidx-compose:3.4.6")
     // end of DI zone
 
     implementation("com.github.skydoves:cloudy:0.1.2")
@@ -139,9 +143,9 @@ dependencies {
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
     implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.10")
 
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.core:core-ktx:1.12.0-rc01")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
@@ -154,7 +158,7 @@ dependencies {
 
     implementation("androidx.fragment:fragment-ktx:1.6.1")
 
-    implementation("androidx.preference:preference-ktx:1.2.0")
+    implementation("androidx.preference:preference-ktx:1.2.1")
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
@@ -172,8 +176,8 @@ dependencies {
 
     implementation("com.github.massoudss:waveformSeekBar:5.0.0")
 
-    implementation("com.github.bumptech.glide:glide:4.15.1")
-    ksp("com.github.bumptech.glide:compiler:4.15.1")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    ksp("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation("com.github.fondesa:kpermissions:3.4.0")
     implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
@@ -203,14 +207,14 @@ dependencies {
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
-    implementation(platform("androidx.compose:compose-bom:2023.06.01"))
+    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
 
     implementation("androidx.compose.material3:material3:1.1.1")
 //    implementation("androidx.compose.material:material:1.4.3")
-    implementation("androidx.compose.ui:ui:1.4.3")
+    implementation("androidx.compose.ui:ui:1.5.0")
 
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.3")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.4.3")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
 
     implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
 
@@ -218,9 +222,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
 
-    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha02")
+    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha04")
 
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.0-alpha")
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
+    implementation("com.google.accompanist:accompanist-insets:0.31.5-beta")
+    implementation("com.google.accompanist:accompanist-insets-ui:0.33.1-alpha")
     // end of Compose zone
 
     // Tests zone

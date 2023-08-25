@@ -1212,10 +1212,21 @@ object VkUtils {
             ) break
 
             val idPart = newMessageText.substring(leftBracketIndex + 1, verticalLineIndex)
+            val idPrefixStartIndex = 0
+            var idPrefixEndIndex = 0
 
-            val actualId = idPart.substring(2, idPart.length).toIntOrNull() ?: -1
+            for (i in idPart.indices) {
+                idPrefixEndIndex = i
 
-            if (!idPart.matches(Regex("^id(\\d+)\$")) || rightBracketIndex - verticalLineIndex < 2) {
+                val char = idPart[i]
+                if (char.isDigit()) {
+                    break
+                }
+            }
+            val idPrefix = idPart.substring(idPrefixStartIndex, idPrefixEndIndex)
+            val actualId = idPart.substring(idPrefix.length, idPart.length).toIntOrNull() ?: -1
+
+            if (!idPart.matches(Regex("^${idPrefix}(\\d+)\$")) || rightBracketIndex - verticalLineIndex < 2) {
                 break
             }
 
@@ -1281,5 +1292,31 @@ object VkUtils {
 //                ds.typeface = Typeface.defaultFromStyle(Typeface.BOLD)
             }
         }
+    }
+
+    fun VkConversationDomain.fill(
+        lastMessage: VkMessage?,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ): VkConversationDomain {
+        val conversation = this
+
+        val userGroup = getConversationUserGroup(conversation, profiles, groups)
+        val actionUserGroup = getMessageActionUserGroup(lastMessage, profiles, groups)
+        val messageUserGroup = getMessageUserGroup(lastMessage, profiles, groups)
+
+        conversation.conversationUser = userGroup.first
+        conversation.conversationGroup = userGroup.second
+
+        val newMessage = lastMessage?.copy()?.apply {
+            this.user = messageUserGroup.first
+            this.group = messageUserGroup.second
+            this.actionUser = actionUserGroup.first
+            this.actionGroup = actionUserGroup.second
+        } ?: return conversation
+
+        conversation.lastMessage = newMessage
+
+        return conversation
     }
 }

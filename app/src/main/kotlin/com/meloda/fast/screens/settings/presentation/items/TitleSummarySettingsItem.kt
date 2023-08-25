@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.settings.items
+package com.meloda.fast.screens.settings.presentation.items
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable

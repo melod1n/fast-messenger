@@ -28,7 +28,7 @@ import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.main.activity.LongPollUtils.requestNotificationsPermission
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
 import com.meloda.fast.util.AndroidUtils
@@ -38,6 +38,7 @@ import com.microsoft.appcenter.crashes.Crashes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+
 
 class MainActivity : BaseActivity(R.layout.activity_main) {
 

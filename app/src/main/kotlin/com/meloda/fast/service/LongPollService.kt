@@ -23,7 +23,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.receiver.StopLongPollServiceReceiver
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.util.NotificationsUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope

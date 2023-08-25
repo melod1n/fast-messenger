@@ -9,7 +9,7 @@ import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsRepository
-import com.meloda.fast.screens.settings.SettingsFragment
+import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

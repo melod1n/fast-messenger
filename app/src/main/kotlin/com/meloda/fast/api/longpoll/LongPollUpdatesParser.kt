@@ -3,7 +3,9 @@ package com.meloda.fast.api.longpoll
 import android.util.Log
 import com.google.gson.JsonArray
 import com.meloda.fast.api.ApiEvent
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.network.ApiAnswer
@@ -54,13 +56,13 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
             ApiEvent.MessageReadOutgoing -> parseMessageReadOutgoing(eventType, event)
             ApiEvent.MessagesDeleted -> parseMessagesDeleted(eventType, event)
             ApiEvent.PinUnpinConversation -> parseConversationPinStateChanged(eventType, event)
-            ApiEvent.PrivateTyping -> onNewEvent(eventType, event)
-            ApiEvent.ChatTyping -> onNewEvent(eventType, event)
-            ApiEvent.OneMoreTyping -> onNewEvent(eventType, event)
-            ApiEvent.VoiceRecording -> onNewEvent(eventType, event)
-            ApiEvent.PhotoUploading -> onNewEvent(eventType, event)
-            ApiEvent.VideoUploading -> onNewEvent(eventType, event)
-            ApiEvent.FileUploading -> onNewEvent(eventType, event)
+
+            ApiEvent.Typing,
+            ApiEvent.VoiceRecording,
+            ApiEvent.PhotoUploading,
+            ApiEvent.VideoUploading,
+            ApiEvent.FileUploading -> parseInteraction(eventType, event)
+
             ApiEvent.UnreadCountUpdate -> onNewEvent(eventType, event)
         }
 
@@ -68,6 +70,44 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
     private fun onNewEvent(eventType: ApiEvent, event: JsonArray) {
         Log.d("LongPollUpdatesParser", "newEvent: $eventType: $event")
+    }
+
+    private fun parseInteraction(eventType: ApiEvent, event: JsonArray) {
+        Log.d("LongPollUpdatesParser", "$eventType: $event")
+
+        val interactionType = when (eventType) {
+            ApiEvent.Typing -> InteractionType.Typing
+            ApiEvent.VoiceRecording -> InteractionType.VoiceMessage
+            ApiEvent.PhotoUploading -> InteractionType.Photo
+            ApiEvent.VideoUploading -> InteractionType.Video
+            ApiEvent.FileUploading -> InteractionType.File
+            else -> return
+        }
+
+        val peerId = event[1].asInt
+        val userIds = event[2].asJsonArray.map { it.asInt }.filter { it != UserConfig.userId }
+        val totalCount = event[3].asInt
+        val timestamp = event[4].asInt
+
+        // if userIds contains only account's id, then we don't need to show our status
+        if (userIds.isEmpty()) return
+
+        launch {
+            listenersMap[eventType]?.let { listeners ->
+                listeners.forEach { vkEventCallback ->
+                    (vkEventCallback as VkEventCallback<LongPollEvent.Interaction>)
+                        .onEvent(
+                            LongPollEvent.Interaction(
+                                interactionType = interactionType,
+                                peerId = peerId,
+                                userIds = userIds,
+                                totalCount = totalCount,
+                                timestamp = timestamp
+                            )
+                        )
+                }
+            }
+        }
     }
 
     private fun parseConversationPinStateChanged(eventType: ApiEvent, event: JsonArray) {
@@ -230,6 +270,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                                 profiles,
                                 groups
                             )
+
                         ApiEvent.MessageEdit -> LongPollEvent.VkMessageEditEvent(normalMessage)
                         else -> null
                     }
@@ -246,6 +287,13 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                 it.add(listener)
             }
         }
+    }
+
+    private fun <T : Any> registerListeners(
+        eventTypes: List<ApiEvent>,
+        listener: VkEventCallback<T>
+    ) {
+        eventTypes.forEach { eventType -> registerListener(eventType, listener) }
     }
 
     fun onConversationPinStateChanged(listener: VkEventCallback<LongPollEvent.VkConversationPinStateChangedEvent>) {
@@ -286,6 +334,23 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
     fun onMessageEdited(block: (LongPollEvent.VkMessageEditEvent) -> Unit) {
         onMessageEdited(assembleEventCallback(block))
+    }
+
+    fun onInteractions(listener: VkEventCallback<LongPollEvent.Interaction>) {
+        registerListeners(
+            eventTypes = listOf(
+                ApiEvent.Typing,
+                ApiEvent.VoiceRecording,
+                ApiEvent.PhotoUploading,
+                ApiEvent.VideoUploading,
+                ApiEvent.FileUploading
+            ),
+            listener = listener
+        )
+    }
+
+    fun onInteractions(block: (LongPollEvent.Interaction) -> Unit) {
+        onInteractions(assembleEventCallback(block))
     }
 
     fun clearListeners() {

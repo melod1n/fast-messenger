@@ -13,6 +13,12 @@ import android.provider.Settings
 import android.util.TypedValue
 import android.widget.Toast
 import androidx.annotation.AttrRes
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalDensity
 import androidx.core.content.FileProvider
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
@@ -86,6 +92,21 @@ object AndroidUtils {
         bytes >= 1 shl 20 -> "%.1f MB".format(bytes / (1 shl 20))
         bytes >= 1 shl 10 -> "%.1f KB".format(bytes / (1 shl 10))
         else -> "$bytes B"
+    }
+
+    fun openAppNotificationsSettings(context: Context) {
+        val packageName = context.packageName
+
+        val intent = Intent("android.settings.APP_NOTIFICATION_SETTINGS")
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            intent.putExtra("android.provider.extra.APP_PACKAGE", packageName)
+        } else {
+            intent.putExtra("app_package", packageName)
+            intent.putExtra("app_uid", context.applicationInfo.uid)
+        }
+        context.startActivity(intent)
     }
 
     @Suppress("DEPRECATION")
@@ -225,4 +246,10 @@ sealed class ShareContent {
     data class Image(val uri: Uri) : ShareContent()
 
     data class TextWithImage(val text: String, val imageUri: Uri) : ShareContent()
+}
+
+@Composable
+fun keyboardAsState(): State<Boolean> {
+    val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    return rememberUpdatedState(isImeVisible)
 }
