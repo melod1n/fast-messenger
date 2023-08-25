@@ -11,7 +11,11 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.*
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.CenterInside
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.bitmap.GranularRoundedCorners
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
@@ -104,19 +108,19 @@ class ImageLoadRequestListener(
     override fun onLoadFailed(
         e: GlideException?,
         model: Any?,
-        target: Target<Drawable>?,
-        isFirstResource: Boolean,
+        target: Target<Drawable>,
+        isFirstResource: Boolean
     ): Boolean {
         onFailedAction?.invoke()
         return false
     }
 
     override fun onResourceReady(
-        resource: Drawable?,
-        model: Any?,
+        resource: Drawable,
+        model: Any,
         target: Target<Drawable>?,
-        dataSource: DataSource?,
-        isFirstResource: Boolean,
+        dataSource: DataSource,
+        isFirstResource: Boolean
     ): Boolean {
         onLoadedAction?.invoke()
         return false
@@ -124,22 +128,23 @@ class ImageLoadRequestListener(
 }
 
 class ImageLoadDoneListener(private val onDoneAction: (() -> Unit)?) : RequestListener<Drawable> {
+
     override fun onLoadFailed(
         e: GlideException?,
         model: Any?,
-        target: Target<Drawable>?,
-        isFirstResource: Boolean,
+        target: Target<Drawable>,
+        isFirstResource: Boolean
     ): Boolean {
         onDoneAction?.invoke()
         return false
     }
 
     override fun onResourceReady(
-        resource: Drawable?,
-        model: Any?,
+        resource: Drawable,
+        model: Any,
         target: Target<Drawable>?,
-        dataSource: DataSource?,
-        isFirstResource: Boolean,
+        dataSource: DataSource,
+        isFirstResource: Boolean
     ): Boolean {
         onDoneAction?.invoke()
         return false
@@ -173,6 +178,7 @@ sealed class TypeTransformations {
             bottomRight,
             bottomLeft
         )
+
         CircleCrop -> CircleCrop()
     }
 
