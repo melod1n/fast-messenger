@@ -14,7 +14,6 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.database.CacheDatabase
-import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.isTrue
@@ -34,8 +33,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-typealias SettingsList = List<SettingsItem<*>>
 
 interface SettingsViewModel {
 

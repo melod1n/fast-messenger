@@ -270,11 +270,10 @@ class ConversationsViewModelImpl constructor(
                     }
 
                     val conversationsUi = conversations.map(VkConversationDomain::mapToPresentation)
-                    screenState.setValue { old -> old.copy(conversations = conversationsUi) }
 
                     val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +
-                            groups.mapNotNull { group -> group.value.photo200 }
-                    conversationsUi.mapNotNull { conversation -> conversation.avatar.extractUrl() }
+                            groups.mapNotNull { group -> group.value.photo200 } +
+                            conversationsUi.mapNotNull { conversation -> conversation.avatar.extractUrl() }
 
                     photos.forEach { url ->
                         ImageRequest.Builder(AppGlobal.Instance)
@@ -285,6 +284,8 @@ class ConversationsViewModelImpl constructor(
 
                     conversationsRepository.store(conversations)
                     messagesRepository.store(messages)
+
+                    emitDomainConversations(conversations)
                 },
                 onAnyResult = {
                     screenState.setValue { old -> old.copy(isLoading = false) }
@@ -497,7 +498,7 @@ class ConversationsViewModelImpl constructor(
             emitDomainConversations(newConversations)
         }
 
-    private val interactionsTimers = hashMapOf<Int, InteractionJob>()
+    private val interactionsTimers = hashMapOf<Int, InteractionJob?>()
 
     private data class InteractionJob(
         val interactionType: InteractionType,
@@ -553,6 +554,8 @@ class ConversationsViewModelImpl constructor(
     }
 
     private fun stopInteraction(peerId: Int, interactionJob: InteractionJob) {
+        interactionsTimers[peerId] ?: return
+
         viewModelScope.launch(Dispatchers.IO) {
             val newConversations = domainConversations.value.toMutableList()
             val conversationAndIndex =
@@ -567,6 +570,9 @@ class ConversationsViewModelImpl constructor(
                 }
 
             emitDomainConversations(newConversations)
+
+            interactionJob.timerJob.cancel()
+            interactionsTimers[peerId] = null
         }
     }
 
@@ -586,16 +592,14 @@ class ConversationsViewModelImpl constructor(
                         startMessageId = startMessageId
                     )
                 },
-                onResponse = { response ->
-                    val messageId = response.response ?: return@sendRequest
-
+                onResponse = {
                     val newConversations = domainConversations.value.toMutableList()
                     val conversationIndex =
                         newConversations.findIndex { it.id == peerId } ?: return@sendRequest
 
                     newConversations[conversationIndex] =
                         newConversations[conversationIndex].copyWithEssentials { old ->
-                            old.copy(inRead = messageId)
+                            old.copy(inRead = startMessageId)
                         }
 
                     emitDomainConversations(newConversations)

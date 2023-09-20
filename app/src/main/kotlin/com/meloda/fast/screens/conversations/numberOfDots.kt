@@ -1,5 +1,7 @@
 package com.meloda.fast.screens.conversations
 
+// TODO: 26.08.2023, Danil Nikolaev: rewrite
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable

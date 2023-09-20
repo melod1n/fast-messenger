@@ -107,7 +107,7 @@ class MessagesHistoryFragment : BaseFragment() {
                     onSendClicked = { /*TODO*/ },
                     onSendLongClicked = { /*TODO*/ },
                     onMessageAvatarClicked = { /*TODO*/ },
-                    onMessageAvatarLongClicked = { /*TODO*/ },
+                    onMessageAvatarLongClicked = {},
                     onTopBarMenuClick = viewModel::onTopAppBarMenuClicked,
                     screenState = screenState
                 )
@@ -184,8 +184,8 @@ class MessagesHistoryFragment : BaseFragment() {
         onEmojiLongClicked: () -> Unit,
         onSendClicked: () -> Unit,
         onSendLongClicked: () -> Unit,
-        onMessageAvatarClicked: () -> Unit,
-        onMessageAvatarLongClicked: () -> Unit,
+        onMessageAvatarClicked: (message: VkMessage) -> Unit,
+        onMessageAvatarLongClicked: (message: VkMessage) -> Unit,
         onTopBarMenuClick: (id: Int) -> Unit,
         screenState: MessagesHistoryScreenState,
     ) {

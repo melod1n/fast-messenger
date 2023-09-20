@@ -27,6 +27,7 @@ import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.main.MainFragment
 import com.meloda.fast.screens.main.activity.LongPollUtils
 import com.meloda.fast.screens.main.activity.MainActivity
+import com.meloda.fast.screens.settings.HapticType
 import com.meloda.fast.screens.settings.SettingsViewModel
 import com.meloda.fast.screens.settings.SettingsViewModelImpl
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
@@ -63,9 +64,11 @@ class SettingsFragment : BaseFragment() {
             val screenState by viewModel.screenState.collectAsStateWithLifecycle()
             val useDynamicColors = screenState.useDynamicColors
 
-            val hapticType = screenState.useHaptics.getHaptic()
-            view.performHapticFeedback(hapticType)
-
+            val hapticType = screenState.useHaptics
+            if (hapticType != HapticType.None) {
+                view.performHapticFeedback(hapticType.getHaptic())
+                viewModel.onHapticsUsed()
+            }
             AppTheme(useDynamicColors = useDynamicColors) {
                 SettingsScreen(
                     onSettingsItemClicked = viewModel::onSettingsItemClicked,
