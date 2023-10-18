@@ -145,10 +145,10 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.10")
 
-    implementation("androidx.core:core-ktx:1.12.0-rc01")
+    implementation("androidx.core:core-ktx:1.12.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
@@ -207,22 +207,23 @@ dependencies {
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
+    //implementation("androidx.compose.material:material:1.4.3")
+
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
 
     implementation("androidx.compose.material3:material3:1.1.1")
-//    implementation("androidx.compose.material:material:1.4.3")
-    implementation("androidx.compose.ui:ui:1.5.0")
+    implementation("androidx.compose.ui:ui:1.5.1")
 
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.5.1")
 
     implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
 
     implementation("androidx.activity:activity-compose:1.7.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
-    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha04")
+    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha05")
 
     implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
     implementation("com.google.accompanist:accompanist-insets:0.31.5-beta")

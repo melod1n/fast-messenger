@@ -9,7 +9,6 @@ import android.media.AudioManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
-import com.google.android.material.color.DynamicColors
 import com.meloda.fast.common.di.applicationModule
 import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import com.meloda.fast.util.AndroidUtils
@@ -25,14 +24,6 @@ class AppGlobal : Application() {
         super.onCreate()
 
         instance = this
-
-        if (preferences.getBoolean(
-                SettingsFragment.KEY_USE_DYNAMIC_COLORS,
-                SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
-            )
-        ) {
-            DynamicColors.applyToActivitiesIfAvailable(this)
-        }
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
