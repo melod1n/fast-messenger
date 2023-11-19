@@ -3,12 +3,18 @@
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
-val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage", "\"\"")
-val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint", "\"\"")
+val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
+val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
 
-val msAppCenterToken: String =
-    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", "\"\"")
-val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode", "\"\"")
+val msAppCenterToken: String = getLocalProperty("msAppCenterAppToken", "\"\"")
+val otaSecretCode: String = getLocalProperty("otaSecretCode", "\"\"")
+
+val debugUserId: String = getLocalProperty("userId", "\"0\"")
+val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
+
+fun getLocalProperty(key: String, defValue: String): String {
+    return gradleLocalProperties(rootDir).getProperty(key, defValue)
+}
 
 val majorVersion = 1
 val minorVersion = 6
@@ -60,6 +66,9 @@ android {
 
             buildConfigField("String", "otaSecretCode", otaSecretCode)
 
+            buildConfigField("String", "userId", debugUserId)
+            buildConfigField("String", "accessToken", debugAccessToken)
+
             versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
@@ -71,6 +80,9 @@ android {
             buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
 
             buildConfigField("String", "otaSecretCode", otaSecretCode)
+
+            buildConfigField("String", "userId", debugUserId)
+            buildConfigField("String", "accessToken", debugAccessToken)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -129,10 +141,11 @@ dependencies {
 
     // DI zone
     //Koin for Default Android
-    implementation("io.insert-koin:koin-android:3.4.3")
+    implementation("io.insert-koin:koin-android:3.5.0")
 
     // Koin for Compose
-    implementation("io.insert-koin:koin-androidx-compose:3.4.6")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.2-RC1")
+    implementation("io.insert-koin:koin-androidx-compose-navigation:3.5.2-RC1")
     // end of DI zone
 
     implementation("com.github.skydoves:cloudy:0.1.2")
@@ -154,23 +167,23 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.6.1")
 
-    implementation("androidx.activity:activity-ktx:1.7.2")
+    implementation("androidx.activity:activity-ktx:1.8.0")
 
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
 
     implementation("androidx.preference:preference-ktx:1.2.1")
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
-    implementation("androidx.recyclerview:recyclerview:1.3.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
 
-    implementation("androidx.room:room-ktx:2.5.2")
-    implementation("androidx.room:room-runtime:2.5.2")
-    ksp("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.6.0")
+    implementation("androidx.room:room-runtime:2.6.0")
+    ksp("androidx.room:room-compiler:2.6.0")
 
     implementation("com.github.terrakok:cicerone:7.1")
 
@@ -198,18 +211,15 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.10.1")
 
-    implementation("com.google.guava:guava:32.1.2-jre")
+    implementation("com.google.guava:guava:32.1.3-jre")
 
-    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.google.android.material:material:1.10.0")
 
     implementation("com.github.chuckerteam.chucker:library:4.0.0")
 
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     // Compose zone
-    //implementation("androidx.compose.material:material:1.4.3")
-
-    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
 
     implementation("androidx.compose.material3:material3:1.1.1")
     implementation("androidx.compose.ui:ui:1.5.1")
@@ -225,10 +235,42 @@ dependencies {
 
     implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha05")
 
+    implementation("androidx.navigation:navigation-compose:2.7.5")
+
     implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
     implementation("com.google.accompanist:accompanist-insets:0.31.5-beta")
     implementation("com.google.accompanist:accompanist-insets-ui:0.33.1-alpha")
     // end of Compose zone
+
+    // Moshi zone
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.14.0")
+    // end of Moshi zone
+
+    val voyagerVersion = "1.0.0-rc10"
+
+    // Multiplatform
+
+    // Navigator
+    implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+
+    // BottomSheetNavigator
+    implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
+
+    // TabNavigator
+    implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
+
+    // Transitions
+    implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+
+    // Android
+
+    // Android ViewModel integration
+    implementation("cafe.adriel.voyager:voyager-androidx:$voyagerVersion")
+
+    // Koin integration
+    implementation("cafe.adriel.voyager:voyager-koin:$voyagerVersion")
+
 
     // Tests zone
     testImplementation("junit:junit:4.13.2")

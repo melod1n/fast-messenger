@@ -9,7 +9,7 @@ import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsRepository
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ class OnlineService : Service(), CoroutineScope {
         Log.d("OnlineService", "onStartCommand: flags: $flags; startId: $startId")
 
         if (AppGlobal.preferences.getBoolean(
-                SettingsFragment.KEY_VISIBILITY_SEND_ONLINE_STATUS, true
+                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS, true
             )
         ) {
             createTimer()
@@ -67,7 +67,7 @@ class OnlineService : Service(), CoroutineScope {
         if (currentJob != null) return
 
         if (!AppGlobal.preferences.getBoolean(
-                SettingsFragment.KEY_VISIBILITY_SEND_ONLINE_STATUS,
+                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
                 false
             )
         ) return

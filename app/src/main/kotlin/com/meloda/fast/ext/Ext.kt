@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -72,8 +72,8 @@ fun <T> Flow<T>.listenValue(
 
 fun isSystemUsingDarkMode(): Boolean {
     val nightThemeMode = AppGlobal.preferences.getInt(
-        SettingsFragment.KEY_APPEARANCE_DARK_THEME,
-        SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
     )
     val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
     val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY

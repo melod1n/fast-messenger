@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.conversations.presentation
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,45 +29,66 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.ext.combinedClickableSound
-import com.meloda.fast.ext.orDots
-import com.meloda.fast.model.base.getImage
 import com.meloda.fast.screens.conversations.DotsFlashing
 import com.meloda.fast.ui.widgets.CoilImage
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Conversation(
-    onItemClick: (VkConversationUi) -> Unit,
-    onItemLongClick: (VkConversationUi) -> Unit,
-    conversation: VkConversationUi,
-    maxLines: Int
+    onItemClick: () -> Unit,
+    onItemLongClick: () -> Unit,
+    id: Int,
+    avatar: Any?,
+    title: String,
+    message: String,
+    date: String,
+    maxLines: Int,
+    isUnread: Boolean,
+    isPinned: Boolean,
+    isOnline: Boolean,
+    isBirthday: Boolean,
+    interactionType: InteractionType?,
+    interactiveUsers: List<String>,
+    peerType: ConversationPeerType,
+    attachmentImage: Drawable?,
+    unreadCount: String?,
 ) {
+    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
+
+//    val avatar = conversation.avatar.getImage()
+
+//    val title = remember { conversation.title.orDots() }
+//    val message = remember { conversation.message }
+//    val date = remember { conversation.date }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickableSound(
-                onClick = { onItemClick(conversation) },
+                onClick = onItemClick,
                 onLongClick = {
-                    onItemLongClick(conversation)
+                    onItemLongClick()
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                 }
             )
     ) {
-        if (conversation.isUnread) {
+        if (isUnread) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -87,7 +109,7 @@ fun Conversation(
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(modifier = Modifier.size(56.dp)) {
 
-                    if (conversation.id == UserConfig.userId) {
+                    if (id == UserConfig.userId) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -103,25 +125,31 @@ fun Conversation(
                             )
                         }
                     } else {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            painter = painterResource(id = R.drawable.ic_account_circle_cut),
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outline)
-                        )
-                        CoilImage(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            contentDescription = null,
-                            model = conversation.avatar.getImage(),
-                            previewPainter = painterResource(id = R.drawable.ic_account_circle_cut),
-                        )
+                        if (avatar is Painter) {
+                            Image(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                painter = avatar,
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                            )
+                        } else {
+                            CoilImage(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                contentDescription = null,
+                                model = ImageRequest.Builder(context)
+                                    .data(avatar)
+                                    .crossfade(true)
+                                    .build(),
+                                previewPainter = painterResource(id = R.drawable.ic_account_circle_cut),
+                            )
+                        }
                     }
 
-                    if (conversation.isPinned) {
+                    if (isPinned) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -138,13 +166,13 @@ fun Conversation(
                         }
                     }
 
-                    if (conversation.isOnline) {
+                    if (isOnline) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(18.dp)
                                 .background(
-                                    if (conversation.isUnread) {
+                                    if (isUnread) {
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
                                     } else {
                                         MaterialTheme.colorScheme.background
@@ -162,13 +190,13 @@ fun Conversation(
                         }
                     }
 
-                    if (conversation.isBirthday) {
+                    if (isBirthday) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(16.dp)
                                 .background(
-                                    if (conversation.isUnread) {
+                                    if (isUnread) {
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
                                     } else {
                                         MaterialTheme.colorScheme.background
@@ -201,7 +229,7 @@ fun Conversation(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = conversation.title.orDots(),
+                        text = title,
                         modifier = Modifier,
                         minLines = 1,
                         maxLines = maxLines,
@@ -209,10 +237,10 @@ fun Conversation(
                     )
 
                     Row {
-                        if (conversation.interactionType != null) {
+                        if (interactionType != null) {
                             val typingText =
-                                if (!conversation.peerType.isChat() && conversation.interactiveUsers.size == 1) {
-                                    when (conversation.interactionType) {
+                                if (!peerType.isChat() && interactiveUsers.size == 1) {
+                                    when (interactionType) {
                                         InteractionType.File -> "Uploading file"
                                         InteractionType.Photo -> "Uploading photo"
                                         InteractionType.Typing -> "Typing"
@@ -220,7 +248,7 @@ fun Conversation(
                                         InteractionType.VoiceMessage -> "Recording voice message"
                                     }
                                 } else {
-                                    "${conversation.interactiveUsers} are typing"
+                                    "$interactiveUsers are typing"
                                 }
 
                             Text(
@@ -236,7 +264,7 @@ fun Conversation(
                                 dotColor = MaterialTheme.colorScheme.primary
                             )
                         } else {
-                            conversation.attachmentImage?.let { drawable ->
+                            attachmentImage?.let { drawable ->
                                 Column {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Image(
@@ -253,7 +281,7 @@ fun Conversation(
                             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                                 Text(
                                     modifier = Modifier.weight(1f),
-                                    text = conversation.message,
+                                    text = message,
                                     minLines = 1,
                                     maxLines = maxLines,
                                     style = MaterialTheme.typography.bodyLarge,
@@ -266,9 +294,9 @@ fun Conversation(
 
                 Spacer(modifier = Modifier.width(4.dp))
                 Column {
-                    Text(text = conversation.date)
+                    Text(text = date)
 
-                    conversation.unreadCount?.let { count ->
+                    unreadCount?.let { count ->
                         Spacer(modifier = Modifier.height(6.dp))
                         Box(
                             modifier = Modifier

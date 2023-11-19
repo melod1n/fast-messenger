@@ -15,8 +15,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.meloda.fast.R
 import com.meloda.fast.ext.isSystemUsingDarkMode
-import com.meloda.fast.ext.isUsingDarkTheme
-import com.meloda.fast.ext.isUsingDynamicColors
+import com.meloda.fast.ext.isUsingDarkThemeComposable
+import com.meloda.fast.ext.isUsingDynamicColorsComposable
 
 
 val StandardColorScheme
@@ -58,8 +58,8 @@ private val robotoFonts = FontFamily(
 @Composable
 fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
-    useDarkTheme: Boolean = isUsingDarkTheme(),
-    useDynamicColors: Boolean = isUsingDynamicColors(),
+    useDarkTheme: Boolean = isUsingDarkThemeComposable(),
+    useDynamicColors: Boolean = isUsingDynamicColorsComposable(),
     content: @Composable () -> Unit
 ) {
     val colorScheme: ColorScheme = when {

@@ -2,9 +2,8 @@ package com.meloda.fast.screens.captcha.presentation
 
 import androidx.lifecycle.ViewModel
 import com.meloda.fast.ext.updateValue
+import com.meloda.fast.screens.captcha.model.CaptchaArguments
 import com.meloda.fast.screens.captcha.model.CaptchaScreenState
-import com.meloda.fast.screens.captcha.screen.CaptchaArguments
-import com.meloda.fast.screens.captcha.screen.CaptchaResult
 import com.meloda.fast.screens.captcha.validation.CaptchaValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,41 +15,24 @@ interface CaptchaViewModel {
 
     fun onCodeInputChanged(newCode: String)
 
-    fun onBackButtonClicked()
-    fun onCancelButtonClicked()
     fun onTextFieldDoneClicked()
     fun onDoneButtonClicked()
+
+    fun setArguments(arguments: CaptchaArguments)
+
+    fun onNavigatedToLogin()
 }
 
 class CaptchaViewModelImpl constructor(
-    private val coordinator: CaptchaCoordinator,
     private val validator: CaptchaValidator,
-    arguments: CaptchaArguments
 ) : CaptchaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
-
-    init {
-        screenState.updateValue(
-            screenState.value.copy(
-                captchaSid = arguments.captchaSid,
-                captchaImage = arguments.captchaImage
-            )
-        )
-    }
 
     override fun onCodeInputChanged(newCode: String) {
         val newState = screenState.value.copy(captchaCode = newCode.trim())
         screenState.update { newState }
         processValidation()
-    }
-
-    override fun onBackButtonClicked() {
-        onCancelButtonClicked()
-    }
-
-    override fun onCancelButtonClicked() {
-        coordinator.finishWithResult(CaptchaResult.Cancelled)
     }
 
     override fun onTextFieldDoneClicked() {
@@ -60,15 +42,20 @@ class CaptchaViewModelImpl constructor(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
-        val captchaSid = screenState.value.captchaSid
-        val captchaCode = screenState.value.captchaCode
+        screenState.updateValue(screenState.value.copy(isNeedToOpenLogin = true))
+    }
 
-        coordinator.finishWithResult(
-            CaptchaResult.Success(
-                sid = captchaSid,
-                code = captchaCode
+    override fun setArguments(arguments: CaptchaArguments) {
+        screenState.updateValue(
+            screenState.value.copy(
+                captchaSid = arguments.captchaSid,
+                captchaImage = arguments.captchaImage
             )
         )
+    }
+
+    override fun onNavigatedToLogin() {
+        screenState.updateValue(CaptchaScreenState.EMPTY)
     }
 
     private fun processValidation(): Boolean {

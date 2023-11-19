@@ -20,7 +20,7 @@ import androidx.compose.ui.semantics.Role
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
 
 @ExperimentalFoundationApi
@@ -113,14 +113,18 @@ fun UiText?.getString(): String? {
 }
 
 @Composable
-fun isUsingDarkTheme(): Boolean {
+fun isUsingDarkThemeComposable(): Boolean {
     if (LocalView.current.isInEditMode) {
         return false
     }
 
+    return isUsingDarkTheme()
+}
+
+fun isUsingDarkTheme(): Boolean {
     val nightThemeMode = AppGlobal.preferences.getInt(
-        SettingsFragment.KEY_APPEARANCE_DARK_THEME,
-        SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
     )
     val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
     val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
@@ -135,11 +139,13 @@ fun isUsingDarkTheme(): Boolean {
 }
 
 @Composable
-fun isUsingDynamicColors(): Boolean =
+fun isUsingDynamicColorsComposable(): Boolean =
     if (LocalView.current.isInEditMode) true
     else {
-        AppGlobal.preferences.getBoolean(
-            SettingsFragment.KEY_USE_DYNAMIC_COLORS,
-            SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
-        )
+        isUsingDynamicColors()
     }
+
+fun isUsingDynamicColors(): Boolean = AppGlobal.preferences.getBoolean(
+    SettingsKeys.KEY_USE_DYNAMIC_COLORS,
+    SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
+)

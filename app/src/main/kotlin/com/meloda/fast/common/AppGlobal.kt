@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
 import com.meloda.fast.common.di.applicationModule
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -40,8 +40,8 @@ class AppGlobal : Application() {
 
     private fun applyDarkTheme() {
         val nightMode = preferences.getInt(
-            SettingsFragment.KEY_APPEARANCE_DARK_THEME,
-            SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+            SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+            SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
         )
         AppCompatDelegate.setDefaultNightMode(nightMode)
     }

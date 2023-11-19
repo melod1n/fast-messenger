@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.twofa.presentation
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.data.auth.AuthRepository
@@ -8,12 +9,11 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
-import com.meloda.fast.screens.twofa.model.TwoFaResult
 import com.meloda.fast.screens.twofa.model.TwoFaScreenState
 import com.meloda.fast.screens.twofa.model.TwoFaValidationType
-import com.meloda.fast.screens.twofa.screen.TwoFaCoordinator
 import com.meloda.fast.screens.twofa.validation.TwoFaValidator
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -31,34 +31,20 @@ interface TwoFaViewModel {
     fun onRequestSmsButtonClicked()
     fun onTextFieldDoneClicked()
     fun onDoneButtonClicked()
+
+    fun onNavigatedToLogin()
+
+    fun setArguments(arguments: TwoFaArguments)
 }
 
 class TwoFaViewModelImpl constructor(
-    private val coordinator: TwoFaCoordinator,
     private val validator: TwoFaValidator,
     private val authRepository: AuthRepository,
-    arguments: TwoFaArguments,
 ) : TwoFaViewModel, BaseViewModel() {
 
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
 
     private var delayJob: Job? = null
-
-    init {
-        if (arguments.wrongCodeError != null) {
-            screenState.updateValue(
-                screenState.value.copy(codeError = arguments.wrongCodeError)
-            )
-        }
-
-        screenState.updateValue(
-            screenState.value.copy(
-                twoFaSid = arguments.validationSid,
-                twoFaText = getTwoFaText(arguments.validationType),
-                canResendSms = arguments.canResendSms
-            )
-        )
-    }
 
     override fun onCodeInputChanged(newCode: String) {
         screenState.updateValue(
@@ -69,7 +55,10 @@ class TwoFaViewModelImpl constructor(
         )
 
         if (newCode.length == 6) {
-            onDoneButtonClicked()
+            viewModelScope.launch {
+                delay(250)
+                onDoneButtonClicked()
+            }
         }
     }
 
@@ -78,7 +67,7 @@ class TwoFaViewModelImpl constructor(
     }
 
     override fun onCancelButtonClicked() {
-        coordinator.finishWithResult(TwoFaResult.Cancelled)
+        screenState.updateValue(screenState.value.copy(isNeedToOpenLogin = true))
     }
 
     override fun onRequestSmsButtonClicked() {
@@ -92,10 +81,23 @@ class TwoFaViewModelImpl constructor(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
-        val twoFaSid = screenState.value.twoFaSid
-        val twoFaCode = screenState.value.twoFaCode
+        screenState.updateValue(screenState.value.copy(isNeedToOpenLogin = true))
+    }
 
-        coordinator.finishWithResult(TwoFaResult.Success(sid = twoFaSid, code = twoFaCode))
+    override fun onNavigatedToLogin() {
+        screenState.updateValue(TwoFaScreenState.EMPTY)
+    }
+
+    override fun setArguments(arguments: TwoFaArguments) {
+        Log.d("TwoFaViewModel", "TwoFaArguments: $arguments")
+
+        screenState.updateValue(
+            screenState.value.copy(
+                twoFaSid = arguments.validationSid,
+                canResendSms = arguments.canResendSms,
+                codeError = arguments.wrongCodeError,
+            )
+        )
     }
 
     private fun processValidation(): Boolean {

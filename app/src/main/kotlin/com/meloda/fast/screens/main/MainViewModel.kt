@@ -2,60 +2,62 @@ package com.meloda.fast.screens.main
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
-import com.github.terrakok.cicerone.Screen
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
-import com.meloda.fast.base.viewmodel.VkEvent
-import com.meloda.fast.common.Screens
-import com.meloda.fast.screens.main.activity.ServicesState
-import kotlinx.coroutines.flow.Flow
+import com.meloda.fast.base.viewmodel.BaseViewModel
+import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.ext.updateValue
+import com.meloda.fast.screens.main.model.MainScreenState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 interface MainViewModel {
-    val events: Flow<VkEvent>
 
-    val servicesState: Flow<ServicesState>
+    val screenState: StateFlow<MainScreenState>
+
+    fun useDynamicColorsChanged(use: Boolean)
+
+    fun useDarkThemeChanged(use: Boolean)
 }
 
-class MainViewModelImpl constructor(
-    private val router: Router
-) : MainViewModel, DeprecatedBaseViewModel() {
-
-    override val events = tasksEvent.map { it }
-
-    override val servicesState = MutableStateFlow<ServicesState>(ServicesState.Unknown)
+class MainViewModelImpl(
+    private val accountsDao: AccountsDao
+) : MainViewModel, BaseViewModel() {
 
     init {
-        checkSession()
+        loadAccounts()
     }
 
-    private fun checkSession() {
-        viewModelScope.launch {
-            val currentUserId = UserConfig.currentUserId
-            val userId = UserConfig.userId
-            val accessToken = UserConfig.accessToken
-            val fastToken = UserConfig.fastToken
+    override val screenState = MutableStateFlow(MainScreenState.EMPTY)
 
-            Log.d(
-                "MainViewModel",
-                "checkSession: currentUserId: $currentUserId; userId: $userId; accessToken: $accessToken; fastToken: $fastToken"
-            )
+    override fun useDynamicColorsChanged(use: Boolean) {
+        screenState.updateValue(screenState.value.copy(useDynamicColors = use))
+    }
 
-            // TODO: 14.08.2023, Danil Nikolaev: rewrite
-            if (UserConfig.isLoggedIn()) {
-                servicesState.emit(ServicesState.Started)
-                openScreen(Screens.Conversations())
-            } else {
-                servicesState.emit(ServicesState.Stopped)
-                openScreen(Screens.Login())
+    override fun useDarkThemeChanged(use: Boolean) {
+        screenState.updateValue(screenState.value.copy(useDarkTheme = use))
+    }
+
+    private fun loadAccounts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val accounts = accountsDao.getAll()
+
+            Log.d("MainViewModel", "initUserConfig: accounts: $accounts")
+
+            if (accounts.isNotEmpty()) {
+                val currentAccount = accounts.find { it.userId == UserConfig.currentUserId }
+                if (currentAccount != null) {
+                    UserConfig.parse(currentAccount)
+                }
             }
-        }
-    }
 
-    private fun openScreen(screen: Screen) {
-        router.replaceScreen(screen)
+            screenState.emit(
+                screenState.value.copy(
+                    accounts = accounts,
+                    accountsLoaded = true
+                )
+            )
+        }
     }
 }

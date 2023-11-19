@@ -8,7 +8,7 @@ import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.screens.main.activity.MainActivity
+import com.meloda.fast.screens.main.MainActivity
 
 object ViewModelUtils {
 

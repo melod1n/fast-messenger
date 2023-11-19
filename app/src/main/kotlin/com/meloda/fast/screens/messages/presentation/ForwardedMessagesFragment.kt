@@ -16,7 +16,7 @@ import com.meloda.fast.databinding.FragmentForwardedMessagesBinding
 import com.meloda.fast.ext.getParcelableArrayListCompat
 import com.meloda.fast.ext.getParcelableCompat
 import com.meloda.fast.ext.getSerializableCompat
-import com.meloda.fast.screens.messages.MessagesHistoryAdapter
+import com.meloda.fast.screens.messages.old.MessagesHistoryAdapter
 import dev.chrisbanes.insetter.applyInsetter
 import org.koin.android.ext.android.inject
 

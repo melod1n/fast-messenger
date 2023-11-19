@@ -10,7 +10,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.R
-import com.meloda.fast.base.viewmodel.DeprecatedBaseViewModel
+import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.AppConstants
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.common.UpdateManager
@@ -24,7 +24,11 @@ import com.meloda.fast.screens.updates.model.UpdateState
 import com.meloda.fast.screens.updates.model.UpdatesScreenState
 import com.meloda.fast.util.AndroidUtils
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.update
 import java.io.File
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
@@ -56,7 +60,7 @@ interface UpdatesViewModel {
 
 class UpdatesViewModelImpl constructor(
     private val updateManager: UpdateManager,
-) : DeprecatedBaseViewModel(), UpdatesViewModel {
+) : BaseViewModel(), UpdatesViewModel {
 
     override val screenState = MutableStateFlow(UpdatesScreenState.EMPTY)
     override val currentDownloadProgress = MutableStateFlow(0)
@@ -195,6 +199,7 @@ class UpdatesViewModelImpl constructor(
                     UpdateState.NewUpdate
                 }
             }
+
             error != null -> UpdateState.Error
             else -> UpdateState.NoUpdates
         }

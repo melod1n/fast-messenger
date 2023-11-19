@@ -51,6 +51,7 @@ import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import kotlin.properties.Delegates
 
 interface MessagesHistoryViewModel {
 
@@ -61,6 +62,7 @@ interface MessagesHistoryViewModel {
     fun onEmojiButtonClicked()
     fun onActionButtonClicked()
     fun onTopAppBarMenuClicked(id: Int)
+    fun setArguments(arguments: MessagesHistoryArguments)
 }
 
 class MessagesHistoryViewModelImpl constructor(
@@ -69,13 +71,12 @@ class MessagesHistoryViewModelImpl constructor(
     private val photosRepository: PhotosRepository,
     private val filesRepository: FilesRepository,
     private val audiosRepository: AudiosRepository,
-    private val videosRepository: VideosRepository,
-    arguments: MessagesHistoryArguments
+    private val videosRepository: VideosRepository
 ) : MessagesHistoryViewModel, BaseViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
 
-    private var conversation: VkConversationUi = arguments.conversation
+    private var conversation: VkConversationUi by Delegates.notNull()
 
     private val messages = MutableStateFlow<List<VkMessage>>(emptyList())
 
@@ -91,23 +92,10 @@ class MessagesHistoryViewModelImpl constructor(
         updatesParser.onMessageEdited(::handleEditedMessage)
         updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
-
-        val conversation = arguments.conversation
-        val title = conversation.title
-        val avatar = conversation.avatar
-
-        screenState.emitOnMainScope(
-            screenState.value.copy(
-                title = title,
-                avatar = avatar
-            )
-        )
-
-        loadMessagesHistory()
     }
 
     override fun onAttachmentButtonClicked() {
-        TODO("Not yet implemented")
+
     }
 
     override fun onInputChanged(newText: String) {
@@ -129,6 +117,22 @@ class MessagesHistoryViewModelImpl constructor(
             0 -> loadMessagesHistory()
             else -> Unit
         }
+    }
+
+    override fun setArguments(arguments: MessagesHistoryArguments) {
+        conversation = arguments.conversation
+
+        val title = conversation.title
+        val avatar = conversation.avatar
+
+        screenState.emitOnMainScope(
+            screenState.value.copy(
+                title = title,
+                avatar = avatar
+            )
+        )
+
+        loadMessagesHistory()
     }
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {

@@ -23,7 +23,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.receiver.StopLongPollServiceReceiver
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.NotificationsUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -67,8 +67,8 @@ class LongPollService : Service() {
         super.onCreate()
 
         if (AppGlobal.preferences.getBoolean(
-                SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                SettingsFragment.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+                SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+                SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
             )
         ) {
             val notificationBuilder =
