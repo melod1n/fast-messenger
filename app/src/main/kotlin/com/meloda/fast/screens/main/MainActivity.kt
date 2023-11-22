@@ -26,8 +26,8 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isSdkAtLeast
-import com.meloda.fast.screens.conversations.navigation.ConversationsNavigation
-import com.meloda.fast.screens.login.navigation.LoginNavigation
+import com.meloda.fast.screens.conversations.navigation.ConversationsScreen
+import com.meloda.fast.screens.login.navigation.LoginScreen
 import com.meloda.fast.screens.main.model.LongPollState
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.screens.settings.UserSettings
@@ -245,8 +245,8 @@ class MainActivity : ComponentActivity(R.layout.activity_main) {
     }
 
     private val exitScreens = listOf(
-        LoginNavigation::class.java,
-        ConversationsNavigation::class.java
+        LoginScreen::class.java,
+        ConversationsScreen::class.java
     )
 
     @Composable
@@ -288,9 +288,9 @@ data class HomeScreen(val viewModel: MainViewModel) : AndroidScreen() {
 
         if (screenState.accountsLoaded) {
             if (screenState.accounts.isNotEmpty() && UserConfig.isLoggedIn()) {
-                navigator.replace(ConversationsNavigation)
+                navigator.replace(ConversationsScreen)
             } else {
-                navigator.replace(LoginNavigation)
+                navigator.replace(LoginScreen)
             }
         }
     }

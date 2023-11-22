@@ -1,7 +1,5 @@
 package com.meloda.fast.screens.settings.presentation.items
 
-import android.content.Context
-import android.view.LayoutInflater
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,21 +11,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.fast.R
 import com.meloda.fast.compose.MaterialDialog
-import com.meloda.fast.databinding.ItemSettingsEditTextAlertBinding
+import com.meloda.fast.ext.LocalContentAlpha
 import com.meloda.fast.ext.getString
-import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
 import com.meloda.fast.screens.settings.model.SettingsItem
+import com.meloda.fast.ui.ContentAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,15 +35,12 @@ fun EditTextSettingsItem(
     onSettingsLongClickListener: OnSettingsLongClickListener,
     onSettingsChangeListener: OnSettingsChangeListener
 ) {
-    val context = LocalContext.current
-
     var title by remember { mutableStateOf(item.title) }
     item.onTitleChanged = { newTitle -> title = newTitle }
 
     var summary by remember { mutableStateOf(item.summary) }
     item.onSummaryChanged = { newSummary -> summary = newSummary }
 
-    // TODO: 07.04.2023, Danil Nikolaev: handle isEnabled
     var isEnabled by remember { mutableStateOf(item.isEnabled) }
     item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
 
@@ -89,53 +83,35 @@ fun EditTextSettingsItem(
             horizontalAlignment = Alignment.Start
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            title?.getString()?.let { title ->
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = if (isMultiline) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            LocalContentAlpha(
+                alpha = if (isEnabled) ContentAlpha.high else ContentAlpha.disabled
+            ) {
+                title?.getString()?.let { title ->
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            summary?.getString()?.let { summary ->
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = if (isMultiline) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+
+            LocalContentAlpha(
+                alpha = if (isEnabled) ContentAlpha.medium else ContentAlpha.disabled
+            ) {
+                summary?.getString()?.let { summary ->
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(14.dp))
         }
         Spacer(modifier = Modifier.width(16.dp))
     }
-}
-
-private fun showEditTextAlert(
-    context: Context,
-    item: SettingsItem.TextField,
-    onSettingsChangeListener: OnSettingsChangeListener
-) {
-    val binding = ItemSettingsEditTextAlertBinding.inflate(
-        LayoutInflater.from(context), null, false
-    )
-
-    binding.editText.setText(item.value)
-
-    context.showDialog(
-        title = item.title,
-        view = binding.root,
-        positiveText = UiText.Resource(R.string.ok),
-        positiveAction = {
-            val newValue = binding.editText.text.toString()
-
-            if (item.value != newValue) {
-                item.value = newValue
-                onSettingsChangeListener.onChange(item.key, newValue)
-            }
-        },
-        negativeText = UiText.Resource(R.string.cancel)
-    )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

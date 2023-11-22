@@ -6,12 +6,10 @@ import androidx.core.content.edit
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.database.CacheDatabase
 import com.meloda.fast.ext.ifEmpty
@@ -20,8 +18,8 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
-import com.meloda.fast.screens.main.model.LongPollState
 import com.meloda.fast.screens.main.MainActivity
+import com.meloda.fast.screens.main.model.LongPollState
 import com.meloda.fast.screens.settings.model.SettingsItem
 import com.meloda.fast.screens.settings.model.SettingsScreenState
 import com.meloda.fast.screens.settings.model.SettingsShowOptions
@@ -51,12 +49,12 @@ interface SettingsViewModel {
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
     fun onHapticsUsed()
+    fun onNavigatedToUpdates()
 }
 
 class SettingsViewModelImpl constructor(
     private val accountsDao: AccountsDao,
     private val cacheDatabase: CacheDatabase,
-    private val router: Router,
 ) : SettingsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
@@ -177,6 +175,10 @@ class SettingsViewModelImpl constructor(
 
     override fun onHapticsUsed() {
         screenState.setValue { old -> old.copy(useHaptics = HapticType.None) }
+    }
+
+    override fun onNavigatedToUpdates() {
+        screenState.setValue { old -> old.copy(isNeedToOpenUpdates = false) }
     }
 
     private fun emitShowOptions(function: (SettingsShowOptions) -> SettingsShowOptions) {
@@ -307,7 +309,8 @@ class SettingsViewModelImpl constructor(
             )
             val updatesCheckUpdates = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_UPDATES_CHECK_UPDATES,
-                title = UiText.Simple("Check updates")
+                title = UiText.Simple("Check updates"),
+                isEnabled = false
             )
 
             val msAppCenterTitle = SettingsItem.Title.build(
@@ -420,7 +423,7 @@ class SettingsViewModelImpl constructor(
     }
 
     private fun openUpdatesScreen() {
-        router.navigateTo(Screens.Updates())
+        screenState.setValue { old -> old.copy(isNeedToOpenUpdates = true) }
     }
 }
 

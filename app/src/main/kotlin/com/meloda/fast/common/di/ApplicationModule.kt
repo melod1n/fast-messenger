@@ -3,9 +3,9 @@ package com.meloda.fast.common.di
 import com.meloda.fast.di.apiModule
 import com.meloda.fast.di.dataModule
 import com.meloda.fast.di.databaseModule
-import com.meloda.fast.di.navigationModule
 import com.meloda.fast.di.networkModule
 import com.meloda.fast.di.otaModule
+import com.meloda.fast.di.utilModule
 import com.meloda.fast.screens.captcha.di.captchaModule
 import com.meloda.fast.screens.conversations.di.conversationsModule
 import com.meloda.fast.screens.login.di.loginModule
@@ -23,12 +23,12 @@ import org.koin.dsl.module
 
 val applicationModule = module {
     includes(
-        navigationModule,
         databaseModule,
         dataModule,
         otaModule,
         networkModule,
         apiModule,
+        utilModule,
         loginModule,
         twoFaModule,
         captchaModule,

@@ -28,6 +28,7 @@ import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
 import com.meloda.fast.ext.createTimerFlow
+import com.meloda.fast.ext.emitOnScope
 import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.findWithIndex
 import com.meloda.fast.ext.setValue
@@ -39,10 +40,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 interface ConversationsViewModel {
 
@@ -62,7 +65,6 @@ interface ConversationsViewModel {
 
     fun onPinDialogDismissed()
     fun onPinDialogPositiveClick(conversation: VkConversationUi)
-    fun onToolbarMenuItemClicked(itemId: Int): Boolean
 }
 
 class ConversationsViewModelImpl constructor(
@@ -70,22 +72,17 @@ class ConversationsViewModelImpl constructor(
     private val usersRepository: UsersRepository,
     updatesParser: LongPollUpdatesParser,
     private val messagesRepository: MessagesRepository,
-    private val accountsDao: AccountsDao
+    private val accountsDao: AccountsDao,
+    private val imageLoader: ImageLoader
 ) : ConversationsViewModel, BaseViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
 
-    private val pinnedConversationsCount = MutableStateFlow(0)
-
     private val domainConversations = MutableStateFlow<List<VkConversationDomain>>(emptyList())
 
-
-    // TODO: 25.08.2023, Danil Nikolaev: extract to DI
-    private val imageLoader by lazy {
-        ImageLoader.Builder(AppGlobal.Instance)
-            .crossfade(true)
-            .build()
-    }
+    private val pinnedConversationsCount = domainConversations.map { conversations ->
+        conversations.filter { conversation -> conversation.isPinned() }.size
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
         val multilineEnabled = AppGlobal.preferences.getBoolean(
@@ -162,29 +159,10 @@ class ConversationsViewModelImpl constructor(
         pinConversation(conversation.id, !conversation.isPinned)
     }
 
-    // TODO: 25.08.2023, Danil Nikolaev: rewrite
-    override fun onToolbarMenuItemClicked(itemId: Int): Boolean {
-        return when (itemId) {
-            0 -> {
-//                router.navigateTo(Screens.Settings())
-                true
-            }
-
-            1 -> {
-                onRefresh()
-                true
-            }
-
-            else -> false
-        }
-    }
-
     private fun emitDomainConversations(conversations: List<VkConversationDomain>) {
         val pinnedConversationsCount = conversations.filter(VkConversationDomain::isPinned).size
 
-        viewModelScope.launch {
-            domainConversations.emit(conversations)
-        }
+        domainConversations.emitOnScope { conversations }
 
         val uiConversations = conversations.map(VkConversationDomain::mapToPresentation)
 
@@ -203,7 +181,6 @@ class ConversationsViewModelImpl constructor(
 
     private fun loadConversations(offset: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-
             screenState.setValue { old -> old.copy(isLoading = true) }
 
             sendRequest(
@@ -328,7 +305,12 @@ class ConversationsViewModelImpl constructor(
                         conversationsRepository.pin(ConversationsPinRequest(peerId))
                     },
                     onResponse = {
-                        handleConversationPinStateUpdate(peerId, true)
+                        handlePinStateChanged(
+                            LongPollEvent.VkConversationPinStateChangedEvent(
+                                peerId = peerId,
+                                majorId = (pinnedConversationsCount.value + 1) * 16
+                            )
+                        )
                     }
                 )
             } else {
@@ -337,30 +319,15 @@ class ConversationsViewModelImpl constructor(
                         conversationsRepository.unpin(ConversationsUnpinRequest(peerId))
                     },
                     onResponse = {
-                        handleConversationPinStateUpdate(peerId, false)
+                        handlePinStateChanged(
+                            LongPollEvent.VkConversationPinStateChangedEvent(
+                                peerId = peerId,
+                                majorId = 0
+                            )
+                        )
                     }
                 )
             }
-        }
-    }
-
-    // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
-    private suspend fun handleConversationPinStateUpdate(peerId: Int, pin: Boolean) {
-        withContext(Dispatchers.IO) {
-            val newConversations = domainConversations.value.toMutableList()
-            val conversationIndex =
-                newConversations.findIndex { it.id == peerId } ?: return@withContext
-
-            val conversation = newConversations[conversationIndex]
-            newConversations.removeAt(conversationIndex)
-
-            if (pin) {
-                newConversations.add(0, conversation)
-            } else {
-                newConversations.add(pinnedConversationsCount.value - 1, conversation)
-            }
-
-            emitDomainConversations(newConversations)
         }
     }
 
@@ -466,9 +433,9 @@ class ConversationsViewModelImpl constructor(
             emitDomainConversations(newConversations)
         }
 
-    // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
     private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) =
         viewModelScope.launch(Dispatchers.IO) {
+            var pinnedCount = pinnedConversationsCount.value
             val newConversations = domainConversations.value.toMutableList()
 
             val conversationIndex =
@@ -477,13 +444,30 @@ class ConversationsViewModelImpl constructor(
             val pin = event.majorId > 0
 
             val conversation = newConversations[conversationIndex]
+                .copyWithEssentials { conversation ->
+                    conversation.copy(majorId = event.majorId)
+                }
 
             newConversations.removeAt(conversationIndex)
 
             if (pin) {
                 newConversations.add(0, conversation)
             } else {
-                newConversations.add(pinnedConversationsCount.value - 1, conversation)
+                pinnedCount -= 1
+
+                newConversations.add(conversation)
+
+                val pinnedSubList = newConversations.filter(VkConversationDomain::isPinned)
+                val unpinnedSubList = newConversations
+                    .filterNot(VkConversationDomain::isPinned)
+                    .toMutableList()
+
+                unpinnedSubList.sortByDescending { item ->
+                    item.lastMessage?.date
+                }
+
+                newConversations.clear()
+                newConversations += pinnedSubList + unpinnedSubList
             }
 
             emitDomainConversations(newConversations)

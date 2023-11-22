@@ -6,11 +6,11 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
 import com.meloda.fast.screens.twofa.presentation.TwoFaRoute
-import com.meloda.fast.screens.twofa.presentation.TwoFaViewModel
-import com.meloda.fast.screens.twofa.presentation.TwoFaViewModelImpl
+import com.meloda.fast.screens.twofa.TwoFaViewModel
+import com.meloda.fast.screens.twofa.TwoFaViewModelImpl
 import org.koin.androidx.compose.koinViewModel
 
-data class TwoFaNavigation(
+data class TwoFaScreen(
     val arguments: TwoFaArguments,
     val codeResult: (String) -> Unit
 ) : Screen {

@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.ext.getString
+import com.meloda.fast.screens.twofa.TwoFaViewModel
+import com.meloda.fast.screens.twofa.TwoFaViewModelImpl
 import com.meloda.fast.screens.twofa.model.TwoFaScreenState
 import com.meloda.fast.ui.widgets.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
@@ -55,7 +57,7 @@ fun TwoFaRoute(
         codeResult(screenState.twoFaCode)
     }
 
-    TwoFaScreen(
+    TwoFaScreenContent(
         onBackClicked = viewModel::onBackButtonClicked,
         onCodeInputChanged = viewModel::onCodeInputChanged,
         onTextFieldDoneClicked = viewModel::onTextFieldDoneClicked,
@@ -66,7 +68,7 @@ fun TwoFaRoute(
 }
 
 @Composable
-fun TwoFaScreen(
+fun TwoFaScreenContent(
     onBackClicked: () -> Unit,
     onCodeInputChanged: (String) -> Unit,
     onTextFieldDoneClicked: () -> Unit,

@@ -18,7 +18,9 @@ import com.meloda.fast.common.UpdateManagerState
 import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.UpdateItem
+import com.meloda.fast.model.base.UiText
 import com.meloda.fast.receiver.DownloadManagerReceiver
 import com.meloda.fast.screens.updates.model.UpdateState
 import com.meloda.fast.screens.updates.model.UpdatesScreenState
@@ -26,7 +28,6 @@ import com.meloda.fast.util.AndroidUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import java.io.File
@@ -35,7 +36,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 interface UpdatesViewModel {
     val screenState: MutableStateFlow<UpdatesScreenState>
-    val currentDownloadProgress: StateFlow<Int>
 
     val isNeedToShowChangelogAlert: Flow<Boolean>
     val isNeedToShowUnknownSourcesAlert: Flow<Boolean>
@@ -63,7 +63,6 @@ class UpdatesViewModelImpl constructor(
 ) : BaseViewModel(), UpdatesViewModel {
 
     override val screenState = MutableStateFlow(UpdatesScreenState.EMPTY)
-    override val currentDownloadProgress = MutableStateFlow(0)
 
     override val isNeedToShowChangelogAlert = MutableStateFlow(false)
     override val isNeedToShowUnknownSourcesAlert = MutableStateFlow(false)
@@ -78,6 +77,8 @@ class UpdatesViewModelImpl constructor(
 
     init {
         updateManager.stateFlow.listenValue(::updateState)
+
+        checkUpdates()
     }
 
     override fun onUpdateItemExists(updateItem: UpdateItem) {
@@ -170,16 +171,15 @@ class UpdatesViewModelImpl constructor(
         file.delete()
     }
 
+    // TODO: 21/11/2023, Danil Nikolaev: check if still works
     private fun updateState(updateManagerState: UpdateManagerState) {
-        val item = UpdateItem.EMPTY
-//            updateManagerState.updateItem
+        val item = updateManagerState.updateItem
         val error = updateManagerState.throwable
 
         var fileExists = false
 
         if (item != null) {
-            // TODO: 26.03.2023, Danil Nikolaev: use updateItem
-            val apkName = "bruhLol"
+            val apkName = item.fileName
 
             val apkFileName = "$apkName.apk"
 
@@ -316,14 +316,18 @@ class UpdatesViewModelImpl constructor(
 
                     val intProgress = progress.roundToInt()
                     if (intProgress >= 1) {
-                        currentDownloadProgress.emit(intProgress)
+                        screenState.updateValue(
+                            screenState.value.copy(currentDownloadProgress = intProgress)
+                        )
                     }
 
                     Log.d("Downloading update", "progress: $progress%")
 
                     if (intProgress >= 100) {
                         isDownloaded = true
-                        currentDownloadProgress.emit(0)
+                        screenState.updateValue(
+                            screenState.value.copy(currentDownloadProgress = 0)
+                        )
                         updateUpdateState(UpdateState.Downloaded)
                     }
                 }
@@ -364,12 +368,76 @@ class UpdatesViewModelImpl constructor(
     }
 
     private fun updateUpdateState(newState: UpdateState) {
-        val newForm = screenState.value.copy(updateState = newState)
-        screenState.update { newForm }
+        val title = when (newState) {
+            UpdateState.Error -> R.string.error_occurred
+            UpdateState.NewUpdate -> R.string.fragment_updates_new_version
+            UpdateState.NoUpdates -> R.string.fragment_updates_no_updates
+            UpdateState.Downloaded -> R.string.fragment_updates_downloaded
+            else -> null
+        }?.let(UiText::Resource)
+
+        val subtitle = when (newState) {
+            UpdateState.Error -> {
+                screenState.value.error?.let { error ->
+                    if (error.contains("cannot be converted", ignoreCase = true)
+                        || error.contains("begin_object", ignoreCase = true)
+                    ) {
+                        UiText.Simple("OTA Server is unavailable")
+                    } else {
+                        UiText.ResourceParams(
+                            R.string.error_occurred_description,
+                            listOf(error)
+                        )
+                    }
+                }
+            }
+
+            UpdateState.NewUpdate, UpdateState.Downloaded -> {
+                screenState.value.updateItem?.let { item ->
+                    UiText.ResourceParams(
+                        R.string.fragment_updates_new_version_description,
+                        listOf(item.versionName)
+                    )
+                }
+            }
+
+            UpdateState.NoUpdates -> {
+                UiText.Resource(R.string.fragment_updates_no_updates_description)
+            }
+
+            else -> null
+        }
+
+        val actionButtonText = when (newState) {
+            UpdateState.Error -> R.string.fragment_updates_try_again
+            UpdateState.NewUpdate -> R.string.fragment_updates_download_update
+            UpdateState.NoUpdates -> R.string.fragment_updates_check_updates
+            UpdateState.Downloaded -> R.string.fragment_updates_install
+            else -> null
+        }?.let(UiText::Resource)
+
+        val actionButtonIcon = when (newState) {
+            UpdateState.Error -> R.drawable.round_restart_alt_24
+            UpdateState.NewUpdate -> R.drawable.round_file_download_24
+            UpdateState.Downloaded -> R.drawable.round_install_mobile_24
+            else -> null
+        }
+
+        screenState.updateValue(
+            screenState.value.copy(
+                updateState = newState,
+                title = title,
+                subtitle = subtitle,
+                actionButtonText = actionButtonText,
+                actionButtonIcon = actionButtonIcon
+            )
+        )
     }
 
     private fun cancelCurrentDownload() {
-        currentDownloadProgress.tryEmit(0)
+        screenState.updateValue(
+            screenState.value.copy(currentDownloadProgress = 0)
+        )
         downloadId?.run { downloadManager.remove(this) }
         checkUpdates()
     }
@@ -378,3 +446,103 @@ class UpdatesViewModelImpl constructor(
         private const val ARG_PROVIDER_PATH = ".provider"
     }
 }
+
+
+/*
+   private fun showUnknownSourcesAlert() {
+        context?.showDialog(
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Resource(R.string.fragment_updates_unknown_sources_disabled_message),
+            positiveText = UiText.Resource(R.string.yes),
+            positiveAction = { AndroidUtils.openInstallUnknownAppsScreen(requireContext()) },
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onUnknownSourcesAlertDismissed,
+            isCancelable = false
+        )
+    }
+
+    private fun showChangelogAlert() {
+        val messageText =
+            viewModel.screenState.value.updateItem?.changelog?.ifBlank {
+                changelogPlaceholder
+            } ?: changelogPlaceholder
+
+        context?.showDialog(
+            title = UiText.Resource(R.string.fragment_updates_changelog),
+            message = UiText.Simple(messageText),
+            positiveText = UiText.Resource(R.string.ok),
+            onDismissAction = viewModel::onChangelogAlertDismissed
+        )
+    }
+
+    private fun showIssuesAlert() {
+        context?.showDialog(
+            message = UiText.Resource(R.string.fragment_updates_issues_description),
+            positiveText = UiText.Resource(R.string.action_delete),
+            positiveAction = viewModel::onIssuesAlertPositiveButtonClicked,
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = viewModel::onIssuesAlertDismissed
+        )
+    }
+
+    private fun showFileNotFoundAlert() {
+        context?.showDialog(
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Resource(R.string.fragment_updates_file_not_found_description),
+            positiveText = UiText.Resource(R.string.ok),
+            onDismissAction = viewModel::onFileNotFoundAlertDismissed,
+            isCancelable = false
+        )
+    }
+
+    private fun writeFileToStorage(responseBody: ResponseBody?) {
+        if (responseBody == null) return
+
+        val updateItem = requireNotNull(viewModel.currentItem.value)
+
+        try {
+            val destination = requireContext()
+                .getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() +
+                    "${File.separator}${updateItem.fileName}.${updateItem.extension}"
+
+            val file = File(destination)
+            if (file.exists()) file.delete()
+
+            var inputStream: InputStream? = null
+            var outputStream: OutputStream? = null
+            try {
+                val fileReader = ByteArray(4096)
+                val fileSize: Long = responseBody.contentLength()
+
+                requireActivity().runOnUiThread {
+                    binding.loadingProgress.max = fileSize.toInt()
+                    binding.loadingProgress.progress = 0
+                }
+
+                var fileSizeDownloaded: Long = 0
+                inputStream = responseBody.byteStream()
+                outputStream = FileOutputStream(file)
+                while (true) {
+                    val read: Int = inputStream.read(fileReader)
+                    if (read == -1) {
+                        break
+                    }
+                    outputStream.write(fileReader, 0, read)
+                    fileSizeDownloaded += read.toLong()
+                }
+                outputStream.flush()
+
+                requireActivity().runOnUiThread {
+                    installUpdate(file)
+                }
+            } catch (e: IOException) {
+
+            } finally {
+                inputStream?.close()
+                outputStream?.close()
+            }
+        } catch (e: IOException) {
+
+        }
+    }
+ */

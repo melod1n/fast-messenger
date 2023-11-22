@@ -192,7 +192,6 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <!-- TODO: добавлять время после сообщения -->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/date"
                     android:layout_width="wrap_content"

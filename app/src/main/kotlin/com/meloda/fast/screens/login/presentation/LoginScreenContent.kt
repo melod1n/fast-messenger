@@ -29,7 +29,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,12 +69,29 @@ fun LoginRoute(
     navigateToConversations: () -> Unit,
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
-    val showLogo by viewModel.isNeedToShowLogo.collectAsState()
+    val showLogo by viewModel.isNeedToShowLogo.collectAsStateWithLifecycle()
 
     BackHandler(enabled = !showLogo) {
         viewModel.onBackPressed()
     }
 
+    LoginScreenContent(
+        navigateToTwoFa = navigateToTwoFa,
+        navigateToCaptcha = navigateToCaptcha,
+        navigateToConversations = navigateToConversations,
+        showLogo = showLogo,
+        viewModel = viewModel
+    )
+}
+
+@Composable
+fun LoginScreenContent(
+    navigateToTwoFa: (twoFaArguments: TwoFaArguments) -> Unit,
+    navigateToCaptcha: (captchaArguments: CaptchaArguments) -> Unit,
+    navigateToConversations: () -> Unit,
+    showLogo: Boolean,
+    viewModel: LoginViewModel
+) {
     Surface(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier

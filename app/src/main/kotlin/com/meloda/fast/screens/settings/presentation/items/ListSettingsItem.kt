@@ -9,12 +9,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.fast.R
 import com.meloda.fast.compose.ItemsSelectionType
 import com.meloda.fast.compose.MaterialDialog
+import com.meloda.fast.ext.LocalContentAlpha
 import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.showDialog
 import com.meloda.fast.model.base.UiText
@@ -22,6 +22,7 @@ import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
 import com.meloda.fast.screens.settings.model.SettingsItem
+import com.meloda.fast.ui.ContentAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -32,8 +33,6 @@ fun ListSettingsItem(
     onSettingsLongClickListener: OnSettingsLongClickListener,
     onSettingsChangeListener: OnSettingsChangeListener
 ) {
-    val context = LocalContext.current
-
     var showDialog by remember { mutableStateOf(false) }
 
     var title by remember { mutableStateOf(item.title) }
@@ -77,21 +76,30 @@ fun ListSettingsItem(
             horizontalAlignment = Alignment.Start
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            title?.getString()?.let { title ->
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = if (isMultiline) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            LocalContentAlpha(
+                alpha = if (isEnabled) ContentAlpha.high else ContentAlpha.disabled
+            ) {
+                title?.getString()?.let { title ->
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            summary?.getString()?.let { summary ->
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = if (isMultiline) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+
+            LocalContentAlpha(
+                alpha = if (isEnabled) ContentAlpha.medium else ContentAlpha.disabled
+            ) {
+                summary?.getString()?.let { summary ->
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(14.dp))
         }

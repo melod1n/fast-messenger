@@ -61,6 +61,7 @@ fun MaterialDialogPreview() {
     }
 }
 
+// TODO: 08.04.2023, Danil Nikolaev: review
 @Composable
 fun MaterialDialog(
     onDismissAction: (() -> Unit),
@@ -100,7 +101,6 @@ fun MaterialDialog(
     }
 
     AppTheme {
-        // TODO: 08.04.2023, Danil Nikolaev: implement animation
         AlertAnimation(visible = isVisible) {
             Dialog(onDismissRequest = onDismissRequest) {
                 val scrollState = rememberScrollState()

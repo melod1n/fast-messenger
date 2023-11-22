@@ -17,13 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,8 +40,10 @@ import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.InteractionType
+import com.meloda.fast.ext.LocalContentAlpha
 import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.screens.conversations.DotsFlashing
+import com.meloda.fast.ui.ContentAlpha
 import com.meloda.fast.ui.widgets.CoilImage
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -108,7 +107,6 @@ fun Conversation(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(modifier = Modifier.size(56.dp)) {
-
                     if (id == UserConfig.userId) {
                         Box(
                             modifier = Modifier
@@ -278,7 +276,7 @@ fun Conversation(
                                 Spacer(modifier = Modifier.width(2.dp))
                             }
 
-                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                            LocalContentAlpha(alpha = ContentAlpha.medium) {
                                 Text(
                                     modifier = Modifier.weight(1f),
                                     text = message,
@@ -294,7 +292,12 @@ fun Conversation(
 
                 Spacer(modifier = Modifier.width(4.dp))
                 Column {
-                    Text(text = date)
+                    LocalContentAlpha(alpha = ContentAlpha.medium) {
+                        Text(
+                            text = date,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
                     unreadCount?.let { count ->
                         Spacer(modifier = Modifier.height(6.dp))

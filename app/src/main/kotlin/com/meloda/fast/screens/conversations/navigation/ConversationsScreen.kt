@@ -6,10 +6,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.meloda.fast.screens.conversations.presentation.ConversationsRoute
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
-import com.meloda.fast.screens.messages.navigation.MessagesHistoryNavigation
-import com.meloda.fast.screens.settings.navigation.SettingsNavigation
+import com.meloda.fast.screens.messages.navigation.MessagesHistoryScreen
+import com.meloda.fast.screens.settings.navigation.SettingsScreen
 
-object ConversationsNavigation : Screen {
+object ConversationsScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -17,7 +17,7 @@ object ConversationsNavigation : Screen {
         ConversationsRoute(
             navigateToMessagesHistory = { conversation ->
                 navigator.push(
-                    MessagesHistoryNavigation(
+                    MessagesHistoryScreen(
                         messagesHistoryArguments = MessagesHistoryArguments(
                             conversation = conversation
                         )
@@ -25,7 +25,7 @@ object ConversationsNavigation : Screen {
                 )
             },
             navigateToSettings = {
-                navigator.push(SettingsNavigation)
+                navigator.push(SettingsScreen)
             }
         )
     }

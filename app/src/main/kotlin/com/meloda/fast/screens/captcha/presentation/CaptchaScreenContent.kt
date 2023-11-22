@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.request.ImageRequest
 import com.meloda.fast.R
+import com.meloda.fast.screens.captcha.CaptchaViewModel
 import com.meloda.fast.screens.captcha.model.CaptchaScreenState
 import com.meloda.fast.ui.widgets.CoilImage
 import com.meloda.fast.ui.widgets.TextFieldErrorText
@@ -56,7 +57,7 @@ fun CaptchaRoute(
         codeResult(screenState.captchaCode)
     }
 
-    CaptchaScreen(
+    CaptchaScreenContent(
         onCancelButtonClicked = onBackClicked,
         onCodeInputChanged = viewModel::onCodeInputChanged,
         onTextFieldDoneClicked = viewModel::onTextFieldDoneClicked,
@@ -66,7 +67,7 @@ fun CaptchaRoute(
 }
 
 @Composable
-fun CaptchaScreen(
+fun CaptchaScreenContent(
     onCancelButtonClicked: () -> Unit,
     onCodeInputChanged: (String) -> Unit,
     onTextFieldDoneClicked: () -> Unit,

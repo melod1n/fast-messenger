@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.twofa.presentation
+package com.meloda.fast.screens.twofa
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope

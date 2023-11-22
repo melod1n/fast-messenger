@@ -12,17 +12,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.compose.MaterialDialog
-import com.meloda.fast.ext.isSystemUsingDarkMode
 import com.meloda.fast.ext.isUsingDarkTheme
 import com.meloda.fast.ext.notNull
 import com.meloda.fast.model.base.UiText
@@ -44,6 +41,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsRoute(
+    navigateToUpdates: () -> Unit,
     navigateToLogin: () -> Unit,
     onBackClick: () -> Unit,
     onUseDarkThemeChanged: (Boolean) -> Unit,
@@ -59,7 +57,12 @@ fun SettingsRoute(
         viewModel.onHapticsUsed()
     }
 
-    SettingsScreen(
+    if (screenState.isNeedToOpenUpdates) {
+        viewModel.onNavigatedToUpdates()
+        navigateToUpdates()
+    }
+
+    SettingsScreenContent(
         onBackClick = onBackClick,
         onSettingsItemClicked = viewModel::onSettingsItemClicked,
         onSettingsItemLongClicked = viewModel::onSettingsItemLongClicked,
@@ -71,7 +74,7 @@ fun SettingsRoute(
                 }
 
                 SettingsKeys.KEY_APPEARANCE_DARK_THEME -> {
-                    val newMode = newValue as? Int ?: return@SettingsScreen
+                    val newMode = newValue as? Int ?: return@SettingsScreenContent
                     AppCompatDelegate.setDefaultNightMode(newMode)
 
                     val isUsing = isUsingDarkTheme()
@@ -98,7 +101,7 @@ fun SettingsRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
+fun SettingsScreenContent(
     onBackClick: () -> Unit,
     onSettingsItemClicked: (key: String) -> Unit,
     onSettingsItemLongClicked: (key: String) -> Unit,
@@ -112,13 +115,6 @@ fun SettingsScreen(
     val clickListener = OnSettingsClickListener(onSettingsItemClicked)
     val longClickListener = OnSettingsLongClickListener(onSettingsItemLongClicked)
     val changeListener = OnSettingsChangeListener(onSettingsItemChanged)
-
-    // TODO: 17.04.2023, Danil Nikolaev: make it work
-    val systemUiController = rememberSystemUiController()
-    DisposableEffect(systemUiController) {
-        systemUiController.systemBarsDarkContentEnabled = !isSystemUsingDarkMode()
-        onDispose {}
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

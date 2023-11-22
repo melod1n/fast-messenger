@@ -5,10 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import com.meloda.fast.base.BaseFragment
+import androidx.fragment.app.Fragment
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class PhotoViewFragment : BaseFragment() {
+class PhotoViewFragment : Fragment() {
 
     private val viewModel: PhotoViewViewModel by viewModel()
 

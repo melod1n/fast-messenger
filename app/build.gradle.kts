@@ -118,12 +118,11 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.4"
         useLiveLiterals = true
     }
 }
@@ -137,8 +136,6 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
-
-
     // DI zone
     //Koin for Default Android
     implementation("io.insert-koin:koin-android:3.5.0")
@@ -152,9 +149,6 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("io.coil-kt:coil:2.4.0")
-
-    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
-    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.10")
 
@@ -179,13 +173,9 @@ dependencies {
 
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
-
     implementation("androidx.room:room-ktx:2.6.0")
     implementation("androidx.room:room-runtime:2.6.0")
     ksp("androidx.room:room-compiler:2.6.0")
-
-    implementation("com.github.terrakok:cicerone:7.1")
 
     implementation("com.github.massoudss:waveformSeekBar:5.0.0")
 
@@ -207,8 +197,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.3")
 
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
-
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.google.guava:guava:32.1.3-jre")
@@ -217,30 +205,30 @@ dependencies {
 
     implementation("com.github.chuckerteam.chucker:library:4.0.0")
 
-    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
-
     // Compose zone
 
-    implementation("androidx.compose.material3:material3:1.1.1")
-    implementation("androidx.compose.ui:ui:1.5.1")
+    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
 
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.5.1")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui")
 
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
-    implementation("androidx.activity:activity-compose:1.7.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+    implementation("androidx.compose.material3:material3-window-size-class")
 
-    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha05")
+    implementation("androidx.activity:activity-compose")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose")
 
-    implementation("androidx.navigation:navigation-compose:2.7.5")
-
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
-    implementation("com.google.accompanist:accompanist-insets:0.31.5-beta")
-    implementation("com.google.accompanist:accompanist-insets-ui:0.33.1-alpha")
+    implementation("androidx.compose.runtime:runtime-saveable")
     // end of Compose zone
+
+    implementation("eu.bambooapps:compose-material3-pullrefresh:1.0.1")
+
+    // Accompanist zone
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
+    // end of Accompanist zone
 
     // Moshi zone
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")

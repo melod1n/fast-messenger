@@ -8,7 +8,8 @@ data class SettingsScreenState(
     val multilineEnabled: Boolean,
     val useDynamicColors: Boolean,
     val settings: List<SettingsItem<*>>,
-    val useHaptics: HapticType
+    val useHaptics: HapticType,
+    val isNeedToOpenUpdates: Boolean
 ) {
 
     companion object {
@@ -17,7 +18,8 @@ data class SettingsScreenState(
             multilineEnabled = SettingsKeys.DEFAULT_VALUE_MULTILINE,
             useDynamicColors = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS,
             settings = emptyList(),
-            useHaptics = HapticType.None
+            useHaptics = HapticType.None,
+            isNeedToOpenUpdates = false
         )
     }
 }

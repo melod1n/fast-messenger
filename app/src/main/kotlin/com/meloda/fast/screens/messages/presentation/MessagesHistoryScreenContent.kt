@@ -60,7 +60,7 @@ import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
 fun MessagesHistoryRoute(viewModel: MessagesHistoryViewModel) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
-    MessagesHistoryScreen(
+    MessagesHistoryScreenContent(
         onBackClicked = {},
         onAvatarClicked = {},
         onAttachmentAddClick = {},
@@ -81,7 +81,7 @@ fun MessagesHistoryRoute(viewModel: MessagesHistoryViewModel) {
     ExperimentalLayoutApi::class,
 )
 @Composable
-fun MessagesHistoryScreen(
+fun MessagesHistoryScreenContent(
     onBackClicked: () -> Unit,
     onAvatarClicked: () -> Unit,
     onAttachmentAddClick: () -> Unit,

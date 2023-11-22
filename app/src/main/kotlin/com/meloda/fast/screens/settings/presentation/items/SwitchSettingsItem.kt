@@ -11,12 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.meloda.fast.ext.LocalContentAlpha
 import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
 import com.meloda.fast.screens.settings.model.SettingsItem
+import com.meloda.fast.ui.ContentAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -52,7 +54,6 @@ fun SwitchSettingsItem(
         isChecked = newValue.isTrue
     }
 
-    // TODO: 07.04.2023, Danil Nikolaev: handle isEnabled
     var isEnabled by remember { mutableStateOf(item.isEnabled) }
     item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
 
@@ -80,21 +81,30 @@ fun SwitchSettingsItem(
             modifier = Modifier.weight(1f)
         ) {
             Spacer(modifier = Modifier.height(14.dp))
-            title?.getString()?.let { title ->
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = if (isMultiline) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            LocalContentAlpha(
+                alpha = if (isEnabled) ContentAlpha.high else ContentAlpha.disabled
+            ) {
+                title?.getString()?.let { title ->
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            summary?.getString()?.let { summary ->
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = if (isMultiline) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+
+            LocalContentAlpha(
+                alpha = if (isEnabled) ContentAlpha.medium else ContentAlpha.disabled
+            ) {
+                summary?.getString()?.let { summary ->
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(14.dp))
         }

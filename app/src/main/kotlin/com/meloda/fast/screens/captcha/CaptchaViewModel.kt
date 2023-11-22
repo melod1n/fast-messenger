@@ -1,4 +1,4 @@
-package com.meloda.fast.screens.captcha.presentation
+package com.meloda.fast.screens.captcha
 
 import androidx.lifecycle.ViewModel
 import com.meloda.fast.ext.updateValue

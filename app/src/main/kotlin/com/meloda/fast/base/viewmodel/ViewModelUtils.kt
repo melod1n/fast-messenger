@@ -2,7 +2,6 @@ package com.meloda.fast.base.viewmodel
 
 import android.content.Intent
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -12,6 +11,7 @@ import com.meloda.fast.screens.main.MainActivity
 
 object ViewModelUtils {
 
+    // TODO: 21/11/2023, Danil Nikolaev: parse all events in composables
     @Deprecated("rewrite")
     @Suppress("MemberVisibilityCanBePrivate")
     fun parseEvent(activity: FragmentActivity, event: VkEvent) {
@@ -25,6 +25,7 @@ object ViewModelUtils {
                 activity.finishAffinity()
                 activity.startActivity(Intent(activity, MainActivity::class.java))
             }
+
             is TokenExpiredErrorEvent -> {
                 Toast.makeText(
                     activity, R.string.token_expired, Toast.LENGTH_LONG
@@ -34,8 +35,9 @@ object ViewModelUtils {
                 activity.finishAffinity()
                 activity.startActivity(Intent(activity, MainActivity::class.java))
             }
+
             is UserBannedEvent -> {
-                // TODO: 17.04.2023, Danil Nikolaev: handle banned event
+                // TODO: 21/11/2023, Danil Nikolaev: use UserBannedScreen
 //                (activity as? MainActivity)?.accessRouter()?.newRootScreen(
 //                    Screens.UserBanned(
 //                        memberName = event.memberName,
@@ -45,6 +47,7 @@ object ViewModelUtils {
 //                    )
 //                )
             }
+
             is UnknownErrorEvent -> {
                 activity.showDialog(
                     title = UiText.Resource(R.string.title_error),
@@ -52,6 +55,7 @@ object ViewModelUtils {
                     positiveText = UiText.Resource(R.string.ok)
                 )
             }
+
             is VkErrorEvent -> {
                 event.errorText?.run {
                     activity.showDialog(
@@ -62,10 +66,5 @@ object ViewModelUtils {
                 }
             }
         }
-    }
-
-    @Deprecated("rewrite")
-    fun parseEvent(fragment: Fragment, event: VkEvent) {
-        parseEvent(fragment.requireActivity(), event)
     }
 }

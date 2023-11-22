@@ -22,10 +22,6 @@ fun TitleSettingsItem(
     var title by remember { mutableStateOf(item.title) }
     item.onTitleChanged = { newTitle -> title = newTitle }
 
-    // TODO: 07.04.2023, Danil Nikolaev: handle isEnabled
-    var isEnabled by remember { mutableStateOf(item.isEnabled) }
-    item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
-
     var isVisible by remember { mutableStateOf(item.isVisible) }
     item.onVisibleStateChanged = { newVisible -> isVisible = newVisible }
 

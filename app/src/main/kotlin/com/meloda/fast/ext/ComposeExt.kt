@@ -9,10 +9,14 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -149,3 +153,16 @@ fun isUsingDynamicColors(): Boolean = AppGlobal.preferences.getBoolean(
     SettingsKeys.KEY_USE_DYNAMIC_COLORS,
     SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
 )
+
+@Composable
+fun LocalContentAlpha(
+    defaultColor: Color = MaterialTheme.colorScheme.onBackground,
+    alpha: Float,
+    content: @Composable () -> Unit
+) {
+    CompositionLocalProvider(
+        LocalContentColor provides defaultColor.copy(alpha = alpha)
+    ) {
+        content()
+    }
+}

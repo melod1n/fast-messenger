@@ -12,6 +12,7 @@ import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -130,15 +131,15 @@ fun createTimerFlow(
     }
 
 context(ViewModel)
-fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(value, Dispatchers.Main)
+fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(Dispatchers.Main) { value }
 
 context(ViewModel)
 fun <T> MutableSharedFlow<T>.emitOnScope(
-    value: T,
-    dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    coroutineContext: CoroutineContext = Dispatchers.Default,
+    value: () -> T,
 ) {
-    viewModelScope.launch(dispatcher) {
-        emit(value)
+    viewModelScope.launch(coroutineContext) {
+        emit(value())
     }
 }
 
