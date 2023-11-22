@@ -116,11 +116,13 @@ sealed class SettingsItem<Value>(
                 key: String,
                 title: UiText,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 builder: Title.() -> Unit = {}
             ): Title {
                 return Title(key).apply {
                     this.title = title
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                 }.apply(builder)
             }
         }
@@ -136,12 +138,14 @@ sealed class SettingsItem<Value>(
                 title: UiText? = null,
                 summary: UiText? = null,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 builder: TitleSummary.() -> Unit = {}
             ): TitleSummary {
                 return TitleSummary(key).apply {
                     this.title = title
                     this.summary = summary
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                 }.apply(builder)
             }
         }
@@ -158,6 +162,7 @@ sealed class SettingsItem<Value>(
                 summary: UiText? = null,
                 defaultValue: String? = null,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 builder: TextField.() -> Unit = {}
             ): TextField {
                 return TextField(key).apply {
@@ -165,6 +170,7 @@ sealed class SettingsItem<Value>(
                     this.summary = summary
                     this.defaultValue = defaultValue
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                     this.value = AppGlobal.preferences.getString(key, defaultValue)
                 }.apply(builder)
             }
@@ -183,6 +189,7 @@ sealed class SettingsItem<Value>(
                 summary: UiText? = null,
                 isEnabled: Boolean = true,
                 isChecked: Boolean? = null,
+                isVisible: Boolean = true,
                 defaultValue: Boolean? = null,
                 builder: Switch.() -> Unit = {}
             ): Switch {
@@ -191,6 +198,7 @@ sealed class SettingsItem<Value>(
                     this.summary = summary
                     this.isEnabled = isEnabled
                     this.defaultValue = defaultValue
+                    this.isVisible = isVisible
                     this.value = defaultValue
                         ?.let { value -> AppGlobal.preferences.getBoolean(key, value) }
                         ?: isChecked
@@ -211,6 +219,7 @@ sealed class SettingsItem<Value>(
                 title: UiText? = null,
                 summary: UiText? = null,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 values: List<Int>,
                 valueTitles: List<UiText>,
                 defaultValue: Int? = null,
@@ -221,6 +230,7 @@ sealed class SettingsItem<Value>(
                     this.title = title
                     this.summary = summary
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                     this.values = values
                     this.valueTitles = valueTitles
 

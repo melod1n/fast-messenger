@@ -252,7 +252,7 @@ class SettingsViewModelImpl constructor(
             val appearanceUseDynamicColors = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_USE_DYNAMIC_COLORS,
                 title = UiText.Resource(R.string.settings_dynamic_colors),
-                isEnabled = isSdkAtLeast(Build.VERSION_CODES.S),
+                isVisible = isSdkAtLeast(Build.VERSION_CODES.S),
                 summary = UiText.Resource(R.string.settings_dynamic_colors_description),
                 defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
             )
