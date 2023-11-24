@@ -30,7 +30,7 @@ fun UserBannedScreenPreview() {
     UserBannedScreenContent(
         onBackClick = {},
         name = "Calvin Harris",
-        message = "Dolboeb",
+        message = "Eto konets",
         isLastScreenLogin = true
     )
 }

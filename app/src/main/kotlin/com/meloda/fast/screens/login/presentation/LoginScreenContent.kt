@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,7 +23,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -92,45 +90,45 @@ fun LoginScreenContent(
     showLogo: Boolean,
     viewModel: LoginViewModel
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        if (showLogo) {
-            LoginLogo(viewModel)
-        } else {
-            val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    Scaffold { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            if (showLogo) {
+                LoginLogo(viewModel)
+            } else {
+                val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
-            if (screenState.isNeedToOpenConversations) {
-                viewModel.onNavigatedToConversations()
+                if (screenState.isNeedToOpenConversations) {
+                    viewModel.onNavigatedToConversations()
 
-                navigateToConversations()
+                    navigateToConversations()
+                }
+
+                if (screenState.isNeedToOpenCaptcha) {
+                    viewModel.onNavigatedToCaptcha()
+
+                    val captchaArguments = screenState.captchaArguments ?: return@Box
+                    navigateToCaptcha(captchaArguments)
+                }
+
+                if (screenState.isNeedToOpenTwoFa) {
+                    viewModel.onNavigatedToTwoFa()
+
+                    val twoFaArguments = screenState.twoFaArguments ?: return@Box
+                    navigateToTwoFa(twoFaArguments)
+                }
+
+                LoginSignIn(
+                    onSignInClick = viewModel::onSignInButtonClicked,
+                    onLoginInputChanged = viewModel::onLoginInputChanged,
+                    onPasswordInputChanged = viewModel::onPasswordInputChanged,
+                    onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+                    screenState = screenState,
+                )
             }
-
-            if (screenState.isNeedToOpenCaptcha) {
-                viewModel.onNavigatedToCaptcha()
-
-                val captchaArguments = screenState.captchaArguments ?: return@Surface
-                navigateToCaptcha(captchaArguments)
-            }
-
-            if (screenState.isNeedToOpenTwoFa) {
-                viewModel.onNavigatedToTwoFa()
-
-                val twoFaArguments = screenState.twoFaArguments ?: return@Surface
-                navigateToTwoFa(twoFaArguments)
-            }
-
-            LoginSignIn(
-                onSignInClick = viewModel::onSignInButtonClicked,
-                onLoginInputChanged = viewModel::onLoginInputChanged,
-                onPasswordInputChanged = viewModel::onPasswordInputChanged,
-                onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
-                screenState = screenState,
-            )
         }
     }
 }
