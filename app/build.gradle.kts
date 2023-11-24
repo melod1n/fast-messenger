@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
@@ -21,12 +19,11 @@ val minorVersion = 6
 val patchVersion = 4
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-kapt")
-    id("kotlin-parcelize")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.com.android.application)
+    alias(libs.plugins.org.jetbrains.kotlin.android)
+//    id("kotlin-parcelize")
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
+    alias(libs.plugins.com.google.devtools.ksp)
 }
 
 android {
@@ -127,10 +124,6 @@ android {
     }
 }
 
-kapt {
-    correctErrorTypes = true
-}
-
 fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
@@ -138,129 +131,111 @@ val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 dependencies {
     // DI zone
     //Koin for Default Android
-    implementation("io.insert-koin:koin-android:3.5.0")
+    implementation(libs.koin.android)
 
     // Koin for Compose
-    implementation("io.insert-koin:koin-androidx-compose:3.5.2-RC1")
-    implementation("io.insert-koin:koin-androidx-compose-navigation:3.5.2-RC1")
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.compose.navigation)
     // end of DI zone
 
-    implementation("com.github.skydoves:cloudy:0.1.2")
+    implementation(libs.cloudy)
 
-    implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("io.coil-kt:coil:2.4.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil)
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.10")
+    implementation(libs.kotlin.reflect)
 
-    implementation("androidx.core:core-ktx:1.12.0")
+    implementation(libs.core.ktx)
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.core.splashscreen)
 
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(libs.appcompat)
 
-    implementation("androidx.activity:activity-ktx:1.8.0")
+    implementation(libs.activity.ktx)
 
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation(libs.fragment.ktx)
 
-    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation(libs.preference.ktx)
 
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation(libs.swiperefreshlayout)
 
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation(libs.recyclerview)
 
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation(libs.constraintlayout)
 
-    implementation("androidx.room:room-ktx:2.6.0")
-    implementation("androidx.room:room-runtime:2.6.0")
-    ksp("androidx.room:room-compiler:2.6.0")
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
 
-    implementation("com.github.massoudss:waveformSeekBar:5.0.0")
+    implementation(libs.glide)
+    ksp(libs.compiler)
 
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    ksp("com.github.bumptech.glide:compiler:4.16.0")
+    implementation(libs.kpermissions)
+    implementation(libs.kpermissions.coroutines)
 
-    implementation("com.github.fondesa:kpermissions:3.4.0")
-    implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
+    implementation(libs.appcenter.analytics)
+    implementation(libs.appcenter.crashes)
 
-    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.2")
-    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.2")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.logging.interceptor)
 
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.jdk9)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.3")
+    implementation(libs.gson)
 
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.guava)
 
-    implementation("com.google.guava:guava:32.1.3-jre")
+    implementation(libs.material)
 
-    implementation("com.google.android.material:material:1.10.0")
-
-    implementation("com.github.chuckerteam.chucker:library:4.0.0")
+    implementation(libs.library)
 
     // Compose zone
-
-    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
-
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui")
-
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    implementation("androidx.compose.material3:material3-window-size-class")
-
-    implementation("androidx.activity:activity-compose")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose")
-
-    implementation("androidx.compose.runtime:runtime-saveable")
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
     // end of Compose zone
 
-    implementation("eu.bambooapps:compose-material3-pullrefresh:1.0.1")
+    implementation(libs.compose.material3.pullrefresh)
 
     // Accompanist zone
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
+    implementation(libs.accompanist.drawablepainter)
     // end of Accompanist zone
 
     // Moshi zone
-    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
-    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.14.0")
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
     // end of Moshi zone
-
-    val voyagerVersion = "1.0.0-rc10"
 
     // Multiplatform
 
     // Navigator
-    implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+    implementation(libs.voyager.navigator)
 
     // BottomSheetNavigator
-    implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
+    implementation(libs.voyager.bottom.sheet.navigator)
 
     // TabNavigator
-    implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
+    implementation(libs.voyager.tab.navigator)
 
     // Transitions
-    implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+    implementation(libs.voyager.transitions)
 
     // Android
 
     // Android ViewModel integration
-    implementation("cafe.adriel.voyager:voyager-androidx:$voyagerVersion")
+    implementation(libs.voyager.androidx)
 
     // Koin integration
-    implementation("cafe.adriel.voyager:voyager-koin:$voyagerVersion")
+    implementation(libs.voyager.koin)
 
 
     // Tests zone
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
     // end of Tests zone
 }

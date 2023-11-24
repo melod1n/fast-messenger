@@ -9,11 +9,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import cafe.adriel.voyager.androidx.AndroidScreen
@@ -44,14 +44,13 @@ import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 
 
-class MainActivity : ComponentActivity(R.layout.activity_main) {
+class MainActivity : ComponentActivity() {
 
     private val updatesParser: LongPollUpdatesParser by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
 
         setContent {
             MainScreen()
