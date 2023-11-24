@@ -21,7 +21,6 @@ val patchVersion = 4
 plugins {
     alias(libs.plugins.com.android.application)
     alias(libs.plugins.org.jetbrains.kotlin.android)
-//    id("kotlin-parcelize")
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
 }
@@ -46,12 +45,6 @@ android {
         versionName = "alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-//                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
-        }
     }
 
     buildTypes {
@@ -138,8 +131,6 @@ dependencies {
     implementation(libs.koin.androidx.compose.navigation)
     // end of DI zone
 
-    implementation(libs.cloudy)
-
     implementation(libs.coil.compose)
     implementation(libs.coil)
 
@@ -150,28 +141,15 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.runtime.ktx)
 
-    implementation(libs.core.splashscreen)
-
-    implementation(libs.appcompat)
-
-    implementation(libs.activity.ktx)
-
-    implementation(libs.fragment.ktx)
-
     implementation(libs.preference.ktx)
-
-    implementation(libs.swiperefreshlayout)
-
-    implementation(libs.recyclerview)
-
-    implementation(libs.constraintlayout)
+    implementation(libs.material)
 
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
     implementation(libs.glide)
-    ksp(libs.compiler)
+    ksp(libs.glide.compiler)
 
     implementation(libs.kpermissions)
     implementation(libs.kpermissions.coroutines)
@@ -186,15 +164,12 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.jdk9)
 
     implementation(libs.gson)
 
     implementation(libs.guava)
 
-    implementation(libs.material)
-
-    implementation(libs.library)
+    implementation(libs.chucker)
 
     // Compose zone
     implementation(platform(libs.compose.bom))
@@ -212,28 +187,11 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
     // end of Moshi zone
 
-    // Multiplatform
-
-    // Navigator
+    // Voyager zone
     implementation(libs.voyager.navigator)
-
-    // BottomSheetNavigator
-    implementation(libs.voyager.bottom.sheet.navigator)
-
-    // TabNavigator
-    implementation(libs.voyager.tab.navigator)
-
-    // Transitions
-    implementation(libs.voyager.transitions)
-
-    // Android
-
-    // Android ViewModel integration
     implementation(libs.voyager.androidx)
-
-    // Koin integration
     implementation(libs.voyager.koin)
-
+    // end of Voyager zone
 
     // Tests zone
     testImplementation(libs.junit)

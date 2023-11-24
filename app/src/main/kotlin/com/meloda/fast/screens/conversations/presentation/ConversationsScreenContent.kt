@@ -62,6 +62,7 @@ import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
+import eu.bambooapps.material3.pullrefresh.PullRefreshState
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import org.koin.androidx.compose.koinViewModel
@@ -109,11 +110,6 @@ fun ConversationsScreenContent(
     val multilineEnabled = screenState.multilineEnabled
 
     val lazyListState = rememberLazyListState()
-
-//    val pullRefreshState = rememberPullRefreshState(
-//        refreshing = screenState.isLoading,
-//        onRefresh = viewModel::onRefresh
-//    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -203,26 +199,31 @@ fun ConversationsScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-//                    .pullRefresh(pullRefreshState)
             ) {
+                val pullRefreshState = rememberPullRefreshState(
+                    refreshing = screenState.isLoading,
+                    onRefresh = viewModel::onRefresh
+                )
+
                 ConversationsList(
                     onConversationsClick = onConversationsClick,
                     onConversationsLongClick = onConversationsLongClick,
                     conversations = conversations,
                     state = lazyListState,
                     maxLines = if (multilineEnabled) 2 else 1,
-                    avatarItems = avatars
+                    avatarItems = avatars,
+                    pullRefreshState = pullRefreshState
                 )
 
-//                PullRefreshIndicator(
-//                    refreshing = screenState.isLoading,
-//                    state = pullRefreshState,
-//                    modifier = Modifier.align(Alignment.TopCenter),
-//                    colors = PullRefreshIndicatorDefaults.colors(
-//                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-//                        contentColor = MaterialTheme.colorScheme.primary
-//                    )
-//                )
+                PullRefreshIndicator(
+                    refreshing = screenState.isLoading,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    colors = PullRefreshIndicatorDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                )
             }
         }
 
@@ -245,6 +246,7 @@ fun Loader() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationsList(
     onConversationsClick: (VkConversationUi) -> Unit,
@@ -252,7 +254,8 @@ fun ConversationsList(
     conversations: List<VkConversationUi>,
     state: LazyListState,
     maxLines: Int,
-    avatarItems: List<String>
+    avatarItems: List<String>,
+    pullRefreshState: PullRefreshState
 ) {
     val context = LocalContext.current
 
@@ -268,7 +271,8 @@ fun ConversationsList(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .pullRefresh(pullRefreshState),
         state = state
     ) {
         items(
