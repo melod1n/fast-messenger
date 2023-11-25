@@ -19,6 +19,9 @@ object LoginScreen : Screen {
         val viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 
         LoginRoute(
+            restart = {
+                // TODO: 25/11/2023, Danil Nikolaev: implement
+            },
             navigateToTwoFa = { arguments ->
                 navigator.push(
                     TwoFaScreen(

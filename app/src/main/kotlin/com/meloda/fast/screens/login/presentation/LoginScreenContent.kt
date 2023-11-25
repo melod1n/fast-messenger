@@ -62,6 +62,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LoginRoute(
+    restart: () -> Unit,
     navigateToTwoFa: (twoFaArguments: TwoFaArguments) -> Unit,
     navigateToCaptcha: (captchaArguments: CaptchaArguments) -> Unit,
     navigateToConversations: () -> Unit,
@@ -74,6 +75,7 @@ fun LoginRoute(
     }
 
     LoginScreenContent(
+        restart = restart,
         navigateToTwoFa = navigateToTwoFa,
         navigateToCaptcha = navigateToCaptcha,
         navigateToConversations = navigateToConversations,
@@ -84,6 +86,7 @@ fun LoginRoute(
 
 @Composable
 fun LoginScreenContent(
+    restart: () -> Unit,
     navigateToTwoFa: (twoFaArguments: TwoFaArguments) -> Unit,
     navigateToCaptcha: (captchaArguments: CaptchaArguments) -> Unit,
     navigateToConversations: () -> Unit,
@@ -100,6 +103,11 @@ fun LoginScreenContent(
                 LoginLogo(viewModel)
             } else {
                 val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+                if (screenState.isNeedToRestart) {
+                    viewModel.onRestarted()
+                    restart()
+                }
 
                 if (screenState.isNeedToOpenConversations) {
                     viewModel.onNavigatedToConversations()

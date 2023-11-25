@@ -19,7 +19,8 @@ data class LoginScreenState(
     val isNeedToOpenCaptcha: Boolean,
     val isNeedToOpenTwoFa: Boolean,
     val twoFaArguments: TwoFaArguments?,
-    val captchaArguments: CaptchaArguments?
+    val captchaArguments: CaptchaArguments?,
+    val isNeedToRestart: Boolean
 ) {
 
     companion object {
@@ -39,7 +40,8 @@ data class LoginScreenState(
             isNeedToOpenCaptcha = false,
             isNeedToOpenTwoFa = false,
             twoFaArguments = null,
-            captchaArguments = null
+            captchaArguments = null,
+            isNeedToRestart = false
         )
     }
 }

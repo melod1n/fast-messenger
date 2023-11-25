@@ -291,7 +291,7 @@ fun ConversationsList(
                 onItemLongClick = {
                     onConversationsLongClick(conversation)
                 },
-                id = conversation.id,
+                id = conversation.conversationId,
                 avatar = conversation.avatar.getImage(),
                 title = conversation.title.orDots(),
                 message = conversation.message,

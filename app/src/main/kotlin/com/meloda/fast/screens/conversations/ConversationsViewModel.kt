@@ -122,7 +122,7 @@ class ConversationsViewModelImpl constructor(
             }
 
             "delete" -> {
-                emitShowOptions { old -> old.copy(showDeleteDialog = conversation.id) }
+                emitShowOptions { old -> old.copy(showDeleteDialog = conversation.conversationId) }
                 true
             }
 
@@ -156,7 +156,7 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
-        pinConversation(conversation.id, !conversation.isPinned)
+        pinConversation(conversation.conversationId, !conversation.isPinned)
     }
 
     private fun emitDomainConversations(conversations: List<VkConversationDomain>) {

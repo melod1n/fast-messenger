@@ -18,6 +18,7 @@ import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.listenValue
+import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.AppAccount
 import com.meloda.fast.model.base.UiText
@@ -68,6 +69,7 @@ interface LoginViewModel {
 
     fun onTwoFaCodeReceived(code: String)
     fun onCaptchaCodeReceived(code: String)
+    fun onRestarted()
 }
 
 class LoginViewModelImpl constructor(
@@ -91,44 +93,6 @@ class LoginViewModelImpl constructor(
 
     init {
         events.listenValue(::handleEvent)
-    }
-
-    init {
-//        tasksEvent.listenValue(::handleEvent)
-
-//        captchaResult.listenValue { result ->
-//            when (result) {
-//                is CaptchaResult.Success -> {
-//                    val sid = result.sid
-//                    val code = result.code
-//                    val newState = screenState.value.copy(
-//                        captchaSid = sid, captchaCode = code
-//                    )
-//                    screenState.updateValue(newState)
-//
-//                    login()
-//                }
-//
-//                else -> Unit
-//            }
-//        }
-
-//        twoFaResult.listenValue { result ->
-//            when (result) {
-//                is TwoFaResult.Success -> {
-//                    val sid = result.sid
-//                    val code = result.code
-//                    val newState = screenState.value.copy(
-//                        validationSid = sid, validationCode = code
-//                    )
-//                    screenState.updateValue(newState)
-//
-//                    login()
-//                }
-//
-//                else -> Unit
-//            }
-//        }
     }
 
     private fun handleEvent(event: VkEvent) {
@@ -245,6 +209,8 @@ class LoginViewModelImpl constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             accounts.insert(listOf(currentAccount))
+
+            screenState.setValue { old -> old.copy(isNeedToRestart = true) }
         }
     }
 
@@ -274,6 +240,10 @@ class LoginViewModelImpl constructor(
         )
 
         login()
+    }
+
+    override fun onRestarted() {
+        screenState.setValue { old -> old.copy(isNeedToRestart = false) }
     }
 
     private fun login(forceSms: Boolean = false) {
