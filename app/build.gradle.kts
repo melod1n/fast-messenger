@@ -122,16 +122,15 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
-    // DI zone
-    //Koin for Default Android
+    // Tests zone
+    testDependencies()
+    // end of Tests zone
+
+    composeDependencies()
+
+    // Koin for Default Android
     implementation(libs.koin.android)
 
-    // Koin for Compose
-    implementation(libs.koin.androidx.compose)
-    implementation(libs.koin.androidx.compose.navigation)
-    // end of DI zone
-
-    implementation(libs.coil.compose)
     implementation(libs.coil)
 
     implementation(libs.kotlin.reflect)
@@ -171,21 +170,30 @@ dependencies {
 
     implementation(libs.chucker)
 
-    // Compose zone
+    // Moshi zone
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+    // end of Moshi zone
+}
+
+fun DependencyHandlerScope.testDependencies() {
+    testImplementation(libs.junit)
+}
+
+fun DependencyHandlerScope.composeDependencies() {
+    // Compose-Bom zone
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
-    // end of Compose zone
-
-    implementation(libs.compose.material3.pullrefresh)
+    // end of Compose-Bom zone
 
     // Accompanist zone
     implementation(libs.accompanist.drawablepainter)
     // end of Accompanist zone
 
-    // Moshi zone
-    implementation(libs.moshi.kotlin)
-    ksp(libs.moshi.kotlin.codegen)
-    // end of Moshi zone
+    // Koin for Compose
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.compose.navigation)
+    // end of DI zone
 
     // Voyager zone
     implementation(libs.voyager.navigator)
@@ -193,7 +201,12 @@ dependencies {
     implementation(libs.voyager.koin)
     // end of Voyager zone
 
-    // Tests zone
-    testImplementation(libs.junit)
-    // end of Tests zone
+    // Coil for Compose
+    implementation(libs.coil.compose)
+
+    // Material3 Pull-to-Refresh (until official release)
+    implementation(libs.compose.material3.pullrefresh)
+
+    // Hack for Lazy-* composables which fixes bug with scrolling
+    implementation(libs.hijacker)
 }

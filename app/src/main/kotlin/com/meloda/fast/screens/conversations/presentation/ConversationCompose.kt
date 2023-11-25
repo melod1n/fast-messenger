@@ -34,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.meloda.fast.R
@@ -44,7 +45,6 @@ import com.meloda.fast.ext.LocalContentAlpha
 import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.screens.conversations.DotsFlashing
 import com.meloda.fast.ui.ContentAlpha
-import com.meloda.fast.ui.widgets.CoilImage
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -133,16 +133,16 @@ fun Conversation(
                                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
                             )
                         } else {
-                            CoilImage(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                contentDescription = null,
+                            AsyncImage(
                                 model = ImageRequest.Builder(context)
                                     .data(avatar)
                                     .crossfade(true)
                                     .build(),
-                                previewPainter = painterResource(id = R.drawable.ic_account_circle_cut),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
                             )
                         }
                     }

@@ -65,6 +65,7 @@ import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.PullRefreshState
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
+import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -110,6 +111,9 @@ fun ConversationsScreenContent(
     val multilineEnabled = screenState.multilineEnabled
 
     val lazyListState = rememberLazyListState()
+
+    // TODO: 26/11/2023, Danil Nikolaev: remove when fixed
+    rememberLazyListStateHijacker(listState = lazyListState)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
