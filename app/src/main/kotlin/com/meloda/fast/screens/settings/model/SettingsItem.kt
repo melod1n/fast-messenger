@@ -2,14 +2,12 @@ package com.meloda.fast.screens.settings.model
 
 import androidx.core.content.edit
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.UiText
 import kotlin.properties.Delegates
 
 sealed class SettingsItem<Value>(
     open val key: String,
-) : AdapterDiffItem {
-
+) {
     var onTitleChanged: ((newTitle: UiText?) -> Unit)? = null
 
     var title: UiText? by Delegates.observable(null) { _, _, newValue ->
@@ -95,10 +93,6 @@ sealed class SettingsItem<Value>(
 
     fun requireValue() = requireNotNull(value)
 
-    override fun areItemsTheSame(newItem: AdapterDiffItem): Boolean {
-        return newItem is SettingsItem<*> && newItem.key == this.key
-    }
-
     fun interface TitleProvider<Item : SettingsItem<*>> {
         fun provideTitle(settingsItem: Item): UiText?
     }
@@ -108,8 +102,6 @@ sealed class SettingsItem<Value>(
     }
 
     data class Title(override val key: String) : SettingsItem<Nothing>(key) {
-
-        override val id: Int = -1
 
         companion object {
             fun build(
@@ -129,8 +121,6 @@ sealed class SettingsItem<Value>(
     }
 
     data class TitleSummary(override val key: String) : SettingsItem<String>(key) {
-
-        override val id: Int = -1
 
         companion object {
             fun build(
@@ -152,8 +142,6 @@ sealed class SettingsItem<Value>(
     }
 
     data class TextField(override val key: String) : SettingsItem<String>(key) {
-
-        override val id: Int = -1
 
         companion object {
             fun build(
@@ -178,8 +166,6 @@ sealed class SettingsItem<Value>(
     }
 
     data class Switch(override val key: String) : SettingsItem<Boolean>(key) {
-
-        override val id: Int = -1
 
         companion object {
 
@@ -208,7 +194,6 @@ sealed class SettingsItem<Value>(
     }
 
     data class ListItem(override val key: String) : SettingsItem<Int>(key) {
-        override val id: Int = -1
 
         var values: List<Int> = emptyList()
         var valueTitles: List<UiText> = emptyList()

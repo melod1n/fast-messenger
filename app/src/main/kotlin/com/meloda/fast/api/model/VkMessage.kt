@@ -128,5 +128,4 @@ data class VkMessage constructor(
     enum class State {
         Sending, Sent, Error
     }
-
 }
