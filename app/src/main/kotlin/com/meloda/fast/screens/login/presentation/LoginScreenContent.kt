@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -49,7 +51,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
-import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.ext.handleEnterKey
 import com.meloda.fast.ext.handleTabKey
 import com.meloda.fast.screens.captcha.model.CaptchaArguments
@@ -159,10 +160,11 @@ fun LoginLogo(viewModel: LoginViewModel) {
                 painter = painterResource(id = R.drawable.ic_logo_big),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                modifier = Modifier.combinedClickableSound(
+                modifier = Modifier.combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onLongClick = viewModel::onLogoLongClicked
+                    onLongClick = viewModel::onLogoLongClicked,
+                    onClick = {}
                 )
             )
             Spacer(modifier = Modifier.height(46.dp))
@@ -347,11 +349,12 @@ fun LoginSignIn(
 
             FloatingActionButton(
                 onClick = goButtonClickAction::invoke,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.testTag("Sign in button")
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_end),
-                    contentDescription = null,
+                    contentDescription = "Sign in icon",
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }

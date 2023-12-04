@@ -25,31 +25,31 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.imageLoader
-import coil.request.ImageRequest
 import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.ext.asUiText
@@ -62,11 +62,13 @@ import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
-import eu.bambooapps.material3.pullrefresh.PullRefreshState
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 import org.koin.androidx.compose.koinViewModel
+
+private val MinToolbarHeight = 96.dp
+private val MaxToolbarHeight = 176.dp
 
 @Composable
 fun ConversationsRoute(
@@ -101,22 +103,55 @@ fun ConversationsScreenContent(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val conversations = screenState.conversations
 
-    val avatars = remember {
-        conversations.mapNotNull { conversation ->
-            conversation.avatar.extractUrl()
+    val isLoading = screenState.isLoading
+
+    // TODO: 01/12/2023, Danil Nikolaev: implement retrieving from settings
+    val maxLines by remember {
+        derivedStateOf {
+            if (screenState.multilineEnabled) 2 else 1
         }
     }
 
-    val isLoading = screenState.isLoading
-    val multilineEnabled = screenState.multilineEnabled
-
-    val lazyListState = rememberLazyListState()
+    val listState = rememberLazyListState()
 
     // TODO: 26/11/2023, Danil Nikolaev: remove when fixed
-    rememberLazyListStateHijacker(listState = lazyListState)
+    rememberLazyListStateHijacker(listState = listState)
+
+    val topAppBarState = rememberTopAppBarState()
+//    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+
+    var useLightList by remember {
+        mutableStateOf(false)
+    }
+    var showOnlyPlaceholders by remember {
+        mutableStateOf(false)
+    }
+    var showPullRefresh by remember {
+        mutableStateOf(false)
+    }
+
+
+//    val toolbarHeightRange = with(LocalDensity.current) {
+//        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
+//    }
+//    val toolbarState = rememberToolbarState(toolbarHeightRange)
+//
+//    val nestedScrollConnection = remember {
+//        object : NestedScrollConnection {
+//            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+//                toolbarState.scrollTopLimitReached =
+//                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+//                toolbarState.scrollOffset = toolbarState.scrollOffset - available.y
+//                return Offset(0f, toolbarState.consumed)
+//            }
+//        }
+//    }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+//            .nestedScroll(nestedScrollConnection)
+        ,
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             var dropDownMenuExpanded by remember {
@@ -152,29 +187,67 @@ fun ConversationsScreenContent(
                             Text(text = "Settings")
                         }
                     )
-//                    DropdownMenuItem(
-//                        onClick = {
-//                            onRefreshClick()
-//                            dropDownMenuExpanded = false
-//                        },
-//                        text = {
-//                            Text(text = "Refresh")
-//                        }
-//                    )
+                    DropdownMenuItem(
+                        onClick = {
+                            viewModel.onRefresh()
+                            dropDownMenuExpanded = false
+                        },
+                        text = {
+                            Text(text = "Refresh")
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(text = "Toggle list")
+                        },
+                        onClick = {
+                            useLightList = !useLightList
+                            dropDownMenuExpanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(text = "Toggle only avatar placeholders")
+                        },
+                        onClick = {
+                            showOnlyPlaceholders = !showOnlyPlaceholders
+                            dropDownMenuExpanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(text = "Toggle pull to refresh")
+                        },
+                        onClick = {
+                            showPullRefresh = !showPullRefresh
+                            dropDownMenuExpanded = false
+                        }
+                    )
                 }
             }
 
             val title = @Composable {
                 Row(modifier = Modifier) {
-                    Text(text = if (isLoading) "Loading..." else "Conversations")
+                    Text(
+                        text = if (isLoading) "Loading..." else "Conversations",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
             Column(modifier = Modifier.fillMaxWidth()) {
-                TopAppBar(
+
+                // TODO: 01/12/2023, Danil Nikolaev: implement scrolling by tutorial
+
+                LargeTopAppBar(
                     title = title,
                     actions = actions,
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = topAppBarBackgroundAnimated)
+//                    scrollBehavior = scrollBehavior,
+                    modifier = Modifier
+                        .fillMaxWidth()
+//                        .height(with(LocalDensity.current) { toolbarState.height.toDp() })
+//                        .graphicsLayer { translationY = toolbarState.offset }
                 )
 
                 if (isLoading && conversations.isNotEmpty()) {
@@ -208,26 +281,62 @@ fun ConversationsScreenContent(
                     refreshing = screenState.isLoading,
                     onRefresh = viewModel::onRefresh
                 )
+                val listModifier = remember(showPullRefresh) {
+                    if (showPullRefresh) {
+                        Modifier
+                            .fillMaxWidth()
+                            .pullRefresh(pullRefreshState)
+                    } else {
+                        Modifier.fillMaxWidth()
+                    }
+                }
 
-                ConversationsList(
-                    onConversationsClick = onConversationsClick,
-                    onConversationsLongClick = onConversationsLongClick,
-                    conversations = conversations,
-                    state = lazyListState,
-                    maxLines = if (multilineEnabled) 2 else 1,
-                    avatarItems = avatars,
-                    pullRefreshState = pullRefreshState
-                )
-
-                PullRefreshIndicator(
-                    refreshing = screenState.isLoading,
-                    state = pullRefreshState,
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    colors = PullRefreshIndicatorDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                        contentColor = MaterialTheme.colorScheme.primary
+                if (useLightList) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = listModifier
+//                            .graphicsLayer {
+//                                translationY = toolbarState.height + toolbarState.offset
+//                            },
+//                        contentPadding = PaddingValues(
+//                            bottom = if (toolbarState is FixedScrollFlagState)
+//                                MinToolbarHeight
+//                            else 0.dp
+//                        ),
+                    ) {
+                        items(
+                            count = conversations.size,
+                            key = { index -> index }
+                        ) { index ->
+                            Text(
+                                text = "Text #${index + 1}",
+                                modifier = Modifier.height(64.dp)
+                            )
+                        }
+                    }
+                } else {
+                    ConversationsList(
+                        onConversationsClick = onConversationsClick,
+                        onConversationsLongClick = onConversationsLongClick,
+                        conversations = conversations,
+                        state = listState,
+                        maxLines = maxLines,
+                        showOnlyPlaceholders = showOnlyPlaceholders,
+                        modifier = listModifier
                     )
-                )
+
+                    if (showPullRefresh) {
+                        PullRefreshIndicator(
+                            refreshing = screenState.isLoading,
+                            state = pullRefreshState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            colors = PullRefreshIndicatorDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                    }
+                }
             }
         }
 
@@ -250,7 +359,6 @@ fun Loader() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationsList(
     onConversationsClick: (VkConversationUi) -> Unit,
@@ -258,35 +366,32 @@ fun ConversationsList(
     conversations: List<VkConversationUi>,
     state: LazyListState,
     maxLines: Int,
-    avatarItems: List<String>,
-    pullRefreshState: PullRefreshState
+    showOnlyPlaceholders: Boolean,
+    modifier: Modifier
 ) {
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        avatarItems.forEach { avatar ->
-            val request = ImageRequest.Builder(context)
-                .data(avatar)
-                .build()
-
-            context.imageLoader.enqueue(request)
-        }
-    }
-
     LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pullRefresh(pullRefreshState),
+        modifier = modifier,
         state = state
     ) {
         items(
             count = conversations.size,
             key = { index ->
-                val item = conversations[index]
-                item.conversationId
+                conversations[index].conversationId
             }
         ) { index ->
             val conversation = conversations[index]
+            val isUserAccount by remember {
+                derivedStateOf {
+                    conversation.conversationId == UserConfig.userId
+                }
+            }
+
+            val avatar = conversation.avatar.getImage()
+            val title by remember {
+                derivedStateOf {
+                    conversation.title.orDots()
+                }
+            }
 
             Conversation(
                 onItemClick = {
@@ -295,9 +400,9 @@ fun ConversationsList(
                 onItemLongClick = {
                     onConversationsLongClick(conversation)
                 },
-                id = conversation.conversationId,
-                avatar = conversation.avatar.getImage(),
-                title = conversation.title.orDots(),
+                isUserAccount = isUserAccount,
+                avatar = avatar,
+                title = title,
                 message = conversation.message,
                 date = conversation.date,
                 maxLines = maxLines,
@@ -305,18 +410,29 @@ fun ConversationsList(
                 isPinned = conversation.isPinned,
                 isOnline = conversation.isOnline,
                 isBirthday = conversation.isBirthday,
-                interactionType = conversation.interactionType,
-                interactiveUsers = conversation.interactiveUsers,
-                peerType = conversation.peerType,
                 attachmentImage = conversation.attachmentImage,
-                unreadCount = conversation.unreadCount
+                unreadCount = conversation.unreadCount,
+                interactionText = conversation.interactionText,
+                showOnlyPlaceholders = showOnlyPlaceholders
             )
 
-            if (index < conversations.size - 1) {
+            val showDefaultSpacer by remember {
+                derivedStateOf {
+                    index < conversations.size - 1
+                }
+            }
+
+            if (showDefaultSpacer) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            if (index == conversations.size - 1) {
+            val showBottomNavigationBarsSpacer by remember {
+                derivedStateOf {
+                    index == conversations.size - 1
+                }
+            }
+
+            if (showBottomNavigationBarsSpacer) {
                 Spacer(modifier = Modifier.navigationBarsPadding())
             }
         }

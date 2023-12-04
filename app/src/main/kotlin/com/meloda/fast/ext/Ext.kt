@@ -158,3 +158,33 @@ fun <T> MutableStateFlow<T>.setValue(function: (T) -> T) {
     val newValue = function(value)
     update { newValue }
 }
+
+fun Any.asInt(): Int {
+    return when (this) {
+        is Number -> this.toInt()
+
+        else -> throw IllegalArgumentException("Object is not numeric")
+    }
+}
+
+fun Any.asString(): String {
+    return when (this) {
+        is String -> this
+        else -> this.toString()
+    }
+}
+
+fun <T> Any.asList(mapper: (old: Any) -> T): List<T> {
+    return when (this) {
+        is List<*> -> this.mapNotNull { it?.run(mapper) }
+
+        else -> emptyList()
+    }
+}
+
+fun Any.asBoolean(): Boolean? {
+    return when (this) {
+        is Boolean -> this
+        else -> null
+    }
+}

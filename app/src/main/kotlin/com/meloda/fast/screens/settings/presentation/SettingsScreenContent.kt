@@ -8,18 +8,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.compose.MaterialDialog
+import com.meloda.fast.ext.RequestNotificationsPermission
 import com.meloda.fast.ext.isUsingDarkTheme
 import com.meloda.fast.ext.notNull
 import com.meloda.fast.model.base.UiText
@@ -27,6 +31,7 @@ import com.meloda.fast.screens.settings.HapticType
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.screens.settings.SettingsViewModel
 import com.meloda.fast.screens.settings.SettingsViewModelImpl
+import com.meloda.fast.screens.settings.UserSettings
 import com.meloda.fast.screens.settings.model.OnSettingsChangeListener
 import com.meloda.fast.screens.settings.model.OnSettingsClickListener
 import com.meloda.fast.screens.settings.model.OnSettingsLongClickListener
@@ -38,6 +43,7 @@ import com.meloda.fast.screens.settings.presentation.items.SwitchSettingsItem
 import com.meloda.fast.screens.settings.presentation.items.TitleSettingsItem
 import com.meloda.fast.screens.settings.presentation.items.TitleSummarySettingsItem
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun SettingsRoute(
@@ -46,6 +52,7 @@ fun SettingsRoute(
     onBackClick: () -> Unit,
     onUseDarkThemeChanged: (Boolean) -> Unit,
     onUseDynamicColorsChanged: (Boolean) -> Unit,
+    onUseMultilineChanged: (Boolean) -> Unit,
     viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
     val view = LocalView.current
@@ -60,6 +67,13 @@ fun SettingsRoute(
     if (screenState.isNeedToOpenUpdates) {
         viewModel.onNavigatedToUpdates()
         navigateToUpdates()
+    }
+
+    if (screenState.isNeedToRequestNotificationPermission) {
+        viewModel.onNotificationsPermissionRequested()
+        RequestNotificationsPermission {
+            Text("Blya pizda")
+        }
     }
 
     SettingsScreenContent(
@@ -81,6 +95,11 @@ fun SettingsRoute(
                     onUseDarkThemeChanged(isUsing)
                 }
 
+                SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
+                    val isUsing = newValue as? Boolean ?: false
+                    onUseMultilineChanged(isUsing)
+                }
+
                 else -> viewModel.onSettingsItemChanged(key, newValue)
             }
         },
@@ -95,6 +114,8 @@ fun SettingsRoute(
             navigateToLogin()
         },
         logoutDismissed = viewModel::onLogOutAlertDismissed,
+        longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,
+        longPollingDismissed = viewModel::onLongPollingAlertDismissed,
         screenState = screenState
     )
 }
@@ -108,16 +129,24 @@ fun SettingsScreenContent(
     onSettingsItemChanged: (key: String, newValue: Any?) -> Unit,
     screenState: SettingsScreenState
 ) {
-    val multilineEnabled = screenState.multilineEnabled
+    val settings: UserSettings = koinInject()
 
-    val settings = screenState.settings
+    // TODO: 01/12/2023, Danil Nikolaev: fix
+    val multilineEnabled by settings.multiline.collectAsStateWithLifecycle()
+
+    val settingsList = screenState.settings
 
     val clickListener = OnSettingsClickListener(onSettingsItemClicked)
     val longClickListener = OnSettingsLongClickListener(onSettingsItemLongClicked)
     val changeListener = OnSettingsChangeListener(onSettingsItemChanged)
 
+    val topAppBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             val title = @Composable { Text(text = "Settings") }
             val navigationIcon = @Composable {
@@ -129,9 +158,10 @@ fun SettingsScreenContent(
                 }
             }
 
-            TopAppBar(
+            LargeTopAppBar(
                 title = title,
-                navigationIcon = navigationIcon
+                navigationIcon = navigationIcon,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -141,13 +171,22 @@ fun SettingsScreenContent(
                 .padding(padding)
         ) {
             items(
-                count = settings.size,
+                count = settingsList.size,
                 key = { index ->
-                    val item = settings[index]
+                    val item = settingsList[index]
                     (item.title ?: item.summary).notNull()
+                },
+                contentType = { index ->
+                    when (settingsList[index]) {
+                        is SettingsItem.ListItem -> "listitem"
+                        is SettingsItem.Switch -> "switch"
+                        is SettingsItem.TextField -> "textfield"
+                        is SettingsItem.Title -> "title"
+                        is SettingsItem.TitleSummary -> "titlesummary"
+                    }
                 }
             ) { index ->
-                when (val item = settings[index]) {
+                when (val item = settingsList[index]) {
                     is SettingsItem.Title -> TitleSettingsItem(
                         item = item,
                         isMultiline = multilineEnabled
@@ -196,22 +235,56 @@ fun HandleDialogs(
     performCrashDismissed: () -> Unit,
     logoutPositiveClick: () -> Unit,
     logoutDismissed: () -> Unit,
+    longPollingPositiveClick: () -> Unit,
+    longPollingDismissed: () -> Unit,
     screenState: SettingsScreenState
 ) {
     val showOptions = screenState.showOptions
 
-    if (showOptions.showPerformCrash) {
+    PerformCrashDialog(
+        positiveClick = performCrashPositiveClick,
+        dismiss = performCrashDismissed,
+        show = showOptions.showPerformCrash
+    )
+
+    LogOutDialog(
+        positiveClick = logoutPositiveClick,
+        dismiss = logoutDismissed,
+        show = showOptions.showLogOut
+    )
+
+    LongPollingNotificationsPermission(
+        positiveClick = longPollingPositiveClick,
+        dismiss = longPollingDismissed,
+        show = showOptions.showLongPollNotifications
+    )
+}
+
+@Composable
+fun PerformCrashDialog(
+    positiveClick: () -> Unit,
+    dismiss: () -> Unit,
+    show: Boolean,
+) {
+    if (show) {
         MaterialDialog(
             title = UiText.Simple("Perform Crash"),
             message = UiText.Simple("App will be crashed. Are you sure?"),
             positiveText = UiText.Resource(R.string.yes),
-            positiveAction = performCrashPositiveClick,
+            positiveAction = positiveClick,
             negativeText = UiText.Resource(R.string.cancel),
-            onDismissAction = performCrashDismissed
+            onDismissAction = dismiss
         )
     }
+}
 
-    if (showOptions.showLogOut) {
+@Composable
+fun LogOutDialog(
+    positiveClick: () -> Unit,
+    dismiss: () -> Unit,
+    show: Boolean
+) {
+    if (show) {
         val isEasterEgg = UserConfig.userId == SettingsKeys.ID_DMITRY
 
         val title = UiText.Resource(
@@ -228,16 +301,27 @@ fun HandleDialogs(
             title = title,
             message = UiText.Resource(R.string.sign_out_confirm),
             positiveText = positiveText,
-            positiveAction = logoutPositiveClick,
+            positiveAction = positiveClick,
             negativeText = UiText.Resource(R.string.cancel),
-            onDismissAction = logoutDismissed
+            onDismissAction = dismiss
         )
     }
 }
 
-interface AlertDialogListener {
-    fun positiveClick()
-    fun negativeClick()
-    fun neutralClick()
-    fun dismiss()
+@Composable
+fun LongPollingNotificationsPermission(
+    positiveClick: () -> Unit,
+    dismiss: () -> Unit,
+    show: Boolean
+) {
+    if (show) {
+        MaterialDialog(
+            title = UiText.Resource(R.string.warning),
+            message = UiText.Simple("Long polling in background required notifications permission on Android 13 and up"),
+            positiveText = UiText.Simple("Grant"),
+            positiveAction = positiveClick,
+            negativeText = UiText.Resource(R.string.cancel),
+            onDismissAction = dismiss
+        )
+    }
 }

@@ -1,99 +1,29 @@
 package com.meloda.fast.ext
 
+import android.Manifest
 import android.content.res.Configuration
+import android.os.Build
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Indication
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.parseString
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
-
-@ExperimentalFoundationApi
-fun Modifier.clickableSound(
-    enabled: Boolean = true,
-    onClickLabel: String? = null,
-    role: Role? = null,
-    onClick: (() -> Unit)? = null
-): Modifier = this.clickable(
-    enabled = enabled,
-    onClickLabel = onClickLabel,
-    role = role,
-    onClick = {
-//        AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
-        onClick?.invoke()
-    }
-)
-
-@ExperimentalFoundationApi
-fun Modifier.combinedClickableSound(
-    enabled: Boolean = true,
-    onClickLabel: String? = null,
-    role: Role? = null,
-    onLongClickLabel: String? = null,
-    onLongClick: (() -> Unit)? = null,
-    onDoubleClick: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
-): Modifier = composed {
-    this.combinedClickableSound(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = LocalIndication.current,
-        enabled = enabled,
-        onClickLabel = onClickLabel,
-        role = role,
-        onLongClickLabel = onLongClickLabel,
-        onLongClick = onLongClick,
-        onDoubleClick = onDoubleClick,
-        onClick = {
-//            AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
-            onClick?.invoke()
-        }
-    )
-}
-
-@ExperimentalFoundationApi
-fun Modifier.combinedClickableSound(
-    interactionSource: MutableInteractionSource,
-    indication: Indication?,
-    enabled: Boolean = true,
-    onClickLabel: String? = null,
-    role: Role? = null,
-    onLongClickLabel: String? = null,
-    onLongClick: (() -> Unit)? = null,
-    onDoubleClick: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
-): Modifier = this.combinedClickable(
-    interactionSource = interactionSource,
-    indication = indication,
-    enabled = enabled,
-    onClickLabel = onClickLabel,
-    role = role,
-    onLongClickLabel = onLongClickLabel,
-    onLongClick = onLongClick,
-    onDoubleClick = onDoubleClick,
-    onClick = {
-//        AppGlobal.audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
-        onClick?.invoke()
-    }
-)
 
 fun Modifier.handleTabKey(
     action: () -> Boolean
@@ -113,7 +43,33 @@ fun Modifier.handleEnterKey(
 
 @Composable
 fun UiText?.getString(): String? {
-    return this.parseString(LocalContext.current)
+    return when (this) {
+        is UiText.Resource -> {
+            stringResource(id = resId)
+        }
+
+        is UiText.ResourceParams -> {
+            // TODO: 26/11/2023, Danil Nikolaev: fix
+            val processedArgs = args.map { any ->
+                when (any) {
+                    is UiText -> any.getString()
+                    else -> any
+                }
+            }.toTypedArray()
+
+            stringResource(id = value, processedArgs)
+        }
+
+        is UiText.QuantityResource -> {
+            pluralStringResource(id = resId, count = quantity, quantity)
+        }
+
+        is UiText.Simple -> {
+            text
+        }
+
+        else -> null
+    }
 }
 
 @Composable
@@ -164,5 +120,26 @@ fun LocalContentAlpha(
         LocalContentColor provides defaultColor.copy(alpha = alpha)
     ) {
         content()
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun RequestNotificationsPermission(
+    showRationale: @Composable () -> Unit,
+) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+    val notificationsPermission = rememberPermissionState(
+        permission = Manifest.permission.POST_NOTIFICATIONS
+    )
+
+    if (notificationsPermission.status.isGranted) return
+    if (notificationsPermission.status.shouldShowRationale) {
+        showRationale()
+    } else {
+        LaunchedEffect(Unit) {
+            notificationsPermission.launchPermissionRequest()
+        }
     }
 }

@@ -21,12 +21,10 @@ object SettingsKeys {
     const val DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND = false
 
     const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
+    const val DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS = false
 
     const val KEY_UPDATES_CHECK_AT_STARTUP = "updates_check_at_startup"
     const val KEY_UPDATES_CHECK_UPDATES = "updates_check_updates"
-
-    const val KEY_MS_APPCENTER_ENABLE = "msappcenter.enable"
-    const val KEY_MS_APPCENTER_ENABLE_ON_DEBUG = "msappcenter.enable_on_debug"
 
     const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
 

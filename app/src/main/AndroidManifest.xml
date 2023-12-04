@@ -20,7 +20,7 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="DataExtractionRules"
-        tools:replace="android:allowBackup"
+        tools:replace="android:supportsRtl"
         tools:targetApi="tiramisu">
 
         <activity

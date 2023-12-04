@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,20 +39,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.model.ConversationPeerType
-import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.ext.LocalContentAlpha
-import com.meloda.fast.ext.combinedClickableSound
 import com.meloda.fast.screens.conversations.DotsFlashing
 import com.meloda.fast.ui.ContentAlpha
+
+val BirthdayColor = Color(0xffb00b69)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Conversation(
     onItemClick: () -> Unit,
     onItemLongClick: () -> Unit,
-    id: Int,
+    isUserAccount: Boolean,
     avatar: Any?,
     title: String,
     message: String,
@@ -61,25 +60,18 @@ fun Conversation(
     isPinned: Boolean,
     isOnline: Boolean,
     isBirthday: Boolean,
-    interactionType: InteractionType?,
-    interactiveUsers: List<String>,
-    peerType: ConversationPeerType,
+    interactionText: String?,
     attachmentImage: Drawable?,
     unreadCount: String?,
+    showOnlyPlaceholders: Boolean
 ) {
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
-//    val avatar = conversation.avatar.getImage()
-
-//    val title = remember { conversation.title.orDots() }
-//    val message = remember { conversation.message }
-//    val date = remember { conversation.date }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickableSound(
+            .combinedClickable(
                 onClick = onItemClick,
                 onLongClick = {
                     onItemLongClick()
@@ -107,43 +99,53 @@ fun Conversation(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(modifier = Modifier.size(56.dp)) {
-                    if (id == UserConfig.userId) {
-                        Box(
+                    if (showOnlyPlaceholders) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_account_circle_cut),
+                            contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(32.dp),
-                                painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
-                                contentDescription = null
-                            )
-                        }
+                        )
                     } else {
-                        if (avatar is Painter) {
-                            Image(
+                        if (isUserAccount) {
+                            Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape),
-                                painter = avatar,
-                                contentDescription = null,
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
-                            )
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            ) {
+                                Image(
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(32.dp),
+                                    painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
+                                    contentDescription = null
+                                )
+                            }
                         } else {
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(avatar)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
-                            )
+                            if (avatar is Painter) {
+                                Image(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    painter = avatar,
+                                    contentDescription = null,
+                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                                )
+                            } else {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(avatar)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+                                )
+                            }
                         }
                     }
 
@@ -207,7 +209,7 @@ fun Conversation(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .matchParentSize()
-                                    .background(Color(0xFFB00B69))
+                                    .background(BirthdayColor)
                             ) {
                                 Image(
                                     modifier = Modifier
@@ -235,22 +237,9 @@ fun Conversation(
                     )
 
                     Row {
-                        if (interactionType != null) {
-                            val typingText =
-                                if (!peerType.isChat() && interactiveUsers.size == 1) {
-                                    when (interactionType) {
-                                        InteractionType.File -> "Uploading file"
-                                        InteractionType.Photo -> "Uploading photo"
-                                        InteractionType.Typing -> "Typing"
-                                        InteractionType.Video -> "Uploading Video"
-                                        InteractionType.VoiceMessage -> "Recording voice message"
-                                    }
-                                } else {
-                                    "$interactiveUsers are typing"
-                                }
-
+                        if (interactionText != null) {
                             Text(
-                                text = typingText,
+                                text = interactionText,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(4.dp))

@@ -1,5 +1,6 @@
 package com.meloda.fast.ui
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -8,51 +9,98 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.view.WindowCompat
 import com.meloda.fast.R
-import com.meloda.fast.ext.isSystemUsingDarkMode
 import com.meloda.fast.ext.isUsingDarkThemeComposable
 import com.meloda.fast.ext.isUsingDynamicColorsComposable
-
-
-val StandardColorScheme
-    get() = if (isSystemUsingDarkMode()) DarkColorScheme
-    else LightColorScheme
 
 private val LightColorScheme = lightColorScheme()
 private val DarkColorScheme = darkColorScheme()
 
-@Composable
-fun dynamicColorScheme(): ColorScheme {
-    val context = LocalContext.current
-    return if (isSystemUsingDarkMode()) dynamicDarkColorScheme(context)
-    else dynamicLightColorScheme(context)
-}
-
 private val googleSansFonts = FontFamily(
-    Font(R.font.google_sans_regular),
-    Font(R.font.google_sans_italic, style = FontStyle.Italic),
-    Font(R.font.google_sans_medium, weight = FontWeight.Medium),
+    Font(resId = R.font.google_sans_regular),
     Font(
-        R.font.google_sans_medium_italic,
+        resId = R.font.google_sans_italic,
+        style = FontStyle.Italic
+    ),
+    Font(
+        resId = R.font.google_sans_medium,
+        weight = FontWeight.Medium
+    ),
+    Font(
+        resId = R.font.google_sans_medium_italic,
         weight = FontWeight.Medium,
         style = FontStyle.Italic
     ),
-    Font(R.font.google_sans_bold, weight = FontWeight.Bold),
     Font(
-        R.font.google_sans_bold_italic,
+        resId = R.font.google_sans_bold,
+        weight = FontWeight.Bold
+    ),
+    Font(
+        resId = R.font.google_sans_bold_italic,
         weight = FontWeight.Bold,
         style = FontStyle.Italic
-    ),
+    )
 )
 
 private val robotoFonts = FontFamily(
-    Font(R.font.roboto_regular),
-    // TODO: 27.03.2023, Danil Nikolaev: add all roboto fonts
+    Font(
+        resId = R.font.roboto_thin,
+        weight = FontWeight.Thin
+    ),
+    Font(
+        resId = R.font.roboto_thin_italic,
+        weight = FontWeight.Thin,
+        style = FontStyle.Italic
+    ),
+    Font(
+        resId = R.font.roboto_light,
+        weight = FontWeight.Light
+    ),
+    Font(
+        resId = R.font.roboto_light_italic,
+        weight = FontWeight.Light,
+        style = FontStyle.Italic
+    ),
+    Font(resId = R.font.roboto_regular),
+    Font(
+        resId = R.font.roboto_italic,
+        style = FontStyle.Italic
+    ),
+    Font(
+        resId = R.font.roboto_medium,
+        weight = FontWeight.Medium
+    ),
+    Font(
+        resId = R.font.roboto_medium_italic,
+        weight = FontWeight.Medium,
+        style = FontStyle.Italic
+    ),
+    Font(
+        resId = R.font.roboto_bold,
+        weight = FontWeight.Bold
+    ),
+    Font(
+        resId = R.font.roboto_bold_italic,
+        weight = FontWeight.Bold,
+        style = FontStyle.Italic
+    ),
+    Font(
+        resId = R.font.roboto_black,
+        weight = FontWeight.Black
+    ),
+    Font(
+        resId = R.font.roboto_black_italic,
+        weight = FontWeight.Black,
+        style = FontStyle.Italic
+    )
 )
 
 @Composable
@@ -84,6 +132,15 @@ fun AppTheme(
         bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontFamily = robotoFonts),
         bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts)
     )
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = !useDarkTheme
+        }
+    }
 
     MaterialTheme(
         colorScheme = predefinedColorScheme ?: colorScheme,

@@ -236,6 +236,30 @@ data class VkConversationDomain(
         } else false
     }
 
+    private fun extractInteractionText(): String? {
+        val interactionType = InteractionType.parse(interactionType)
+        val interactiveUsers = extractInteractionUsers()
+
+        val typingText =
+            if (interactionType == null) {
+                null
+            } else {
+                if (!peerType.isChat() && interactiveUsers.size == 1) {
+                    when (interactionType) {
+                        InteractionType.File -> "Uploading file"
+                        InteractionType.Photo -> "Uploading photo"
+                        InteractionType.Typing -> "Typing"
+                        InteractionType.Video -> "Uploading Video"
+                        InteractionType.VoiceMessage -> "Recording voice message"
+                    }
+                } else {
+                    "$interactiveUsers are typing"
+                }
+            }
+
+        return typingText
+    }
+
     fun copyWithEssentials(function: (VkConversationDomain) -> VkConversationDomain): VkConversationDomain {
         return function(this).also {
             it.lastMessage = this.lastMessage
@@ -264,7 +288,6 @@ data class VkConversationDomain(
         conversationUser = conversationUser,
         conversationGroup = conversationGroup,
         peerType = peerType,
-        interactionType = InteractionType.parse(interactionType),
-        interactiveUsers = extractInteractionUsers()
+        interactionText = extractInteractionText(),
     )
 }

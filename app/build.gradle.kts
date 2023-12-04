@@ -1,14 +1,17 @@
+import com.android.build.api.variant.BuildConfigField
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
 val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
 
-val msAppCenterToken: String = getLocalProperty("msAppCenterAppToken", "\"\"")
 val otaSecretCode: String = getLocalProperty("otaSecretCode", "\"\"")
 
 val debugUserId: String = getLocalProperty("userId", "\"0\"")
 val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
+
+val shakeClientId: String = getLocalProperty("shakeClientId", "\"\"")
+val shakeClientSecret: String = getLocalProperty("shakeClientSecret", "\"\"")
 
 fun getLocalProperty(key: String, defValue: String): String {
     return gradleLocalProperties(rootDir).getProperty(key, defValue)
@@ -23,6 +26,69 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields.apply {
+            put(
+                "sdkPackage",
+                BuildConfigField(
+                    type = "String",
+                    value = sdkPackage,
+                    comment = "sdkPackage for VK"
+                )
+            )
+            put(
+                "sdkFingerprint",
+                BuildConfigField(
+                    type = "String",
+                    value = sdkFingerprint,
+                    comment = "sdkFingerprint for VK"
+                )
+            )
+            put(
+                "otaSecretCode",
+                BuildConfigField(
+                    type = "String",
+                    value = otaSecretCode,
+                    comment = "OTA Secret code for in-app updates"
+                )
+            )
+            put(
+                "debugUserId",
+                BuildConfigField(
+                    type = "String",
+                    value = debugUserId,
+                    comment = "user id for debugging purposes"
+                )
+            )
+            put(
+                "debugAccessToken",
+                BuildConfigField(
+                    type = "String",
+                    value = debugAccessToken,
+                    comment = "access token for debugging purposes"
+                )
+            )
+            put(
+                "shakeClientId",
+                BuildConfigField(
+                    type = "String",
+                    value = shakeClientId,
+                    comment = "Shake client id"
+                )
+            )
+            put(
+                "shakeClientSecret",
+                BuildConfigField(
+                    type = "String",
+                    value = shakeClientSecret,
+                    comment = "Shake client secret"
+                )
+            )
+        }
+    }
 }
 
 android {
@@ -49,30 +115,10 @@ android {
 
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "sdkPackage", sdkPackage)
-            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
-
-            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
-
-            buildConfigField("String", "otaSecretCode", otaSecretCode)
-
-            buildConfigField("String", "userId", debugUserId)
-            buildConfigField("String", "accessToken", debugAccessToken)
-
             versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
             isMinifyEnabled = false
-
-            buildConfigField("String", "sdkPackage", sdkPackage)
-            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
-
-            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
-
-            buildConfigField("String", "otaSecretCode", otaSecretCode)
-
-            buildConfigField("String", "userId", debugUserId)
-            buildConfigField("String", "accessToken", debugAccessToken)
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -83,6 +129,12 @@ android {
     val flavorDimension = "version"
 
     flavorDimensions += flavorDimension
+
+    configurations {
+        debugImplementation {
+//            exclude(group = "junit", module = "junit")
+        }
+    }
 
     productFlavors {
         create("dev") {
@@ -109,6 +161,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -126,7 +179,12 @@ dependencies {
     testDependencies()
     // end of Tests zone
 
+    implementation(libs.shake)
+    debugImplementation(libs.leakcanary.android)
+
     composeDependencies()
+
+    performanceDependencies()
 
     // Koin for Default Android
     implementation(libs.koin.android)
@@ -153,31 +211,34 @@ dependencies {
     implementation(libs.kpermissions)
     implementation(libs.kpermissions.coroutines)
 
-    implementation(libs.appcenter.analytics)
-    implementation(libs.appcenter.crashes)
-
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-
-    implementation(libs.logging.interceptor)
-
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.gson)
-
-    implementation(libs.guava)
-
-    implementation(libs.chucker)
-
-    // Moshi zone
-    implementation(libs.moshi.kotlin)
-    ksp(libs.moshi.kotlin.codegen)
-    // end of Moshi zone
+    networkDependencies()
 }
 
 fun DependencyHandlerScope.testDependencies() {
     testImplementation(libs.junit)
+}
+
+fun DependencyHandlerScope.networkDependencies() {
+    // Moshi zone
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+    // end of Moshi zone
+
+    implementation(libs.retrofit)
+
+    // Retrofit converters
+    implementation(libs.converter.moshi)
+    implementation(libs.converter.gson)
+    // end of Retrofit converters
+
+    implementation(libs.logging.interceptor)
+
+    implementation(libs.gson)
+    implementation(libs.guava)
+    implementation(libs.chucker)
 }
 
 fun DependencyHandlerScope.composeDependencies() {
@@ -188,6 +249,8 @@ fun DependencyHandlerScope.composeDependencies() {
 
     // Accompanist zone
     implementation(libs.accompanist.drawablepainter)
+    implementation(libs.accompanist.permissions)
+
     // end of Accompanist zone
 
     // Koin for Compose
@@ -209,4 +272,15 @@ fun DependencyHandlerScope.composeDependencies() {
 
     // Hack for Lazy-* composables which fixes bug with scrolling
     implementation(libs.hijacker)
+
+    androidTestImplementation(libs.compose.ui.test.junit4)
+
+    debugImplementation(libs.compose.ui.test.manifest)
+    debugImplementation(libs.compose.ui.tooling)
+}
+
+// TODO: 01/12/2023, Danil Nikolaev: create baseline profile
+fun DependencyHandlerScope.performanceDependencies() {
+    implementation(libs.benchmark.macro.junit4)
+    implementation(libs.profileinstaller)
 }

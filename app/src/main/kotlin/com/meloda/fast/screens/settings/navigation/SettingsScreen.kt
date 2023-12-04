@@ -26,6 +26,7 @@ object SettingsScreen : Screen {
             onBackClick = navigator::pop,
             onUseDarkThemeChanged = userSettings::useDarkThemeChanged,
             onUseDynamicColorsChanged = userSettings::useDynamicColorsChanged,
+            onUseMultilineChanged = userSettings::useMultiline
         )
     }
 }

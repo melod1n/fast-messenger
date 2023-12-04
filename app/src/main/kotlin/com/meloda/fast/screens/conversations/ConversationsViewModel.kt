@@ -3,6 +3,7 @@ package com.meloda.fast.screens.conversations
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -165,11 +166,23 @@ class ConversationsViewModelImpl constructor(
         domainConversations.emitOnScope { conversations }
 
         val uiConversations = conversations.map(VkConversationDomain::mapToPresentation)
+        val avatars = uiConversations.mapNotNull { conversation ->
+            conversation.avatar.extractUrl()
+        }
+
+        avatars.forEach { avatar ->
+            val request = ImageRequest.Builder(AppGlobal.Instance)
+                .data(avatar)
+                .build()
+
+            AppGlobal.Instance.imageLoader.enqueue(request)
+        }
 
         screenState.setValue { old ->
             old.copy(
                 conversations = uiConversations,
-                pinnedConversationsCount = pinnedConversationsCount
+                pinnedConversationsCount = pinnedConversationsCount,
+                avatars = avatars
             )
         }
     }

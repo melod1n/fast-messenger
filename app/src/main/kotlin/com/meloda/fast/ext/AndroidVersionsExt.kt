@@ -11,7 +11,7 @@ fun isSdkAtLeast(sdkInt: Int, action: (() -> Unit)? = null): Boolean {
     }
 }
 
-fun sdkAndUp(sdkInt: Int, action: () -> Unit): Boolean? {
+inline fun sdkAndUp(sdkInt: Int, action: () -> Unit): Boolean? {
     return if (Build.VERSION.SDK_INT >= sdkInt) {
         action.invoke()
         true

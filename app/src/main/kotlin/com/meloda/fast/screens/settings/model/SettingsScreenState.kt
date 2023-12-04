@@ -9,7 +9,8 @@ data class SettingsScreenState(
     val useDynamicColors: Boolean,
     val settings: List<SettingsItem<*>>,
     val useHaptics: HapticType,
-    val isNeedToOpenUpdates: Boolean
+    val isNeedToOpenUpdates: Boolean,
+    val isNeedToRequestNotificationPermission: Boolean
 ) {
 
     companion object {
@@ -19,7 +20,8 @@ data class SettingsScreenState(
             useDynamicColors = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS,
             settings = emptyList(),
             useHaptics = HapticType.None,
-            isNeedToOpenUpdates = false
+            isNeedToOpenUpdates = false,
+            isNeedToRequestNotificationPermission = false
         )
     }
 }

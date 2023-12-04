@@ -46,7 +46,8 @@ class OnlineService : Service(), CoroutineScope {
         Log.d("OnlineService", "onStartCommand: flags: $flags; startId: $startId")
 
         if (AppGlobal.preferences.getBoolean(
-                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS, true
+                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
+                SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
             )
         ) {
             createTimer()
@@ -68,7 +69,7 @@ class OnlineService : Service(), CoroutineScope {
 
         if (!AppGlobal.preferences.getBoolean(
                 SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-                false
+                SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
             )
         ) return
 

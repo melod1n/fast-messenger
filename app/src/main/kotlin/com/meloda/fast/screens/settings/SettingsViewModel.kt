@@ -6,7 +6,6 @@ import androidx.core.content.edit
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
@@ -18,16 +17,13 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
-import com.meloda.fast.screens.main.MainActivity
-import com.meloda.fast.screens.main.model.LongPollState
 import com.meloda.fast.screens.settings.model.SettingsItem
 import com.meloda.fast.screens.settings.model.SettingsScreenState
 import com.meloda.fast.screens.settings.model.SettingsShowOptions
-import com.microsoft.appcenter.crashes.model.TestCrashException
+import com.meloda.fast.test.TestCrashException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 interface SettingsViewModel {
@@ -44,12 +40,17 @@ interface SettingsViewModel {
 
     fun onLogOutAlertPositiveClick()
 
+    fun onLongPollingAlertPositiveClicked()
+    fun onLongPollingAlertDismissed()
+
     fun onSettingsItemClicked(key: String)
     fun onSettingsItemLongClicked(key: String)
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
     fun onHapticsUsed()
     fun onNavigatedToUpdates()
+
+    fun onNotificationsPermissionRequested()
 }
 
 class SettingsViewModelImpl constructor(
@@ -96,13 +97,24 @@ class SettingsViewModelImpl constructor(
     override fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
             val newAccount = UserConfig.getAccount().copy(accessToken = "")
-//            accountsDao.deleteById(UserConfig.userId)
             accountsDao.insert(newAccount)
             cacheDatabase.clearAllTables()
 
-            MainActivity.longPollState.emit(LongPollState.Stop)
-
             UserConfig.clear()
+        }
+    }
+
+    override fun onLongPollingAlertPositiveClicked() {
+        screenState.setValue { old -> old.copy(isNeedToRequestNotificationPermission = true) }
+    }
+
+    override fun onLongPollingAlertDismissed() {
+        screenState.setValue { old ->
+            old.copy(
+                showOptions = old.showOptions.copy(
+                    showLongPollNotifications = false
+                )
+            )
         }
     }
 
@@ -168,7 +180,15 @@ class SettingsViewModelImpl constructor(
 
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 val isEnabled = (newValue as? Boolean).isTrue
-                isLongPollBackgroundEnabled.update { isEnabled }
+
+                if (isEnabled) {
+                    // TODO: 26/11/2023, Danil Nikolaev: implement
+                    val isNotificationsPermissionGranted = false
+
+                    if (!isNotificationsPermissionGranted) {
+                        // TODO: 26/11/2023, Danil Nikolaev: implement restart
+                    }
+                }
             }
         }
     }
@@ -179,6 +199,10 @@ class SettingsViewModelImpl constructor(
 
     override fun onNavigatedToUpdates() {
         screenState.setValue { old -> old.copy(isNeedToOpenUpdates = false) }
+    }
+
+    override fun onNotificationsPermissionRequested() {
+        screenState.setValue { old -> old.copy(isNeedToRequestNotificationPermission = false) }
     }
 
     private fun emitShowOptions(function: (SettingsShowOptions) -> SettingsShowOptions) {
@@ -241,6 +265,7 @@ class SettingsViewModelImpl constructor(
                     val darkThemeValue =
                         darkThemeValuesMap.getOrElse(item.value ?: -1) {
                             UiText.Resource(R.string.settings_dark_theme_current_value_unknown)
+                                .parseString(AppGlobal.Instance)
                         }
 
                     UiText.ResourceParams(
@@ -270,7 +295,7 @@ class SettingsViewModelImpl constructor(
             val featuresFastText = SettingsItem.TextField.build(
                 key = SettingsKeys.KEY_FEATURES_FAST_TEXT,
                 title = UiText.Simple("Fast text"),
-                defaultValue = "¯\\_(ツ)_/¯",
+                defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT
             ).apply {
                 summaryProvider = SettingsItem.SummaryProvider { settingsItem ->
                     UiText.ResourceParams(
@@ -283,7 +308,9 @@ class SettingsViewModelImpl constructor(
                 key = SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
                 defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
                 title = UiText.Simple("LongPoll in background"),
-                summary = UiText.Simple("Your messages will be updates even when app is not on the screen")
+                summary = UiText.Simple(
+                    "Your messages will be updates even when app is not on the screen.\nApp will be restarted"
+                )
             )
 
             val visibilityTitle = SettingsItem.Title.build(
@@ -292,7 +319,7 @@ class SettingsViewModelImpl constructor(
             )
             val visibilitySendOnlineStatus = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-                defaultValue = false,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS,
                 title = UiText.Simple("Send online status"),
                 summary = UiText.Simple("Online status will be sent every five minutes")
             )
@@ -309,24 +336,7 @@ class SettingsViewModelImpl constructor(
             )
             val updatesCheckUpdates = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_UPDATES_CHECK_UPDATES,
-                title = UiText.Simple("Check updates"),
-                isEnabled = false
-            )
-
-            val msAppCenterTitle = SettingsItem.Title.build(
-                key = "msappcenter",
-                title = UiText.Simple("MS AppCenter Crash Reporter")
-            )
-            val msAppCenterEnable = SettingsItem.Switch.build(
-                key = SettingsKeys.KEY_MS_APPCENTER_ENABLE,
-                defaultValue = true,
-                title = UiText.Simple("Enable Crash Reporter")
-            )
-            val msAppCenterEnableOnDebug = SettingsItem.Switch.build(
-                key = SettingsKeys.KEY_MS_APPCENTER_ENABLE_ON_DEBUG,
-                defaultValue = false,
-                title = UiText.Simple("Enable Crash Reporter on debug builds"),
-                summary = UiText.Simple("Requires application restart")
+                title = UiText.Simple("Check updates")
             )
 
             val debugTitle = SettingsItem.Title.build(
@@ -381,14 +391,6 @@ class SettingsViewModelImpl constructor(
                 updatesCheckAtStartup,
                 updatesCheckUpdates,
             )
-            val msAppCenterList = mutableListOf(
-                msAppCenterTitle,
-                msAppCenterEnable,
-            ).apply {
-                if (BuildConfig.DEBUG) {
-                    this += msAppCenterEnableOnDebug
-                }
-            }
             val debugList = mutableListOf<SettingsItem<*>>()
             listOf(
                 debugTitle,
@@ -406,7 +408,6 @@ class SettingsViewModelImpl constructor(
                 featuresList,
                 visibilityList,
                 updatesList,
-                msAppCenterList,
                 debugList,
             ).forEach(settingsList::addAll)
 

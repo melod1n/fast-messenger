@@ -8,7 +8,8 @@ data class ConversationsScreenState(
     val conversations: List<VkConversationUi>,
     val isLoading: Boolean,
     val multilineEnabled: Boolean,
-    val pinnedConversationsCount: Int
+    val pinnedConversationsCount: Int,
+    val avatars: List<String>
 ) {
 
     companion object {
@@ -17,7 +18,8 @@ data class ConversationsScreenState(
             conversations = emptyList(),
             isLoading = true,
             multilineEnabled = SettingsKeys.DEFAULT_VALUE_MULTILINE,
-            pinnedConversationsCount = 0
+            pinnedConversationsCount = 0,
+            avatars = emptyList()
         )
     }
 }

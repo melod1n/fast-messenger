@@ -31,7 +31,6 @@ fun TitleSummarySettingsItem(
     var summary by remember { mutableStateOf(item.summary) }
     item.onSummaryChanged = { newSummary -> summary = newSummary }
 
-    // TODO: 08.04.2023, Danil Nikolaev: handle isEnabled state
     var isEnabled by remember { mutableStateOf(item.isEnabled) }
     item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
 
