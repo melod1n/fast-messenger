@@ -1,6 +1,5 @@
 package com.meloda.fast.service
 
-import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -10,7 +9,6 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -36,14 +34,6 @@ import kotlin.coroutines.CoroutineContext
 
 class LongPollService : Service() {
 
-    companion object {
-        const val TAG = "LongPollTask"
-
-        const val KeyLongPollWasDestroyed = "long_poll_was_destroyed"
-
-        private const val NOTIFICATION_ID = 1001
-    }
-
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -57,29 +47,13 @@ class LongPollService : Service() {
     private val coroutineScope = CoroutineScope(coroutineContext)
 
     private val repository: MessagesRepository by inject()
-
     private val updatesParser: LongPollUpdatesParser by inject()
 
-    private var asForeground = false
-    private var foregroundNotification: Notification? = null
+    private var currentJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
-
-        val notificationBuilder =
-            NotificationsUtils.createNotification(
-                context = this,
-                title = "LongPoll",
-                contentText = "обновление ваших сообщений в фоне",
-                notRemovable = false,
-                channelId = "long_polling",
-                priority = NotificationsUtils.NotificationPriority.Low,
-                category = NotificationCompat.CATEGORY_SERVICE,
-                customNotificationId = NOTIFICATION_ID
-            )
-
-        foregroundNotification = notificationBuilder.build()
-        startForeground(NOTIFICATION_ID, foregroundNotification)
+        Log.d(STATE_TAG, "onCreate()")
     }
 
     override fun onBind(p0: Intent?): IBinder? {
@@ -87,17 +61,24 @@ class LongPollService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        asForeground = AppGlobal.preferences.getBoolean(
+        val asForeground = AppGlobal.preferences.getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
 
         Log.d(
-            "LongPollService",
+            STATE_TAG,
             "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId"
         )
 
-        coroutineScope.launch { startPolling().join() }
+        if (currentJob != null) {
+            currentJob?.cancel()
+            currentJob = null
+        }
+
+        coroutineScope.launch {
+            currentJob = startPolling().also { it.join() }
+        }
 
         val openCategorySettingsIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
@@ -116,40 +97,36 @@ class LongPollService : Service() {
         )
 
         if (asForeground) {
-            val notificationBuilder =
+            val notification =
                 NotificationsUtils.createNotification(
                     context = this,
                     title = "LongPoll",
-                    contentText = "нажмите, чтобы отключить",
+                    contentText = "нажмите, чтобы убрать уведомление",
                     notRemovable = false,
                     channelId = "long_polling",
                     priority = NotificationsUtils.NotificationPriority.Low,
                     category = NotificationCompat.CATEGORY_SERVICE,
                     customNotificationId = NOTIFICATION_ID,
                     contentIntent = openCategorySettingsPendingIntent
-                )
+                ).build()
 
-            foregroundNotification = notificationBuilder.build()
-
-            startForeground(NOTIFICATION_ID, foregroundNotification)
+            startForeground(NOTIFICATION_ID, notification)
         } else {
-            if (foregroundNotification != null) {
-                NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID)
-                foregroundNotification = null
-            }
+            stopForeground(STOP_FOREGROUND_REMOVE)
         }
         return START_STICKY
     }
 
     private fun startPolling(): Job {
         if (job.isCompleted || job.isCancelled) {
-            Log.d("LongPollService", "job is completed or cancelled")
+            Log.d(STATE_TAG, "job is completed or cancelled")
             throw Exception("Job is over")
         }
 
-        Log.d("LongPollService", "job started")
+        Log.d(STATE_TAG, "job started")
 
         return coroutineScope.launch {
+            // TODO: 04/12/2023, Danil Nikolaev: start long polling job only when token is presented
             if (UserConfig.accessToken.isEmpty()) {
                 throw ApiError(errorMessage = "Access token is empty")
             }
@@ -243,7 +220,7 @@ class LongPollService : Service() {
             )
         )
 
-        println("$TAG: lastUpdateResponse: $response")
+        Log.d("LongPollService", "lastUpdateResponse: $response")
 
         if (response is ApiAnswer.Success) {
             return response.data
@@ -257,10 +234,10 @@ class LongPollService : Service() {
     }
 
     override fun onDestroy() {
-        Log.d("LongPollService", "onDestroy")
+        Log.d(STATE_TAG, "onDestroy")
         try {
             AppGlobal.preferences.edit {
-                putBoolean(KeyLongPollWasDestroyed, true)
+                putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true)
             }
             job.cancel()
         } catch (e: Exception) {
@@ -272,5 +249,15 @@ class LongPollService : Service() {
     override fun onLowMemory() {
         Log.d("LongPollService", "onLowMemory")
         super.onLowMemory()
+    }
+
+    companion object {
+        const val TAG = "LongPollTask"
+
+        private const val STATE_TAG = "LongPollServiceState"
+
+        const val KEY_LONG_POLL_WAS_DESTROYED = "long_poll_was_destroyed"
+
+        private const val NOTIFICATION_ID = 1001
     }
 }

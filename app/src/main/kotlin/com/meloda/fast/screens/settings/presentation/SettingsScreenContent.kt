@@ -8,22 +8,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.compose.MaterialDialog
-import com.meloda.fast.ext.RequestNotificationsPermission
 import com.meloda.fast.ext.isUsingDarkTheme
 import com.meloda.fast.ext.notNull
 import com.meloda.fast.model.base.UiText
@@ -53,6 +49,8 @@ fun SettingsRoute(
     onUseDarkThemeChanged: (Boolean) -> Unit,
     onUseDynamicColorsChanged: (Boolean) -> Unit,
     onUseMultilineChanged: (Boolean) -> Unit,
+    onUseLongPollInBackgroundChanged: (Boolean) -> Unit,
+    onOnlineChanged: (Boolean) -> Unit,
     viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
     val view = LocalView.current
@@ -67,13 +65,6 @@ fun SettingsRoute(
     if (screenState.isNeedToOpenUpdates) {
         viewModel.onNavigatedToUpdates()
         navigateToUpdates()
-    }
-
-    if (screenState.isNeedToRequestNotificationPermission) {
-        viewModel.onNotificationsPermissionRequested()
-        RequestNotificationsPermission {
-            Text("Blya pizda")
-        }
     }
 
     SettingsScreenContent(
@@ -98,6 +89,16 @@ fun SettingsRoute(
                 SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
                     val isUsing = newValue as? Boolean ?: false
                     onUseMultilineChanged(isUsing)
+                }
+
+                SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
+                    val isUsing = newValue as? Boolean ?: false
+                    onUseLongPollInBackgroundChanged(isUsing)
+                }
+
+                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS -> {
+                    val isUsing = newValue as? Boolean ?: false
+                    onOnlineChanged(isUsing)
                 }
 
                 else -> viewModel.onSettingsItemChanged(key, newValue)
@@ -131,7 +132,6 @@ fun SettingsScreenContent(
 ) {
     val settings: UserSettings = koinInject()
 
-    // TODO: 01/12/2023, Danil Nikolaev: fix
     val multilineEnabled by settings.multiline.collectAsStateWithLifecycle()
 
     val settingsList = screenState.settings
@@ -140,13 +140,8 @@ fun SettingsScreenContent(
     val longClickListener = OnSettingsLongClickListener(onSettingsItemLongClicked)
     val changeListener = OnSettingsChangeListener(onSettingsItemChanged)
 
-    val topAppBarState = rememberTopAppBarState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
-
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             val title = @Composable { Text(text = "Settings") }
             val navigationIcon = @Composable {
@@ -158,10 +153,9 @@ fun SettingsScreenContent(
                 }
             }
 
-            LargeTopAppBar(
+            TopAppBar(
                 title = title,
-                navigationIcon = navigationIcon,
-                scrollBehavior = scrollBehavior
+                navigationIcon = navigationIcon
             )
         }
     ) { padding ->

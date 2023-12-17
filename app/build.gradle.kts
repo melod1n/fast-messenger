@@ -104,8 +104,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.meloda.fast"
-        minSdk = 23
+        applicationId = "com.meloda.app.fast"
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "alpha"
@@ -126,15 +126,15 @@ android {
         }
     }
 
-    val flavorDimension = "version"
-
-    flavorDimensions += flavorDimension
-
     configurations {
         debugImplementation {
 //            exclude(group = "junit", module = "junit")
         }
     }
+
+    val flavorDimension = "version"
+
+    flavorDimensions += flavorDimension
 
     productFlavors {
         create("dev") {
@@ -236,12 +236,14 @@ fun DependencyHandlerScope.networkDependencies() {
 
     implementation(libs.logging.interceptor)
 
+    // TODO: 04/12/2023, Danil Nikolaev: remove gson and use moshi
     implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.chucker)
 }
 
 fun DependencyHandlerScope.composeDependencies() {
+
     // Compose-Bom zone
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)

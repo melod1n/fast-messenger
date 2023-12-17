@@ -1,8 +1,6 @@
 package com.meloda.fast.ext
 
-import android.Manifest
 import android.content.res.Configuration
-import android.os.Build
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.LocalContentColor
@@ -17,9 +15,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.PermissionStatus
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.settings.SettingsKeys
@@ -125,21 +122,28 @@ fun LocalContentAlpha(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RequestNotificationsPermission(
+fun CheckPermission(
     showRationale: @Composable () -> Unit,
+    onDenied: @Composable () -> Unit,
+    permission: PermissionState,
 ) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-
-    val notificationsPermission = rememberPermissionState(
-        permission = Manifest.permission.POST_NOTIFICATIONS
-    )
-
-    if (notificationsPermission.status.isGranted) return
-    if (notificationsPermission.status.shouldShowRationale) {
-        showRationale()
-    } else {
-        LaunchedEffect(Unit) {
-            notificationsPermission.launchPermissionRequest()
+    when (val status = permission.status) {
+        is PermissionStatus.Denied -> {
+            if (status.shouldShowRationale) {
+                showRationale()
+            } else {
+                onDenied()
+            }
         }
+
+        is PermissionStatus.Granted -> Unit
     }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun RequestPermission(
+    permission: PermissionState
+) {
+    LaunchedEffect(Unit) { permission.launchPermissionRequest() }
 }

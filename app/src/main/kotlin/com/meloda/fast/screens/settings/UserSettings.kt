@@ -13,12 +13,18 @@ interface UserSettings {
     val theme: AppTheme
     val themeFlow: StateFlow<AppTheme>
     val multiline: StateFlow<Boolean>
+    val longPollBackground: StateFlow<Boolean>
+    val online: StateFlow<Boolean>
 
     fun useDarkThemeChanged(use: Boolean)
 
     fun useDynamicColorsChanged(use: Boolean)
 
     fun useMultiline(use: Boolean)
+
+    fun setLongPollBackground(background: Boolean)
+
+    fun setOnline(use: Boolean)
 }
 
 class UserSettingsImpl : UserSettings {
@@ -28,6 +34,18 @@ class UserSettingsImpl : UserSettings {
         AppGlobal.preferences.getBoolean(
             SettingsKeys.KEY_APPEARANCE_MULTILINE,
             SettingsKeys.DEFAULT_VALUE_MULTILINE
+        )
+    )
+    override val longPollBackground = MutableStateFlow(
+        AppGlobal.preferences.getBoolean(
+            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+        )
+    )
+    override val online = MutableStateFlow(
+        AppGlobal.preferences.getBoolean(
+            SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
+            SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
         )
     )
 
@@ -45,6 +63,14 @@ class UserSettingsImpl : UserSettings {
 
     override fun useMultiline(use: Boolean) {
         multiline.value = use
+    }
+
+    override fun setLongPollBackground(background: Boolean) {
+        longPollBackground.value = background
+    }
+
+    override fun setOnline(use: Boolean) {
+        online.value = use
     }
 
     inner class AppThemePreferenceDelegate : ReadWriteProperty<Any?, AppTheme> {

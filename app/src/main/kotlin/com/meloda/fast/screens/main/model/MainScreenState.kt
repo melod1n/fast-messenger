@@ -9,8 +9,8 @@ data class MainScreenState(
     val accountsLoaded: Boolean,
     val useDarkTheme: Boolean,
     val useDynamicColors: Boolean,
-    val longPollState: LongPollState,
-    val onlineServiceEnabled: Boolean
+    val requestNotifications: Boolean,
+    val openAppPermissions: Boolean
 ) {
 
     companion object {
@@ -19,8 +19,8 @@ data class MainScreenState(
             accountsLoaded = false,
             useDarkTheme = isUsingDarkTheme(),
             useDynamicColors = isUsingDynamicColors(),
-            longPollState = LongPollState.Stop,
-            onlineServiceEnabled = false
+            requestNotifications = false,
+            openAppPermissions = false
         )
     }
 }

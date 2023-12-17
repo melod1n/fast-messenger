@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
@@ -25,12 +26,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -60,15 +60,14 @@ import com.meloda.fast.model.base.getImage
 import com.meloda.fast.screens.conversations.ConversationsViewModel
 import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
+import com.meloda.fast.screens.settings.UserSettings
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 import org.koin.androidx.compose.koinViewModel
-
-private val MinToolbarHeight = 96.dp
-private val MaxToolbarHeight = 176.dp
+import org.koin.compose.koinInject
 
 @Composable
 fun ConversationsRoute(
@@ -100,15 +99,16 @@ fun ConversationsScreenContent(
     onSettingsClick: () -> Unit,
     viewModel: ConversationsViewModel
 ) {
+    val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val conversations = screenState.conversations
 
     val isLoading = screenState.isLoading
 
-    // TODO: 01/12/2023, Danil Nikolaev: implement retrieving from settings
-    val maxLines by remember {
+    val multilineEnabled by userSettings.multiline.collectAsStateWithLifecycle()
+    val maxLines by remember(multilineEnabled) {
         derivedStateOf {
-            if (screenState.multilineEnabled) 2 else 1
+            if (multilineEnabled) 2 else 1
         }
     }
 
@@ -116,9 +116,6 @@ fun ConversationsScreenContent(
 
     // TODO: 26/11/2023, Danil Nikolaev: remove when fixed
     rememberLazyListStateHijacker(listState = listState)
-
-    val topAppBarState = rememberTopAppBarState()
-//    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
     var useLightList by remember {
         mutableStateOf(false)
@@ -130,28 +127,9 @@ fun ConversationsScreenContent(
         mutableStateOf(false)
     }
 
-
-//    val toolbarHeightRange = with(LocalDensity.current) {
-//        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
-//    }
-//    val toolbarState = rememberToolbarState(toolbarHeightRange)
-//
-//    val nestedScrollConnection = remember {
-//        object : NestedScrollConnection {
-//            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-//                toolbarState.scrollTopLimitReached =
-//                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-//                toolbarState.scrollOffset = toolbarState.scrollOffset - available.y
-//                return Offset(0f, toolbarState.consumed)
-//            }
-//        }
-//    }
-
     Scaffold(
         modifier = Modifier
-            .fillMaxSize()
-//            .nestedScroll(nestedScrollConnection)
-        ,
+            .fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             var dropDownMenuExpanded by remember {
@@ -237,17 +215,10 @@ fun ConversationsScreenContent(
             }
 
             Column(modifier = Modifier.fillMaxWidth()) {
-
-                // TODO: 01/12/2023, Danil Nikolaev: implement scrolling by tutorial
-
-                LargeTopAppBar(
+                TopAppBar(
                     title = title,
                     actions = actions,
-//                    scrollBehavior = scrollBehavior,
-                    modifier = Modifier
-                        .fillMaxWidth()
-//                        .height(with(LocalDensity.current) { toolbarState.height.toDp() })
-//                        .graphicsLayer { translationY = toolbarState.offset }
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 if (isLoading && conversations.isNotEmpty()) {
@@ -295,14 +266,6 @@ fun ConversationsScreenContent(
                     LazyColumn(
                         state = listState,
                         modifier = listModifier
-//                            .graphicsLayer {
-//                                translationY = toolbarState.height + toolbarState.offset
-//                            },
-//                        contentPadding = PaddingValues(
-//                            bottom = if (toolbarState is FixedScrollFlagState)
-//                                MinToolbarHeight
-//                            else 0.dp
-//                        ),
                     ) {
                         items(
                             count = conversations.size,
@@ -373,13 +336,10 @@ fun ConversationsList(
         modifier = modifier,
         state = state
     ) {
-        items(
-            count = conversations.size,
-            key = { index ->
-                conversations[index].conversationId
-            }
-        ) { index ->
-            val conversation = conversations[index]
+        itemsIndexed(
+            items = conversations,
+            key = { _, item -> item.conversationId },
+        ) { index, conversation ->
             val isUserAccount by remember {
                 derivedStateOf {
                     conversation.conversationId == UserConfig.userId

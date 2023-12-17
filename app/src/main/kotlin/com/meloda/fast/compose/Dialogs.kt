@@ -77,7 +77,8 @@ fun MaterialDialog(
     preSelectedItems: List<Int> = emptyList(),
     items: List<UiText> = emptyList(),
     onItemClick: ((index: Int) -> Unit)? = null,
-    customContent: (@Composable () -> Unit)? = null
+    buttonsInvokeDismiss: Boolean = true,
+    customContent: (@Composable () -> Unit)? = null,
 ) {
     var isVisible by remember {
         mutableStateOf(true)
@@ -210,7 +211,11 @@ fun MaterialDialog(
                             neutralText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
-                                        onDismissRequest.invoke()
+                                        if (buttonsInvokeDismiss) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            isVisible = false
+                                        }
                                         neutralAction?.invoke()
                                     }
                                 ) {
@@ -223,7 +228,11 @@ fun MaterialDialog(
                             negativeText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
-                                        onDismissRequest.invoke()
+                                        if (buttonsInvokeDismiss) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            isVisible = false
+                                        }
                                         negativeAction?.invoke()
                                     }
                                 ) {
@@ -236,7 +245,11 @@ fun MaterialDialog(
                             positiveText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
-                                        onDismissRequest.invoke()
+                                        if (buttonsInvokeDismiss) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            isVisible = false
+                                        }
                                         positiveAction?.invoke()
                                     }
                                 ) {

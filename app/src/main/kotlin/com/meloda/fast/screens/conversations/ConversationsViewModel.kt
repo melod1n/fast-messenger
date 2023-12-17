@@ -36,7 +36,6 @@ import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.toMap
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.conversations.model.ConversationsShowOptions
-import com.meloda.fast.screens.settings.SettingsKeys
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -86,15 +85,6 @@ class ConversationsViewModelImpl constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
-        val multilineEnabled = AppGlobal.preferences.getBoolean(
-            SettingsKeys.KEY_APPEARANCE_MULTILINE,
-            SettingsKeys.DEFAULT_VALUE_MULTILINE
-        )
-
-        screenState.setValue { old ->
-            old.copy(multilineEnabled = multilineEnabled)
-        }
-
         updatesParser.onNewMessage(::handleNewMessage)
         updatesParser.onMessageEdited(::handleEditedMessage)
         updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)

@@ -46,7 +46,7 @@ fun sdk30AndUp(action: () -> Unit): Boolean? {
     } else null
 }
 
-fun sdk33AndUp(action: () -> Unit): Boolean? {
+inline fun sdk33AndUp(crossinline action: () -> Unit): Boolean? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         action.invoke()
         true
