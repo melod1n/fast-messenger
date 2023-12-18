@@ -67,7 +67,7 @@ interface ConversationsViewModel {
     fun onPinDialogPositiveClick(conversation: VkConversationUi)
 }
 
-class ConversationsViewModelImpl constructor(
+class ConversationsViewModelImpl(
     private val conversationsRepository: ConversationsRepository,
     private val usersRepository: UsersRepository,
     updatesParser: LongPollUpdatesParser,
@@ -220,12 +220,13 @@ class ConversationsViewModelImpl constructor(
                         }
 
                     val messages = conversations.mapNotNull { conversation ->
-                        conversation.lastMessage?.also { message ->
-                            message.user = profiles[message.fromId]
-                            message.group = groups[message.fromId]
-                            message.actionUser = profiles[message.actionMemberId]
-                            message.actionGroup = groups[message.actionMemberId]
-                        }
+                        val message = conversation.lastMessage
+                        message?.copy(
+                            user = profiles[message.fromId],
+                            group = groups[message.fromId],
+                            actionUser = profiles[message.actionMemberId],
+                            actionGroup = groups[message.actionMemberId]
+                        )
                     }
 
                     val conversationsUi = conversations.map(VkConversationDomain::mapToPresentation)

@@ -5,6 +5,7 @@ converterMoshi = "2.4.0"
 hijacker = "1.0.0"
 kotlin = "1.9.20"
 ksp = "1.9.20-1.0.14"
+vkompose = "0.1"
 
 accompanist = "0.32.0"
 coil = "2.5.0"
@@ -30,7 +31,7 @@ core-ktx = "1.12.0"
 koin-androidx-compose-navigation = "3.5.2-RC1"
 koin-androidx-compose = "3.5.2-RC1"
 koin-android = "3.5.0"
-material = "1.10.0"
+material = "1.11.0"
 loggingInterceptor = "5.0.0-alpha.11"
 moshiKotlinCodegen = "1.14.0"
 moshiKotlin = "1.14.0"
@@ -115,3 +116,4 @@ com-android-application = { id = "com.android.application", version.ref = "agp" 
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 org-jetbrains-kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+com-vk-vkompose = { id = "com.vk.vkompose", version.ref = "vkompose" }

@@ -200,9 +200,9 @@ data class VkConversationDomain(
         return finalText.orDots()
     }
 
-    fun extractAttachmentImage(): Drawable? {
+    fun extractAttachmentImage(): UiImage? {
         if (lastMessage?.text == null) return null
-        return VkUtils.getAttachmentConversationIcon(lastMessage).asDrawable(AppGlobal.Instance)
+        return VkUtils.getAttachmentConversationIcon(lastMessage)
     }
 
     fun extractReadCondition(): Boolean {

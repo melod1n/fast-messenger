@@ -5,10 +5,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
-@Entity(tableName = "groups")
 @Parcelize
 data class VkGroup(
-    @PrimaryKey(autoGenerate = false)
     val id: Int,
     val name: String,
     val screenName: String,
@@ -17,5 +15,4 @@ data class VkGroup(
 ) : Parcelable {
 
     override fun toString() = name.trim()
-
 }

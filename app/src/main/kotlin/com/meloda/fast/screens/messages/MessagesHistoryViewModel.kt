@@ -181,12 +181,12 @@ class MessagesHistoryViewModelImpl constructor(
                     val newMessages = answer.items
                         .map { message -> message.asVkMessage() }
                         .map { message ->
-                            message.apply {
-                                message.user = profiles[message.fromId]
-                                message.group = groups[message.fromId]
-                                message.actionUser = profiles[message.actionMemberId]
-                                message.actionGroup = groups[message.actionMemberId]
-                            }
+                            message.copy(
+                                user = profiles[message.fromId],
+                                group = groups[message.fromId],
+                                actionUser = profiles[message.actionMemberId],
+                                actionGroup = groups[message.actionMemberId]
+                            )
                         }.sortedBy { message -> message.date }
 
                     messages.emit(newMessages)

@@ -1,6 +1,5 @@
 package com.meloda.fast.screens.conversations.presentation
 
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,9 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.meloda.fast.R
 import com.meloda.fast.ext.LocalContentAlpha
+import com.meloda.fast.ext.notNull
+import com.meloda.fast.model.base.UiImage
+import com.meloda.fast.model.base.getImage
+import com.meloda.fast.model.base.getResourcePainter
 import com.meloda.fast.screens.conversations.DotsFlashing
 import com.meloda.fast.ui.ContentAlpha
 
@@ -51,7 +53,7 @@ fun Conversation(
     onItemClick: () -> Unit,
     onItemLongClick: () -> Unit,
     isUserAccount: Boolean,
-    avatar: Any?,
+    avatar: UiImage,
     title: String,
     message: String,
     date: String,
@@ -61,7 +63,7 @@ fun Conversation(
     isOnline: Boolean,
     isBirthday: Boolean,
     interactionText: String?,
-    attachmentImage: Drawable?,
+    attachmentImage: UiImage?,
     unreadCount: String?,
     showOnlyPlaceholders: Boolean
 ) {
@@ -124,19 +126,20 @@ fun Conversation(
                                 )
                             }
                         } else {
-                            if (avatar is Painter) {
+                            val avatarImage = avatar.getImage()
+                            if (avatarImage is Painter) {
                                 Image(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(CircleShape),
-                                    painter = avatar,
+                                    painter = avatarImage,
                                     contentDescription = null,
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
                                 )
                             } else {
                                 AsyncImage(
                                     model = ImageRequest.Builder(context)
-                                        .data(avatar)
+                                        .data(avatarImage)
                                         .crossfade(true)
                                         .build(),
                                     contentDescription = null,
@@ -251,12 +254,12 @@ fun Conversation(
                                 dotColor = MaterialTheme.colorScheme.primary
                             )
                         } else {
-                            attachmentImage?.let { drawable ->
+                            attachmentImage?.getResourcePainter()?.let { painter ->
                                 Column {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Image(
                                         modifier = Modifier.size(14.dp),
-                                        painter = rememberDrawablePainter(drawable),
+                                        painter = painter,
                                         contentDescription = null,
                                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                     )

@@ -1,6 +1,5 @@
 package com.meloda.fast.api.model.presentation
 
-import android.graphics.drawable.Drawable
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.VkGroup
@@ -16,7 +15,7 @@ data class VkConversationUi(
     val unreadCount: String?,
     val date: String,
     val message: String,
-    val attachmentImage: Drawable?,
+    val attachmentImage: UiImage?,
     val isPinned: Boolean,
     val actionState: ActionState,
     val isBirthday: Boolean,

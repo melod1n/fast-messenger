@@ -10,7 +10,6 @@ import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsDao
-import com.meloda.fast.database.CacheDatabase
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.isTrue
@@ -53,9 +52,8 @@ interface SettingsViewModel {
     fun onNotificationsPermissionRequested()
 }
 
-class SettingsViewModelImpl constructor(
+class SettingsViewModelImpl(
     private val accountsDao: AccountsDao,
-    private val cacheDatabase: CacheDatabase,
 ) : SettingsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
@@ -98,7 +96,6 @@ class SettingsViewModelImpl constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val newAccount = UserConfig.getAccount().copy(accessToken = "")
             accountsDao.insert(newAccount)
-            cacheDatabase.clearAllTables()
 
             UserConfig.clear()
         }

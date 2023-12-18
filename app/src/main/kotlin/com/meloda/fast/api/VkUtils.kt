@@ -54,9 +54,12 @@ object VkUtils {
     }
 
 
-    fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+    fun getMessageUser(
+        message: VkMessage,
+        profiles: Map<Int, VkUser>
+    ): VkUser? {
         return (if (!message.isUser()) null
-        else profiles[message.fromId]).also { message.user = it }
+        else profiles[message.fromId])
     }
 
     fun getMessageActionUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
@@ -66,7 +69,7 @@ object VkUtils {
 
     fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!message.isGroup()) null
-        else groups[message.fromId]).also { message.group = it }
+        else groups[message.fromId])
     }
 
     fun getMessageActionGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
@@ -912,9 +915,9 @@ object VkUtils {
                 else -> UiText.Resource(R.string.message_geo)
             }
         }
-        if (message?.attachments.isNullOrEmpty()) return null
+        if (message?.attachmentsList.isNullOrEmpty()) return null
 
-        return message?.attachments?.let { attachments ->
+        return message?.attachmentsList?.let { attachments ->
             if (attachments.size == 1) {
                 getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentTextByType(it)
@@ -932,7 +935,7 @@ object VkUtils {
     }
 
     fun getAttachmentConversationIcon(message: VkMessage?): UiImage? {
-        return message?.attachments?.let { attachments ->
+        return message?.attachmentsList?.let { attachments ->
             if (attachments.isEmpty()) return null
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 message.geo?.let {
@@ -953,7 +956,7 @@ object VkUtils {
         message: VkMessage?,
     ): Drawable? {
         if (message == null) return null
-        return message.attachments?.let { attachments ->
+        return message.attachmentsList?.let { attachments ->
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 message.geo?.let {
                     return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
@@ -1308,12 +1311,12 @@ object VkUtils {
         conversation.conversationUser = userGroup.first
         conversation.conversationGroup = userGroup.second
 
-        val newMessage = lastMessage?.copy()?.apply {
-            this.user = messageUserGroup.first
-            this.group = messageUserGroup.second
-            this.actionUser = actionUserGroup.first
-            this.actionGroup = actionUserGroup.second
-        } ?: return conversation
+        val newMessage = lastMessage?.copy(
+            user = messageUserGroup.first,
+            group = messageUserGroup.second,
+            actionUser = actionUserGroup.first,
+            actionGroup = actionUserGroup.second
+        ) ?: return conversation
 
         conversation.lastMessage = newMessage
 

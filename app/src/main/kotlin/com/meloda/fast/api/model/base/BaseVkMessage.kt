@@ -43,12 +43,11 @@ data class BaseVkMessage(
         actionMessage = action?.message,
         geo = geo,
         important = important,
-        updateTime = update_time
-    ).also {
-        it.attachments = VkUtils.parseAttachments(attachments)
-        it.forwards = VkUtils.parseForwards(fwd_messages)
-        it.replyMessage = VkUtils.parseReplyMessage(reply_message)
-    }
+        updateTime = update_time,
+        forwards = VkUtils.parseForwards(fwd_messages),
+        attachmentsList = VkUtils.parseAttachments(attachments),
+        replyMessage = VkUtils.parseReplyMessage(reply_message)
+    )
 
     @Parcelize
     data class Geo(

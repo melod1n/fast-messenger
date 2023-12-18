@@ -1,22 +1,20 @@
 package com.meloda.fast.screens.conversations.model
 
-import com.meloda.fast.api.model.presentation.VkConversationUi
+import com.meloda.fast.api.model.presentation.ConversationsList
 
 data class ConversationsScreenState(
     val showOptions: ConversationsShowOptions,
-    val conversations: List<VkConversationUi>,
+    val conversations: ConversationsList,
     val isLoading: Boolean,
     val pinnedConversationsCount: Int,
-    val avatars: List<String>
 ) {
 
     companion object {
         val EMPTY: ConversationsScreenState = ConversationsScreenState(
             showOptions = ConversationsShowOptions.EMPTY,
-            conversations = emptyList(),
+            conversations = ConversationsList.EMPTY,
             isLoading = true,
             pinnedConversationsCount = 0,
-            avatars = emptyList()
         )
     }
 }

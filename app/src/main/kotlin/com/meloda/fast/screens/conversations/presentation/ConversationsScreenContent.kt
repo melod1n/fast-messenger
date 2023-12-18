@@ -56,7 +56,6 @@ import com.meloda.fast.ext.asUiText
 import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.getImage
 import com.meloda.fast.screens.conversations.ConversationsViewModel
 import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
@@ -72,19 +71,16 @@ import org.koin.compose.koinInject
 @Composable
 fun ConversationsRoute(
     navigateToMessagesHistory: (conversation: VkConversationUi) -> Unit,
-    navigateToSettings: () -> Unit,
-    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
+    navigateToSettings: () -> Unit
 ) {
     val view = LocalView.current
 
     ConversationsScreenContent(
         onConversationsClick = navigateToMessagesHistory,
-        onConversationsLongClick = viewModel::onConversationItemLongClick,
         onCreateChatClick = {
             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
         },
-        onSettingsClick = navigateToSettings,
-        viewModel = viewModel
+        onSettingsClick = navigateToSettings
     )
 }
 
@@ -94,11 +90,10 @@ fun ConversationsRoute(
 @Composable
 fun ConversationsScreenContent(
     onConversationsClick: (VkConversationUi) -> Unit,
-    onConversationsLongClick: (VkConversationUi) -> Unit,
     onCreateChatClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    viewModel: ConversationsViewModel
 ) {
+    val viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val conversations = screenState.conversations
@@ -280,7 +275,7 @@ fun ConversationsScreenContent(
                 } else {
                     ConversationsList(
                         onConversationsClick = onConversationsClick,
-                        onConversationsLongClick = onConversationsLongClick,
+                        onConversationsLongClick = viewModel::onConversationItemLongClick,
                         conversations = conversations,
                         state = listState,
                         maxLines = maxLines,
@@ -346,7 +341,6 @@ fun ConversationsList(
                 }
             }
 
-            val avatar = conversation.avatar.getImage()
             val title by remember {
                 derivedStateOf {
                     conversation.title.orDots()
@@ -361,7 +355,7 @@ fun ConversationsList(
                     onConversationsLongClick(conversation)
                 },
                 isUserAccount = isUserAccount,
-                avatar = avatar,
+                avatar = conversation.avatar,
                 title = title,
                 message = conversation.message,
                 date = conversation.date,

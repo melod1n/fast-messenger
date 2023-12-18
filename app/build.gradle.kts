@@ -26,6 +26,24 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.com.vk.vkompose)
+}
+
+vkompose {
+    skippabilityCheck = true
+
+    recompose {
+        isHighlighterEnabled = true
+        isLoggerEnabled = true
+    }
+
+    testTag {
+        isApplierEnabled = true
+        isDrawerEnabled = true
+        isCleanerEnabled = true
+    }
+
+    sourceInformationClean = true
 }
 
 androidComponents {
