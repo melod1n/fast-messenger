@@ -16,6 +16,7 @@ import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.api.model.base.BaseVkGroup
 import com.meloda.fast.api.model.base.BaseVkUser
 import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.api.model.presentation.ConversationsList
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
 import com.meloda.fast.api.network.conversations.ConversationsGetRequest
@@ -170,9 +171,8 @@ class ConversationsViewModelImpl(
 
         screenState.setValue { old ->
             old.copy(
-                conversations = uiConversations,
+                conversations = ConversationsList(conversations = uiConversations),
                 pinnedConversationsCount = pinnedConversationsCount,
-                avatars = avatars
             )
         }
     }

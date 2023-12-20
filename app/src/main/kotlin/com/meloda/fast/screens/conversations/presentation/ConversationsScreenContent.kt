@@ -26,11 +26,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -40,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +52,7 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.model.presentation.ConversationsList
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.ext.asUiText
@@ -71,7 +74,8 @@ import org.koin.compose.koinInject
 @Composable
 fun ConversationsRoute(
     navigateToMessagesHistory: (conversation: VkConversationUi) -> Unit,
-    navigateToSettings: () -> Unit
+    navigateToSettings: () -> Unit,
+    modifier: Modifier
 ) {
     val view = LocalView.current
 
@@ -80,7 +84,8 @@ fun ConversationsRoute(
         onCreateChatClick = {
             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
         },
-        onSettingsClick = navigateToSettings
+        onSettingsClick = navigateToSettings,
+        modifier = modifier
     )
 }
 
@@ -92,11 +97,12 @@ fun ConversationsScreenContent(
     onConversationsClick: (VkConversationUi) -> Unit,
     onCreateChatClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    modifier: Modifier
 ) {
     val viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val conversations = screenState.conversations
+    val conversationsList = screenState.conversations
 
     val isLoading = screenState.isLoading
 
@@ -122,9 +128,12 @@ fun ConversationsScreenContent(
         mutableStateOf(false)
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             var dropDownMenuExpanded by remember {
@@ -210,19 +219,26 @@ fun ConversationsScreenContent(
             }
 
             Column(modifier = Modifier.fillMaxWidth()) {
-                TopAppBar(
+//                TopAppBar(
+//                    title = title,
+//                    actions = actions,
+//                    modifier = Modifier.fillMaxWidth()
+//                )
+
+                LargeTopAppBar(
                     title = title,
                     actions = actions,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    scrollBehavior = scrollBehavior
                 )
 
-                if (isLoading && conversations.isNotEmpty()) {
+                if (isLoading && conversationsList.conversations.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
         },
         floatingActionButton = {
-            if (!isLoading || conversations.isNotEmpty()) {
+            if (!isLoading || conversationsList.conversations.isNotEmpty()) {
                 FloatingActionButton(
                     modifier = Modifier.navigationBarsPadding(),
                     onClick = onCreateChatClick
@@ -235,7 +251,7 @@ fun ConversationsScreenContent(
             }
         }
     ) { padding ->
-        if (isLoading && conversations.isEmpty()) {
+        if (isLoading && conversationsList.conversations.isEmpty()) {
             Loader()
         } else {
             Box(
@@ -263,7 +279,7 @@ fun ConversationsScreenContent(
                         modifier = listModifier
                     ) {
                         items(
-                            count = conversations.size,
+                            count = conversationsList.size,
                             key = { index -> index }
                         ) { index ->
                             Text(
@@ -273,10 +289,10 @@ fun ConversationsScreenContent(
                         }
                     }
                 } else {
-                    ConversationsList(
+                    ConversationsListComposable(
                         onConversationsClick = onConversationsClick,
                         onConversationsLongClick = viewModel::onConversationItemLongClick,
-                        conversations = conversations,
+                        conversationsList = conversationsList,
                         state = listState,
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
@@ -318,15 +334,17 @@ fun Loader() {
 }
 
 @Composable
-fun ConversationsList(
+fun ConversationsListComposable(
     onConversationsClick: (VkConversationUi) -> Unit,
     onConversationsLongClick: (VkConversationUi) -> Unit,
-    conversations: List<VkConversationUi>,
+    conversationsList: ConversationsList,
     state: LazyListState,
     maxLines: Int,
     showOnlyPlaceholders: Boolean,
     modifier: Modifier
 ) {
+    val conversations = conversationsList.conversations
+
     LazyColumn(
         modifier = modifier,
         state = state

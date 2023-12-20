@@ -39,8 +39,8 @@ vkompose {
 
     testTag {
         isApplierEnabled = true
-        isDrawerEnabled = true
-        isCleanerEnabled = true
+        isDrawerEnabled = false
+        isCleanerEnabled = false
     }
 
     sourceInformationClean = true

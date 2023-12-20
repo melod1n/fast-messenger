@@ -11,7 +11,6 @@ import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.di.applicationModule
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.shakebugs.shake.Shake
-import com.vk.compose.test.tag.drawer.TestTagDrawConfig
 import com.vk.recompose.highlighter.RecomposeHighlighterConfig
 import com.vk.recompose.logger.RecomposeLoggerConfig
 import org.koin.android.ext.koin.androidContext
@@ -40,7 +39,6 @@ class AppGlobal : Application() {
     private fun initVkomposePlugins() {
         RecomposeLoggerConfig.isEnabled = true
         RecomposeHighlighterConfig.isEnabled = true
-        TestTagDrawConfig.isEnabled = true
     }
 
     private fun applyDarkTheme() {

@@ -8,6 +8,7 @@ import com.meloda.fast.screens.conversations.presentation.ConversationsRoute
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.navigation.MessagesHistoryScreen
 import com.meloda.fast.screens.settings.navigation.SettingsScreen
+import com.vk.recompose.highlighter.HighlighterModifier
 
 object ConversationsScreen : Screen {
     @Composable
@@ -26,7 +27,8 @@ object ConversationsScreen : Screen {
             },
             navigateToSettings = {
                 navigator.push(SettingsScreen)
-            }
+            },
+            modifier = HighlighterModifier
         )
     }
 }

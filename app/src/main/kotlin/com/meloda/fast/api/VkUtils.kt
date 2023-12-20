@@ -898,7 +898,7 @@ object VkUtils {
     }
 
     fun getForwardsText(message: VkMessage?): UiText? {
-        if (message?.forwards.isNullOrEmpty()) return null
+        if (message?.forwards?.messages.isNullOrEmpty()) return null
 
         return message?.forwards?.let { forwards ->
             UiText.Resource(
@@ -915,17 +915,17 @@ object VkUtils {
                 else -> UiText.Resource(R.string.message_geo)
             }
         }
-        if (message?.attachmentsList.isNullOrEmpty()) return null
+        if (message?.attachmentsList?.attachments.isNullOrEmpty()) return null
 
-        return message?.attachmentsList?.let { attachments ->
-            if (attachments.size == 1) {
-                getAttachmentTypeByClass(attachments[0])?.let {
+        return message?.attachmentsList?.let { attachmentsList ->
+            if (attachmentsList.attachments.size == 1) {
+                getAttachmentTypeByClass(attachmentsList.attachments[0])?.let {
                     getAttachmentTextByType(it)
                 }
             } else {
-                if (isAttachmentsHaveOneType(attachments)) {
-                    getAttachmentTypeByClass(attachments[0])?.let {
-                        getAttachmentTextByType(it, attachments.size)
+                if (isAttachmentsHaveOneType(attachmentsList.attachments)) {
+                    getAttachmentTypeByClass(attachmentsList.attachments[0])?.let {
+                        getAttachmentTextByType(it, attachmentsList.attachments.size)
                     }
                 } else {
                     UiText.Resource(R.string.message_attachments_many)
@@ -935,14 +935,14 @@ object VkUtils {
     }
 
     fun getAttachmentConversationIcon(message: VkMessage?): UiImage? {
-        return message?.attachmentsList?.let { attachments ->
-            if (attachments.isEmpty()) return null
-            if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
+        return message?.attachmentsList?.let { attachmentsList ->
+            if (attachmentsList.attachments.isEmpty()) return null
+            if (attachmentsList.attachments.size == 1 || isAttachmentsHaveOneType(attachmentsList.attachments)) {
                 message.geo?.let {
                     return UiImage.Resource(R.drawable.ic_map_marker)
                 }
 
-                getAttachmentTypeByClass(attachments[0])?.let {
+                getAttachmentTypeByClass(attachmentsList.attachments[0])?.let {
                     getAttachmentIconByType(it)
                 }
             } else {
@@ -956,15 +956,15 @@ object VkUtils {
         message: VkMessage?,
     ): Drawable? {
         if (message == null) return null
-        return message.attachmentsList?.let { attachments ->
-            if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
+        return message.attachmentsList?.let { attachmentList ->
+            if (attachmentList.attachments.size == 1 || isAttachmentsHaveOneType(attachmentList.attachments)) {
                 message.geo?.let {
                     return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
                 }
 
-                if (attachments.isEmpty()) return null
+                if (attachmentList.attachments.isEmpty()) return null
 
-                getAttachmentTypeByClass(attachments[0])?.let {
+                getAttachmentTypeByClass(attachmentList.attachments[0])?.let {
                     getAttachmentIconByType(
                         context,
                         it

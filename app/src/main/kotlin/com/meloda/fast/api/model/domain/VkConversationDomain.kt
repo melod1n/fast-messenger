@@ -145,7 +145,7 @@ data class VkConversationDomain(
 
         val attachmentIcon: UiImage? = when {
             lastMessage?.text == null -> null
-            !lastMessage?.forwards.isNullOrEmpty() -> {
+            !lastMessage?.forwards?.messages.isNullOrEmpty() -> {
                 if (lastMessage?.forwards?.size == 1) {
                     UiImage.Resource(R.drawable.ic_attachment_forwarded_message)
                 } else {
