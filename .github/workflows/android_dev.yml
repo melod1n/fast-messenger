@@ -24,8 +24,8 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+#      - name: Grant execute permission for gradlew
+#        run: chmod +x gradlew
 
       - name: Build and sign debug APKs
         run: ./gradlew assembleDebug
