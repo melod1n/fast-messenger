@@ -114,12 +114,12 @@ android {
 
     compileSdk = 34
 
-    applicationVariants.all {
-        outputs.all {
-            (this as BaseVariantOutputImpl).outputFileName =
-                "${name}-${versionName}-${versionCode}.apk"
-        }
-    }
+//    applicationVariants.all {
+//        outputs.all {
+//            (this as BaseVariantOutputImpl).outputFileName =
+//                "${name}-${versionName}-${versionCode}.apk"
+//        }
+//    }
 
     defaultConfig {
         applicationId = "com.meloda.app.fast"
