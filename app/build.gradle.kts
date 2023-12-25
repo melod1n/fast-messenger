@@ -1,6 +1,6 @@
 import com.android.build.api.variant.BuildConfigField
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
 
 val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
 val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
@@ -114,12 +114,12 @@ android {
 
     compileSdk = 34
 
-    applicationVariants.all {
-        outputs.all {
-            (this as BaseVariantOutputImpl).outputFileName =
-                "${name}-${versionName}-${versionCode}.apk"
-        }
-    }
+//    applicationVariants.all {
+//        outputs.all {
+//            (this as BaseVariantOutputImpl).outputFileName =
+//                "${name}-${versionName}-${versionCode}.apk"
+//        }
+//    }
 
     defaultConfig {
         applicationId = "com.meloda.app.fast"
@@ -133,11 +133,39 @@ android {
         resourceConfigurations += listOf("en", "ru")
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreProperties = Properties()
+            val keystorePropertiesFile = file("keystore/keystore.properties")
+
+            storeFile = file("keystore/keystore.jks")
+
+            if (keystorePropertiesFile.exists()) {
+                keystorePropertiesFile.inputStream().let(keystoreProperties::load)
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            } else {
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_SIGN_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_SIGN_KEY_PASSWORD")
+            }
+        }
+
+        create("debugSigning") {
+            initWith(getByName("release"))
+        }
+    }
+
     buildTypes {
         getByName("debug") {
+            signingConfig = signingConfigs.getByName("debugSigning")
+
             versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+
             isMinifyEnabled = false
 
             proguardFiles(
