@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [ "pipeline-setup" ]
+    branches: [ "main" ]
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -12,7 +12,7 @@ env:
 jobs:
   build_apk_aab:
     runs-on: ubuntu-latest
-    name: Build release artifacts
+    name: Build full artifacts
     steps:
 
       - name: Checkout
@@ -34,23 +34,11 @@ jobs:
       - name: Build and sign release APKs
         run: ./gradlew assembleRelease
 
-      - name: Upload dev-debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-dev-debug.apk
-          path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
-
       - name: Upload full-debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-full-debug.apk
           path: app/build/outputs/apk/full/debug/app-full-debug.apk
-
-      - name: Upload dev-release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-dev-release.apk
-          path: app/build/outputs/apk/dev/release/app-dev-release.apk
 
       - name: Upload full-release APK
         uses: actions/upload-artifact@v4
