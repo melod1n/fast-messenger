@@ -11,8 +11,12 @@ object SettingsKeys {
     const val DEFAULT_VALUE_MULTILINE = true
     const val KEY_APPEARANCE_DARK_THEME = "appearance_appearance_dark_theme"
     const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+    const val KEY_APPEARANCE_AMOLED_THEME = "appearance_amoled_theme"
+    const val DEFAULT_VALUE_APPEARANCE_AMOLED_THEME = false
     const val KEY_USE_DYNAMIC_COLORS = "appearance_use_dynamic_colors"
     const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
+    const val KEY_APPEARANCE_LANGUAGE = "appearance_language"
+    const val DEFAULT_VALUE_APPEARANCE_LANGUAGE = "system"
 
     const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
     const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
@@ -35,6 +39,7 @@ object SettingsKeys {
     const val KEY_SHOW_EXACT_TIME_ON_TIME_STAMP = "wip_show_exact_time_on_time_stamp"
 
     const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
+    const val DEFAULT_VALUE_SHOW_DEBUG_CATEGORY = false
 
     const val ID_DMITRY = 37610580
 }

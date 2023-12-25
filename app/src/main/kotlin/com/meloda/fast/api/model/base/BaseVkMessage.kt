@@ -2,8 +2,6 @@ package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.AttachmentList
-import com.meloda.fast.api.model.MessagesList
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import kotlinx.parcelize.Parcelize
@@ -46,8 +44,8 @@ data class BaseVkMessage(
         geo = geo,
         important = important,
         updateTime = update_time,
-        forwards = MessagesList(messages = VkUtils.parseForwards(fwd_messages).orEmpty()),
-        attachmentsList = AttachmentList(attachments = VkUtils.parseAttachments(attachments).orEmpty()),
+        forwards = VkUtils.parseForwards(fwd_messages).orEmpty(),
+        attachments = VkUtils.parseAttachments(attachments).orEmpty(),
         replyMessage = VkUtils.parseReplyMessage(reply_message)
     )
 

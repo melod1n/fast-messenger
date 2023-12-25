@@ -38,7 +38,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.meloda.fast.R
 import com.meloda.fast.ext.LocalContentAlpha
-import com.meloda.fast.ext.notNull
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.getImage
 import com.meloda.fast.model.base.getResourcePainter

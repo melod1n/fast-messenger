@@ -39,8 +39,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 interface LoginViewModel {
-    val isNeedToShowLogo: StateFlow<Boolean>
-
     val screenState: StateFlow<LoginScreenState>
 
     val isNeedToShowFastLoginDialog: Flow<Boolean>
@@ -73,13 +71,11 @@ interface LoginViewModel {
     fun onRestarted()
 }
 
-class LoginViewModelImpl constructor(
+class LoginViewModelImpl(
     private val authRepository: AuthRepository,
     private val accounts: AccountsDao,
     private val loginValidator: LoginValidator,
 ) : BaseViewModel(), LoginViewModel {
-
-    override val isNeedToShowLogo = MutableStateFlow(true)
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
 
@@ -105,7 +101,7 @@ class LoginViewModelImpl constructor(
     }
 
     override fun onBackPressed() {
-        isNeedToShowLogo.updateValue(true)
+        screenState.setValue { old -> old.copy(isNeedToShowLogo = true) }
     }
 
     override fun onPasswordVisibilityButtonClicked() {
@@ -116,7 +112,7 @@ class LoginViewModelImpl constructor(
     }
 
     override fun onLogoNextButtonClicked() {
-        isNeedToShowLogo.emitOnMainScope(false)
+        screenState.setValue { old -> old.copy(isNeedToShowLogo = false) }
     }
 
     override fun onLoginInputChanged(newLogin: String) {

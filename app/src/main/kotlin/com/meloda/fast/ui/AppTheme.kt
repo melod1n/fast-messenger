@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.Font
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
 import com.meloda.fast.R
+import com.meloda.fast.ext.isUsingAmoledBackgroundComposable
 import com.meloda.fast.ext.isUsingDarkThemeComposable
 import com.meloda.fast.ext.isUsingDynamicColorsComposable
 
@@ -108,6 +110,7 @@ fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
     useDarkTheme: Boolean = isUsingDarkThemeComposable(),
     useDynamicColors: Boolean = isUsingDynamicColorsComposable(),
+    useAmoledBackground: Boolean = isUsingAmoledBackgroundComposable(),
     content: @Composable () -> Unit
 ) {
     val colorScheme: ColorScheme = when {
@@ -119,6 +122,15 @@ fun AppTheme(
 
         useDarkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }.let { scheme ->
+        if (useDarkTheme && useAmoledBackground) {
+            scheme.copy(
+                background = Color.Black,
+                surface = Color.Black
+            )
+        } else {
+            scheme
+        }
     }
 
     val typography = MaterialTheme.typography.copy(

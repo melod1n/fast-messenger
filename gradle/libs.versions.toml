@@ -43,6 +43,7 @@ room-compiler = "2.6.1"
 room-runtime = "2.6.1"
 room-ktx = "2.6.1"
 preference-ktx = "1.2.1"
+nanokt = "1.0.0"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
@@ -98,6 +99,9 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room-co
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room-runtime" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room-ktx" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference-ktx" }
+nanokt = { module = "com.conena.nanokt:nanokt", version.ref = "nanokt" }
+nanokt-android = { module = "com.conena.nanokt:nanokt-android", version.ref = "nanokt" }
+nanokt-jvm = { module = "com.conena.nanokt:nanokt-jvm", version.ref = "nanokt" }
 
 [bundles]
 compose = [

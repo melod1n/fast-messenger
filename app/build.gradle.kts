@@ -129,6 +129,8 @@ android {
         versionName = "alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        resourceConfigurations += listOf("en", "ru")
     }
 
     buildTypes {
@@ -194,73 +196,11 @@ val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
     // Tests zone
-    testDependencies()
+    testImplementation(libs.junit)
     // end of Tests zone
 
     implementation(libs.shake)
     debugImplementation(libs.leakcanary.android)
-
-    composeDependencies()
-
-    performanceDependencies()
-
-    // Koin for Default Android
-    implementation(libs.koin.android)
-
-    implementation(libs.coil)
-
-    implementation(libs.kotlin.reflect)
-
-    implementation(libs.core.ktx)
-
-    implementation(libs.lifecycle.viewmodel.ktx)
-    implementation(libs.lifecycle.runtime.ktx)
-
-    implementation(libs.preference.ktx)
-    implementation(libs.material)
-
-    implementation(libs.room.ktx)
-    implementation(libs.room.runtime)
-    ksp(libs.room.compiler)
-
-    implementation(libs.glide)
-    ksp(libs.glide.compiler)
-
-    implementation(libs.kpermissions)
-    implementation(libs.kpermissions.coroutines)
-
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
-
-    networkDependencies()
-}
-
-fun DependencyHandlerScope.testDependencies() {
-    testImplementation(libs.junit)
-}
-
-fun DependencyHandlerScope.networkDependencies() {
-    // Moshi zone
-    implementation(libs.moshi.kotlin)
-    ksp(libs.moshi.kotlin.codegen)
-    // end of Moshi zone
-
-    implementation(libs.retrofit)
-
-    // Retrofit converters
-    implementation(libs.converter.moshi)
-    implementation(libs.converter.gson)
-    // end of Retrofit converters
-
-    implementation(libs.logging.interceptor)
-
-    // TODO: 04/12/2023, Danil Nikolaev: remove gson and use moshi
-    implementation(libs.gson)
-    implementation(libs.guava)
-    implementation(libs.chucker)
-}
-
-fun DependencyHandlerScope.composeDependencies() {
 
     // Compose-Bom zone
     implementation(platform(libs.compose.bom))
@@ -297,10 +237,59 @@ fun DependencyHandlerScope.composeDependencies() {
 
     debugImplementation(libs.compose.ui.test.manifest)
     debugImplementation(libs.compose.ui.tooling)
-}
 
-// TODO: 01/12/2023, Danil Nikolaev: create baseline profile
-fun DependencyHandlerScope.performanceDependencies() {
+    // TODO: 01/12/2023, Danil Nikolaev: create baseline profile
     implementation(libs.benchmark.macro.junit4)
     implementation(libs.profileinstaller)
+
+    // Koin for Default Android
+    implementation(libs.koin.android)
+
+    implementation(libs.coil)
+
+    implementation(libs.kotlin.reflect)
+
+    implementation(libs.core.ktx)
+
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
+
+    implementation(libs.preference.ktx)
+    implementation(libs.material)
+
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
+
+    implementation(libs.kpermissions)
+    implementation(libs.kpermissions.coroutines)
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Moshi zone
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+    // end of Moshi zone
+
+    implementation(libs.retrofit)
+
+    // Retrofit converters
+    implementation(libs.converter.moshi)
+    implementation(libs.converter.gson)
+    // end of Retrofit converters
+
+    implementation(libs.logging.interceptor)
+
+    // TODO: 04/12/2023, Danil Nikolaev: remove gson and use moshi
+    implementation(libs.gson)
+    implementation(libs.guava)
+    implementation(libs.chucker)
+
+    implementation(libs.nanokt)
+    implementation(libs.nanokt.android)
+    implementation(libs.nanokt.jvm)
 }

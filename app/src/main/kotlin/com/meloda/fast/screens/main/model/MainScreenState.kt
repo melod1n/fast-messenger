@@ -1,9 +1,11 @@
 package com.meloda.fast.screens.main.model
 
+import androidx.compose.runtime.Immutable
 import com.meloda.fast.ext.isUsingDarkTheme
 import com.meloda.fast.ext.isUsingDynamicColors
 import com.meloda.fast.model.AppAccount
 
+@Immutable
 data class MainScreenState(
     val accounts: List<AppAccount>,
     val accountsLoaded: Boolean,

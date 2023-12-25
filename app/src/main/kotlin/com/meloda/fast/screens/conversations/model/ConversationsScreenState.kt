@@ -1,10 +1,12 @@
 package com.meloda.fast.screens.conversations.model
 
-import com.meloda.fast.api.model.presentation.ConversationsList
+import androidx.compose.runtime.Immutable
+import com.meloda.fast.api.model.presentation.VkConversationUi
 
+@Immutable
 data class ConversationsScreenState(
     val showOptions: ConversationsShowOptions,
-    val conversations: ConversationsList,
+    val conversations: List<VkConversationUi>,
     val isLoading: Boolean,
     val pinnedConversationsCount: Int,
 ) {
@@ -12,7 +14,7 @@ data class ConversationsScreenState(
     companion object {
         val EMPTY: ConversationsScreenState = ConversationsScreenState(
             showOptions = ConversationsShowOptions.EMPTY,
-            conversations = ConversationsList.EMPTY,
+            conversations = emptyList(),
             isLoading = true,
             pinnedConversationsCount = 0,
         )

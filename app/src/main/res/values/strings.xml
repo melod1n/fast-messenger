@@ -4,21 +4,12 @@
 
     <string name="message_attachments_many">Attachments</string>
 
-    <string name="navigation_friends">Friends</string>
-    <string name="navigation_chats">Chats</string>
-    <string name="navigation_profile">Profile</string>
-    <string name="navigation_favorites">Favorites</string>
-    <string name="navigation_settings">Settings</string>
-    <string name="static_settings">Static Settings</string>
-
     <string name="error_occurred">Error occurred</string>
     <string name="error_occurred_description">Error: %s</string>
 
     <string name="title_error">Error</string>
 
     <string name="password_login_hint">Password</string>
-
-    <string name="log_in">Log in</string>
 
     <string name="captcha_hint">Captcha code</string>
 
@@ -222,15 +213,29 @@
 
     <string name="value">Value</string>
 
-    <string name="settings_dark_theme">Dark Theme</string>
+    <string name="settings_dark_theme">Dark theme</string>
     <string name="settings_dark_theme_value_enabled">Enabled</string>
-    <string name="settings_dark_theme_value_follow_system">Follow System</string>
-    <string name="settings_dark_theme_value_battery_saver">Follow Battery Saver</string>
+    <string name="settings_dark_theme_value_follow_system">Follow system</string>
+    <string name="settings_dark_theme_value_battery_saver">Follow battery saver</string>
     <string name="settings_dark_theme_value_disabled">Disabled</string>
     <string name="settings_dark_theme_current_value">Current value: %s</string>
     <string name="settings_dark_theme_current_value_unknown">Unknown</string>
+    <string name="settings_amoled_dark_theme">AMOLED dark theme</string>
+    <string name="settings_amoled_dark_theme_description">Use AMOLED theme with a pure black background when dark theme is enabled</string>
 
-    <string name="settings_dynamic_colors">Dynamic Coloring</string>
-    <string name="settings_dynamic_colors_description">Requires Android 12 or higher</string>
+    <string name="settings_dynamic_colors">Dynamic colors</string>
+    <string name="settings_dynamic_colors_description">The colors for the app will be extracted from your home screen wallpaper</string>
+
+    <string name="settings_application_language">Application Language</string>
+    <string name="settings_application_language_value">Current: %s</string>
+
+    <string name="language_system">System</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_russian">Russian</string>
+
+    <string name="action_apply">Apply</string>
+    <string name="open_system_language_picker">Open system language picker</string>
+    <string name="title_application_language">Application language</string>
+    <string name="action_refresh">Refresh</string>
 
 </resources>

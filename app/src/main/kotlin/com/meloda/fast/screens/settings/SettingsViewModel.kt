@@ -11,11 +11,11 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.ifEmpty
+import com.meloda.fast.ext.isDebugSettingsShown
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.parseString
 import com.meloda.fast.screens.settings.model.SettingsItem
 import com.meloda.fast.screens.settings.model.SettingsScreenState
 import com.meloda.fast.screens.settings.model.SettingsShowOptions
@@ -61,22 +61,6 @@ class SettingsViewModelImpl(
     override val isLongPollBackgroundEnabled = MutableStateFlow<Boolean?>(null)
 
     init {
-        val multilineEnabled = AppGlobal.preferences.getBoolean(
-            SettingsKeys.KEY_APPEARANCE_MULTILINE,
-            SettingsKeys.DEFAULT_VALUE_MULTILINE
-        )
-        val useDynamicColors = AppGlobal.preferences.getBoolean(
-            SettingsKeys.KEY_USE_DYNAMIC_COLORS,
-            SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
-        )
-
-        screenState.setValue { old ->
-            old.copy(
-                multilineEnabled = multilineEnabled,
-                useDynamicColors = useDynamicColors
-            )
-        }
-
         createSettings()
     }
 
@@ -130,11 +114,7 @@ class SettingsViewModelImpl(
             }
 
             SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
-                val showDebugCategory =
-                    AppGlobal.preferences.getBoolean(
-                        SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-                        false
-                    )
+                val showDebugCategory = isDebugSettingsShown()
                 if (!showDebugCategory) return
 
                 AppGlobal.preferences.edit {
@@ -143,7 +123,12 @@ class SettingsViewModelImpl(
 
                 createSettings()
 
-                screenState.setValue { old -> old.copy(useHaptics = HapticType.Reject) }
+                screenState.setValue { old ->
+                    old.copy(
+                        useHaptics = HapticType.Reject,
+                        showDebugOptions = false
+                    )
+                }
             }
         }
     }
@@ -151,11 +136,7 @@ class SettingsViewModelImpl(
     override fun onSettingsItemLongClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_UPDATES_CHECK_UPDATES -> {
-                val showDebugCategory =
-                    AppGlobal.preferences.getBoolean(
-                        SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-                        false
-                    )
+                val showDebugCategory = isDebugSettingsShown()
                 if (showDebugCategory) return
 
                 AppGlobal.preferences.edit {
@@ -163,18 +144,18 @@ class SettingsViewModelImpl(
                 }
                 createSettings()
 
-                screenState.setValue { old -> old.copy(useHaptics = HapticType.LongPress) }
+                screenState.setValue { old ->
+                    old.copy(
+                        useHaptics = HapticType.LongPress,
+                        showDebugOptions = true
+                    )
+                }
             }
         }
     }
 
     override fun onSettingsItemChanged(key: String, newValue: Any?) {
         when (key) {
-            SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
-                val isEnabled = (newValue as? Boolean).isTrue
-                screenState.setValue { old -> old.copy(multilineEnabled = isEnabled) }
-            }
-
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 val isEnabled = (newValue as? Boolean).isTrue
 
@@ -247,8 +228,8 @@ class SettingsViewModelImpl(
                 UiText.Resource(R.string.settings_dark_theme_value_battery_saver),
                 UiText.Resource(R.string.settings_dark_theme_value_disabled)
             )
-            val darkThemeValuesMap = List(darkThemeValues.size) { index ->
-                darkThemeValues[index] to darkThemeTitles[index].parseString(AppGlobal.Instance)
+            val darkThemeValuesMap = darkThemeValues.mapIndexed { index, value ->
+                value to darkThemeTitles[index]
             }.toMap()
 
             val appearanceDarkTheme = SettingsItem.ListItem.build(
@@ -259,18 +240,23 @@ class SettingsViewModelImpl(
                 defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
             ) {
                 summaryProvider = SettingsItem.SummaryProvider { item ->
-                    val darkThemeValue =
-                        darkThemeValuesMap.getOrElse(item.value ?: -1) {
-                            UiText.Resource(R.string.settings_dark_theme_current_value_unknown)
-                                .parseString(AppGlobal.Instance)
-                        }
+                    val darkThemeValue = darkThemeValuesMap[item.value ?: 0]
 
                     UiText.ResourceParams(
                         value = R.string.settings_dark_theme_current_value,
-                        args = listOf(darkThemeValue)
+                        args = listOf(
+                            darkThemeValue
+                                ?: UiText.Resource(R.string.settings_dark_theme_current_value_unknown)
+                        )
                     )
                 }
             }
+            val appearanceUseAmoledDarkTheme = SettingsItem.Switch.build(
+                key = SettingsKeys.KEY_APPEARANCE_AMOLED_THEME,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME,
+                title = UiText.Resource(R.string.settings_amoled_dark_theme),
+                summary = UiText.Resource(R.string.settings_amoled_dark_theme_description)
+            )
             val appearanceUseDynamicColors = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_USE_DYNAMIC_COLORS,
                 title = UiText.Resource(R.string.settings_dynamic_colors),
@@ -278,6 +264,33 @@ class SettingsViewModelImpl(
                 summary = UiText.Resource(R.string.settings_dynamic_colors_description),
                 defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
             )
+
+            val languageValues = listOf(
+                "system", "en", "ru",
+            )
+            val languages = listOf(
+                UiText.Resource(R.string.language_system),
+                UiText.Resource(R.string.language_english),
+                UiText.Resource(R.string.language_russian),
+            )
+            val languageValuesMap = languageValues.mapIndexed { index, value ->
+                value to languages[index]
+            }.toMap()
+
+            val appearanceLanguage = SettingsItem.TitleSummary.build(
+                key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
+                title = UiText.Resource(R.string.settings_application_language),
+            ) {
+                summaryProvider = SettingsItem.SummaryProvider { item ->
+                    // TODO: 25/12/2023, Danil Nikolaev: update value, receive result from LanguagePickerScreen
+                    val languageValue = languageValuesMap[item.value ?: "system"]
+
+                    UiText.ResourceParams(
+                        value = R.string.settings_application_language_value,
+                        args = listOf(languageValue)
+                    )
+                }
+            }
 
             val featuresTitle = SettingsItem.Title.build(
                 key = "features",
@@ -371,7 +384,9 @@ class SettingsViewModelImpl(
                 appearanceTitle,
                 appearanceMultiline,
                 appearanceDarkTheme,
-                appearanceUseDynamicColors
+                appearanceUseAmoledDarkTheme,
+                appearanceUseDynamicColors,
+                appearanceLanguage
             )
             val featuresList = listOf(
                 featuresTitle,
@@ -408,11 +423,7 @@ class SettingsViewModelImpl(
                 debugList,
             ).forEach(settingsList::addAll)
 
-            if (!AppGlobal.preferences.getBoolean(
-                    SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-                    false
-                )
-            ) {
+            if (!isDebugSettingsShown()) {
                 settingsList.removeAll(debugList)
             }
 

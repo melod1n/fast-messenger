@@ -17,11 +17,41 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkAudio
+import com.meloda.fast.api.model.attachments.VkCall
+import com.meloda.fast.api.model.attachments.VkCurator
+import com.meloda.fast.api.model.attachments.VkEvent
+import com.meloda.fast.api.model.attachments.VkFile
+import com.meloda.fast.api.model.attachments.VkGift
+import com.meloda.fast.api.model.attachments.VkGraffiti
+import com.meloda.fast.api.model.attachments.VkGroupCall
+import com.meloda.fast.api.model.attachments.VkLink
+import com.meloda.fast.api.model.attachments.VkMiniApp
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkPoll
+import com.meloda.fast.api.model.attachments.VkSticker
+import com.meloda.fast.api.model.attachments.VkStory
+import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.attachments.VkVoiceMessage
+import com.meloda.fast.api.model.attachments.VkWall
+import com.meloda.fast.api.model.attachments.VkWallReply
+import com.meloda.fast.api.model.attachments.VkWidget
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.network.*
+import com.meloda.fast.api.network.ApiAnswer
+import com.meloda.fast.api.network.AuthorizationError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.TokenExpiredError
+import com.meloda.fast.api.network.UserBannedError
+import com.meloda.fast.api.network.ValidationRequiredError
+import com.meloda.fast.api.network.VkErrorCodes
+import com.meloda.fast.api.network.VkErrorMessages
+import com.meloda.fast.api.network.VkErrorTypes
+import com.meloda.fast.api.network.VkErrors
+import com.meloda.fast.api.network.WrongTwoFaCodeError
+import com.meloda.fast.api.network.WrongTwoFaCodeFormatError
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
@@ -898,7 +928,7 @@ object VkUtils {
     }
 
     fun getForwardsText(message: VkMessage?): UiText? {
-        if (message?.forwards?.messages.isNullOrEmpty()) return null
+        if (message?.forwards.isNullOrEmpty()) return null
 
         return message?.forwards?.let { forwards ->
             UiText.Resource(
@@ -915,17 +945,17 @@ object VkUtils {
                 else -> UiText.Resource(R.string.message_geo)
             }
         }
-        if (message?.attachmentsList?.attachments.isNullOrEmpty()) return null
+        if (message?.attachments.isNullOrEmpty()) return null
 
-        return message?.attachmentsList?.let { attachmentsList ->
-            if (attachmentsList.attachments.size == 1) {
-                getAttachmentTypeByClass(attachmentsList.attachments[0])?.let {
+        return message?.attachments?.let { attachments ->
+            if (attachments.size == 1) {
+                getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentTextByType(it)
                 }
             } else {
-                if (isAttachmentsHaveOneType(attachmentsList.attachments)) {
-                    getAttachmentTypeByClass(attachmentsList.attachments[0])?.let {
-                        getAttachmentTextByType(it, attachmentsList.attachments.size)
+                if (isAttachmentsHaveOneType(attachments)) {
+                    getAttachmentTypeByClass(attachments[0])?.let {
+                        getAttachmentTextByType(it, attachments.size)
                     }
                 } else {
                     UiText.Resource(R.string.message_attachments_many)
@@ -935,14 +965,14 @@ object VkUtils {
     }
 
     fun getAttachmentConversationIcon(message: VkMessage?): UiImage? {
-        return message?.attachmentsList?.let { attachmentsList ->
-            if (attachmentsList.attachments.isEmpty()) return null
-            if (attachmentsList.attachments.size == 1 || isAttachmentsHaveOneType(attachmentsList.attachments)) {
+        return message?.attachments?.let { attachments ->
+            if (attachments.isEmpty()) return null
+            if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 message.geo?.let {
                     return UiImage.Resource(R.drawable.ic_map_marker)
                 }
 
-                getAttachmentTypeByClass(attachmentsList.attachments[0])?.let {
+                getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentIconByType(it)
                 }
             } else {
@@ -956,15 +986,15 @@ object VkUtils {
         message: VkMessage?,
     ): Drawable? {
         if (message == null) return null
-        return message.attachmentsList?.let { attachmentList ->
-            if (attachmentList.attachments.size == 1 || isAttachmentsHaveOneType(attachmentList.attachments)) {
+        return message.attachments?.let { attachments ->
+            if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 message.geo?.let {
                     return ContextCompat.getDrawable(context, R.drawable.ic_map_marker)
                 }
 
-                if (attachmentList.attachments.isEmpty()) return null
+                if (attachments.isEmpty()) return null
 
-                getAttachmentTypeByClass(attachmentList.attachments[0])?.let {
+                getAttachmentTypeByClass(attachments[0])?.let {
                     getAttachmentIconByType(
                         context,
                         it

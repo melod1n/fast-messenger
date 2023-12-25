@@ -46,15 +46,14 @@ fun UiText?.getString(): String? {
         }
 
         is UiText.ResourceParams -> {
-            // TODO: 26/11/2023, Danil Nikolaev: fix
             val processedArgs = args.map { any ->
                 when (any) {
-                    is UiText -> any.getString()
-                    else -> any
+                    is UiText -> any.getString().orEmpty()
+                    else -> any.toString()
                 }
             }.toTypedArray()
 
-            stringResource(id = value, processedArgs)
+            stringResource(id = value, *processedArgs)
         }
 
         is UiText.QuantityResource -> {
@@ -105,6 +104,30 @@ fun isUsingDynamicColorsComposable(): Boolean =
 fun isUsingDynamicColors(): Boolean = AppGlobal.preferences.getBoolean(
     SettingsKeys.KEY_USE_DYNAMIC_COLORS,
     SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
+)
+
+@Composable
+fun isUsingAmoledBackgroundComposable(): Boolean =
+    if (LocalView.current.isInEditMode) false
+    else {
+        isUsingAmoledBackground()
+    }
+
+fun isUsingAmoledBackground(): Boolean = AppGlobal.preferences.getBoolean(
+    SettingsKeys.KEY_APPEARANCE_AMOLED_THEME,
+    SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME
+)
+
+@Composable
+fun isDebugSettingsShownComposable(): Boolean =
+    if (LocalView.current.isInEditMode) true
+    else {
+        isDebugSettingsShown()
+    }
+
+fun isDebugSettingsShown(): Boolean = AppGlobal.preferences.getBoolean(
+    SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
+    SettingsKeys.DEFAULT_VALUE_SHOW_DEBUG_CATEGORY
 )
 
 @Composable

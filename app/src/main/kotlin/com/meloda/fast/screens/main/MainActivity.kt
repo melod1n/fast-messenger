@@ -9,17 +9,21 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import cafe.adriel.voyager.androidx.AndroidScreen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -42,31 +46,18 @@ import com.meloda.fast.screens.settings.UserSettings
 import com.meloda.fast.service.LongPollService
 import com.meloda.fast.service.OnlineService
 import com.meloda.fast.ui.AppTheme
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
+import org.koin.compose.koinInject
 
 
-class MainActivity : ComponentActivity() {
-
-    private val userSettings: UserSettings by inject()
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         createNotificationChannels()
-
-        userSettings.longPollBackground
-            .onEach { value ->
-                toggleLongPollService(true, value)
-            }.launchIn(lifecycleScope)
-
-        userSettings.online
-            .onEach(::toggleOnlineService)
-            .launchIn(lifecycleScope)
 
         setContent {
             MainScreen()
@@ -98,18 +89,66 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun checkExternalLanguageUpdate(userSettings: UserSettings) {
+        val currentSavedLanguage = userSettings.language.value
+
+        val appLocales = AppCompatDelegate.getApplicationLocales()
+
+        if (!appLocales.toLanguageTags().startsWith(currentSavedLanguage)) {
+            val newLanguage = if (appLocales.isEmpty) {
+                "system"
+            } else {
+                appLocales.getFirstMatch(arrayOf(currentSavedLanguage))?.language ?: "system"
+            }
+
+            userSettings.setLanguage(newLanguage, withUpdate = false)
+        }
+    }
+
     @Composable
     fun MainScreen() {
         KoinContext {
+            val userSettings: UserSettings = koinInject()
             val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
             val screenState by viewModel.screenState.collectAsStateWithLifecycle()
             val theme by userSettings.themeFlow.collectAsStateWithLifecycle()
 
+            val isLongPollInBackground by userSettings.longPollBackground.collectAsStateWithLifecycle()
+            toggleLongPollService(true, isLongPollInBackground)
+
+            val isOnline by userSettings.online.collectAsStateWithLifecycle()
+            toggleOnlineService(isOnline)
+
+            val language by userSettings.language.collectAsStateWithLifecycle()
+            val isNeedToSetLanguage by userSettings.languageChangedFromApp.collectAsStateWithLifecycle()
+            if (isNeedToSetLanguage) {
+                userSettings.onLanguageChanged()
+                setNewLanguage(language)
+            }
+
+            LocalLifecycleOwner.current.lifecycle.addObserver(
+                LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_RESUME -> {
+                            checkExternalLanguageUpdate(userSettings)
+                            toggleOnlineService(isOnline)
+                        }
+
+                        Lifecycle.Event.ON_PAUSE -> {
+                            toggleOnlineService(false)
+                        }
+
+                        else -> Unit
+                    }
+                }
+            )
+
             AppTheme(
                 useDarkTheme = theme.usingDarkStyle,
-                useDynamicColors = theme.usingDynamicColors
+                useDynamicColors = theme.usingDynamicColors,
+                useAmoledBackground = theme.usingAmoledBackground
             ) {
-                Navigator(screen = HomeScreen(viewModel = viewModel))
+                Navigator(screen = HomeScreen(viewModel))
 
                 NotificationsPermissionChecker(
                     screenState = screenState,
@@ -232,13 +271,27 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun setNewLanguage(newLanguage: String) {
+        val appLocales = AppCompatDelegate.getApplicationLocales()
+        if (newLanguage == "system") {
+            if (!appLocales.isEmpty) {
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+            }
+        } else {
+            if (!appLocales.toLanguageTags().startsWith(newLanguage)) {
+                val newLocale = LocaleListCompat.forLanguageTags(newLanguage)
+                AppCompatDelegate.setApplicationLocales(newLocale)
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         stopServices()
     }
 }
 
-data class HomeScreen(val viewModel: MainViewModel) : AndroidScreen() {
+data class HomeScreen(private val viewModel: MainViewModel) : AndroidScreen() {
 
     @Composable
     override fun Content() {

@@ -1,13 +1,16 @@
 package com.meloda.fast.api.model
 
 import android.os.Parcelable
+import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.Parcelize
 
+@Immutable
 @Parcelize
 data class VkMessage(
     val id: Int,
@@ -27,8 +30,8 @@ data class VkMessage(
 
     val important: Boolean = false,
 
-    val forwards: MessagesList? = null,
-    val attachmentsList: AttachmentList? = null,
+    val forwards: List<VkMessage>? = null,
+    val attachments: List<VkAttachment>? = null,
     val replyMessage: VkMessage? = null,
 
     val geo: BaseVkMessage.Geo? = null,
@@ -61,17 +64,17 @@ data class VkMessage(
 
     fun canEdit() =
         fromId == UserConfig.userId &&
-                (attachmentsList == null ||
+                (attachments == null ||
                         !VKConstants.restrictedToEditAttachments.contains(
-                            attachmentsList.attachments.first().javaClass
+                            attachments.first().javaClass
                         )) &&
                 (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.OneDayInSeconds)
 
-    fun hasAttachments(): Boolean = !attachmentsList?.attachments.isNullOrEmpty()
+    fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
 
     fun hasReply(): Boolean = replyMessage != null
 
-    fun hasForwards(): Boolean = !forwards?.messages.isNullOrEmpty()
+    fun hasForwards(): Boolean = !forwards.isNullOrEmpty()
 
     fun hasGeo(): Boolean = geo != null
 

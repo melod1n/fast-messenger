@@ -26,12 +26,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -41,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,7 +50,6 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.model.presentation.ConversationsList
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.ext.asUiText
@@ -74,8 +71,7 @@ import org.koin.compose.koinInject
 @Composable
 fun ConversationsRoute(
     navigateToMessagesHistory: (conversation: VkConversationUi) -> Unit,
-    navigateToSettings: () -> Unit,
-    modifier: Modifier
+    navigateToSettings: () -> Unit
 ) {
     val view = LocalView.current
 
@@ -84,8 +80,7 @@ fun ConversationsRoute(
         onCreateChatClick = {
             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
         },
-        onSettingsClick = navigateToSettings,
-        modifier = modifier
+        onSettingsClick = navigateToSettings
     )
 }
 
@@ -96,13 +91,12 @@ fun ConversationsRoute(
 fun ConversationsScreenContent(
     onConversationsClick: (VkConversationUi) -> Unit,
     onCreateChatClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    modifier: Modifier
+    onSettingsClick: () -> Unit
 ) {
     val viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val conversationsList = screenState.conversations
+    val conversations = screenState.conversations
 
     val isLoading = screenState.isLoading
 
@@ -125,15 +119,11 @@ fun ConversationsScreenContent(
         mutableStateOf(false)
     }
     var showPullRefresh by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             var dropDownMenuExpanded by remember {
@@ -166,7 +156,7 @@ fun ConversationsScreenContent(
                             dropDownMenuExpanded = false
                         },
                         text = {
-                            Text(text = "Settings")
+                            Text(text = stringResource(id = R.string.title_settings))
                         }
                     )
                     DropdownMenuItem(
@@ -175,36 +165,41 @@ fun ConversationsScreenContent(
                             dropDownMenuExpanded = false
                         },
                         text = {
-                            Text(text = "Refresh")
+                            Text(text = stringResource(id = R.string.action_refresh))
                         }
                     )
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = "Toggle list")
-                        },
-                        onClick = {
-                            useLightList = !useLightList
-                            dropDownMenuExpanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = "Toggle only avatar placeholders")
-                        },
-                        onClick = {
-                            showOnlyPlaceholders = !showOnlyPlaceholders
-                            dropDownMenuExpanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = "Toggle pull to refresh")
-                        },
-                        onClick = {
-                            showPullRefresh = !showPullRefresh
-                            dropDownMenuExpanded = false
-                        }
-                    )
+
+                    val isDebugMenuShown by userSettings.debugSettingsEnabled.collectAsStateWithLifecycle()
+
+                    if (isDebugMenuShown) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = "Toggle list")
+                            },
+                            onClick = {
+                                useLightList = !useLightList
+                                dropDownMenuExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = "Toggle only avatar placeholders")
+                            },
+                            onClick = {
+                                showOnlyPlaceholders = !showOnlyPlaceholders
+                                dropDownMenuExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = "Toggle pull to refresh")
+                            },
+                            onClick = {
+                                showPullRefresh = !showPullRefresh
+                                dropDownMenuExpanded = false
+                            }
+                        )
+                    }
                 }
             }
 
@@ -219,26 +214,19 @@ fun ConversationsScreenContent(
             }
 
             Column(modifier = Modifier.fillMaxWidth()) {
-//                TopAppBar(
-//                    title = title,
-//                    actions = actions,
-//                    modifier = Modifier.fillMaxWidth()
-//                )
-
-                LargeTopAppBar(
+                TopAppBar(
                     title = title,
                     actions = actions,
-                    modifier = Modifier.fillMaxWidth(),
-                    scrollBehavior = scrollBehavior
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                if (isLoading && conversationsList.conversations.isNotEmpty()) {
+                if (isLoading && conversations.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
         },
         floatingActionButton = {
-            if (!isLoading || conversationsList.conversations.isNotEmpty()) {
+            if (!isLoading || conversations.isNotEmpty()) {
                 FloatingActionButton(
                     modifier = Modifier.navigationBarsPadding(),
                     onClick = onCreateChatClick
@@ -251,7 +239,7 @@ fun ConversationsScreenContent(
             }
         }
     ) { padding ->
-        if (isLoading && conversationsList.conversations.isEmpty()) {
+        if (isLoading && conversations.isEmpty()) {
             Loader()
         } else {
             Box(
@@ -279,7 +267,7 @@ fun ConversationsScreenContent(
                         modifier = listModifier
                     ) {
                         items(
-                            count = conversationsList.size,
+                            count = conversations.size,
                             key = { index -> index }
                         ) { index ->
                             Text(
@@ -292,7 +280,7 @@ fun ConversationsScreenContent(
                     ConversationsListComposable(
                         onConversationsClick = onConversationsClick,
                         onConversationsLongClick = viewModel::onConversationItemLongClick,
-                        conversationsList = conversationsList,
+                        screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
@@ -337,13 +325,13 @@ fun Loader() {
 fun ConversationsListComposable(
     onConversationsClick: (VkConversationUi) -> Unit,
     onConversationsLongClick: (VkConversationUi) -> Unit,
-    conversationsList: ConversationsList,
+    screenState: ConversationsScreenState,
     state: LazyListState,
     maxLines: Int,
     showOnlyPlaceholders: Boolean,
     modifier: Modifier
 ) {
-    val conversations = conversationsList.conversations
+    val conversations = screenState.conversations
 
     LazyColumn(
         modifier = modifier,

@@ -24,8 +24,9 @@ data class BaseVkGroup(
         id = -id,
         name = name,
         screenName = screen_name,
+        photo50 = photo_50,
+        photo100 = photo_100,
         photo200 = photo_200,
         membersCount = members_count
     )
-
 }

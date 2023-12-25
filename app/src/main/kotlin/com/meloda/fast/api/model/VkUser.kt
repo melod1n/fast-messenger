@@ -9,6 +9,8 @@ data class VkUser(
     val firstName: String,
     val lastName: String,
     val online: Boolean,
+    val photo50: String?,
+    val photo100: String?,
     val photo200: String?,
     val lastSeen: Int?,
     val lastSeenStatus: String?,

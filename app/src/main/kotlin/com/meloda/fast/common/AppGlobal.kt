@@ -60,7 +60,6 @@ class AppGlobal : Application() {
     private fun initShake() {
         Shake.setAskForCrashDescription(true)
         Shake.setCrashReportingEnabled(true)
-        Shake.setShowIntroMessage(true)
         Shake.start(
             this,
             BuildConfig.shakeClientId,

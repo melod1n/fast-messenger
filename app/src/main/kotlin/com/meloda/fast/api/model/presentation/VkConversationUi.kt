@@ -1,5 +1,6 @@
 package com.meloda.fast.api.model.presentation
 
+import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.VkGroup
@@ -7,6 +8,7 @@ import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.model.base.UiImage
 
+@Immutable
 data class VkConversationUi(
     val conversationId: Int,
     val lastMessageId: Int,

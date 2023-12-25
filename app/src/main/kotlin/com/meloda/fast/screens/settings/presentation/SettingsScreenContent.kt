@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -45,8 +46,10 @@ import org.koin.compose.koinInject
 fun SettingsRoute(
     navigateToUpdates: () -> Unit,
     navigateToLogin: () -> Unit,
+    navigateToLanguagePicker: () -> Unit,
     onBackClick: () -> Unit,
     onUseDarkThemeChanged: (Boolean) -> Unit,
+    onUseAmoledThemeChanged: (Boolean) -> Unit,
     onUseDynamicColorsChanged: (Boolean) -> Unit,
     onUseMultilineChanged: (Boolean) -> Unit,
     onUseLongPollInBackgroundChanged: (Boolean) -> Unit,
@@ -69,13 +72,21 @@ fun SettingsRoute(
 
     SettingsScreenContent(
         onBackClick = onBackClick,
-        onSettingsItemClicked = viewModel::onSettingsItemClicked,
+        onSettingsItemClicked = { key ->
+            when (key) {
+                SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
+                    navigateToLanguagePicker()
+                }
+
+                else -> viewModel.onSettingsItemClicked(key)
+            }
+        },
         onSettingsItemLongClicked = viewModel::onSettingsItemLongClicked,
         onSettingsItemChanged = { key, newValue ->
             when (key) {
-                SettingsKeys.KEY_USE_DYNAMIC_COLORS -> {
+                SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
                     val isUsing = newValue as? Boolean ?: false
-                    onUseDynamicColorsChanged(isUsing)
+                    onUseMultilineChanged(isUsing)
                 }
 
                 SettingsKeys.KEY_APPEARANCE_DARK_THEME -> {
@@ -86,9 +97,14 @@ fun SettingsRoute(
                     onUseDarkThemeChanged(isUsing)
                 }
 
-                SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
+                SettingsKeys.KEY_APPEARANCE_AMOLED_THEME -> {
                     val isUsing = newValue as? Boolean ?: false
-                    onUseMultilineChanged(isUsing)
+                    onUseAmoledThemeChanged(isUsing)
+                }
+
+                SettingsKeys.KEY_USE_DYNAMIC_COLORS -> {
+                    val isUsing = newValue as? Boolean ?: false
+                    onUseDynamicColorsChanged(isUsing)
                 }
 
                 SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
@@ -107,7 +123,7 @@ fun SettingsRoute(
         screenState = screenState
     )
 
-    HandleDialogs(
+    HandlePopups(
         performCrashPositiveClick = viewModel::onPerformCrashPositiveButtonClicked,
         performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
         logoutPositiveClick = {
@@ -132,6 +148,8 @@ fun SettingsScreenContent(
 ) {
     val settings: UserSettings = koinInject()
 
+    settings.enableDebugSettings(screenState.showDebugOptions)
+
     val multilineEnabled by settings.multiline.collectAsStateWithLifecycle()
 
     val settingsList = screenState.settings
@@ -143,7 +161,7 @@ fun SettingsScreenContent(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            val title = @Composable { Text(text = "Settings") }
+            val title = @Composable { Text(text = stringResource(id = R.string.title_settings)) }
             val navigationIcon = @Composable {
                 IconButton(onClick = onBackClick) {
                     Icon(
@@ -224,7 +242,7 @@ fun SettingsScreenContent(
 
 // TODO: 25.08.2023, Danil Nikolaev: think something of list of click & dismissed listeners
 @Composable
-fun HandleDialogs(
+fun HandlePopups(
     performCrashPositiveClick: () -> Unit,
     performCrashDismissed: () -> Unit,
     logoutPositiveClick: () -> Unit,

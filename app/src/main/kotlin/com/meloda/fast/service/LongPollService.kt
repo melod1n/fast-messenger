@@ -37,7 +37,7 @@ class LongPollService : Service() {
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.d(TAG, "error: $throwable")
+        Log.e(TAG, "error: $throwable")
         throwable.printStackTrace()
     }
 
@@ -56,11 +56,14 @@ class LongPollService : Service() {
         Log.d(STATE_TAG, "onCreate()")
     }
 
-    override fun onBind(p0: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder? {
+        Log.d(STATE_TAG, "onBind: intent: $intent")
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (startId > 1) return START_STICKY
+
         val asForeground = AppGlobal.preferences.getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
@@ -68,7 +71,7 @@ class LongPollService : Service() {
 
         Log.d(
             STATE_TAG,
-            "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId"
+            "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId;\ninstance: $this"
         )
 
         if (currentJob != null) {
@@ -128,7 +131,7 @@ class LongPollService : Service() {
         return coroutineScope.launch {
             // TODO: 04/12/2023, Danil Nikolaev: start long polling job only when token is presented
             if (UserConfig.accessToken.isEmpty()) {
-                throw ApiError(errorMessage = "Access token is empty")
+                throw ApiError(errorMessage = "Access token is not initialized yet.")
             }
 
             var serverInfo = getServerInfo()
@@ -247,7 +250,7 @@ class LongPollService : Service() {
     }
 
     override fun onLowMemory() {
-        Log.d("LongPollService", "onLowMemory")
+        Log.d(STATE_TAG, "onLowMemory")
         super.onLowMemory()
     }
 

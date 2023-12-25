@@ -1,6 +1,5 @@
 package com.meloda.fast.api.model.domain
 
-import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
@@ -21,7 +20,6 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.asDrawable
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -145,7 +143,7 @@ data class VkConversationDomain(
 
         val attachmentIcon: UiImage? = when {
             lastMessage?.text == null -> null
-            !lastMessage?.forwards?.messages.isNullOrEmpty() -> {
+            !lastMessage?.forwards.isNullOrEmpty() -> {
                 if (lastMessage?.forwards?.size == 1) {
                     UiImage.Resource(R.drawable.ic_attachment_forwarded_message)
                 } else {
