@@ -1,25 +1,20 @@
 package com.meloda.fast.api.model
 
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.PrimaryKey
+import android.os.Parcelable
+import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.model.SelectableItem
 import com.meloda.fast.util.TimeUtils
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-// TODO: 05.08.2023, Danil Nikolaev: create other class for storing in database
-@Entity(tableName = "messages")
+@Immutable
 @Parcelize
-data class VkMessage constructor(
-    @PrimaryKey(autoGenerate = false)
-    var id: Int,
-    var text: String? = null,
+data class VkMessage(
+    val id: Int,
+    val text: String? = null,
     val isOut: Boolean,
     val peerId: Int,
     val fromId: Int,
@@ -31,36 +26,23 @@ data class VkMessage constructor(
     val actionConversationMessageId: Int? = null,
     val actionMessage: String? = null,
 
-    var updateTime: Int? = null,
+    val updateTime: Int? = null,
 
-    var important: Boolean = false,
+    val important: Boolean = false,
 
-    var forwards: List<VkMessage>? = null,
-    var attachments: List<VkAttachment>? = null,
-    var replyMessage: VkMessage? = null,
+    val forwards: List<VkMessage>? = null,
+    val attachments: List<VkAttachment>? = null,
+    val replyMessage: VkMessage? = null,
 
     val geo: BaseVkMessage.Geo? = null,
-) : SelectableItem() {
 
-    @Ignore
-    @IgnoredOnParcel
-    var user: VkUser? = null
+    val user: VkUser? = null,
+    val group: VkGroup? = null,
+    val actionUser: VkUser? = null,
+    val actionGroup: VkGroup? = null,
 
-    @Ignore
-    @IgnoredOnParcel
-    var group: VkGroup? = null
-
-    @Ignore
-    @IgnoredOnParcel
-    var actionUser: VkUser? = null
-
-    @Ignore
-    @IgnoredOnParcel
-    var actionGroup: VkGroup? = null
-
-    @Ignore
-    @IgnoredOnParcel
-    var state: State = State.Sent
+    val state: State = State.Sent
+) : Parcelable {
 
     fun isPeerChat() = peerId > 2_000_000_000
 
@@ -84,7 +66,7 @@ data class VkMessage constructor(
         fromId == UserConfig.userId &&
                 (attachments == null ||
                         !VKConstants.restrictedToEditAttachments.contains(
-                            requireNotNull(attachments).first().javaClass
+                            attachments.first().javaClass
                         )) &&
                 (System.currentTimeMillis() / 1000 - date.toLong() < TimeUtils.OneDayInSeconds)
 
@@ -96,7 +78,7 @@ data class VkMessage constructor(
 
     fun hasGeo(): Boolean = geo != null
 
-    fun isUpdated(): Boolean = updateTime != null && requireNotNull(updateTime) > 0
+    fun isUpdated(): Boolean = updateTime != null && updateTime > 0
 
     fun isSending(): Boolean = state == State.Sending
 
@@ -121,7 +103,7 @@ data class VkMessage constructor(
         CHAT_STYLE_UPDATE("conversation_style_update");
 
         companion object {
-            fun parse(value: String?): Action? = values().firstOrNull { it.value == value }
+            fun parse(value: String?): Action? = entries.firstOrNull { it.value == value }
         }
     }
 

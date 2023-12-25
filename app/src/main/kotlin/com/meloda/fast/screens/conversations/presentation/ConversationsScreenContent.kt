@@ -56,7 +56,6 @@ import com.meloda.fast.ext.asUiText
 import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.getImage
 import com.meloda.fast.screens.conversations.ConversationsViewModel
 import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
@@ -72,19 +71,16 @@ import org.koin.compose.koinInject
 @Composable
 fun ConversationsRoute(
     navigateToMessagesHistory: (conversation: VkConversationUi) -> Unit,
-    navigateToSettings: () -> Unit,
-    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
+    navigateToSettings: () -> Unit
 ) {
     val view = LocalView.current
 
     ConversationsScreenContent(
         onConversationsClick = navigateToMessagesHistory,
-        onConversationsLongClick = viewModel::onConversationItemLongClick,
         onCreateChatClick = {
             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
         },
-        onSettingsClick = navigateToSettings,
-        viewModel = viewModel
+        onSettingsClick = navigateToSettings
     )
 }
 
@@ -94,11 +90,10 @@ fun ConversationsRoute(
 @Composable
 fun ConversationsScreenContent(
     onConversationsClick: (VkConversationUi) -> Unit,
-    onConversationsLongClick: (VkConversationUi) -> Unit,
     onCreateChatClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    viewModel: ConversationsViewModel
+    onSettingsClick: () -> Unit
 ) {
+    val viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val conversations = screenState.conversations
@@ -124,12 +119,11 @@ fun ConversationsScreenContent(
         mutableStateOf(false)
     }
     var showPullRefresh by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             var dropDownMenuExpanded by remember {
@@ -162,7 +156,7 @@ fun ConversationsScreenContent(
                             dropDownMenuExpanded = false
                         },
                         text = {
-                            Text(text = "Settings")
+                            Text(text = stringResource(id = R.string.title_settings))
                         }
                     )
                     DropdownMenuItem(
@@ -171,36 +165,41 @@ fun ConversationsScreenContent(
                             dropDownMenuExpanded = false
                         },
                         text = {
-                            Text(text = "Refresh")
+                            Text(text = stringResource(id = R.string.action_refresh))
                         }
                     )
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = "Toggle list")
-                        },
-                        onClick = {
-                            useLightList = !useLightList
-                            dropDownMenuExpanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = "Toggle only avatar placeholders")
-                        },
-                        onClick = {
-                            showOnlyPlaceholders = !showOnlyPlaceholders
-                            dropDownMenuExpanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = "Toggle pull to refresh")
-                        },
-                        onClick = {
-                            showPullRefresh = !showPullRefresh
-                            dropDownMenuExpanded = false
-                        }
-                    )
+
+                    val isDebugMenuShown by userSettings.debugSettingsEnabled.collectAsStateWithLifecycle()
+
+                    if (isDebugMenuShown) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = "Toggle list")
+                            },
+                            onClick = {
+                                useLightList = !useLightList
+                                dropDownMenuExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = "Toggle only avatar placeholders")
+                            },
+                            onClick = {
+                                showOnlyPlaceholders = !showOnlyPlaceholders
+                                dropDownMenuExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = "Toggle pull to refresh")
+                            },
+                            onClick = {
+                                showPullRefresh = !showPullRefresh
+                                dropDownMenuExpanded = false
+                            }
+                        )
+                    }
                 }
             }
 
@@ -278,10 +277,10 @@ fun ConversationsScreenContent(
                         }
                     }
                 } else {
-                    ConversationsList(
+                    ConversationsListComposable(
                         onConversationsClick = onConversationsClick,
-                        onConversationsLongClick = onConversationsLongClick,
-                        conversations = conversations,
+                        onConversationsLongClick = viewModel::onConversationItemLongClick,
+                        screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
@@ -323,15 +322,17 @@ fun Loader() {
 }
 
 @Composable
-fun ConversationsList(
+fun ConversationsListComposable(
     onConversationsClick: (VkConversationUi) -> Unit,
     onConversationsLongClick: (VkConversationUi) -> Unit,
-    conversations: List<VkConversationUi>,
+    screenState: ConversationsScreenState,
     state: LazyListState,
     maxLines: Int,
     showOnlyPlaceholders: Boolean,
     modifier: Modifier
 ) {
+    val conversations = screenState.conversations
+
     LazyColumn(
         modifier = modifier,
         state = state
@@ -346,7 +347,6 @@ fun ConversationsList(
                 }
             }
 
-            val avatar = conversation.avatar.getImage()
             val title by remember {
                 derivedStateOf {
                     conversation.title.orDots()
@@ -361,7 +361,7 @@ fun ConversationsList(
                     onConversationsLongClick(conversation)
                 },
                 isUserAccount = isUserAccount,
-                avatar = avatar,
+                avatar = conversation.avatar,
                 title = title,
                 message = conversation.message,
                 date = conversation.date,

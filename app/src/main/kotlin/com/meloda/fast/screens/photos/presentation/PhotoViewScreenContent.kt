@@ -190,8 +190,7 @@ fun PhotoViewScreenContentPreview() {
             UiImage.Url(url = links[index])
         } + List(resources.size) { index ->
             UiImage.Resource(resId = resources[index])
-        } + UiImage.Simple(drawable) +
-                UiImage.Color(Color.Cyan.toArgb())
+        } + UiImage.Color(Color.Cyan.toArgb())
 
     AppTheme(
         useDarkTheme = true,

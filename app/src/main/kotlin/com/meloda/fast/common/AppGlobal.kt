@@ -11,6 +11,8 @@ import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.di.applicationModule
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.shakebugs.shake.Shake
+import com.vk.recompose.highlighter.RecomposeHighlighterConfig
+import com.vk.recompose.logger.RecomposeLoggerConfig
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -22,6 +24,8 @@ class AppGlobal : Application() {
 
         instance = this
 
+        initVkomposePlugins()
+
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
         versionCode = PackageInfoCompat.getLongVersionCode(info).toInt()
@@ -30,6 +34,11 @@ class AppGlobal : Application() {
 
         initKoin()
         initShake()
+    }
+
+    private fun initVkomposePlugins() {
+        RecomposeLoggerConfig.isEnabled = true
+        RecomposeHighlighterConfig.isEnabled = true
     }
 
     private fun applyDarkTheme() {
@@ -51,7 +60,6 @@ class AppGlobal : Application() {
     private fun initShake() {
         Shake.setAskForCrashDescription(true)
         Shake.setCrashReportingEnabled(true)
-        Shake.setShowIntroMessage(true)
         Shake.start(
             this,
             BuildConfig.shakeClientId,

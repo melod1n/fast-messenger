@@ -5,6 +5,7 @@ import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
 import kotlin.properties.Delegates
 
+// TODO: 24/12/2023, Danil Nikolaev: refactor
 sealed class SettingsItem<Value>(
     open val key: String,
 ) {

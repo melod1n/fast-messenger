@@ -1,9 +1,12 @@
 package com.meloda.fast.screens.login.model
 
+import androidx.compose.runtime.Immutable
 import com.meloda.fast.screens.captcha.model.CaptchaArguments
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
 
+@Immutable
 data class LoginScreenState(
+    val isNeedToShowLogo: Boolean,
     val login: String,
     val password: String,
     val captchaCode: String?,
@@ -25,6 +28,7 @@ data class LoginScreenState(
 
     companion object {
         val EMPTY = LoginScreenState(
+            isNeedToShowLogo = true,
             login = "",
             password = "",
             captchaCode = null,

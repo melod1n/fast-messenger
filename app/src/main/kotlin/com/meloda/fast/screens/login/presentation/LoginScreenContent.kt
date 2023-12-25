@@ -69,9 +69,9 @@ fun LoginRoute(
     navigateToConversations: () -> Unit,
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
-    val showLogo by viewModel.isNeedToShowLogo.collectAsStateWithLifecycle()
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
-    BackHandler(enabled = !showLogo) {
+    BackHandler(enabled = !screenState.isNeedToShowLogo) {
         viewModel.onBackPressed()
     }
 
@@ -80,7 +80,7 @@ fun LoginRoute(
         navigateToTwoFa = navigateToTwoFa,
         navigateToCaptcha = navigateToCaptcha,
         navigateToConversations = navigateToConversations,
-        showLogo = showLogo,
+        screenState = screenState,
         viewModel = viewModel
     )
 }
@@ -91,8 +91,8 @@ fun LoginScreenContent(
     navigateToTwoFa: (twoFaArguments: TwoFaArguments) -> Unit,
     navigateToCaptcha: (captchaArguments: CaptchaArguments) -> Unit,
     navigateToConversations: () -> Unit,
-    showLogo: Boolean,
-    viewModel: LoginViewModel
+    screenState: LoginScreenState,
+    viewModel: LoginViewModel,
 ) {
     Scaffold { padding ->
         Box(
@@ -100,11 +100,9 @@ fun LoginScreenContent(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (showLogo) {
+            if (screenState.isNeedToShowLogo) {
                 LoginLogo(viewModel)
             } else {
-                val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-
                 if (screenState.isNeedToRestart) {
                     viewModel.onRestarted()
                     restart()

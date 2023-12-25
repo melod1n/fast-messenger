@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.meloda.fast.screens.languagepicker.navigation.LanguagePickerScreen
 import com.meloda.fast.screens.login.navigation.LoginScreen
 import com.meloda.fast.screens.settings.UserSettings
 import com.meloda.fast.screens.settings.presentation.SettingsRoute
@@ -23,8 +24,12 @@ object SettingsScreen : Screen {
             navigateToLogin = {
                 navigator.replaceAll(LoginScreen)
             },
+            navigateToLanguagePicker = {
+                navigator.push(LanguagePickerScreen)
+            },
             onBackClick = navigator::pop,
             onUseDarkThemeChanged = userSettings::useDarkThemeChanged,
+            onUseAmoledThemeChanged = userSettings::useAmoledThemeChanged,
             onUseDynamicColorsChanged = userSettings::useDynamicColorsChanged,
             onUseMultilineChanged = userSettings::useMultiline,
             onUseLongPollInBackgroundChanged = userSettings::setLongPollBackground,

@@ -2,7 +2,6 @@ package com.meloda.fast.screens.main
 
 import android.util.Log
 import androidx.core.content.edit
-import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.BaseViewModel
@@ -19,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-interface MainViewModel : DefaultLifecycleObserver {
+interface MainViewModel {
 
     val screenState: StateFlow<MainScreenState>
 

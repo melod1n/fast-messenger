@@ -1,27 +1,27 @@
 package com.meloda.fast.screens.settings.model
 
+import androidx.compose.runtime.Immutable
+import com.meloda.fast.ext.isDebugSettingsShown
 import com.meloda.fast.screens.settings.HapticType
-import com.meloda.fast.screens.settings.SettingsKeys
 
+@Immutable
 data class SettingsScreenState(
     val showOptions: SettingsShowOptions,
-    val multilineEnabled: Boolean,
-    val useDynamicColors: Boolean,
     val settings: List<SettingsItem<*>>,
     val useHaptics: HapticType,
     val isNeedToOpenUpdates: Boolean,
-    val isNeedToRequestNotificationPermission: Boolean
+    val isNeedToRequestNotificationPermission: Boolean,
+    val showDebugOptions: Boolean
 ) {
 
     companion object {
         val EMPTY: SettingsScreenState = SettingsScreenState(
             showOptions = SettingsShowOptions.EMPTY,
-            multilineEnabled = SettingsKeys.DEFAULT_VALUE_MULTILINE,
-            useDynamicColors = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS,
             settings = emptyList(),
             useHaptics = HapticType.None,
             isNeedToOpenUpdates = false,
-            isNeedToRequestNotificationPermission = false
+            isNeedToRequestNotificationPermission = false,
+            showDebugOptions = isDebugSettingsShown()
         )
     }
 }

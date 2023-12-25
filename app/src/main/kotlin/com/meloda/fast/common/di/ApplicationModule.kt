@@ -8,6 +8,7 @@ import com.meloda.fast.di.otaModule
 import com.meloda.fast.di.utilModule
 import com.meloda.fast.screens.captcha.di.captchaModule
 import com.meloda.fast.screens.conversations.di.conversationsModule
+import com.meloda.fast.screens.languagepicker.di.languagePickerModule
 import com.meloda.fast.screens.login.di.loginModule
 import com.meloda.fast.screens.main.di.mainModule
 import com.meloda.fast.screens.messages.di.messagesHistoryModule
@@ -37,7 +38,8 @@ val applicationModule = module {
         updatesModule,
         messagesHistoryModule,
         photoViewModule,
-        mainModule
+        mainModule,
+        languagePickerModule
     )
 
     singleOf(::UserSettingsImpl) bind UserSettings::class
