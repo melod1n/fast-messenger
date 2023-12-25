@@ -10,33 +10,8 @@ env:
   RELEASE_SIGN_KEY_PASSWORD: ${{ secrets.RELEASE_SIGN_KEY_PASSWORD }}
 
 jobs:
-  test_self_hosted_runner:
-    runs-on: self-hosted
-    name: Build dev-debug artifact
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build and sign debug APKs
-        run: ./gradlew assembleDebug
-
-      - name: Upload dev-debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-dev-debug.apk
-          path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
   build_apk_aab:
-    runs-on: ubuntu-latest
+    runs-on: meloda-powerbook
     name: Build dev artifacts
     steps:
       - name: Checkout
