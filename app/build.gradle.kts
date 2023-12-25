@@ -1,26 +1,112 @@
-@file:Suppress("UnstableApiUsage")
-
+import com.android.build.api.variant.BuildConfigField
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
-val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage", "\"\"")
-val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint", "\"\"")
+val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
+val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
 
-val msAppCenterToken: String =
-    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", "\"\"")
-val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode", "\"\"")
+val otaSecretCode: String = getLocalProperty("otaSecretCode", "\"\"")
+
+val debugUserId: String = getLocalProperty("userId", "\"0\"")
+val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
+
+val shakeClientId: String = getLocalProperty("shakeClientId", "\"\"")
+val shakeClientSecret: String = getLocalProperty("shakeClientSecret", "\"\"")
+
+fun getLocalProperty(key: String, defValue: String): String {
+    return gradleLocalProperties(rootDir).getProperty(key, defValue)
+}
 
 val majorVersion = 1
 val minorVersion = 6
 val patchVersion = 4
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-kapt")
-    id("kotlin-parcelize")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.com.android.application)
+    alias(libs.plugins.org.jetbrains.kotlin.android)
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
+    alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.com.vk.vkompose)
+}
+
+vkompose {
+    skippabilityCheck = true
+
+    recompose {
+        isHighlighterEnabled = true
+        isLoggerEnabled = true
+    }
+
+    testTag {
+        isApplierEnabled = true
+        isDrawerEnabled = false
+        isCleanerEnabled = false
+    }
+
+    sourceInformationClean = true
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields.apply {
+            put(
+                "sdkPackage",
+                BuildConfigField(
+                    type = "String",
+                    value = sdkPackage,
+                    comment = "sdkPackage for VK"
+                )
+            )
+            put(
+                "sdkFingerprint",
+                BuildConfigField(
+                    type = "String",
+                    value = sdkFingerprint,
+                    comment = "sdkFingerprint for VK"
+                )
+            )
+            put(
+                "otaSecretCode",
+                BuildConfigField(
+                    type = "String",
+                    value = otaSecretCode,
+                    comment = "OTA Secret code for in-app updates"
+                )
+            )
+            put(
+                "debugUserId",
+                BuildConfigField(
+                    type = "String",
+                    value = debugUserId,
+                    comment = "user id for debugging purposes"
+                )
+            )
+            put(
+                "debugAccessToken",
+                BuildConfigField(
+                    type = "String",
+                    value = debugAccessToken,
+                    comment = "access token for debugging purposes"
+                )
+            )
+            put(
+                "shakeClientId",
+                BuildConfigField(
+                    type = "String",
+                    value = shakeClientId,
+                    comment = "Shake client id"
+                )
+            )
+            put(
+                "shakeClientSecret",
+                BuildConfigField(
+                    type = "String",
+                    value = shakeClientSecret,
+                    comment = "Shake client secret"
+                )
+            )
+        }
+    }
 }
 
 android {
@@ -36,45 +122,33 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.meloda.fast"
-        minSdk = 23
+        applicationId = "com.meloda.app.fast"
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-//                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
-        }
+        resourceConfigurations += listOf("en", "ru")
     }
 
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "sdkPackage", sdkPackage)
-            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
-
-            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
-
-            buildConfigField("String", "otaSecretCode", otaSecretCode)
-
             versionNameSuffix = "_${getVersionName()}"
         }
         getByName("release") {
             isMinifyEnabled = false
 
-            buildConfigField("String", "sdkPackage", sdkPackage)
-            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
-
-            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
-
-            buildConfigField("String", "otaSecretCode", otaSecretCode)
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
+        }
+    }
+
+    configurations {
+        debugImplementation {
+//            exclude(group = "junit", module = "junit")
         }
     }
 
@@ -106,18 +180,14 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.4"
         useLiveLiterals = true
     }
-}
-
-kapt {
-    correctErrorTypes = true
 }
 
 fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
@@ -125,112 +195,101 @@ fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
 val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
+    // Tests zone
+    testImplementation(libs.junit)
+    // end of Tests zone
 
+    implementation(libs.shake)
+    debugImplementation(libs.leakcanary.android)
 
-    // DI zone
-    //Koin for Default Android
-    implementation("io.insert-koin:koin-android:3.4.3")
+    // Compose-Bom zone
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
+    // end of Compose-Bom zone
+
+    // Accompanist zone
+    implementation(libs.accompanist.drawablepainter)
+    implementation(libs.accompanist.permissions)
+
+    // end of Accompanist zone
 
     // Koin for Compose
-    implementation("io.insert-koin:koin-androidx-compose:3.4.6")
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.compose.navigation)
     // end of DI zone
 
-    implementation("com.github.skydoves:cloudy:0.1.2")
+    // Voyager zone
+    implementation(libs.voyager.navigator)
+    implementation(libs.voyager.androidx)
+    implementation(libs.voyager.koin)
+    // end of Voyager zone
 
-    implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("io.coil-kt:coil:2.4.0")
+    // Coil for Compose
+    implementation(libs.coil.compose)
 
-    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
-    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
+    // Material3 Pull-to-Refresh (until official release)
+    implementation(libs.compose.material3.pullrefresh)
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.10")
+    // Hack for Lazy-* composables which fixes bug with scrolling
+    implementation(libs.hijacker)
 
-    implementation("androidx.core:core-ktx:1.12.0")
+    androidTestImplementation(libs.compose.ui.test.junit4)
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    debugImplementation(libs.compose.ui.test.manifest)
+    debugImplementation(libs.compose.ui.tooling)
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    // TODO: 01/12/2023, Danil Nikolaev: create baseline profile
+    implementation(libs.benchmark.macro.junit4)
+    implementation(libs.profileinstaller)
 
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    // Koin for Default Android
+    implementation(libs.koin.android)
 
-    implementation("androidx.activity:activity-ktx:1.7.2")
+    implementation(libs.coil)
 
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation(libs.kotlin.reflect)
 
-    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation(libs.core.ktx)
 
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
 
-    implementation("androidx.recyclerview:recyclerview:1.3.1")
+    implementation(libs.preference.ktx)
+    implementation(libs.material)
 
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
 
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
 
-    implementation("androidx.room:room-ktx:2.5.2")
-    implementation("androidx.room:room-runtime:2.5.2")
-    ksp("androidx.room:room-compiler:2.5.2")
+    implementation(libs.kpermissions)
+    implementation(libs.kpermissions.coroutines)
 
-    implementation("com.github.terrakok:cicerone:7.1")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation("com.github.massoudss:waveformSeekBar:5.0.0")
+    // Moshi zone
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+    // end of Moshi zone
 
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    ksp("com.github.bumptech.glide:compiler:4.16.0")
+    implementation(libs.retrofit)
 
-    implementation("com.github.fondesa:kpermissions:3.4.0")
-    implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
+    // Retrofit converters
+    implementation(libs.converter.moshi)
+    implementation(libs.converter.gson)
+    // end of Retrofit converters
 
-    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.2")
-    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.2")
+    implementation(libs.logging.interceptor)
 
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // TODO: 04/12/2023, Danil Nikolaev: remove gson and use moshi
+    implementation(libs.gson)
+    implementation(libs.guava)
+    implementation(libs.chucker)
 
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.3")
-
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
-
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    implementation("com.google.guava:guava:32.1.2-jre")
-
-    implementation("com.google.android.material:material:1.9.0")
-
-    implementation("com.github.chuckerteam.chucker:library:4.0.0")
-
-    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
-
-    // Compose zone
-    //implementation("androidx.compose.material:material:1.4.3")
-
-    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
-
-    implementation("androidx.compose.material3:material3:1.1.1")
-    implementation("androidx.compose.ui:ui:1.5.1")
-
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.5.1")
-
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
-
-    implementation("androidx.activity:activity-compose:1.7.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
-
-    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha05")
-
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.33.1-alpha")
-    implementation("com.google.accompanist:accompanist-insets:0.31.5-beta")
-    implementation("com.google.accompanist:accompanist-insets-ui:0.33.1-alpha")
-    // end of Compose zone
-
-    // Tests zone
-    testImplementation("junit:junit:4.13.2")
-    // end of Tests zone
+    implementation(libs.nanokt)
+    implementation(libs.nanokt.android)
+    implementation(libs.nanokt.jvm)
 }

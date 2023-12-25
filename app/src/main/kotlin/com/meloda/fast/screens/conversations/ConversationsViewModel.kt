@@ -1,9 +1,11 @@
 package com.meloda.fast.screens.conversations
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ImageRequest
-import com.github.terrakok.cicerone.Router
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils.fill
 import com.meloda.fast.api.longpoll.LongPollEvent
@@ -22,28 +24,28 @@ import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
 import com.meloda.fast.api.network.users.UsersGetRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.Screens
+import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.data.conversations.ConversationsRepository
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.data.users.UsersRepository
 import com.meloda.fast.ext.createTimerFlow
+import com.meloda.fast.ext.emitOnScope
 import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.findWithIndex
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.toMap
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.conversations.model.ConversationsShowOptions
-import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
-import com.meloda.fast.screens.messages.screen.MessagesHistoryScreen
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 interface ConversationsViewModel {
 
@@ -59,57 +61,38 @@ interface ConversationsViewModel {
 
     fun onRefresh()
 
-    fun onConversationItemClick(conversationUi: VkConversationUi)
     fun onConversationItemLongClick(conversationUi: VkConversationUi)
 
     fun onPinDialogDismissed()
     fun onPinDialogPositiveClick(conversation: VkConversationUi)
-    fun onToolbarMenuItemClicked(itemId: Int): Boolean
 }
 
-class ConversationsViewModelImpl constructor(
+class ConversationsViewModelImpl(
     private val conversationsRepository: ConversationsRepository,
     private val usersRepository: UsersRepository,
     updatesParser: LongPollUpdatesParser,
-    private val router: Router,
     private val messagesRepository: MessagesRepository,
-    private val messagesHistoryScreen: MessagesHistoryScreen
+    private val accountsDao: AccountsDao,
+    private val imageLoader: ImageLoader
 ) : ConversationsViewModel, BaseViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
 
-    private val pinnedConversationsCount = MutableStateFlow(0)
-
     private val domainConversations = MutableStateFlow<List<VkConversationDomain>>(emptyList())
 
-
-    // TODO: 25.08.2023, Danil Nikolaev: extract to DI
-    private val imageLoader by lazy {
-        ImageLoader.Builder(AppGlobal.Instance)
-            .crossfade(true)
-            .build()
-    }
-
-    private val settingsCategories = listOf(
-        "account", "appearance", "features", "visibility", "updates", "msappcenter", "wip", "debug"
-    )
+    private val pinnedConversationsCount = domainConversations.map { conversations ->
+        conversations.filter { conversation -> conversation.isPinned() }.size
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
-        val useLargeTopAppBar = AppGlobal.preferences.getBoolean(
-            SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR,
-            SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
-        )
-        val multilineEnabled = AppGlobal.preferences.getBoolean(
-            SettingsFragment.KEY_APPEARANCE_MULTILINE,
-            SettingsFragment.DEFAULT_VALUE_MULTILINE
-        )
+        updatesParser.onNewMessage(::handleNewMessage)
+        updatesParser.onMessageEdited(::handleEditedMessage)
+        updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
+        updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
+        updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
+        updatesParser.onInteractions(::handleInteraction)
 
-        screenState.setValue { old ->
-            old.copy(
-                useLargeTopAppBar = useLargeTopAppBar,
-                multilineEnabled = multilineEnabled
-            )
-        }
+        loadProfileUser()
     }
 
     override fun onOptionsDialogDismissed() {
@@ -130,7 +113,7 @@ class ConversationsViewModelImpl constructor(
             }
 
             "delete" -> {
-                emitShowOptions { old -> old.copy(showDeleteDialog = conversation.id) }
+                emitShowOptions { old -> old.copy(showDeleteDialog = conversation.conversationId) }
                 true
             }
 
@@ -155,10 +138,6 @@ class ConversationsViewModelImpl constructor(
         loadConversations()
     }
 
-    override fun onConversationItemClick(conversationUi: VkConversationUi) {
-        openMessagesHistoryScreen(conversationUi)
-    }
-
     override fun onConversationItemLongClick(conversationUi: VkConversationUi) {
         emitShowOptions { old -> old.copy(showOptionsDialog = conversationUi) }
     }
@@ -168,51 +147,31 @@ class ConversationsViewModelImpl constructor(
     }
 
     override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
-        pinConversation(conversation.id, !conversation.isPinned)
-    }
-
-    // TODO: 25.08.2023, Danil Nikolaev: rewrite
-    override fun onToolbarMenuItemClicked(itemId: Int): Boolean {
-        return when (itemId) {
-            0 -> {
-                router.navigateTo(Screens.Settings())
-                true
-            }
-
-            1 -> {
-                onRefresh()
-                true
-            }
-
-            else -> false
-        }
-    }
-
-    init {
-        updatesParser.onNewMessage(::handleNewMessage)
-        updatesParser.onMessageEdited(::handleEditedMessage)
-        updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
-        updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
-        updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
-        updatesParser.onInteractions(::handleInteraction)
-
-        loadProfileUser()
-        loadConversations()
+        pinConversation(conversation.conversationId, !conversation.isPinned)
     }
 
     private fun emitDomainConversations(conversations: List<VkConversationDomain>) {
         val pinnedConversationsCount = conversations.filter(VkConversationDomain::isPinned).size
 
-        viewModelScope.launch {
-            domainConversations.emit(conversations)
-        }
+        domainConversations.emitOnScope { conversations }
 
         val uiConversations = conversations.map(VkConversationDomain::mapToPresentation)
+        val avatars = uiConversations.mapNotNull { conversation ->
+            conversation.avatar.extractUrl()
+        }
+
+        avatars.forEach { avatar ->
+            val request = ImageRequest.Builder(AppGlobal.Instance)
+                .data(avatar)
+                .build()
+
+            AppGlobal.Instance.imageLoader.enqueue(request)
+        }
 
         screenState.setValue { old ->
             old.copy(
                 conversations = uiConversations,
-                pinnedConversationsCount = pinnedConversationsCount
+                pinnedConversationsCount = pinnedConversationsCount,
             )
         }
     }
@@ -224,7 +183,6 @@ class ConversationsViewModelImpl constructor(
 
     private fun loadConversations(offset: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-
             screenState.setValue { old -> old.copy(isLoading = true) }
 
             sendRequest(
@@ -261,12 +219,13 @@ class ConversationsViewModelImpl constructor(
                         }
 
                     val messages = conversations.mapNotNull { conversation ->
-                        conversation.lastMessage?.also { message ->
-                            message.user = profiles[message.fromId]
-                            message.group = groups[message.fromId]
-                            message.actionUser = profiles[message.actionMemberId]
-                            message.actionGroup = groups[message.actionMemberId]
-                        }
+                        val message = conversation.lastMessage
+                        message?.copy(
+                            user = profiles[message.fromId],
+                            group = groups[message.fromId],
+                            actionUser = profiles[message.actionMemberId],
+                            actionGroup = groups[message.actionMemberId]
+                        )
                     }
 
                     val conversationsUi = conversations.map(VkConversationDomain::mapToPresentation)
@@ -296,6 +255,16 @@ class ConversationsViewModelImpl constructor(
 
     private fun loadProfileUser() {
         viewModelScope.launch(Dispatchers.IO) {
+            val accounts = accountsDao.getAll()
+
+            Log.d("ConversationsViewModel", "initUserConfig: accounts: $accounts")
+            if (accounts.isNotEmpty()) {
+                val currentAccount = accounts.find { it.userId == UserConfig.currentUserId }
+                if (currentAccount != null) {
+                    UserConfig.parse(currentAccount)
+                }
+            }
+
             sendRequest(
                 request = {
                     usersRepository.getById(UsersGetRequest(fields = VKConstants.USER_FIELDS))
@@ -307,6 +276,8 @@ class ConversationsViewModelImpl constructor(
                     usersRepository.storeUsers(listOf(mappedUser))
                 }
             )
+
+            loadConversations()
         }
     }
 
@@ -337,7 +308,12 @@ class ConversationsViewModelImpl constructor(
                         conversationsRepository.pin(ConversationsPinRequest(peerId))
                     },
                     onResponse = {
-                        handleConversationPinStateUpdate(peerId, true)
+                        handlePinStateChanged(
+                            LongPollEvent.VkConversationPinStateChangedEvent(
+                                peerId = peerId,
+                                majorId = (pinnedConversationsCount.value + 1) * 16
+                            )
+                        )
                     }
                 )
             } else {
@@ -346,30 +322,15 @@ class ConversationsViewModelImpl constructor(
                         conversationsRepository.unpin(ConversationsUnpinRequest(peerId))
                     },
                     onResponse = {
-                        handleConversationPinStateUpdate(peerId, false)
+                        handlePinStateChanged(
+                            LongPollEvent.VkConversationPinStateChangedEvent(
+                                peerId = peerId,
+                                majorId = 0
+                            )
+                        )
                     }
                 )
             }
-        }
-    }
-
-    // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
-    private suspend fun handleConversationPinStateUpdate(peerId: Int, pin: Boolean) {
-        withContext(Dispatchers.IO) {
-            val newConversations = domainConversations.value.toMutableList()
-            val conversationIndex =
-                newConversations.findIndex { it.id == peerId } ?: return@withContext
-
-            val conversation = newConversations[conversationIndex]
-            newConversations.removeAt(conversationIndex)
-
-            if (pin) {
-                newConversations.add(0, conversation)
-            } else {
-                newConversations.add(pinnedConversationsCount.value - 1, conversation)
-            }
-
-            emitDomainConversations(newConversations)
         }
     }
 
@@ -475,9 +436,9 @@ class ConversationsViewModelImpl constructor(
             emitDomainConversations(newConversations)
         }
 
-    // TODO: 07.01.2023, Danil Nikolaev: handle major AND minor id
     private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) =
         viewModelScope.launch(Dispatchers.IO) {
+            var pinnedCount = pinnedConversationsCount.value
             val newConversations = domainConversations.value.toMutableList()
 
             val conversationIndex =
@@ -486,13 +447,30 @@ class ConversationsViewModelImpl constructor(
             val pin = event.majorId > 0
 
             val conversation = newConversations[conversationIndex]
+                .copyWithEssentials { conversation ->
+                    conversation.copy(majorId = event.majorId)
+                }
 
             newConversations.removeAt(conversationIndex)
 
             if (pin) {
                 newConversations.add(0, conversation)
             } else {
-                newConversations.add(pinnedConversationsCount.value - 1, conversation)
+                pinnedCount -= 1
+
+                newConversations.add(conversation)
+
+                val pinnedSubList = newConversations.filter(VkConversationDomain::isPinned)
+                val unpinnedSubList = newConversations
+                    .filterNot(VkConversationDomain::isPinned)
+                    .toMutableList()
+
+                unpinnedSubList.sortByDescending { item ->
+                    item.lastMessage?.date
+                }
+
+                newConversations.clear()
+                newConversations += pinnedSubList + unpinnedSubList
             }
 
             emitDomainConversations(newConversations)
@@ -574,13 +552,6 @@ class ConversationsViewModelImpl constructor(
             interactionJob.timerJob.cancel()
             interactionsTimers[peerId] = null
         }
-    }
-
-    private fun openMessagesHistoryScreen(conversationUi: VkConversationUi) {
-        messagesHistoryScreen.show(
-            router = router,
-            args = MessagesHistoryArguments(conversation = conversationUi)
-        )
     }
 
     private fun readConversation(peerId: Int, startMessageId: Int) {

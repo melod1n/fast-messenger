@@ -8,7 +8,6 @@ import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
 
 class ConversationsRepository(
     private val conversationsApi: ConversationsApi,
-    private val conversationsDao: ConversationsDao
 ) {
 
     suspend fun get(params: ConversationsGetRequest) = conversationsApi.get(params.map)
@@ -19,6 +18,7 @@ class ConversationsRepository(
 
     suspend fun unpin(params: ConversationsUnpinRequest) = conversationsApi.unpin(params.map)
 
-    suspend fun store(conversations: List<VkConversationDomain>) = conversationsDao.insert(conversations)
-
+    suspend fun store(conversations: List<VkConversationDomain>) {
+        // TODO: 17/12/2023, Danil Nikolaev: implement
+    }
 }

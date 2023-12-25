@@ -1,6 +1,5 @@
 package com.meloda.fast.data.longpoll
 
-import com.google.gson.JsonObject
 import com.meloda.fast.api.network.ApiAnswer
 import retrofit2.http.GET
 import retrofit2.http.QueryMap
@@ -12,6 +11,5 @@ interface LongPollApi {
     suspend fun getResponse(
         @Url serverUrl: String,
         @QueryMap params: Map<String, String>
-    ): ApiAnswer<JsonObject>
-
+    ): ApiAnswer<LongPollUpdates>
 }

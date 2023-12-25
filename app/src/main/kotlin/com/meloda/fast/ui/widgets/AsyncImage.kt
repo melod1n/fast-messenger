@@ -23,6 +23,7 @@ import coil.request.ImageRequest
  * @param previewPainter Optional painter for preview
  */
 
+// TODO: 21/11/2023, Danil Nikolaev: review
 @Composable
 fun CoilImage(
     contentDescription: String?,

@@ -6,33 +6,24 @@ import androidx.core.content.edit
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
-import com.meloda.fast.BuildConfig
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.common.Screens
 import com.meloda.fast.data.account.AccountsDao
-import com.meloda.fast.database.CacheDatabase
 import com.meloda.fast.ext.ifEmpty
+import com.meloda.fast.ext.isDebugSettingsShown
 import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.parseString
-import com.meloda.fast.screens.main.activity.LongPollState
-import com.meloda.fast.screens.main.activity.MainActivity
 import com.meloda.fast.screens.settings.model.SettingsItem
 import com.meloda.fast.screens.settings.model.SettingsScreenState
 import com.meloda.fast.screens.settings.model.SettingsShowOptions
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
-import com.microsoft.appcenter.crashes.model.TestCrashException
+import com.meloda.fast.test.TestCrashException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 interface SettingsViewModel {
 
@@ -48,17 +39,21 @@ interface SettingsViewModel {
 
     fun onLogOutAlertPositiveClick()
 
+    fun onLongPollingAlertPositiveClicked()
+    fun onLongPollingAlertDismissed()
+
     fun onSettingsItemClicked(key: String)
     fun onSettingsItemLongClicked(key: String)
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
     fun onHapticsUsed()
+    fun onNavigatedToUpdates()
+
+    fun onNotificationsPermissionRequested()
 }
 
-class SettingsViewModelImpl constructor(
+class SettingsViewModelImpl(
     private val accountsDao: AccountsDao,
-    private val cacheDatabase: CacheDatabase,
-    private val router: Router,
 ) : SettingsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
@@ -66,27 +61,6 @@ class SettingsViewModelImpl constructor(
     override val isLongPollBackgroundEnabled = MutableStateFlow<Boolean?>(null)
 
     init {
-        val useLargeTopAppBar = AppGlobal.preferences.getBoolean(
-            SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR,
-            SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
-        )
-        val multilineEnabled = AppGlobal.preferences.getBoolean(
-            SettingsFragment.KEY_APPEARANCE_MULTILINE,
-            SettingsFragment.DEFAULT_VALUE_MULTILINE
-        )
-        val useDynamicColors = AppGlobal.preferences.getBoolean(
-            SettingsFragment.KEY_USE_DYNAMIC_COLORS,
-            SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
-        )
-
-        screenState.setValue { old ->
-            old.copy(
-                useLargeTopAppBar = useLargeTopAppBar,
-                multilineEnabled = multilineEnabled,
-                useDynamicColors = useDynamicColors
-            )
-        }
-
         createSettings()
     }
 
@@ -105,104 +79,108 @@ class SettingsViewModelImpl constructor(
     override fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
             val newAccount = UserConfig.getAccount().copy(accessToken = "")
-//            accountsDao.deleteById(UserConfig.userId)
             accountsDao.insert(newAccount)
-            cacheDatabase.clearAllTables()
-
-            MainActivity.longPollState.emit(LongPollState.Stop)
 
             UserConfig.clear()
+        }
+    }
 
-            withContext(Dispatchers.Main) {
-                router.newRootScreen(Screens.Main())
-            }
+    override fun onLongPollingAlertPositiveClicked() {
+        screenState.setValue { old -> old.copy(isNeedToRequestNotificationPermission = true) }
+    }
+
+    override fun onLongPollingAlertDismissed() {
+        screenState.setValue { old ->
+            old.copy(
+                showOptions = old.showOptions.copy(
+                    showLongPollNotifications = false
+                )
+            )
         }
     }
 
     override fun onSettingsItemClicked(key: String) {
         when (key) {
-            SettingsFragment.KEY_ACCOUNT_LOGOUT -> {
+            SettingsKeys.KEY_ACCOUNT_LOGOUT -> {
                 emitShowOptions { old -> old.copy(showLogOut = true) }
             }
 
-            SettingsFragment.KEY_UPDATES_CHECK_UPDATES -> {
+            SettingsKeys.KEY_UPDATES_CHECK_UPDATES -> {
                 openUpdatesScreen()
             }
 
-            SettingsFragment.KEY_DEBUG_PERFORM_CRASH -> {
+            SettingsKeys.KEY_DEBUG_PERFORM_CRASH -> {
                 emitShowOptions { old -> old.copy(showPerformCrash = true) }
             }
 
-            SettingsFragment.KEY_DEBUG_HIDE_DEBUG_LIST -> {
-                val showDebugCategory =
-                    AppGlobal.preferences.getBoolean(
-                        SettingsFragment.KEY_SHOW_DEBUG_CATEGORY,
-                        false
-                    )
+            SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
+                val showDebugCategory = isDebugSettingsShown()
                 if (!showDebugCategory) return
 
                 AppGlobal.preferences.edit {
-                    putBoolean(SettingsFragment.KEY_SHOW_DEBUG_CATEGORY, false)
+                    putBoolean(SettingsKeys.KEY_SHOW_DEBUG_CATEGORY, false)
                 }
 
                 createSettings()
 
-                screenState.setValue { old -> old.copy(useHaptics = HapticType.Reject) }
+                screenState.setValue { old ->
+                    old.copy(
+                        useHaptics = HapticType.Reject,
+                        showDebugOptions = false
+                    )
+                }
             }
         }
     }
 
     override fun onSettingsItemLongClicked(key: String) {
         when (key) {
-            SettingsFragment.KEY_UPDATES_CHECK_UPDATES -> {
-                val showDebugCategory =
-                    AppGlobal.preferences.getBoolean(
-                        SettingsFragment.KEY_SHOW_DEBUG_CATEGORY,
-                        false
-                    )
+            SettingsKeys.KEY_UPDATES_CHECK_UPDATES -> {
+                val showDebugCategory = isDebugSettingsShown()
                 if (showDebugCategory) return
 
                 AppGlobal.preferences.edit {
-                    putBoolean(SettingsFragment.KEY_SHOW_DEBUG_CATEGORY, true)
+                    putBoolean(SettingsKeys.KEY_SHOW_DEBUG_CATEGORY, true)
                 }
                 createSettings()
 
-                screenState.setValue { old -> old.copy(useHaptics = HapticType.LongPress) }
+                screenState.setValue { old ->
+                    old.copy(
+                        useHaptics = HapticType.LongPress,
+                        showDebugOptions = true
+                    )
+                }
             }
         }
     }
 
     override fun onSettingsItemChanged(key: String, newValue: Any?) {
         when (key) {
-            SettingsFragment.KEY_APPEARANCE_DARK_THEME -> {
-                val newMode = newValue as? Int ?: return
-                AppCompatDelegate.setDefaultNightMode(newMode)
-            }
-
-            SettingsFragment.KEY_APPEARANCE_MULTILINE -> {
+            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 val isEnabled = (newValue as? Boolean).isTrue
-                screenState.setValue { old -> old.copy(multilineEnabled = isEnabled) }
-            }
 
-            SettingsFragment.KEY_USE_DYNAMIC_COLORS -> {
-                val isEnabled = (newValue as? Boolean).isTrue
-                screenState.setValue { old -> old.copy(useDynamicColors = isEnabled) }
-            }
+                if (isEnabled) {
+                    // TODO: 26/11/2023, Danil Nikolaev: implement
+                    val isNotificationsPermissionGranted = false
 
-            SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR -> {
-                val isEnabled = (newValue as? Boolean).isTrue
-                screenState.setValue { old -> old.copy(useLargeTopAppBar = isEnabled) }
-            }
-
-            SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
-                val isEnabled = (newValue as? Boolean).isTrue
-                isLongPollBackgroundEnabled.update { isEnabled }
+                    if (!isNotificationsPermissionGranted) {
+                        // TODO: 26/11/2023, Danil Nikolaev: implement restart
+                    }
+                }
             }
         }
     }
 
     override fun onHapticsUsed() {
         screenState.setValue { old -> old.copy(useHaptics = HapticType.None) }
+    }
+
+    override fun onNavigatedToUpdates() {
+        screenState.setValue { old -> old.copy(isNeedToOpenUpdates = false) }
+    }
+
+    override fun onNotificationsPermissionRequested() {
+        screenState.setValue { old -> old.copy(isNeedToRequestNotificationPermission = false) }
     }
 
     private fun emitShowOptions(function: (SettingsShowOptions) -> SettingsShowOptions) {
@@ -214,13 +192,13 @@ class SettingsViewModelImpl constructor(
         viewModelScope.launch {
             val accountVisible = UserConfig.isLoggedIn()
             val accountTitle = SettingsItem.Title.build(
-                key = SettingsFragment.KEY_ACCOUNT,
+                key = SettingsKeys.KEY_ACCOUNT,
                 title = UiText.Simple("Account")
             ) {
                 isVisible = accountVisible
             }
             val accountLogOut = SettingsItem.TitleSummary.build(
-                key = SettingsFragment.KEY_ACCOUNT_LOGOUT,
+                key = SettingsKeys.KEY_ACCOUNT_LOGOUT,
                 title = UiText.Simple("Log out"),
                 summary = UiText.Simple("Log out from account and delete all local data related to this account")
             ) {
@@ -228,12 +206,12 @@ class SettingsViewModelImpl constructor(
             }
 
             val appearanceTitle = SettingsItem.Title.build(
-                key = SettingsFragment.KEY_APPEARANCE,
+                key = SettingsKeys.KEY_APPEARANCE,
                 title = UiText.Simple("Appearance")
             )
             val appearanceMultiline = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_APPEARANCE_MULTILINE,
-                defaultValue = SettingsFragment.DEFAULT_VALUE_MULTILINE,
+                key = SettingsKeys.KEY_APPEARANCE_MULTILINE,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_MULTILINE,
                 title = UiText.Simple("Multiline titles and messages"),
                 summary = UiText.Simple("The title of the dialog and the text of the message can take up two lines")
             )
@@ -250,51 +228,84 @@ class SettingsViewModelImpl constructor(
                 UiText.Resource(R.string.settings_dark_theme_value_battery_saver),
                 UiText.Resource(R.string.settings_dark_theme_value_disabled)
             )
-            val darkThemeValuesMap = List(darkThemeValues.size) { index ->
-                darkThemeValues[index] to darkThemeTitles[index].parseString(AppGlobal.Instance)
+            val darkThemeValuesMap = darkThemeValues.mapIndexed { index, value ->
+                value to darkThemeTitles[index]
             }.toMap()
 
             val appearanceDarkTheme = SettingsItem.ListItem.build(
-                key = SettingsFragment.KEY_APPEARANCE_DARK_THEME,
+                key = SettingsKeys.KEY_APPEARANCE_DARK_THEME,
                 title = UiText.Resource(R.string.settings_dark_theme),
                 values = darkThemeValues,
                 valueTitles = darkThemeTitles,
-                defaultValue = SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+                defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
             ) {
                 summaryProvider = SettingsItem.SummaryProvider { item ->
-                    val darkThemeValue =
-                        darkThemeValuesMap.getOrElse(item.value ?: -1) {
-                            UiText.Resource(R.string.settings_dark_theme_current_value_unknown)
-                        }
+                    val darkThemeValue = darkThemeValuesMap[item.value ?: 0]
 
                     UiText.ResourceParams(
                         value = R.string.settings_dark_theme_current_value,
-                        args = listOf(darkThemeValue)
+                        args = listOf(
+                            darkThemeValue
+                                ?: UiText.Resource(R.string.settings_dark_theme_current_value_unknown)
+                        )
                     )
                 }
             }
-            val appearanceUseDynamicColors = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_USE_DYNAMIC_COLORS,
-                title = UiText.Resource(R.string.settings_dynamic_colors),
-                isEnabled = isSdkAtLeast(Build.VERSION_CODES.S),
-                summary = UiText.Resource(R.string.settings_dynamic_colors_description),
-                defaultValue = SettingsFragment.DEFAULT_VALUE_USE_DYNAMIC_COLORS
+            val appearanceUseAmoledDarkTheme = SettingsItem.Switch.build(
+                key = SettingsKeys.KEY_APPEARANCE_AMOLED_THEME,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME,
+                title = UiText.Resource(R.string.settings_amoled_dark_theme),
+                summary = UiText.Resource(R.string.settings_amoled_dark_theme_description)
             )
+            val appearanceUseDynamicColors = SettingsItem.Switch.build(
+                key = SettingsKeys.KEY_USE_DYNAMIC_COLORS,
+                title = UiText.Resource(R.string.settings_dynamic_colors),
+                isVisible = isSdkAtLeast(Build.VERSION_CODES.S),
+                summary = UiText.Resource(R.string.settings_dynamic_colors_description),
+                defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
+            )
+
+            val languageValues = listOf(
+                "system", "en", "ru",
+            )
+            val languages = listOf(
+                UiText.Resource(R.string.language_system),
+                UiText.Resource(R.string.language_english),
+                UiText.Resource(R.string.language_russian),
+            )
+            val languageValuesMap = languageValues.mapIndexed { index, value ->
+                value to languages[index]
+            }.toMap()
+
+            val appearanceLanguage = SettingsItem.TitleSummary.build(
+                key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
+                title = UiText.Resource(R.string.settings_application_language),
+            ) {
+                summaryProvider = SettingsItem.SummaryProvider { item ->
+                    // TODO: 25/12/2023, Danil Nikolaev: update value, receive result from LanguagePickerScreen
+                    val languageValue = languageValuesMap[item.value ?: "system"]
+
+                    UiText.ResourceParams(
+                        value = R.string.settings_application_language_value,
+                        args = listOf(languageValue)
+                    )
+                }
+            }
 
             val featuresTitle = SettingsItem.Title.build(
                 key = "features",
                 title = UiText.Simple("Features")
             )
             val featuresHideKeyboardOnScroll = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
+                key = SettingsKeys.KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
                 defaultValue = true,
                 title = UiText.Simple("Hide keyboard on scroll"),
                 summary = UiText.Simple("Hides keyboard when you scrolling messages up in messages history screen")
             )
             val featuresFastText = SettingsItem.TextField.build(
-                key = SettingsFragment.KEY_FEATURES_FAST_TEXT,
+                key = SettingsKeys.KEY_FEATURES_FAST_TEXT,
                 title = UiText.Simple("Fast text"),
-                defaultValue = "¯\\_(ツ)_/¯",
+                defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT
             ).apply {
                 summaryProvider = SettingsItem.SummaryProvider { settingsItem ->
                     UiText.ResourceParams(
@@ -304,10 +315,12 @@ class SettingsViewModelImpl constructor(
                 }
             }
             val featuresLongPollBackground = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                defaultValue = SettingsFragment.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
+                key = SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
                 title = UiText.Simple("LongPoll in background"),
-                summary = UiText.Simple("Your messages will be updates even when app is not on the screen")
+                summary = UiText.Simple(
+                    "Your messages will be updates even when app is not on the screen.\nApp will be restarted"
+                )
             )
 
             val visibilityTitle = SettingsItem.Title.build(
@@ -315,8 +328,8 @@ class SettingsViewModelImpl constructor(
                 title = UiText.Simple("Visibility")
             )
             val visibilitySendOnlineStatus = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-                defaultValue = false,
+                key = SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS,
                 title = UiText.Simple("Send online status"),
                 summary = UiText.Simple("Online status will be sent every five minutes")
             )
@@ -326,30 +339,14 @@ class SettingsViewModelImpl constructor(
                 title = UiText.Simple("Updates")
             )
             val updatesCheckAtStartup = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_UPDATES_CHECK_AT_STARTUP,
+                key = SettingsKeys.KEY_UPDATES_CHECK_AT_STARTUP,
                 title = UiText.Simple("Check at startup"),
                 summary = UiText.Simple("Check updates at app startup"),
                 defaultValue = true
             )
             val updatesCheckUpdates = SettingsItem.TitleSummary.build(
-                key = SettingsFragment.KEY_UPDATES_CHECK_UPDATES,
+                key = SettingsKeys.KEY_UPDATES_CHECK_UPDATES,
                 title = UiText.Simple("Check updates")
-            )
-
-            val msAppCenterTitle = SettingsItem.Title.build(
-                key = "msappcenter",
-                title = UiText.Simple("MS AppCenter Crash Reporter")
-            )
-            val msAppCenterEnable = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_MS_APPCENTER_ENABLE,
-                defaultValue = true,
-                title = UiText.Simple("Enable Crash Reporter")
-            )
-            val msAppCenterEnableOnDebug = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_MS_APPCENTER_ENABLE_ON_DEBUG,
-                defaultValue = false,
-                title = UiText.Simple("Enable Crash Reporter on debug builds"),
-                summary = UiText.Simple("Requires application restart")
             )
 
             val debugTitle = SettingsItem.Title.build(
@@ -357,32 +354,25 @@ class SettingsViewModelImpl constructor(
                 title = UiText.Simple("Debug")
             )
             val debugPerformCrash = SettingsItem.TitleSummary.build(
-                key = SettingsFragment.KEY_DEBUG_PERFORM_CRASH,
+                key = SettingsKeys.KEY_DEBUG_PERFORM_CRASH,
                 title = UiText.Simple("Perform crash"),
                 summary = UiText.Simple("App will be crashed. Obviously")
             )
             val debugShowCrashAlert = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_DEBUG_SHOW_CRASH_ALERT,
+                key = SettingsKeys.KEY_DEBUG_SHOW_CRASH_ALERT,
                 defaultValue = true,
                 title = UiText.Simple("Show alert after crash"),
                 summary = UiText.Simple("Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually)")
             )
-
-            val debugUseLargeTopAppBar = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_USE_LARGE_TOP_APP_BAR,
-                title = UiText.Simple("[WIP] Use LargeTopAppBar"),
-                summary = UiText.Simple("Using large top appbar instead of default toolbar everywhere in app"),
-                defaultValue = SettingsFragment.DEFAULT_VALUE_USE_LARGE_TOP_APP_BAR
-            )
             val debugShowExactTimeOnTimeStamp = SettingsItem.Switch.build(
-                key = SettingsFragment.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP,
+                key = SettingsKeys.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP,
                 title = UiText.Simple("[WIP] Show exact time on time stamp"),
                 summary = UiText.Simple("Shows hours and minutes on time stamp in messages history"),
                 defaultValue = false
             )
 
             val debugHideDebugList = SettingsItem.TitleSummary.build(
-                key = SettingsFragment.KEY_DEBUG_HIDE_DEBUG_LIST,
+                key = SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST,
                 title = UiText.Simple("Hide debug list")
             )
 
@@ -394,7 +384,9 @@ class SettingsViewModelImpl constructor(
                 appearanceTitle,
                 appearanceMultiline,
                 appearanceDarkTheme,
-                appearanceUseDynamicColors
+                appearanceUseAmoledDarkTheme,
+                appearanceUseDynamicColors,
+                appearanceLanguage
             )
             val featuresList = listOf(
                 featuresTitle,
@@ -411,20 +403,11 @@ class SettingsViewModelImpl constructor(
                 updatesCheckAtStartup,
                 updatesCheckUpdates,
             )
-            val msAppCenterList = mutableListOf(
-                msAppCenterTitle,
-                msAppCenterEnable,
-            ).apply {
-                if (BuildConfig.DEBUG) {
-                    this += msAppCenterEnableOnDebug
-                }
-            }
             val debugList = mutableListOf<SettingsItem<*>>()
             listOf(
                 debugTitle,
                 debugPerformCrash,
                 debugShowCrashAlert,
-                debugUseLargeTopAppBar,
                 debugShowExactTimeOnTimeStamp
             ).forEach(debugList::add)
 
@@ -437,15 +420,10 @@ class SettingsViewModelImpl constructor(
                 featuresList,
                 visibilityList,
                 updatesList,
-                msAppCenterList,
                 debugList,
             ).forEach(settingsList::addAll)
 
-            if (!AppGlobal.preferences.getBoolean(
-                    SettingsFragment.KEY_SHOW_DEBUG_CATEGORY,
-                    false
-                )
-            ) {
+            if (!isDebugSettingsShown()) {
                 settingsList.removeAll(debugList)
             }
 
@@ -454,7 +432,7 @@ class SettingsViewModelImpl constructor(
     }
 
     private fun openUpdatesScreen() {
-        router.navigateTo(Screens.Updates())
+        screenState.setValue { old -> old.copy(isNeedToOpenUpdates = true) }
     }
 }
 

@@ -1,6 +1,5 @@
 package com.meloda.fast.api.model.domain
 
-import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
@@ -21,7 +20,6 @@ import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
-import com.meloda.fast.model.base.asDrawable
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.IgnoredOnParcel
@@ -200,9 +198,9 @@ data class VkConversationDomain(
         return finalText.orDots()
     }
 
-    fun extractAttachmentImage(): Drawable? {
+    fun extractAttachmentImage(): UiImage? {
         if (lastMessage?.text == null) return null
-        return VkUtils.getAttachmentConversationIcon(lastMessage).asDrawable(AppGlobal.Instance)
+        return VkUtils.getAttachmentConversationIcon(lastMessage)
     }
 
     fun extractReadCondition(): Boolean {
@@ -236,6 +234,30 @@ data class VkConversationDomain(
         } else false
     }
 
+    private fun extractInteractionText(): String? {
+        val interactionType = InteractionType.parse(interactionType)
+        val interactiveUsers = extractInteractionUsers()
+
+        val typingText =
+            if (interactionType == null) {
+                null
+            } else {
+                if (!peerType.isChat() && interactiveUsers.size == 1) {
+                    when (interactionType) {
+                        InteractionType.File -> "Uploading file"
+                        InteractionType.Photo -> "Uploading photo"
+                        InteractionType.Typing -> "Typing"
+                        InteractionType.Video -> "Uploading Video"
+                        InteractionType.VoiceMessage -> "Recording voice message"
+                    }
+                } else {
+                    "$interactiveUsers are typing"
+                }
+            }
+
+        return typingText
+    }
+
     fun copyWithEssentials(function: (VkConversationDomain) -> VkConversationDomain): VkConversationDomain {
         return function(this).also {
             it.lastMessage = this.lastMessage
@@ -264,7 +286,6 @@ data class VkConversationDomain(
         conversationUser = conversationUser,
         conversationGroup = conversationGroup,
         peerType = peerType,
-        interactionType = InteractionType.parse(interactionType),
-        interactiveUsers = extractInteractionUsers()
+        interactionText = extractInteractionText(),
     )
 }

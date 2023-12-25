@@ -8,6 +8,7 @@ import com.meloda.fast.compose.ItemsSelectionType
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
 
+@Deprecated("Migrate to compose dialogs")
 fun Context.showDialog(
     title: UiText? = null,
     message: UiText? = null,

@@ -1,17 +1,16 @@
 package com.meloda.fast.service
 
-import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.meloda.fast.R
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
@@ -20,10 +19,9 @@ import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.data.longpoll.LongPollUpdates
 import com.meloda.fast.data.messages.MessagesRepository
-import com.meloda.fast.ext.isTrue
-import com.meloda.fast.receiver.StopLongPollServiceReceiver
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.NotificationsUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -36,18 +34,10 @@ import kotlin.coroutines.CoroutineContext
 
 class LongPollService : Service() {
 
-    companion object {
-        const val TAG = "LongPollTask"
-
-        const val KeyLongPollWasDestroyed = "long_poll_was_destroyed"
-
-        private const val NOTIFICATION_ID = 1001
-    }
-
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.d(TAG, "error: $throwable")
+        Log.e(TAG, "error: $throwable")
         throwable.printStackTrace()
     }
 
@@ -57,107 +47,97 @@ class LongPollService : Service() {
     private val coroutineScope = CoroutineScope(coroutineContext)
 
     private val repository: MessagesRepository by inject()
-
     private val updatesParser: LongPollUpdatesParser by inject()
 
-    private var asForeground = true
-    private var foregroundNotification: Notification? = null
+    private var currentJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
-
-        if (AppGlobal.preferences.getBoolean(
-                SettingsFragment.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                SettingsFragment.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-            )
-        ) {
-            val notificationBuilder =
-                NotificationsUtils.createNotification(
-                    context = this,
-                    title = "LongPoll",
-                    contentText = "обновление ваших сообщений в фоне",
-                    notRemovable = false,
-                    channelId = "long_polling",
-                    priority = NotificationsUtils.NotificationPriority.Low,
-                    category = NotificationCompat.CATEGORY_SERVICE,
-                    customNotificationId = NOTIFICATION_ID
-                )
-
-            foregroundNotification = notificationBuilder.build()
-            startForeground(NOTIFICATION_ID, foregroundNotification)
-        }
+        Log.d(STATE_TAG, "onCreate()")
     }
 
-    override fun onBind(p0: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder? {
+        Log.d(STATE_TAG, "onBind: intent: $intent")
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        asForeground = intent?.getBooleanExtra("foreground", false).isTrue
+        if (startId > 1) return START_STICKY
 
-        Log.d(
-            "LongPollService",
-            "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId"
+        val asForeground = AppGlobal.preferences.getBoolean(
+            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
 
-        coroutineScope.launch { startPolling().join() }
+        Log.d(
+            STATE_TAG,
+            "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId;\ninstance: $this"
+        )
 
-        val stopIntent = Intent(this, StopLongPollServiceReceiver::class.java).apply {
-            action = StopLongPollServiceReceiver.ACTION_STOP
-            putExtra(StopLongPollServiceReceiver.NOTIFICATION_ID, startId)
+        if (currentJob != null) {
+            currentJob?.cancel()
+            currentJob = null
         }
-        val stopPendingIntent = PendingIntent.getBroadcast(
+
+        coroutineScope.launch {
+            currentJob = startPolling().also { it.join() }
+        }
+
+        val openCategorySettingsIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                .putExtra(Settings.EXTRA_CHANNEL_ID, "long_polling")
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.fromParts("package", packageName, null))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val openCategorySettingsPendingIntent = PendingIntent.getActivity(
             this,
             1,
-            stopIntent,
+            openCategorySettingsIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val action = NotificationCompat.Action(
-            R.drawable.ic_round_close_24,
-            getString(R.string.action_stop),
-            stopPendingIntent
-        )
-
         if (asForeground) {
-            val notificationBuilder =
+            val notification =
                 NotificationsUtils.createNotification(
                     context = this,
                     title = "LongPoll",
-                    contentText = "обновление ваших сообщений в фоне",
+                    contentText = "нажмите, чтобы убрать уведомление",
                     notRemovable = false,
                     channelId = "long_polling",
                     priority = NotificationsUtils.NotificationPriority.Low,
                     category = NotificationCompat.CATEGORY_SERVICE,
-                    actions = listOf(action),
-                    customNotificationId = NOTIFICATION_ID
-                )
+                    customNotificationId = NOTIFICATION_ID,
+                    contentIntent = openCategorySettingsPendingIntent
+                ).build()
 
-            foregroundNotification = notificationBuilder.build()
-
-            startForeground(NOTIFICATION_ID, foregroundNotification)
+            startForeground(NOTIFICATION_ID, notification)
         } else {
-            if (foregroundNotification != null) {
-                NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID)
-                foregroundNotification = null
-            }
+            stopForeground(STOP_FOREGROUND_REMOVE)
         }
         return START_STICKY
     }
 
     private fun startPolling(): Job {
         if (job.isCompleted || job.isCancelled) {
-            Log.d("LongPollService", "job is completed or cancelled. Fuck off")
+            Log.d(STATE_TAG, "job is completed or cancelled")
             throw Exception("Job is over")
         }
 
-        Log.d("LongPollService", "job started")
+        Log.d(STATE_TAG, "job started")
 
         return coroutineScope.launch {
+            // TODO: 04/12/2023, Danil Nikolaev: start long polling job only when token is presented
+            if (UserConfig.accessToken.isEmpty()) {
+                throw ApiError(errorMessage = "Access token is not initialized yet.")
+            }
+
             var serverInfo = getServerInfo()
                 ?: throw ApiError(errorMessage = "bad VK response (server info)")
 
-            var lastUpdatesResponse: JsonObject? = getUpdatesResponse(serverInfo)
+            var lastUpdatesResponse: LongPollUpdates? = getUpdatesResponse(serverInfo)
                 ?: throw ApiError(errorMessage = "initiation error: bad VK response (last updates)")
 
             var failCount = 0
@@ -171,12 +151,11 @@ class LongPollService : Service() {
                     continue
                 }
 
-                when (lastUpdatesResponse["failed"]?.asInt) {
+                when (lastUpdatesResponse.failed) {
                     1 -> {
-                        var newTs = lastUpdatesResponse["ts"]?.asInt
-                        if (newTs == null) {
-                            newTs = serverInfo.ts
+                        val newTs = lastUpdatesResponse.ts ?: kotlin.run {
                             failCount++
+                            serverInfo.ts
                         }
 
                         lastUpdatesResponse = getUpdatesResponse(serverInfo.copy(ts = newTs))
@@ -191,22 +170,18 @@ class LongPollService : Service() {
                     }
 
                     else -> {
-                        val newTs = lastUpdatesResponse["ts"]?.asInt
+                        val newTs = lastUpdatesResponse.ts
 
                         if (newTs == null) {
                             failCount++
                         } else {
-                            val updates = lastUpdatesResponse["updates"]?.asJsonArray
+                            val updates = lastUpdatesResponse.updates
 
                             if (updates == null) {
                                 failCount++
                             } else {
                                 updates.forEach { item ->
-                                    item.asJsonArray?.also {
-                                        launch {
-                                            handleUpdateEvent(it)
-                                        }
-                                    } ?: failCount++
+                                    handleUpdateEvent(item)
                                 }
                             }
 
@@ -236,7 +211,7 @@ class LongPollService : Service() {
         return null
     }
 
-    private suspend fun getUpdatesResponse(server: BaseVkLongPoll): JsonObject? {
+    private suspend fun getUpdatesResponse(server: BaseVkLongPoll): LongPollUpdates? {
         val response = repository.getLongPollUpdates(
             serverUrl = "https://${server.server}",
             params = LongPollGetUpdatesRequest(
@@ -248,7 +223,7 @@ class LongPollService : Service() {
             )
         )
 
-        println("$TAG: lastUpdateResponse: $response")
+        Log.d("LongPollService", "lastUpdateResponse: $response")
 
         if (response is ApiAnswer.Success) {
             return response.data
@@ -257,15 +232,15 @@ class LongPollService : Service() {
         return null
     }
 
-    private fun handleUpdateEvent(eventJson: JsonArray) {
-        updatesParser.parseNextUpdate(eventJson)
+    private fun handleUpdateEvent(event: List<Any>) {
+        updatesParser.parseNextUpdate(event)
     }
 
     override fun onDestroy() {
-        Log.d("LongPollService", "onDestroy")
+        Log.d(STATE_TAG, "onDestroy")
         try {
             AppGlobal.preferences.edit {
-                putBoolean(KeyLongPollWasDestroyed, true)
+                putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true)
             }
             job.cancel()
         } catch (e: Exception) {
@@ -275,7 +250,17 @@ class LongPollService : Service() {
     }
 
     override fun onLowMemory() {
-        Log.d("LongPollService", "onLowMemory")
+        Log.d(STATE_TAG, "onLowMemory")
         super.onLowMemory()
+    }
+
+    companion object {
+        const val TAG = "LongPollTask"
+
+        private const val STATE_TAG = "LongPollServiceState"
+
+        const val KEY_LONG_POLL_WAS_DESTROYED = "long_poll_was_destroyed"
+
+        private const val NOTIFICATION_ID = 1001
     }
 }

@@ -38,10 +38,11 @@ data class BaseVkUser(
         firstName = first_name,
         lastName = last_name,
         online = online == 1,
+        photo50 = photo_50,
+        photo100 = photo_100,
         photo200 = photo_200,
         lastSeen = online_info?.last_seen,
         lastSeenStatus = online_info?.status,
         birthday = bdate
     )
-
 }

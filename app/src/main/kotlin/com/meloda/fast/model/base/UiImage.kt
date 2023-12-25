@@ -8,7 +8,10 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.core.content.ContextCompat
 import com.meloda.fast.ext.GlideParams
 import com.meloda.fast.ext.ImageLoader.loadWithGlide
@@ -17,7 +20,7 @@ sealed class UiImage {
 
     data class Resource(@DrawableRes val resId: Int) : UiImage()
 
-    data class Simple(val drawable: Drawable?) : UiImage()
+    data class Simple(val drawable: Drawable) : UiImage()
 
     data class Color(@ColorInt val color: Int) : UiImage()
 
@@ -30,7 +33,7 @@ sealed class UiImage {
         else -> null
     }
 
-    fun getResourceId(): Int? = when(this) {
+    fun getResourceId(): Int? = when (this) {
         is Resource -> this.resId
         else -> null
     }
@@ -81,14 +84,20 @@ fun UiImage?.asDrawable(context: Context): Drawable? {
 }
 
 @Composable
-fun UiImage?.getImage(): Any? {
-    val context = LocalContext.current
-    return when(this) {
+fun UiImage.getImage(): Any {
+    return when (this) {
         is UiImage.Color -> ColorDrawable(color)
-        is UiImage.ColorResource -> ColorDrawable(ContextCompat.getColor(context, resId))
-        is UiImage.Resource -> ContextCompat.getDrawable(context, resId)
+        is UiImage.ColorResource -> ColorDrawable(colorResource(id = resId).toArgb())
+        is UiImage.Resource -> painterResource(id = resId)
         is UiImage.Simple -> drawable
         is UiImage.Url -> url
-        null -> null
+    }
+}
+
+@Composable
+fun UiImage.getResourcePainter(): Painter? {
+    return when (this) {
+        is UiImage.Resource -> painterResource(id = resId)
+        else -> null
     }
 }

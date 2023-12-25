@@ -1,7 +1,6 @@
 package com.meloda.fast.api.longpoll
 
 import android.util.Log
-import com.google.gson.JsonArray
 import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
@@ -12,6 +11,8 @@ import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.base.viewmodel.VkEventCallback
 import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.ext.asInt
+import com.meloda.fast.ext.asList
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +39,8 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
     private val listenersMap: MutableMap<ApiEvent, MutableCollection<VkEventCallback<*>>> =
         mutableMapOf()
 
-    fun parseNextUpdate(event: JsonArray) {
-        val eventId = event[0].asInt
+    fun parseNextUpdate(event: List<Any>) {
+        val eventId = event.first().asInt()
         val eventType: ApiEvent? = ApiEvent.parse(eventId)
 
         if (eventType == null) {
@@ -68,11 +69,11 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
 
     }
 
-    private fun onNewEvent(eventType: ApiEvent, event: JsonArray) {
+    private fun onNewEvent(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "newEvent: $eventType: $event")
     }
 
-    private fun parseInteraction(eventType: ApiEvent, event: JsonArray) {
+    private fun parseInteraction(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val interactionType = when (eventType) {
@@ -84,10 +85,10 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
             else -> return
         }
 
-        val peerId = event[1].asInt
-        val userIds = event[2].asJsonArray.map { it.asInt }.filter { it != UserConfig.userId }
-        val totalCount = event[3].asInt
-        val timestamp = event[4].asInt
+        val peerId = event[1].asInt()
+        val userIds = event[2].asList(Any::asInt).filter { it != UserConfig.userId }
+        val totalCount = event[3].asInt()
+        val timestamp = event[4].asInt()
 
         // if userIds contains only account's id, then we don't need to show our status
         if (userIds.isEmpty()) return
@@ -110,11 +111,11 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseConversationPinStateChanged(eventType: ApiEvent, event: JsonArray) {
+    private fun parseConversationPinStateChanged(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
-        val peerId = event[1].asInt
-        val majorId = event[2].asInt
+        val peerId = event[1].asInt()
+        val majorId = event[2].asInt()
 
         launch {
             listenersMap[ApiEvent.PinUnpinConversation]?.let { listeners ->
@@ -131,17 +132,17 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseMessageSetFlags(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessageSetFlags(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
-    private fun parseMessageClearFlags(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessageClearFlags(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
-    private fun parseMessageNew(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessageNew(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val messageId = event[1].asInt
+        val messageId = event[1].asInt()
 
         launch {
             val newMessageEvent: LongPollEvent.VkMessageNewEvent =
@@ -159,9 +160,9 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseMessageEdit(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessageEdit(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val messageId = event[1].asInt
+        val messageId = event[1].asInt()
 
         launch {
             val editedMessageEvent: LongPollEvent.VkMessageEditEvent =
@@ -179,11 +180,11 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseMessageReadIncoming(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessageReadIncoming(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val peerId = event[1].asInt
-        val messageId = event[2].asInt
-        val unreadCount = event[3].asInt
+        val peerId = event[1].asInt()
+        val messageId = event[2].asInt()
+        val unreadCount = event[3].asInt()
 
         launch {
             listenersMap[ApiEvent.MessageReadIncoming]?.let { listeners ->
@@ -201,11 +202,11 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseMessageReadOutgoing(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessageReadOutgoing(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val peerId = event[1].asInt
-        val messageId = event[2].asInt
-        val unreadCount = event[3].asInt
+        val peerId = event[1].asInt()
+        val messageId = event[2].asInt()
+        val unreadCount = event[3].asInt()
 
         launch {
             listenersMap[ApiEvent.MessageReadOutgoing]?.let { listeners ->
@@ -223,7 +224,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         }
     }
 
-    private fun parseMessagesDeleted(eventType: ApiEvent, event: JsonArray) {
+    private fun parseMessagesDeleted(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
@@ -239,7 +240,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                         )
                     )
 
-                    if (normalMessageResponse.isError()) {
+                    if (normalMessageResponse is ApiAnswer.Error) {
                         normalMessageResponse.error.throwable?.run { throw this }
                     }
 

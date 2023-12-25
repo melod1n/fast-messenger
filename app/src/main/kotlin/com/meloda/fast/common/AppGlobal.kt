@@ -1,22 +1,21 @@
 package com.meloda.fast.common
 
 import android.app.Application
-import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.media.AudioManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
+import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.di.applicationModule
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
-import com.meloda.fast.util.AndroidUtils
+import com.meloda.fast.screens.settings.SettingsKeys
+import com.shakebugs.shake.Shake
+import com.vk.recompose.highlighter.RecomposeHighlighterConfig
+import com.vk.recompose.logger.RecomposeLoggerConfig
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
-import kotlin.math.roundToInt
-import kotlin.properties.Delegates
 
 class AppGlobal : Application() {
 
@@ -25,23 +24,27 @@ class AppGlobal : Application() {
 
         instance = this
 
+        initVkomposePlugins()
+
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
         versionName = info.versionName
         versionCode = PackageInfoCompat.getLongVersionCode(info).toInt()
 
-        screenWidth80 = (AndroidUtils.getDisplayWidth() * 0.8).roundToInt()
-
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
         applyDarkTheme()
 
         initKoin()
+        initShake()
+    }
+
+    private fun initVkomposePlugins() {
+        RecomposeLoggerConfig.isEnabled = true
+        RecomposeHighlighterConfig.isEnabled = true
     }
 
     private fun applyDarkTheme() {
         val nightMode = preferences.getInt(
-            SettingsFragment.KEY_APPEARANCE_DARK_THEME,
-            SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+            SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+            SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
         )
         AppCompatDelegate.setDefaultNightMode(nightMode)
     }
@@ -54,6 +57,16 @@ class AppGlobal : Application() {
         }
     }
 
+    private fun initShake() {
+        Shake.setAskForCrashDescription(true)
+        Shake.setCrashReportingEnabled(true)
+        Shake.start(
+            this,
+            BuildConfig.shakeClientId,
+            BuildConfig.shakeClientSecret
+        )
+    }
+
     companion object {
         private lateinit var instance: AppGlobal
 
@@ -63,12 +76,9 @@ class AppGlobal : Application() {
 
         var versionName = ""
         var versionCode = 0
-        var screenWidth80 = 0
 
         val Instance: AppGlobal get() = instance
         val resources: Resources get() = Instance.resources
         val packageManager: PackageManager get() = Instance.packageManager
-
-        var audioManager: AudioManager by Delegates.notNull()
     }
 }

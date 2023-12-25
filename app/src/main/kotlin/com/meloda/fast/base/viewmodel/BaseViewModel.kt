@@ -8,17 +8,24 @@ import com.meloda.fast.api.network.AuthorizationError
 import com.meloda.fast.api.network.CaptchaRequiredError
 import com.meloda.fast.api.network.TokenExpiredError
 import com.meloda.fast.api.network.UserBannedError
-import com.meloda.fast.api.network.ValidationRequiredError
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 abstract class BaseViewModel : ViewModel() {
 
-    open suspend fun sendSingleEvent(event: VkEvent) {}
+    private val eventsFlow = MutableSharedFlow<VkEvent>()
+    protected val events: Flow<VkEvent> = eventsFlow.asSharedFlow()
+
+    private suspend fun sendSingleEvent(event: VkEvent) {
+        eventsFlow.emit(event)
+    }
 
     protected suspend fun <T> sendRequestNotNull(
         onError: ErrorHandler? = null,
@@ -77,7 +84,7 @@ abstract class BaseViewModel : ViewModel() {
         return job
     }
 
-    protected suspend fun checkErrors(throwable: Throwable) {
+    private suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {
             is TokenExpiredError -> {
                 sendSingleEvent(TokenExpiredErrorEvent)
@@ -100,19 +107,7 @@ abstract class BaseViewModel : ViewModel() {
                 }
             }
 
-            is ValidationRequiredError -> {
-                sendSingleEvent(
-                    ValidationRequiredEvent(
-                        sid = throwable.validationSid,
-                        redirectUri = throwable.redirectUri,
-                        phoneMask = throwable.phoneMask,
-                        validationType = throwable.validationType,
-                        canResendSms = throwable.validationResend == "sms",
-                        codeError = null
-                    )
-                )
-            }
-
+            // TODO: 15/11/2023, Danil Nikolaev: catch captcha everywhere
             is CaptchaRequiredError -> {
                 sendSingleEvent(
                     CaptchaRequiredEvent(

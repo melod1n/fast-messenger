@@ -8,10 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.common.net.MediaType
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.screens.settings.presentation.SettingsFragment
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -72,8 +73,8 @@ fun <T> Flow<T>.listenValue(
 
 fun isSystemUsingDarkMode(): Boolean {
     val nightThemeMode = AppGlobal.preferences.getInt(
-        SettingsFragment.KEY_APPEARANCE_DARK_THEME,
-        SettingsFragment.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
     )
     val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
     val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
@@ -130,15 +131,15 @@ fun createTimerFlow(
     }
 
 context(ViewModel)
-fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(value, Dispatchers.Main)
+fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(Dispatchers.Main) { value }
 
 context(ViewModel)
 fun <T> MutableSharedFlow<T>.emitOnScope(
-    value: T,
-    dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    coroutineContext: CoroutineContext = Dispatchers.Default,
+    value: () -> T,
 ) {
-    viewModelScope.launch(dispatcher) {
-        emit(value)
+    viewModelScope.launch(coroutineContext) {
+        emit(value())
     }
 }
 
@@ -156,4 +157,34 @@ context(ViewModel)
 fun <T> MutableStateFlow<T>.setValue(function: (T) -> T) {
     val newValue = function(value)
     update { newValue }
+}
+
+fun Any.asInt(): Int {
+    return when (this) {
+        is Number -> this.toInt()
+
+        else -> throw IllegalArgumentException("Object is not numeric")
+    }
+}
+
+fun Any.asString(): String {
+    return when (this) {
+        is String -> this
+        else -> this.toString()
+    }
+}
+
+fun <T> Any.asList(mapper: (old: Any) -> T): List<T> {
+    return when (this) {
+        is List<*> -> this.mapNotNull { it?.run(mapper) }
+
+        else -> emptyList()
+    }
+}
+
+fun Any.asBoolean(): Boolean? {
+    return when (this) {
+        is Boolean -> this
+        else -> null
+    }
 }

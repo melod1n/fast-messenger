@@ -8,11 +8,13 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.base.ApiResponse
 import okhttp3.Request
 import okio.Timeout
-import retrofit2.*
+import retrofit2.Call
+import retrofit2.CallAdapter
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
 
 class ResultCallFactory(private val gson: Gson) : CallAdapter.Factory() {
     override fun get(
@@ -58,14 +60,16 @@ internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : C
     abstract fun cloneImpl(): Call<Out>
 }
 
-private class ResultCallAdapter<R>(private val type: Type, private val gson: Gson) : CallAdapter<R, Call<ApiAnswer<R>>> {
+private class ResultCallAdapter<R>(private val type: Type, private val gson: Gson) :
+    CallAdapter<R, Call<ApiAnswer<R>>> {
 
     override fun responseType() = type
 
     override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call, gson)
 }
 
-internal class ResultCall<T>(proxy: Call<T>, private val gson: Gson) : CallDelegate<T, ApiAnswer<T>>(proxy) {
+internal class ResultCall<T>(proxy: Call<T>, private val gson: Gson) :
+    CallDelegate<T, ApiAnswer<T>>(proxy) {
 
     override fun enqueueImpl(callback: Callback<ApiAnswer<T>>) {
         proxy.enqueue(ResultCallback(this, callback, gson))
@@ -116,7 +120,7 @@ internal class ResultCall<T>(proxy: Call<T>, private val gson: Gson) : CallDeleg
         }
 
         private fun checkErrors(call: Call<T>, result: ApiAnswer<*>): Boolean {
-            if (result.isError()) {
+            if (result is ApiAnswer.Error) {
                 result.error.throwable?.run {
                     onFailure(call, this)
                     return true
@@ -136,20 +140,4 @@ sealed class ApiAnswer<out R> {
 
     data class Success<out T>(val data: T) : ApiAnswer<T>()
     data class Error(val error: ApiError) : ApiAnswer<Nothing>()
-
-    @OptIn(ExperimentalContracts::class)
-    fun isSuccessful(): Boolean {
-        contract {
-            returns(true) implies (this@ApiAnswer is Success)
-        }
-        return this is Success
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    fun isError(): Boolean {
-        contract {
-            returns(true) implies (this@ApiAnswer is Error)
-        }
-        return this is Error
-    }
 }

@@ -4,24 +4,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.util.TypedValue
 import android.widget.Toast
-import androidx.annotation.AttrRes
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.platform.LocalDensity
 import androidx.core.content.FileProvider
-import androidx.core.graphics.Insets
-import androidx.core.view.WindowInsetsCompat
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isTrue
@@ -30,14 +19,6 @@ import java.io.FileOutputStream
 
 
 object AndroidUtils {
-
-    fun getDisplayWidth(): Int {
-        return Resources.getSystem().displayMetrics.widthPixels
-    }
-
-    fun getDisplayHeight(): Int {
-        return Resources.getSystem().displayMetrics.heightPixels
-    }
 
     fun copyText(
         label: String? = "",
@@ -67,20 +48,6 @@ object AndroidUtils {
         if (withToast && Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
             Toast.makeText(AppGlobal.Instance, "Copied to clipboard", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    fun getThemeAttrColor(context: Context, @AttrRes resId: Int): Int {
-        val typedValue = TypedValue()
-        context.theme.resolveAttribute(resId, typedValue, true)
-        val colorRes = typedValue.resourceId
-        var color = -1
-        try {
-            color = context.resources.getColor(colorRes, context.theme)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        return color
     }
 
     fun bytesToMegabytes(bytes: Double): Double {
@@ -149,18 +116,6 @@ object AndroidUtils {
         )
 
         return intent
-    }
-
-    fun getStatusBarInsets(insets: WindowInsetsCompat): Insets {
-        return insets.getInsets(WindowInsetsCompat.Type.statusBars())
-    }
-
-    fun getNavBarInsets(insets: WindowInsetsCompat): Insets {
-        return insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-    }
-
-    fun getImeInsets(insets: WindowInsetsCompat): Insets {
-        return insets.getInsets(WindowInsetsCompat.Type.ime())
     }
 
     fun isBatterySaverOn(): Boolean {
@@ -246,10 +201,4 @@ sealed class ShareContent {
     data class Image(val uri: Uri) : ShareContent()
 
     data class TextWithImage(val text: String, val imageUri: Uri) : ShareContent()
-}
-
-@Composable
-fun keyboardAsState(): State<Boolean> {
-    val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-    return rememberUpdatedState(isImeVisible)
 }

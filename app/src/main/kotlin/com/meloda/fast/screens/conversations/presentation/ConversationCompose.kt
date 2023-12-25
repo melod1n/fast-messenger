@@ -3,6 +3,7 @@ package com.meloda.fast.screens.conversations.presentation
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,57 +17,70 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.meloda.fast.R
-import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.presentation.VkConversationUi
-import com.meloda.fast.ext.combinedClickableSound
-import com.meloda.fast.ext.orDots
+import com.meloda.fast.ext.LocalContentAlpha
+import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.getImage
+import com.meloda.fast.model.base.getResourcePainter
 import com.meloda.fast.screens.conversations.DotsFlashing
-import com.meloda.fast.ui.widgets.CoilImage
+import com.meloda.fast.ui.ContentAlpha
+
+val BirthdayColor = Color(0xffb00b69)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Conversation(
-    onItemClick: (VkConversationUi) -> Unit,
-    onItemLongClick: (VkConversationUi) -> Unit,
-    conversation: VkConversationUi,
-    maxLines: Int
+    onItemClick: () -> Unit,
+    onItemLongClick: () -> Unit,
+    isUserAccount: Boolean,
+    avatar: UiImage,
+    title: String,
+    message: String,
+    date: String,
+    maxLines: Int,
+    isUnread: Boolean,
+    isPinned: Boolean,
+    isOnline: Boolean,
+    isBirthday: Boolean,
+    interactionText: String?,
+    attachmentImage: UiImage?,
+    unreadCount: String?,
+    showOnlyPlaceholders: Boolean
 ) {
+    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickableSound(
-                onClick = { onItemClick(conversation) },
+            .combinedClickable(
+                onClick = onItemClick,
                 onLongClick = {
-                    onItemLongClick(conversation)
+                    onItemLongClick()
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                 }
             )
     ) {
-        if (conversation.isUnread) {
+        if (isUnread) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -86,42 +100,58 @@ fun Conversation(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(modifier = Modifier.size(56.dp)) {
-
-                    if (conversation.id == UserConfig.userId) {
-                        Box(
+                    if (showOnlyPlaceholders) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_account_circle_cut),
+                            contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(32.dp),
-                                painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
-                                contentDescription = null
-                            )
-                        }
+                        )
                     } else {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            painter = painterResource(id = R.drawable.ic_account_circle_cut),
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outline)
-                        )
-                        CoilImage(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            contentDescription = null,
-                            model = conversation.avatar.getImage(),
-                            previewPainter = painterResource(id = R.drawable.ic_account_circle_cut),
-                        )
+                        if (isUserAccount) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            ) {
+                                Image(
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(32.dp),
+                                    painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
+                                    contentDescription = null
+                                )
+                            }
+                        } else {
+                            val avatarImage = avatar.getImage()
+                            if (avatarImage is Painter) {
+                                Image(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    painter = avatarImage,
+                                    contentDescription = null,
+                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                                )
+                            } else {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(avatarImage)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+                                )
+                            }
+                        }
                     }
 
-                    if (conversation.isPinned) {
+                    if (isPinned) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -138,13 +168,13 @@ fun Conversation(
                         }
                     }
 
-                    if (conversation.isOnline) {
+                    if (isOnline) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(18.dp)
                                 .background(
-                                    if (conversation.isUnread) {
+                                    if (isUnread) {
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
                                     } else {
                                         MaterialTheme.colorScheme.background
@@ -162,13 +192,13 @@ fun Conversation(
                         }
                     }
 
-                    if (conversation.isBirthday) {
+                    if (isBirthday) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(16.dp)
                                 .background(
-                                    if (conversation.isUnread) {
+                                    if (isUnread) {
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
                                     } else {
                                         MaterialTheme.colorScheme.background
@@ -181,7 +211,7 @@ fun Conversation(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .matchParentSize()
-                                    .background(Color(0xFFB00B69))
+                                    .background(BirthdayColor)
                             ) {
                                 Image(
                                     modifier = Modifier
@@ -201,7 +231,7 @@ fun Conversation(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = conversation.title.orDots(),
+                        text = title,
                         modifier = Modifier,
                         minLines = 1,
                         maxLines = maxLines,
@@ -209,22 +239,9 @@ fun Conversation(
                     )
 
                     Row {
-                        if (conversation.interactionType != null) {
-                            val typingText =
-                                if (!conversation.peerType.isChat() && conversation.interactiveUsers.size == 1) {
-                                    when (conversation.interactionType) {
-                                        InteractionType.File -> "Uploading file"
-                                        InteractionType.Photo -> "Uploading photo"
-                                        InteractionType.Typing -> "Typing"
-                                        InteractionType.Video -> "Uploading Video"
-                                        InteractionType.VoiceMessage -> "Recording voice message"
-                                    }
-                                } else {
-                                    "${conversation.interactiveUsers} are typing"
-                                }
-
+                        if (interactionText != null) {
                             Text(
-                                text = typingText,
+                                text = interactionText,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -236,12 +253,12 @@ fun Conversation(
                                 dotColor = MaterialTheme.colorScheme.primary
                             )
                         } else {
-                            conversation.attachmentImage?.let { drawable ->
+                            attachmentImage?.getResourcePainter()?.let { painter ->
                                 Column {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Image(
                                         modifier = Modifier.size(14.dp),
-                                        painter = rememberDrawablePainter(drawable),
+                                        painter = painter,
                                         contentDescription = null,
                                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                     )
@@ -250,10 +267,10 @@ fun Conversation(
                                 Spacer(modifier = Modifier.width(2.dp))
                             }
 
-                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                            LocalContentAlpha(alpha = ContentAlpha.medium) {
                                 Text(
                                     modifier = Modifier.weight(1f),
-                                    text = conversation.message,
+                                    text = message,
                                     minLines = 1,
                                     maxLines = maxLines,
                                     style = MaterialTheme.typography.bodyLarge,
@@ -266,9 +283,14 @@ fun Conversation(
 
                 Spacer(modifier = Modifier.width(4.dp))
                 Column {
-                    Text(text = conversation.date)
+                    LocalContentAlpha(alpha = ContentAlpha.medium) {
+                        Text(
+                            text = date,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
-                    conversation.unreadCount?.let { count ->
+                    unreadCount?.let { count ->
                         Spacer(modifier = Modifier.height(6.dp))
                         Box(
                             modifier = Modifier
