@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [ "pipeline-setup" ]
+    branches: [ "dev" ]
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
