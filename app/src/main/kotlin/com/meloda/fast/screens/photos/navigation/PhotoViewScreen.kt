@@ -11,17 +11,17 @@ import com.meloda.fast.screens.photos.presentation.PhotoViewScreenContent
 import org.koin.androidx.compose.koinViewModel
 
 data class PhotoViewScreen(
-    val arguments: PhotoViewArguments
+    private val arguments: PhotoViewArguments
 ) : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModel: PhotoViewViewModel = koinViewModel<PhotoViewViewModelImpl>()
+        viewModel.setArguments(arguments)
 
         PhotoViewScreenContent(
             onBackClick = navigator::pop,
-            images = arguments.images,
             viewModel = viewModel
         )
     }

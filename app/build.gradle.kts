@@ -213,7 +213,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.5.7"
         useLiveLiterals = true
     }
 }
@@ -228,6 +228,7 @@ dependencies {
     // end of Tests zone
 
     implementation(libs.shake)
+
     debugImplementation(libs.leakcanary.android)
 
     // Compose-Bom zone
@@ -236,14 +237,12 @@ dependencies {
     // end of Compose-Bom zone
 
     // Accompanist zone
-    implementation(libs.accompanist.drawablepainter)
     implementation(libs.accompanist.permissions)
 
     // end of Accompanist zone
 
     // Koin for Compose
     implementation(libs.koin.androidx.compose)
-    implementation(libs.koin.androidx.compose.navigation)
     // end of DI zone
 
     // Voyager zone
@@ -256,13 +255,13 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Material3 Pull-to-Refresh (until official release)
+    // TODO: 27/12/2023, Danil Nikolaev: remove when official release
     implementation(libs.compose.material3.pullrefresh)
 
     // Hack for Lazy-* composables which fixes bug with scrolling
     implementation(libs.hijacker)
 
     androidTestImplementation(libs.compose.ui.test.junit4)
-
     debugImplementation(libs.compose.ui.test.manifest)
     debugImplementation(libs.compose.ui.tooling)
 
@@ -288,12 +287,6 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
-
-    implementation(libs.glide)
-    ksp(libs.glide.compiler)
-
-    implementation(libs.kpermissions)
-    implementation(libs.kpermissions.coroutines)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

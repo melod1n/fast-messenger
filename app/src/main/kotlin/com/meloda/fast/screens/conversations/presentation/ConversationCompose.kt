@@ -39,8 +39,6 @@ import coil.request.ImageRequest
 import com.meloda.fast.R
 import com.meloda.fast.ext.LocalContentAlpha
 import com.meloda.fast.model.base.UiImage
-import com.meloda.fast.model.base.getImage
-import com.meloda.fast.model.base.getResourcePainter
 import com.meloda.fast.screens.conversations.DotsFlashing
 import com.meloda.fast.ui.ContentAlpha
 

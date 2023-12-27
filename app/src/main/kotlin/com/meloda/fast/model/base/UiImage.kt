@@ -1,9 +1,7 @@
 package com.meloda.fast.model.base
 
-import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
-import android.widget.ImageView
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
@@ -12,9 +10,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.core.content.ContextCompat
-import com.meloda.fast.ext.GlideParams
-import com.meloda.fast.ext.ImageLoader.loadWithGlide
 
 sealed class UiImage {
 
@@ -33,71 +28,22 @@ sealed class UiImage {
         else -> null
     }
 
-    fun getResourceId(): Int? = when (this) {
-        is Resource -> this.resId
-        else -> null
-    }
-}
-
-fun ImageView.setImage(image: UiImage, glideBlock: GlideParams.() -> Unit) {
-    val glideParams = GlideParams()
-    glideBlock.invoke(glideParams)
-    this.setImage(image, glideParams)
-}
-
-fun ImageView.setImage(image: UiImage, glideParams: GlideParams? = null) {
-    image.attachTo(this, glideParams)
-}
-
-fun UiImage?.attachTo(imageView: ImageView, glideBlock: GlideParams.() -> Unit) {
-    val glideParams = GlideParams()
-    glideBlock.invoke(glideParams)
-    this.attachTo(imageView, glideParams)
-}
-
-fun UiImage?.attachTo(imageView: ImageView, glideParams: GlideParams? = null) {
-    when (this) {
-        is UiImage.Simple -> imageView.setImageDrawable(drawable)
-        is UiImage.Resource -> imageView.setImageResource(resId)
-        is UiImage.Color -> imageView.setImageDrawable(ColorDrawable(color))
-        is UiImage.ColorResource -> imageView.setImageDrawable(
-            ColorDrawable(ContextCompat.getColor(imageView.context, resId))
-        )
-
-        is UiImage.Url -> glideParams?.let { params ->
-            params.imageUrl = url
-            imageView.loadWithGlide(params)
+    @Composable
+    fun getImage(): Any {
+        return when (this) {
+            is Color -> ColorDrawable(color)
+            is ColorResource -> ColorDrawable(colorResource(id = resId).toArgb())
+            is Resource -> painterResource(id = resId)
+            is Simple -> drawable
+            is Url -> url
         }
-
-        else -> Unit
     }
-}
 
-fun UiImage?.asDrawable(context: Context): Drawable? {
-    return when (this) {
-        is UiImage.Simple -> drawable
-        is UiImage.Resource -> ContextCompat.getDrawable(context, resId)
-        is UiImage.Color -> ColorDrawable(color)
-        is UiImage.ColorResource -> ColorDrawable(ContextCompat.getColor(context, resId))
-        else -> null
-    }
-}
-
-@Composable
-fun UiImage.getImage(): Any {
-    return when (this) {
-        is UiImage.Color -> ColorDrawable(color)
-        is UiImage.ColorResource -> ColorDrawable(colorResource(id = resId).toArgb())
-        is UiImage.Resource -> painterResource(id = resId)
-        is UiImage.Simple -> drawable
-        is UiImage.Url -> url
-    }
-}
-
-@Composable
-fun UiImage.getResourcePainter(): Painter? {
-    return when (this) {
-        is UiImage.Resource -> painterResource(id = resId)
-        else -> null
+    @Composable
+    fun getResourcePainter(): Painter? {
+        return when (this) {
+            is Resource -> painterResource(id = resId)
+            else -> null
+        }
     }
 }

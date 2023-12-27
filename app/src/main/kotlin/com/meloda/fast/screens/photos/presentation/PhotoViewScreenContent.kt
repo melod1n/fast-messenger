@@ -1,7 +1,6 @@
 package com.meloda.fast.screens.photos.presentation
 
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,33 +35,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.meloda.fast.R
-import com.meloda.fast.model.base.UiImage
-import com.meloda.fast.model.base.getImage
 import com.meloda.fast.screens.photos.PhotoViewViewModel
-import com.meloda.fast.screens.photos.PhotoViewViewModelImpl
-import com.meloda.fast.ui.AppTheme
+import com.meloda.fast.screens.photos.model.PhotoViewState
 
 @OptIn(
     ExperimentalFoundationApi::class,
-    ExperimentalMaterial3Api::class
 )
 @Composable
 fun PhotoViewScreenContent(
     onBackClick: () -> Unit,
-    images: List<UiImage>,
     viewModel: PhotoViewViewModel
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val images = state.images
+
     val pagerState = rememberPagerState(pageCount = { images.size })
 
     // TODO: 23/11/2023, Danil Nikolaev: заюзать штуку для цветов статус бара и навбара
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -78,7 +72,7 @@ fun PhotoViewScreenContent(
             )
             Pager(
                 pagerState = pagerState,
-                images = images
+                state = state
             )
             Spacer(modifier = Modifier.navigationBarsPadding())
         }
@@ -136,8 +130,10 @@ fun AppBar(onBackClick: () -> Unit) {
 fun Pager(
     pagerState: PagerState,
     padding: PaddingValues = PaddingValues(0.dp),
-    images: List<UiImage>
+    state: PhotoViewState
 ) {
+    val images = state.images
+
     HorizontalPager(
         state = pagerState,
         modifier = Modifier
@@ -161,45 +157,5 @@ fun Pager(
                 error = ColorPainter(Color.Red)
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun PhotoViewScreenContentPreview() {
-    val context = LocalContext.current
-    val drawable = AppCompatResources.getDrawable(context, R.drawable.ic_logo_big)
-
-    val links = remember {
-        listOf(
-            "https://randompicturegenerator.com/img/cat-generator/g0da280343fac29a84fbf3dd8b50d8ce8dffcb92b9d8b8aa0af14c10409eed64367e042a5fec9642fc117abaf2e7bc529_640.jpg",
-            "https://randompicturegenerator.com/img/cat-generator/gdcc35fa367a4f18c23f14c6a336b5c644f993ab6b29f0df0bea189a571335e0944a717d096c0fc2d0f24ff8c3f634581_640.jpg",
-            "https://randompicturegenerator.com/img/cat-generator/gaa28b24267c9c888d116f1f26c63cbf60c312f80add206905ea059fea409bb0b80043fbd0f8dc6e79d19829876ec2f75_640.jpg",
-            "https://randompicturegenerator.com/img/cat-generator/g3773e595a8ef5a3349ff896ac0b42959bd4c1f7136715552cabc8b9f1c2d42add537ace78a88b27b6fa6123c7f76eaa0_640.jpg",
-        )
-    }
-    val resources = remember {
-        listOf(
-            R.drawable.test_captcha,
-            R.drawable.ic_fast_logo,
-        )
-    }
-
-    val images =
-        List(links.size) { index ->
-            UiImage.Url(url = links[index])
-        } + List(resources.size) { index ->
-            UiImage.Resource(resId = resources[index])
-        } + UiImage.Color(Color.Cyan.toArgb())
-
-    AppTheme(
-        useDarkTheme = true,
-        useDynamicColors = false
-    ) {
-        PhotoViewScreenContent(
-            onBackClick = {},
-            images = images,
-            viewModel = PhotoViewViewModelImpl()
-        )
     }
 }
