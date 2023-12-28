@@ -15,8 +15,7 @@ import kotlin.reflect.KProperty
 interface UserSettings {
     val multiline: StateFlow<Boolean>
 
-    val theme: AppTheme
-    val themeFlow: StateFlow<AppTheme>
+    val theme: StateFlow<AppTheme>
 
     val language: StateFlow<String>
     val languageChangedFromApp: StateFlow<Boolean>
@@ -25,6 +24,8 @@ interface UserSettings {
     val online: StateFlow<Boolean>
 
     val debugSettingsEnabled: StateFlow<Boolean>
+
+    fun updateUsingDarkTheme()
 
     fun useDarkThemeChanged(use: Boolean)
 
@@ -53,8 +54,7 @@ class UserSettingsImpl : UserSettings {
         )
     )
 
-    override val theme: AppTheme by AppThemePreferenceDelegate()
-    override val themeFlow = MutableStateFlow(AppTheme.EMPTY)
+    override val theme = MutableStateFlow(AppTheme.EMPTY)
 
     override val language = MutableStateFlow(
         AppGlobal.preferences.getString(
@@ -80,20 +80,24 @@ class UserSettingsImpl : UserSettings {
 
     override val debugSettingsEnabled = MutableStateFlow(isDebugSettingsShown())
 
+    override fun updateUsingDarkTheme() {
+        useDarkThemeChanged(isUsingDarkTheme())
+    }
+
     override fun useDarkThemeChanged(use: Boolean) {
-        themeFlow.value = themeFlow.value.copy(
+        theme.value = theme.value.copy(
             usingDarkStyle = use
         )
     }
 
     override fun useAmoledThemeChanged(use: Boolean) {
-        themeFlow.value = themeFlow.value.copy(
+        theme.value = theme.value.copy(
             usingAmoledBackground = use
         )
     }
 
     override fun useDynamicColorsChanged(use: Boolean) {
-        themeFlow.value = themeFlow.value.copy(
+        theme.value = theme.value.copy(
             usingDynamicColors = use
         )
     }
@@ -135,7 +139,7 @@ class UserSettingsImpl : UserSettings {
         }
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: AppTheme) {
-            themeFlow.value = value
+            theme.value = value
         }
     }
 }
