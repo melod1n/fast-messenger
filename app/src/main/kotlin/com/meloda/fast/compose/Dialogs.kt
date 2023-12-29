@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.ext.getString
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.ui.AppTheme
@@ -168,7 +169,7 @@ fun MaterialDialog(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 AlertItems(
                                     selectionType = itemsSelectionType,
-                                    items = alertItems,
+                                    items = ImmutableList.copyOf(alertItems),
                                     onItemClick = { index ->
                                         onItemClick?.invoke(index)
 
@@ -286,12 +287,12 @@ fun AlertItemsPreview() {
     AppTheme {
         AlertItems(
             selectionType = ItemsSelectionType.None,
-            items = List(5) { index ->
+            items = ImmutableList.copyOf(List(5) { index ->
                 DialogItem(
                     title = "Item #${index + 1}",
                     isSelected = index % 2 == 0
                 )
-            },
+            }),
             onItemClick = {}
         )
     }
@@ -300,7 +301,7 @@ fun AlertItemsPreview() {
 @Composable
 private fun AlertItems(
     selectionType: ItemsSelectionType,
-    items: List<DialogItem>,
+    items: ImmutableList<DialogItem>,
     onItemClick: ((index: Int) -> Unit)? = null,
     onItemCheckedChanged: ((index: Int) -> Unit)? = null
 ) {
@@ -318,6 +319,7 @@ private fun AlertItems(
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // TODO: 29/12/2023, Danil Nikolaev: check onClick & onCheckedChange actions
             when (selectionType) {
                 ItemsSelectionType.Multi -> {
                     Spacer(modifier = Modifier.width(10.dp))

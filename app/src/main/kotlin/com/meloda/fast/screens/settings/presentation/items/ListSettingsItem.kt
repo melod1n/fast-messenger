@@ -69,14 +69,6 @@ fun ListSettingsItem(
                 onClick = {
                     onSettingsClickListener.onClick(item.key)
                     showDialog = true
-//                    showListAlertDialog(
-//                        context = context,
-//                        item = item,
-//                        onSettingsChangeListener = { key, newValue ->
-//                            summary = item.summaryProvider?.provideSummary(item)
-//                            onSettingsChangeListener.onChange(key, newValue)
-//                        }
-//                    )
                 },
                 onLongClick = { onSettingsLongClickListener.onLongClick(item.key) },
             )

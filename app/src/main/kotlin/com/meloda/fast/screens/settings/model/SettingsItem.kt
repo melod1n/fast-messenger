@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.settings.model
 
 import androidx.core.content.edit
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
 import kotlin.properties.Delegates
@@ -194,10 +195,11 @@ sealed class SettingsItem<Value>(
         }
     }
 
-    data class ListItem(override val key: String) : SettingsItem<Int>(key) {
-
-        var values: List<Int> = emptyList()
-        var valueTitles: List<UiText> = emptyList()
+    data class ListItem(
+        override val key: String,
+        val values: ImmutableList<Int>,
+        val valueTitles: ImmutableList<UiText>
+    ) : SettingsItem<Int>(key) {
 
         companion object {
             fun build(
@@ -212,13 +214,15 @@ sealed class SettingsItem<Value>(
                 selectedIndex: Int? = null,
                 builder: ListItem.() -> Unit = {}
             ): ListItem {
-                return ListItem(key).apply {
+                return ListItem(
+                    key = key,
+                    values = ImmutableList.copyOf(values),
+                    valueTitles = ImmutableList.copyOf(valueTitles)
+                ).apply {
                     this.title = title
                     this.summary = summary
                     this.isEnabled = isEnabled
                     this.isVisible = isVisible
-                    this.values = values
-                    this.valueTitles = valueTitles
 
                     this.value = defaultValue
                         ?.let { value -> getValueFromPreferences(key, Int::class.java, value) }
