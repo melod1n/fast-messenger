@@ -442,10 +442,10 @@ fun OptionsDialog(
     val conversationsSize = screenState.conversations.size
     val pinnedCount = screenState.pinnedConversationsCount
 
-    var canPinOneMoreDialog = true
-    if (conversationsSize > 4) {
-        if (pinnedCount == 5 && !conversation.isPinned) {
-            canPinOneMoreDialog = false
+    // TODO: 29/12/2023, Danil Nikolaev: test this
+    val canPinOneMoreDialog by remember {
+        derivedStateOf {
+            conversationsSize > 4 && pinnedCount < 5 && !conversation.isPinned
         }
     }
 

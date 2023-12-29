@@ -10,8 +10,12 @@ val otaSecretCode: String = getLocalProperty("otaSecretCode", "\"\"")
 val debugUserId: String = getLocalProperty("userId", "\"0\"")
 val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
 
-val shakeClientId: String = getLocalProperty("shakeClientId", "\"\"")
-val shakeClientSecret: String = getLocalProperty("shakeClientSecret", "\"\"")
+val shakeClientId: String = getLocalProperty("shakeClientId", "\"\"").run {
+    ifEmpty { System.getenv("SHAKE_CLIENT_ID") }
+}
+val shakeClientSecret: String = getLocalProperty("shakeClientSecret", "\"\"").run {
+    ifEmpty { System.getenv("SHAKE_CLIENT_SECRET") }
+}
 
 fun getLocalProperty(key: String, defValue: String): String {
     return gradleLocalProperties(rootDir).getProperty(key, defValue)
@@ -313,4 +317,6 @@ dependencies {
     implementation(libs.nanokt)
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
+
+    implementation("io.github.theapache64:rebugger:1.0.0-rc02")
 }
