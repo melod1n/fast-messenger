@@ -1,9 +1,13 @@
 package com.meloda.fast.screens.settings.presentation
 
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -12,7 +16,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -160,6 +166,7 @@ fun SettingsScreenContent(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             val title = @Composable { Text(text = stringResource(id = R.string.title_settings)) }
             val navigationIcon = @Composable {
@@ -234,6 +241,16 @@ fun SettingsScreenContent(
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener
                     )
+                }
+
+                val showBottomNavigationBarsSpacer by remember {
+                    derivedStateOf {
+                        index == settingsList.size - 1
+                    }
+                }
+
+                if (showBottomNavigationBarsSpacer) {
+                    Spacer(modifier = Modifier.navigationBarsPadding())
                 }
             }
         }
