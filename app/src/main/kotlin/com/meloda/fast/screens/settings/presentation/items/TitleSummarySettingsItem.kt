@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.settings.presentation.items
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -23,7 +24,8 @@ fun TitleSummarySettingsItem(
     item: SettingsItem.TitleSummary,
     isMultiline: Boolean,
     onSettingsClickListener: OnSettingsClickListener,
-    onSettingsLongClickListener: OnSettingsLongClickListener
+    onSettingsLongClickListener: OnSettingsLongClickListener,
+    modifier: Modifier
 ) {
     var title by remember { mutableStateOf(item.title) }
     item.onTitleChanged = { newTitle -> title = newTitle }
@@ -39,9 +41,10 @@ fun TitleSummarySettingsItem(
 
     if (!isVisible) return
     Row(
-        modifier = Modifier
+        modifier = modifier
             .heightIn(min = 56.dp)
             .fillMaxWidth()
+            .animateContentSize()
             .combinedClickable(
                 enabled = isEnabled,
                 onClick = { onSettingsClickListener.onClick(item.key) },

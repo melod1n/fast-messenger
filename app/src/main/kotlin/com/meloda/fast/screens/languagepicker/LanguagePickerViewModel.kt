@@ -7,6 +7,7 @@ import com.meloda.fast.ext.setValue
 import com.meloda.fast.screens.languagepicker.model.LanguagePickerScreenState
 import com.meloda.fast.screens.languagepicker.model.SelectableLanguage
 import com.meloda.fast.screens.settings.SettingsKeys
+import com.meloda.fast.screens.settings.UserSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -25,9 +26,15 @@ interface LanguagePickerViewModel {
     fun onLanguageChanged()
 }
 
-class LanguagePickerViewModelImpl : LanguagePickerViewModel, ViewModel() {
+class LanguagePickerViewModelImpl(
+    userSettings: UserSettings
+) : LanguagePickerViewModel, ViewModel() {
 
-    override val screenState = MutableStateFlow(LanguagePickerScreenState.EMPTY)
+    override val screenState = MutableStateFlow(
+        LanguagePickerScreenState.EMPTY.copy(
+            currentLanguage = userSettings.language.value
+        )
+    )
 
     override fun setLanguages(
         locales: Map<String, String>,

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.imageLoader
 import coil.request.ImageRequest
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils.fill
@@ -34,6 +35,7 @@ import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.findWithIndex
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.toMap
+import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.conversations.model.ConversationsShowOptions
 import kotlinx.coroutines.CancellationException
@@ -51,20 +53,17 @@ interface ConversationsViewModel {
 
     val screenState: StateFlow<ConversationsScreenState>
 
-    fun onOptionsDialogDismissed()
-
-    fun onOptionsDialogOptionClicked(conversation: VkConversationUi, key: String): Boolean
-
     fun onDeleteDialogDismissed()
 
     fun onDeleteDialogPositiveClick(conversationId: Int)
 
     fun onRefresh()
 
-    fun onConversationItemLongClick(conversationUi: VkConversationUi)
+    fun onConversationItemLongClick(conversation: VkConversationUi)
 
     fun onPinDialogDismissed()
     fun onPinDialogPositiveClick(conversation: VkConversationUi)
+    fun onOptionClicked(conversation: VkConversationUi, option: ConversationOption)
 }
 
 class ConversationsViewModelImpl(
@@ -95,51 +94,58 @@ class ConversationsViewModelImpl(
         loadProfileUser()
     }
 
-    override fun onOptionsDialogDismissed() {
-        emitShowOptions { old -> old.copy(showOptionsDialog = null) }
-    }
-
-    override fun onOptionsDialogOptionClicked(
-        conversation: VkConversationUi,
-        key: String
-    ): Boolean {
-        return when (key) {
-            "read" -> {
-                readConversation(
-                    peerId = conversation.conversationId,
-                    startMessageId = conversation.lastMessageId
-                )
-                true
-            }
-
-            "delete" -> {
-                emitShowOptions { old -> old.copy(showDeleteDialog = conversation.conversationId) }
-                true
-            }
-
-            "pin" -> {
-                emitShowOptions { old -> old.copy(showPinDialog = conversation) }
-                true
-            }
-
-            else -> false
-        }
-    }
-
     override fun onDeleteDialogDismissed() {
         emitShowOptions { old -> old.copy(showDeleteDialog = null) }
     }
 
     override fun onDeleteDialogPositiveClick(conversationId: Int) {
         deleteConversation(conversationId)
+        hideOptions(conversationId)
     }
 
     override fun onRefresh() {
         loadConversations()
     }
 
-    override fun onConversationItemLongClick(conversationUi: VkConversationUi) {
-        emitShowOptions { old -> old.copy(showOptionsDialog = conversationUi) }
+    override fun onConversationItemLongClick(conversation: VkConversationUi) {
+        val options = mutableListOf<ConversationOption>()
+        if (!conversation.isExpanded) {
+            conversation.lastMessage?.run {
+                if (conversation.isUnread && !this.isOut) {
+                    options += ConversationOption.MarkAsRead
+                }
+            }
+
+            val conversationsSize = screenState.value.conversations.size
+            val pinnedCount = pinnedConversationsCount.value
+
+            val canPinOneMoreDialog =
+                conversationsSize > 4 && pinnedCount < 5 && !conversation.isPinned
+
+            if (conversation.isPinned) {
+                options += ConversationOption.Unpin
+            } else if (canPinOneMoreDialog) {
+                options += ConversationOption.Pin
+            }
+
+            options += ConversationOption.Delete
+        }
+
+        screenState.setValue { old ->
+            old.copy(
+                conversations = old.conversations.map { item ->
+                    item.copy(
+                        isExpanded =
+                        if (item.conversationId == conversation.conversationId) {
+                            !item.isExpanded
+                        } else {
+                            false
+                        },
+                        options = ImmutableList.copyOf(options)
+                    )
+                }
+            )
+        }
     }
 
     override fun onPinDialogDismissed() {
@@ -148,6 +154,42 @@ class ConversationsViewModelImpl(
 
     override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
         pinConversation(conversation.conversationId, !conversation.isPinned)
+        hideOptions(conversation.conversationId)
+    }
+
+    override fun onOptionClicked(conversation: VkConversationUi, option: ConversationOption) {
+        when (option) {
+            ConversationOption.Delete -> {
+                emitShowOptions { old ->
+                    old.copy(showDeleteDialog = conversation.conversationId)
+                }
+            }
+
+            ConversationOption.MarkAsRead -> {
+                readConversation(
+                    peerId = conversation.conversationId,
+                    startMessageId = conversation.lastMessageId
+                )
+                hideOptions(conversation.conversationId)
+            }
+
+            ConversationOption.Pin,
+            ConversationOption.Unpin -> {
+                emitShowOptions { old -> old.copy(showPinDialog = conversation) }
+            }
+        }
+    }
+
+    private fun hideOptions(conversationId: Int) {
+        screenState.setValue { old ->
+            old.copy(
+                conversations = old.conversations.map { item ->
+                    if (item.conversationId == conversationId) {
+                        item.copy(isExpanded = false)
+                    } else item
+                }
+            )
+        }
     }
 
     private fun emitDomainConversations(conversations: List<VkConversationDomain>) {

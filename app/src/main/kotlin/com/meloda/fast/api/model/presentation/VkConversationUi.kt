@@ -7,6 +7,7 @@ import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.model.base.UiImage
+import com.meloda.fast.screens.conversations.model.ConversationOption
 
 @Immutable
 data class VkConversationUi(
@@ -28,5 +29,7 @@ data class VkConversationUi(
     val conversationUser: VkUser?,
     val conversationGroup: VkGroup?,
     val peerType: ConversationPeerType,
-    val interactionText: String?
+    val interactionText: String?,
+    val isExpanded: Boolean,
+    val options: List<ConversationOption>
 )

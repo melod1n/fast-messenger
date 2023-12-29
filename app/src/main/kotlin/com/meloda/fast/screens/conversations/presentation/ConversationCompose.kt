@@ -1,9 +1,15 @@
 package com.meloda.fast.screens.conversations.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,12 +21,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,10 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.ext.LocalContentAlpha
+import com.meloda.fast.ext.getString
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.screens.conversations.DotsFlashing
+import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.ui.ContentAlpha
 
 val BirthdayColor = Color(0xffb00b69)
@@ -61,14 +75,22 @@ fun Conversation(
     isBirthday: Boolean,
     interactionText: String?,
     attachmentImage: UiImage?,
+    isExpanded: Boolean,
     unreadCount: String?,
-    showOnlyPlaceholders: Boolean
+    showOnlyPlaceholders: Boolean,
+    modifier: Modifier,
+    options: ImmutableList<ConversationOption>,
+    onOptionClicked: (ConversationOption) -> Unit
 ) {
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
+    val bottomStartCornerRadius by animateDpAsState(
+        targetValue = if (isExpanded) 10.dp else 34.dp, label = "bottomStartCornerRadius"
+    )
+
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onItemClick,
@@ -78,15 +100,20 @@ fun Conversation(
                 }
             )
     ) {
-        if (isUnread) {
+        AnimatedVisibility(
+            visible = isUnread || isExpanded,
+            modifier = Modifier
+                .matchParentSize()
+                .padding(start = 8.dp),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .padding(start = 8.dp)
                     .clip(
                         RoundedCornerShape(
-                            topStart = 34.dp,
-                            bottomStart = 34.dp
+                            topStart = 34.dp, bottomStart = bottomStartCornerRadius
                         )
                     )
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
@@ -135,10 +162,8 @@ fun Conversation(
                                 )
                             } else {
                                 AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(avatarImage)
-                                        .crossfade(true)
-                                        .build(),
+                                    model = ImageRequest.Builder(context).data(avatarImage)
+                                        .crossfade(true).build(),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -239,8 +264,7 @@ fun Conversation(
                     Row {
                         if (interactionText != null) {
                             Text(
-                                text = interactionText,
-                                color = MaterialTheme.colorScheme.primary
+                                text = interactionText, color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             DotsFlashing(
@@ -283,8 +307,7 @@ fun Conversation(
                 Column {
                     LocalContentAlpha(alpha = ContentAlpha.medium) {
                         Text(
-                            text = date,
-                            style = MaterialTheme.typography.bodySmall
+                            text = date, style = MaterialTheme.typography.bodySmall
                         )
                     }
 
@@ -312,7 +335,50 @@ fun Conversation(
                 Spacer(modifier = Modifier.width(24.dp))
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            AnimatedVisibility(visible = isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Divider()
+
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        options.forEach { option ->
+                            ElevatedAssistChip(
+                                onClick = {
+                                    onOptionClicked(option)
+                                },
+                                leadingIcon = {
+                                    option.icon.getResourcePainter()?.let { painter ->
+                                        Icon(
+                                            painter = painter,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                },
+                                label = {
+                                    Text(text = option.title.getString().orEmpty())
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            val bottomSpacerHeight by animateDpAsState(
+                targetValue = if (isExpanded) 4.dp else 8.dp,
+                label = "bottomSpacerHeight"
+            )
+
+            Spacer(modifier = Modifier.height(bottomSpacerHeight))
         }
     }
 }

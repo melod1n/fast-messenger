@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
@@ -287,5 +288,7 @@ data class VkConversationDomain(
         conversationGroup = conversationGroup,
         peerType = peerType,
         interactionText = extractInteractionText(),
+        isExpanded = false,
+        options = ImmutableList.of()
     )
 }

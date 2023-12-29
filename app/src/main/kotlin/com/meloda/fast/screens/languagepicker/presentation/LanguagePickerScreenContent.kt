@@ -44,16 +44,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.screens.languagepicker.LanguagePickerViewModel
-import com.meloda.fast.screens.languagepicker.LanguagePickerViewModelImpl
 import com.meloda.fast.screens.languagepicker.model.SelectableLanguage
-import com.meloda.fast.ui.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,9 +74,11 @@ fun LanguagePickerScreenContent(
         onLanguagePicked(selectedLanguageKey)
     }
 
-    val isButtonEnabled by remember(languages) {
+    val isButtonEnabled by remember(screenState) {
         derivedStateOf {
-            languages.find(SelectableLanguage::isSelected)?.key != screenState.currentLanguage
+            screenState.currentLanguage != null &&
+                    languages.isNotEmpty() &&
+                    languages.find(SelectableLanguage::isSelected)?.key != screenState.currentLanguage
         }
     }
 
@@ -201,7 +200,7 @@ fun LanguagePickerScreenContent(
 @Composable
 fun LanguageItem(
     item: SelectableLanguage,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -222,27 +221,5 @@ fun LanguageItem(
             )
             Spacer(modifier = Modifier.width(16.dp))
         }
-    }
-}
-
-@Preview
-@Composable
-fun LanguagePickerScreenContentPreview() {
-    val viewModel = LanguagePickerViewModelImpl()
-    viewModel.setLanguages(
-        mapOf(
-            "English" to "en",
-            "Russian" to "ru",
-            "Ukrainian" to "ua"
-        ),
-        "ru"
-    )
-
-    AppTheme {
-        LanguagePickerScreenContent(
-            onLanguagePicked = {},
-            onBackClick = {},
-            viewModel = viewModel
-        )
     }
 }

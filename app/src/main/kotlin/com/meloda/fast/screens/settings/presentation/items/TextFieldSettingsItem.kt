@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.settings.presentation.items
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +34,8 @@ fun EditTextSettingsItem(
     isMultiline: Boolean,
     onSettingsClickListener: OnSettingsClickListener,
     onSettingsLongClickListener: OnSettingsLongClickListener,
-    onSettingsChangeListener: OnSettingsChangeListener
+    onSettingsChangeListener: OnSettingsChangeListener,
+    modifier: Modifier
 ) {
     var title by remember { mutableStateOf(item.title) }
     item.onTitleChanged = { newTitle -> title = newTitle }
@@ -64,9 +66,10 @@ fun EditTextSettingsItem(
 
     if (!isVisible) return
     Row(
-        modifier = Modifier
+        modifier = modifier
             .heightIn(min = 56.dp)
             .fillMaxWidth()
+            .animateContentSize()
             .combinedClickable(
                 enabled = isEnabled,
                 onClick = {

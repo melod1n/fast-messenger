@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.settings.presentation.items
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +18,8 @@ import com.meloda.fast.screens.settings.model.SettingsItem
 @Composable
 fun TitleSettingsItem(
     item: SettingsItem.Title,
-    isMultiline: Boolean
+    isMultiline: Boolean,
+    modifier: Modifier
 ) {
     var title by remember { mutableStateOf(item.title) }
     item.onTitleChanged = { newTitle -> title = newTitle }
@@ -31,12 +33,14 @@ fun TitleSettingsItem(
         text = title.getString().orEmpty(),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(
-            top = 14.dp,
-            end = 16.dp,
-            start = 16.dp,
-            bottom = 4.dp
-        ),
+        modifier = modifier
+            .padding(
+                top = 14.dp,
+                end = 16.dp,
+                start = 16.dp,
+                bottom = 4.dp
+            )
+            .animateContentSize(),
         maxLines = if (isMultiline) Int.MAX_VALUE else 1,
         overflow = TextOverflow.Ellipsis,
     )

@@ -1,5 +1,9 @@
 package com.meloda.fast.screens.conversations.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -48,16 +53,16 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.compose.MaterialDialog
-import com.meloda.fast.ext.asUiText
-import com.meloda.fast.ext.getString
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.conversations.ConversationsViewModel
 import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
+import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.settings.UserSettings
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
@@ -120,6 +125,12 @@ fun ConversationsScreenContent(
     }
     var showPullRefresh by remember {
         mutableStateOf(true)
+    }
+
+    val showFab by remember(screenState) {
+        derivedStateOf {
+            !isLoading || conversations.isNotEmpty()
+        }
     }
 
     Scaffold(
@@ -226,11 +237,13 @@ fun ConversationsScreenContent(
             }
         },
         floatingActionButton = {
-            if (!isLoading || conversations.isNotEmpty()) {
-                FloatingActionButton(
-                    modifier = Modifier.navigationBarsPadding(),
-                    onClick = onCreateChatClick
-                ) {
+            AnimatedVisibility(
+                visible = showFab,
+                modifier = Modifier.navigationBarsPadding(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                FloatingActionButton(onClick = onCreateChatClick) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_create_24),
                         contentDescription = null
@@ -284,14 +297,20 @@ fun ConversationsScreenContent(
                         state = listState,
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
-                        modifier = listModifier
+                        modifier = listModifier,
+                        onOptionClicked = viewModel::onOptionClicked
                     )
 
-                    if (showPullRefresh) {
+                    AnimatedVisibility(
+                        visible = showPullRefresh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         PullRefreshIndicator(
                             refreshing = screenState.isLoading,
                             state = pullRefreshState,
-                            modifier = Modifier.align(Alignment.TopCenter),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .wrapContentSize(),
                             colors = PullRefreshIndicatorDefaults.colors(
                                 containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
                                 contentColor = MaterialTheme.colorScheme.primary
@@ -321,6 +340,7 @@ fun Loader() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationsListComposable(
     onConversationsClick: (VkConversationUi) -> Unit,
@@ -329,7 +349,8 @@ fun ConversationsListComposable(
     state: LazyListState,
     maxLines: Int,
     showOnlyPlaceholders: Boolean,
-    modifier: Modifier
+    modifier: Modifier,
+    onOptionClicked: (VkConversationUi, ConversationOption) -> Unit,
 ) {
     val conversations = screenState.conversations
 
@@ -341,15 +362,15 @@ fun ConversationsListComposable(
             items = conversations,
             key = { _, item -> item.conversationId },
         ) { index, conversation ->
-            val isUserAccount by remember {
+            val isUserAccount by remember(conversation) {
                 derivedStateOf {
                     conversation.conversationId == UserConfig.userId
                 }
             }
 
-            val title by remember {
+            val options by remember(conversation) {
                 derivedStateOf {
-                    conversation.title.orDots()
+                    ImmutableList.copyOf(conversation.options)
                 }
             }
 
@@ -362,7 +383,7 @@ fun ConversationsListComposable(
                 },
                 isUserAccount = isUserAccount,
                 avatar = conversation.avatar,
-                title = title,
+                title = conversation.title.orDots(),
                 message = conversation.message,
                 date = conversation.date,
                 maxLines = maxLines,
@@ -371,9 +392,15 @@ fun ConversationsListComposable(
                 isOnline = conversation.isOnline,
                 isBirthday = conversation.isBirthday,
                 attachmentImage = conversation.attachmentImage,
+                isExpanded = conversation.isExpanded,
                 unreadCount = conversation.unreadCount,
                 interactionText = conversation.interactionText,
-                showOnlyPlaceholders = showOnlyPlaceholders
+                showOnlyPlaceholders = showOnlyPlaceholders,
+                modifier = Modifier.animateItemPlacement(),
+                options = options,
+                onOptionClicked = { option ->
+                    onOptionClicked(conversation, option)
+                }
             )
 
             val showDefaultSpacer by remember {
@@ -407,15 +434,6 @@ fun HandleDialogs(
 ) {
     val showOptions = screenState.showOptions
 
-    if (showOptions.showOptionsDialog != null) {
-        val conversation = showOptions.showOptionsDialog
-        OptionsDialog(
-            screenState = screenState,
-            conversation = conversation,
-            viewModel = viewModel
-        )
-    }
-
     if (showOptions.showDeleteDialog != null) {
         val conversationId = showOptions.showDeleteDialog
         DeleteDialog(
@@ -431,57 +449,6 @@ fun HandleDialogs(
             viewModel = viewModel
         )
     }
-}
-
-@Composable
-fun OptionsDialog(
-    screenState: ConversationsScreenState,
-    conversation: VkConversationUi,
-    viewModel: ConversationsViewModel
-) {
-    val conversationsSize = screenState.conversations.size
-    val pinnedCount = screenState.pinnedConversationsCount
-
-    // TODO: 29/12/2023, Danil Nikolaev: test this
-    val canPinOneMoreDialog by remember {
-        derivedStateOf {
-            conversationsSize > 4 && pinnedCount < 5 && !conversation.isPinned
-        }
-    }
-
-    val read = "Mark as read"
-
-    val pin = stringResource(
-        if (conversation.isPinned) R.string.conversation_context_action_unpin
-        else R.string.conversation_context_action_pin
-    )
-
-    val delete = stringResource(R.string.conversation_context_action_delete)
-
-    val params = mutableListOf<Pair<String, String>>()
-
-    conversation.lastMessage?.run {
-        if (conversation.isUnread && !this.isOut) {
-            params += "read" to read
-        }
-    }
-
-    if (canPinOneMoreDialog) params += "pin" to pin
-
-    params += "delete" to delete
-
-    val items = params.map { param ->
-        UiText.Simple(param.second.asUiText().getString().orEmpty())
-    }
-
-    MaterialDialog(
-        onDismissAction = viewModel::onOptionsDialogDismissed,
-        items = items,
-        onItemClick = { index ->
-            val key = params[index].first
-            viewModel.onOptionsDialogOptionClicked(conversation, key)
-        }
-    )
 }
 
 @Composable

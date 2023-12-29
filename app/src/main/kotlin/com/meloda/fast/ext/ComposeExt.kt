@@ -1,5 +1,6 @@
 package com.meloda.fast.ext
 
+import android.content.Context
 import android.content.res.Configuration
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatDelegate
@@ -17,8 +18,10 @@ import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
+import com.meloda.fast.R
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.base.UiText
+import com.meloda.fast.model.base.parseString
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.AndroidUtils
 
@@ -169,4 +172,14 @@ fun RequestPermission(
     permission: PermissionState
 ) {
     LaunchedEffect(Unit) { permission.launchPermissionRequest() }
+}
+
+fun getLanguages(context: Context): Map<String, String> {
+    return listOf(
+        UiText.Resource(R.string.language_system) to "system",
+        UiText.Resource(R.string.language_english) to "en",
+        UiText.Resource(R.string.language_russian) to "ru",
+    ).associate { pair ->
+        pair.first.parseString(context).orEmpty() to pair.second
+    }
 }

@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.settings.presentation
 
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -143,7 +144,7 @@ fun SettingsRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SettingsScreenContent(
     onBackClick: () -> Unit,
@@ -208,14 +209,16 @@ fun SettingsScreenContent(
                 when (val item = settingsList[index]) {
                     is SettingsItem.Title -> TitleSettingsItem(
                         item = item,
-                        isMultiline = multilineEnabled
+                        isMultiline = multilineEnabled,
+                        modifier = Modifier.animateItemPlacement()
                     )
 
                     is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
                         item = item,
                         isMultiline = multilineEnabled,
                         onSettingsClickListener = clickListener,
-                        onSettingsLongClickListener = longClickListener
+                        onSettingsLongClickListener = longClickListener,
+                        modifier = Modifier.animateItemPlacement()
                     )
 
                     is SettingsItem.Switch -> SwitchSettingsItem(
@@ -223,7 +226,8 @@ fun SettingsScreenContent(
                         isMultiline = multilineEnabled,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
-                        onSettingsChangeListener = changeListener
+                        onSettingsChangeListener = changeListener,
+                        modifier = Modifier.animateItemPlacement()
                     )
 
                     is SettingsItem.TextField -> EditTextSettingsItem(
@@ -231,7 +235,8 @@ fun SettingsScreenContent(
                         isMultiline = multilineEnabled,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
-                        onSettingsChangeListener = changeListener
+                        onSettingsChangeListener = changeListener,
+                        modifier = Modifier.animateItemPlacement()
                     )
 
                     is SettingsItem.ListItem -> ListSettingsItem(
@@ -239,7 +244,8 @@ fun SettingsScreenContent(
                         isMultiline = multilineEnabled,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
-                        onSettingsChangeListener = changeListener
+                        onSettingsChangeListener = changeListener,
+                        modifier = Modifier.animateItemPlacement()
                     )
                 }
 

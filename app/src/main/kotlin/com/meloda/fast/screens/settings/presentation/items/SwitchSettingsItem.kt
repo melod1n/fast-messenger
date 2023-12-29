@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.settings.presentation.items
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -27,7 +28,8 @@ fun SwitchSettingsItem(
     isMultiline: Boolean,
     onSettingsClickListener: OnSettingsClickListener,
     onSettingsLongClickListener: OnSettingsLongClickListener,
-    onSettingsChangeListener: OnSettingsChangeListener
+    onSettingsChangeListener: OnSettingsChangeListener,
+    modifier: Modifier
 ) {
     var isChecked by remember {
         mutableStateOf(item.value.isTrue)
@@ -62,9 +64,10 @@ fun SwitchSettingsItem(
 
     if (!isVisible) return
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .heightIn(min = 56.dp)
+            .animateContentSize()
             .combinedClickable(
                 enabled = isEnabled,
                 onClick = {

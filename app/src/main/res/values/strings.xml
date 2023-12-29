@@ -134,6 +134,7 @@
     <string name="message_delete_for_all">Delete for all</string>
 
     <string name="message_mark_as_spam">Mark as spam</string>
+    <string name="action_mark_as_read">Mark as read</string>
 
     <string name="action_delete">Delete</string>
     <string name="conversation_context_action_delete">Delete</string>
