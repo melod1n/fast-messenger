@@ -22,8 +22,8 @@ fun getLocalProperty(key: String, defValue: String): String {
 }
 
 val majorVersion = 1
-val minorVersion = 6
-val patchVersion = 4
+val minorVersion = 7
+val patchVersion = 1
 
 plugins {
     alias(libs.plugins.com.android.application)
@@ -318,5 +318,5 @@ dependencies {
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
 
-    implementation("io.github.theapache64:rebugger:1.0.0-rc02")
+    implementation(libs.rebugger)
 }

@@ -5,6 +5,7 @@ converterMoshi = "2.9.0"
 hijacker = "1.0.0"
 kotlin = "1.9.21"
 ksp = "1.9.21-1.0.16"
+rebugger = "1.0.0-rc02"
 vkompose = "0.1"
 
 accompanist = "0.32.0"
@@ -76,6 +77,7 @@ logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", ver
 moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+rebugger = { module = "io.github.theapache64:rebugger", version.ref = "rebugger" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 shake = { module = "com.shakebugs:shake", version.ref = "shake" }
 voyager-koin = { module = "cafe.adriel.voyager:voyager-koin", version.ref = "voyagerVersion" }
