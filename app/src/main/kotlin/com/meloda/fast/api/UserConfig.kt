@@ -1,10 +1,8 @@
 package com.meloda.fast.api
 
 import androidx.core.content.edit
-import com.meloda.fast.api.model.VkUser
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.model.AppAccount
-import kotlinx.coroutines.flow.MutableStateFlow
 
 object UserConfig {
 
@@ -24,11 +22,13 @@ object UserConfig {
     var userId: Int = -1
     var accessToken: String = ""
     var fastToken: String? = ""
+    var trustedHash: String? = null
 
     fun parse(account: AppAccount) {
         this.userId = account.userId
         this.accessToken = account.accessToken
         this.fastToken = account.fastToken
+        this.trustedHash = account.trustedHash
     }
 
     fun clear() {
@@ -42,6 +42,10 @@ object UserConfig {
         return currentUserId > 0 && userId > 0 && accessToken.isNotBlank()
     }
 
-    val vkUser: MutableStateFlow<VkUser?> = MutableStateFlow(null)
-
+    fun getAccount(): AppAccount = AppAccount(
+        userId = userId,
+        accessToken = accessToken,
+        fastToken = fastToken,
+        trustedHash = trustedHash
+    )
 }

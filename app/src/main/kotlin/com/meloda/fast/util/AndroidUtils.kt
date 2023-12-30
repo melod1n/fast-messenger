@@ -4,18 +4,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.util.TypedValue
 import android.widget.Toast
-import androidx.annotation.AttrRes
 import androidx.core.content.FileProvider
-import androidx.core.graphics.Insets
-import androidx.core.view.WindowInsetsCompat
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isTrue
@@ -24,14 +19,6 @@ import java.io.FileOutputStream
 
 
 object AndroidUtils {
-
-    fun getDisplayWidth(): Int {
-        return Resources.getSystem().displayMetrics.widthPixels
-    }
-
-    fun getDisplayHeight(): Int {
-        return Resources.getSystem().displayMetrics.heightPixels
-    }
 
     fun copyText(
         label: String? = "",
@@ -63,20 +50,6 @@ object AndroidUtils {
         }
     }
 
-    fun getThemeAttrColor(context: Context, @AttrRes resId: Int): Int {
-        val typedValue = TypedValue()
-        context.theme.resolveAttribute(resId, typedValue, true)
-        val colorRes = typedValue.resourceId
-        var color = -1
-        try {
-            color = context.resources.getColor(colorRes, context.theme)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        return color
-    }
-
     fun bytesToMegabytes(bytes: Double): Double {
         return bytes / 1024 / 1024
     }
@@ -86,6 +59,21 @@ object AndroidUtils {
         bytes >= 1 shl 20 -> "%.1f MB".format(bytes / (1 shl 20))
         bytes >= 1 shl 10 -> "%.1f KB".format(bytes / (1 shl 10))
         else -> "$bytes B"
+    }
+
+    fun openAppNotificationsSettings(context: Context) {
+        val packageName = context.packageName
+
+        val intent = Intent("android.settings.APP_NOTIFICATION_SETTINGS")
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            intent.putExtra("android.provider.extra.APP_PACKAGE", packageName)
+        } else {
+            intent.putExtra("app_package", packageName)
+            intent.putExtra("app_uid", context.applicationInfo.uid)
+        }
+        context.startActivity(intent)
     }
 
     @Suppress("DEPRECATION")
@@ -128,18 +116,6 @@ object AndroidUtils {
         )
 
         return intent
-    }
-
-    fun getStatusBarInsets(insets: WindowInsetsCompat): Insets {
-        return insets.getInsets(WindowInsetsCompat.Type.statusBars())
-    }
-
-    fun getNavBarInsets(insets: WindowInsetsCompat): Insets {
-        return insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-    }
-
-    fun getImeInsets(insets: WindowInsetsCompat): Insets {
-        return insets.getInsets(WindowInsetsCompat.Type.ime())
     }
 
     fun isBatterySaverOn(): Boolean {

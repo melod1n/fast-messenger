@@ -41,6 +41,8 @@ val networkModule = module {
     single {
         Retrofit.Builder()
             .baseUrl("${VkUrls.API}/")
+            // TODO: 26/11/2023, Danil Nikolaev: implement
+//            .addConverterFactory(MoshiConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(get()))
             .addCallAdapterFactory(ResultCallFactory(get()))
             .client(get())

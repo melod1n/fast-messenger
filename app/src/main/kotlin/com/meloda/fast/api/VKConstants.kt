@@ -12,6 +12,7 @@ object VKConstants {
 
     const val ALL_FIELDS = "$USER_FIELDS,$GROUP_FIELDS"
 
+    // TODO: 17/12/2023, Danil Nikolaev: up api version and handle changes
     const val API_VERSION = "5.173"
     const val LP_VERSION = 10
 

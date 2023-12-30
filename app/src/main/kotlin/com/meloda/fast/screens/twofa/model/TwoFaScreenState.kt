@@ -8,7 +8,8 @@ data class TwoFaScreenState(
     val twoFaText: UiText,
     val canResendSms: Boolean,
     val codeError: UiText?,
-    val delayTime: Int
+    val delayTime: Int,
+    val isNeedToOpenLogin: Boolean,
 ) {
 
     companion object {
@@ -18,7 +19,8 @@ data class TwoFaScreenState(
             twoFaText = UiText.Simple(""),
             canResendSms = false,
             codeError = null,
-            delayTime = 0
+            delayTime = 0,
+            isNeedToOpenLogin = false,
         )
     }
 }

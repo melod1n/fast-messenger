@@ -1,19 +1,20 @@
 package com.meloda.fast.api.model.presentation
 
+import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.UiImage
-import com.meloda.fast.model.base.UiText
+import com.meloda.fast.screens.conversations.model.ConversationOption
 
+@Immutable
 data class VkConversationUi(
     val conversationId: Int,
     val lastMessageId: Int,
     val avatar: UiImage,
-    val title: UiText,
+    val title: String,
     val unreadCount: String?,
     val date: String,
     val message: String,
@@ -28,6 +29,7 @@ data class VkConversationUi(
     val conversationUser: VkUser?,
     val conversationGroup: VkGroup?,
     val peerType: ConversationPeerType,
-) : AdapterDiffItem {
-    override val id = conversationId
-}
+    val interactionText: String?,
+    val isExpanded: Boolean,
+    val options: List<ConversationOption>
+)

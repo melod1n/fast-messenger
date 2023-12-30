@@ -1,15 +1,15 @@
 package com.meloda.fast.screens.settings.model
 
 import androidx.core.content.edit
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.model.base.AdapterDiffItem
 import com.meloda.fast.model.base.UiText
 import kotlin.properties.Delegates
 
+// TODO: 24/12/2023, Danil Nikolaev: refactor
 sealed class SettingsItem<Value>(
     open val key: String,
-) : AdapterDiffItem {
-
+) {
     var onTitleChanged: ((newTitle: UiText?) -> Unit)? = null
 
     var title: UiText? by Delegates.observable(null) { _, _, newValue ->
@@ -95,10 +95,6 @@ sealed class SettingsItem<Value>(
 
     fun requireValue() = requireNotNull(value)
 
-    override fun areItemsTheSame(newItem: AdapterDiffItem): Boolean {
-        return newItem is SettingsItem<*> && newItem.key == this.key
-    }
-
     fun interface TitleProvider<Item : SettingsItem<*>> {
         fun provideTitle(settingsItem: Item): UiText?
     }
@@ -109,18 +105,18 @@ sealed class SettingsItem<Value>(
 
     data class Title(override val key: String) : SettingsItem<Nothing>(key) {
 
-        override val id: Int = -1
-
         companion object {
             fun build(
                 key: String,
                 title: UiText,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 builder: Title.() -> Unit = {}
             ): Title {
                 return Title(key).apply {
                     this.title = title
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                 }.apply(builder)
             }
         }
@@ -128,28 +124,26 @@ sealed class SettingsItem<Value>(
 
     data class TitleSummary(override val key: String) : SettingsItem<String>(key) {
 
-        override val id: Int = -1
-
         companion object {
             fun build(
                 key: String,
                 title: UiText? = null,
                 summary: UiText? = null,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 builder: TitleSummary.() -> Unit = {}
             ): TitleSummary {
                 return TitleSummary(key).apply {
                     this.title = title
                     this.summary = summary
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                 }.apply(builder)
             }
         }
     }
 
     data class TextField(override val key: String) : SettingsItem<String>(key) {
-
-        override val id: Int = -1
 
         companion object {
             fun build(
@@ -158,6 +152,7 @@ sealed class SettingsItem<Value>(
                 summary: UiText? = null,
                 defaultValue: String? = null,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 builder: TextField.() -> Unit = {}
             ): TextField {
                 return TextField(key).apply {
@@ -165,6 +160,7 @@ sealed class SettingsItem<Value>(
                     this.summary = summary
                     this.defaultValue = defaultValue
                     this.isEnabled = isEnabled
+                    this.isVisible = isVisible
                     this.value = AppGlobal.preferences.getString(key, defaultValue)
                 }.apply(builder)
             }
@@ -172,8 +168,6 @@ sealed class SettingsItem<Value>(
     }
 
     data class Switch(override val key: String) : SettingsItem<Boolean>(key) {
-
-        override val id: Int = -1
 
         companion object {
 
@@ -183,6 +177,7 @@ sealed class SettingsItem<Value>(
                 summary: UiText? = null,
                 isEnabled: Boolean = true,
                 isChecked: Boolean? = null,
+                isVisible: Boolean = true,
                 defaultValue: Boolean? = null,
                 builder: Switch.() -> Unit = {}
             ): Switch {
@@ -191,6 +186,7 @@ sealed class SettingsItem<Value>(
                     this.summary = summary
                     this.isEnabled = isEnabled
                     this.defaultValue = defaultValue
+                    this.isVisible = isVisible
                     this.value = defaultValue
                         ?.let { value -> AppGlobal.preferences.getBoolean(key, value) }
                         ?: isChecked
@@ -199,11 +195,11 @@ sealed class SettingsItem<Value>(
         }
     }
 
-    data class ListItem(override val key: String) : SettingsItem<Int>(key) {
-        override val id: Int = -1
-
-        var values: List<Int> = emptyList()
-        var valueTitles: List<UiText> = emptyList()
+    data class ListItem(
+        override val key: String,
+        val values: ImmutableList<Int>,
+        val valueTitles: ImmutableList<UiText>
+    ) : SettingsItem<Int>(key) {
 
         companion object {
             fun build(
@@ -211,18 +207,22 @@ sealed class SettingsItem<Value>(
                 title: UiText? = null,
                 summary: UiText? = null,
                 isEnabled: Boolean = true,
+                isVisible: Boolean = true,
                 values: List<Int>,
                 valueTitles: List<UiText>,
                 defaultValue: Int? = null,
                 selectedIndex: Int? = null,
                 builder: ListItem.() -> Unit = {}
             ): ListItem {
-                return ListItem(key).apply {
+                return ListItem(
+                    key = key,
+                    values = ImmutableList.copyOf(values),
+                    valueTitles = ImmutableList.copyOf(valueTitles)
+                ).apply {
                     this.title = title
                     this.summary = summary
                     this.isEnabled = isEnabled
-                    this.values = values
-                    this.valueTitles = valueTitles
+                    this.isVisible = isVisible
 
                     this.value = defaultValue
                         ?.let { value -> getValueFromPreferences(key, Int::class.java, value) }

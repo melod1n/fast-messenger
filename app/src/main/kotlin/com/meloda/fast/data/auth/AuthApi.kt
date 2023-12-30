@@ -15,5 +15,4 @@ interface AuthApi {
 
     @GET(AuthUrls.SendSms)
     suspend fun sendSms(@Query("sid") validationSid: String): ApiAnswer<SendSmsResponse>
-
 }

@@ -158,3 +158,17 @@ class Converters {
         }
     }
 }
+
+class IntListToStringConverter {
+
+    @TypeConverter
+    fun fromIntListToString(list: List<Int>): String {
+        return list.joinToString(separator = ",") { it.toString() }
+    }
+
+    @TypeConverter
+    fun fromStringToIntList(string: String): List<Int> {
+        return if (string.isEmpty()) emptyList()
+        else string.split(", ").map { it.toIntOrNull() ?: -1 }
+    }
+}

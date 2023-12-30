@@ -4,7 +4,8 @@ data class CaptchaScreenState(
     val captchaSid: String,
     val captchaImage: String,
     val captchaCode: String,
-    val codeError: Boolean
+    val codeError: Boolean,
+    val isNeedToOpenLogin: Boolean
 ) {
 
     companion object {
@@ -12,7 +13,8 @@ data class CaptchaScreenState(
             captchaSid = "",
             captchaImage = "",
             captchaCode = "",
-            codeError = false
+            codeError = false,
+            isNeedToOpenLogin = false
         )
     }
 }

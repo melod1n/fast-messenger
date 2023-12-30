@@ -18,15 +18,14 @@ import com.meloda.fast.data.longpoll.LongPollApi
 
 class MessagesRepository(
     private val messagesApi: MessagesApi,
-    private val messagesDao: MessagesDao,
     private val longPollApi: LongPollApi,
 ) {
 
     suspend fun store(message: VkMessage) = store(listOf(message))
 
-    suspend fun store(messages: List<VkMessage>) = messagesDao.insert(messages)
+    suspend fun store(messages: List<VkMessage>) {}
 
-    suspend fun getCached(peerId: Int) = messagesDao.getByPeerId(peerId)
+    suspend fun getCached(peerId: Int) {}
 
     suspend fun getHistory(params: MessagesGetHistoryRequest) =
         messagesApi.getHistory(params.map)

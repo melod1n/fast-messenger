@@ -45,7 +45,7 @@ interface MessagesApi {
 
     @FormUrlEncoded
     @POST(MessagesUrls.Edit)
-    suspend fun edit(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<Any>>
+    suspend fun edit(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<Int>>
 
     @FormUrlEncoded
     @POST(MessagesUrls.GetById)

@@ -17,11 +17,41 @@ import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.attachments.VkAudio
+import com.meloda.fast.api.model.attachments.VkCall
+import com.meloda.fast.api.model.attachments.VkCurator
+import com.meloda.fast.api.model.attachments.VkEvent
+import com.meloda.fast.api.model.attachments.VkFile
+import com.meloda.fast.api.model.attachments.VkGift
+import com.meloda.fast.api.model.attachments.VkGraffiti
+import com.meloda.fast.api.model.attachments.VkGroupCall
+import com.meloda.fast.api.model.attachments.VkLink
+import com.meloda.fast.api.model.attachments.VkMiniApp
+import com.meloda.fast.api.model.attachments.VkPhoto
+import com.meloda.fast.api.model.attachments.VkPoll
+import com.meloda.fast.api.model.attachments.VkSticker
+import com.meloda.fast.api.model.attachments.VkStory
+import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.attachments.VkVoiceMessage
+import com.meloda.fast.api.model.attachments.VkWall
+import com.meloda.fast.api.model.attachments.VkWallReply
+import com.meloda.fast.api.model.attachments.VkWidget
 import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.network.*
+import com.meloda.fast.api.network.ApiAnswer
+import com.meloda.fast.api.network.AuthorizationError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.TokenExpiredError
+import com.meloda.fast.api.network.UserBannedError
+import com.meloda.fast.api.network.ValidationRequiredError
+import com.meloda.fast.api.network.VkErrorCodes
+import com.meloda.fast.api.network.VkErrorMessages
+import com.meloda.fast.api.network.VkErrorTypes
+import com.meloda.fast.api.network.VkErrors
+import com.meloda.fast.api.network.WrongTwoFaCodeError
+import com.meloda.fast.api.network.WrongTwoFaCodeFormatError
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
@@ -54,9 +84,12 @@ object VkUtils {
     }
 
 
-    fun getMessageUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+    fun getMessageUser(
+        message: VkMessage,
+        profiles: Map<Int, VkUser>
+    ): VkUser? {
         return (if (!message.isUser()) null
-        else profiles[message.fromId]).also { message.user = it }
+        else profiles[message.fromId])
     }
 
     fun getMessageActionUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
@@ -66,7 +99,7 @@ object VkUtils {
 
     fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
         return (if (!message.isGroup()) null
-        else groups[message.fromId]).also { message.group = it }
+        else groups[message.fromId])
     }
 
     fun getMessageActionGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
@@ -1212,10 +1245,21 @@ object VkUtils {
             ) break
 
             val idPart = newMessageText.substring(leftBracketIndex + 1, verticalLineIndex)
+            val idPrefixStartIndex = 0
+            var idPrefixEndIndex = 0
 
-            val actualId = idPart.substring(2, idPart.length).toIntOrNull() ?: -1
+            for (i in idPart.indices) {
+                idPrefixEndIndex = i
 
-            if (!idPart.matches(Regex("^id(\\d+)\$")) || rightBracketIndex - verticalLineIndex < 2) {
+                val char = idPart[i]
+                if (char.isDigit()) {
+                    break
+                }
+            }
+            val idPrefix = idPart.substring(idPrefixStartIndex, idPrefixEndIndex)
+            val actualId = idPart.substring(idPrefix.length, idPart.length).toIntOrNull() ?: -1
+
+            if (!idPart.matches(Regex("^${idPrefix}(\\d+)\$")) || rightBracketIndex - verticalLineIndex < 2) {
                 break
             }
 
@@ -1281,5 +1325,31 @@ object VkUtils {
 //                ds.typeface = Typeface.defaultFromStyle(Typeface.BOLD)
             }
         }
+    }
+
+    fun VkConversationDomain.fill(
+        lastMessage: VkMessage?,
+        profiles: HashMap<Int, VkUser> = hashMapOf(),
+        groups: HashMap<Int, VkGroup> = hashMapOf()
+    ): VkConversationDomain {
+        val conversation = this
+
+        val userGroup = getConversationUserGroup(conversation, profiles, groups)
+        val actionUserGroup = getMessageActionUserGroup(lastMessage, profiles, groups)
+        val messageUserGroup = getMessageUserGroup(lastMessage, profiles, groups)
+
+        conversation.conversationUser = userGroup.first
+        conversation.conversationGroup = userGroup.second
+
+        val newMessage = lastMessage?.copy(
+            user = messageUserGroup.first,
+            group = messageUserGroup.second,
+            actionUser = actionUserGroup.first,
+            actionGroup = actionUserGroup.second
+        ) ?: return conversation
+
+        conversation.lastMessage = newMessage
+
+        return conversation
     }
 }

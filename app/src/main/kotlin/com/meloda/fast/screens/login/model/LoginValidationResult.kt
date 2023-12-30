@@ -2,11 +2,11 @@ package com.meloda.fast.screens.login.model
 
 sealed class LoginValidationResult {
 
-    object LoginEmpty : LoginValidationResult()
+    data object LoginEmpty : LoginValidationResult()
 
-    object PasswordEmpty : LoginValidationResult()
+    data object PasswordEmpty : LoginValidationResult()
 
-    object Empty : LoginValidationResult()
+    data object Empty : LoginValidationResult()
 
-    object Valid : LoginValidationResult()
+    data object Valid : LoginValidationResult()
 }

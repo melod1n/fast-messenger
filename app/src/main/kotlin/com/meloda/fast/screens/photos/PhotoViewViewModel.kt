@@ -1,17 +1,22 @@
 package com.meloda.fast.screens.photos
 
-import android.widget.ImageView
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.meloda.fast.ext.ImageLoader.loadWithGlide
-import kotlinx.coroutines.launch
+import com.meloda.fast.ext.setValue
+import com.meloda.fast.screens.photos.model.PhotoViewArguments
+import com.meloda.fast.screens.photos.model.PhotoViewState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-class PhotoViewViewModel : ViewModel() {
+interface PhotoViewViewModel {
+    val state: StateFlow<PhotoViewState>
 
-    fun loadImageFromUrl(
-        url: String,
-        imageView: ImageView,
-    ) = viewModelScope.launch {
-        imageView.loadWithGlide { imageUrl = url }
+    fun setArguments(arguments: PhotoViewArguments)
+}
+
+class PhotoViewViewModelImpl : PhotoViewViewModel, ViewModel() {
+    override val state = MutableStateFlow(PhotoViewState.EMPTY)
+
+    override fun setArguments(arguments: PhotoViewArguments) {
+        state.setValue { old -> old.copy(images = arguments.images) }
     }
 }

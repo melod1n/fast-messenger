@@ -4,11 +4,13 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
+import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.VkGroup
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.api.model.VkUser
@@ -51,6 +53,8 @@ data class VkConversationDomain(
     val minorId: Int,
     val pinnedMessageId: Int?,
     val type: String,
+    val interactionType: Int,
+    val interactionIds: List<Int>
 ) : Parcelable {
 
     @Ignore
@@ -106,14 +110,14 @@ data class VkConversationDomain(
         return avatarLink?.let(UiImage::Url) ?: placeholderImage
     }
 
-    fun extractTitle(): UiText {
+    fun extractTitle(): String {
         return when {
             isAccount() -> UiText.Resource(R.string.favorites)
             peerType.isChat() -> UiText.Simple(conversationTitle ?: "...")
             peerType.isUser() -> UiText.Simple(conversationUser?.fullName ?: "...")
             peerType.isGroup() -> UiText.Simple(conversationGroup?.name ?: "...")
             else -> UiText.Simple("...")
-        }
+        }.parseString(AppGlobal.Instance).orEmpty()
     }
 
     fun extractUnreadCounterText(): String? {
@@ -159,7 +163,11 @@ data class VkConversationDomain(
             message = lastMessage
         ) else null)
 
-        val messageText = lastMessage?.text?.let(UiText::Simple)
+        val messageText =
+            lastMessage?.text
+                ?.let { VkUtils.prepareMessageText(it, forConversations = true) }
+                ?.let { VkUtils.visualizeMentions(it, 0).toString() }
+                ?.let(UiText::Simple)
 
         var prefix = when {
             actionMessage != null -> ""
@@ -205,6 +213,11 @@ data class VkConversationDomain(
         return TimeUtils.getLocalizedTime(AppGlobal.Instance, (lastMessage?.date ?: -1) * 1000L)
     }
 
+    // TODO: 13.08.2023, Danil Nikolaev: rewrite
+    fun extractInteractionUsers(): List<String> {
+        return interactionIds.map { it.toString() }
+    }
+
     // TODO: 05.08.2023, Danil Nikolaev: rewrite
     fun extractBirthday(): Boolean {
         val birthday = conversationUser?.birthday ?: return false
@@ -220,6 +233,39 @@ data class VkConversationDomain(
             (nowCalendar[Calendar.DAY_OF_MONTH] == birthdayCalendar[Calendar.DAY_OF_MONTH]
                     && nowCalendar[Calendar.MONTH] == birthdayCalendar[Calendar.MONTH])
         } else false
+    }
+
+    private fun extractInteractionText(): String? {
+        val interactionType = InteractionType.parse(interactionType)
+        val interactiveUsers = extractInteractionUsers()
+
+        val typingText =
+            if (interactionType == null) {
+                null
+            } else {
+                if (!peerType.isChat() && interactiveUsers.size == 1) {
+                    when (interactionType) {
+                        InteractionType.File -> "Uploading file"
+                        InteractionType.Photo -> "Uploading photo"
+                        InteractionType.Typing -> "Typing"
+                        InteractionType.Video -> "Uploading Video"
+                        InteractionType.VoiceMessage -> "Recording voice message"
+                    }
+                } else {
+                    "$interactiveUsers are typing"
+                }
+            }
+
+        return typingText
+    }
+
+    fun copyWithEssentials(function: (VkConversationDomain) -> VkConversationDomain): VkConversationDomain {
+        return function(this).also {
+            it.lastMessage = this.lastMessage
+            it.pinnedMessage = this.pinnedMessage
+            it.conversationUser = this.conversationUser
+            it.conversationGroup = this.conversationGroup
+        }
     }
 
     fun mapToPresentation() = VkConversationUi(
@@ -240,6 +286,9 @@ data class VkConversationDomain(
         lastMessage = lastMessage,
         conversationUser = conversationUser,
         conversationGroup = conversationGroup,
-        peerType = peerType
+        peerType = peerType,
+        interactionText = extractInteractionText(),
+        isExpanded = false,
+        options = ImmutableList.of()
     )
 }
