@@ -1,26 +1,26 @@
 package com.meloda.fast.api.network.auth
 
-import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+
+@JsonClass(generateAdapter = true)
 data class AuthDirectResponse(
-    @SerializedName("access_token") val accessToken: String?,
-    @SerializedName("user_id") val userId: Int?,
-    @SerializedName("trusted_hash") val twoFaHash: String?,
-    @SerializedName("validation_sid") val validationSid: String?,
-    @SerializedName("validation_type") val validationType: String?,
-    @SerializedName("phone_mask") val phoneMask: String?,
-    @SerializedName("redirect_uri") val redirectUrl: String?,
-    @SerializedName("validation_resend") val validationResend: String?,
-    @SerializedName("cant_get_code_open_restore") val isCanNotGetCodeNeedToOpenRestore: Boolean
-) : Parcelable
+    @Json(name = "access_token") val accessToken: String?,
+    @Json(name = "user_id") val userId: Int?,
+    @Json(name = "trusted_hash") val twoFaHash: String?,
+    @Json(name = "validation_sid") val validationSid: String?,
+    @Json(name = "validation_type") val validationType: String?,
+    @Json(name = "phone_mask") val phoneMask: String?,
+    @Json(name = "redirect_uri") val redirectUrl: String?,
+    @Json(name = "validation_resend") val validationResend: String?,
+    @Json(name = "cant_get_code_open_restore") val restoreIfCannotGetCode: Boolean
+)
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class SendSmsResponse(
-    @SerializedName("sid") val validationSid: String?,
-    @SerializedName("delay") val delay: Int?,
-    @SerializedName("validation_type") val validationType: String?,
-    @SerializedName("validation_resend") val validationResend: String?
-) : Parcelable
+    @Json(name = "sid") val validationSid: String?,
+    @Json(name = "delay") val delay: Int?,
+    @Json(name = "validation_type") val validationType: String?,
+    @Json(name = "validation_resend") val validationResend: String?
+)

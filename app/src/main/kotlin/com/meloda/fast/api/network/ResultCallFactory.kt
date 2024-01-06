@@ -2,10 +2,10 @@
 
 package com.meloda.fast.api.network
 
-import com.google.gson.Gson
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.base.ApiResponse
+import com.squareup.moshi.Moshi
 import okhttp3.Request
 import okio.Timeout
 import retrofit2.Call
@@ -16,7 +16,7 @@ import retrofit2.Retrofit
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-class ResultCallFactory(private val gson: Gson) : CallAdapter.Factory() {
+class ResultCallFactory(private val moshi: Moshi) : CallAdapter.Factory() {
     override fun get(
         returnType: Type,
         annotations: Array<out Annotation>,
@@ -29,9 +29,9 @@ class ResultCallFactory(private val gson: Gson) : CallAdapter.Factory() {
                 if (getRawType(callInnerType) == ApiAnswer::class.java) {
                     if (callInnerType is ParameterizedType) {
                         val resultInnerType = getParameterUpperBound(0, callInnerType)
-                        return ResultCallAdapter<Any?>(resultInnerType, gson)
+                        return ResultCallAdapter<Any?>(resultInnerType, moshi)
                     }
-                    return ResultCallAdapter<Nothing>(Nothing::class.java, gson)
+                    return ResultCallAdapter<Nothing>(Nothing::class.java, moshi)
                 }
             }
         }
@@ -60,29 +60,29 @@ internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : C
     abstract fun cloneImpl(): Call<Out>
 }
 
-private class ResultCallAdapter<R>(private val type: Type, private val gson: Gson) :
+private class ResultCallAdapter<R>(private val type: Type, private val moshi: Moshi) :
     CallAdapter<R, Call<ApiAnswer<R>>> {
 
     override fun responseType() = type
 
-    override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call, gson)
+    override fun adapt(call: Call<R>): Call<ApiAnswer<R>> = ResultCall(call, moshi)
 }
 
-internal class ResultCall<T>(proxy: Call<T>, private val gson: Gson) :
+internal class ResultCall<T>(proxy: Call<T>, private val moshi: Moshi) :
     CallDelegate<T, ApiAnswer<T>>(proxy) {
 
     override fun enqueueImpl(callback: Callback<ApiAnswer<T>>) {
-        proxy.enqueue(ResultCallback(this, callback, gson))
+        proxy.enqueue(ResultCallback(this, callback, moshi))
     }
 
     override fun cloneImpl(): ResultCall<T> {
-        return ResultCall(proxy.clone(), gson)
+        return ResultCall(proxy.clone(), moshi)
     }
 
     private class ResultCallback<T>(
         private val proxy: ResultCall<T>,
         private val callback: Callback<ApiAnswer<T>>,
-        private val gson: Gson
+        private val moshi: Moshi
     ) : Callback<T> {
 
         override fun onResponse(call: Call<T>, response: Response<T>) {
@@ -93,16 +93,16 @@ internal class ResultCall<T>(proxy: Call<T>, private val gson: Gson) :
                         ApiAnswer.Success(baseBody as T)
                     } else {
                         val body = baseBody as? ApiResponse<*>
-                        if (body?.error != null) {
-                            VkUtils.getApiError(gson, gson.toJson(body.error))
-                        } else {
-                            ApiAnswer.Success(body as T)
-                        }
+                        ApiAnswer.Success(body as T)
+//                        if (body?.error != null) {
+//                            VkUtils.getApiError(moshi, moshi.toJson(body.error))
+//                        } else {
+//                            ApiAnswer.Success(body as T)
+//                        }
                     }
                 } else {
                     val errorBodyString = response.errorBody()?.string()
-
-                    VkUtils.getApiError(gson, errorBodyString)
+                    VkUtils.getError(moshi, errorBodyString)
                 }
 
             if (checkErrors(call, result)) {

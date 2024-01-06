@@ -4,9 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.TokenExpiredError
 import com.meloda.fast.api.network.UserBannedError
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
@@ -86,36 +83,37 @@ abstract class BaseViewModel : ViewModel() {
 
     private suspend fun checkErrors(throwable: Throwable) {
         when (throwable) {
-            is TokenExpiredError -> {
-                sendSingleEvent(TokenExpiredErrorEvent)
-            }
-
-            is AuthorizationError -> {
-                sendSingleEvent(AuthorizationErrorEvent)
-            }
-
-            is UserBannedError -> {
-                throwable.banInfo.let { banInfo ->
-                    sendSingleEvent(
-                        UserBannedEvent(
-                            memberName = banInfo.memberName,
-                            message = banInfo.message,
-                            restoreUrl = banInfo.restoreUrl,
-                            accessToken = banInfo.accessToken
-                        )
-                    )
-                }
-            }
+//            is TokenExpiredError -> {
+//                sendSingleEvent(TokenExpiredErrorEvent)
+//            }
+//
+//            is AuthorizationError -> {
+//                sendSingleEvent(AuthorizationErrorEvent)
+//            }
+//
+//            is UserBannedError -> {
+//                throwable.banInfo.let { banInfo ->
+//                    sendSingleEvent(
+//                        UserBannedEvent(
+//                            memberName = banInfo.memberName,
+//                            message = banInfo.message,
+//                            restoreUrl = banInfo.restoreUrl,
+//                            accessToken = banInfo.accessToken
+//                        )
+//                    )
+//                }
+//            }
 
             // TODO: 15/11/2023, Danil Nikolaev: catch captcha everywhere
-            is CaptchaRequiredError -> {
-                sendSingleEvent(
-                    CaptchaRequiredEvent(
-                        sid = throwable.captchaSid,
-                        image = throwable.captchaImg
-                    )
-                )
-            }
+            // TODO: 30/12/2023, Danil Nikolaev: implement
+//            is CaptchaRequiredError -> {
+//                sendSingleEvent(
+//                    CaptchaRequiredEvent(
+//                        sid = throwable.captchaSid,
+//                        image = throwable.captchaImg
+//                    )
+//                )
+//            }
 
             is ApiError -> {
                 sendSingleEvent(
