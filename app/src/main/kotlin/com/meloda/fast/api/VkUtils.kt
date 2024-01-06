@@ -11,7 +11,6 @@ import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.google.gson.Gson
 import com.meloda.fast.R
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.model.VkGroup
@@ -41,20 +40,12 @@ import com.meloda.fast.api.model.base.BaseVkMessage
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.AuthorizationError
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.TokenExpiredError
-import com.meloda.fast.api.network.UserBannedError
-import com.meloda.fast.api.network.ValidationRequiredError
-import com.meloda.fast.api.network.VkErrorCodes
-import com.meloda.fast.api.network.VkErrorMessages
-import com.meloda.fast.api.network.VkErrorTypes
-import com.meloda.fast.api.network.VkErrors
-import com.meloda.fast.api.network.WrongTwoFaCodeError
-import com.meloda.fast.api.network.WrongTwoFaCodeFormatError
+import com.meloda.fast.api.network.BaseOauthError
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
 
 @Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {
@@ -1160,59 +1151,68 @@ object VkUtils {
         }
     }
 
-    fun getApiError(gson: Gson, errorString: String?): ApiAnswer.Error {
+    fun getError(moshi: Moshi, jsonString: String?): ApiAnswer.Error {
+        var isOauthError = false
+
+        // TODO: 30/12/2023, Danil Nikolaev: write parsing error and deciding whether it is from oauth or api
+
         try {
-            val defaultError = gson.fromJson(errorString, ApiError::class.java)
+            val oauthBaseErrorAdapter: JsonAdapter<BaseOauthError> =
+                moshi.adapter(BaseOauthError::class.java)
 
-            val error: ApiError =
-                when (defaultError.error) {
-                    VkErrorCodes.UserAuthorizationFailed.toString() -> {
-                        val authorizationError =
-                            gson.fromJson(errorString, AuthorizationError::class.java)
+            val oauthBaseError = oauthBaseErrorAdapter.fromJson(jsonString)
 
-                        authorizationError
-                    }
+//            val defaultError = moshi.fromJson(errorString, ApiError::class.java)
+//
+//            val error: ApiError =
+//                when (defaultError.error) {
+//                    VkErrorCodes.UserAuthorizationFailed.toString() -> {
+//                        val authorizationError =
+//                            moshi.fromJson(errorString, AuthorizationError::class.java)
+//
+//                        authorizationError
+//                    }
+//
+//                    VkErrorCodes.AccessTokenExpired.toString() -> {
+//                        val tokenExpiredError =
+//                            moshi.fromJson(errorString, TokenExpiredError::class.java)
+//
+//                        tokenExpiredError
+//                    }
+//
+//                    VkErrors.NeedValidation -> {
+//                        val validationError =
+//                            moshi.fromJson(
+//                                errorString,
+////                                if (defaultError.errorMessage == VkErrorMessages.UserBanned) {
+//                                UserBannedError::class.java
+////                                } else {
+////                                    ValidationRequiredError::class.java
+////                                }
+//                            )
+//
+//                        validationError
+//                    }
+//
+////                    VkErrors.NeedCaptcha -> {
+////                        val captchaRequiredError =
+////                            gson.fromJson(errorString, CaptchaRequiredError::class.java)
+////
+////                        captchaRequiredError
+////                    }
+//
+//                    VkErrors.InvalidRequest -> {
+//                        when (defaultError.errorType) {
+//                            VkErrorTypes.OtpFormatIncorrect -> WrongTwoFaCodeFormatError
+//                            VkErrorTypes.WrongOtp -> WrongTwoFaCodeError
+//                            else -> defaultError
+//                        }
+//                    }
+//
+//                    else -> defaultError
+//                }
 
-                    VkErrorCodes.AccessTokenExpired.toString() -> {
-                        val tokenExpiredError =
-                            gson.fromJson(errorString, TokenExpiredError::class.java)
-
-                        tokenExpiredError
-                    }
-
-                    VkErrors.NeedValidation -> {
-                        val validationError =
-                            gson.fromJson(
-                                errorString,
-                                if (defaultError.errorMessage == VkErrorMessages.UserBanned) {
-                                    UserBannedError::class.java
-                                } else {
-                                    ValidationRequiredError::class.java
-                                }
-                            )
-
-                        validationError
-                    }
-
-                    VkErrors.NeedCaptcha -> {
-                        val captchaRequiredError =
-                            gson.fromJson(errorString, CaptchaRequiredError::class.java)
-
-                        captchaRequiredError
-                    }
-
-                    VkErrors.InvalidRequest -> {
-                        when (defaultError.errorType) {
-                            VkErrorTypes.OtpFormatIncorrect -> WrongTwoFaCodeFormatError
-                            VkErrorTypes.WrongOtp -> WrongTwoFaCodeError
-                            else -> defaultError
-                        }
-                    }
-
-                    else -> defaultError
-                }
-
-            return ApiAnswer.Error(error)
+            return ApiAnswer.Error(ApiError())
         } catch (e: Exception) {
             return ApiAnswer.Error(ApiError(throwable = e))
         }

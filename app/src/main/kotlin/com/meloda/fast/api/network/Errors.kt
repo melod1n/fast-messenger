@@ -1,8 +1,5 @@
 package com.meloda.fast.api.network
 
-import com.google.gson.annotations.SerializedName
-import com.meloda.fast.api.base.ApiError
-
 @Suppress("unused")
 object VkErrorCodes {
     const val UnknownError = 1
@@ -63,48 +60,4 @@ object VkErrorTypes {
 
 object VkErrorMessages {
     const val UserBanned = "user has been banned"
-}
-
-open class AuthorizationError : ApiError()
-
-class TokenExpiredError : AuthorizationError()
-
-data class ValidationRequiredError(
-    @SerializedName("validation_type")
-    val validationType: String,
-    @SerializedName("validation_sid")
-    val validationSid: String,
-    @SerializedName("phone_mask")
-    val phoneMask: String,
-    @SerializedName("redirect_uri")
-    val redirectUri: String,
-    @SerializedName("validation_resend")
-    val validationResend: String
-) : ApiError()
-
-data class CaptchaRequiredError(
-    @SerializedName("captcha_sid")
-    val captchaSid: String,
-    @SerializedName("captcha_img")
-    val captchaImg: String
-) : ApiError()
-
-object WrongTwoFaCodeFormatError : ApiError()
-
-object WrongTwoFaCodeError : ApiError()
-
-data class UserBannedError(
-    @SerializedName("ban_info")
-    val banInfo: BanInfo
-) : ApiError() {
-
-    data class BanInfo(
-        @SerializedName("member_name")
-        val memberName: String,
-        val message: String,
-        @SerializedName("access_token")
-        val accessToken: String,
-        @SerializedName("restore_url")
-        val restoreUrl: String
-    )
 }

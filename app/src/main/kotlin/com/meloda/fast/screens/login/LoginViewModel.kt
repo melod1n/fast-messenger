@@ -5,10 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.ValidationRequiredError
-import com.meloda.fast.api.network.WrongTwoFaCodeError
-import com.meloda.fast.api.network.WrongTwoFaCodeFormatError
 import com.meloda.fast.api.network.auth.AuthDirectRequest
 import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
@@ -336,40 +332,40 @@ class LoginViewModelImpl(
 
     private fun parseError(error: Throwable): Boolean {
         return when (error) {
-            is WrongTwoFaCodeError, WrongTwoFaCodeFormatError -> {
-                currentValidationEvent?.let { event ->
-                    val codeError = UiText.Simple(
-                        if (error is WrongTwoFaCodeError) "Wrong code"
-                        else "Wrong code format"
-                    )
-                    handleEvent(event.copy(codeError = codeError))
-                    true
-                } ?: false
-            }
+//            is WrongTwoFaCodeError, WrongTwoFaCodeFormatError -> {
+//                currentValidationEvent?.let { event ->
+//                    val codeError = UiText.Simple(
+//                        if (error is WrongTwoFaCodeError) "Wrong code"
+//                        else "Wrong code format"
+//                    )
+//                    handleEvent(event.copy(codeError = codeError))
+//                    true
+//                } ?: false
+//            }
 
-            is ValidationRequiredError -> {
-                handleEvent(
-                    ValidationRequiredEvent(
-                        sid = error.validationSid,
-                        redirectUri = error.redirectUri,
-                        phoneMask = error.phoneMask,
-                        validationType = error.validationType,
-                        canResendSms = error.validationResend == "sms",
-                        codeError = null
-                    )
-                )
-                true
-            }
-
-            is CaptchaRequiredError -> {
-                handleEvent(
-                    CaptchaRequiredEvent(
-                        sid = error.captchaSid,
-                        image = error.captchaImg
-                    )
-                )
-                true
-            }
+//            is ValidationRequiredError -> {
+//                handleEvent(
+//                    ValidationRequiredEvent(
+//                        sid = error.validationSid,
+//                        redirectUri = error.redirectUri,
+//                        phoneMask = error.phoneMask,
+//                        validationType = error.validationType,
+//                        canResendSms = error.validationResend == "sms",
+//                        codeError = null
+//                    )
+//                )
+//                true
+//            }
+//
+//            is CaptchaRequiredError -> {
+//                handleEvent(
+//                    CaptchaRequiredEvent(
+//                        sid = error.captchaSid,
+//                        image = error.captchaImg
+//                    )
+//                )
+//                true
+//            }
 
             else -> false
         }

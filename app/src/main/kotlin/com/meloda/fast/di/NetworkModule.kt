@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.ResultCallFactory
 import com.meloda.fast.api.network.VkUrls
+import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.singleOf
@@ -13,9 +14,11 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 val networkModule = module {
+    single { Moshi.Builder().build() }
     single { ChuckerCollector(get()) }
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }
     singleOf(::AuthInterceptor)
@@ -41,8 +44,7 @@ val networkModule = module {
     single {
         Retrofit.Builder()
             .baseUrl("${VkUrls.API}/")
-            // TODO: 26/11/2023, Danil Nikolaev: implement
-//            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(get()))
             .addConverterFactory(GsonConverterFactory.create(get()))
             .addCallAdapterFactory(ResultCallFactory(get()))
             .client(get())
