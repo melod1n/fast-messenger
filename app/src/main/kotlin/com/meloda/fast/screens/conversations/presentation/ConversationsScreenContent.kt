@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -45,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,6 +67,9 @@ import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.settings.UserSettings
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.pullRefresh
@@ -132,6 +137,8 @@ fun ConversationsScreenContent(
             !isLoading || conversations.isNotEmpty()
         }
     }
+
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -228,7 +235,10 @@ fun ConversationsScreenContent(
                 TopAppBar(
                     title = title,
                     actions = actions,
-                    modifier = Modifier.fillMaxWidth()
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .hazeChild(state = hazeState)
+                        .fillMaxWidth(),
                 )
 
                 if (isLoading && conversations.isNotEmpty()) {
@@ -297,7 +307,13 @@ fun ConversationsScreenContent(
                         state = listState,
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
-                        modifier = listModifier,
+                        modifier = listModifier.then(
+                            Modifier.haze(
+                                state = hazeState,
+                                backgroundColor = MaterialTheme.colorScheme.surface,
+                                blurRadius = 45.dp
+                            )
+                        ),
                         onOptionClicked = viewModel::onOptionClicked
                     )
 

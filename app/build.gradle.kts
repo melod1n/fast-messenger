@@ -233,11 +233,12 @@ dependencies {
 
     implementation(libs.shake)
 
-    debugImplementation(libs.leakcanary.android)
-
     // Compose-Bom zone
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+
+    // TODO: 26/01/2024, Danil Nikolaev: remove when fixed crash with ProgressIndicators
+    implementation("androidx.compose.material3:material3:1.2.0-rc01")
     // end of Compose-Bom zone
 
     // Accompanist zone
@@ -319,4 +320,6 @@ dependencies {
     implementation(libs.nanokt.jvm)
 
     implementation(libs.rebugger)
+
+    implementation("dev.chrisbanes.haze:haze-jetpack-compose:0.4.5")
 }

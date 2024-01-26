@@ -24,6 +24,8 @@ class AppGlobal : Application() {
 
         instance = this
 
+        PerformanceClass.getDevicePerformanceClass(this)
+
         initVkomposePlugins()
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
