@@ -370,6 +370,13 @@ class SettingsViewModelImpl(
                 summary = UiText.Simple("Shows hours and minutes on time stamp in messages history"),
                 defaultValue = false
             )
+            val debugUseBlur = SettingsItem.Switch.build(
+                key = SettingsKeys.KEY_APPEARANCE_BLUR,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_BLUR,
+                title = UiText.Simple("[WIP] Use blur"),
+                summary = UiText.Simple("Adds blur wherever possible\nOn android 11 and older will have transparency instead of blurring"),
+//                isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            )
 
             val debugHideDebugList = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST,
@@ -408,7 +415,8 @@ class SettingsViewModelImpl(
                 debugTitle,
                 debugPerformCrash,
                 debugShowCrashAlert,
-                debugShowExactTimeOnTimeStamp
+                debugShowExactTimeOnTimeStamp,
+                debugUseBlur
             ).forEach(debugList::add)
 
             debugList += debugHideDebugList

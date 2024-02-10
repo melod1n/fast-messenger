@@ -55,6 +55,7 @@ import com.meloda.fast.R
 import com.meloda.fast.api.model.VkMessage
 import com.meloda.fast.screens.messages.MessagesHistoryViewModel
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
+import dev.chrisbanes.haze.HazeState
 import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 
 @Composable
@@ -118,6 +119,8 @@ fun MessagesHistoryScreenContent(
     }
 
     val lazyListState = rememberLazyListState()
+
+    val hazeState = remember { HazeState() }
 
     // TODO: 26/11/2023, Danil Nikolaev: remove when fixed
     rememberLazyListStateHijacker(listState = lazyListState)

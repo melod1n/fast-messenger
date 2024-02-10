@@ -93,13 +93,13 @@ fun NotificationsPermissionChecker(
             showRationale = {
                 MaterialDialog(
                     title = UiText.Resource(R.string.warning),
-                    message = UiText.Simple("The application will not be able to work properly without permission to send notifications."),
-                    positiveText = UiText.Simple("Grant"),
-                    positiveAction = {
+                    text = UiText.Simple("The application will not be able to work properly without permission to send notifications."),
+                    confirmText = UiText.Simple("Grant"),
+                    confirmAction = {
                         viewModel.onRequestNotificationsPermissionClicked(true)
                     },
-                    negativeText = UiText.Resource(R.string.cancel),
-                    negativeAction = viewModel::onNotificationsAlertNegativeClicked,
+                    cancelText = UiText.Resource(R.string.cancel),
+                    cancelAction = viewModel::onNotificationsAlertNegativeClicked,
                     onDismissAction = viewModel::onNotificationsAlertNegativeClicked,
                     buttonsInvokeDismiss = false
                 )
@@ -107,12 +107,12 @@ fun NotificationsPermissionChecker(
             onDenied = {
                 MaterialDialog(
                     title = UiText.Resource(R.string.warning),
-                    message = UiText.Simple("The application needs permission to send notifications to update messages and other information."),
-                    positiveText = UiText.Simple("Grant"),
-                    positiveAction = {
+                    text = UiText.Simple("The application needs permission to send notifications to update messages and other information."),
+                    confirmText = UiText.Simple("Grant"),
+                    confirmAction = {
                         viewModel.onRequestNotificationsPermissionClicked(false)
                     },
-                    negativeText = UiText.Resource(R.string.cancel),
+                    cancelText = UiText.Resource(R.string.cancel),
                     onDismissAction = {},
                     buttonsInvokeDismiss = false
                 )

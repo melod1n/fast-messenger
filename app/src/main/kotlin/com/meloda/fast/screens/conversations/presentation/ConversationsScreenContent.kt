@@ -34,6 +34,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -117,13 +118,14 @@ fun ConversationsScreenContent(
 
     val isLoading = screenState.isLoading
 
+    val currentTheme by userSettings.theme.collectAsStateWithLifecycle()
+
     val multilineEnabled by userSettings.multiline.collectAsStateWithLifecycle()
     val maxLines by remember(multilineEnabled) {
         derivedStateOf {
             if (multilineEnabled) 2 else 1
         }
     }
-
 
     val listState = rememberLazyListState()
 
@@ -251,13 +253,17 @@ fun ConversationsScreenContent(
                     actions = actions,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface.copy(
-                            alpha = toolbarColorAlpha
+                            alpha = if (currentTheme.usingBlur) toolbarColorAlpha else 1f
                         )
                     ),
                     modifier = Modifier
-                        .hazeChild(
-                            state = hazeState,
-                            style = HazeMaterials.ultraThin()
+                        .then(
+                            if (currentTheme.usingBlur) {
+                                Modifier.hazeChild(
+                                    state = hazeState,
+                                    style = HazeMaterials.thick()
+                                )
+                            } else Modifier
                         )
                         .fillMaxWidth(),
                 )
@@ -265,6 +271,13 @@ fun ConversationsScreenContent(
                 if (isLoading && conversations.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
+
+//                if (currentTheme.usingBlur) {
+//                    HorizontalDivider(
+//                        thickness = 0.5.dp,
+//                        color = MaterialTheme.colorScheme.surfaceVariant
+//                    )
+//                }
             }
         },
         floatingActionButton = {
@@ -331,10 +344,12 @@ fun ConversationsScreenContent(
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
                         modifier = listModifier.then(
-                            Modifier.haze(
-                                state = hazeState,
-                                style = HazeMaterials.ultraThin()
-                            )
+                            if (currentTheme.usingBlur) {
+                                Modifier.haze(
+                                    state = hazeState,
+                                    style = HazeMaterials.thick()
+                                )
+                            } else Modifier
                         ),
                         onOptionClicked = viewModel::onOptionClicked,
                         padding = padding
@@ -342,7 +357,9 @@ fun ConversationsScreenContent(
 
                     AnimatedVisibility(
                         visible = showPullRefresh,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = padding.calculateTopPadding())
                     ) {
                         PullRefreshIndicator(
                             refreshing = screenState.isLoading,
@@ -509,9 +526,9 @@ fun DeleteDialog(
 ) {
     MaterialDialog(
         title = UiText.Resource(R.string.confirm_delete_conversation),
-        positiveText = UiText.Resource(R.string.action_delete),
-        positiveAction = { viewModel.onDeleteDialogPositiveClick(conversationId) },
-        negativeText = UiText.Resource(R.string.cancel),
+        confirmText = UiText.Resource(R.string.action_delete),
+        confirmAction = { viewModel.onDeleteDialogPositiveClick(conversationId) },
+        cancelText = UiText.Resource(R.string.cancel),
         onDismissAction = viewModel::onDeleteDialogDismissed
     )
 }
@@ -526,14 +543,14 @@ fun PinDialog(
             if (conversation.isPinned) R.string.confirm_unpin_conversation
             else R.string.confirm_pin_conversation
         ),
-        positiveText = UiText.Resource(
+        confirmText = UiText.Resource(
             if (conversation.isPinned) R.string.action_unpin
             else R.string.action_pin
         ),
-        positiveAction = {
+        confirmAction = {
             viewModel.onPinDialogPositiveClick(conversation)
         },
-        negativeText = UiText.Resource(R.string.cancel),
+        cancelText = UiText.Resource(R.string.cancel),
         onDismissAction = viewModel::onPinDialogDismissed
     )
 }

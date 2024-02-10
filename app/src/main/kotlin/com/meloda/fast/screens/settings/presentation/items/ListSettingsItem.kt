@@ -142,8 +142,8 @@ fun ListAlertDialog(
         onItemClick = { index ->
             selectedOption = item.values[index]
         },
-        positiveText = UiText.Resource(R.string.ok),
-        positiveAction = {
+        confirmText = UiText.Resource(R.string.ok),
+        confirmAction = {
             if (item.value != selectedOption) {
                 item.value = selectedOption
                 onSettingsChangeListener.onChange(item.key, selectedOption)
