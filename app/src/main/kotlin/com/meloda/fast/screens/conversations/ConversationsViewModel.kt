@@ -1,6 +1,7 @@
 package com.meloda.fast.screens.conversations
 
 import android.util.Log
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.imageLoader
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@Stable
 interface ConversationsViewModel {
 
     val screenState: StateFlow<ConversationsScreenState>

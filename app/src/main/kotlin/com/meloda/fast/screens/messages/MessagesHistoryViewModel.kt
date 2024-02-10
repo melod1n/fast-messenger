@@ -63,9 +63,11 @@ interface MessagesHistoryViewModel {
     fun onActionButtonClicked()
     fun onTopAppBarMenuClicked(id: Int)
     fun setArguments(arguments: MessagesHistoryArguments)
+
+    fun onChatMaterialsOpened()
 }
 
-class MessagesHistoryViewModelImpl constructor(
+class MessagesHistoryViewModelImpl(
     private val messagesRepository: MessagesRepository,
     updatesParser: LongPollUpdatesParser,
     private val photosRepository: PhotosRepository,
@@ -115,6 +117,7 @@ class MessagesHistoryViewModelImpl constructor(
     override fun onTopAppBarMenuClicked(id: Int) {
         when (id) {
             0 -> loadMessagesHistory()
+            1 -> screenState.setValue { old -> old.copy(isNeedToOpenChatMaterials = true) }
             else -> Unit
         }
     }
@@ -133,6 +136,10 @@ class MessagesHistoryViewModelImpl constructor(
         )
 
         loadMessagesHistory()
+    }
+
+    override fun onChatMaterialsOpened() {
+        screenState.setValue { old -> old.copy(isNeedToOpenChatMaterials = false) }
     }
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {

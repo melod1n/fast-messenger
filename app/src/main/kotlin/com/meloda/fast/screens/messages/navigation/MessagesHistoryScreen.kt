@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.androidx.AndroidScreen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.meloda.fast.screens.chatmaterials.ChatMaterials
 import com.meloda.fast.screens.messages.MessagesHistoryViewModel
 import com.meloda.fast.screens.messages.MessagesHistoryViewModelImpl
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
@@ -20,6 +21,9 @@ data class MessagesHistoryScreen(
         viewModel.setArguments(messagesHistoryArguments)
 
         MessagesHistoryRoute(
+            openChatMaterials = {
+                navigator.push(ChatMaterials)
+            },
             onBackClicked = navigator::pop,
             viewModel = viewModel
         )

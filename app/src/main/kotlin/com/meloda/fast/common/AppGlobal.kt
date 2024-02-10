@@ -24,8 +24,6 @@ class AppGlobal : Application() {
 
         instance = this
 
-        PerformanceClass.getDevicePerformanceClass(this)
-
         initVkomposePlugins()
 
         val info = packageManager.getPackageInfo(this.packageName, PackageManager.GET_ACTIVITIES)
@@ -39,8 +37,8 @@ class AppGlobal : Application() {
     }
 
     private fun initVkomposePlugins() {
-        RecomposeLoggerConfig.isEnabled = true
-        RecomposeHighlighterConfig.isEnabled = true
+        RecomposeLoggerConfig.isEnabled = false
+        RecomposeHighlighterConfig.isEnabled = false
     }
 
     private fun applyDarkTheme() {

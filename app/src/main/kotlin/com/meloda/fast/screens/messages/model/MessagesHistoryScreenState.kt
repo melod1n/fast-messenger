@@ -13,7 +13,8 @@ data class MessagesHistoryScreenState(
     val message: String,
     val attachments: List<VkAttachment>,
     val isLoading: Boolean,
-    val actionButtonMode: MessagesHistoryActionButtonMode
+    val actionButtonMode: MessagesHistoryActionButtonMode,
+    val isNeedToOpenChatMaterials: Boolean
 ) {
 
     companion object {
@@ -24,7 +25,8 @@ data class MessagesHistoryScreenState(
             message = "",
             attachments = emptyList(),
             isLoading = true,
-            actionButtonMode = MessagesHistoryActionButtonMode.Record
+            actionButtonMode = MessagesHistoryActionButtonMode.Record,
+            isNeedToOpenChatMaterials = false
         )
     }
 }

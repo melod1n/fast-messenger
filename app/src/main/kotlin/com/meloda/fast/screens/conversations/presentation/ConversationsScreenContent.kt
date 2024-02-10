@@ -1,15 +1,20 @@
 package com.meloda.fast.screens.conversations.presentation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,12 +51,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -70,6 +75,8 @@ import com.meloda.fast.screens.settings.UserSettings
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.pullRefresh
@@ -95,7 +102,7 @@ fun ConversationsRoute(
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class,
 )
 @Composable
 fun ConversationsScreenContent(
@@ -116,6 +123,7 @@ fun ConversationsScreenContent(
             if (multilineEnabled) 2 else 1
         }
     }
+
 
     val listState = rememberLazyListState()
 
@@ -231,13 +239,26 @@ fun ConversationsScreenContent(
                 }
             }
 
+            val toolbarColorAlpha by animateFloatAsState(
+                targetValue = if (!listState.canScrollBackward) 1f else 0f,
+                label = "toolbarColorAlpha",
+                animationSpec = tween(durationMillis = 50)
+            )
+
             Column(modifier = Modifier.fillMaxWidth()) {
                 TopAppBar(
                     title = title,
                     actions = actions,
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(
+                            alpha = toolbarColorAlpha
+                        )
+                    ),
                     modifier = Modifier
-                        .hazeChild(state = hazeState)
+                        .hazeChild(
+                            state = hazeState,
+                            style = HazeMaterials.ultraThin()
+                        )
                         .fillMaxWidth(),
                 )
 
@@ -268,7 +289,9 @@ fun ConversationsScreenContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
+                    .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
+                    .padding(bottom = padding.calculateBottomPadding())
             ) {
                 val pullRefreshState = rememberPullRefreshState(
                     refreshing = screenState.isLoading,
@@ -310,11 +333,11 @@ fun ConversationsScreenContent(
                         modifier = listModifier.then(
                             Modifier.haze(
                                 state = hazeState,
-                                backgroundColor = MaterialTheme.colorScheme.surface,
-                                blurRadius = 45.dp
+                                style = HazeMaterials.ultraThin()
                             )
                         ),
-                        onOptionClicked = viewModel::onOptionClicked
+                        onOptionClicked = viewModel::onOptionClicked,
+                        padding = padding
                     )
 
                     AnimatedVisibility(
@@ -367,6 +390,7 @@ fun ConversationsListComposable(
     showOnlyPlaceholders: Boolean,
     modifier: Modifier,
     onOptionClicked: (VkConversationUi, ConversationOption) -> Unit,
+    padding: PaddingValues
 ) {
     val conversations = screenState.conversations
 
@@ -378,6 +402,17 @@ fun ConversationsListComposable(
             items = conversations,
             key = { _, item -> item.conversationId },
         ) { index, conversation ->
+
+            val needToShowSpacer by remember {
+                derivedStateOf {
+                    index == 0
+                }
+            }
+
+            if (needToShowSpacer) {
+                Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
+            }
+
             val isUserAccount by remember(conversation) {
                 derivedStateOf {
                     conversation.conversationId == UserConfig.userId

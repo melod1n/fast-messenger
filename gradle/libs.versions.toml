@@ -1,12 +1,12 @@
 [versions]
 agp = "8.2.2"
-benchmarkMacroJunit4 = "1.2.2"
+benchmarkMacroJunit4 = "1.2.3"
 converterMoshi = "2.9.0"
 hijacker = "1.0.0"
 kotlin = "1.9.21"
 ksp = "1.9.21-1.0.16"
 rebugger = "1.0.0-rc02"
-vkompose = "0.1"
+vkompose = "0.4.1"
 
 accompanist = "0.32.0"
 coil = "2.5.0"
@@ -37,7 +37,6 @@ preference-ktx = "1.2.1"
 nanokt = "1.0.0"
 
 [libraries]
-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }

@@ -321,5 +321,8 @@ dependencies {
 
     implementation(libs.rebugger)
 
-    implementation("dev.chrisbanes.haze:haze-jetpack-compose:0.4.5")
+
+    val hazeVersion = "0.5.0"
+    implementation("dev.chrisbanes.haze:haze:$hazeVersion")
+    implementation("dev.chrisbanes.haze:haze-materials:$hazeVersion")
 }

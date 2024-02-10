@@ -59,10 +59,16 @@ import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 
 @Composable
 fun MessagesHistoryRoute(
+    openChatMaterials: () -> Unit,
     onBackClicked: () -> Unit,
     viewModel: MessagesHistoryViewModel
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    if (screenState.isNeedToOpenChatMaterials) {
+        viewModel.onChatMaterialsOpened()
+        openChatMaterials()
+    }
 
     MessagesHistoryScreenContent(
         onBackClicked = onBackClicked,
@@ -194,6 +200,15 @@ fun MessagesHistoryScreenContent(
                             },
                             text = {
                                 Text(text = "Refresh")
+                            }
+                        )
+                        DropdownMenuItem(
+                            onClick = {
+                                onTopBarMenuClick.invoke(1)
+                                dropDownMenuExpanded = false
+                            },
+                            text = {
+                                Text(text = "Materials")
                             }
                         )
                     }
