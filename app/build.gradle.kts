@@ -33,6 +33,14 @@ plugins {
     alias(libs.plugins.com.vk.vkompose)
 }
 
+kotlin {
+    sourceSets.all {
+        languageSettings {
+            languageVersion = "2.0"
+        }
+    }
+}
+
 vkompose {
     skippabilityCheck = true
 
@@ -166,11 +174,17 @@ android {
             signingConfig = signingConfigs.getByName("debugSigning")
 
             versionNameSuffix = "_${getVersionName()}"
+
+//            isMinifyEnabled = true
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+//            )
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
 
             isMinifyEnabled = false
+//            isShrinkResources = true
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -217,7 +231,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
+        kotlinCompilerExtensionVersion = "1.5.9"
         useLiveLiterals = true
     }
 }
@@ -236,9 +250,6 @@ dependencies {
     // Compose-Bom zone
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
-
-    // TODO: 26/01/2024, Danil Nikolaev: remove when fixed crash with ProgressIndicators
-//    implementation("androidx.compose.material3:material3:1.2.0-rc01")
     // end of Compose-Bom zone
 
     // Accompanist zone
@@ -301,6 +312,7 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
     // end of Moshi zone
 
+    // TODO: дождаться нового релиза и починить минификацию и шринкинг
     implementation(libs.retrofit)
 
     // Retrofit converters

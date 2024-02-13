@@ -27,7 +27,6 @@ import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 import com.meloda.fast.screens.login.validation.LoginValidator
 import com.meloda.fast.screens.twofa.model.TwoFaArguments
-import com.shakebugs.shake.Shake
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -299,7 +298,7 @@ class LoginViewModelImpl(
                 val userId = response.userId
                 val accessToken = response.accessToken
 
-                Shake.registerUser(userId.toString())
+//                Shake.registerUser(userId.toString())
 
                 // TODO: 02/12/2023, Danil Nikolaev: implement loading user info
 

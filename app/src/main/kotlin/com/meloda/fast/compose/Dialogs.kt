@@ -7,11 +7,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -90,164 +88,160 @@ fun MaterialDialog(
             BasicAlertDialog(
                 onDismissRequest = onDismissRequest
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    val scrollState = rememberScrollState()
-                    val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
-                    val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
+                val scrollState = rememberScrollState()
+                val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
+                val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
 
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter),
-                        color = AlertDialogDefaults.containerColor,
-                        shape = AlertDialogDefaults.shape,
-                        tonalElevation = AlertDialogDefaults.TonalElevation
-                    ) {
-                        Column(modifier = Modifier.padding(bottom = 10.dp)) {
-                            val stringTitle = title?.getString()
-                            if (stringTitle != null) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = AlertDialogDefaults.containerColor,
+                    shape = AlertDialogDefaults.shape,
+                    tonalElevation = AlertDialogDefaults.TonalElevation
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 10.dp)) {
+                        val stringTitle = title?.getString()
+                        if (stringTitle != null) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+
+                        Row {
+                            stringTitle?.let { title ->
+                                Spacer(modifier = Modifier.width(24.dp))
+                                Text(
+                                    modifier = Modifier.weight(1f),
+                                    text = title,
+                                    style = MaterialTheme.typography.headlineSmall
+                                )
+                                Spacer(modifier = Modifier.width(20.dp))
+                            }
+                        }
+
+                        if (canScrollBackward) {
+                            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false)
+                                .verticalScroll(scrollState)
+                        ) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            val stringMessage = text?.getString()
+                            if (stringMessage != null && stringTitle == null) {
                                 Spacer(modifier = Modifier.height(20.dp))
                             }
 
                             Row {
-                                stringTitle?.let { title ->
+                                stringMessage?.let { message ->
                                     Spacer(modifier = Modifier.width(24.dp))
                                     Text(
                                         modifier = Modifier.weight(1f),
-                                        text = title,
-                                        style = MaterialTheme.typography.headlineSmall
+                                        text = message,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Spacer(modifier = Modifier.width(20.dp))
                                 }
                             }
 
-                            if (canScrollBackward) {
-                                HorizontalDivider(modifier = Modifier.fillMaxWidth())
-                            }
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, fill = false)
-                                    .verticalScroll(scrollState)
-                            ) {
-                                Spacer(modifier = Modifier.height(8.dp))
+                            if (alertItems.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                AlertItems(
+                                    selectionType = itemsSelectionType,
+                                    items = ImmutableList.copyOf(alertItems),
+                                    onItemClick = { index ->
+                                        onItemClick?.invoke(index)
 
-                                val stringMessage = text?.getString()
-                                if (stringMessage != null && stringTitle == null) {
-                                    Spacer(modifier = Modifier.height(20.dp))
-                                }
-
-                                Row {
-                                    stringMessage?.let { message ->
-                                        Spacer(modifier = Modifier.width(24.dp))
-                                        Text(
-                                            modifier = Modifier.weight(1f),
-                                            text = message,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.width(20.dp))
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                if (alertItems.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    AlertItems(
-                                        selectionType = itemsSelectionType,
-                                        items = ImmutableList.copyOf(alertItems),
-                                        onItemClick = { index ->
-                                            onItemClick?.invoke(index)
-
-                                            if (itemsSelectionType == ItemsSelectionType.None) {
-                                                onDismissRequest.invoke()
-                                            } else {
-                                                val newItems =
-                                                    alertItems.mapIndexed { itemIndex, item ->
-                                                        item.copy(isSelected = itemIndex == index)
-                                                    }
-
-                                                alertItems = newItems
-                                            }
-                                        },
-                                        onItemCheckedChanged = { index ->
-                                            val newItems = alertItems.toMutableList()
-                                            val oldItem = newItems[index]
-                                            newItems[index] =
-                                                oldItem.copy(isSelected = !oldItem.isSelected)
+                                        if (itemsSelectionType == ItemsSelectionType.None) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            val newItems =
+                                                alertItems.mapIndexed { itemIndex, item ->
+                                                    item.copy(isSelected = itemIndex == index)
+                                                }
 
                                             alertItems = newItems
                                         }
-                                    )
+                                    },
+                                    onItemCheckedChanged = { index ->
+                                        val newItems = alertItems.toMutableList()
+                                        val oldItem = newItems[index]
+                                        newItems[index] =
+                                            oldItem.copy(isSelected = !oldItem.isSelected)
+
+                                        alertItems = newItems
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                            } else {
+                                customContent?.let { content ->
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    content.invoke()
                                     Spacer(modifier = Modifier.height(10.dp))
-                                } else {
-                                    customContent?.let { content ->
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        content.invoke()
-                                        Spacer(modifier = Modifier.height(10.dp))
+                                }
+                            }
+                        }
+
+                        if (canScrollForward) {
+                            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                        }
+
+                        Row {
+                            Spacer(modifier = Modifier.width(20.dp))
+                            neutralText?.getString()?.let { text ->
+                                TextButton(
+                                    onClick = {
+                                        if (buttonsInvokeDismiss) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            isVisible = false
+                                        }
+                                        neutralAction?.invoke()
                                     }
+                                ) {
+                                    Text(text = text)
                                 }
                             }
 
-                            if (canScrollForward) {
-                                HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            cancelText?.getString()?.let { text ->
+                                TextButton(
+                                    onClick = {
+                                        if (buttonsInvokeDismiss) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            isVisible = false
+                                        }
+                                        cancelAction?.invoke()
+                                    }
+                                ) {
+                                    Text(text = text)
+                                }
                             }
 
-                            Row {
-                                Spacer(modifier = Modifier.width(20.dp))
-                                neutralText?.getString()?.let { text ->
-                                    TextButton(
-                                        onClick = {
-                                            if (buttonsInvokeDismiss) {
-                                                onDismissRequest.invoke()
-                                            } else {
-                                                isVisible = false
-                                            }
-                                            neutralAction?.invoke()
+                            Spacer(modifier = Modifier.width(2.dp))
+
+                            confirmText?.getString()?.let { text ->
+                                TextButton(
+                                    onClick = {
+                                        if (buttonsInvokeDismiss) {
+                                            onDismissRequest.invoke()
+                                        } else {
+                                            isVisible = false
                                         }
-                                    ) {
-                                        Text(text = text)
+                                        confirmAction?.invoke()
                                     }
+                                ) {
+                                    Text(text = text)
                                 }
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                cancelText?.getString()?.let { text ->
-                                    TextButton(
-                                        onClick = {
-                                            if (buttonsInvokeDismiss) {
-                                                onDismissRequest.invoke()
-                                            } else {
-                                                isVisible = false
-                                            }
-                                            cancelAction?.invoke()
-                                        }
-                                    ) {
-                                        Text(text = text)
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.width(2.dp))
-
-                                confirmText?.getString()?.let { text ->
-                                    TextButton(
-                                        onClick = {
-                                            if (buttonsInvokeDismiss) {
-                                                onDismissRequest.invoke()
-                                            } else {
-                                                isVisible = false
-                                            }
-                                            confirmAction?.invoke()
-                                        }
-                                    ) {
-                                        Text(text = text)
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.width(20.dp))
                             }
+
+                            Spacer(modifier = Modifier.width(20.dp))
                         }
                     }
                 }
