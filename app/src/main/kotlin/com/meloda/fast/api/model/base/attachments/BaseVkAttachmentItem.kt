@@ -2,37 +2,37 @@ package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
 import android.util.Log
-import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkAttachmentItem(
     val type: String,
     val photo: BaseVkPhoto?,
     val video: BaseVkVideo?,
     val audio: BaseVkAudio?,
-    @SerializedName("doc")
+    @Json(name = "doc")
     val file: BaseVkFile?,
     val link: BaseVkLink?,
-    @SerializedName("mini_app")
+    @Json(name = "mini_app")
     val miniApp: BaseVkMiniApp?,
-    @SerializedName("audio_message")
+    @Json(name = "audio_message")
     val voiceMessage: BaseVkVoiceMessage?,
     val sticker: BaseVkSticker?,
     val gift: BaseVkGift?,
     val wall: BaseVkWall?,
     val graffiti: BaseVkGraffiti?,
     val poll: BaseVkPoll?,
-    @SerializedName("wall_reply")
+    @Json(name = "wall_reply")
     val wallReply: BaseVkWallReply?,
     val call: BaseVkCall?,
-    @SerializedName("group_call_in_progress")
+    @Json(name = "group_call_in_progress")
     val groupCall: BaseVkGroupCall?,
     val curator: BaseVkCurator?,
     val event: BaseVkEvent?,
     val story: BaseVkStory?,
     val widget: BaseVkWidget?
-) : Parcelable {
+) {
 
     fun getPreparedType() = AttachmentType.parse(type)
 
@@ -61,7 +61,7 @@ data class BaseVkAttachmentItem(
 
         companion object {
             fun parse(value: String): AttachmentType {
-                val parsedValue = values().firstOrNull { it.value == value } ?: Unknown
+                val parsedValue = entries.firstOrNull { it.value == value } ?: Unknown
 
                 if (parsedValue == Unknown) {
                     Log.e("AttachmentType", "Unknown attachment type: $value")
@@ -74,4 +74,4 @@ data class BaseVkAttachmentItem(
 
 }
 
-abstract class BaseVkAttachment : Parcelable
+abstract class BaseVkAttachment

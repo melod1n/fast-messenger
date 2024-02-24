@@ -1,10 +1,10 @@
 package com.meloda.fast.api.model.attachments
 
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
 data class VkWall(
     val id: Int,
     val fromId: Int,

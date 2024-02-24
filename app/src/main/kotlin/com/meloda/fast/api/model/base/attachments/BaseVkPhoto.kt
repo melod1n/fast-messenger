@@ -2,9 +2,10 @@ package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkPhoto
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkPhoto(
     val album_id: Int,
     val date: Int,
@@ -32,12 +33,12 @@ data class BaseVkPhoto(
         userId = user_id
     )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Size(
         val height: Int,
         val width: Int,
         val type: String,
         val url: String
-    ) : Parcelable
+    )
 
 }

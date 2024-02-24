@@ -1,19 +1,19 @@
 package com.meloda.fast.api.longpoll
 
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkMessage
-import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.VkUserDomain
 
 sealed class LongPollEvent {
 
     data class VkMessageNewEvent(
-        val message: VkMessage,
-        val profiles: HashMap<Int, VkUser>,
-        val groups: HashMap<Int, VkGroup>,
+        val message: VkMessageDomain,
+        val profiles: HashMap<Int, VkUserDomain>,
+        val groups: HashMap<Int, VkGroupDomain>,
     ) : LongPollEvent()
 
-    data class VkMessageEditEvent(val message: VkMessage) : LongPollEvent()
+    data class VkMessageEditEvent(val message: VkMessageDomain) : LongPollEvent()
 
     data class VkMessageReadIncomingEvent(
         val peerId: Int,

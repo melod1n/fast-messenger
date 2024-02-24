@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkPoll
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkPoll(
     val multiple: Boolean,
     val id: Int,
@@ -26,22 +25,22 @@ data class BaseVkPoll(
     val answers: List<Answer>,
     val author_id: Int,
     val background: Background?
-) : Parcelable {
+) {
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Friend(
         val id: Int
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Answer(
         val id: Int,
         val rate: Double,
         val text: String,
         val votes: Int
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Background(
         val angle: Int,
         val color: String,
@@ -49,15 +48,14 @@ data class BaseVkPoll(
         val name: String,
         val type: String,
         val points: List<Point>
-    ) : Parcelable {
+    ) {
 
-        @Parcelize
+        @JsonClass(generateAdapter = true)
         data class Point(
             val color: String,
             val position: Double
-        ) : Parcelable
+        )
     }
 
     fun asVkPoll() = VkPoll(id = id)
-
 }

@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class VkGroup(
+data class VkGroupDomain(
     val id: Int,
     val name: String,
     val screenName: String,

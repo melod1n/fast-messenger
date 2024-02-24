@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkCall
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkCall(
     val initiator_id: Int,
     val receiver_id: Int,
@@ -12,7 +11,7 @@ data class BaseVkCall(
     val time: Int,
     val duration: Int,
     val video: Boolean
-) : Parcelable {
+) {
 
     fun asVkCall() = VkCall(
         initiatorId = initiator_id,
@@ -22,5 +21,4 @@ data class BaseVkCall(
         duration = duration,
         isVideo = video
     )
-
 }

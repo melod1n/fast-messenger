@@ -1,16 +1,15 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkGift
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkGift(
     val id: Int,
     val thumb_256: String?,
     val thumb_96: String?,
     val thumb_48: String
-) : Parcelable {
+) {
 
     fun asVkGift() = VkGift(
         id = id,

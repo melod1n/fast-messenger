@@ -11,9 +11,9 @@ import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkMessage
-import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.VkUserDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isFalse
@@ -63,19 +63,19 @@ data class VkConversationDomain(
 
     @Ignore
     @IgnoredOnParcel
-    var lastMessage: VkMessage? = null
+    var lastMessage: VkMessageDomain? = null
 
     @Ignore
     @IgnoredOnParcel
-    var pinnedMessage: VkMessage? = null
+    var pinnedMessage: VkMessageDomain? = null
 
     @Ignore
     @IgnoredOnParcel
-    var conversationUser: VkUser? = null
+    var conversationUser: VkUserDomain? = null
 
     @Ignore
     @IgnoredOnParcel
-    var conversationGroup: VkGroup? = null
+    var conversationGroup: VkGroupDomain? = null
 
     fun isChat() = peerType.isChat()
     fun isUser() = peerType.isUser()

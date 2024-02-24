@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class VkUser(
+data class VkUserDomain(
     val id: Int,
     val firstName: String,
     val lastName: String,

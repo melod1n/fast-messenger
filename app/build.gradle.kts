@@ -278,8 +278,6 @@ dependencies {
 
     implementation(libs.coil)
 
-    implementation(libs.kotlin.reflect)
-
     implementation(libs.core.ktx)
 
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -309,8 +307,6 @@ dependencies {
 
     implementation(libs.logging.interceptor)
 
-    // TODO: 04/12/2023, Danil Nikolaev: remove gson and use moshi
-    implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.chucker)
 
@@ -319,4 +315,6 @@ dependencies {
     implementation(libs.nanokt.jvm)
 
     implementation(libs.rebugger)
+
+    implementation("com.slack.eithernet:eithernet:1.8.1")
 }

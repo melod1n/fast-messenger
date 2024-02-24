@@ -7,7 +7,7 @@ import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import java.util.*
 
-@Parcelize
+
 data class VkPhoto(
     val albumId: Int,
     val date: Int,

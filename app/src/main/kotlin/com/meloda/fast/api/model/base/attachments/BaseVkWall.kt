@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkWall
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkWall(
     val id: Int,
     val from_id: Int,
@@ -21,7 +20,7 @@ data class BaseVkWall(
     val donut: Donut?,
     val access_key: String?,
     val short_text_rate: Double
-) : Parcelable {
+) {
 
     fun asVkWall() = VkWall(
         id = id,
@@ -38,41 +37,40 @@ data class BaseVkWall(
         accessKey = access_key
     )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class PostSource(
         val type: String,
         val platform: String
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Comments(
         val count: Int,
         val can_post: Int,
         val groups_can_post: Boolean
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Likes(
         val count: Int,
         val user_likes: Int,
         val can_like: Int,
         val can_publish: Int,
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Reposts(
         val count: Int,
         val user_reposted: Int
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Views(
         val count: Int
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Donut(
         val is_donut: Boolean
-    ) : Parcelable
-
+    )
 }

@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkSticker
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkSticker(
     val product_id: Int,
     val sticker_id: Int,
@@ -12,7 +11,7 @@ data class BaseVkSticker(
     val images_with_background: List<Image>,
     val animation_url: String?,
     val animations: List<Animation>?
-) : Parcelable {
+) {
 
     fun asVkSticker() = VkSticker(
         id = sticker_id,
@@ -21,17 +20,16 @@ data class BaseVkSticker(
         backgroundImages = images_with_background
     )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Image(
         val width: Int,
         val height: Int,
         val url: String
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Animation(
         val type: String,
         val url: String
-    ) : Parcelable
-
+    )
 }

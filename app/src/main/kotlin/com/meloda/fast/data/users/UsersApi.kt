@@ -1,7 +1,7 @@
 package com.meloda.fast.data.users
 
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.model.base.BaseVkUser
+import com.meloda.fast.api.model.base.VkUserData
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.users.UsersUrls
 import retrofit2.http.FieldMap
@@ -14,6 +14,6 @@ interface UsersApi {
     @POST(UsersUrls.GetById)
     suspend fun getById(
         @FieldMap params: Map<String, String>?
-    ): ApiAnswer<ApiResponse<List<BaseVkUser>>>
+    ): ApiAnswer<ApiResponse<List<VkUserData>>>
 
 }

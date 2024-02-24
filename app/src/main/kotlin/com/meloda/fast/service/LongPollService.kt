@@ -15,7 +15,6 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.base.BaseVkLongPoll
-import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
@@ -23,6 +22,8 @@ import com.meloda.fast.data.longpoll.LongPollUpdates
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.NotificationsUtils
+import com.slack.eithernet.fold
+import com.slack.eithernet.onSuccess
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -203,12 +204,10 @@ class LongPollService : Service() {
 
         println("$TAG: serverInfoResponse: $response")
 
-        if (response is ApiAnswer.Error) return null
-        if (response is ApiAnswer.Success) {
-            return response.data.response
-        }
-
-        return null
+        return response.fold(
+            onSuccess = { value -> value.response },
+            onFailure = { null }
+        )
     }
 
     private suspend fun getUpdatesResponse(server: BaseVkLongPoll): LongPollUpdates? {
@@ -225,9 +224,7 @@ class LongPollService : Service() {
 
         Log.d("LongPollService", "lastUpdateResponse: $response")
 
-        if (response is ApiAnswer.Success) {
-            return response.data
-        }
+        response.onSuccess { value -> return value }
 
         return null
     }

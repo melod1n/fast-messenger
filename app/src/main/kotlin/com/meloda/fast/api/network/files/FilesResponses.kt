@@ -4,6 +4,8 @@ import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import com.meloda.fast.api.model.base.attachments.BaseVkFile
 import com.meloda.fast.api.model.base.attachments.BaseVkVoiceMessage
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -15,11 +17,11 @@ data class FilesGetMessagesUploadServerResponse(
 @Parcelize
 data class FilesUploadFileResponse(val file: String?, val error: String?) : Parcelable
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class FilesSaveFileResponse(
     val type: String,
-    @SerializedName("doc")
+    @Json(name = "doc")
     val file: BaseVkFile?,
-    @SerializedName("audio_message")
+    @Json(name = "audio_message")
     val voiceMessage: BaseVkVoiceMessage?
-) : Parcelable
+)

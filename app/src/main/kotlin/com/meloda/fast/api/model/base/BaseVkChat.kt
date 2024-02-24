@@ -2,9 +2,10 @@ package com.meloda.fast.api.model.base
 
 import android.os.Parcelable
 import com.meloda.fast.api.model.VkChat
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkChat(
     val type: String,
     val title: String,
@@ -15,8 +16,8 @@ data class BaseVkChat(
     val photo_100: String,
     val photo_200: String,
     val is_default_photo: Boolean,
-    val push_settings: PushSettings
-) : Parcelable {
+    val push_settings: PushSettings?
+) {
 
     fun asVkChat() = VkChat(
         type = type,
