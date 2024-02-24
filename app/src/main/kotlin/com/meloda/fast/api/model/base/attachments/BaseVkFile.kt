@@ -2,9 +2,10 @@ package com.meloda.fast.api.model.base.attachments
 
 import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkFile
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkFile(
     val id: Int,
     val owner_id: Int,
@@ -31,33 +32,30 @@ data class BaseVkFile(
         preview = preview
     )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Preview(
         val photo: Photo?,
         val video: Video?
-    ) : Parcelable {
+    )  {
 
-        @Parcelize
-        data class Photo(val sizes: List<Size>) : Parcelable {
+        @JsonClass(generateAdapter = true)
+        data class Photo(val sizes: List<Size>)  {
 
-            @Parcelize
+            @JsonClass(generateAdapter = true)
             data class Size(
                 val height: Int,
                 val width: Int,
                 val type: String,
                 val src: String
-            ) : Parcelable
-
+            )
         }
 
-        @Parcelize
+        @JsonClass(generateAdapter = true)
         data class Video(
             val src: String,
             val width: Int,
             val height: Int,
             val file_size: Int
-        ) : Parcelable
-
+        )
     }
-
 }

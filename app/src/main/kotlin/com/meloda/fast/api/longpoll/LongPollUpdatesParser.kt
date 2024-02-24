@@ -5,8 +5,8 @@ import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkUserDomain
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.base.viewmodel.VkEventCallback
@@ -254,12 +254,12 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                     val normalMessage = messagesList[0].asVkMessage()
                     messagesRepository.store(listOf(normalMessage))
 
-                    val profiles = hashMapOf<Int, VkUser>()
+                    val profiles = hashMapOf<Int, VkUserDomain>()
                     messagesResponse.profiles?.forEach { baseUser ->
                         baseUser.mapToDomain().let { user -> profiles[user.id] = user }
                     }
 
-                    val groups = hashMapOf<Int, VkGroup>()
+                    val groups = hashMapOf<Int, VkGroupDomain>()
                     messagesResponse.groups?.forEach { baseGroup ->
                         baseGroup.mapToDomain().let { group -> groups[group.id] = group }
                     }

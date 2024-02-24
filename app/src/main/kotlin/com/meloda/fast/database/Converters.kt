@@ -3,9 +3,9 @@ package com.meloda.fast.database
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.meloda.fast.api.base.AttachmentClassNameIsEmptyException
-import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.VkMessageDomain
 import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.base.VkMessageData
 import org.json.JSONObject
 
 @Suppress("UnnecessaryVariable")
@@ -16,7 +16,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromGeoToString(geo: BaseVkMessage.Geo?): String? {
+    fun fromGeoToString(geo: VkMessageData.Geo?): String? {
         if (geo == null) return null
 
         return try {
@@ -30,11 +30,11 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromStringToGeo(string: String?): BaseVkMessage.Geo? {
+    fun fromStringToGeo(string: String?): VkMessageData.Geo? {
         if (string == null) return null
 
         return try {
-            val geo = Gson().fromJson(string, BaseVkMessage.Geo::class.java)
+            val geo = Gson().fromJson(string, VkMessageData.Geo::class.java)
 
             return geo
         } catch (e: Exception) {
@@ -44,7 +44,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromListVkMessageToString(messages: List<VkMessage>?): String? {
+    fun fromListVkMessageToString(messages: List<VkMessageDomain>?): String? {
         if (messages == null) return null
 
         val string = messages
@@ -55,7 +55,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromStringToListVkMessage(string: String?): List<VkMessage>? {
+    fun fromStringToListVkMessage(string: String?): List<VkMessageDomain>? {
         if (string == null) return null
 
         if (string.contains(CACHE_SEPARATOR)) {
@@ -71,7 +71,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromVkMessageToString(message: VkMessage?): String? {
+    fun fromVkMessageToString(message: VkMessageDomain?): String? {
         if (message == null) return null
 
         return try {
@@ -85,11 +85,11 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromStringToVkMessage(string: String?): VkMessage? {
+    fun fromStringToVkMessage(string: String?): VkMessageDomain? {
         if (string == null) return null
 
         return try {
-            val message = Gson().fromJson(string, VkMessage::class.java)
+            val message = Gson().fromJson(string, VkMessageDomain::class.java)
 
             return message
         } catch (e: Exception) {

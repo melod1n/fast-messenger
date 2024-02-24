@@ -1,16 +1,15 @@
 package com.meloda.fast.api.model.data
 
-import android.os.Parcelable
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkMessage
-import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.VkUserDomain
+import com.meloda.fast.api.model.base.VkMessageData
 import com.meloda.fast.api.model.base.attachments.BaseVkGroupCall
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
-data class BaseVkConversation(
+@JsonClass(generateAdapter = true)
+data class VkConversationData(
     val peer: Peer,
     val last_message_id: Int,
     val in_read: Int,
@@ -21,60 +20,60 @@ data class BaseVkConversation(
     val last_conversation_message_id: Int,
     val is_marked_unread: Boolean,
     val important: Boolean,
-    val push_settings: PushSettings,
+    val push_settings: PushSettings?,
     val can_write: CanWrite,
-    val can_send_money: Boolean,
-    val can_receive_money: Boolean,
+    val can_send_money: Boolean = false,
+    val can_receive_money: Boolean = false,
     val chat_settings: ChatSettings?,
     val call_in_progress: CallInProgress?,
     val unread_count: Int?,
-) : Parcelable {
+) {
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Peer(
         val id: Int,
         val type: String,
         val local_id: Int,
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class SortId(
         val major_id: Int,
         val minor_id: Int,
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class PushSettings(
         val disabled_forever: Boolean,
         val no_sound: Boolean,
         val disabled_mentions: Boolean,
         val disabled_mass_mentions: Boolean,
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class CanWrite(
         val allowed: Boolean,
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class ChatSettings(
         val owner_id: Int,
         val title: String,
         val state: String,
         val acl: Acl,
-        val members_count: Int,
-        val friends_count: Int,
+        val members_count: Int?,
+        val friends_count: Int?,
         val photo: Photo?,
-        val admin_ids: List<Int>,
-        val active_ids: List<Int>,
-        val is_group_channel: Boolean,
-        val is_disappearing: Boolean,
-        val is_service: Boolean,
+        val admin_ids: List<Int> = emptyList(),
+        val active_ids: List<Int> = emptyList(),
+        val is_group_channel: Boolean = false,
+        val is_disappearing: Boolean = false,
+        val is_service: Boolean = false,
         val theme: String?,
-        val pinned_message: BaseVkMessage?,
-    ) : Parcelable {
+        val pinned_message: VkMessageData?,
+    ) {
 
-        @Parcelize
+        @JsonClass(generateAdapter = true)
         data class Acl(
             val can_change_info: Boolean,
             val can_change_invite_link: Boolean,
@@ -87,35 +86,35 @@ data class BaseVkConversation(
             val can_call: Boolean,
             val can_use_mass_mentions: Boolean,
             val can_change_style: Boolean,
-        ) : Parcelable
+        )
 
-        @Parcelize
+        @JsonClass(generateAdapter = true)
         data class Photo(
             val photo_50: String?,
             val photo_100: String?,
             val photo_200: String?,
             val is_default_photo: Boolean,
-        ) : Parcelable
+        )
     }
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class CallInProgress(
         val participants: BaseVkGroupCall.Participants,
         val join_link: String,
-    ) : Parcelable {
+    ) {
 
-        @Parcelize
+        @JsonClass(generateAdapter = true)
         data class Participants(
             val list: List<Int>,
             val count: Int,
-        ) : Parcelable
+        )
 
     }
 
     fun mapToDomain(
-        lastMessage: VkMessage? = null,
-        conversationUser: VkUser? = null,
-        conversationGroup: VkGroup? = null,
+        lastMessage: VkMessageDomain? = null,
+        conversationUser: VkUserDomain? = null,
+        conversationGroup: VkGroupDomain? = null,
     ) = VkConversationDomain(
         id = peer.id,
         localId = peer.local_id,

@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.VkChatMember
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkChatMember(
     val member_id: Int,
     val invited_by: Int,
@@ -12,7 +11,7 @@ data class BaseVkChatMember(
     val is_admin: Boolean?,
     val is_owner: Boolean?,
     val can_kick: Boolean?
-) : Parcelable {
+) {
 
     fun asVkChatMember() = VkChatMember(
         memberId = member_id,

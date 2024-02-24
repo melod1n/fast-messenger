@@ -4,7 +4,7 @@ import com.meloda.fast.api.model.base.attachments.BaseVkSticker
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+
 data class VkSticker(
     val id: Int,
     val productId: Int,

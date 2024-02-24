@@ -1,34 +1,33 @@
 package com.meloda.fast.api.model.base
 
-import android.os.Parcelable
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.VkMessageDomain
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
-data class BaseVkMessage(
+@JsonClass(generateAdapter = true)
+data class VkMessageData(
     val id: Int,
     val peer_id: Int,
     val date: Int,
     val from_id: Int,
-    val out: Int,
+    val out: Int?,
     val text: String,
     val conversation_message_id: Int,
-    val fwd_messages: List<BaseVkMessage>? = emptyList(),
-    val important: Boolean,
-    val random_id: Int,
+    val fwd_messages: List<VkMessageData>? = emptyList(),
+    val important: Boolean = false,
+    val random_id: Int = 0,
     val attachments: List<BaseVkAttachmentItem> = emptyList(),
-    val is_hidden: Boolean,
-    val payload: String,
+    val is_hidden: Boolean = false,
+    val payload: String?,
     val geo: Geo?,
     val action: Action?,
-    val ttl: Int,
-    val reply_message: BaseVkMessage?,
+    val ttl: Int?,
+    val reply_message: VkMessageData?,
     val update_time: Int?
-) : Parcelable {
+) {
 
-    fun asVkMessage() = VkMessage(
+    fun asVkMessage() = VkMessageDomain(
         id = id,
         text = text.ifBlank { null },
         isOut = out == 1,
@@ -49,27 +48,27 @@ data class BaseVkMessage(
         replyMessage = VkUtils.parseReplyMessage(reply_message)
     )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Geo(
         val type: String,
         val coordinates: Coordinates,
         val place: Place
-    ) : Parcelable {
+    ) {
 
-        @Parcelize
-        data class Coordinates(val latitude: Float, val longitude: Float) : Parcelable
+        @JsonClass(generateAdapter = true)
+        data class Coordinates(val latitude: Float, val longitude: Float)
 
-        @Parcelize
-        data class Place(val country: String, val city: String, val title: String) : Parcelable
+        @JsonClass(generateAdapter = true)
+        data class Place(val country: String, val city: String, val title: String)
     }
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Action(
         val type: String,
         val member_id: Int?,
         val text: String?,
         val conversation_message_id: Int?,
         val message: String?
-    ) : Parcelable
+    )
 
 }

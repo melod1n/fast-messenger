@@ -3,10 +3,11 @@ package com.meloda.fast.api.model.attachments
 import android.os.Parcelable
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.base.attachments.BaseVkVideo
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class VkVideo(
     val id: Int,
     val ownerId: Int,
@@ -42,13 +43,13 @@ data class VkVideo(
         return certainImages.firstOrNull()
     }
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class VideoImage(
         val width: Int,
         val height: Int,
         val url: String,
         val withPadding: Boolean,
-    ) : Parcelable {
+    ) {
 
         @IgnoredOnParcel
         var shapeKind: ShapeKind? = null

@@ -1,17 +1,16 @@
 package com.meloda.fast.api.model.base
 
-import android.os.Parcelable
-import com.meloda.fast.api.model.VkUser
-import kotlinx.parcelize.Parcelize
+import com.meloda.fast.api.model.VkUserDomain
+import com.squareup.moshi.JsonClass
 
-@Parcelize
-data class BaseVkUser(
+@JsonClass(generateAdapter = true)
+data class VkUserData(
     val id: Int,
     val first_name: String,
     val last_name: String,
     val can_access_closed: Boolean,
     val is_closed: Boolean,
-    val can_invite_to_chats: Boolean,
+    val can_invite_to_chats: Boolean=false,
     val sex: Int?,
     val photo_50: String?,
     val photo_100: String?,
@@ -21,19 +20,19 @@ data class BaseVkUser(
     val screen_name: String,
     val bdate: String?
     //...other fields
-) : Parcelable {
+) {
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class OnlineInfo(
         val visible: Boolean,
-        val status: String,
+        val status: String?,
         val last_seen: Int?,
         val is_online: Boolean?,
         val online_mobile: Boolean?,
         val app_id: Int?
-    ) : Parcelable
+    )
 
-    fun mapToDomain() = VkUser(
+    fun mapToDomain() = VkUserDomain(
         id = id,
         firstName = first_name,
         lastName = last_name,

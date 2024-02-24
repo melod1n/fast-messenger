@@ -13,9 +13,9 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
 import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkMessage
-import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.VkUserDomain
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkAudio
 import com.meloda.fast.api.model.attachments.VkCall
@@ -36,10 +36,9 @@ import com.meloda.fast.api.model.attachments.VkVoiceMessage
 import com.meloda.fast.api.model.attachments.VkWall
 import com.meloda.fast.api.model.attachments.VkWallReply
 import com.meloda.fast.api.model.attachments.VkWidget
-import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.base.VkMessageData
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.BaseOauthError
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
@@ -76,32 +75,32 @@ object VkUtils {
 
 
     fun getMessageUser(
-        message: VkMessage,
-        profiles: Map<Int, VkUser>
-    ): VkUser? {
+        message: VkMessageDomain,
+        profiles: Map<Int, VkUserDomain>
+    ): VkUserDomain? {
         return (if (!message.isUser()) null
         else profiles[message.fromId])
     }
 
-    fun getMessageActionUser(message: VkMessage, profiles: Map<Int, VkUser>): VkUser? {
+    fun getMessageActionUser(message: VkMessageDomain, profiles: Map<Int, VkUserDomain>): VkUserDomain? {
         return if (message.actionMemberId == null || message.actionMemberId <= 0) null
         else profiles[message.actionMemberId]
     }
 
-    fun getMessageGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
+    fun getMessageGroup(message: VkMessageDomain, groups: Map<Int, VkGroupDomain>): VkGroupDomain? {
         return (if (!message.isGroup()) null
         else groups[message.fromId])
     }
 
-    fun getMessageActionGroup(message: VkMessage, groups: Map<Int, VkGroup>): VkGroup? {
+    fun getMessageActionGroup(message: VkMessageDomain, groups: Map<Int, VkGroupDomain>): VkGroupDomain? {
         return if (message.actionMemberId == null || message.actionMemberId >= 0) null
         else groups[message.actionMemberId]
     }
 
     fun getMessageAvatar(
-        message: VkMessage,
-        messageUser: VkUser?,
-        messageGroup: VkGroup?,
+        message: VkMessageDomain,
+        messageUser: VkUserDomain?,
+        messageGroup: VkGroupDomain?,
     ): String? {
         return when {
             message.isUser() -> messageUser?.photo200
@@ -111,17 +110,17 @@ object VkUtils {
     }
 
     fun getMessageTitle(
-        message: VkMessage,
-        defMessageUser: VkUser? = null,
-        defMessageGroup: VkGroup? = null,
-        profiles: Map<Int, VkUser>? = null,
-        groups: Map<Int, VkGroup>? = null,
+        message: VkMessageDomain,
+        defMessageUser: VkUserDomain? = null,
+        defMessageGroup: VkGroupDomain? = null,
+        profiles: Map<Int, VkUserDomain>? = null,
+        groups: Map<Int, VkGroupDomain>? = null,
     ): String? {
-        val messageUser: VkUser? =
+        val messageUser: VkUserDomain? =
             defMessageUser ?: if (profiles == null) null
             else profiles[message.fromId]
 
-        val messageGroup: VkGroup? =
+        val messageGroup: VkGroupDomain? =
             defMessageGroup ?: if (groups == null) null
             else groups[message.fromId]
 
@@ -134,24 +133,24 @@ object VkUtils {
 
     fun getConversationUser(
         conversation: VkConversationDomain,
-        profiles: Map<Int, VkUser>
-    ): VkUser? {
+        profiles: Map<Int, VkUserDomain>
+    ): VkUserDomain? {
         return if (!conversation.isUser()) null
         else profiles[conversation.id]
     }
 
     fun getConversationGroup(
         conversation: VkConversationDomain,
-        groups: Map<Int, VkGroup>
-    ): VkGroup? {
+        groups: Map<Int, VkGroupDomain>
+    ): VkGroupDomain? {
         return if (!conversation.isGroup()) null
         else groups[conversation.id]
     }
 
     fun getConversationAvatar(
         conversation: VkConversationDomain,
-        conversationUser: VkUser?,
-        conversationGroup: VkGroup?,
+        conversationUser: VkUserDomain?,
+        conversationGroup: VkGroupDomain?,
     ): String? {
         return when {
             conversation.isAccount() -> null
@@ -165,16 +164,16 @@ object VkUtils {
     fun getConversationTitle(
         context: Context,
         conversation: VkConversationDomain,
-        defConversationUser: VkUser? = null,
-        defConversationGroup: VkGroup? = null,
-        profiles: Map<Int, VkUser>? = null,
-        groups: Map<Int, VkGroup>? = null,
+        defConversationUser: VkUserDomain? = null,
+        defConversationGroup: VkGroupDomain? = null,
+        profiles: Map<Int, VkUserDomain>? = null,
+        groups: Map<Int, VkGroupDomain>? = null,
     ): String? {
-        val conversationUser: VkUser? =
+        val conversationUser: VkUserDomain? =
             defConversationUser ?: if (profiles == null) null
             else getConversationUser(conversation, profiles)
 
-        val conversationGroup: VkGroup? =
+        val conversationGroup: VkGroupDomain? =
             defConversationGroup ?: if (groups == null) null
             else getConversationGroup(conversation, groups)
 
@@ -189,37 +188,37 @@ object VkUtils {
 
     fun getConversationUserGroup(
         conversation: VkConversationDomain,
-        profiles: Map<Int, VkUser>,
-        groups: Map<Int, VkGroup>,
-    ): Pair<VkUser?, VkGroup?> {
-        val user: VkUser? = getConversationUser(conversation, profiles)
-        val group: VkGroup? = getConversationGroup(conversation, groups)
+        profiles: Map<Int, VkUserDomain>,
+        groups: Map<Int, VkGroupDomain>,
+    ): Pair<VkUserDomain?, VkGroupDomain?> {
+        val user: VkUserDomain? = getConversationUser(conversation, profiles)
+        val group: VkGroupDomain? = getConversationGroup(conversation, groups)
 
         return user to group
     }
 
     fun getMessageUserGroup(
-        message: VkMessage?,
-        profiles: Map<Int, VkUser>,
-        groups: Map<Int, VkGroup>,
-    ): Pair<VkUser?, VkGroup?> {
+        message: VkMessageDomain?,
+        profiles: Map<Int, VkUserDomain>,
+        groups: Map<Int, VkGroupDomain>,
+    ): Pair<VkUserDomain?, VkGroupDomain?> {
         if (message == null) return null to null
 
-        val user: VkUser? = getMessageUser(message, profiles)
-        val group: VkGroup? = getMessageGroup(message, groups)
+        val user: VkUserDomain? = getMessageUser(message, profiles)
+        val group: VkGroupDomain? = getMessageGroup(message, groups)
 
         return user to group
     }
 
     fun getMessageActionUserGroup(
-        message: VkMessage?,
-        profiles: Map<Int, VkUser>,
-        groups: Map<Int, VkGroup>,
-    ): Pair<VkUser?, VkGroup?> {
+        message: VkMessageDomain?,
+        profiles: Map<Int, VkUserDomain>,
+        groups: Map<Int, VkGroupDomain>,
+    ): Pair<VkUserDomain?, VkGroupDomain?> {
         if (message == null) return null to null
 
-        val user: VkUser? = getMessageActionUser(message, profiles)
-        val group: VkGroup? = getMessageActionGroup(message, groups)
+        val user: VkUserDomain? = getMessageActionUser(message, profiles)
+        val group: VkGroupDomain? = getMessageActionGroup(message, groups)
 
         return user to group
     }
@@ -241,16 +240,16 @@ object VkUtils {
         }
     }
 
-    fun isPreviousMessageSentFiveMinutesAgo(prevMessage: VkMessage?, message: VkMessage?) =
+    fun isPreviousMessageSentFiveMinutesAgo(prevMessage: VkMessageDomain?, message: VkMessageDomain?) =
         prevMessage != null && message != null && (message.date - prevMessage.date >= 300)
 
-    fun isPreviousMessageFromDifferentSender(prevMessage: VkMessage?, message: VkMessage?) =
+    fun isPreviousMessageFromDifferentSender(prevMessage: VkMessageDomain?, message: VkMessageDomain?) =
         prevMessage != null && message != null && prevMessage.fromId != message.fromId
 
-    fun parseForwards(baseForwards: List<BaseVkMessage>?): List<VkMessage>? {
+    fun parseForwards(baseForwards: List<VkMessageData>?): List<VkMessageDomain>? {
         if (baseForwards.isNullOrEmpty()) return null
 
-        val forwards = mutableListOf<VkMessage>()
+        val forwards = mutableListOf<VkMessageDomain>()
 
         for (baseForward in baseForwards) {
             forwards += baseForward.asVkMessage()
@@ -259,7 +258,7 @@ object VkUtils {
         return forwards
     }
 
-    fun parseReplyMessage(baseReplyMessage: BaseVkMessage?): VkMessage? {
+    fun parseReplyMessage(baseReplyMessage: VkMessageData?): VkMessageDomain? {
         if (baseReplyMessage == null) return null
 
         return baseReplyMessage.asVkMessage()
@@ -375,18 +374,18 @@ object VkUtils {
     }
 
     fun getActionMessageText(
-        message: VkMessage?,
+        message: VkMessageDomain?,
         youPrefix: String,
-        messageUser: VkUser?,
-        messageGroup: VkGroup?,
-        action: VkMessage.Action?,
-        actionUser: VkUser?,
-        actionGroup: VkGroup?,
+        messageUser: VkUserDomain?,
+        messageGroup: VkGroupDomain?,
+        action: VkMessageDomain.Action?,
+        actionUser: VkUserDomain?,
+        actionGroup: VkGroupDomain?,
     ): UiText? {
         if (message == null) return null
 
         return when (action) {
-            VkMessage.Action.CHAT_CREATE -> {
+            VkMessageDomain.Action.CHAT_CREATE -> {
                 val text = message.actionText ?: return null
 
                 val prefix = when {
@@ -402,7 +401,7 @@ object VkUtils {
                 )
             }
 
-            VkMessage.Action.CHAT_TITLE_UPDATE -> {
+            VkMessageDomain.Action.CHAT_TITLE_UPDATE -> {
                 val text = message.actionText ?: return null
 
                 val prefix = when {
@@ -418,7 +417,7 @@ object VkUtils {
                 )
             }
 
-            VkMessage.Action.CHAT_PHOTO_UPDATE -> {
+            VkMessageDomain.Action.CHAT_PHOTO_UPDATE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -429,7 +428,7 @@ object VkUtils {
                 UiText.ResourceParams(R.string.message_action_chat_photo_update, listOf(prefix))
             }
 
-            VkMessage.Action.CHAT_PHOTO_REMOVE -> {
+            VkMessageDomain.Action.CHAT_PHOTO_REMOVE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -440,7 +439,7 @@ object VkUtils {
                 UiText.ResourceParams(R.string.message_action_chat_photo_remove, listOf(prefix))
             }
 
-            VkMessage.Action.CHAT_KICK_USER -> {
+            VkMessageDomain.Action.CHAT_KICK_USER -> {
                 val memberId = message.actionMemberId ?: return null
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
@@ -468,7 +467,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_INVITE_USER -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER -> {
                 val memberId = message.actionMemberId ?: 0
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
@@ -499,7 +498,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER_BY_LINK -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -512,7 +511,7 @@ object VkUtils {
                 )
             }
 
-            VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER_BY_CALL -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -525,7 +524,7 @@ object VkUtils {
                 )
             }
 
-            VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -538,7 +537,7 @@ object VkUtils {
                 )
             }
 
-            VkMessage.Action.CHAT_PIN_MESSAGE -> {
+            VkMessageDomain.Action.CHAT_PIN_MESSAGE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -549,7 +548,7 @@ object VkUtils {
                 UiText.ResourceParams(R.string.message_action_chat_pin_message, listOf(prefix))
             }
 
-            VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
+            VkMessageDomain.Action.CHAT_UNPIN_MESSAGE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -560,7 +559,7 @@ object VkUtils {
                 UiText.ResourceParams(R.string.message_action_chat_unpin_message, listOf(prefix))
             }
 
-            VkMessage.Action.CHAT_SCREENSHOT -> {
+            VkMessageDomain.Action.CHAT_SCREENSHOT -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -571,7 +570,7 @@ object VkUtils {
                 UiText.ResourceParams(R.string.message_action_chat_screenshot, listOf(prefix))
             }
 
-            VkMessage.Action.CHAT_STYLE_UPDATE -> {
+            VkMessageDomain.Action.CHAT_STYLE_UPDATE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -587,18 +586,18 @@ object VkUtils {
 
     fun getActionMessageText(
         context: Context,
-        message: VkMessage?,
+        message: VkMessageDomain?,
         youPrefix: String,
-        messageUser: VkUser?,
-        messageGroup: VkGroup?,
-        action: VkMessage.Action?,
-        actionUser: VkUser?,
-        actionGroup: VkGroup?,
+        messageUser: VkUserDomain?,
+        messageGroup: VkGroupDomain?,
+        action: VkMessageDomain.Action?,
+        actionUser: VkUserDomain?,
+        actionGroup: VkGroupDomain?,
     ): SpannableString? {
         if (message == null) return null
 
         return when (action) {
-            VkMessage.Action.CHAT_CREATE -> {
+            VkMessageDomain.Action.CHAT_CREATE -> {
                 val text = message.actionText ?: return null
 
                 val prefix = when {
@@ -623,7 +622,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_TITLE_UPDATE -> {
+            VkMessageDomain.Action.CHAT_TITLE_UPDATE -> {
                 val text = message.actionText ?: return null
 
                 val prefix = when {
@@ -645,7 +644,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_PHOTO_UPDATE -> {
+            VkMessageDomain.Action.CHAT_PHOTO_UPDATE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -661,7 +660,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_PHOTO_REMOVE -> {
+            VkMessageDomain.Action.CHAT_PHOTO_REMOVE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -677,7 +676,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_KICK_USER -> {
+            VkMessageDomain.Action.CHAT_KICK_USER -> {
                 val memberId = message.actionMemberId ?: return null
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
@@ -721,7 +720,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_INVITE_USER -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER -> {
                 val memberId = message.actionMemberId ?: 0
                 val isUser = memberId > 0
                 val isGroup = memberId < 0
@@ -764,7 +763,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER_BY_LINK -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -779,7 +778,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER_BY_CALL -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -794,7 +793,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
+            VkMessageDomain.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -809,7 +808,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_PIN_MESSAGE -> {
+            VkMessageDomain.Action.CHAT_PIN_MESSAGE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -825,7 +824,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
+            VkMessageDomain.Action.CHAT_UNPIN_MESSAGE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -841,7 +840,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_SCREENSHOT -> {
+            VkMessageDomain.Action.CHAT_SCREENSHOT -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isGroup() -> messageGroup?.name
@@ -857,7 +856,7 @@ object VkUtils {
                 }
             }
 
-            VkMessage.Action.CHAT_STYLE_UPDATE -> {
+            VkMessageDomain.Action.CHAT_STYLE_UPDATE -> {
                 val prefix = when {
                     message.fromId == UserConfig.userId -> youPrefix
                     message.isUser() -> messageUser?.toString()
@@ -877,13 +876,13 @@ object VkUtils {
     }
 
     fun getActionConversationText(
-        message: VkMessage?,
+        message: VkMessageDomain?,
         youPrefix: String,
-        messageUser: VkUser? = null,
-        messageGroup: VkGroup? = null,
-        action: VkMessage.Action?,
-        actionUser: VkUser?,
-        actionGroup: VkGroup?,
+        messageUser: VkUserDomain? = null,
+        messageGroup: VkGroupDomain? = null,
+        action: VkMessageDomain.Action?,
+        actionUser: VkUserDomain?,
+        actionGroup: VkGroupDomain?,
     ): UiText? {
         return getActionMessageText(
             message = message,
@@ -898,13 +897,13 @@ object VkUtils {
 
     fun getActionConversationText(
         context: Context,
-        message: VkMessage?,
+        message: VkMessageDomain?,
         youPrefix: String,
-        messageUser: VkUser? = null,
-        messageGroup: VkGroup? = null,
-        action: VkMessage.Action?,
-        actionUser: VkUser?,
-        actionGroup: VkGroup?,
+        messageUser: VkUserDomain? = null,
+        messageGroup: VkGroupDomain? = null,
+        action: VkMessageDomain.Action?,
+        actionUser: VkUserDomain?,
+        actionGroup: VkGroupDomain?,
     ): String? {
         return getActionMessageText(
             context = context,
@@ -918,7 +917,7 @@ object VkUtils {
         )?.toString()
     }
 
-    fun getForwardsText(message: VkMessage?): UiText? {
+    fun getForwardsText(message: VkMessageDomain?): UiText? {
         if (message?.forwards.isNullOrEmpty()) return null
 
         return message?.forwards?.let { forwards ->
@@ -929,7 +928,7 @@ object VkUtils {
         }
     }
 
-    fun getAttachmentText(message: VkMessage?): UiText? {
+    fun getAttachmentText(message: VkMessageDomain?): UiText? {
         message?.geo?.let {
             return when (it.type) {
                 "point" -> UiText.Resource(R.string.message_geo_point)
@@ -955,7 +954,7 @@ object VkUtils {
         }
     }
 
-    fun getAttachmentConversationIcon(message: VkMessage?): UiImage? {
+    fun getAttachmentConversationIcon(message: VkMessageDomain?): UiImage? {
         return message?.attachments?.let { attachments ->
             if (attachments.isEmpty()) return null
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
@@ -974,7 +973,7 @@ object VkUtils {
 
     fun getAttachmentConversationIcon(
         context: Context,
-        message: VkMessage?,
+        message: VkMessageDomain?,
     ): Drawable? {
         if (message == null) return null
         return message.attachments?.let { attachments ->
@@ -1151,16 +1150,16 @@ object VkUtils {
         }
     }
 
-    fun getError(moshi: Moshi, jsonString: String?): ApiAnswer.Error {
-        var isOauthError = false
-
-        // TODO: 30/12/2023, Danil Nikolaev: write parsing error and deciding whether it is from oauth or api
-
-        try {
-            val oauthBaseErrorAdapter: JsonAdapter<BaseOauthError> =
-                moshi.adapter(BaseOauthError::class.java)
-
-            val oauthBaseError = oauthBaseErrorAdapter.fromJson(jsonString)
+//    fun getError(moshi: Moshi, jsonString: String?): ApiAnswer.Error {
+//        var isOauthError = false
+//
+//         TODO: 30/12/2023, Danil Nikolaev: write parsing error and deciding whether it is from oauth or api
+//
+//        try {
+//            val oauthBaseErrorAdapter: JsonAdapter<BaseOauthError> =
+//                moshi.adapter(BaseOauthError::class.java)
+//
+//            val oauthBaseError = oauthBaseErrorAdapter.fromJson(jsonString)
 
 //            val defaultError = moshi.fromJson(errorString, ApiError::class.java)
 //
@@ -1212,11 +1211,11 @@ object VkUtils {
 //                    else -> defaultError
 //                }
 
-            return ApiAnswer.Error(ApiError())
-        } catch (e: Exception) {
-            return ApiAnswer.Error(ApiError(throwable = e))
-        }
-    }
+//            return ApiAnswer.Error(ApiError())
+//        } catch (e: Exception) {
+//            return ApiAnswer.Error(ApiError(throwable = e))
+//        }
+//    }
 
     fun visualizeMentions(
         messageText: String,
@@ -1328,9 +1327,9 @@ object VkUtils {
     }
 
     fun VkConversationDomain.fill(
-        lastMessage: VkMessage?,
-        profiles: HashMap<Int, VkUser> = hashMapOf(),
-        groups: HashMap<Int, VkGroup> = hashMapOf()
+        lastMessage: VkMessageDomain?,
+        profiles: HashMap<Int, VkUserDomain> = hashMapOf(),
+        groups: HashMap<Int, VkGroupDomain> = hashMapOf()
     ): VkConversationDomain {
         val conversation = this
 

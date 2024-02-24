@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkVoiceMessage
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkVoiceMessage(
     val id: Int,
     val owner_id: Int,
@@ -15,7 +14,7 @@ data class BaseVkVoiceMessage(
     val access_key: String,
     val transcript_state: String?,
     val transcript: String?
-) : Parcelable {
+) {
 
     fun asVkVoiceMessage() = VkVoiceMessage(
         id = id,

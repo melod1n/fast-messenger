@@ -3,9 +3,9 @@ package com.meloda.fast.api.model.presentation
 import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.model.ActionState
 import com.meloda.fast.api.model.ConversationPeerType
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkMessage
-import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.VkUserDomain
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.screens.conversations.model.ConversationOption
 
@@ -25,9 +25,9 @@ data class VkConversationUi(
     val isUnread: Boolean,
     val isAccount: Boolean,
     val isOnline: Boolean,
-    val lastMessage: VkMessage?,
-    val conversationUser: VkUser?,
-    val conversationGroup: VkGroup?,
+    val lastMessage: VkMessageDomain?,
+    val conversationUser: VkUserDomain?,
+    val conversationGroup: VkGroupDomain?,
     val peerType: ConversationPeerType,
     val interactionText: String?,
     val isExpanded: Boolean,

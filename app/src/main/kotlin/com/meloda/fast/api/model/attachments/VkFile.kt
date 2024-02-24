@@ -2,10 +2,11 @@ package com.meloda.fast.api.model.attachments
 
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.base.attachments.BaseVkFile
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class VkFile(
     val id: Int,
     val ownerId: Int,

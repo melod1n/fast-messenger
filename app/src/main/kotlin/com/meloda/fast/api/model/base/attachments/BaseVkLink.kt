@@ -1,9 +1,10 @@
 package com.meloda.fast.api.model.base.attachments
 
 import com.meloda.fast.api.model.attachments.VkLink
+import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkLink(
     val url: String,
     val title: String?,

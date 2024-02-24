@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
-import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.VkMessageDomain
 import com.meloda.fast.screens.messages.MessagesHistoryViewModel
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
 import dev.chrisbanes.haze.HazeState
@@ -101,8 +101,8 @@ fun MessagesHistoryScreenContent(
     onEmojiLongClicked: () -> Unit,
     onSendClicked: () -> Unit,
     onSendLongClicked: () -> Unit,
-    onMessageAvatarClicked: (message: VkMessage) -> Unit,
-    onMessageAvatarLongClicked: (message: VkMessage) -> Unit,
+    onMessageAvatarClicked: (message: VkMessageDomain) -> Unit,
+    onMessageAvatarLongClicked: (message: VkMessageDomain) -> Unit,
     onTopBarMenuClick: (id: Int) -> Unit,
     screenState: MessagesHistoryScreenState,
 ) {

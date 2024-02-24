@@ -8,13 +8,13 @@ import com.meloda.fast.api.VkUtils.fill
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkMessage
-import com.meloda.fast.api.model.VkUser
+import com.meloda.fast.api.model.VkGroupDomain
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.VkUserDomain
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkVideo
-import com.meloda.fast.api.model.base.BaseVkGroup
-import com.meloda.fast.api.model.base.BaseVkUser
+import com.meloda.fast.api.model.base.VkGroupData
+import com.meloda.fast.api.model.base.VkUserData
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
@@ -80,7 +80,7 @@ class MessagesHistoryViewModelImpl(
 
     private var conversation: VkConversationUi by Delegates.notNull()
 
-    private val messages = MutableStateFlow<List<VkMessage>>(emptyList())
+    private val messages = MutableStateFlow<List<VkMessageDomain>>(emptyList())
 
     // TODO: 25.08.2023, Danil Nikolaev: extract to DI
     private val imageLoader by lazy {
@@ -178,12 +178,12 @@ class MessagesHistoryViewModelImpl(
                     val answer = response.response ?: return@sendRequest
 
                     val profiles = answer.profiles
-                        ?.map(BaseVkUser::mapToDomain)
-                        ?.toMap(hashMapOf(), VkUser::id) ?: hashMapOf()
+                        ?.map(VkUserData::mapToDomain)
+                        ?.toMap(hashMapOf(), VkUserDomain::id) ?: hashMapOf()
 
                     val groups = answer.groups
-                        ?.map(BaseVkGroup::mapToDomain)
-                        ?.toMap(hashMapOf(), VkGroup::id) ?: hashMapOf()
+                        ?.map(VkGroupData::mapToDomain)
+                        ?.toMap(hashMapOf(), VkGroupDomain::id) ?: hashMapOf()
 
                     val newMessages = answer.items
                         .map { message -> message.asVkMessage() }
@@ -340,7 +340,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     fun editMessage(
-        originalMessage: VkMessage,
+        originalMessage: VkMessageDomain,
         peerId: Int,
         messageId: Int,
         newText: String? = null,
@@ -650,21 +650,21 @@ class MessagesHistoryViewModelImpl(
 data class MessagesLoadedEvent(
     val count: Int,
     val conversations: HashMap<Int, VkConversationDomain>,
-    val messages: List<VkMessage>,
-    val profiles: HashMap<Int, VkUser>,
-    val groups: HashMap<Int, VkGroup>,
+    val messages: List<VkMessageDomain>,
+    val profiles: HashMap<Int, VkUserDomain>,
+    val groups: HashMap<Int, VkGroupDomain>,
 ) : VkEvent()
 
 data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) :
     VkEvent()
 
-data class MessagesPinEvent(val message: VkMessage) : VkEvent()
+data class MessagesPinEvent(val message: VkMessageDomain) : VkEvent()
 
 object MessagesUnpinEvent : VkEvent()
 
 data class MessagesDeleteEvent(val peerId: Int, val messagesIds: List<Int>) : VkEvent()
 
-data class MessagesEditEvent(val message: VkMessage) : VkEvent()
+data class MessagesEditEvent(val message: VkMessageDomain) : VkEvent()
 
 data class MessagesReadEvent(
     val isOut: Boolean,
@@ -673,7 +673,7 @@ data class MessagesReadEvent(
 ) : VkEvent()
 
 data class MessagesNewEvent(
-    val message: VkMessage,
-    val profiles: HashMap<Int, VkUser>,
-    val groups: HashMap<Int, VkGroup>,
+    val message: VkMessageDomain,
+    val profiles: HashMap<Int, VkUserDomain>,
+    val groups: HashMap<Int, VkGroupDomain>,
 ) : VkEvent()

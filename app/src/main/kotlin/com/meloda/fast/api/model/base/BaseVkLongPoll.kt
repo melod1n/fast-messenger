@@ -1,12 +1,11 @@
 package com.meloda.fast.api.model.base
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkLongPoll(
     val server: String,
     val key: String,
     val ts: Int,
     val pts: Int
-) : Parcelable
+)

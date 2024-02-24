@@ -1,6 +1,8 @@
 package com.meloda.fast.data.messages
 
-import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.base.ApiResponse
+import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.base.BaseVkLongPoll
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
@@ -14,16 +16,22 @@ import com.meloda.fast.api.network.messages.MessagesPinMessageRequest
 import com.meloda.fast.api.network.messages.MessagesRemoveChatUserRequest
 import com.meloda.fast.api.network.messages.MessagesSendRequest
 import com.meloda.fast.api.network.messages.MessagesUnPinMessageRequest
+import com.meloda.fast.base.RestApiErrorDomain
+import com.meloda.fast.base.mapResult
 import com.meloda.fast.data.longpoll.LongPollApi
+import com.meloda.fast.data.longpoll.LongPollUpdates
+import com.slack.eithernet.ApiResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MessagesRepository(
     private val messagesApi: MessagesApi,
     private val longPollApi: LongPollApi,
 ) {
 
-    suspend fun store(message: VkMessage) = store(listOf(message))
+    suspend fun store(message: VkMessageDomain) = store(listOf(message))
 
-    suspend fun store(messages: List<VkMessage>) {}
+    suspend fun store(messages: List<VkMessageDomain>) {}
 
     suspend fun getCached(peerId: Int) {}
 
@@ -36,8 +44,14 @@ class MessagesRepository(
     suspend fun markAsImportant(params: MessagesMarkAsImportantRequest) =
         messagesApi.markAsImportant(params.map)
 
-    suspend fun getLongPollServer(params: MessagesGetLongPollServerRequest) =
-        messagesApi.getLongPollServer(params.map)
+    suspend fun getLongPollServer(
+        params: MessagesGetLongPollServerRequest
+    ): ApiResult<ApiResponse<BaseVkLongPoll>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        messagesApi.getLongPollServer(params.map).mapResult(
+            successMapper = { response -> response },
+            errorMapper = { error -> error?.toDomain() }
+        )
+    }
 
     suspend fun pin(params: MessagesPinMessageRequest) =
         messagesApi.pin(params.map)
@@ -54,7 +68,13 @@ class MessagesRepository(
     suspend fun getLongPollUpdates(
         serverUrl: String,
         params: LongPollGetUpdatesRequest,
-    ) = longPollApi.getResponse(serverUrl, params.map)
+    ): ApiResult<LongPollUpdates, RestApiErrorDomain> =
+        withContext(Dispatchers.IO) {
+            longPollApi.getResponse(serverUrl, params.map).mapResult(
+                successMapper = { response -> response },
+                errorMapper = { error -> error?.toDomain() }
+            )
+        }
 
     suspend fun getById(params: MessagesGetByIdRequest) =
         messagesApi.getById(params.map)

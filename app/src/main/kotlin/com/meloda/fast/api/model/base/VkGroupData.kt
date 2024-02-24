@@ -1,11 +1,10 @@
 package com.meloda.fast.api.model.base
 
-import android.os.Parcelable
-import com.meloda.fast.api.model.VkGroup
-import kotlinx.parcelize.Parcelize
+import com.meloda.fast.api.model.VkGroupDomain
+import com.squareup.moshi.JsonClass
 
-@Parcelize
-data class BaseVkGroup(
+@JsonClass(generateAdapter = true)
+data class VkGroupData(
     val id: Int,
     val name: String,
     val screen_name: String,
@@ -18,9 +17,9 @@ data class BaseVkGroup(
     val photo_100: String?,
     val photo_200: String?,
     val members_count: Int?
-) : Parcelable {
+) {
 
-    fun mapToDomain() = VkGroup(
+    fun mapToDomain() = VkGroupDomain(
         id = -id,
         name = name,
         screenName = screen_name,

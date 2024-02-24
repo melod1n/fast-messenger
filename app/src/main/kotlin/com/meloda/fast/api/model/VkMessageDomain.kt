@@ -5,14 +5,13 @@ import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.base.VkMessageData
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.util.TimeUtils
 import kotlinx.parcelize.Parcelize
 
 @Immutable
-@Parcelize
-data class VkMessage(
+data class VkMessageDomain(
     val id: Int,
     val text: String? = null,
     val isOut: Boolean,
@@ -30,19 +29,19 @@ data class VkMessage(
 
     val important: Boolean = false,
 
-    val forwards: List<VkMessage>? = null,
+    val forwards: List<VkMessageDomain>? = null,
     val attachments: List<VkAttachment>? = null,
-    val replyMessage: VkMessage? = null,
+    val replyMessage: VkMessageDomain? = null,
 
-    val geo: BaseVkMessage.Geo? = null,
+    val geo: VkMessageData.Geo? = null,
 
-    val user: VkUser? = null,
-    val group: VkGroup? = null,
-    val actionUser: VkUser? = null,
-    val actionGroup: VkGroup? = null,
+    val user: VkUserDomain? = null,
+    val group: VkGroupDomain? = null,
+    val actionUser: VkUserDomain? = null,
+    val actionGroup: VkGroupDomain? = null,
 
     val state: State = State.Sent
-) : Parcelable {
+)  {
 
     fun isPeerChat() = peerId > 2_000_000_000
 

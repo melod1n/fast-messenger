@@ -1,10 +1,9 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import com.meloda.fast.api.model.attachments.VkVideo
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.JsonClass
 
-@Parcelize
+@JsonClass(generateAdapter = true)
 data class BaseVkVideo(
     val id: Int,
     val title: String,
@@ -14,28 +13,28 @@ data class BaseVkVideo(
     val date: Int,
     val comments: Int,
     val description: String,
-    val player: String,
-    val added: Int,
+    val player: String?,
+    val added: Int = 0,
     val type: String,
     val views: Int,
-    val can_comment: Int,
-    val can_edit: Int,
-    val can_like: Int,
-    val can_repost: Int,
-    val can_subscribe: Int,
-    val can_add_to_faves: Int,
-    val can_add: Int,
-    val can_attach_link: Int,
+    val can_comment: Int = 0,
+    val can_edit: Int = 0,
+    val can_like: Int = 0,
+    val can_repost: Int = 0,
+    val can_subscribe: Int = 0,
+    val can_add_to_faves: Int = 0,
+    val can_add: Int = 0,
+    val can_attach_link: Int = 0,
     val access_key: String?,
     val owner_id: Int,
-    val ov_id: String,
-    val is_favorite: Boolean,
+    val ov_id: String?,
+    val is_favorite: Boolean = false,
     val track_code: String,
     val image: List<Image>,
     val first_frame: List<FirstFrame>,
-    val files: File,
-    val timeline_thumbs: TimelineThumbs,
-    val ads: Ads
+    val files: File?,
+    val timeline_thumbs: TimelineThumbs?,
+    val ads: Ads?
 ) : BaseVkAttachment() {
 
     fun asVkVideo() = VkVideo(
@@ -47,13 +46,13 @@ data class BaseVkVideo(
         title = title
     )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Image(
         val width: Int,
         val height: Int,
         val url: String,
         val with_padding: Int?
-    ) : Parcelable {
+    ) {
 
         fun asVideoImage() = VkVideo.VideoImage(
             width = width,
@@ -63,14 +62,14 @@ data class BaseVkVideo(
         )
     }
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class FirstFrame(
         val height: Int,
         val width: Int,
         val url: String
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class File(
         val mp4_240: String?,
         val mp4_360: String?,
@@ -84,9 +83,9 @@ data class BaseVkVideo(
         val hls_ondemand: String,
         val dash_ondemand: String,
         val failover_host: String
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class TimelineThumbs(
         val count_per_image: Int,
         val count_per_row: Int,
@@ -96,9 +95,9 @@ data class BaseVkVideo(
         val links: List<String>,
         val is_uv: Boolean,
         val frequency: Int
-    ) : Parcelable
+    )
 
-    @Parcelize
+    @JsonClass(generateAdapter = true)
     data class Ads(
         val slot_id: Int,
         val timeout: Int,
@@ -106,9 +105,9 @@ data class BaseVkVideo(
         val params: Params,
         val sections: List<String>,
         val midroll_percents: List<Float>
-    ) : Parcelable {
+    ) {
 
-        @Parcelize
+        @JsonClass(generateAdapter = true)
         data class Params(
             val vk_id: Int,
             val duration: Int,
@@ -134,7 +133,7 @@ data class BaseVkVideo(
             val groupId: Int,
             val vk_catid: Int,
             val is_xz_video: Int
-        ) : Parcelable
+        )
     }
 
 }

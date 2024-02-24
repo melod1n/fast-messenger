@@ -1,7 +1,9 @@
 package com.meloda.fast.api.base
 
-import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import com.meloda.fast.base.RestApiErrorDomain
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import okio.IOException
 
 open class ApiError(
@@ -12,9 +14,14 @@ open class ApiError(
     @SerializedName("error_type")
     val errorType: String? = null,
     val throwable: Throwable? = null
-) : IOException() {
+) : IOException()
 
-    override fun toString(): String {
-        return Gson().toJson(this)
-    }
+@JsonClass(generateAdapter = true)
+data class RestApiError(
+    @Json(name = "code") val code: Int,
+    @Json(name = "message") val message: String
+) {
+    fun toDomain(): RestApiErrorDomain = RestApiErrorDomain(
+        code = code, message = message
+    )
 }

@@ -1,7 +1,7 @@
 package com.meloda.fast.screens.messages.model
 
 import androidx.compose.runtime.Immutable
-import com.meloda.fast.api.model.VkMessage
+import com.meloda.fast.api.model.VkMessageDomain
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.model.base.UiImage
 
@@ -9,7 +9,7 @@ import com.meloda.fast.model.base.UiImage
 data class MessagesHistoryScreenState(
     val title: String,
     val avatar: UiImage?,
-    val messages: List<VkMessage>,
+    val messages: List<VkMessageDomain>,
     val message: String,
     val attachments: List<VkAttachment>,
     val isLoading: Boolean,

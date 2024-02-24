@@ -1,14 +1,16 @@
 package com.meloda.fast.data.messages
 
 import com.meloda.fast.api.base.ApiResponse
+import com.meloda.fast.api.base.RestApiError
 import com.meloda.fast.api.model.base.BaseVkChat
 import com.meloda.fast.api.model.base.BaseVkLongPoll
-import com.meloda.fast.api.model.base.BaseVkMessage
+import com.meloda.fast.api.model.base.VkMessageData
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
 import com.meloda.fast.api.network.messages.MessagesGetConversationMembersResponse
 import com.meloda.fast.api.network.messages.MessagesGetHistoryResponse
 import com.meloda.fast.api.network.messages.MessagesUrls
+import com.slack.eithernet.ApiResult
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
@@ -29,11 +31,11 @@ interface MessagesApi {
 
     @FormUrlEncoded
     @POST(MessagesUrls.GetLongPollServer)
-    suspend fun getLongPollServer(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<BaseVkLongPoll>>
+    suspend fun getLongPollServer(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<BaseVkLongPoll>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.Pin)
-    suspend fun pin(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<BaseVkMessage>>
+    suspend fun pin(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<VkMessageData>>
 
     @FormUrlEncoded
     @POST(MessagesUrls.Unpin)

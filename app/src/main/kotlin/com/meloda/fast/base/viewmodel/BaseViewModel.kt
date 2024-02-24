@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.UserBannedError
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
+import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +45,43 @@ abstract class BaseViewModel : ViewModel() {
                 null
             }
         }
+    }
+
+    protected suspend fun <T: Any, E: Any> sendRequestNew(
+        request: suspend () -> ApiResult<T, E>,
+        onResponse: ResponseHandler<T>? = null,
+        onError: ErrorHandler? = null,
+        onStart: (suspend () -> Unit)? = null,
+        onEnd: (suspend () -> Unit)? = null,
+        onAnyResult: (suspend () -> Unit)? = null,
+        coroutineContext: CoroutineContext = Dispatchers.IO
+    ): Job {
+        val job = viewModelScope.launch(coroutineContext) {
+            onStart?.invoke()
+
+            when (val response = request.invoke()) {
+
+//                is ApiAnswer.Error -> {
+//                    onError?.handleError(response.error) ?: checkErrors(response.error)
+//                    onAnyResult?.invoke()
+//                }
+//
+//                is ApiAnswer.Success -> {
+//                    onResponse?.handleResponse(response.data)
+//                    onAnyResult?.invoke()
+//                }
+
+                else -> {}
+            }
+        }
+
+        job.invokeOnCompletion {
+            viewModelScope.launch {
+                onEnd?.invoke()
+            }
+        }
+
+        return job
     }
 
     protected suspend fun <T> sendRequest(
