@@ -8,5 +8,4 @@ import kotlinx.parcelize.Parcelize
 open class VkAttachment : Parcelable {
 
     open fun asString(withAccessKey: Boolean = true) = ""
-
 }

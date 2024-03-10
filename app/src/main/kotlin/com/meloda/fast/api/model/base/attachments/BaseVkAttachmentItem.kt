@@ -1,9 +1,10 @@
 package com.meloda.fast.api.model.base.attachments
 
-import android.os.Parcelable
 import android.util.Log
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+
+// TODO: 10/03/2024, Danil Nikolaev: refactor
 
 @JsonClass(generateAdapter = true)
 data class BaseVkAttachmentItem(

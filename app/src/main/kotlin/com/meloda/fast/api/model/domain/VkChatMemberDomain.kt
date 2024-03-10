@@ -1,10 +1,10 @@
-package com.meloda.fast.api.model
+package com.meloda.fast.api.model.domain
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class VkChatMember(
+data class VkChatMemberDomain(
     val memberId: Int,
     val invitedBy: Int,
     val joinDate: Int,

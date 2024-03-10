@@ -3,9 +3,9 @@ package com.meloda.fast.database
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.meloda.fast.api.base.AttachmentClassNameIsEmptyException
-import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.base.VkMessageData
+import com.meloda.fast.api.model.data.VkMessageData
 import org.json.JSONObject
 
 @Suppress("UnnecessaryVariable")

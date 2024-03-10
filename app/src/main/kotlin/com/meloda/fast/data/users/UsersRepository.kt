@@ -1,6 +1,6 @@
 package com.meloda.fast.data.users
 
-import com.meloda.fast.api.model.VkUserDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.network.users.UsersGetRequest
 
 class UsersRepository(

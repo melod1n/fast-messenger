@@ -8,12 +8,7 @@ import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkUtils
-import com.meloda.fast.api.model.ActionState
-import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroupDomain
-import com.meloda.fast.api.model.VkMessageDomain
-import com.meloda.fast.api.model.VkUserDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isFalse
@@ -282,7 +277,7 @@ data class VkConversationDomain(
         isBirthday = extractBirthday(),
         isUnread = extractReadCondition(),
         isAccount = isAccount(),
-        isOnline = !isAccount() && conversationUser?.online == true,
+        isOnline = !isAccount() && conversationUser?.onlineStatus?.isOnline() == true,
         lastMessage = lastMessage,
         conversationUser = conversationUser,
         conversationGroup = conversationGroup,
@@ -291,4 +286,42 @@ data class VkConversationDomain(
         isExpanded = false,
         options = ImmutableList.of()
     )
+
+    sealed class ActionState {
+        data object Phantom : ActionState()
+        data object CallInProgress : ActionState()
+        data object None : ActionState()
+
+        companion object {
+            fun parse(isPhantom: Boolean, isCallInProgress: Boolean): ActionState {
+                return when {
+                    isPhantom -> Phantom
+                    isCallInProgress -> CallInProgress
+                    else -> None
+                }
+            }
+        }
+    }
+
+    @Parcelize
+    sealed class ConversationPeerType : Parcelable {
+        data object User : ConversationPeerType()
+        data object Group : ConversationPeerType()
+        data object Chat : ConversationPeerType()
+
+        fun isUser() = this == User
+        fun isGroup() = this == Group
+        fun isChat() = this == Chat
+
+        companion object {
+            fun parse(type: String): ConversationPeerType {
+                return when (type) {
+                    "user" -> User
+                    "group" -> Group
+                    else -> Chat
+                }
+            }
+        }
+    }
+
 }

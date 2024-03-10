@@ -5,8 +5,8 @@ import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroupDomain
-import com.meloda.fast.api.model.VkUserDomain
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.base.viewmodel.VkEventCallback

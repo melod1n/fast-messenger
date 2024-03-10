@@ -1,7 +1,7 @@
 package com.meloda.fast.data.users
 
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.model.base.VkUserData
+import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.users.UsersUrls
 import retrofit2.http.FieldMap
