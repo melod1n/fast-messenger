@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
-import com.meloda.fast.api.model.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.screens.messages.MessagesHistoryViewModel
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
 import dev.chrisbanes.haze.HazeState

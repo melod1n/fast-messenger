@@ -1,4 +1,4 @@
-package com.meloda.fast.api.model
+package com.meloda.fast.api.model.domain
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

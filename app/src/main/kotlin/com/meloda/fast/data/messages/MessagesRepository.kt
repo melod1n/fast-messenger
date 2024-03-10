@@ -1,8 +1,8 @@
 package com.meloda.fast.data.messages
 
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.model.VkMessageDomain
-import com.meloda.fast.api.model.base.BaseVkLongPoll
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
@@ -46,7 +46,7 @@ class MessagesRepository(
 
     suspend fun getLongPollServer(
         params: MessagesGetLongPollServerRequest
-    ): ApiResult<ApiResponse<BaseVkLongPoll>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<ApiResponse<VkLongPollData>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         messagesApi.getLongPollServer(params.map).mapResult(
             successMapper = { response -> response },
             errorMapper = { error -> error?.toDomain() }

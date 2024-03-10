@@ -1,9 +1,9 @@
 package com.meloda.fast.api.longpoll
 
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroupDomain
-import com.meloda.fast.api.model.VkMessageDomain
-import com.meloda.fast.api.model.VkUserDomain
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 
 sealed class LongPollEvent {
 

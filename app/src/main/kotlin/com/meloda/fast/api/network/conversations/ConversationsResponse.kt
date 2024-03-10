@@ -1,12 +1,12 @@
 package com.meloda.fast.api.network.conversations
 
 import com.meloda.fast.api.VkUtils.fill
-import com.meloda.fast.api.model.VkGroupDomain
-import com.meloda.fast.api.model.VkMessageDomain
-import com.meloda.fast.api.model.VkUserDomain
-import com.meloda.fast.api.model.base.VkGroupData
-import com.meloda.fast.api.model.base.VkMessageData
-import com.meloda.fast.api.model.base.VkUserData
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
+import com.meloda.fast.api.model.data.VkGroupData
+import com.meloda.fast.api.model.data.VkMessageData
+import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.data.VkConversationData
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.ext.toMap

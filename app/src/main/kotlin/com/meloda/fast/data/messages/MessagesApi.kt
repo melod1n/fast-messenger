@@ -2,9 +2,9 @@ package com.meloda.fast.data.messages
 
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.base.RestApiError
-import com.meloda.fast.api.model.base.BaseVkChat
-import com.meloda.fast.api.model.base.BaseVkLongPoll
-import com.meloda.fast.api.model.base.VkMessageData
+import com.meloda.fast.api.model.data.VkChatData
+import com.meloda.fast.api.model.data.VkLongPollData
+import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
 import com.meloda.fast.api.network.messages.MessagesGetConversationMembersResponse
@@ -31,7 +31,7 @@ interface MessagesApi {
 
     @FormUrlEncoded
     @POST(MessagesUrls.GetLongPollServer)
-    suspend fun getLongPollServer(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<BaseVkLongPoll>, RestApiError>
+    suspend fun getLongPollServer(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<VkLongPollData>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.Pin)
@@ -59,7 +59,7 @@ interface MessagesApi {
 
     @FormUrlEncoded
     @POST(MessagesUrls.GetChat)
-    suspend fun getChat(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<BaseVkChat>>
+    suspend fun getChat(@FieldMap params: Map<String, String>): ApiAnswer<ApiResponse<VkChatData>>
 
     @FormUrlEncoded
     @POST(MessagesUrls.GetConversationMembers)

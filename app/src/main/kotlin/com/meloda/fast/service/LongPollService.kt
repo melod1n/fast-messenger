@@ -14,7 +14,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.base.ApiError
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
-import com.meloda.fast.api.model.base.BaseVkLongPoll
+import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
@@ -194,7 +194,7 @@ class LongPollService : Service() {
         }
     }
 
-    private suspend fun getServerInfo(): BaseVkLongPoll? {
+    private suspend fun getServerInfo(): VkLongPollData? {
         val response = repository.getLongPollServer(
             MessagesGetLongPollServerRequest(
                 needPts = true,
@@ -210,7 +210,7 @@ class LongPollService : Service() {
         )
     }
 
-    private suspend fun getUpdatesResponse(server: BaseVkLongPoll): LongPollUpdates? {
+    private suspend fun getUpdatesResponse(server: VkLongPollData): LongPollUpdates? {
         val response = repository.getLongPollUpdates(
             serverUrl = "https://${server.server}",
             params = LongPollGetUpdatesRequest(

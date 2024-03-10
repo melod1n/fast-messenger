@@ -5,7 +5,6 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.VkUrls
-import com.meloda.fast.base.NullPrimitiveAdapter
 import com.meloda.fast.base.ResponseConverterFactory
 import com.meloda.fast.base.util.MoshiConverter
 import com.slack.eithernet.ApiResultCallAdapterFactory
@@ -20,11 +19,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 val networkModule = module {
-    single {
-        Moshi.Builder()
-            .add(NullPrimitiveAdapter())
-            .build()
-    }
+    single { Moshi.Builder().build() }
     single { MoshiConverter(get()) }
     single { ChuckerCollector(get()) }
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }

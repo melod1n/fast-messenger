@@ -12,10 +12,9 @@ import android.text.style.StyleSpan
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.meloda.fast.R
-import com.meloda.fast.api.base.ApiError
-import com.meloda.fast.api.model.VkGroupDomain
-import com.meloda.fast.api.model.VkMessageDomain
-import com.meloda.fast.api.model.VkUserDomain
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.attachments.VkAudio
 import com.meloda.fast.api.model.attachments.VkCall
@@ -36,15 +35,12 @@ import com.meloda.fast.api.model.attachments.VkVoiceMessage
 import com.meloda.fast.api.model.attachments.VkWall
 import com.meloda.fast.api.model.attachments.VkWallReply
 import com.meloda.fast.api.model.attachments.VkWidget
-import com.meloda.fast.api.model.base.VkMessageData
+import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.network.BaseOauthError
 import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
 
 @Suppress("MemberVisibilityCanBePrivate")
 object VkUtils {

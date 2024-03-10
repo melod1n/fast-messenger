@@ -1,10 +1,11 @@
 package com.meloda.fast.api.network.messages
 
-import android.os.Parcelable
-import com.meloda.fast.api.model.base.*
+import com.meloda.fast.api.model.data.VkChatMemberData
 import com.meloda.fast.api.model.data.VkConversationData
+import com.meloda.fast.api.model.data.VkGroupData
+import com.meloda.fast.api.model.data.VkMessageData
+import com.meloda.fast.api.model.data.VkUserData
 import com.squareup.moshi.JsonClass
-import kotlinx.parcelize.Parcelize
 
 
 data class MessagesGetHistoryResponse(
@@ -26,7 +27,7 @@ data class MessagesGetByIdResponse(
 @JsonClass(generateAdapter = true)
 data class MessagesGetConversationMembersResponse(
     val count: Int,
-    val items: List<BaseVkChatMember> = emptyList(),
+    val items: List<VkChatMemberData> = emptyList(),
     val profiles: List<VkUserData>?,
     val groups: List<VkGroupData>?
 )

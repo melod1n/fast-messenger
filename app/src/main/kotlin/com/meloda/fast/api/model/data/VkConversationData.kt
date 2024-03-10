@@ -1,9 +1,8 @@
 package com.meloda.fast.api.model.data
 
-import com.meloda.fast.api.model.VkGroupDomain
-import com.meloda.fast.api.model.VkMessageDomain
-import com.meloda.fast.api.model.VkUserDomain
-import com.meloda.fast.api.model.base.VkMessageData
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.model.base.attachments.BaseVkGroupCall
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.squareup.moshi.JsonClass
