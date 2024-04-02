@@ -18,7 +18,7 @@ import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.longpoll.LongPollUpdates
-import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.data.messages.domain.repository.MessagesRepository
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.NotificationsUtils
 import com.slack.eithernet.ApiException
@@ -205,7 +205,7 @@ class LongPollService : Service() {
         println("$TAG: serverInfoResponse: $response")
 
         return response.fold(
-            onSuccess = { value -> value.response },
+            onSuccess = { value -> value },
             onFailure = { null }
         )
     }

@@ -1,4 +1,4 @@
-package com.meloda.fast.data.messages
+package com.meloda.fast.data.messages.data.service
 
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.base.RestApiError
@@ -14,7 +14,7 @@ import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
-interface MessagesApi {
+interface MessagesService {
 
     @FormUrlEncoded
     @POST(MessagesUrls.GetHistory)

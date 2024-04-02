@@ -8,6 +8,7 @@ import com.meloda.fast.api.model.data.VkUserData
 import com.squareup.moshi.JsonClass
 
 
+@JsonClass(generateAdapter = true)
 data class MessagesGetHistoryResponse(
     val count: Int,
     val items: List<VkMessageData> = emptyList(),

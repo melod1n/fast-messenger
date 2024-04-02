@@ -47,8 +47,6 @@ val networkModule = module {
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .addConverterFactory(MoshiConverterFactory.create(get()))
             .addConverterFactory(ResponseConverterFactory(get<MoshiConverter>()))
-//            .addConverterFactory(GsonConverterFactory.create(get()))
-//            .addCallAdapterFactory(ResultCallFactory(get()))
             .client(get())
             .build()
     }

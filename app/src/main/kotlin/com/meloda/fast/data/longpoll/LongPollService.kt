@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.QueryMap
 import retrofit2.http.Url
 
-interface LongPollApi {
+interface LongPollService {
 
     @GET
     suspend fun getResponse(

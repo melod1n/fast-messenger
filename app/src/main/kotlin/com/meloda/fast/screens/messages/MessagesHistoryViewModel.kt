@@ -3,23 +3,31 @@ package com.meloda.fast.screens.messages
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
+import coil.request.ImageRequest
+import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkUtils.fill
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
+import com.meloda.fast.api.model.data.VkGroupData
+import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
+import com.meloda.fast.base.processState
 import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
-import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.data.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
 import com.meloda.fast.ext.emitOnMainScope
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
+import com.meloda.fast.ext.toMap
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
@@ -46,7 +54,7 @@ interface MessagesHistoryViewModel {
 }
 
 class MessagesHistoryViewModelImpl(
-    private val messagesRepository: MessagesRepository,
+    private val messagesUseCase: MessagesUseCase,
     updatesParser: LongPollUpdatesParser,
     private val photosRepository: PhotosRepository,
     private val filesRepository: FilesRepository,
@@ -136,10 +144,66 @@ class MessagesHistoryViewModelImpl(
 
     }
 
-    // TODO: 25.08.2023, Danil Nikolaev: rewrite
     private fun loadMessagesHistory() {
-        viewModelScope.launch(Dispatchers.IO) {
-            screenState.setValue { old -> old.copy(isLoading = true) }
+        messagesUseCase.getHistory(
+            count = 100,
+            offset = null,
+            peerId = conversation.conversationId,
+            extended = true,
+            startMessageId = null,
+            rev = null,
+            fields = VKConstants.ALL_FIELDS
+        ).listenValue { state ->
+            state.processState(
+                error = { error -> {} },
+                success = { response ->
+                    val profiles = response.profiles
+                        ?.map(VkUserData::mapToDomain)
+                        ?.toMap(hashMapOf(), VkUserDomain::id) ?: hashMapOf()
+                    val groups = response.groups
+                        ?.map(VkGroupData::mapToDomain)
+                        ?.toMap(hashMapOf(), VkGroupDomain::id) ?: hashMapOf()
+                    val newMessages = response.items
+                        .map { message -> message.asVkMessage() }
+                        .map { message ->
+                            message.copy(
+                                user = profiles[message.fromId],
+                                group = groups[message.fromId],
+                                actionUser = profiles[message.actionMemberId],
+                                actionGroup = groups[message.actionMemberId]
+                            )
+                        }.sortedBy { message -> message.date }
+                    messages.emit(newMessages)
+//                    messagesRepository.store(newMessages)
+                    val conversations = response.conversations?.map { base ->
+                        val lastMessage =
+                            newMessages.find { message -> message.id == base.last_message_id }
+                        base.mapToDomain(lastMessage = lastMessage)
+                            .fill(lastMessage = lastMessage, profiles = profiles, groups = groups)
+                            .mapToPresentation()
+                    } ?: emptyList()
+                    val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +
+                            groups.mapNotNull { group -> group.value.photo200 } +
+                            conversations.mapNotNull { conversation -> conversation.avatar.extractUrl() }
+                    photos.forEach { url ->
+                        ImageRequest.Builder(AppGlobal.Instance)
+                            .data(url)
+                            .build()
+                            .let(imageLoader::enqueue)
+                    }
+                    screenState.emitOnMainScope(
+                        screenState.value.copy(
+                            messages = newMessages,
+                            isLoading = false
+                        )
+                    )
+                }
+            )
+            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
+        }
+
+//        viewModelScope.launch(Dispatchers.IO) {
+//            screenState.setValue { old -> old.copy(isLoading = true) }
 
 //            sendRequest(
 //                request = {
@@ -208,7 +272,7 @@ class MessagesHistoryViewModelImpl(
 //                    screenState.setValue { old -> old.copy(isLoading = true) }
 //                }
 //            )
-        }
+//        }
     }
 
     fun sendMessage(
