@@ -4,8 +4,11 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -13,9 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -24,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -46,6 +52,11 @@ import com.meloda.fast.screens.settings.presentation.items.ListSettingsItem
 import com.meloda.fast.screens.settings.presentation.items.SwitchSettingsItem
 import com.meloda.fast.screens.settings.presentation.items.TitleSettingsItem
 import com.meloda.fast.screens.settings.presentation.items.TitleSummarySettingsItem
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -58,6 +69,7 @@ fun SettingsRoute(
     onUseDarkThemeChanged: (Boolean) -> Unit,
     onUseAmoledThemeChanged: (Boolean) -> Unit,
     onUseDynamicColorsChanged: (Boolean) -> Unit,
+    onUseBlurChanged: (Boolean) -> Unit,
     onUseMultilineChanged: (Boolean) -> Unit,
     onUseLongPollInBackgroundChanged: (Boolean) -> Unit,
     onOnlineChanged: (Boolean) -> Unit,
@@ -114,6 +126,11 @@ fun SettingsRoute(
                     onUseDynamicColorsChanged(isUsing)
                 }
 
+                SettingsKeys.KEY_APPEARANCE_BLUR -> {
+                    val isUsing = newValue as? Boolean ?: false
+                    onUseBlurChanged(isUsing)
+                }
+
                 SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                     val isUsing = newValue as? Boolean ?: false
                     onUseLongPollInBackgroundChanged(isUsing)
@@ -144,7 +161,10 @@ fun SettingsRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalHazeMaterialsApi::class
+)
 @Composable
 fun SettingsScreenContent(
     onBackClick: () -> Unit,
@@ -157,6 +177,8 @@ fun SettingsScreenContent(
 
     settings.enableDebugSettings(screenState.showDebugOptions)
 
+    val currentTheme by settings.theme.collectAsStateWithLifecycle()
+
     val multilineEnabled by settings.multiline.collectAsStateWithLifecycle()
 
     val settingsList = screenState.settings
@@ -164,6 +186,8 @@ fun SettingsScreenContent(
     val clickListener = OnSettingsClickListener(onSettingsItemClicked)
     val longClickListener = OnSettingsLongClickListener(onSettingsItemLongClicked)
     val changeListener = OnSettingsChangeListener(onSettingsItemChanged)
+
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -181,14 +205,41 @@ fun SettingsScreenContent(
 
             TopAppBar(
                 title = title,
-                navigationIcon = navigationIcon
+                navigationIcon = navigationIcon,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(
+                        alpha = if (currentTheme.usingBlur) 0f else 1f
+                    )
+                ),
+                modifier = Modifier
+                    .then(
+                        if (currentTheme.usingBlur) {
+                            Modifier.hazeChild(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .fillMaxWidth()
             )
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
+                .then(
+                    if (currentTheme.usingBlur) {
+                        Modifier.haze(
+                            state = hazeState,
+                            style = HazeMaterials.thick()
+                        )
+                    } else Modifier
+                )
                 .fillMaxWidth()
-                .padding(padding)
+                .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
+                .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
+                .padding(bottom = padding.calculateBottomPadding())
         ) {
             items(
                 count = settingsList.size,
@@ -206,6 +257,16 @@ fun SettingsScreenContent(
                     }
                 }
             ) { index ->
+                val needToShowSpacer by remember {
+                    derivedStateOf {
+                        index == 0
+                    }
+                }
+
+                if (needToShowSpacer) {
+                    Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
+                }
+
                 when (val item = settingsList[index]) {
                     is SettingsItem.Title -> TitleSettingsItem(
                         item = item,
@@ -304,10 +365,10 @@ fun PerformCrashDialog(
     if (show) {
         MaterialDialog(
             title = UiText.Simple("Perform Crash"),
-            message = UiText.Simple("App will be crashed. Are you sure?"),
-            positiveText = UiText.Resource(R.string.yes),
-            positiveAction = positiveClick,
-            negativeText = UiText.Resource(R.string.cancel),
+            text = UiText.Simple("App will be crashed. Are you sure?"),
+            confirmText = UiText.Resource(R.string.yes),
+            confirmAction = positiveClick,
+            cancelText = UiText.Resource(R.string.cancel),
             onDismissAction = dismiss
         )
     }
@@ -334,10 +395,10 @@ fun LogOutDialog(
 
         MaterialDialog(
             title = title,
-            message = UiText.Resource(R.string.sign_out_confirm),
-            positiveText = positiveText,
-            positiveAction = positiveClick,
-            negativeText = UiText.Resource(R.string.cancel),
+            text = UiText.Resource(R.string.sign_out_confirm),
+            confirmText = positiveText,
+            confirmAction = positiveClick,
+            cancelText = UiText.Resource(R.string.cancel),
             onDismissAction = dismiss
         )
     }
@@ -352,10 +413,10 @@ fun LongPollingNotificationsPermission(
     if (show) {
         MaterialDialog(
             title = UiText.Resource(R.string.warning),
-            message = UiText.Simple("Long polling in background required notifications permission on Android 13 and up"),
-            positiveText = UiText.Simple("Grant"),
-            positiveAction = positiveClick,
-            negativeText = UiText.Resource(R.string.cancel),
+            text = UiText.Simple("Long polling in background required notifications permission on Android 13 and up"),
+            confirmText = UiText.Simple("Grant"),
+            confirmAction = positiveClick,
+            cancelText = UiText.Resource(R.string.cancel),
             onDismissAction = dismiss
         )
     }

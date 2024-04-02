@@ -24,7 +24,9 @@ import coil.request.ImageRequest
  */
 
 // TODO: 21/11/2023, Danil Nikolaev: review
+@Suppress("NonSkippableComposable")
 @Composable
+@Deprecated("Rewrite without Any for better performance (recomposition)", replaceWith = ReplaceWith(""))
 fun CoilImage(
     contentDescription: String?,
     modifier: Modifier,

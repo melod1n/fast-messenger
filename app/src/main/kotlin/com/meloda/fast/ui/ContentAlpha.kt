@@ -22,7 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.luminance
-import com.meloda.fast.ext.isUsingDarkThemeComposable
+import com.meloda.fast.ext.isUsingDarkTheme
 
 /**
  * Default alpha levels used by Material components.
@@ -79,7 +79,7 @@ object ContentAlpha {
         lowContrastAlpha: Float
     ): Float {
         val contentColor = LocalContentColor.current
-        return if (!isUsingDarkThemeComposable()) {
+        return if (!isUsingDarkTheme()) {
             if (contentColor.luminance() > 0.5) highContrastAlpha else lowContrastAlpha
         } else {
             if (contentColor.luminance() < 0.5) highContrastAlpha else lowContrastAlpha

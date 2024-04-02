@@ -33,6 +33,14 @@ plugins {
     alias(libs.plugins.com.vk.vkompose)
 }
 
+kotlin {
+    sourceSets.all {
+        languageSettings {
+            languageVersion = "2.0"
+        }
+    }
+}
+
 vkompose {
     skippabilityCheck = true
 
@@ -166,11 +174,17 @@ android {
             signingConfig = signingConfigs.getByName("debugSigning")
 
             versionNameSuffix = "_${getVersionName()}"
+
+//            isMinifyEnabled = true
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+//            )
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
 
             isMinifyEnabled = false
+//            isShrinkResources = true
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -217,7 +231,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
+        kotlinCompilerExtensionVersion = "1.5.9"
         useLiveLiterals = true
     }
 }
@@ -232,8 +246,6 @@ dependencies {
     // end of Tests zone
 
     implementation(libs.shake)
-
-    debugImplementation(libs.leakcanary.android)
 
     // Compose-Bom zone
     implementation(platform(libs.compose.bom))
@@ -300,6 +312,7 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
     // end of Moshi zone
 
+    // TODO: дождаться нового релиза и починить минификацию и шринкинг
     implementation(libs.retrofit)
 
     // Retrofit converters
@@ -319,4 +332,7 @@ dependencies {
     implementation(libs.nanokt.jvm)
 
     implementation(libs.rebugger)
+
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 }

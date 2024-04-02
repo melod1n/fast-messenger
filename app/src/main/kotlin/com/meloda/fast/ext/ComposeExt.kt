@@ -71,15 +71,6 @@ fun UiText?.getString(): String? {
     }
 }
 
-@Composable
-fun isUsingDarkThemeComposable(): Boolean {
-    if (LocalView.current.isInEditMode) {
-        return false
-    }
-
-    return isUsingDarkTheme()
-}
-
 fun isUsingDarkTheme(): Boolean {
     val nightThemeMode = AppGlobal.preferences.getInt(
         SettingsKeys.KEY_APPEARANCE_DARK_THEME,
@@ -97,28 +88,19 @@ fun isUsingDarkTheme(): Boolean {
     return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 }
 
-@Composable
-fun isUsingDynamicColorsComposable(): Boolean =
-    if (LocalView.current.isInEditMode) true
-    else {
-        isUsingDynamicColors()
-    }
-
 fun isUsingDynamicColors(): Boolean = AppGlobal.preferences.getBoolean(
     SettingsKeys.KEY_USE_DYNAMIC_COLORS,
     SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
 )
 
-@Composable
-fun isUsingAmoledBackgroundComposable(): Boolean =
-    if (LocalView.current.isInEditMode) false
-    else {
-        isUsingAmoledBackground()
-    }
-
 fun isUsingAmoledBackground(): Boolean = AppGlobal.preferences.getBoolean(
     SettingsKeys.KEY_APPEARANCE_AMOLED_THEME,
     SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME
+)
+
+fun isUsingBlur(): Boolean = AppGlobal.preferences.getBoolean(
+    SettingsKeys.KEY_APPEARANCE_BLUR,
+    SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_BLUR,
 )
 
 @Composable

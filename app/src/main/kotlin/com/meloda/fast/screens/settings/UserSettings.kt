@@ -2,15 +2,11 @@ package com.meloda.fast.screens.settings
 
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isDebugSettingsShown
-import com.meloda.fast.ext.isUsingAmoledBackground
 import com.meloda.fast.ext.isUsingDarkTheme
-import com.meloda.fast.ext.isUsingDynamicColors
 import com.meloda.fast.screens.settings.model.AppTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 interface UserSettings {
     val multiline: StateFlow<Boolean>
@@ -32,6 +28,8 @@ interface UserSettings {
     fun useAmoledThemeChanged(use: Boolean)
 
     fun useDynamicColorsChanged(use: Boolean)
+
+    fun useBlurChanged(use: Boolean)
 
     fun useMultiline(use: Boolean)
 
@@ -102,6 +100,12 @@ class UserSettingsImpl : UserSettings {
         )
     }
 
+    override fun useBlurChanged(use: Boolean) {
+        theme.value = theme.value.copy(
+            usingBlur = use
+        )
+    }
+
     override fun useMultiline(use: Boolean) {
         multiline.value = use
     }
@@ -127,19 +131,5 @@ class UserSettingsImpl : UserSettings {
 
     override fun enableDebugSettings(enable: Boolean) {
         debugSettingsEnabled.update { enable }
-    }
-
-    inner class AppThemePreferenceDelegate : ReadWriteProperty<Any?, AppTheme> {
-        override fun getValue(thisRef: Any?, property: KProperty<*>): AppTheme {
-            return AppTheme(
-                usingDarkStyle = isUsingDarkTheme(),
-                usingDynamicColors = isUsingDynamicColors(),
-                usingAmoledBackground = isUsingAmoledBackground()
-            )
-        }
-
-        override fun setValue(thisRef: Any?, property: KProperty<*>, value: AppTheme) {
-            theme.value = value
-        }
     }
 }

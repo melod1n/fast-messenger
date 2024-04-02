@@ -31,6 +31,7 @@ object SettingsScreen : Screen {
             onUseDarkThemeChanged = userSettings::useDarkThemeChanged,
             onUseAmoledThemeChanged = userSettings::useAmoledThemeChanged,
             onUseDynamicColorsChanged = userSettings::useDynamicColorsChanged,
+            onUseBlurChanged = userSettings::useBlurChanged,
             onUseMultilineChanged = userSettings::useMultiline,
             onUseLongPollInBackgroundChanged = userSettings::setLongPollBackground,
             onOnlineChanged = userSettings::setOnline

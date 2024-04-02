@@ -132,8 +132,8 @@ fun EditTextAlert(
 
     MaterialDialog(
         title = item.title,
-        positiveText = UiText.Resource(R.string.ok),
-        positiveAction = {
+        confirmText = UiText.Resource(R.string.ok),
+        confirmAction = {
             val newValue = textFieldValue.text.trim()
 
             if (item.value != newValue) {
@@ -141,7 +141,7 @@ fun EditTextAlert(
                 onSettingsChangeListener.onChange(item.key, newValue)
             }
         },
-        negativeText = UiText.Resource(R.string.cancel),
+        cancelText = UiText.Resource(R.string.cancel),
         onDismissAction = onDismiss
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {

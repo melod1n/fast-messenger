@@ -1,15 +1,20 @@
 package com.meloda.fast.screens.conversations.presentation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +34,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -36,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -50,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +73,11 @@ import com.meloda.fast.screens.conversations.ConversationsViewModelImpl
 import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.settings.UserSettings
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.pullRefresh
@@ -90,7 +103,7 @@ fun ConversationsRoute(
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class,
 )
 @Composable
 fun ConversationsScreenContent(
@@ -104,6 +117,8 @@ fun ConversationsScreenContent(
     val conversations = screenState.conversations
 
     val isLoading = screenState.isLoading
+
+    val currentTheme by userSettings.theme.collectAsStateWithLifecycle()
 
     val multilineEnabled by userSettings.multiline.collectAsStateWithLifecycle()
     val maxLines by remember(multilineEnabled) {
@@ -132,6 +147,8 @@ fun ConversationsScreenContent(
             !isLoading || conversations.isNotEmpty()
         }
     }
+
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -224,16 +241,43 @@ fun ConversationsScreenContent(
                 }
             }
 
+            val toolbarColorAlpha by animateFloatAsState(
+                targetValue = if (!listState.canScrollBackward) 1f else 0f,
+                label = "toolbarColorAlpha",
+                animationSpec = tween(durationMillis = 50)
+            )
+
             Column(modifier = Modifier.fillMaxWidth()) {
                 TopAppBar(
                     title = title,
                     actions = actions,
-                    modifier = Modifier.fillMaxWidth()
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(
+                            alpha = if (currentTheme.usingBlur) toolbarColorAlpha else 1f
+                        )
+                    ),
+                    modifier = Modifier
+                        .then(
+                            if (currentTheme.usingBlur) {
+                                Modifier.hazeChild(
+                                    state = hazeState,
+                                    style = HazeMaterials.thick()
+                                )
+                            } else Modifier
+                        )
+                        .fillMaxWidth(),
                 )
 
                 if (isLoading && conversations.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
+
+//                if (currentTheme.usingBlur) {
+//                    HorizontalDivider(
+//                        thickness = 0.5.dp,
+//                        color = MaterialTheme.colorScheme.surfaceVariant
+//                    )
+//                }
             }
         },
         floatingActionButton = {
@@ -258,7 +302,9 @@ fun ConversationsScreenContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
+                    .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
+                    .padding(bottom = padding.calculateBottomPadding())
             ) {
                 val pullRefreshState = rememberPullRefreshState(
                     refreshing = screenState.isLoading,
@@ -297,13 +343,23 @@ fun ConversationsScreenContent(
                         state = listState,
                         maxLines = maxLines,
                         showOnlyPlaceholders = showOnlyPlaceholders,
-                        modifier = listModifier,
-                        onOptionClicked = viewModel::onOptionClicked
+                        modifier = listModifier.then(
+                            if (currentTheme.usingBlur) {
+                                Modifier.haze(
+                                    state = hazeState,
+                                    style = HazeMaterials.thick()
+                                )
+                            } else Modifier
+                        ),
+                        onOptionClicked = viewModel::onOptionClicked,
+                        padding = padding
                     )
 
                     AnimatedVisibility(
                         visible = showPullRefresh,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = padding.calculateTopPadding())
                     ) {
                         PullRefreshIndicator(
                             refreshing = screenState.isLoading,
@@ -351,6 +407,7 @@ fun ConversationsListComposable(
     showOnlyPlaceholders: Boolean,
     modifier: Modifier,
     onOptionClicked: (VkConversationUi, ConversationOption) -> Unit,
+    padding: PaddingValues
 ) {
     val conversations = screenState.conversations
 
@@ -362,6 +419,17 @@ fun ConversationsListComposable(
             items = conversations,
             key = { _, item -> item.conversationId },
         ) { index, conversation ->
+
+            val needToShowSpacer by remember {
+                derivedStateOf {
+                    index == 0
+                }
+            }
+
+            if (needToShowSpacer) {
+                Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
+            }
+
             val isUserAccount by remember(conversation) {
                 derivedStateOf {
                     conversation.conversationId == UserConfig.userId
@@ -458,9 +526,9 @@ fun DeleteDialog(
 ) {
     MaterialDialog(
         title = UiText.Resource(R.string.confirm_delete_conversation),
-        positiveText = UiText.Resource(R.string.action_delete),
-        positiveAction = { viewModel.onDeleteDialogPositiveClick(conversationId) },
-        negativeText = UiText.Resource(R.string.cancel),
+        confirmText = UiText.Resource(R.string.action_delete),
+        confirmAction = { viewModel.onDeleteDialogPositiveClick(conversationId) },
+        cancelText = UiText.Resource(R.string.cancel),
         onDismissAction = viewModel::onDeleteDialogDismissed
     )
 }
@@ -475,14 +543,14 @@ fun PinDialog(
             if (conversation.isPinned) R.string.confirm_unpin_conversation
             else R.string.confirm_pin_conversation
         ),
-        positiveText = UiText.Resource(
+        confirmText = UiText.Resource(
             if (conversation.isPinned) R.string.action_unpin
             else R.string.action_pin
         ),
-        positiveAction = {
+        confirmAction = {
             viewModel.onPinDialogPositiveClick(conversation)
         },
-        negativeText = UiText.Resource(R.string.cancel),
+        cancelText = UiText.Resource(R.string.cancel),
         onDismissAction = viewModel::onPinDialogDismissed
     )
 }

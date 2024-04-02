@@ -37,8 +37,8 @@ class AppGlobal : Application() {
     }
 
     private fun initVkomposePlugins() {
-        RecomposeLoggerConfig.isEnabled = true
-        RecomposeHighlighterConfig.isEnabled = true
+        RecomposeLoggerConfig.isEnabled = false
+        RecomposeHighlighterConfig.isEnabled = false
     }
 
     private fun applyDarkTheme() {

@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -34,44 +36,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.google.common.collect.ImmutableList
 import com.meloda.fast.ext.getString
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.ui.AppTheme
 
-@Preview
-@Composable
-fun MaterialDialogPreview() {
-    AppTheme {
-        MaterialDialog(
-            onDismissAction = {},
-            title = UiText.Simple("Title"),
-//            message = UiText.Simple("Message"),
-            positiveText = UiText.Simple("Positive"),
-            positiveAction = {},
-            negativeText = UiText.Simple("Negative"),
-            negativeAction = {},
-            neutralText = UiText.Simple("Neutral"),
-            neutralAction = {},
-            items = List(5) { index -> UiText.Simple("Item #${index + 1}") },
-            itemsSelectionType = ItemsSelectionType.Multi,
-            preSelectedItems = listOf(2),
-            customContent = null
-        )
-    }
-}
-
 // TODO: 08.04.2023, Danil Nikolaev: review
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialDialog(
     onDismissAction: (() -> Unit),
     title: UiText? = null,
-    message: UiText? = null,
-    positiveText: UiText? = null,
-    positiveAction: (() -> Unit)? = null,
-    negativeText: UiText? = null,
-    negativeAction: (() -> Unit)? = null,
+    text: UiText? = null,
+    confirmText: UiText? = null,
+    confirmAction: (() -> Unit)? = null,
+    cancelText: UiText? = null,
+    cancelAction: (() -> Unit)? = null,
     neutralText: UiText? = null,
     neutralAction: (() -> Unit)? = null,
     itemsSelectionType: ItemsSelectionType = ItemsSelectionType.None,
@@ -103,8 +83,11 @@ fun MaterialDialog(
     }
 
     AppTheme {
-        AlertAnimation(visible = isVisible) {
-            Dialog(onDismissRequest = onDismissRequest) {
+        if (isVisible) {
+//        AlertAnimation(visible = isVisible) {
+            BasicAlertDialog(
+                onDismissRequest = onDismissRequest
+            ) {
                 val scrollState = rememberScrollState()
                 val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
                 val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
@@ -134,7 +117,7 @@ fun MaterialDialog(
                         }
 
                         if (canScrollBackward) {
-                            Divider(modifier = Modifier.fillMaxWidth())
+                            HorizontalDivider(modifier = Modifier.fillMaxWidth())
                         }
 
                         Column(
@@ -145,7 +128,7 @@ fun MaterialDialog(
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            val stringMessage = message?.getString()
+                            val stringMessage = text?.getString()
                             if (stringMessage != null && stringTitle == null) {
                                 Spacer(modifier = Modifier.height(20.dp))
                             }
@@ -204,7 +187,7 @@ fun MaterialDialog(
                         }
 
                         if (canScrollForward) {
-                            Divider(modifier = Modifier.fillMaxWidth())
+                            HorizontalDivider(modifier = Modifier.fillMaxWidth())
                         }
 
                         Row {
@@ -226,7 +209,7 @@ fun MaterialDialog(
 
                             Spacer(modifier = Modifier.weight(1f))
 
-                            negativeText?.getString()?.let { text ->
+                            cancelText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
                                         if (buttonsInvokeDismiss) {
@@ -234,7 +217,7 @@ fun MaterialDialog(
                                         } else {
                                             isVisible = false
                                         }
-                                        negativeAction?.invoke()
+                                        cancelAction?.invoke()
                                     }
                                 ) {
                                     Text(text = text)
@@ -243,7 +226,7 @@ fun MaterialDialog(
 
                             Spacer(modifier = Modifier.width(2.dp))
 
-                            positiveText?.getString()?.let { text ->
+                            confirmText?.getString()?.let { text ->
                                 TextButton(
                                     onClick = {
                                         if (buttonsInvokeDismiss) {
@@ -251,7 +234,7 @@ fun MaterialDialog(
                                         } else {
                                             isVisible = false
                                         }
-                                        positiveAction?.invoke()
+                                        confirmAction?.invoke()
                                     }
                                 ) {
                                     Text(text = text)

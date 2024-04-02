@@ -17,6 +17,9 @@ object SettingsKeys {
     const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
     const val KEY_APPEARANCE_LANGUAGE = "appearance_language"
     const val DEFAULT_VALUE_APPEARANCE_LANGUAGE = "system"
+    const val KEY_APPEARANCE_BLUR = "appearance_blur"
+    const val DEFAULT_VALUE_KEY_APPEARANCE_BLUR = false
+
 
     const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
     const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
