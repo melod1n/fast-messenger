@@ -7,10 +7,8 @@ import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.preference.PreferenceManager
-import com.meloda.fast.BuildConfig
 import com.meloda.fast.common.di.applicationModule
 import com.meloda.fast.screens.settings.SettingsKeys
-import com.shakebugs.shake.Shake
 import com.vk.recompose.highlighter.RecomposeHighlighterConfig
 import com.vk.recompose.logger.RecomposeLoggerConfig
 import org.koin.android.ext.koin.androidContext
@@ -33,7 +31,6 @@ class AppGlobal : Application() {
         applyDarkTheme()
 
         initKoin()
-        initShake()
     }
 
     private fun initVkomposePlugins() {
@@ -55,16 +52,6 @@ class AppGlobal : Application() {
             androidContext(this@AppGlobal)
             modules(applicationModule)
         }
-    }
-
-    private fun initShake() {
-        Shake.setAskForCrashDescription(true)
-        Shake.setCrashReportingEnabled(true)
-        Shake.start(
-            this,
-            BuildConfig.shakeClientId,
-            BuildConfig.shakeClientSecret
-        )
     }
 
     companion object {

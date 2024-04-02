@@ -298,8 +298,6 @@ class LoginViewModelImpl(
                 val userId = response.userId
                 val accessToken = response.accessToken
 
-//                Shake.registerUser(userId.toString())
-
                 // TODO: 02/12/2023, Danil Nikolaev: implement loading user info
 
                 if (userId == null || accessToken == null) {

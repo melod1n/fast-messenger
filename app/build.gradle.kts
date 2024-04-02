@@ -10,13 +10,6 @@ val otaSecretCode: String = getLocalProperty("otaSecretCode", "\"\"")
 val debugUserId: String = getLocalProperty("userId", "\"0\"")
 val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
 
-val shakeClientId: String = getLocalProperty("shakeClientId", "\"\"").run {
-    ifEmpty { System.getenv("SHAKE_CLIENT_ID") }
-}
-val shakeClientSecret: String = getLocalProperty("shakeClientSecret", "\"\"").run {
-    ifEmpty { System.getenv("SHAKE_CLIENT_SECRET") }
-}
-
 fun getLocalProperty(key: String, defValue: String): String {
     return gradleLocalProperties(rootDir).getProperty(key, defValue)
 }
@@ -99,22 +92,6 @@ androidComponents {
                     type = "String",
                     value = debugAccessToken,
                     comment = "access token for debugging purposes"
-                )
-            )
-            put(
-                "shakeClientId",
-                BuildConfigField(
-                    type = "String",
-                    value = shakeClientId,
-                    comment = "Shake client id"
-                )
-            )
-            put(
-                "shakeClientSecret",
-                BuildConfigField(
-                    type = "String",
-                    value = shakeClientSecret,
-                    comment = "Shake client secret"
                 )
             )
         }
@@ -245,8 +222,6 @@ dependencies {
     testImplementation(libs.junit)
     // end of Tests zone
 
-    implementation(libs.shake)
-
     // Compose-Bom zone
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
@@ -280,10 +255,6 @@ dependencies {
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
     debugImplementation(libs.compose.ui.tooling)
-
-    // TODO: 01/12/2023, Danil Nikolaev: create baseline profile
-    implementation(libs.benchmark.macro.junit4)
-    implementation(libs.profileinstaller)
 
     // Koin for Default Android
     implementation(libs.koin.android)
@@ -331,7 +302,7 @@ dependencies {
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
 
-    implementation(libs.rebugger)
+//    implementation(libs.rebugger)
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
