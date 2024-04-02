@@ -5,17 +5,16 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils.fill
-import com.meloda.fast.api.base.ApiException
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
+import com.meloda.fast.api.model.data.VkGroupData
+import com.meloda.fast.api.model.data.VkUserData
+import com.meloda.fast.api.model.domain.VkAttachment
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
-import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.api.model.domain.VkVideoDomain
-import com.meloda.fast.api.model.data.VkGroupData
-import com.meloda.fast.api.model.data.VkUserData
-import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
@@ -40,6 +39,7 @@ import com.meloda.fast.ext.toMap
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
+import com.slack.eithernet.ApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -547,7 +547,7 @@ class MessagesHistoryViewModelImpl(
                 },
                 request = { audiosRepository.upload(uploadUrl, body) }
             ).let { response ->
-                response.error?.let { error -> throw ApiException(message = error) }
+                response.error?.let { error -> throw ApiException(error = error) }
 
                 continuation.resume(
                     Triple(response.server, response.audio.notNull(), response.hash)
@@ -620,7 +620,7 @@ class MessagesHistoryViewModelImpl(
                 },
                 request = { filesRepository.uploadFile(uploadUrl, body) }
             ).let { response ->
-                response.error?.let { error -> throw ApiException(message = error) }
+                response.error?.let { error -> throw ApiException(error = error) }
 
                 continuation.resume(response.file.notNull())
             }

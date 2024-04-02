@@ -30,9 +30,6 @@ object SettingsKeys {
     const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
     const val DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS = false
 
-    const val KEY_UPDATES_CHECK_AT_STARTUP = "updates_check_at_startup"
-    const val KEY_UPDATES_CHECK_UPDATES = "updates_check_updates"
-
     const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
 
     const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"

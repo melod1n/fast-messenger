@@ -2,10 +2,10 @@ package com.meloda.fast.base.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.base.ApiException
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
+import com.slack.eithernet.ApiException
 import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,7 +47,7 @@ abstract class BaseViewModel : ViewModel() {
         }
     }
 
-    protected suspend fun <T: Any, E: Any> sendRequestNew(
+    protected suspend fun <T : Any, E : Any> sendRequestNew(
         request: suspend () -> ApiResult<T, E>,
         onResponse: ResponseHandler<T>? = null,
         onError: ErrorHandler? = null,

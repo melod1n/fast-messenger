@@ -1,6 +1,6 @@
 package com.meloda.fast.api.network
 
-import com.meloda.fast.api.base.ApiException
+import com.slack.eithernet.ApiException
 
 @Deprecated("Use eithernet library")
 sealed class ApiAnswer<out R> {

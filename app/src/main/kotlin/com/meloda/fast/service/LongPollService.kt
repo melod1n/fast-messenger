@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.base.ApiException
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
@@ -22,6 +21,7 @@ import com.meloda.fast.data.longpoll.LongPollUpdates
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.NotificationsUtils
+import com.slack.eithernet.ApiException
 import com.slack.eithernet.fold
 import com.slack.eithernet.onSuccess
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -132,14 +132,14 @@ class LongPollService : Service() {
         return coroutineScope.launch {
             // TODO: 04/12/2023, Danil Nikolaev: start long polling job only when token is presented
             if (UserConfig.accessToken.isEmpty()) {
-                throw ApiException(message = "Access token is not initialized yet.")
+                throw ApiException(error = "Access token is not initialized yet.")
             }
 
             var serverInfo = getServerInfo()
-                ?: throw ApiException(message = "bad VK response (server info)")
+                ?: throw ApiException(error = "bad VK response (server info)")
 
             var lastUpdatesResponse: LongPollUpdates? = getUpdatesResponse(serverInfo)
-                ?: throw ApiException(message = "initiation error: bad VK response (last updates)")
+                ?: throw ApiException(error = "initiation error: bad VK response (last updates)")
 
             var failCount = 0
 
@@ -147,7 +147,7 @@ class LongPollService : Service() {
                 if (lastUpdatesResponse == null) {
                     failCount++
                     serverInfo = getServerInfo()
-                        ?: throw ApiException(message = "failed retrieving server info after error: bad VK response (server info #2)")
+                        ?: throw ApiException(error = "failed retrieving server info after error: bad VK response (server info #2)")
                     lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     continue
                 }
@@ -165,7 +165,7 @@ class LongPollService : Service() {
                     2, 3 -> {
                         serverInfo = getServerInfo()
                             ?: throw ApiException(
-                                message = "failed retrieving server info after error: bad VK response (server info #3)"
+                                error = "failed retrieving server info after error: bad VK response (server info #3)"
                             )
                         lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     }

@@ -62,7 +62,6 @@ import org.koin.compose.koinInject
 
 @Composable
 fun SettingsRoute(
-    navigateToUpdates: () -> Unit,
     navigateToLogin: () -> Unit,
     navigateToLanguagePicker: () -> Unit,
     onBackClick: () -> Unit,
@@ -82,11 +81,6 @@ fun SettingsRoute(
     if (hapticType != HapticType.None) {
         view.performHapticFeedback(hapticType.getHaptic())
         viewModel.onHapticsUsed()
-    }
-
-    if (screenState.isNeedToOpenUpdates) {
-        viewModel.onNavigatedToUpdates()
-        navigateToUpdates()
     }
 
     SettingsScreenContent(

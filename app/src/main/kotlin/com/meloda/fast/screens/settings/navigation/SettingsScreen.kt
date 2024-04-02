@@ -8,7 +8,6 @@ import com.meloda.fast.screens.languagepicker.navigation.LanguagePickerScreen
 import com.meloda.fast.screens.login.navigation.LoginScreen
 import com.meloda.fast.screens.settings.UserSettings
 import com.meloda.fast.screens.settings.presentation.SettingsRoute
-import com.meloda.fast.screens.updates.navigation.UpdatesScreen
 import org.koin.compose.koinInject
 
 object SettingsScreen : Screen {
@@ -18,9 +17,6 @@ object SettingsScreen : Screen {
         val userSettings: UserSettings = koinInject()
 
         SettingsRoute(
-            navigateToUpdates = {
-                navigator.push(UpdatesScreen)
-            },
             navigateToLogin = {
                 navigator.replaceAll(LoginScreen)
             },
