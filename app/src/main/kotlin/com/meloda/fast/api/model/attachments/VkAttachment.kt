@@ -4,8 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
-open class VkAttachment : Parcelable {
+open class VkAttachment {
 
     open fun asString(withAccessKey: Boolean = true) = ""
 }

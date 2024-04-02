@@ -18,7 +18,6 @@ data class VkFile(
     val preview: BaseVkFile.Preview?
 ) : VkAttachment() {
 
-    @IgnoredOnParcel
     val className: String = this::class.java.name
 
     override fun asString(withAccessKey: Boolean) = VkUtils.attachmentToString(

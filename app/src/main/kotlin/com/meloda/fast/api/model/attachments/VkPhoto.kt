@@ -29,8 +29,6 @@ data class VkPhoto(
         const val SIZE_TYPE_2560_2048 = 'w'
     }
 
-    @Ignore
-    @IgnoredOnParcel
     private val sizesChars = Stack<Char>()
 
     init {
@@ -46,7 +44,6 @@ data class VkPhoto(
         sizesChars.push(SIZE_TYPE_2560_2048)
     }
 
-    @IgnoredOnParcel
     val className: String = this::class.java.name
 
     override fun asString(withAccessKey: Boolean) = VkUtils.attachmentToString(

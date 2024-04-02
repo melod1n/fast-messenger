@@ -20,6 +20,5 @@ data class VkWall(
     val accessKey: String?
 ) : VkAttachment() {
 
-    @IgnoredOnParcel
     val className: String = this::class.java.name
 }

@@ -261,8 +261,6 @@ dependencies {
 
     implementation(libs.coil)
 
-    implementation(libs.kotlin.reflect)
-
     implementation(libs.core.ktx)
 
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -288,7 +286,6 @@ dependencies {
 
     // Retrofit converters
     implementation(libs.converter.moshi)
-    implementation(libs.converter.gson)
     // end of Retrofit converters
 
     implementation(libs.logging.interceptor)
@@ -306,4 +303,6 @@ dependencies {
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
+
+    implementation("com.slack.eithernet:eithernet:1.8.1")
 }

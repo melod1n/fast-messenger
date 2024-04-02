@@ -17,7 +17,6 @@ data class VkVideo(
     val title: String,
 ) : VkAttachment() {
 
-    @IgnoredOnParcel
     val className: String = this::class.java.name
 
     fun imageForWidth(width: Int): VideoImage? {
@@ -51,7 +50,6 @@ data class VkVideo(
         val withPadding: Boolean,
     ) {
 
-        @IgnoredOnParcel
         var shapeKind: ShapeKind? = null
 
         init {

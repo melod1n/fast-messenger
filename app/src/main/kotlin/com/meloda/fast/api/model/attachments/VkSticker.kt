@@ -12,7 +12,6 @@ data class VkSticker(
     val backgroundImages: List<BaseVkSticker.Image>
 ) : VkAttachment() {
 
-    @IgnoredOnParcel
     val className: String = this::class.java.name
 
     fun urlForSize(size: Int): String? {

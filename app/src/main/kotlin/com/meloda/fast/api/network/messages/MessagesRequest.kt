@@ -30,7 +30,6 @@ data class MessagesGetHistoryRequest(
 
 }
 
-@Parcelize
 data class MessagesSendRequest(
     val peerId: Int,
     val randomId: Int = 0,
@@ -43,7 +42,7 @@ data class MessagesSendRequest(
     val dontParseLinks: Boolean? = null,
     val silent: Boolean? = null,
     val attachments: List<VkAttachment>? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -141,7 +140,6 @@ data class MessagesDeleteRequest(
         }
 }
 
-@Parcelize
 data class MessagesEditRequest(
     val peerId: Int,
     val messageId: Int,
@@ -152,7 +150,7 @@ data class MessagesEditRequest(
     val notParseLinks: Boolean = false,
     val keepSnippets: Boolean = true,
     val keepForwardedMessages: Boolean = true
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -168,7 +166,7 @@ data class MessagesEditRequest(
             attachments?.let {
                 val attachments =
                     if (it.isEmpty()) ""
-                    else it.joinToString(separator = ",") { attachment -> attachment.asString() }
+                    else it.joinToString(separator = ",", transform = VkAttachment::asString)
                 this["attachment"] = attachments
             }
         }

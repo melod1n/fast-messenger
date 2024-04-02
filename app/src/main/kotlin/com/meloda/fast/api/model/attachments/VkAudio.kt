@@ -4,7 +4,6 @@ import com.meloda.fast.api.VkUtils
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
 data class VkAudio(
     val id: Int,
     val ownerId: Int,
@@ -15,7 +14,6 @@ data class VkAudio(
     val accessKey: String?
 ) : VkAttachment() {
 
-    @IgnoredOnParcel
     val className: String = this::class.java.name
 
     override fun asString(withAccessKey: Boolean) = VkUtils.attachmentToString(
