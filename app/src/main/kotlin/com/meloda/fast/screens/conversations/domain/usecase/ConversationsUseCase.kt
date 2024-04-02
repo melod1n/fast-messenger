@@ -16,4 +16,8 @@ interface ConversationsUseCase {
     ): Flow<State<ConversationsResponseDomain>>
 
     fun delete(peerId: Int): Flow<State<Unit>>
+
+    fun pin(peerId: Int): Flow<State<Unit>>
+
+    fun unpin(peerId: Int): Flow<State<Unit>>
 }

@@ -3,7 +3,6 @@ package com.meloda.fast.api.model.domain
 import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.model.attachments.VkAttachment
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.util.TimeUtils
 

@@ -61,7 +61,7 @@ data class InvalidCredentialsError(
 
 @JsonClass(generateAdapter = true)
 data class WrongTwoFaCode(
-    @Json(name = "error_") val error: String, // "invalid_request"
+    @Json(name = "error") val error: String, // "invalid_request"
     @Json(name = "error_description") val errorDescription: String,
     @Json(name = "error_type") val errorType: String // "wrong_otp"
 ) : OauthError

@@ -2,7 +2,7 @@ package com.meloda.fast.base.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.api.base.ApiError
+import com.meloda.fast.api.base.ApiException
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.notNull
@@ -152,13 +152,9 @@ abstract class BaseViewModel : ViewModel() {
 //                )
 //            }
 
-            is ApiError -> {
+            is ApiException -> {
                 sendSingleEvent(
-                    if (throwable.errorMessage == null) {
-                        UnknownErrorEvent
-                    } else {
-                        ErrorTextEvent(errorText = requireNotNull(throwable.errorMessage))
-                    }
+                    ErrorTextEvent(errorText = requireNotNull(throwable.message))
                 )
             }
 

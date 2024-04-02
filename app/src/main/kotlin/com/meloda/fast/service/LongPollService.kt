@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.base.ApiError
+import com.meloda.fast.api.base.ApiException
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
@@ -132,14 +132,14 @@ class LongPollService : Service() {
         return coroutineScope.launch {
             // TODO: 04/12/2023, Danil Nikolaev: start long polling job only when token is presented
             if (UserConfig.accessToken.isEmpty()) {
-                throw ApiError(errorMessage = "Access token is not initialized yet.")
+                throw ApiException(message = "Access token is not initialized yet.")
             }
 
             var serverInfo = getServerInfo()
-                ?: throw ApiError(errorMessage = "bad VK response (server info)")
+                ?: throw ApiException(message = "bad VK response (server info)")
 
             var lastUpdatesResponse: LongPollUpdates? = getUpdatesResponse(serverInfo)
-                ?: throw ApiError(errorMessage = "initiation error: bad VK response (last updates)")
+                ?: throw ApiException(message = "initiation error: bad VK response (last updates)")
 
             var failCount = 0
 
@@ -147,7 +147,7 @@ class LongPollService : Service() {
                 if (lastUpdatesResponse == null) {
                     failCount++
                     serverInfo = getServerInfo()
-                        ?: throw ApiError(errorMessage = "failed retrieving server info after error: bad VK response (server info #2)")
+                        ?: throw ApiException(message = "failed retrieving server info after error: bad VK response (server info #2)")
                     lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     continue
                 }
@@ -164,8 +164,8 @@ class LongPollService : Service() {
 
                     2, 3 -> {
                         serverInfo = getServerInfo()
-                            ?: throw ApiError(
-                                errorMessage = "failed retrieving server info after error: bad VK response (server info #3)"
+                            ?: throw ApiException(
+                                message = "failed retrieving server info after error: bad VK response (server info #3)"
                             )
                         lastUpdatesResponse = getUpdatesResponse(serverInfo)
                     }

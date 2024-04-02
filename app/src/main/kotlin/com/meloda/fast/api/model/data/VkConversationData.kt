@@ -3,7 +3,7 @@ package com.meloda.fast.api.model.data
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
-import com.meloda.fast.api.model.base.attachments.BaseVkGroupCall
+import com.meloda.fast.api.model.data.VkGroupCallData
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.squareup.moshi.JsonClass
 
@@ -98,7 +98,7 @@ data class VkConversationData(
 
     @JsonClass(generateAdapter = true)
     data class CallInProgress(
-        val participants: BaseVkGroupCall.Participants,
+        val participants: VkGroupCallData.Participants,
         val join_link: String,
     ) {
 

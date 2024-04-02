@@ -1,7 +1,7 @@
 package com.meloda.fast.data.audios
 
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.model.base.attachments.BaseVkAudio
+import com.meloda.fast.api.model.data.VkAudioData
 import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.audio.AudiosGetUploadServerResponse
 import com.meloda.fast.api.network.audio.AudiosUploadResponse
@@ -23,6 +23,6 @@ interface AudiosApi {
 
     @FormUrlEncoded
     @POST(AudiosUrls.Save)
-    suspend fun save(@FieldMap map: Map<String, String>): ApiAnswer<ApiResponse<BaseVkAudio>>
+    suspend fun save(@FieldMap map: Map<String, String>): ApiAnswer<ApiResponse<VkAudioData>>
 
 }

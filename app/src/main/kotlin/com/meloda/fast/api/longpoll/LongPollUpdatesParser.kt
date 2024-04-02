@@ -241,7 +241,7 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                     )
 
                     if (normalMessageResponse is ApiAnswer.Error) {
-                        normalMessageResponse.error.throwable?.run { throw this }
+                        normalMessageResponse.error.cause?.run { throw this }
                     }
 
                     val messagesResponse =

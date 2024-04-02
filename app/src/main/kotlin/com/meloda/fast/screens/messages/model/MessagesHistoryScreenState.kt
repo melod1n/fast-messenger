@@ -2,7 +2,7 @@ package com.meloda.fast.screens.messages.model
 
 import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.model.domain.VkMessageDomain
-import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.model.base.UiImage
 
 @Immutable

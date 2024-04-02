@@ -5,14 +5,14 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkUtils.fill
-import com.meloda.fast.api.base.ApiError
+import com.meloda.fast.api.base.ApiException
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
-import com.meloda.fast.api.model.attachments.VkAttachment
-import com.meloda.fast.api.model.attachments.VkVideo
+import com.meloda.fast.api.model.domain.VkAttachment
+import com.meloda.fast.api.model.domain.VkVideoDomain
 import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.domain.VkConversationDomain
@@ -445,7 +445,7 @@ class MessagesHistoryViewModelImpl(
                         PhotosSaveMessagePhotoRequest(photo, server, hash)
                     )
                 }
-            ).response?.first()?.asVkPhoto()?.let(continuation::resume)
+            ).response?.first()?.toDomain()?.let(continuation::resume)
         }
     }
 
@@ -476,7 +476,7 @@ class MessagesHistoryViewModelImpl(
                 request = { videosRepository.save() }
             ).response?.let { response ->
                 val uploadUrl = response.uploadUrl
-                val video = VkVideo(
+                val video = VkVideoDomain(
                     id = response.videoId,
                     ownerId = response.ownerId,
                     images = emptyList(),
@@ -547,7 +547,7 @@ class MessagesHistoryViewModelImpl(
                 },
                 request = { audiosRepository.upload(uploadUrl, body) }
             ).let { response ->
-                response.error?.let { error -> throw ApiError(error = error) }
+                response.error?.let { error -> throw ApiException(message = error) }
 
                 continuation.resume(
                     Triple(response.server, response.audio.notNull(), response.hash)
@@ -568,7 +568,7 @@ class MessagesHistoryViewModelImpl(
                     true
                 },
                 request = { audiosRepository.save(server, audio, hash) }
-            ).response?.asVkAudio()?.let(continuation::resume)
+            ).response?.toDomain()?.let(continuation::resume)
         }
     }
 
@@ -620,7 +620,7 @@ class MessagesHistoryViewModelImpl(
                 },
                 request = { filesRepository.uploadFile(uploadUrl, body) }
             ).let { response ->
-                response.error?.let { error -> throw ApiError(error = error) }
+                response.error?.let { error -> throw ApiException(message = error) }
 
                 continuation.resume(response.file.notNull())
             }
@@ -639,7 +639,7 @@ class MessagesHistoryViewModelImpl(
                 ).response?.let { response ->
                     val type = response.type
                     val attachmentFile =
-                        response.file?.asVkFile() ?: response.voiceMessage?.asVkVoiceMessage()
+                        response.file?.toDomain() ?: response.voiceMessage?.toDomain()
 
                     continuation.resume(type to attachmentFile.notNull())
                 }

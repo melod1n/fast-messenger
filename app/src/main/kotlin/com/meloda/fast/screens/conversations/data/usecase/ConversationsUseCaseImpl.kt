@@ -2,7 +2,9 @@ package com.meloda.fast.screens.conversations.data.usecase
 
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
 import com.meloda.fast.api.network.conversations.ConversationsGetRequest
+import com.meloda.fast.api.network.conversations.ConversationsPinRequest
 import com.meloda.fast.api.network.conversations.ConversationsResponseDomain
+import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
 import com.meloda.fast.base.State
 import com.meloda.fast.base.toStateApiError
 import com.meloda.fast.screens.conversations.domain.repository.ConversationsRepository
@@ -49,6 +51,36 @@ class ConversationsUseCaseImpl(
 
         val newState = conversationsRepository.delete(
             ConversationsDeleteRequest(peerId = peerId)
+        ).fold(
+            onSuccess = { State.Success(Unit) },
+            onNetworkFailure = { State.Error.ConnectionError },
+            onUnknownFailure = { State.UNKNOWN_ERROR },
+            onHttpFailure = { result -> result.error.toStateApiError() },
+            onApiFailure = { result -> result.error.toStateApiError() }
+        )
+        emit(newState)
+    }
+
+    override fun pin(peerId: Int): Flow<State<Unit>> = flow {
+        emit(State.Loading)
+
+        val newState = conversationsRepository.pin(
+            ConversationsPinRequest(peerId = peerId)
+        ).fold(
+            onSuccess = { State.Success(Unit) },
+            onNetworkFailure = { State.Error.ConnectionError },
+            onUnknownFailure = { State.UNKNOWN_ERROR },
+            onHttpFailure = { result -> result.error.toStateApiError() },
+            onApiFailure = { result -> result.error.toStateApiError() }
+        )
+        emit(newState)
+    }
+
+    override fun unpin(peerId: Int): Flow<State<Unit>> = flow {
+        emit(State.Loading)
+
+        val newState = conversationsRepository.unpin(
+            ConversationsUnpinRequest(peerId = peerId)
         ).fold(
             onSuccess = { State.Success(Unit) },
             onNetworkFailure = { State.Error.ConnectionError },

@@ -2,7 +2,6 @@ package com.meloda.fast.api.model.data
 
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.domain.VkMessageDomain
-import com.meloda.fast.api.model.base.attachments.BaseVkAttachmentItem
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -18,7 +17,7 @@ data class VkMessageData(
     @Json(name = "fwd_messages") val fwdMessages: List<VkMessageData>? = emptyList(),
     @Json(name = "important") val important: Boolean = false,
     @Json(name = "random_id") val randomId: Int = 0,
-    @Json(name = "attachments") val attachments: List<BaseVkAttachmentItem> = emptyList(),
+    @Json(name = "attachments") val attachments: List<VkAttachmentItemData> = emptyList(),
     @Json(name = "is_hidden") val isHidden: Boolean = false,
     @Json(name = "payload") val payload: String?,
     @Json(name = "geo") val geo: Geo?,

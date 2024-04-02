@@ -1,18 +1,14 @@
 package com.meloda.fast.api.network.photos
 
-import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.Json
 
-@Parcelize
 data class PhotosGetMessagesUploadServerResponse(
-    @SerializedName("album_id")
+    @Json(name = "album_id")
     val albumId: Int,
-    @SerializedName("upload_url")
+    @Json(name = "upload_url")
     val uploadUrl: String
-) : Parcelable
+)
 
-@Parcelize
 data class PhotosUploadPhotoResponse(
     val server: Int, val photo: String, val hash: String
-) : Parcelable
+)

@@ -1,9 +1,5 @@
 package com.meloda.fast.api.network.conversations
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
 data class ConversationsGetRequest(
     val count: Int? = null,
     val offset: Int? = null,
@@ -11,7 +7,7 @@ data class ConversationsGetRequest(
     val filter: String = "all",
     val extended: Boolean? = true,
     val startMessageId: Int? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -25,17 +21,18 @@ data class ConversationsGetRequest(
         }
 }
 
-@Parcelize
-data class ConversationsDeleteRequest(val peerId: Int) : Parcelable {
+data class ConversationsDeleteRequest(val peerId: Int) {
     val map get() = mapOf("peer_id" to peerId.toString())
 }
 
-@Parcelize
-data class ConversationsPinRequest(val peerId: Int) : Parcelable {
+data class ConversationsPinRequest(val peerId: Int) {
     val map get() = mapOf("peer_id" to peerId.toString())
 }
 
-@Parcelize
-data class ConversationsUnpinRequest(val peerId: Int) : Parcelable {
+data class ConversationsUnpinRequest(val peerId: Int) {
     val map get() = mapOf("peer_id" to peerId.toString())
+}
+
+data class ConversationsReorderPinnedRequest(val params: Unit) {
+    val map get() = mapOf<String, String>()
 }

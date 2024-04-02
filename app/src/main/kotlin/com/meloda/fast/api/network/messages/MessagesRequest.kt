@@ -2,7 +2,7 @@ package com.meloda.fast.api.network.messages
 
 import android.os.Parcelable
 import com.meloda.fast.api.ApiExtensions.intString
-import com.meloda.fast.api.model.attachments.VkAttachment
+import com.meloda.fast.api.model.domain.VkAttachment
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
