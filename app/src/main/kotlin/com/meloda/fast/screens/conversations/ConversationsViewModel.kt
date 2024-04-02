@@ -2,6 +2,7 @@ package com.meloda.fast.screens.conversations
 
 import android.util.Log
 import androidx.compose.runtime.Stable
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.imageLoader
@@ -15,7 +16,6 @@ import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.processState
-import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.AccountsDao
 import com.meloda.fast.ext.createTimerFlow
@@ -63,7 +63,7 @@ class ConversationsViewModelImpl(
     private val accountsDao: AccountsDao,
     private val imageLoader: ImageLoader,
     private val conversationsUseCase: ConversationsUseCase
-) : ConversationsViewModel, BaseViewModel() {
+) : ConversationsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
 

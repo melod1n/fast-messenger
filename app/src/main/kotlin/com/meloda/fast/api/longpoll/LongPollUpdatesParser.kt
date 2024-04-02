@@ -4,15 +4,18 @@ import android.util.Log
 import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.base.RestApiError
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
-import com.meloda.fast.api.network.ApiAnswer
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
+import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
 import com.meloda.fast.base.viewmodel.VkEventCallback
 import com.meloda.fast.data.messages.MessagesRepository
 import com.meloda.fast.ext.asInt
 import com.meloda.fast.ext.asList
+import com.slack.eithernet.ApiResult
+import com.slack.eithernet.exceptionOrNull
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -240,12 +243,13 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
                         )
                     )
 
-                    if (normalMessageResponse is ApiAnswer.Error) {
-                        normalMessageResponse.error.cause?.run { throw this }
+                    // TODO: 03/04/2024, Danil Nikolaev: test this
+                    if (normalMessageResponse is ApiResult.Failure<RestApiError>) {
+                        normalMessageResponse.exceptionOrNull()?.run { throw this }
                     }
 
                     val messagesResponse =
-                        (normalMessageResponse as? ApiAnswer.Success)?.data?.response
+                        (normalMessageResponse as? ApiResult.Success<MessagesGetByIdResponse>)?.value
                             ?: return@launch
 
                     val messagesList = messagesResponse.items

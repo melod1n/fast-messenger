@@ -22,5 +22,4 @@ data class LongPollGetUpdatesRequest(
             "mode" to mode.toString(),
             "version" to version.toString()
         )
-
 }
