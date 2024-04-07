@@ -2,6 +2,7 @@
 agp = "8.2.2"
 benchmarkMacroJunit4 = "1.2.3"
 converterMoshi = "2.9.0"
+eithernet = "1.8.1"
 haze = "0.5.1"
 hijacker = "1.0.0"
 kotlin = "1.9.22"
@@ -54,6 +55,7 @@ compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", versio
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 compose-material3-pullrefresh = { module = "eu.bambooapps:compose-material3-pullrefresh", version.ref = "composeMaterial3Pullrefresh" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+eithernet = { module = "com.slack.eithernet:eithernet", version.ref = "eithernet" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 hijacker = { module = "me.gingerninja.lazylist:hijacker", version.ref = "hijacker" }

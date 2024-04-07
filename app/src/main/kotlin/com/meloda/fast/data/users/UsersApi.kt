@@ -1,9 +1,10 @@
 package com.meloda.fast.data.users
 
 import com.meloda.fast.api.base.ApiResponse
-import com.meloda.fast.api.model.base.BaseVkUser
-import com.meloda.fast.api.network.ApiAnswer
+import com.meloda.fast.api.base.RestApiError
+import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.network.users.UsersUrls
+import com.slack.eithernet.ApiResult
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
@@ -14,6 +15,5 @@ interface UsersApi {
     @POST(UsersUrls.GetById)
     suspend fun getById(
         @FieldMap params: Map<String, String>?
-    ): ApiAnswer<ApiResponse<List<BaseVkUser>>>
-
+    ): ApiResult<ApiResponse<List<VkUserData>>, RestApiError>
 }

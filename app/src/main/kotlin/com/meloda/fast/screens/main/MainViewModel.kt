@@ -2,11 +2,11 @@ package com.meloda.fast.screens.main
 
 import android.util.Log
 import androidx.core.content.edit
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.main.model.LongPollState
@@ -40,7 +40,7 @@ interface MainViewModel {
 class MainViewModelImpl(
     private val accountsDao: AccountsDao,
     private val userSettings: UserSettings
-) : MainViewModel, BaseViewModel() {
+) : MainViewModel, ViewModel() {
 
     init {
         loadAccounts()

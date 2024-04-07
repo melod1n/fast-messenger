@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.ext.isDebugSettingsShown
 import com.meloda.fast.ext.isSdkAtLeast
@@ -47,7 +47,6 @@ interface SettingsViewModel {
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
     fun onHapticsUsed()
-    fun onNavigatedToUpdates()
 
     fun onNotificationsPermissionRequested()
 }
@@ -105,10 +104,6 @@ class SettingsViewModelImpl(
                 emitShowOptions { old -> old.copy(showLogOut = true) }
             }
 
-            SettingsKeys.KEY_UPDATES_CHECK_UPDATES -> {
-                openUpdatesScreen()
-            }
-
             SettingsKeys.KEY_DEBUG_PERFORM_CRASH -> {
                 emitShowOptions { old -> old.copy(showPerformCrash = true) }
             }
@@ -135,7 +130,7 @@ class SettingsViewModelImpl(
 
     override fun onSettingsItemLongClicked(key: String) {
         when (key) {
-            SettingsKeys.KEY_UPDATES_CHECK_UPDATES -> {
+            SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS -> {
                 val showDebugCategory = isDebugSettingsShown()
                 if (showDebugCategory) return
 
@@ -173,10 +168,6 @@ class SettingsViewModelImpl(
 
     override fun onHapticsUsed() {
         screenState.setValue { old -> old.copy(useHaptics = HapticType.None) }
-    }
-
-    override fun onNavigatedToUpdates() {
-        screenState.setValue { old -> old.copy(isNeedToOpenUpdates = false) }
     }
 
     override fun onNotificationsPermissionRequested() {
@@ -338,16 +329,6 @@ class SettingsViewModelImpl(
                 key = "updates",
                 title = UiText.Simple("Updates")
             )
-            val updatesCheckAtStartup = SettingsItem.Switch.build(
-                key = SettingsKeys.KEY_UPDATES_CHECK_AT_STARTUP,
-                title = UiText.Simple("Check at startup"),
-                summary = UiText.Simple("Check updates at app startup"),
-                defaultValue = true
-            )
-            val updatesCheckUpdates = SettingsItem.TitleSummary.build(
-                key = SettingsKeys.KEY_UPDATES_CHECK_UPDATES,
-                title = UiText.Simple("Check updates")
-            )
 
             val debugTitle = SettingsItem.Title.build(
                 key = "debug",
@@ -405,11 +386,6 @@ class SettingsViewModelImpl(
                 visibilityTitle,
                 visibilitySendOnlineStatus,
             )
-            val updatesList = listOf(
-                updatesTitle,
-                updatesCheckAtStartup,
-                updatesCheckUpdates,
-            )
             val debugList = mutableListOf<SettingsItem<*>>()
             listOf(
                 debugTitle,
@@ -427,7 +403,6 @@ class SettingsViewModelImpl(
                 appearanceList,
                 featuresList,
                 visibilityList,
-                updatesList,
                 debugList,
             ).forEach(settingsList::addAll)
 
@@ -437,10 +412,6 @@ class SettingsViewModelImpl(
 
             screenState.setValue { old -> old.copy(settings = settingsList) }
         }
-    }
-
-    private fun openUpdatesScreen() {
-        screenState.setValue { old -> old.copy(isNeedToOpenUpdates = true) }
     }
 }
 

@@ -1,10 +1,10 @@
 package com.meloda.fast.common.di
 
+import com.meloda.fast.data.account.di.accountModule
 import com.meloda.fast.di.apiModule
 import com.meloda.fast.di.dataModule
 import com.meloda.fast.di.databaseModule
 import com.meloda.fast.di.networkModule
-import com.meloda.fast.di.otaModule
 import com.meloda.fast.di.utilModule
 import com.meloda.fast.screens.captcha.di.captchaModule
 import com.meloda.fast.screens.conversations.di.conversationsModule
@@ -17,7 +17,7 @@ import com.meloda.fast.screens.settings.UserSettings
 import com.meloda.fast.screens.settings.UserSettingsImpl
 import com.meloda.fast.screens.settings.di.settingsModule
 import com.meloda.fast.screens.twofa.di.twoFaModule
-import com.meloda.fast.screens.updates.di.updatesModule
+import com.meloda.fast.service.longpolling.di.longPollModule
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -26,7 +26,6 @@ val applicationModule = module {
     includes(
         databaseModule,
         dataModule,
-        otaModule,
         networkModule,
         apiModule,
         utilModule,
@@ -35,11 +34,12 @@ val applicationModule = module {
         captchaModule,
         conversationsModule,
         settingsModule,
-        updatesModule,
         messagesHistoryModule,
         photoViewModule,
         mainModule,
-        languagePickerModule
+        languagePickerModule,
+        longPollModule,
+        accountModule
     )
 
     singleOf(::UserSettingsImpl) bind UserSettings::class

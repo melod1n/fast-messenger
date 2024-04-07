@@ -1,6 +1,15 @@
 package com.meloda.fast.api
 
-import com.meloda.fast.api.model.attachments.*
+import com.meloda.fast.api.model.domain.VkAttachment
+import com.meloda.fast.api.model.domain.VkAudioMessageDomain
+import com.meloda.fast.api.model.domain.VkCallDomain
+import com.meloda.fast.api.model.domain.VkCuratorDomain
+import com.meloda.fast.api.model.domain.VkEventDomain
+import com.meloda.fast.api.model.domain.VkGiftDomain
+import com.meloda.fast.api.model.domain.VkGraffitiDomain
+import com.meloda.fast.api.model.domain.VkGroupCallDomain
+import com.meloda.fast.api.model.domain.VkStoryDomain
+import com.meloda.fast.api.model.domain.VkWidgetDomain
 
 @Suppress("RemoveExplicitTypeArguments")
 object VKConstants {
@@ -44,14 +53,14 @@ object VKConstants {
     }
 
     val restrictedToEditAttachments = listOf<Class<out VkAttachment>>(
-        VkCall::class.java,
-        VkCurator::class.java,
-        VkEvent::class.java,
-        VkGift::class.java,
-        VkGraffiti::class.java,
-        VkGroupCall::class.java,
-        VkStory::class.java,
-        VkVoiceMessage::class.java,
-        VkWidget::class.java
+        VkCallDomain::class.java,
+        VkCuratorDomain::class.java,
+        VkEventDomain::class.java,
+        VkGiftDomain::class.java,
+        VkGraffitiDomain::class.java,
+        VkGroupCallDomain::class.java,
+        VkStoryDomain::class.java,
+        VkAudioMessageDomain::class.java,
+        VkWidgetDomain::class.java
     )
 }

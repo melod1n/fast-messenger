@@ -9,5 +9,4 @@ class VideosRepository(
     suspend fun save() = videosApi.save()
 
     suspend fun upload(url: String, file: MultipartBody.Part) = videosApi.upload(url, file)
-
 }

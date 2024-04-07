@@ -99,6 +99,7 @@ androidComponents {
 }
 
 android {
+    // TODO: 07/04/2024, Danil Nikolaev: rename
     namespace = "com.meloda.fast"
 
     compileSdk = 34
@@ -261,8 +262,6 @@ dependencies {
 
     implementation(libs.coil)
 
-    implementation(libs.kotlin.reflect)
-
     implementation(libs.core.ktx)
 
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -288,7 +287,6 @@ dependencies {
 
     // Retrofit converters
     implementation(libs.converter.moshi)
-    implementation(libs.converter.gson)
     // end of Retrofit converters
 
     implementation(libs.logging.interceptor)
@@ -306,4 +304,6 @@ dependencies {
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
+
+    implementation(libs.eithernet)
 }

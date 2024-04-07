@@ -1,8 +1,8 @@
 package com.meloda.fast.screens.twofa
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.ext.isTrue
@@ -40,7 +40,7 @@ interface TwoFaViewModel {
 class TwoFaViewModelImpl constructor(
     private val validator: TwoFaValidator,
     private val authRepository: AuthRepository,
-) : TwoFaViewModel, BaseViewModel() {
+) : TwoFaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
 
@@ -117,25 +117,25 @@ class TwoFaViewModelImpl constructor(
         val validationSid = screenState.value.twoFaSid
 
         viewModelScope.launch {
-            sendRequest {
-                authRepository.sendSms(validationSid)
-            }?.let { response ->
-                val newValidationType = response.validationType
-                val newCanResendSms = response.validationResend == "sms"
-
-                screenState.updateValue(
-                    screenState.value.copy(
-                        canResendSms = newCanResendSms,
-                        twoFaText = getTwoFaText(
-                            TwoFaValidationType.parse(
-                                newValidationType ?: "null"
-                            )
-                        )
-                    )
-                )
-
-                startTickTimer(response.delay)
-            }
+//            sendRequest {
+//                authRepository.sendSms(validationSid)
+//            }?.let { response ->
+//                val newValidationType = response.validationType
+//                val newCanResendSms = response.validationResend == "sms"
+//
+//                screenState.updateValue(
+//                    screenState.value.copy(
+//                        canResendSms = newCanResendSms,
+//                        twoFaText = getTwoFaText(
+//                            TwoFaValidationType.parse(
+//                                newValidationType ?: "null"
+//                            )
+//                        )
+//                    )
+//                )
+//
+//                startTickTimer(response.delay)
+//            }
         }
     }
 

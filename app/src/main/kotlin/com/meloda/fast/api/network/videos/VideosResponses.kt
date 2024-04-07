@@ -1,35 +1,21 @@
 package com.meloda.fast.api.network.videos
 
-import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.Parcelize
+import com.squareup.moshi.Json
 
-@Parcelize
 data class VideosSaveResponse(
-    @SerializedName("access_key")
-    val accessKey: String,
+    @Json(name = "access_key") val accessKey: String,
     val description: String,
-    @SerializedName("owner_id")
-    val ownerId: Int,
+    @Json(name = "owner_id") val ownerId: Int,
     val title: String,
-    @SerializedName("upload_url")
-    val uploadUrl: String,
-    @SerializedName("video_id")
-    val videoId: Int
-) : Parcelable {
+    @Json(name = "upload_url") val uploadUrl: String,
+    @Json(name = "video_id") val videoId: Int
+)
 
-}
-
-@Parcelize
 data class VideosUploadResponse(
-    @SerializedName("video_hash")
-    val hash: String?,
+    @Json(name = "video_hash") val hash: String?,
     val size: Int,
-    @SerializedName("direct_link")
-    val directLink: String,
-    @SerializedName("owner_id")
-    val ownerId: Int,
-    @SerializedName("video_id")
-    val videoId: Int,
+    @Json(name = "direct_link") val directLink: String,
+    @Json(name = "owner_id") val ownerId: Int,
+    @Json(name = "video_id") val videoId: Int,
     val error: String?
-) : Parcelable
+)

@@ -8,7 +8,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.network.account.AccountSetOfflineRequest
 import com.meloda.fast.api.network.account.AccountSetOnlineRequest
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.account.AccountsRepository
+import com.meloda.fast.data.account.domain.repository.AccountRepository
 import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.screens.settings.SettingsKeys
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -37,7 +37,7 @@ class OnlineService : Service() {
 
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    private val repository: AccountsRepository by inject()
+    private val repository: AccountRepository by inject()
 
     private var timerJob: Job? = null
     private var onlineJob: Job? = null

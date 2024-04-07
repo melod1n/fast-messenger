@@ -9,7 +9,6 @@ data class SettingsScreenState(
     val showOptions: SettingsShowOptions,
     val settings: List<SettingsItem<*>>,
     val useHaptics: HapticType,
-    val isNeedToOpenUpdates: Boolean,
     val isNeedToRequestNotificationPermission: Boolean,
     val showDebugOptions: Boolean
 ) {
@@ -19,7 +18,6 @@ data class SettingsScreenState(
             showOptions = SettingsShowOptions.EMPTY,
             settings = emptyList(),
             useHaptics = HapticType.None,
-            isNeedToOpenUpdates = false,
             isNeedToRequestNotificationPermission = false,
             showDebugOptions = isDebugSettingsShown()
         )

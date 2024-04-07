@@ -5,14 +5,14 @@ import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.VkGroup
-import com.meloda.fast.api.model.VkUser
-import com.meloda.fast.api.network.ApiAnswer
-import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
+import com.meloda.fast.base.processState
 import com.meloda.fast.base.viewmodel.VkEventCallback
-import com.meloda.fast.data.messages.MessagesRepository
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.ext.asInt
 import com.meloda.fast.ext.asList
+import com.meloda.fast.ext.listenValue
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,9 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @Suppress("UNCHECKED_CAST", "MemberVisibilityCanBePrivate")
-class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) : CoroutineScope {
+class LongPollUpdatesParser(
+    private val messagesUseCase: MessagesUseCase
+) : CoroutineScope {
 
     private val job = SupervisorJob()
 
@@ -228,55 +230,57 @@ class LongPollUpdatesParser(private val messagesRepository: MessagesRepository) 
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
+    // TODO: 03/04/2024, Danil Nikolaev: review
     private suspend fun <T : LongPollEvent> loadNormalMessage(eventType: ApiEvent, messageId: Int) =
         coroutineScope {
             suspendCoroutine {
                 launch {
-                    val normalMessageResponse = messagesRepository.getById(
-                        MessagesGetByIdRequest(
-                            messagesIds = listOf(messageId),
-                            extended = true,
-                            fields = VKConstants.ALL_FIELDS
+                    messagesUseCase.getById(
+                        messagesIds = listOf(messageId),
+                        extended = true,
+                        fields = VKConstants.ALL_FIELDS
+                    ).listenValue(this) { state ->
+                        state.processState(
+                            error = { error ->
+                                Log.e("LongPollUpdatesParser", "loadNormalMessage: error: $error")
+                            },
+                            success = { response ->
+                                val messagesList = response.items
+                                if (messagesList.isEmpty()) return@processState
+
+                                val normalMessage = messagesList[0].asVkMessage()
+//                                messagesRepository.store(listOf(normalMessage))
+
+                                val profiles = hashMapOf<Int, VkUserDomain>()
+                                response.profiles?.forEach { baseUser ->
+                                    baseUser.mapToDomain().let { user -> profiles[user.id] = user }
+                                }
+
+                                val groups = hashMapOf<Int, VkGroupDomain>()
+                                response.groups?.forEach { baseGroup ->
+                                    baseGroup.mapToDomain()
+                                        .let { group -> groups[group.id] = group }
+                                }
+
+                                val resumeValue: LongPollEvent? = when (eventType) {
+                                    ApiEvent.MessageNew ->
+                                        LongPollEvent.VkMessageNewEvent(
+                                            normalMessage,
+                                            profiles,
+                                            groups
+                                        )
+
+                                    ApiEvent.MessageEdit -> LongPollEvent.VkMessageEditEvent(
+                                        normalMessage
+                                    )
+
+                                    else -> null
+                                }
+
+                                resumeValue?.let { value -> it.resume(value as T) }
+                            }
                         )
-                    )
-
-                    if (normalMessageResponse is ApiAnswer.Error) {
-                        normalMessageResponse.error.throwable?.run { throw this }
                     }
-
-                    val messagesResponse =
-                        (normalMessageResponse as? ApiAnswer.Success)?.data?.response
-                            ?: return@launch
-
-                    val messagesList = messagesResponse.items
-                    if (messagesList.isEmpty()) return@launch
-
-                    val normalMessage = messagesList[0].asVkMessage()
-                    messagesRepository.store(listOf(normalMessage))
-
-                    val profiles = hashMapOf<Int, VkUser>()
-                    messagesResponse.profiles?.forEach { baseUser ->
-                        baseUser.mapToDomain().let { user -> profiles[user.id] = user }
-                    }
-
-                    val groups = hashMapOf<Int, VkGroup>()
-                    messagesResponse.groups?.forEach { baseGroup ->
-                        baseGroup.mapToDomain().let { group -> groups[group.id] = group }
-                    }
-
-                    val resumeValue: LongPollEvent? = when (eventType) {
-                        ApiEvent.MessageNew ->
-                            LongPollEvent.VkMessageNewEvent(
-                                normalMessage,
-                                profiles,
-                                groups
-                            )
-
-                        ApiEvent.MessageEdit -> LongPollEvent.VkMessageEditEvent(normalMessage)
-                        else -> null
-                    }
-
-                    resumeValue?.let { value -> it.resume(value as T) }
                 }
             }
         }

@@ -1,27 +1,19 @@
 package com.meloda.fast.screens.login
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.network.CaptchaRequiredError
-import com.meloda.fast.api.network.ValidationRequiredError
-import com.meloda.fast.api.network.WrongTwoFaCodeError
-import com.meloda.fast.api.network.WrongTwoFaCodeFormatError
-import com.meloda.fast.api.network.auth.AuthDirectRequest
-import com.meloda.fast.base.viewmodel.BaseViewModel
 import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
 import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
 import com.meloda.fast.base.viewmodel.VkEvent
-import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.emitOnMainScope
-import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.AppAccount
-import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.captcha.model.CaptchaArguments
 import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
@@ -74,7 +66,7 @@ class LoginViewModelImpl(
     private val authRepository: AuthRepository,
     private val accounts: AccountsDao,
     private val loginValidator: LoginValidator,
-) : BaseViewModel(), LoginViewModel {
+) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
 
@@ -88,7 +80,7 @@ class LoginViewModelImpl(
     private var currentValidationEvent: ValidationRequiredEvent? = null
 
     init {
-        events.listenValue(::handleEvent)
+//        events.listenValue(::handleEvent)
     }
 
     private fun handleEvent(event: VkEvent) {
@@ -276,56 +268,56 @@ class LoginViewModelImpl(
             )
             screenState.update { newState }
 
-            sendRequest(
-                onError = ::parseError,
-                request = {
-                    val requestModel = AuthDirectRequest(
-                        grantType = VKConstants.Auth.GrantType.PASSWORD,
-                        clientId = VKConstants.VK_APP_ID,
-                        clientSecret = VKConstants.VK_SECRET,
-                        username = state.login,
-                        password = state.password,
-                        scope = VKConstants.Auth.SCOPE,
-                        twoFaForceSms = forceSms,
-                        twoFaCode = state.validationCode,
-                        captchaSid = state.captchaArguments?.captchaSid,
-                        captchaKey = state.captchaCode,
-                    )
-
-                    authRepository.auth(requestModel)
-                }
-            )?.let { response ->
-                val userId = response.userId
-                val accessToken = response.accessToken
-
-                // TODO: 02/12/2023, Danil Nikolaev: implement loading user info
-
-                if (userId == null || accessToken == null) {
-//                    sendEvent(UnknownErrorEvent)
-                    return@let
-                }
-
-                if (currentValidationEvent != null) {
-                    currentValidationEvent = null
-                }
-
-                val currentAccount = AppAccount(
-                    userId = userId,
-                    accessToken = accessToken,
-                    fastToken = null,
-                    trustedHash = response.twoFaHash
-                ).also { account ->
-                    UserConfig.currentUserId = account.userId
-                    UserConfig.userId = account.userId
-                    UserConfig.accessToken = account.accessToken
-                    UserConfig.fastToken = account.fastToken
-                    UserConfig.trustedHash = account.trustedHash
-                }
-
-                accounts.insert(listOf(currentAccount))
-
-                screenState.updateValue(screenState.value.copy(isNeedToOpenConversations = true))
-            }
+//            sendRequest(
+//                onError = ::parseError,
+//                request = {
+//                    val requestModel = AuthDirectRequest(
+//                        grantType = VKConstants.Auth.GrantType.PASSWORD,
+//                        clientId = VKConstants.VK_APP_ID,
+//                        clientSecret = VKConstants.VK_SECRET,
+//                        username = state.login,
+//                        password = state.password,
+//                        scope = VKConstants.Auth.SCOPE,
+//                        twoFaForceSms = forceSms,
+//                        twoFaCode = state.validationCode,
+//                        captchaSid = state.captchaArguments?.captchaSid,
+//                        captchaKey = state.captchaCode,
+//                    )
+//
+//                    authRepository.auth(requestModel)
+//                }
+//            )?.let { response ->
+//                val userId = response.userId
+//                val accessToken = response.accessToken
+//
+//                // TODO: 02/12/2023, Danil Nikolaev: implement loading user info
+//
+//                if (userId == null || accessToken == null) {
+////                    sendEvent(UnknownErrorEvent)
+//                    return@let
+//                }
+//
+//                if (currentValidationEvent != null) {
+//                    currentValidationEvent = null
+//                }
+//
+//                val currentAccount = AppAccount(
+//                    userId = userId,
+//                    accessToken = accessToken,
+//                    fastToken = null,
+//                    trustedHash = response.twoFaHash
+//                ).also { account ->
+//                    UserConfig.currentUserId = account.userId
+//                    UserConfig.userId = account.userId
+//                    UserConfig.accessToken = account.accessToken
+//                    UserConfig.fastToken = account.fastToken
+//                    UserConfig.trustedHash = account.trustedHash
+//                }
+//
+//                accounts.insert(listOf(currentAccount))
+//
+//                screenState.updateValue(screenState.value.copy(isNeedToOpenConversations = true))
+//            }
 
             newState = screenState.value.copy(
                 isLoading = false
@@ -336,40 +328,40 @@ class LoginViewModelImpl(
 
     private fun parseError(error: Throwable): Boolean {
         return when (error) {
-            is WrongTwoFaCodeError, WrongTwoFaCodeFormatError -> {
-                currentValidationEvent?.let { event ->
-                    val codeError = UiText.Simple(
-                        if (error is WrongTwoFaCodeError) "Wrong code"
-                        else "Wrong code format"
-                    )
-                    handleEvent(event.copy(codeError = codeError))
-                    true
-                } ?: false
-            }
+//            is WrongTwoFaCodeError, WrongTwoFaCodeFormatError -> {
+//                currentValidationEvent?.let { event ->
+//                    val codeError = UiText.Simple(
+//                        if (error is WrongTwoFaCodeError) "Wrong code"
+//                        else "Wrong code format"
+//                    )
+//                    handleEvent(event.copy(codeError = codeError))
+//                    true
+//                } ?: false
+//            }
 
-            is ValidationRequiredError -> {
-                handleEvent(
-                    ValidationRequiredEvent(
-                        sid = error.validationSid,
-                        redirectUri = error.redirectUri,
-                        phoneMask = error.phoneMask,
-                        validationType = error.validationType,
-                        canResendSms = error.validationResend == "sms",
-                        codeError = null
-                    )
-                )
-                true
-            }
-
-            is CaptchaRequiredError -> {
-                handleEvent(
-                    CaptchaRequiredEvent(
-                        sid = error.captchaSid,
-                        image = error.captchaImg
-                    )
-                )
-                true
-            }
+//            is ValidationRequiredError -> {
+//                handleEvent(
+//                    ValidationRequiredEvent(
+//                        sid = error.validationSid,
+//                        redirectUri = error.redirectUri,
+//                        phoneMask = error.phoneMask,
+//                        validationType = error.validationType,
+//                        canResendSms = error.validationResend == "sms",
+//                        codeError = null
+//                    )
+//                )
+//                true
+//            }
+//
+//            is CaptchaRequiredError -> {
+//                handleEvent(
+//                    CaptchaRequiredEvent(
+//                        sid = error.captchaSid,
+//                        image = error.captchaImg
+//                    )
+//                )
+//                true
+//            }
 
             else -> false
         }

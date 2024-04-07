@@ -1,6 +1,6 @@
 package com.meloda.fast.data.files
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
 import okhttp3.MultipartBody
 
 class FilesRepository(
@@ -8,10 +8,10 @@ class FilesRepository(
 ) {
 
     enum class FileType(val value: String) {
-        @SerializedName("doc")
+        @Json(name = "doc")
         File("doc"),
 
-        @SerializedName("audio_message")
+        @Json(name = "audio_message")
         VoiceMessage("audio_message")
     }
 
