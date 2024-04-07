@@ -9,7 +9,7 @@ import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.base.processState
 import com.meloda.fast.base.viewmodel.VkEventCallback
-import com.meloda.fast.data.messages.domain.usecase.MessagesUseCase
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.ext.asInt
 import com.meloda.fast.ext.asList
 import com.meloda.fast.ext.listenValue

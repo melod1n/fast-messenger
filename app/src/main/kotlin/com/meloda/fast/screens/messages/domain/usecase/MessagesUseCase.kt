@@ -1,4 +1,4 @@
-package com.meloda.fast.data.messages.domain.usecase
+package com.meloda.fast.screens.messages.domain.usecase
 
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
 import com.meloda.fast.api.network.messages.MessagesGetHistoryResponse

@@ -1,9 +1,8 @@
-package com.meloda.fast.data.messages.data.service
+package com.meloda.fast.screens.messages.data.service
 
 import com.meloda.fast.api.base.ApiResponse
 import com.meloda.fast.api.base.RestApiError
 import com.meloda.fast.api.model.data.VkChatData
-import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
 import com.meloda.fast.api.network.messages.MessagesGetConversationMembersResponse
@@ -33,12 +32,6 @@ interface MessagesService {
     suspend fun markAsImportant(
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<List<Int>>, RestApiError>
-
-    @FormUrlEncoded
-    @POST(MessagesUrls.GetLongPollServer)
-    suspend fun getLongPollServer(
-        @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<VkLongPollData>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.Pin)

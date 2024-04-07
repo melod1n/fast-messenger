@@ -8,7 +8,7 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
 import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
 import com.meloda.fast.base.viewmodel.VkEvent
-import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
 import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.setValue

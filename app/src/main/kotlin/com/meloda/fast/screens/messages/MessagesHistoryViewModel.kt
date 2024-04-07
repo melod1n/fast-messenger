@@ -21,7 +21,7 @@ import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
-import com.meloda.fast.data.messages.domain.usecase.MessagesUseCase
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
 import com.meloda.fast.ext.emitOnMainScope

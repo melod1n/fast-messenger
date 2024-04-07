@@ -1,9 +1,7 @@
-package com.meloda.fast.data.messages.domain.repository
+package com.meloda.fast.screens.messages.domain.repository
 
 import com.meloda.fast.api.model.data.VkChatData
-import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.api.model.data.VkMessageData
-import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
 import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
@@ -11,13 +9,11 @@ import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
 import com.meloda.fast.api.network.messages.MessagesGetConversationMembersResponse
 import com.meloda.fast.api.network.messages.MessagesGetHistoryRequest
 import com.meloda.fast.api.network.messages.MessagesGetHistoryResponse
-import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
 import com.meloda.fast.api.network.messages.MessagesMarkAsImportantRequest
 import com.meloda.fast.api.network.messages.MessagesPinMessageRequest
 import com.meloda.fast.api.network.messages.MessagesSendRequest
 import com.meloda.fast.api.network.messages.MessagesUnPinMessageRequest
 import com.meloda.fast.base.RestApiErrorDomain
-import com.meloda.fast.data.longpoll.LongPollUpdates
 import com.slack.eithernet.ApiResult
 
 interface MessagesRepository {
@@ -33,15 +29,6 @@ interface MessagesRepository {
     suspend fun markAsImportant(
         params: MessagesMarkAsImportantRequest
     ): ApiResult<List<Int>, RestApiErrorDomain>
-
-//    suspend fun getLongPollServer(
-//        params: MessagesGetLongPollServerRequest
-//    ): ApiResult<ApiResponse<VkLongPollData>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-//        messagesService.getLongPollServer(params.map).mapResult(
-//            successMapper = { response -> response },
-//            errorMapper = { error -> error?.toDomain() }
-//        )
-//    }
 
     suspend fun pin(
         params: MessagesPinMessageRequest
@@ -59,26 +46,6 @@ interface MessagesRepository {
         params: MessagesEditRequest
     ): ApiResult<Int, RestApiErrorDomain>
 
-    suspend fun getLongPollServer(
-        params: MessagesGetLongPollServerRequest
-    ): ApiResult<VkLongPollData, RestApiErrorDomain>
-
-    suspend fun getLongPollUpdates(
-        serverUrl: String,
-        params: LongPollGetUpdatesRequest
-    ): ApiResult<LongPollUpdates, RestApiErrorDomain>
-
-//    suspend fun getLongPollUpdates(
-//        serverUrl: String,
-//        params: LongPollGetUpdatesRequest,
-//    ): ApiResult<LongPollUpdates, RestApiErrorDomain> =
-//        withContext(Dispatchers.IO) {
-//            longPollApi.getResponse(serverUrl, params.map).mapResult(
-//                successMapper = { response -> response },
-//                errorMapper = { error -> error?.toDomain() }
-//            )
-//        }
-
     suspend fun getById(
         params: MessagesGetByIdRequest
     ): ApiResult<MessagesGetByIdResponse, RestApiErrorDomain>
@@ -88,23 +55,6 @@ interface MessagesRepository {
         messageIds: List<Int>?,
         startMessageId: Int?
     ): ApiResult<Int, RestApiErrorDomain>
-
-//    suspend fun markAsRead(
-//        peerId: Int,
-//        messagesIds: List<Int>? = null,
-//        startMessageId: Int? = null,
-//    ): ApiResult<> {
-//        return messagesService.markAsRead(
-//            mutableMapOf("peer_id" to peerId.toString()).apply {
-//                messagesIds?.let {
-//                    this["message_ids"] = messagesIds.joinToString { it.toString() }
-//                }
-//                startMessageId?.let {
-//                    this["start_message_id"] = it.toString()
-//                }
-//            }
-//        )
-//    }
 
     suspend fun getChat(
         chatId: Int,

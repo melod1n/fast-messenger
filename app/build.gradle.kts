@@ -99,6 +99,7 @@ androidComponents {
 }
 
 android {
+    // TODO: 07/04/2024, Danil Nikolaev: rename
     namespace = "com.meloda.fast"
 
     compileSdk = 34
@@ -304,5 +305,5 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.haze.materials)
 
-    implementation("com.slack.eithernet:eithernet:1.8.1")
+    implementation(libs.eithernet)
 }

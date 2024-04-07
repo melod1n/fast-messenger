@@ -17,7 +17,7 @@ import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.processState
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.ext.emitOnScope
 import com.meloda.fast.ext.findIndex

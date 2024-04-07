@@ -1,4 +1,4 @@
-package com.meloda.fast.service
+package com.meloda.fast.service.longpolling
 
 import android.app.PendingIntent
 import android.app.Service
@@ -14,16 +14,14 @@ import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.data.VkLongPollData
-import com.meloda.fast.api.network.longpoll.LongPollGetUpdatesRequest
-import com.meloda.fast.api.network.messages.MessagesGetLongPollServerRequest
+import com.meloda.fast.base.processState
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.longpoll.LongPollUpdates
-import com.meloda.fast.data.messages.domain.repository.MessagesRepository
+import com.meloda.fast.service.longpolling.data.LongPollUpdates
+import com.meloda.fast.service.longpolling.domain.usecase.LongPollUseCase
+import com.meloda.fast.ext.listenValue
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.NotificationsUtils
 import com.slack.eithernet.ApiException
-import com.slack.eithernet.fold
-import com.slack.eithernet.onSuccess
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,8 +30,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-class LongPollService : Service() {
+class LongPollingService : Service() {
 
     private val job = SupervisorJob()
 
@@ -47,7 +47,7 @@ class LongPollService : Service() {
 
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    private val repository: MessagesRepository by inject()
+    private val longPollUseCase: LongPollUseCase by inject()
     private val updatesParser: LongPollUpdatesParser by inject()
 
     private var currentJob: Job? = null
@@ -194,39 +194,46 @@ class LongPollService : Service() {
         }
     }
 
-    private suspend fun getServerInfo(): VkLongPollData? {
-        val response = repository.getLongPollServer(
-            MessagesGetLongPollServerRequest(
-                needPts = true,
-                version = VKConstants.LP_VERSION
+    private suspend fun getServerInfo(): VkLongPollData? = suspendCoroutine {
+        longPollUseCase.getLongPollServer(
+            needPts = true,
+            version = VKConstants.LP_VERSION
+        ).listenValue(coroutineScope) { state ->
+            state.processState(
+                success = { response ->
+                    Log.d(TAG, "getServerInfo: serverInfoResponse: $response")
+                    it.resume(response)
+                },
+                error = { error ->
+                    Log.e(TAG, "getServerInfo: $error")
+                    it.resume(null)
+                }
             )
-        )
-
-        println("$TAG: serverInfoResponse: $response")
-
-        return response.fold(
-            onSuccess = { value -> value },
-            onFailure = { null }
-        )
+        }
     }
 
-    private suspend fun getUpdatesResponse(server: VkLongPollData): LongPollUpdates? {
-        val response = repository.getLongPollUpdates(
+    private suspend fun getUpdatesResponse(
+        server: VkLongPollData
+    ): LongPollUpdates? = suspendCoroutine {
+        longPollUseCase.getLongPollUpdates(
             serverUrl = "https://${server.server}",
-            params = LongPollGetUpdatesRequest(
-                key = server.key,
-                ts = server.ts,
-                wait = 25,
-                mode = 2 or 8 or 32 or 64 or 128,
-                version = VKConstants.LP_VERSION
+            key = server.key,
+            ts = server.ts,
+            wait = 25,
+            mode = 2 or 8 or 32 or 64 or 128,
+            version = VKConstants.LP_VERSION
+        ).listenValue(coroutineScope) { state ->
+            state.processState(
+                success = { response ->
+                    Log.d(TAG, "lastUpdateResponse: $response")
+                    it.resume(response)
+                },
+                error = { error ->
+                    Log.d(TAG, "getUpdatesResponse: error: $error")
+                    it.resume(null)
+                }
             )
-        )
-
-        Log.d("LongPollService", "lastUpdateResponse: $response")
-
-        response.onSuccess { value -> return value }
-
-        return null
+        }
     }
 
     private fun handleUpdateEvent(event: List<Any>) {

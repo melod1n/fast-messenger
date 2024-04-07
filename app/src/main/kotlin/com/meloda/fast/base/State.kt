@@ -1,12 +1,13 @@
 package com.meloda.fast.base
 
+// TODO: 07/04/2024, Danil Nikolaev: map error state in string
 /** Возможные состояния для одного потока данных в репозитории */
 sealed class State<out T> {
 
     /**
      * Репозиторий еще ничего не делал
      */
-    object Idle : State<Nothing>()
+    data object Idle : State<Nothing>()
 
     /**
      * Получение данных репозиторием закончилось успехом

@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -26,7 +25,7 @@ import com.meloda.fast.ext.isSdkAtLeast
 import com.meloda.fast.screens.main.navigation.HomeScreen
 import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.screens.settings.UserSettings
-import com.meloda.fast.service.LongPollService
+import com.meloda.fast.service.longpolling.LongPollingService
 import com.meloda.fast.service.OnlineService
 import com.meloda.fast.ui.AppTheme
 import org.koin.androidx.compose.koinViewModel
@@ -147,7 +146,7 @@ class MainActivity : AppCompatActivity() {
         )
     ) {
         if (enable) {
-            val longPollIntent = Intent(this, LongPollService::class.java)
+            val longPollIntent = Intent(this, LongPollingService::class.java)
 
             if (asForeground) {
                 ContextCompat.startForegroundService(this, longPollIntent)
@@ -155,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                 startService(longPollIntent)
             }
         } else {
-            stopService(Intent(this, LongPollService::class.java))
+            stopService(Intent(this, LongPollingService::class.java))
         }
     }
 

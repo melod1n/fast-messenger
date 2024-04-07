@@ -1,9 +1,9 @@
 package com.meloda.fast.screens.messages.di
 
-import com.meloda.fast.data.messages.data.repository.MessagesRepositoryImpl
-import com.meloda.fast.data.messages.data.usecase.MessagesUseCaseImpl
-import com.meloda.fast.data.messages.domain.repository.MessagesRepository
-import com.meloda.fast.data.messages.domain.usecase.MessagesUseCase
+import com.meloda.fast.screens.messages.data.repository.MessagesRepositoryImpl
+import com.meloda.fast.screens.messages.data.usecase.MessagesUseCaseImpl
+import com.meloda.fast.screens.messages.domain.repository.MessagesRepository
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.screens.messages.MessagesHistoryViewModelImpl
 import com.meloda.fast.screens.messages.validation.MessagesHistoryValidator
 import org.koin.androidx.viewmodel.dsl.viewModelOf

@@ -1,4 +1,4 @@
-package com.meloda.fast.data.account
+package com.meloda.fast.database.account
 
 import androidx.room.Dao
 import androidx.room.Insert

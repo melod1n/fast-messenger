@@ -3,7 +3,7 @@ package com.meloda.fast.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
-import com.meloda.fast.data.account.AccountsDao
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.model.AppAccount
 
 @Database(

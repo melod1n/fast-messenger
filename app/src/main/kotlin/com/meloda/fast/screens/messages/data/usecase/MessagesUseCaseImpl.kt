@@ -1,4 +1,4 @@
-package com.meloda.fast.data.messages.data.usecase
+package com.meloda.fast.screens.messages.data.usecase
 
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
@@ -6,8 +6,8 @@ import com.meloda.fast.api.network.messages.MessagesGetHistoryRequest
 import com.meloda.fast.api.network.messages.MessagesGetHistoryResponse
 import com.meloda.fast.base.State
 import com.meloda.fast.base.toStateApiError
-import com.meloda.fast.data.messages.domain.repository.MessagesRepository
-import com.meloda.fast.data.messages.domain.usecase.MessagesUseCase
+import com.meloda.fast.screens.messages.domain.repository.MessagesRepository
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.slack.eithernet.fold
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

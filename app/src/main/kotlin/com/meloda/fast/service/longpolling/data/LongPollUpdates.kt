@@ -1,4 +1,4 @@
-package com.meloda.fast.data.longpoll
+package com.meloda.fast.service.longpolling.data
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
