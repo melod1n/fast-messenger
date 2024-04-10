@@ -6,12 +6,15 @@ import com.meloda.fast.base.State
 import com.meloda.fast.base.toStateApiError
 import com.meloda.fast.data.account.domain.repository.AccountRepository
 import com.meloda.fast.data.account.domain.usecase.AccountUseCase
+import com.meloda.fast.database.account.AccountsDao
+import com.meloda.fast.model.AppAccount
 import com.slack.eithernet.fold
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class AccountUseCaseImpl(
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val accountsDao: AccountsDao
 ) : AccountUseCase {
 
     override suspend fun setOnline(
@@ -50,5 +53,9 @@ class AccountUseCaseImpl(
             onApiFailure = { result -> result.error.toStateApiError() }
         )
         emit(newState)
+    }
+
+    override suspend fun getAllAccounts(): Flow<List<AppAccount>> = flow {
+        emit(accountsDao.getAll())
     }
 }

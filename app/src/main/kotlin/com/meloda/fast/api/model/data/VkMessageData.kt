@@ -57,7 +57,7 @@ data class VkMessageData(
         @Json(name = "message") val message: String?
     )
 
-    fun asVkMessage() = VkMessageDomain(
+    fun mapToDomain(): VkMessageDomain = VkMessageDomain(
         id = id ?: -1,
         text = text.ifBlank { null },
         isOut = out == 1,

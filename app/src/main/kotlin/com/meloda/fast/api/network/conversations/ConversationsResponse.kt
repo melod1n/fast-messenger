@@ -33,7 +33,7 @@ data class ConversationsGetResponse(
 
         val conversations = items
             .map { item ->
-                val lastMessage = item.lastMessage?.asVkMessage()
+                val lastMessage = item.lastMessage?.mapToDomain()
                 item.conversation.mapToDomain()
                     .fill(
                         lastMessage = lastMessage,

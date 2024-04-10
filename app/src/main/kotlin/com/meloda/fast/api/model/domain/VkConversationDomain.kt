@@ -1,9 +1,6 @@
 package com.meloda.fast.api.model.domain
 
-import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.PrimaryKey
+import androidx.compose.runtime.Immutable
 import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
@@ -18,15 +15,10 @@ import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
 import com.meloda.fast.util.TimeUtils
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
 import java.util.Calendar
 
-@Suppress("MemberVisibilityCanBePrivate")
-@Entity(tableName = "conversations")
-@Parcelize
+@Immutable
 data class VkConversationDomain(
-    @PrimaryKey(autoGenerate = false)
     val id: Int,
     val localId: Int,
     val ownerId: Int?,
@@ -49,28 +41,14 @@ data class VkConversationDomain(
     val pinnedMessageId: Int?,
     val type: String,
     val interactionType: Int,
-    val interactionIds: List<Int>
-) : Parcelable {
+    val interactionIds: List<Int>,
+    val peerType: ConversationPeerType = ConversationPeerType.parse(type),
+    val lastMessage: VkMessageDomain? = null,
+    val pinnedMessage: VkMessageDomain? = null,
+    val conversationUser: VkUserDomain? = null,
+    val conversationGroup: VkGroupDomain? = null
+) {
 
-    @Ignore
-    @IgnoredOnParcel
-    var peerType: ConversationPeerType = ConversationPeerType.parse(type)
-
-    @Ignore
-    @IgnoredOnParcel
-    var lastMessage: VkMessageDomain? = null
-
-    @Ignore
-    @IgnoredOnParcel
-    var pinnedMessage: VkMessageDomain? = null
-
-    @Ignore
-    @IgnoredOnParcel
-    var conversationUser: VkUserDomain? = null
-
-    @Ignore
-    @IgnoredOnParcel
-    var conversationGroup: VkGroupDomain? = null
 
     fun isChat() = peerType.isChat()
     fun isUser() = peerType.isUser()
@@ -254,15 +232,6 @@ data class VkConversationDomain(
         return typingText
     }
 
-    fun copyWithEssentials(function: (VkConversationDomain) -> VkConversationDomain): VkConversationDomain {
-        return function(this).also {
-            it.lastMessage = this.lastMessage
-            it.pinnedMessage = this.pinnedMessage
-            it.conversationUser = this.conversationUser
-            it.conversationGroup = this.conversationGroup
-        }
-    }
-
     fun mapToPresentation() = VkConversationUi(
         conversationId = id,
         lastMessageId = lastMessageId,
@@ -287,41 +256,36 @@ data class VkConversationDomain(
         options = ImmutableList.of()
     )
 
-    sealed class ActionState {
-        data object Phantom : ActionState()
-        data object CallInProgress : ActionState()
-        data object None : ActionState()
+    enum class ActionState {
+        PHANTOM, CALL_IN_PROGRESS, NONE;
 
         companion object {
             fun parse(isPhantom: Boolean, isCallInProgress: Boolean): ActionState {
                 return when {
-                    isPhantom -> Phantom
-                    isCallInProgress -> CallInProgress
-                    else -> None
+                    isPhantom -> PHANTOM
+                    isCallInProgress -> CALL_IN_PROGRESS
+                    else -> NONE
                 }
             }
         }
     }
 
-    @Parcelize
-    sealed class ConversationPeerType : Parcelable {
-        data object User : ConversationPeerType()
-        data object Group : ConversationPeerType()
-        data object Chat : ConversationPeerType()
+    enum class ConversationPeerType {
+        USER, GROUP, CHAT;
 
-        fun isUser() = this == User
-        fun isGroup() = this == Group
-        fun isChat() = this == Chat
+        fun isUser(): Boolean = this == USER
+        fun isGroup(): Boolean = this == GROUP
+        fun isChat(): Boolean = this == CHAT
 
         companion object {
             fun parse(type: String): ConversationPeerType {
                 return when (type) {
-                    "user" -> User
-                    "group" -> Group
-                    else -> Chat
+                    "user" -> USER
+                    "group" -> GROUP
+                    "chat" -> CHAT
+                    else -> error("Unknown type: $type")
                 }
             }
         }
     }
-
 }

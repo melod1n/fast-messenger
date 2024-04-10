@@ -21,7 +21,6 @@ import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
-import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
 import com.meloda.fast.ext.emitOnMainScope
@@ -29,6 +28,7 @@ import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.toMap
 import com.meloda.fast.ext.updateValue
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
 import kotlinx.coroutines.Dispatchers
@@ -164,7 +164,7 @@ class MessagesHistoryViewModelImpl(
                         ?.map(VkGroupData::mapToDomain)
                         ?.toMap(hashMapOf(), VkGroupDomain::id) ?: hashMapOf()
                     val newMessages = response.items
-                        .map { message -> message.asVkMessage() }
+                        .map { message -> message.mapToDomain() }
                         .map { message ->
                             message.copy(
                                 user = profiles[message.fromId],
@@ -177,9 +177,13 @@ class MessagesHistoryViewModelImpl(
 //                    messagesRepository.store(newMessages)
                     val conversations = response.conversations?.map { base ->
                         val lastMessage =
-                            newMessages.find { message -> message.id == base.last_message_id }
-                        base.mapToDomain(lastMessage = lastMessage)
-                            .fill(lastMessage = lastMessage, profiles = profiles, groups = groups)
+                            newMessages.find { message -> message.id == base.lastMessageId }
+                        base.mapToDomain()
+                            .fill(
+                                lastMessage = lastMessage,
+                                profiles = profiles,
+                                groups = groups
+                            )
                             .mapToPresentation()
                     } ?: emptyList()
                     val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +

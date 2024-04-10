@@ -6,11 +6,15 @@ import com.meloda.fast.api.network.messages.MessagesDeleteRequest
 import com.meloda.fast.api.network.messages.MessagesEditRequest
 import com.meloda.fast.api.network.messages.MessagesGetByIdRequest
 import com.meloda.fast.api.network.messages.MessagesGetByIdResponse
+import com.meloda.fast.api.network.messages.MessagesGetChatRequest
+import com.meloda.fast.api.network.messages.MessagesGetConversationMembersRequest
 import com.meloda.fast.api.network.messages.MessagesGetConversationMembersResponse
 import com.meloda.fast.api.network.messages.MessagesGetHistoryRequest
 import com.meloda.fast.api.network.messages.MessagesGetHistoryResponse
 import com.meloda.fast.api.network.messages.MessagesMarkAsImportantRequest
+import com.meloda.fast.api.network.messages.MessagesMarkAsReadRequest
 import com.meloda.fast.api.network.messages.MessagesPinMessageRequest
+import com.meloda.fast.api.network.messages.MessagesRemoveChatUserRequest
 import com.meloda.fast.api.network.messages.MessagesSendRequest
 import com.meloda.fast.api.network.messages.MessagesUnPinMessageRequest
 import com.meloda.fast.base.RestApiErrorDomain
@@ -51,26 +55,18 @@ interface MessagesRepository {
     ): ApiResult<MessagesGetByIdResponse, RestApiErrorDomain>
 
     suspend fun markAsRead(
-        peerId: Int,
-        messageIds: List<Int>?,
-        startMessageId: Int?
+        params: MessagesMarkAsReadRequest
     ): ApiResult<Int, RestApiErrorDomain>
 
     suspend fun getChat(
-        chatId: Int,
-        fields: String?,
+        params: MessagesGetChatRequest
     ): ApiResult<VkChatData, RestApiErrorDomain>
 
     suspend fun getConversationMembers(
-        peerId: Int,
-        offset: Int?,
-        count: Int?,
-        extended: Boolean?,
-        fields: String?,
+        params: MessagesGetConversationMembersRequest
     ): ApiResult<MessagesGetConversationMembersResponse, RestApiErrorDomain>
 
     suspend fun removeChatUser(
-        chatId: Int,
-        memberId: Int,
+        params: MessagesRemoveChatUserRequest
     ): ApiResult<Int, RestApiErrorDomain>
 }

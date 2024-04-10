@@ -1,147 +1,145 @@
 package com.meloda.fast.api.model.data
 
+import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
-import com.meloda.fast.api.model.data.VkGroupCallData
-import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkConversationData(
-    val peer: Peer,
-    val last_message_id: Int,
-    val in_read: Int,
-    val out_read: Int,
-    val in_read_cmid: Int,
-    val out_read_cmid: Int,
-    val sort_id: SortId,
-    val last_conversation_message_id: Int,
-    val is_marked_unread: Boolean,
-    val important: Boolean,
-    val push_settings: PushSettings?,
-    val can_write: CanWrite,
-    val can_send_money: Boolean = false,
-    val can_receive_money: Boolean = false,
-    val chat_settings: ChatSettings?,
-    val call_in_progress: CallInProgress?,
-    val unread_count: Int?,
+    @Json(name = "peer") val peer: Peer,
+    @Json(name = "last_message_id") val lastMessageId: Int,
+    @Json(name = "in_read") val inRead: Int,
+    @Json(name = "out_read") val outRead: Int,
+    @Json(name = "in_read_cmid") val inReadConversationMessageId: Int,
+    @Json(name = "out_read_cmid") val outReadConversationMessageId: Int,
+    @Json(name = "sort_id") val sortId: SortId,
+    @Json(name = "last_conversation_message_id") val lastConversationMessageId: Int,
+    @Json(name = "is_marked_unread") val isMarkedUnread: Boolean,
+    @Json(name = "important") val important: Boolean,
+    @Json(name = "push_settings") val pushSettings: PushSettings?,
+    @Json(name = "can_write") val canWrite: CanWrite,
+    @Json(name = "can_send_money") val canSendMoney: Boolean = false,
+    @Json(name = "can_receive_money") val canReceiveMoney: Boolean = false,
+    @Json(name = "chat_settings") val chatSettings: ChatSettings?,
+    @Json(name = "call_in_progress") val callInProgress: CallInProgress?,
+    @Json(name = "unread_count") val unreadCount: Int?,
 ) {
 
     @JsonClass(generateAdapter = true)
     data class Peer(
-        val id: Int,
-        val type: String,
-        val local_id: Int,
+        @Json(name = "id") val id: Int,
+        @Json(name = "type") val type: String,
+        @Json(name = "local_id") val localId: Int,
     )
 
     @JsonClass(generateAdapter = true)
     data class SortId(
-        val major_id: Int,
-        val minor_id: Int,
+        @Json(name = "major_id") val majorId: Int,
+        @Json(name = "minor_id") val minorId: Int,
     )
 
     @JsonClass(generateAdapter = true)
     data class PushSettings(
-        val disabled_forever: Boolean,
-        val no_sound: Boolean,
-        val disabled_mentions: Boolean,
-        val disabled_mass_mentions: Boolean,
+        @Json(name = "disabled_forever") val disabledForever: Boolean,
+        @Json(name = "no_sound") val noSound: Boolean,
+        @Json(name = "disabled_mentions") val disabledMentions: Boolean,
+        @Json(name = "disabled_mass_mentions") val disabledMassMentions: Boolean,
     )
 
     @JsonClass(generateAdapter = true)
     data class CanWrite(
-        val allowed: Boolean,
+        @Json(name = "allowed") val allowed: Boolean,
     )
 
     @JsonClass(generateAdapter = true)
     data class ChatSettings(
-        val owner_id: Int,
-        val title: String,
-        val state: String,
-        val acl: Acl,
-        val members_count: Int?,
-        val friends_count: Int?,
-        val photo: Photo?,
-        val admin_ids: List<Int> = emptyList(),
-        val active_ids: List<Int> = emptyList(),
-        val is_group_channel: Boolean = false,
-        val is_disappearing: Boolean = false,
-        val is_service: Boolean = false,
-        val theme: String?,
-        val pinned_message: VkMessageData?,
+        @Json(name = "owner_id") val ownerId: Int,
+        @Json(name = "title") val title: String,
+        @Json(name = "state") val state: String,
+        @Json(name = "acl") val acl: Acl,
+        @Json(name = "members_count") val membersCount: Int?,
+        @Json(name = "friends_count") val friendsCount: Int?,
+        @Json(name = "photo") val photo: Photo?,
+        @Json(name = "admin_ids") val adminIds: List<Int> = emptyList(),
+        @Json(name = "active_ids") val activeIds: List<Int> = emptyList(),
+        @Json(name = "is_group_channel") val isGroupChannel: Boolean = false,
+        @Json(name = "is_disappearing") val isDisappearing: Boolean = false,
+        @Json(name = "is_service") val isService: Boolean = false,
+        @Json(name = "theme") val theme: String?,
+        @Json(name = "pinned_message") val pinnedMessage: VkMessageData?,
     ) {
 
         @JsonClass(generateAdapter = true)
         data class Acl(
-            val can_change_info: Boolean,
-            val can_change_invite_link: Boolean,
-            val can_change_pin: Boolean,
-            val can_invite: Boolean,
-            val can_promote_users: Boolean,
-            val can_see_invite_link: Boolean,
-            val can_moderate: Boolean,
-            val can_copy_chat: Boolean,
-            val can_call: Boolean,
-            val can_use_mass_mentions: Boolean,
-            val can_change_style: Boolean,
+            @Json(name = "can_change_info") val canChangeInfo: Boolean,
+            @Json(name = "can_change_invite_link") val canChangeInviteLink: Boolean,
+            @Json(name = "can_change_pin") val canChangePin: Boolean,
+            @Json(name = "can_invite") val canInvite: Boolean,
+            @Json(name = "can_promote_users") val canPromoteUsers: Boolean,
+            @Json(name = "can_see_invite_link") val canSeeInviteLink: Boolean,
+            @Json(name = "can_moderate") val canModerate: Boolean,
+            @Json(name = "can_copy_chat") val canCopyChat: Boolean,
+            @Json(name = "can_call") val canCall: Boolean,
+            @Json(name = "can_use_mass_mentions") val canUseMassMentions: Boolean,
+            @Json(name = "can_change_style") val canChangeStyle: Boolean,
         )
 
         @JsonClass(generateAdapter = true)
         data class Photo(
-            val photo_50: String?,
-            val photo_100: String?,
-            val photo_200: String?,
-            val is_default_photo: Boolean,
+            @Json(name = "photo_50") val photo50: String?,
+            @Json(name = "photo_100") val photo100: String?,
+            @Json(name = "photo_200") val photo200: String?,
+            @Json(name = "is_default_photo") val isDefaultPhoto: Boolean,
         )
     }
 
     @JsonClass(generateAdapter = true)
     data class CallInProgress(
-        val participants: VkGroupCallData.Participants,
-        val join_link: String,
+        @Json(name = "participants") val participants: Participants,
+        @Json(name = "join_link") val joinLink: String,
     ) {
 
         @JsonClass(generateAdapter = true)
         data class Participants(
-            val list: List<Int>,
-            val count: Int,
+            @Json(name = "list") val list: List<Int>,
+            @Json(name = "count") val count: Int,
         )
-
     }
 
     fun mapToDomain(
         lastMessage: VkMessageDomain? = null,
         conversationUser: VkUserDomain? = null,
         conversationGroup: VkGroupDomain? = null,
-    ) = VkConversationDomain(
+    ): VkConversationDomain = VkConversationDomain(
         id = peer.id,
-        localId = peer.local_id,
-        conversationTitle = chat_settings?.title,
-        conversationPhoto = chat_settings?.photo?.photo_200,
+        localId = peer.localId,
+        conversationTitle = chatSettings?.title,
+        conversationPhoto = chatSettings?.photo?.photo200,
         type = peer.type,
-        isCallInProgress = call_in_progress != null,
-        isPhantom = chat_settings?.is_disappearing == true,
-        lastConversationMessageId = last_conversation_message_id,
-        inRead = in_read,
-        outRead = out_read,
-        lastMessageId = last_message_id,
-        unreadCount = unread_count ?: 0,
-        membersCount = chat_settings?.members_count,
-        ownerId = chat_settings?.owner_id,
-        majorId = sort_id.major_id,
-        minorId = sort_id.minor_id,
-        canChangePin = chat_settings?.acl?.can_change_pin == true,
-        canChangeInfo = chat_settings?.acl?.can_change_info == true,
-        pinnedMessageId = chat_settings?.pinned_message?.id,
-        inReadCmId = in_read_cmid,
-        outReadCmId = out_read_cmid,
+        isCallInProgress = callInProgress != null,
+        isPhantom = chatSettings?.isDisappearing == true,
+        lastConversationMessageId = lastConversationMessageId,
+        inRead = inRead,
+        outRead = outRead,
+        lastMessageId = lastMessageId,
+        unreadCount = unreadCount ?: 0,
+        membersCount = chatSettings?.membersCount,
+        ownerId = chatSettings?.ownerId,
+        majorId = sortId.majorId,
+        minorId = sortId.minorId,
+        canChangePin = chatSettings?.acl?.canChangePin == true,
+        canChangeInfo = chatSettings?.acl?.canChangeInfo == true,
+        pinnedMessageId = chatSettings?.pinnedMessage?.id,
+        inReadCmId = inReadConversationMessageId,
+        outReadCmId = outReadConversationMessageId,
         interactionType = -1,
-        interactionIds = emptyList()
-    ).also {
-        it.lastMessage = lastMessage
-        it.pinnedMessage = chat_settings?.pinned_message?.asVkMessage()
-        it.conversationUser = conversationUser
-        it.conversationGroup = conversationGroup
-    }
+        interactionIds = emptyList(),
+        lastMessage = lastMessage,
+        pinnedMessage = chatSettings?.pinnedMessage?.mapToDomain(),
+        conversationUser = conversationUser,
+        conversationGroup = conversationGroup
+    )
 }

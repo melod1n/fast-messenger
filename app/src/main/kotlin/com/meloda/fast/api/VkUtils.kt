@@ -258,7 +258,7 @@ object VkUtils {
         val forwards = mutableListOf<VkMessageDomain>()
 
         for (baseForward in baseForwards) {
-            forwards += baseForward.asVkMessage()
+            forwards += baseForward.mapToDomain()
         }
 
         return forwards
@@ -267,7 +267,7 @@ object VkUtils {
     fun parseReplyMessage(baseReplyMessage: VkMessageData?): VkMessageDomain? {
         if (baseReplyMessage == null) return null
 
-        return baseReplyMessage.asVkMessage()
+        return baseReplyMessage.mapToDomain()
     }
 
     fun parseAttachments(baseAttachments: List<VkAttachmentItemData>?): List<VkAttachment>? {
@@ -1284,24 +1284,19 @@ object VkUtils {
         profiles: HashMap<Int, VkUserDomain> = hashMapOf(),
         groups: HashMap<Int, VkGroupDomain> = hashMapOf()
     ): VkConversationDomain {
-        val conversation = this
+        val (user, group) = getConversationUserGroup(this, profiles, groups)
+        val (actionUser, actionGroup) = getMessageActionUserGroup(lastMessage, profiles, groups)
+        val (messageUser, messageGroup) = getMessageUserGroup(lastMessage, profiles, groups)
 
-        val userGroup = getConversationUserGroup(conversation, profiles, groups)
-        val actionUserGroup = getMessageActionUserGroup(lastMessage, profiles, groups)
-        val messageUserGroup = getMessageUserGroup(lastMessage, profiles, groups)
-
-        conversation.conversationUser = userGroup.first
-        conversation.conversationGroup = userGroup.second
-
-        val newMessage = lastMessage?.copy(
-            user = messageUserGroup.first,
-            group = messageUserGroup.second,
-            actionUser = actionUserGroup.first,
-            actionGroup = actionUserGroup.second
-        ) ?: return conversation
-
-        conversation.lastMessage = newMessage
-
-        return conversation
+        return copy(
+            conversationUser = user,
+            conversationGroup = group,
+            lastMessage = lastMessage?.copy(
+                user = messageUser,
+                group = messageGroup,
+                actionUser = actionUser,
+                actionGroup = actionGroup
+            )
+        )
     }
 }

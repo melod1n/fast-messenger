@@ -5,8 +5,6 @@ import java.util.Properties
 val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
 val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
 
-val otaSecretCode: String = getLocalProperty("otaSecretCode", "\"\"")
-
 val debugUserId: String = getLocalProperty("userId", "\"0\"")
 val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
 
@@ -68,14 +66,6 @@ androidComponents {
                     type = "String",
                     value = sdkFingerprint,
                     comment = "sdkFingerprint for VK"
-                )
-            )
-            put(
-                "otaSecretCode",
-                BuildConfigField(
-                    type = "String",
-                    value = otaSecretCode,
-                    comment = "OTA Secret code for in-app updates"
                 )
             )
             put(

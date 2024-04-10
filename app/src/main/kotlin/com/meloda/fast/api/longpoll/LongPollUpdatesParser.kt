@@ -8,11 +8,10 @@ import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.base.processState
-import com.meloda.fast.base.viewmodel.VkEventCallback
-import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.ext.asInt
 import com.meloda.fast.ext.asList
 import com.meloda.fast.ext.listenValue
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -248,7 +247,7 @@ class LongPollUpdatesParser(
                                 val messagesList = response.items
                                 if (messagesList.isEmpty()) return@processState
 
-                                val normalMessage = messagesList[0].asVkMessage()
+                                val normalMessage = messagesList[0].mapToDomain()
 //                                messagesRepository.store(listOf(normalMessage))
 
                                 val profiles = hashMapOf<Int, VkUserDomain>()
@@ -367,4 +366,8 @@ internal inline fun <R : Any> assembleEventCallback(
     crossinline block: (R) -> Unit,
 ): VkEventCallback<R> {
     return VkEventCallback { event -> block.invoke(event) }
+}
+
+fun interface VkEventCallback<in T : Any> {
+    fun onEvent(event: T)
 }

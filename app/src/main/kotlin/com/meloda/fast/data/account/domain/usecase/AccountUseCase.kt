@@ -1,6 +1,7 @@
 package com.meloda.fast.data.account.domain.usecase
 
 import com.meloda.fast.base.State
+import com.meloda.fast.model.AppAccount
 import kotlinx.coroutines.flow.Flow
 
 interface AccountUseCase {
@@ -13,4 +14,6 @@ interface AccountUseCase {
     suspend fun setOffline(
         accessToken: String
     ): Flow<State<Unit>>
+
+    suspend fun getAllAccounts(): Flow<List<AppAccount>>
 }

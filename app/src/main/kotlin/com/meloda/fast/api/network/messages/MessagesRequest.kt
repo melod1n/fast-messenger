@@ -1,11 +1,9 @@
 package com.meloda.fast.api.network.messages
 
-import android.os.Parcelable
 import com.meloda.fast.api.ApiExtensions.intString
 import com.meloda.fast.api.model.domain.VkAttachment
-import kotlinx.parcelize.Parcelize
 
-@Parcelize
+
 data class MessagesGetHistoryRequest(
     val count: Int? = null,
     val offset: Int? = null,
@@ -14,7 +12,7 @@ data class MessagesGetHistoryRequest(
     val startMessageId: Int? = null,
     val rev: Boolean? = null,
     val fields: String? = null,
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -65,40 +63,49 @@ data class MessagesSendRequest(
         }
 }
 
-@Parcelize
+data class MessagesMarkAsReadRequest(
+    val peerId: Int,
+    val messageIds: List<Int>?,
+    val startMessageId: Int?
+) {
+
+    val map: Map<String, String>
+        get() = mutableMapOf(
+            "peerId" to peerId.toString(),
+        )
+}
+
 data class MessagesMarkAsImportantRequest(
     val messagesIds: List<Int>,
     val important: Boolean
-) : Parcelable {
+) {
 
     val map
-        get() = mutableMapOf(
+        get() = mapOf(
             "message_ids" to messagesIds.joinToString { it.toString() },
             "important" to important.intString
         )
 
 }
 
-@Parcelize
 data class MessagesGetLongPollServerRequest(
     val needPts: Boolean,
     val version: Int
-) : Parcelable {
+) {
 
     val map
-        get() = mutableMapOf(
+        get() = mapOf(
             "need_pts" to needPts.intString,
             "version" to version.toString()
         )
 }
 
 
-@Parcelize
 data class MessagesPinMessageRequest(
     val peerId: Int,
     val messageId: Int? = null,
     val conversationMessageId: Int? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -110,19 +117,17 @@ data class MessagesPinMessageRequest(
 
 }
 
-@Parcelize
-data class MessagesUnPinMessageRequest(val peerId: Int) : Parcelable {
-    val map get() = mutableMapOf("peer_id" to peerId.toString())
+data class MessagesUnPinMessageRequest(val peerId: Int) {
+    val map get() = mapOf("peer_id" to peerId.toString())
 }
 
-@Parcelize
 data class MessagesDeleteRequest(
     val peerId: Int,
     val messagesIds: List<Int>? = null,
     val conversationsMessagesIds: List<Int>? = null,
     val isSpam: Boolean? = null,
     val deleteForAll: Boolean? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -173,12 +178,12 @@ data class MessagesEditRequest(
 
 }
 
-@Parcelize
+
 data class MessagesGetByIdRequest(
     val messagesIds: List<Int>,
     val extended: Boolean? = null,
     val fields: String? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -189,11 +194,11 @@ data class MessagesGetByIdRequest(
         }
 }
 
-@Parcelize
+
 data class MessagesGetChatRequest(
     val chatId: Int,
     val fields: String? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -203,14 +208,14 @@ data class MessagesGetChatRequest(
         }
 }
 
-@Parcelize
+
 data class MessagesGetConversationMembersRequest(
     val peerId: Int,
     val offset: Int? = null,
     val count: Int? = null,
     val extended: Boolean? = null,
     val fields: String? = null
-) : Parcelable {
+) {
 
     val map
         get() = mutableMapOf(
@@ -224,13 +229,13 @@ data class MessagesGetConversationMembersRequest(
 
 }
 
-@Parcelize
+
 data class MessagesRemoveChatUserRequest(
     val chatId: Int,
     val memberId: Int
-) : Parcelable {
+) {
     val map
-        get() = mutableMapOf(
+        get() = mapOf(
             "chat_id" to chatId.toString(),
             "member_id" to memberId.toString()
         )
