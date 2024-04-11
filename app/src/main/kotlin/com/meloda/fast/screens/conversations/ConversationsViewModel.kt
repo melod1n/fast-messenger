@@ -14,8 +14,6 @@ import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkGroupsMap.Companion.toGroupsMap
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.VkUsersMap.Companion.toUsersMap
-import com.meloda.fast.api.longpoll.LongPollEvent
-import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
@@ -32,6 +30,8 @@ import com.meloda.fast.screens.conversations.domain.usecase.ConversationsUseCase
 import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.conversations.model.ConversationsShowOptions
+import com.meloda.fast.service.longpolling.LongPollEvent
+import com.meloda.fast.service.longpolling.LongPollUpdatesParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,7 +67,7 @@ class ConversationsViewModelImpl(
     private val conversationsUseCase: ConversationsUseCase,
 ) : ConversationsViewModel, ViewModel() {
 
-    private val context: Context = AppGlobal.Instance
+    private val context: Context get() = AppGlobal.Instance
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
 
@@ -234,7 +234,7 @@ class ConversationsViewModelImpl(
             extended = true
         ).listenValue { state ->
             state.processState(
-                error = { error -> {} },
+                error = { error ->  },
                 success = { response ->
                     val conversations = response.conversations
 

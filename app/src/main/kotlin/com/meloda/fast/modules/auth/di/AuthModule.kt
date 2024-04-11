@@ -10,6 +10,9 @@ import com.meloda.fast.modules.auth.model.domain.repository.AuthRepository
 import com.meloda.fast.modules.auth.model.domain.repository.OAuthRepository
 import com.meloda.fast.modules.auth.model.domain.usecase.AuthUseCase
 import com.meloda.fast.modules.auth.model.domain.usecase.OAuthUseCase
+import com.meloda.fast.modules.auth.screens.captcha.di.captchaModule
+import com.meloda.fast.modules.auth.screens.login.di.loginModule
+import com.meloda.fast.modules.auth.screens.twofa.di.twoFaModule
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
@@ -25,4 +28,10 @@ val authModule = module {
 
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
     singleOf(::AuthUseCaseImpl) bind AuthUseCase::class
+
+    includes(
+        loginModule,
+        twoFaModule,
+        captchaModule,
+    )
 }

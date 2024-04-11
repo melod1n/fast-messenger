@@ -7,8 +7,8 @@ import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkUsersMap
-import com.meloda.fast.api.longpoll.LongPollEvent
-import com.meloda.fast.api.longpoll.LongPollUpdatesParser
+import com.meloda.fast.service.longpolling.LongPollEvent
+import com.meloda.fast.service.longpolling.LongPollUpdatesParser
 import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.data.VkUserData

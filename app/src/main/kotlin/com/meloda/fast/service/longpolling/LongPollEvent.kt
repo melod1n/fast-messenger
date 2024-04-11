@@ -1,4 +1,4 @@
-package com.meloda.fast.api.longpoll
+package com.meloda.fast.service.longpolling
 
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.domain.VkGroupDomain

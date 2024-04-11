@@ -1,4 +1,4 @@
-package com.meloda.fast.api.longpoll
+package com.meloda.fast.service.longpolling
 
 import android.util.Log
 import com.meloda.fast.api.ApiEvent

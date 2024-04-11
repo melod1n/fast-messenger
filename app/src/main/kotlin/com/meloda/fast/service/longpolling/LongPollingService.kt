@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.base.processState
 import com.meloda.fast.common.AppGlobal
