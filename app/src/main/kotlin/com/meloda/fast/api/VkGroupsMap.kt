@@ -4,6 +4,7 @@ import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.ext.toMap
+import kotlin.math.abs
 
 class VkGroupsMap(
     private val groups: List<VkGroupDomain>
@@ -16,18 +17,18 @@ class VkGroupsMap(
     fun groups(): List<VkGroupDomain> = map.values.toList()
 
     fun conversationGroup(conversation: VkConversationDomain): VkGroupDomain? =
-        if (!conversation.isUser()) null
-        else map[conversation.id]
+        if (!conversation.isGroup()) null
+        else map[abs(conversation.id)]
 
     fun messageActionGroup(message: VkMessageDomain): VkGroupDomain? =
         if (message.actionMemberId == null || message.actionMemberId <= 0) null
-        else map[message.actionMemberId]
+        else map[abs(message.actionMemberId)]
 
     fun messageGroup(message: VkMessageDomain): VkGroupDomain? =
-        if (!message.isUser()) null
-        else map[message.fromId]
+        if (!message.isGroup()) null
+        else map[abs(message.fromId)]
 
-    fun group(groupId: Int): VkGroupDomain? = map[groupId]
+    fun group(groupId: Int): VkGroupDomain? = map[abs(groupId)]
 
     companion object {
 

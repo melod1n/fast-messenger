@@ -7,12 +7,16 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import com.conena.nanokt.jvm.util.dayOfMonth
+import com.conena.nanokt.jvm.util.month
 import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.VkUtils
+import com.meloda.fast.api.model.ActionState
+import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.common.AppGlobal
@@ -46,10 +50,9 @@ data class VkConversationDomain(
     val majorId: Int,
     val minorId: Int,
     val pinnedMessageId: Int?,
-    val type: String,
     val interactionType: Int,
     val interactionIds: List<Int>,
-    val peerType: ConversationPeerType = ConversationPeerType.parse(type),
+    val peerType: ConversationPeerType,
     val lastMessage: VkMessageDomain? = null,
     val pinnedMessage: VkMessageDomain? = null,
     val conversationUser: VkUserDomain? = null,
@@ -248,20 +251,24 @@ data class VkConversationDomain(
         }
     }
 
-    // TODO: 05.08.2023, Danil Nikolaev: rewrite
     private fun extractBirthday(): Boolean {
         val birthday = conversationUser?.birthday ?: return false
-        val splitBirthday = birthday.split(".")
+        val splitBirthday = birthday.split(".").mapNotNull(String::toIntOrNull)
+
+        if (splitBirthday.isEmpty()) return false
 
         return if (splitBirthday.size > 1) {
-            val birthdayCalendar = Calendar.getInstance().apply {
-                this[Calendar.DAY_OF_MONTH] = splitBirthday.first().toIntOrNull() ?: -1
-                this[Calendar.MONTH] = (splitBirthday[1].toIntOrNull() ?: 0) - 1
+            val (day, month) = splitBirthday
+
+            val birthdayCalendar = Calendar.getInstance().also { calendar ->
+                calendar.dayOfMonth = day
+                calendar.month = month - 1
             }
+
             val nowCalendar = Calendar.getInstance()
 
-            (nowCalendar[Calendar.DAY_OF_MONTH] == birthdayCalendar[Calendar.DAY_OF_MONTH]
-                    && nowCalendar[Calendar.MONTH] == birthdayCalendar[Calendar.MONTH])
+            nowCalendar.dayOfMonth == birthdayCalendar.dayOfMonth &&
+                    nowCalendar.month == birthdayCalendar.month
         } else false
     }
 
@@ -295,7 +302,7 @@ data class VkConversationDomain(
     fun mapToPresentation(
         usersMap: VkUsersMap,
         groupsMap: VkGroupsMap
-    ) = VkConversationUi(
+    ): VkConversationUi = VkConversationUi(
         conversationId = id,
         lastMessageId = lastMessageId,
         avatar = extractAvatar(),
@@ -305,7 +312,7 @@ data class VkConversationDomain(
         message = extractMessage(),
         attachmentImage = extractAttachmentImage(),
         isPinned = majorId > 0,
-        actionState = ActionState.parse(isPhantom, isCallInProgress),
+        actionImageId = ActionState.parse(isPhantom, isCallInProgress).getResourceId(),
         isBirthday = extractBirthday(),
         isUnread = extractReadCondition(),
         isAccount = isAccount(),
@@ -318,37 +325,4 @@ data class VkConversationDomain(
         isExpanded = false,
         options = ImmutableList.of()
     )
-
-    enum class ActionState {
-        PHANTOM, CALL_IN_PROGRESS, NONE;
-
-        companion object {
-            fun parse(isPhantom: Boolean, isCallInProgress: Boolean): ActionState {
-                return when {
-                    isPhantom -> PHANTOM
-                    isCallInProgress -> CALL_IN_PROGRESS
-                    else -> NONE
-                }
-            }
-        }
-    }
-
-    enum class ConversationPeerType {
-        USER, GROUP, CHAT;
-
-        fun isUser(): Boolean = this == USER
-        fun isGroup(): Boolean = this == GROUP
-        fun isChat(): Boolean = this == CHAT
-
-        companion object {
-            fun parse(type: String): ConversationPeerType {
-                return when (type) {
-                    "user" -> USER
-                    "group" -> GROUP
-                    "chat" -> CHAT
-                    else -> error("Unknown type: $type")
-                }
-            }
-        }
-    }
 }

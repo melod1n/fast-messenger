@@ -2,7 +2,7 @@ package com.meloda.fast.api.model.presentation
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
-import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
@@ -20,8 +20,7 @@ data class VkConversationUi(
     val message: AnnotatedString,
     val attachmentImage: UiImage?,
     val isPinned: Boolean,
-    // TODO: 10/03/2024, Danil Nikolaev: rewrite to use image
-    val actionState: VkConversationDomain.ActionState,
+    val actionImageId: Int,
     val isBirthday: Boolean,
     val isUnread: Boolean,
     val isAccount: Boolean,
@@ -29,7 +28,7 @@ data class VkConversationUi(
     val lastMessage: VkMessageDomain?,
     val conversationUser: VkUserDomain?,
     val conversationGroup: VkGroupDomain?,
-    val peerType: VkConversationDomain.ConversationPeerType,
+    val peerType: ConversationPeerType,
     val interactionText: String?,
     val isExpanded: Boolean,
     val options: List<ConversationOption>

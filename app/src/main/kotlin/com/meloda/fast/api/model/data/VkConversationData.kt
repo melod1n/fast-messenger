@@ -1,5 +1,6 @@
 package com.meloda.fast.api.model.data
 
+import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
@@ -118,7 +119,6 @@ data class VkConversationData(
         localId = peer.localId,
         conversationTitle = chatSettings?.title,
         conversationPhoto = chatSettings?.photo?.photo200,
-        type = peer.type,
         isCallInProgress = callInProgress != null,
         isPhantom = chatSettings?.isDisappearing == true,
         lastConversationMessageId = lastConversationMessageId,
@@ -137,6 +137,7 @@ data class VkConversationData(
         outReadCmId = outReadConversationMessageId,
         interactionType = -1,
         interactionIds = emptyList(),
+        peerType = ConversationPeerType.parse(peer.type),
         lastMessage = lastMessage,
         pinnedMessage = chatSettings?.pinnedMessage?.mapToDomain(),
         conversationUser = conversationUser,
