@@ -43,14 +43,6 @@ fun Modifier.handleEnterKey(
 }
 
 @Composable
-fun UiText.annotatedString(): AnnotatedString? {
-    return when (this) {
-        is UiText.Annotated -> string
-        else -> null
-    }
-}
-
-@Composable
 fun UiText?.getString(): String? {
     return when (this) {
         is UiText.Resource -> {

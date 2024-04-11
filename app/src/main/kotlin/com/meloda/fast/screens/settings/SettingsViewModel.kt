@@ -325,11 +325,6 @@ class SettingsViewModelImpl(
                 summary = UiText.Simple("Online status will be sent every five minutes")
             )
 
-            val updatesTitle = SettingsItem.Title.build(
-                key = "updates",
-                title = UiText.Simple("Updates")
-            )
-
             val debugTitle = SettingsItem.Title.build(
                 key = "debug",
                 title = UiText.Simple("Debug")

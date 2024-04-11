@@ -9,7 +9,7 @@ val debugUserId: String = getLocalProperty("userId", "\"0\"")
 val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
 
 fun getLocalProperty(key: String, defValue: String): String {
-    return gradleLocalProperties(rootDir).getProperty(key, defValue)
+    return gradleLocalProperties(rootDir, providers).getProperty(key, defValue)
 }
 
 val majorVersion = 1
@@ -22,14 +22,6 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
     alias(libs.plugins.com.vk.vkompose)
-}
-
-kotlin {
-    sourceSets.all {
-        languageSettings {
-            languageVersion = "2.0"
-        }
-    }
 }
 
 vkompose {
@@ -51,6 +43,7 @@ vkompose {
 
 androidComponents {
     onVariants { variant ->
+        val isDebug = variant.buildType == "debug"
         variant.buildConfigFields.apply {
             put(
                 "sdkPackage",
@@ -68,11 +61,12 @@ androidComponents {
                     comment = "sdkFingerprint for VK"
                 )
             )
+
             put(
                 "debugUserId",
                 BuildConfigField(
                     type = "String",
-                    value = debugUserId,
+                    value = if (isDebug) debugUserId else "0",
                     comment = "user id for debugging purposes"
                 )
             )
@@ -80,7 +74,7 @@ androidComponents {
                 "debugAccessToken",
                 BuildConfigField(
                     type = "String",
-                    value = debugAccessToken,
+                    value = if (isDebug) debugAccessToken else "\"\"",
                     comment = "access token for debugging purposes"
                 )
             )
@@ -148,12 +142,12 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
 
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+//            isShrinkResources = true
 
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            )
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+//            )
         }
     }
 

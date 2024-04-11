@@ -64,8 +64,8 @@ fun DotsPulsing() {
         targetValue = 0f,
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = delayUnit * numberOfDots
-            0f at delay with LinearEasing
-            1f at delay + delayUnit with LinearEasing
+            0f at delay using LinearEasing
+            1f at delay + delayUnit using LinearEasing
             0f at delay + duration
         }), label = ""
     )
@@ -112,8 +112,8 @@ fun DotsElastic() {
         targetValue = minScale,
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = duration
-            minScale at delay with LinearEasing
-            1f at delay + delayUnit with LinearEasing
+            minScale at delay using LinearEasing
+            1f at delay + delayUnit using LinearEasing
             minScale at delay + duration
         }), label = ""
     )
@@ -162,8 +162,8 @@ fun DotsFlashing(
         targetValue = minAlpha,
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = duration
-            minAlpha at delay with LinearEasing
-            1f at delay + delayUnit with LinearEasing
+            minAlpha at delay using LinearEasing
+            1f at delay + delayUnit using LinearEasing
             minAlpha at delay + duration
         }), label = ""
     )
@@ -216,8 +216,8 @@ fun DotsTyping(
         targetValue = 0f,
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = duration
-            0f at delay with LinearEasing
-            maxOffset at delay + delayUnit with LinearEasing
+            0f at delay using LinearEasing
+            maxOffset at delay + delayUnit using LinearEasing
             0f at delay + (duration / 2)
         }), label = ""
     )
@@ -264,8 +264,8 @@ fun DotsCollision() {
         targetValue = 0f,
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = delayUnit * 3
-            0f at 0 with LinearEasing
-            -maxOffset at delayUnit / 2 with LinearEasing
+            0f at 0 using LinearEasing
+            -maxOffset at delayUnit / 2 using LinearEasing
             0f at delayUnit
         }), label = ""
     )
@@ -274,8 +274,8 @@ fun DotsCollision() {
         targetValue = 0f,
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = delayUnit * 3
-            0f at delayUnit with LinearEasing
-            maxOffset at delayUnit + delayUnit / 2 with LinearEasing
+            0f at delayUnit using LinearEasing
+            maxOffset at delayUnit + delayUnit / 2 using LinearEasing
             0f at delayUnit * 2
         }), label = ""
     )

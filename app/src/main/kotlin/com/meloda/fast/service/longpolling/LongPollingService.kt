@@ -130,9 +130,8 @@ class LongPollingService : Service() {
         Log.d(STATE_TAG, "job started")
 
         return coroutineScope.launch {
-            // TODO: 04/12/2023, Danil Nikolaev: start long polling job only when token is presented
             if (UserConfig.accessToken.isEmpty()) {
-                throw ApiException(error = "Access token is not initialized yet.")
+                return@launch
             }
 
             var serverInfo = getServerInfo()

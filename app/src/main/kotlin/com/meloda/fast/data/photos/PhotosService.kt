@@ -15,7 +15,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Url
 
-interface PhotosApi {
+interface PhotosService {
 
     @FormUrlEncoded
     @POST(PhotoUrls.GetMessagesUploadServer)

@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.conversations
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +16,6 @@ import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.processState
-import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.domain.usecase.AccountUseCase
 import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.ext.emitOnScope
@@ -41,7 +41,8 @@ class ConversationsViewModelImpl(
     updatesParser: LongPollUpdatesParser,
     private val imageLoader: ImageLoader,
     private val accountUseCase: AccountUseCase,
-    private val conversationsUseCase: ConversationsUseCase
+    private val conversationsUseCase: ConversationsUseCase,
+    private val context: Context
 ) : ConversationsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
@@ -172,7 +173,7 @@ class ConversationsViewModelImpl(
         }
 
         avatars.forEach { avatar ->
-            val request = ImageRequest.Builder(AppGlobal.Instance)
+            val request = ImageRequest.Builder(context)
                 .data(avatar)
                 .build()
 
@@ -215,11 +216,11 @@ class ConversationsViewModelImpl(
                     }
 
                     avatars.forEach { avatar ->
-                        val request = ImageRequest.Builder(AppGlobal.Instance)
+                        val request = ImageRequest.Builder(context)
                             .data(avatar)
                             .build()
 
-                        AppGlobal.Instance.imageLoader.enqueue(request)
+                        context.imageLoader.enqueue(request)
                     }
 
 //                    conversationsRepository.store(conversations)
