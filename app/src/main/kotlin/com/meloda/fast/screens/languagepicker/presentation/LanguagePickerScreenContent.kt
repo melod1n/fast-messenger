@@ -217,7 +217,7 @@ fun LanguageItem(
         if (item.isSelected) {
             Icon(
                 imageVector = Icons.Rounded.Done,
-                contentDescription = null
+                contentDescription = "Done icon"
             )
             Spacer(modifier = Modifier.width(16.dp))
         }

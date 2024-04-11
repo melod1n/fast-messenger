@@ -66,7 +66,7 @@ fun ChatMaterialsScreen() {
 
                 AsyncImage(
                     model = link,
-                    contentDescription = null,
+                    contentDescription = "Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()

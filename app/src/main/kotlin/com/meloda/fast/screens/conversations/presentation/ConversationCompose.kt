@@ -129,7 +129,7 @@ fun Conversation(
                     if (showOnlyPlaceholders) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_account_circle_cut),
-                            contentDescription = null,
+                            contentDescription = "Photo placeholder",
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
@@ -147,7 +147,7 @@ fun Conversation(
                                         .align(Alignment.Center)
                                         .size(32.dp),
                                     painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
-                                    contentDescription = null
+                                    contentDescription = "Favorites icon"
                                 )
                             }
                         } else {
@@ -158,14 +158,14 @@ fun Conversation(
                                         .fillMaxSize()
                                         .clip(CircleShape),
                                     painter = avatarImage,
-                                    contentDescription = null,
+                                    contentDescription = "Avatar",
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
                                 )
                             } else {
                                 AsyncImage(
                                     model = ImageRequest.Builder(context).data(avatarImage)
                                         .crossfade(true).build(),
-                                    contentDescription = null,
+                                    contentDescription = "Avatar",
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(CircleShape),
@@ -187,7 +187,7 @@ fun Conversation(
                                     .height(14.dp)
                                     .align(Alignment.Center),
                                 painter = painterResource(id = R.drawable.ic_round_push_pin_24),
-                                contentDescription = null
+                                contentDescription = "Pin icon"
                             )
                         }
                     }
@@ -242,7 +242,7 @@ fun Conversation(
                                         .align(Alignment.Center)
                                         .size(10.dp),
                                     painter = painterResource(id = R.drawable.round_cake_24),
-                                    contentDescription = null
+                                    contentDescription = "Birthday icon"
                                 )
                             }
                         }
@@ -282,7 +282,7 @@ fun Conversation(
                                     Image(
                                         modifier = Modifier.size(14.dp),
                                         painter = painter,
-                                        contentDescription = null,
+                                        contentDescription = "attachment image",
                                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                     )
                                 }
@@ -360,7 +360,7 @@ fun Conversation(
                                     option.icon.getResourcePainter()?.let { painter ->
                                         Icon(
                                             painter = painter,
-                                            contentDescription = null,
+                                            contentDescription = "Chip icon",
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }

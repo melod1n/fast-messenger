@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -222,8 +224,8 @@ fun MessagesHistoryScreenContent(
                     navigationIcon = {
                         IconButton(onClick = onBackClicked) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_round_arrow_back_24),
-                                contentDescription = null
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = "Back button"
                             )
                         }
                     },
@@ -258,7 +260,7 @@ fun MessagesHistoryScreenContent(
                     IconButton(onClick = onAttachmentAddClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_round_add_circle_outline_24),
-                            contentDescription = null,
+                            contentDescription = "Add attachment button",
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -295,7 +297,7 @@ fun MessagesHistoryScreenContent(
                         IconButton(onClick = onEmojiClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_outline_emoji_emotions_24),
-                                contentDescription = null,
+                                contentDescription = "Emoji button",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -303,7 +305,8 @@ fun MessagesHistoryScreenContent(
                         IconButton(onClick = onSendClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_round_mic_none_24),
-                                contentDescription = null,
+                                // TODO: 11/04/2024, Danil Nikolaev: handle current button state
+                                contentDescription = "Send icon",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

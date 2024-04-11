@@ -94,7 +94,10 @@ fun AppBar(onBackClick: () -> Unit) {
         title = {},
         navigationIcon = {
             IconButton(onClick = onBackClick) {
-                Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back button"
+                )
             }
         },
         actions = {
@@ -145,13 +148,13 @@ fun Pager(
         if (model is Painter) {
             Image(
                 painter = model,
-                contentDescription = null,
+                contentDescription = "Image",
                 modifier = Modifier.fillMaxSize()
             )
         } else {
             AsyncImage(
                 model = model,
-                contentDescription = null,
+                contentDescription = "Image",
                 modifier = Modifier.fillMaxSize(),
                 placeholder = ColorPainter(Color.DarkGray),
                 error = ColorPainter(Color.Red)

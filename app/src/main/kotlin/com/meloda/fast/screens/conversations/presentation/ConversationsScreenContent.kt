@@ -282,7 +282,7 @@ fun ConversationsScreenContent(
                 FloatingActionButton(onClick = onCreateChatClick) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_create_24),
-                        contentDescription = null
+                        contentDescription = "Pencil icon"
                     )
                 }
             }

@@ -192,7 +192,7 @@ fun SettingsScreenContent(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_round_arrow_back_24),
-                        contentDescription = null
+                        contentDescription = "Back button"
                     )
                 }
             }

@@ -51,7 +51,7 @@ fun UserBannedScreenContent(
                         IconButton(onClick = onBackClick) {
                             Icon(
                                 imageVector = Icons.Rounded.Close,
-                                contentDescription = null
+                                contentDescription = "Close button"
                             )
                         }
                     }

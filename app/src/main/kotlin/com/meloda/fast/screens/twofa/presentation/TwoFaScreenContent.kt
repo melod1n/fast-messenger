@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -97,8 +100,8 @@ fun TwoFaScreenContent(
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_round_close_24),
-                        contentDescription = null,
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Close icon",
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
@@ -143,7 +146,7 @@ fun TwoFaScreenContent(
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.round_qr_code_24),
-                            contentDescription = null,
+                            contentDescription = "QR Code icon",
                             tint = if (codeError != null) {
                                 MaterialTheme.colorScheme.error
                             } else {
@@ -192,7 +195,7 @@ fun TwoFaScreenContent(
                             Icon(
                                 painter = painterResource(id = R.drawable.round_sms_24),
                                 tint = MaterialTheme.colorScheme.onPrimary,
-                                contentDescription = null
+                                contentDescription = "SMS icon"
                             )
                         },
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -206,8 +209,8 @@ fun TwoFaScreenContent(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_round_done_24),
-                        contentDescription = null,
+                        imageVector = Icons.Rounded.Done,
+                        contentDescription = "Done icon",
                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }

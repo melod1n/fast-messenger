@@ -94,6 +94,11 @@ fun LoginScreenContent(
     screenState: LoginScreenState,
     viewModel: LoginViewModel,
 ) {
+    if (screenState.isNeedToRestart) {
+        viewModel.onRestarted()
+        restart()
+    }
+
     Scaffold { padding ->
         Box(
             modifier = Modifier
@@ -103,11 +108,6 @@ fun LoginScreenContent(
             if (screenState.isNeedToShowLogo) {
                 LoginLogo(viewModel)
             } else {
-                if (screenState.isNeedToRestart) {
-                    viewModel.onRestarted()
-                    restart()
-                }
-
                 if (screenState.isNeedToOpenConversations) {
                     viewModel.onNavigatedToConversations()
 
@@ -156,7 +156,7 @@ fun LoginLogo(viewModel: LoginViewModel) {
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_logo_big),
-                contentDescription = null,
+                contentDescription = "Application Logo",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -180,7 +180,7 @@ fun LoginLogo(viewModel: LoginViewModel) {
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_end),
-                contentDescription = null,
+                contentDescription = "Go button",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
@@ -250,7 +250,7 @@ fun LoginSignIn(
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_round_person_24),
-                        contentDescription = null,
+                        contentDescription = "Login icon",
                         tint = if (showLoginError) {
                             MaterialTheme.colorScheme.error
                         } else {
@@ -296,7 +296,7 @@ fun LoginSignIn(
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.round_vpn_key_24),
-                        contentDescription = null,
+                        contentDescription = "Password icon",
                         tint = if (showPasswordError) {
                             MaterialTheme.colorScheme.error
                         } else {
@@ -316,7 +316,11 @@ fun LoginSignIn(
                             passwordVisible = !passwordVisible
                         }
                     ) {
-                        Icon(painter = imagePainter, contentDescription = null)
+                        Icon(
+                            painter = imagePainter,
+                            contentDescription = if (passwordVisible) "Password visible icon"
+                            else "Password invisible icon"
+                        )
                     }
                 },
                 shape = RoundedCornerShape(10.dp),

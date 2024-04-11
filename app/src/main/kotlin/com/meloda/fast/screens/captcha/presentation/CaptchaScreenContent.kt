@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -95,8 +98,8 @@ fun CaptchaScreenContent(
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_round_close_24),
-                        contentDescription = null,
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Close icon",
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
@@ -128,7 +131,7 @@ fun CaptchaScreenContent(
                             .data(screenState.captchaImage)
                             .crossfade(true)
                             .build(),
-                        contentDescription = null,
+                        contentDescription = "Captcha image",
                         modifier = Modifier
                             .border(
                                 2.dp,
@@ -162,7 +165,7 @@ fun CaptchaScreenContent(
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.round_qr_code_24),
-                            contentDescription = null,
+                            contentDescription = "QR code icon",
                             tint = if (showError) {
                                 MaterialTheme.colorScheme.error
                             } else {
@@ -192,8 +195,8 @@ fun CaptchaScreenContent(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_round_done_24),
-                    contentDescription = null,
+                    imageVector = Icons.Rounded.Done,
+                    contentDescription = "Done icon",
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
