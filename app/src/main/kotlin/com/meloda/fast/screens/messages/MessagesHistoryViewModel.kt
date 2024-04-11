@@ -7,8 +7,6 @@ import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkUsersMap
-import com.meloda.fast.service.longpolling.LongPollEvent
-import com.meloda.fast.service.longpolling.LongPollUpdatesParser
 import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.data.VkUserData
@@ -28,6 +26,8 @@ import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
+import com.meloda.fast.service.longpolling.LongPollEvent
+import com.meloda.fast.service.longpolling.LongPollUpdatesParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,7 +56,8 @@ class MessagesHistoryViewModelImpl(
     private val photosRepository: PhotosRepository,
     private val filesRepository: FilesRepository,
     private val audiosRepository: AudiosRepository,
-    private val videosRepository: VideosRepository
+    private val videosRepository: VideosRepository,
+    private val imageLoader: ImageLoader
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
@@ -64,13 +65,6 @@ class MessagesHistoryViewModelImpl(
     private var conversation: VkConversationUi by Delegates.notNull()
 
     private val messages = MutableStateFlow<List<VkMessageDomain>>(emptyList())
-
-    // TODO: 25.08.2023, Danil Nikolaev: extract to DI
-    private val imageLoader by lazy {
-        ImageLoader.Builder(AppGlobal.Instance)
-            .crossfade(true)
-            .build()
-    }
 
     init {
         updatesParser.onNewMessage(::handleNewMessage)

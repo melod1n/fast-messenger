@@ -301,7 +301,6 @@ class ConversationsViewModelImpl(
 //                }
 //            )
 
-            // TODO: 07/04/2024, Danil Nikolaev: check
             loadConversations()
         }
     }

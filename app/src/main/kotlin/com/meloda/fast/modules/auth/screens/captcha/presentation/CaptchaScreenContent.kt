@@ -2,6 +2,7 @@ package com.meloda.fast.modules.auth.screens.captcha.presentation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,18 +38,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.meloda.fast.R
 import com.meloda.fast.compose.MaterialDialog
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.modules.auth.screens.captcha.CaptchaViewModel
 import com.meloda.fast.modules.auth.screens.captcha.model.CaptchaScreenState
-import com.meloda.fast.ui.widgets.CoilImage
 import com.meloda.fast.ui.widgets.TextFieldErrorText
 
 @Composable
@@ -161,24 +163,33 @@ fun CaptchaScreenContent(
                     )
                     Spacer(modifier = Modifier.width(24.dp))
 
-                    CoilImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(screenState.captchaImage)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Captcha image",
-                        modifier = Modifier
-                            .border(
-                                2.dp,
-                                MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .clip(RoundedCornerShape(10.dp))
-                            .height(48.dp)
-                            .width(130.dp),
-                        contentScale = ContentScale.FillBounds,
-                        previewPainter = painterResource(id = R.drawable.test_captcha)
-                    )
+                    val imageModifier = Modifier
+                        .border(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clip(RoundedCornerShape(10.dp))
+                        .height(48.dp)
+                        .width(130.dp)
+
+                    if (LocalView.current.isInEditMode) {
+                        Image(
+                            painter = painterResource(id = R.drawable.test_captcha),
+                            contentDescription = "Captcha image",
+                            modifier = imageModifier
+                        )
+                    } else {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(screenState.captchaImage)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Captcha image",
+                            contentScale = ContentScale.FillBounds,
+                            modifier = imageModifier
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))

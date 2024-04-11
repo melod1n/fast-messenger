@@ -2,7 +2,6 @@ package com.meloda.fast.base
 
 import com.meloda.fast.api.network.BaseOAuthError
 
-// TODO: 07/04/2024, Danil Nikolaev: map error state in string
 /** Возможные состояния для одного потока данных в репозитории */
 sealed class State<out T> {
 

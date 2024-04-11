@@ -318,7 +318,7 @@ fun SettingsScreenContent(
     }
 }
 
-// TODO: 25.08.2023, Danil Nikolaev: think something of list of click & dismissed listeners
+// TODO: 12/04/2024, Danil Nikolaev: rewrite to UiAction
 @Composable
 fun HandlePopups(
     performCrashPositiveClick: () -> Unit,
