@@ -11,7 +11,7 @@ data class VkVideoData(
     val height: Int,
     val duration: Int,
     val date: Int,
-    val comments: Int,
+    val comments: Int?,
     val description: String,
     val player: String?,
     val added: Int = 0,

@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.data
 
 import com.meloda.fast.api.model.domain.VkLinkDomain
+import com.meloda.fast.ext.isTrue
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -11,7 +12,7 @@ data class VkLinkData(
     @Json(name = "caption") val caption: String?,
     @Json(name = "photo") val photo: VkPhotoData?,
     @Json(name = "target") val target: String?,
-    @Json(name = "is_favorite") val isFavorite: Boolean
+    @Json(name = "is_favorite") val isFavorite: Boolean?
 ) : VkAttachmentData {
 
     fun toDomain() = VkLinkDomain(
@@ -20,6 +21,6 @@ data class VkLinkData(
         caption = caption,
         photo = photo?.toDomain(),
         target = target,
-        isFavorite = isFavorite
+        isFavorite = isFavorite.isTrue
     )
 }

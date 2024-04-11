@@ -138,21 +138,18 @@ android {
     }
 
     buildTypes {
-        getByName("debug") {
+        debug {
             signingConfig = signingConfigs.getByName("debugSigning")
 
             versionNameSuffix = "_${getVersionName()}"
 
-//            isMinifyEnabled = true
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-//            )
+            isMinifyEnabled = false
         }
-        getByName("release") {
+        release {
             signingConfig = signingConfigs.getByName("release")
 
-            isMinifyEnabled = false
-//            isShrinkResources = true
+            isMinifyEnabled = true
+            isShrinkResources = true
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"

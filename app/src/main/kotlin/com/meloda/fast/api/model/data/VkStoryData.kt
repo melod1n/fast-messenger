@@ -15,24 +15,15 @@ data class VkStoryData(
     val can_hide: Int,
     val date: Int,
     val expires_at: Int,
-    val is_ads: Boolean,
+    val is_ads: Boolean?,
     val photo: VkPhotoData?,
     val replies: Replies,
     val is_one_time: Boolean,
     val track_code: String,
     val type: String,
-    val views: Int,
-    val likes_count: Int,
-    val reaction_set_id: String,
-    val is_restricted: Boolean,
-    val no_sound: Boolean,
-    val need_mute: Boolean,
-    val mute_reply: Boolean,
-    val can_ask: Int,
-    val can_ask_anonymous: Int,
-    val preloading_enabled: Boolean,
-    val narratives_count: Int,
-    val can_use_in_narrative: Boolean
+    val views: Int?,
+    val likes_count: Int?,
+    val is_restricted: Boolean?,
 ) : VkAttachmentData {
 
     fun toDomain() = VkStoryDomain(

@@ -40,7 +40,7 @@ data class VkWallData(
     @JsonClass(generateAdapter = true)
     data class PostSource(
         val type: String,
-        val platform: String
+        val platform: String?
     )
 
     @JsonClass(generateAdapter = true)
