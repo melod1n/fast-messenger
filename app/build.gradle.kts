@@ -229,7 +229,6 @@ dependencies {
 
     // Voyager zone
     implementation(libs.voyager.navigator)
-    implementation(libs.voyager.androidx)
     implementation(libs.voyager.koin)
     // end of Voyager zone
 
@@ -281,16 +280,12 @@ dependencies {
 
     implementation(libs.logging.interceptor)
 
-    // TODO: 04/12/2023, Danil Nikolaev: remove gson and use moshi
-    implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.chucker)
 
     implementation(libs.nanokt)
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
-
-//    implementation(libs.rebugger)
 
     implementation(libs.haze)
     implementation(libs.haze.materials)

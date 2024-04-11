@@ -2,7 +2,6 @@ package com.meloda.fast.di
 
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
-import com.google.gson.GsonBuilder
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.VkUrls
 import com.meloda.fast.base.ResponseConverterFactory
@@ -24,7 +23,6 @@ val networkModule = module {
     single { ChuckerCollector(get()) }
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }
     singleOf(::AuthInterceptor)
-    single { GsonBuilder().setLenient().create() }
     single {
         OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)

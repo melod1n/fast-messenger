@@ -1,7 +1,7 @@
 package com.meloda.fast.screens.messages.navigation
 
 import androidx.compose.runtime.Composable
-import cafe.adriel.voyager.androidx.AndroidScreen
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.meloda.fast.screens.chatmaterials.ChatMaterials
@@ -13,7 +13,7 @@ import org.koin.androidx.compose.koinViewModel
 
 data class MessagesHistoryScreen(
     val messagesHistoryArguments: MessagesHistoryArguments
-) : AndroidScreen() {
+) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
