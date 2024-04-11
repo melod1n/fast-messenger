@@ -4,9 +4,11 @@ import android.util.Log
 import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.domain.VkGroupDomain
-import com.meloda.fast.api.model.domain.VkUserDomain
+import com.meloda.fast.api.model.data.VkGroupData
+import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.base.processState
 import com.meloda.fast.ext.asInt
 import com.meloda.fast.ext.asList
@@ -16,16 +18,15 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-@Suppress("UNCHECKED_CAST", "MemberVisibilityCanBePrivate")
+@Suppress("UNCHECKED_CAST")
 class LongPollUpdatesParser(
     private val messagesUseCase: MessagesUseCase
-) : CoroutineScope {
+) {
 
     private val job = SupervisorJob()
 
@@ -34,8 +35,10 @@ class LongPollUpdatesParser(
         throwable.printStackTrace()
     }
 
-    override val coroutineContext: CoroutineContext
+    private val coroutineContext: CoroutineContext
         get() = Dispatchers.Default + job + exceptionHandler
+
+    private val coroutineScope = CoroutineScope(coroutineContext)
 
     private val listenersMap: MutableMap<ApiEvent, MutableCollection<VkEventCallback<*>>> =
         mutableMapOf()
@@ -94,7 +97,7 @@ class LongPollUpdatesParser(
         // if userIds contains only account's id, then we don't need to show our status
         if (userIds.isEmpty()) return
 
-        launch {
+        coroutineScope.launch {
             listenersMap[eventType]?.let { listeners ->
                 listeners.forEach { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.Interaction>)
@@ -118,7 +121,7 @@ class LongPollUpdatesParser(
         val peerId = event[1].asInt()
         val majorId = event[2].asInt()
 
-        launch {
+        coroutineScope.launch {
             listenersMap[ApiEvent.PinUnpinConversation]?.let { listeners ->
                 listeners.forEach { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkConversationPinStateChangedEvent>)
@@ -145,7 +148,7 @@ class LongPollUpdatesParser(
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val messageId = event[1].asInt()
 
-        launch {
+        coroutineScope.launch {
             val newMessageEvent: LongPollEvent.VkMessageNewEvent =
                 loadNormalMessage(
                     eventType,
@@ -165,7 +168,7 @@ class LongPollUpdatesParser(
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val messageId = event[1].asInt()
 
-        launch {
+        coroutineScope.launch {
             val editedMessageEvent: LongPollEvent.VkMessageEditEvent =
                 loadNormalMessage(
                     eventType,
@@ -187,7 +190,7 @@ class LongPollUpdatesParser(
         val messageId = event[2].asInt()
         val unreadCount = event[3].asInt()
 
-        launch {
+        coroutineScope.launch {
             listenersMap[ApiEvent.MessageReadIncoming]?.let { listeners ->
                 listeners.map { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>)
@@ -209,7 +212,7 @@ class LongPollUpdatesParser(
         val messageId = event[2].asInt()
         val unreadCount = event[3].asInt()
 
-        launch {
+        coroutineScope.launch {
             listenersMap[ApiEvent.MessageReadOutgoing]?.let { listeners ->
                 listeners.map { vkEventCallback ->
                     (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>)
@@ -229,67 +232,80 @@ class LongPollUpdatesParser(
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
-    // TODO: 03/04/2024, Danil Nikolaev: review
-    private suspend fun <T : LongPollEvent> loadNormalMessage(eventType: ApiEvent, messageId: Int) =
-        coroutineScope {
-            suspendCoroutine {
-                launch {
-                    messagesUseCase.getById(
-                        messagesIds = listOf(messageId),
-                        extended = true,
-                        fields = VKConstants.ALL_FIELDS
-                    ).listenValue(this) { state ->
-                        state.processState(
-                            error = { error ->
-                                Log.e("LongPollUpdatesParser", "loadNormalMessage: error: $error")
-                            },
-                            success = { response ->
-                                val messagesList = response.items
-                                if (messagesList.isEmpty()) return@processState
+    private suspend fun <T : LongPollEvent> loadNormalMessage(
+        eventType: ApiEvent,
+        messageId: Int
+    ): T = suspendCoroutine {
+        coroutineScope.launch(Dispatchers.IO) {
+            messagesUseCase.getById(
+                messagesIds = listOf(messageId),
+                extended = true,
+                fields = VKConstants.ALL_FIELDS
+            ).listenValue(this) { state ->
+                state.processState(
+                    error = { error ->
+                        Log.e("LongPollUpdatesParser", "loadNormalMessage: error: $error")
+                    },
+                    success = { response ->
+                        val messagesList = response.items
+                        if (messagesList.isEmpty()) return@processState
 
-                                val normalMessage = messagesList[0].mapToDomain()
-//                                messagesRepository.store(listOf(normalMessage))
-
-                                val profiles = hashMapOf<Int, VkUserDomain>()
-                                response.profiles?.forEach { baseUser ->
-                                    baseUser.mapToDomain().let { user -> profiles[user.id] = user }
-                                }
-
-                                val groups = hashMapOf<Int, VkGroupDomain>()
-                                response.groups?.forEach { baseGroup ->
-                                    baseGroup.mapToDomain()
-                                        .let { group -> groups[group.id] = group }
-                                }
-
-                                val resumeValue: LongPollEvent? = when (eventType) {
-                                    ApiEvent.MessageNew ->
-                                        LongPollEvent.VkMessageNewEvent(
-                                            normalMessage,
-                                            profiles,
-                                            groups
-                                        )
-
-                                    ApiEvent.MessageEdit -> LongPollEvent.VkMessageEditEvent(
-                                        normalMessage
-                                    )
-
-                                    else -> null
-                                }
-
-                                resumeValue?.let { value -> it.resume(value as T) }
-                            }
+                        val usersMap = VkUsersMap.forUsers(
+                            response.profiles.orEmpty().map(VkUserData::mapToDomain)
                         )
+                        val groupsMap = VkGroupsMap.forGroups(
+                            response.groups.orEmpty().map(VkGroupData::mapToDomain)
+                        )
+
+                        val message = messagesList.first().mapToDomain().run {
+                            val (user, group) = getUserAndGroup(
+                                usersMap = usersMap,
+                                groupsMap = groupsMap
+                            )
+                            val (actionUser, actionGroup) = getActionUserAndGroup(
+                                usersMap = usersMap,
+                                groupsMap = groupsMap
+                            )
+
+                            copy(
+                                user = user,
+                                group = group,
+                                actionUser = actionUser,
+                                actionGroup = actionGroup
+                            )
+                        }
+
+                        //messagesRepository.store(listOf(normalMessage))
+
+                        val resumeValue: LongPollEvent? = when (eventType) {
+                            ApiEvent.MessageNew -> {
+                                LongPollEvent.VkMessageNewEvent(
+                                    message,
+                                    usersMap.users(),
+                                    groupsMap.groups()
+                                )
+                            }
+
+                            ApiEvent.MessageEdit -> {
+                                LongPollEvent.VkMessageEditEvent(message)
+                            }
+
+                            else -> null
+                        }
+
+                        resumeValue?.let { value -> it.resume(value as T) }
                     }
-                }
+                )
             }
         }
+    }
 
-
-    private fun <T : Any> registerListener(eventType: ApiEvent, listener: VkEventCallback<T>) {
+    private fun <T : Any> registerListener(
+        eventType: ApiEvent,
+        listener: VkEventCallback<T>
+    ) {
         listenersMap.let { map ->
-            map[eventType] = (map[eventType] ?: mutableListOf()).also {
-                it.add(listener)
-            }
+            map[eventType] = (map[eventType] ?: mutableListOf()).also { it.add(listener) }
         }
     }
 

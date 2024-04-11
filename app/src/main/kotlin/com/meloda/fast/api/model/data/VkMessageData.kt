@@ -1,7 +1,9 @@
 package com.meloda.fast.api.model.data
 
 import com.meloda.fast.api.VkUtils
+import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -57,7 +59,12 @@ data class VkMessageData(
         @Json(name = "message") val message: String?
     )
 
-    fun mapToDomain(): VkMessageDomain = VkMessageDomain(
+    fun mapToDomain(
+        user: VkUserDomain? = null,
+        group: VkGroupDomain? = null,
+        actionUser: VkUserDomain? = null,
+        actionGroup: VkGroupDomain? = null
+    ): VkMessageDomain = VkMessageDomain(
         id = id ?: -1,
         text = text.ifBlank { null },
         isOut = out == 1,
@@ -75,6 +82,10 @@ data class VkMessageData(
         updateTime = updateTime,
         forwards = VkUtils.parseForwards(fwdMessages).orEmpty(),
         attachments = VkUtils.parseAttachments(attachments).orEmpty(),
-        replyMessage = VkUtils.parseReplyMessage(replyMessage)
+        replyMessage = VkUtils.parseReplyMessage(replyMessage),
+        user = user,
+        group = group,
+        actionUser = actionUser,
+        actionGroup = actionGroup
     )
 }

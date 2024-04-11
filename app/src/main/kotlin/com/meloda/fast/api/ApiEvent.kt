@@ -18,7 +18,6 @@ enum class ApiEvent(val value: Int) {
     ;
 
     companion object {
-        fun parse(value: Int) = values().firstOrNull { it.value == value }
+        fun parse(value: Int) = entries.firstOrNull { it.value == value }
     }
-
 }

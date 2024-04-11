@@ -1,6 +1,5 @@
 package com.meloda.fast.api
 
-import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
@@ -28,8 +27,12 @@ class VkUsersMap(
         if (!message.isUser()) null
         else map[message.fromId]
 
+    fun user(userId: Int): VkUserDomain? = map[userId]
+
     companion object {
-        fun forUsers(users: List<VkUserData>): VkUsersMap =
-            VkUsersMap(users = users.map(VkUserData::mapToDomain))
+
+        fun forUsers(users: List<VkUserDomain>): VkUsersMap = VkUsersMap(users = users)
+
+        fun List<VkUserDomain>.toUsersMap(): VkUsersMap = forUsers(this)
     }
 }

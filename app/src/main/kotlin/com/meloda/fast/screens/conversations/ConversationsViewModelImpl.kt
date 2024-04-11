@@ -10,6 +10,10 @@ import coil.request.ImageRequest
 import com.google.common.collect.ImmutableList
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkGroupsMap.Companion.toGroupsMap
+import com.meloda.fast.api.VkUsersMap
+import com.meloda.fast.api.VkUsersMap.Companion.toUsersMap
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.api.model.InteractionType
@@ -167,7 +171,16 @@ class ConversationsViewModelImpl(
 
         domainConversations.emitOnScope { conversations }
 
-        val uiConversations = conversations.map(VkConversationDomain::mapToPresentation)
+        val usersMap = conversations.mapNotNull(VkConversationDomain::conversationUser).toUsersMap()
+        val groupsMap =
+            conversations.mapNotNull(VkConversationDomain::conversationGroup).toGroupsMap()
+
+        val uiConversations = conversations.map { conversation ->
+            conversation.mapToPresentation(
+                usersMap = usersMap,
+                groupsMap = groupsMap
+            )
+        }
         val avatars = uiConversations.mapNotNull { conversation ->
             conversation.avatar.extractUrl()
         }
@@ -210,7 +223,12 @@ class ConversationsViewModelImpl(
 
                     domainConversations.emitOnScope { conversations }
 
-                    val uiConversations = conversations.map(VkConversationDomain::mapToPresentation)
+                    val uiConversations = conversations.map {
+                        it.mapToPresentation(
+                            usersMap = VkUsersMap.forUsers(response.profiles),
+                            groupsMap = VkGroupsMap.forGroups(response.groups)
+                        )
+                    }
                     val avatars = uiConversations.mapNotNull { conversation ->
                         conversation.avatar.extractUrl()
                     }

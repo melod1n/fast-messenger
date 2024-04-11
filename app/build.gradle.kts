@@ -262,7 +262,7 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
     // end of Moshi zone
 
-    // TODO: дождаться нового релиза и починить минификацию и шринкинг
+    // TODO: найти решение проблемы с созданием PhotosService
     implementation(libs.retrofit)
 
     // Retrofit converters

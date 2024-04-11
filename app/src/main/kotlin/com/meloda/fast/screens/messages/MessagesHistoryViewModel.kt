@@ -9,7 +9,9 @@ import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
+import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkMessageData
+import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
@@ -152,8 +154,12 @@ class MessagesHistoryViewModelImpl(
             state.processState(
                 error = { error -> {} },
                 success = { response ->
-                    val usersMap = VkUsersMap.forUsers(response.profiles.orEmpty())
-                    val groupsMap = VkGroupsMap.forGroups(response.groups.orEmpty())
+                    val usersMap = VkUsersMap.forUsers(
+                        response.profiles.orEmpty().map(VkUserData::mapToDomain)
+                    )
+                    val groupsMap = VkGroupsMap.forGroups(
+                        response.groups.orEmpty().map(VkGroupData::mapToDomain)
+                    )
 
                     val newMessages = response.items
                         .map(VkMessageData::mapToDomain)
@@ -193,7 +199,10 @@ class MessagesHistoryViewModelImpl(
                                 conversationUser = user,
                                 conversationGroup = group
                             )
-                        }.mapToPresentation()
+                        }.mapToPresentation(
+                            usersMap = usersMap,
+                            groupsMap = groupsMap
+                        )
                     } ?: emptyList()
                     val photos = usersMap.users().mapNotNull { profile -> profile.photo200 } +
                             groupsMap.groups().mapNotNull { group -> group.photo200 } +

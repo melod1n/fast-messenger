@@ -23,8 +23,8 @@ data class ConversationsGetResponse(
 ) {
 
     fun toDomain(): ConversationsResponseDomain {
-        val usersMap = VkUsersMap.forUsers(profiles.orEmpty())
-        val groupsMap = VkGroupsMap.forGroups(groups.orEmpty())
+        val usersMap = VkUsersMap.forUsers(profiles.orEmpty().map(VkUserData::mapToDomain))
+        val groupsMap = VkGroupsMap.forGroups(groups.orEmpty().map(VkGroupData::mapToDomain))
 
         val conversations = items
             .map { item ->

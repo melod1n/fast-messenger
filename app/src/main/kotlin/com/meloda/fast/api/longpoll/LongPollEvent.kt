@@ -5,32 +5,32 @@ import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.api.model.domain.VkUserDomain
 
-sealed class LongPollEvent {
+sealed interface LongPollEvent {
 
     data class VkMessageNewEvent(
         val message: VkMessageDomain,
-        val profiles: HashMap<Int, VkUserDomain>,
-        val groups: HashMap<Int, VkGroupDomain>,
-    ) : LongPollEvent()
+        val profiles: List<VkUserDomain>,
+        val groups: List<VkGroupDomain>,
+    ) : LongPollEvent
 
-    data class VkMessageEditEvent(val message: VkMessageDomain) : LongPollEvent()
+    data class VkMessageEditEvent(val message: VkMessageDomain) : LongPollEvent
 
     data class VkMessageReadIncomingEvent(
         val peerId: Int,
         val messageId: Int,
         val unreadCount: Int,
-    ) : LongPollEvent()
+    ) : LongPollEvent
 
     data class VkMessageReadOutgoingEvent(
         val peerId: Int,
         val messageId: Int,
         val unreadCount: Int,
-    ) : LongPollEvent()
+    ) : LongPollEvent
 
     data class VkConversationPinStateChangedEvent(
         val peerId: Int,
         val majorId: Int,
-    ) : LongPollEvent()
+    ) : LongPollEvent
 
     data class Interaction(
         val interactionType: InteractionType,
@@ -38,5 +38,5 @@ sealed class LongPollEvent {
         val userIds: List<Int>,
         val totalCount: Int,
         val timestamp: Int
-    ) : LongPollEvent()
+    ) : LongPollEvent
 }

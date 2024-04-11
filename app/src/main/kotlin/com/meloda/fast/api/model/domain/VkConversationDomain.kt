@@ -56,7 +56,6 @@ data class VkConversationDomain(
     val conversationGroup: VkGroupDomain? = null
 ) {
 
-
     fun isChat() = peerType.isChat()
     fun isUser() = peerType.isUser()
     fun isGroup() = peerType.isGroup()
@@ -120,11 +119,14 @@ data class VkConversationDomain(
         }
     }
 
-    // TODO: 07.01.2023, Danil Nikolaev: rewrite
-    fun extractMessage(): AnnotatedString {
+    private fun extractMessage(): AnnotatedString {
+        val youPrefix = UiText.Resource(R.string.you_message_prefix)
+            .parseString(AppGlobal.Instance)
+            .orEmpty()
+
         val actionMessage = VkUtils.getActionMessageText(
             message = lastMessage,
-            youPrefix = "You",
+            youPrefix = youPrefix,
             messageUser = lastMessage?.user,
             messageGroup = lastMessage?.group,
             action = lastMessage?.getPreparedAction(),
@@ -167,9 +169,7 @@ data class VkConversationDomain(
 
             lastMessage.isOut -> buildAnnotatedString {
                 withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                    append(
-                        UiText.Resource(R.string.you_message_prefix).parseString(AppGlobal.Instance)
-                    )
+                    append(youPrefix)
                 }
             }
 
@@ -221,27 +221,35 @@ data class VkConversationDomain(
         return finalText
     }
 
-    fun extractAttachmentImage(): UiImage? {
+    private fun extractAttachmentImage(): UiImage? {
         if (lastMessage?.text == null) return null
         return VkUtils.getAttachmentConversationIcon(lastMessage)
     }
 
-    fun extractReadCondition(): Boolean {
+    private fun extractReadCondition(): Boolean {
         return (lastMessage?.isOut.isTrue && isOutUnread()) ||
                 (lastMessage?.isOut.isFalse && isInUnread())
     }
 
-    fun extractDate(): String {
+    private fun extractDate(): String {
         return TimeUtils.getLocalizedTime(AppGlobal.Instance, (lastMessage?.date ?: -1) * 1000L)
     }
 
-    // TODO: 13.08.2023, Danil Nikolaev: rewrite
-    fun extractInteractionUsers(): List<String> {
-        return interactionIds.map { it.toString() }
+    private fun extractInteractionUsers(
+        usersMap: VkUsersMap,
+        groupsMap: VkGroupsMap
+    ): List<String> {
+        return interactionIds.mapNotNull { id ->
+            when {
+                id > 0 -> usersMap.user(id)?.fullName
+                id < 0 -> groupsMap.group(id)?.name
+                else -> null
+            }
+        }
     }
 
     // TODO: 05.08.2023, Danil Nikolaev: rewrite
-    fun extractBirthday(): Boolean {
+    private fun extractBirthday(): Boolean {
         val birthday = conversationUser?.birthday ?: return false
         val splitBirthday = birthday.split(".")
 
@@ -257,9 +265,12 @@ data class VkConversationDomain(
         } else false
     }
 
-    private fun extractInteractionText(): String? {
+    private fun extractInteractionText(
+        usersMap: VkUsersMap,
+        groupsMap: VkGroupsMap
+    ): String? {
         val interactionType = InteractionType.parse(interactionType)
-        val interactiveUsers = extractInteractionUsers()
+        val interactiveUsers = extractInteractionUsers(usersMap = usersMap, groupsMap = groupsMap)
 
         val typingText =
             if (interactionType == null) {
@@ -281,7 +292,10 @@ data class VkConversationDomain(
         return typingText
     }
 
-    fun mapToPresentation() = VkConversationUi(
+    fun mapToPresentation(
+        usersMap: VkUsersMap,
+        groupsMap: VkGroupsMap
+    ) = VkConversationUi(
         conversationId = id,
         lastMessageId = lastMessageId,
         avatar = extractAvatar(),
@@ -300,7 +314,7 @@ data class VkConversationDomain(
         conversationUser = conversationUser,
         conversationGroup = conversationGroup,
         peerType = peerType,
-        interactionText = extractInteractionText(),
+        interactionText = extractInteractionText(usersMap = usersMap, groupsMap = groupsMap),
         isExpanded = false,
         options = ImmutableList.of()
     )
