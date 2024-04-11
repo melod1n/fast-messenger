@@ -4,8 +4,8 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.meloda.fast.screens.login.model.LoginScreenState
-import com.meloda.fast.screens.login.presentation.LoginSignIn
+import com.meloda.fast.modules.auth.screens.login.model.LoginScreenState
+import com.meloda.fast.modules.auth.screens.login.presentation.LoginSignIn
 import org.junit.Rule
 import org.junit.Test
 

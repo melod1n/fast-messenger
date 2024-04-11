@@ -53,7 +53,7 @@ data class VkMiniAppData(
         @Json(name = "has_vk_connect")
         val hasVkConnect: Boolean,
         @Json(name = "need_show_bottom_menu_tooltip_on_close")
-        val needShowBottomMenuTooltipOnClose: Boolean
+        val needShowBottomMenuTooltipOnClose: Boolean?
     )
 
     @JsonClass(generateAdapter = true)

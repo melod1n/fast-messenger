@@ -167,24 +167,10 @@ fun Any.asInt(): Int {
     }
 }
 
-fun Any.asString(): String {
-    return when (this) {
-        is String -> this
-        else -> this.toString()
-    }
-}
-
 fun <T> Any.asList(mapper: (old: Any) -> T): List<T> {
     return when (this) {
         is List<*> -> this.mapNotNull { it?.run(mapper) }
 
         else -> emptyList()
-    }
-}
-
-fun Any.asBoolean(): Boolean? {
-    return when (this) {
-        is Boolean -> this
-        else -> null
     }
 }

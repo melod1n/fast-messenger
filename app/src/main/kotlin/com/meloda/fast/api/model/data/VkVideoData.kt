@@ -78,11 +78,11 @@ data class VkVideoData(
         val mp4_1080: String?,
         val mp4_1440: String?,
         val hls: String,
-        val dash_uni: String,
-        val dash_sep: String,
-        val hls_ondemand: String,
-        val dash_ondemand: String,
-        val failover_host: String
+        val dash_uni: String?,
+        val dash_sep: String?,
+        val hls_ondemand: String?,
+        val dash_ondemand: String?,
+        val failover_host: String?
     )
 
     @JsonClass(generateAdapter = true)

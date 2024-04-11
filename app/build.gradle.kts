@@ -66,7 +66,7 @@ androidComponents {
                 "debugUserId",
                 BuildConfigField(
                     type = "String",
-                    value = if (isDebug) debugUserId else "0",
+                    value = if (isDebug) debugUserId else "\"0\"",
                     comment = "user id for debugging purposes"
                 )
             )

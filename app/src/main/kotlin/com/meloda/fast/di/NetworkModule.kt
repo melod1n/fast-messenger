@@ -2,6 +2,7 @@ package com.meloda.fast.di
 
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
+import com.meloda.fast.api.OAuthResultCallFactory
 import com.meloda.fast.api.network.AuthInterceptor
 import com.meloda.fast.api.network.VkUrls
 import com.meloda.fast.base.ResponseConverterFactory
@@ -12,6 +13,7 @@ import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -45,6 +47,16 @@ val networkModule = module {
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .addConverterFactory(MoshiConverterFactory.create(get()))
             .addConverterFactory(ResponseConverterFactory(get<MoshiConverter>()))
+            .client(get())
+            .build()
+    }
+
+    singleOf(::OAuthResultCallFactory)
+    single<Retrofit>(named("oauth")) {
+        Retrofit.Builder()
+            .baseUrl("${VkUrls.OAUTH}/")
+            .addCallAdapterFactory(get<OAuthResultCallFactory>())
+            .addConverterFactory(MoshiConverterFactory.create(get()))
             .client(get())
             .build()
     }

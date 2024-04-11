@@ -23,16 +23,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.meloda.fast.R
+import com.meloda.fast.ui.AppTheme
 
 @Preview
 @Composable
 fun UserBannedScreenPreview() {
-    UserBannedScreenContent(
-        onBackClick = {},
-        name = "Calvin Harris",
-        message = "Eto konets",
-        isLastScreenLogin = true
-    )
+    AppTheme {
+        UserBannedScreenContent(
+            onBackClick = {},
+            name = "Calvin Harris",
+            message = "Eto konets",
+            isLastScreenLogin = true
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

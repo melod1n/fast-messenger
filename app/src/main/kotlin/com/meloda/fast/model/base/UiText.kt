@@ -42,3 +42,5 @@ fun UiText?.parseString(context: Context): String? {
         else -> null
     }
 }
+
+fun String.toUiText(): UiText = UiText.Simple(this)

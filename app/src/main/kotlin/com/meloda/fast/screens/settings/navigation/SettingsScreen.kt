@@ -5,7 +5,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.meloda.fast.screens.languagepicker.navigation.LanguagePickerScreen
-import com.meloda.fast.screens.login.navigation.LoginScreen
+import com.meloda.fast.modules.auth.screens.login.navigation.LoginScreen
 import com.meloda.fast.screens.settings.UserSettings
 import com.meloda.fast.screens.settings.presentation.SettingsRoute
 import org.koin.compose.koinInject

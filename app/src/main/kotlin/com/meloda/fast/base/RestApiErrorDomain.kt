@@ -1,5 +1,6 @@
 package com.meloda.fast.base
 
+import com.meloda.fast.api.network.BaseOAuthError
 import com.slack.eithernet.ApiResult
 
 data class RestApiErrorDomain(
@@ -17,3 +18,5 @@ fun ApiResult.Failure.HttpFailure<*>?.tryCastToRestErrorDomain() =
 
 fun ApiResult.Failure.ApiFailure<*>?.tryCastToRestErrorDomain() =
     this?.error as? RestApiErrorDomain
+
+fun BaseOAuthError.toStateError(): State.Error = State.Error.OAuthError(error = this)

@@ -1,0 +1,199 @@
+package com.meloda.fast.api
+
+import android.util.Log
+import com.meloda.fast.api.network.BaseOAuthError
+import com.meloda.fast.api.network.CaptchaRequiredError
+import com.meloda.fast.api.network.InvalidCredentialsError
+import com.meloda.fast.api.network.UserBannedError
+import com.meloda.fast.api.network.ValidationRequiredError
+import com.meloda.fast.api.network.WrongTwoFaCode
+import com.meloda.fast.api.network.WrongTwoFaCodeFormat
+import com.squareup.moshi.Moshi
+import okhttp3.Request
+import okio.Timeout
+import retrofit2.Call
+import retrofit2.CallAdapter
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+
+class OAuthResultCallFactory(private val moshi: Moshi) : CallAdapter.Factory() {
+
+    override fun get(
+        returnType: Type,
+        annotations: Array<out Annotation>,
+        retrofit: Retrofit,
+    ): CallAdapter<*, *>? {
+        val rawReturnType: Class<*> = getRawType(returnType)
+
+        if (rawReturnType == Call::class.java) {
+            if (returnType is ParameterizedType) {
+                val callInnerType: Type = getParameterUpperBound(0, returnType)
+
+                if (getRawType(callInnerType) == OAuthAnswer::class.java) {
+                    if (callInnerType is ParameterizedType) {
+                        val resultInnerType = getParameterUpperBound(0, callInnerType)
+                        return ResultCallAdapter<Any, BaseOAuthError>(resultInnerType, moshi)
+                    }
+
+                    return ResultCallAdapter<Nothing, Nothing>(Nothing::class.java, moshi)
+                }
+            }
+        }
+        return null
+    }
+}
+
+internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : Call<Out> {
+
+    override fun execute(): Response<Out> = throw NotImplementedError()
+
+    final override fun enqueue(callback: Callback<Out>) = enqueueImpl(callback)
+
+    final override fun clone(): Call<Out> = cloneImpl()
+
+    override fun cancel() = proxy.cancel()
+
+    override fun request(): Request = proxy.request()
+
+    override fun isExecuted() = proxy.isExecuted
+
+    override fun isCanceled() = proxy.isCanceled
+
+    abstract fun enqueueImpl(callback: Callback<Out>)
+
+    abstract fun cloneImpl(): Call<Out>
+}
+
+private class ResultCallAdapter<R : Any, E : BaseOAuthError>(
+    private val type: Type,
+    private val moshi: Moshi
+) : CallAdapter<R, Call<OAuthAnswer<R, E>>> {
+
+    override fun responseType() = type
+
+    override fun adapt(call: Call<R>): Call<OAuthAnswer<R, E>> = ResultCall(call, moshi)
+}
+
+internal class ResultCall<R : Any, E : BaseOAuthError>(
+    proxy: Call<R>,
+    private val moshi: Moshi
+) : CallDelegate<R, OAuthAnswer<R, E>>(proxy) {
+
+    override fun enqueueImpl(callback: Callback<OAuthAnswer<R, E>>) {
+        proxy.enqueue(ResultCallback(this, callback, moshi))
+    }
+
+    override fun cloneImpl(): ResultCall<R, E> {
+        return ResultCall(proxy.clone(), moshi)
+    }
+
+    private class ResultCallback<R : Any, E : BaseOAuthError>(
+        private val proxy: ResultCall<R, E>,
+        private val callback: Callback<OAuthAnswer<R, E>>,
+        private val moshi: Moshi
+    ) : Callback<R> {
+
+        @Suppress("UNCHECKED_CAST")
+        override fun onResponse(call: Call<R>, response: Response<R>) {
+            when {
+                response.isSuccessful -> {
+                    val baseBody = response.body()
+
+                    baseBody?.let {
+                        callback.onResponse(proxy, Response.success(OAuthAnswer.Success(baseBody)))
+                    }
+                }
+
+                else -> {
+                    val errorBodyString = response.errorBody()?.string()
+
+                    val baseError: BaseOAuthError = moshi.adapter(BaseOAuthError::class.java)
+                        .fromJson(errorBodyString.orEmpty()) ?: return
+
+                    val error: BaseOAuthError? = when (baseError.error) {
+                        "invalid_client" -> {
+                            moshi.adapter(InvalidCredentialsError::class.java)
+                                .fromJson(errorBodyString.orEmpty())
+                        }
+
+                        "need_captcha" -> {
+                            moshi.adapter(CaptchaRequiredError::class.java)
+                                .fromJson(errorBodyString.orEmpty())
+                        }
+
+                        "invalid_request" -> {
+                            when (val type = baseError.errorType) {
+                                "wrong_otp" -> {
+                                    moshi.adapter(WrongTwoFaCode::class.java)
+                                        .fromJson(errorBodyString.orEmpty())
+                                }
+
+                                "otp_format_is_incorrect" -> {
+                                    moshi.adapter(WrongTwoFaCodeFormat::class.java)
+                                        .fromJson(errorBodyString.orEmpty())
+                                }
+
+                                else -> {
+                                    Log.d(
+                                        "ResultCallback",
+                                        "onResponse: invalid_request; error_type: $type"
+                                    )
+
+                                    error("Unknown type: $type")
+                                }
+                            }
+                        }
+
+                        "need_validation" -> {
+                            when (val description = baseError.errorDescription) {
+                                "user has been banned" -> {
+                                    moshi.adapter(UserBannedError::class.java)
+                                        .fromJson(errorBodyString.orEmpty())
+                                }
+
+                                "sms sent, use code param",
+                                "use app code" -> {
+                                    moshi.adapter(ValidationRequiredError::class.java)
+                                        .fromJson(errorBodyString.orEmpty())
+                                }
+
+                                else -> {
+                                    Log.d(
+                                        "ResultCallback",
+                                        "onResponse: need_validation; description: $description"
+                                    )
+
+                                    error("Unknown description: $description")
+                                }
+                            }
+                        }
+
+                        else -> null
+                    }
+
+                    error?.let {
+                        callback.onResponse(
+                            proxy,
+                            Response.success(OAuthAnswer.Error(error) as OAuthAnswer<R, E>)
+                        )
+                    }
+                }
+            }
+        }
+
+        override fun onFailure(call: Call<R>, error: Throwable) {
+            // TODO: 12/04/2024, Danil Nikolaev: handle
+//            callback.onResponse(
+//                proxy,
+//                Response.success(OAuthAnswer.Error((throwable = error)))
+//            )
+        }
+    }
+
+    override fun timeout(): Timeout {
+        return proxy.timeout()
+    }
+}

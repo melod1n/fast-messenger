@@ -1,5 +1,7 @@
 package com.meloda.fast.base
 
+import com.meloda.fast.api.network.BaseOAuthError
+
 // TODO: 07/04/2024, Danil Nikolaev: map error state in string
 /** Возможные состояния для одного потока данных в репозитории */
 sealed class State<out T> {
@@ -24,6 +26,10 @@ sealed class State<out T> {
         data class ApiError(
             val errorCode: Int,
             val errorMessage: String,
+        ) : Error()
+
+        data class OAuthError<out T: BaseOAuthError>(
+            val error: T
         ) : Error()
 
         data object ConnectionError : Error()

@@ -3,7 +3,6 @@ package com.meloda.fast.di
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
 import com.meloda.fast.data.account.data.service.AccountService
 import com.meloda.fast.data.audios.AudiosApi
-import com.meloda.fast.data.auth.AuthApi
 import com.meloda.fast.data.files.FilesApi
 import com.meloda.fast.data.photos.PhotosService
 import com.meloda.fast.data.users.UsersApi
@@ -17,15 +16,12 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 
 val apiModule = module {
-    single { api(AuthApi::class.java) }
     single { api(ConversationsService::class.java) }
     single { api(UsersApi::class.java) }
     single { api(MessagesService::class.java) }
     single { api(LongPollService::class.java) }
     single { api(AccountService::class.java) }
-    single<PhotosService> {
-        get<Retrofit>().create(PhotosService::class.java)
-    }
+    single { api(PhotosService::class.java) }
     single { api(VideosApi::class.java) }
     single { api(AudiosApi::class.java) }
     single { api(FilesApi::class.java) }

@@ -23,7 +23,7 @@ import com.meloda.fast.ext.CheckPermission
 import com.meloda.fast.ext.RequestPermission
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.screens.conversations.navigation.ConversationsScreen
-import com.meloda.fast.screens.login.navigation.LoginScreen
+import com.meloda.fast.modules.auth.screens.login.navigation.LoginScreen
 import com.meloda.fast.screens.main.MainViewModel
 import com.meloda.fast.screens.main.model.MainScreenState
 import com.meloda.fast.screens.settings.SettingsKeys
