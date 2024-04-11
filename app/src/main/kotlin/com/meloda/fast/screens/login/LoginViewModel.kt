@@ -5,20 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.UserConfig
-import com.meloda.fast.base.viewmodel.CaptchaRequiredEvent
-import com.meloda.fast.base.viewmodel.ValidationRequiredEvent
-import com.meloda.fast.base.viewmodel.VkEvent
-import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.data.auth.AuthRepository
+import com.meloda.fast.database.account.AccountsDao
 import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.model.AppAccount
-import com.meloda.fast.screens.captcha.model.CaptchaArguments
 import com.meloda.fast.screens.login.model.LoginScreenState
 import com.meloda.fast.screens.login.model.LoginValidationResult
 import com.meloda.fast.screens.login.validation.LoginValidator
-import com.meloda.fast.screens.twofa.model.TwoFaArguments
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,19 +72,19 @@ class LoginViewModelImpl(
     override val isNeedToShowErrorDialog = MutableStateFlow(false)
     override val isNeedToShowFastLoginDialog = MutableStateFlow(false)
 
-    private var currentValidationEvent: ValidationRequiredEvent? = null
+//    private var currentValidationEvent: ValidationRequiredEvent? = null
 
     init {
 //        events.listenValue(::handleEvent)
     }
 
-    private fun handleEvent(event: VkEvent) {
-        when (event) {
-            is CaptchaRequiredEvent -> onCaptchaEventReceived(event)
-            is ValidationRequiredEvent -> onValidationEventReceived(event)
-            else -> Unit
-        }
-    }
+//    private fun handleEvent(event: VkEvent) {
+//        when (event) {
+//            is CaptchaRequiredEvent -> onCaptchaEventReceived(event)
+//            is ValidationRequiredEvent -> onValidationEventReceived(event)
+//            else -> Unit
+//        }
+//    }
 
     override fun onBackPressed() {
         screenState.setValue { old -> old.copy(isNeedToShowLogo = true) }
@@ -122,20 +117,20 @@ class LoginViewModelImpl(
         screenState.updateValue(newState)
     }
 
-    private fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
-        val captchaSid = event.sid
-        val captchaImage = event.image
-
-        val newState = screenState.value.copy(
-            captchaArguments = CaptchaArguments(
-                captchaSid = captchaSid,
-                captchaImage = captchaImage
-            )
-        )
-        screenState.update { newState }
-
-        showCaptchaScreen()
-    }
+//    private fun onCaptchaEventReceived(event: CaptchaRequiredEvent) {
+//        val captchaSid = event.sid
+//        val captchaImage = event.image
+//
+//        val newState = screenState.value.copy(
+//            captchaArguments = CaptchaArguments(
+//                captchaSid = captchaSid,
+//                captchaImage = captchaImage
+//            )
+//        )
+//        screenState.update { newState }
+//
+//        showCaptchaScreen()
+//    }
 
     private fun showCaptchaScreen() {
         screenState.updateValue(
@@ -143,22 +138,22 @@ class LoginViewModelImpl(
         )
     }
 
-    private fun onValidationEventReceived(event: ValidationRequiredEvent) {
-        currentValidationEvent = event
-
-        val newForm = screenState.value.copy(
-            twoFaArguments = TwoFaArguments(
-                validationSid = event.sid,
-                redirectUri = event.redirectUri,
-                phoneMask = event.phoneMask,
-                validationType = event.validationType,
-                canResendSms = event.canResendSms,
-                wrongCodeError = event.codeError,
-            ),
-            isNeedToOpenTwoFa = true
-        )
-        screenState.update { newForm }
-    }
+//    private fun onValidationEventReceived(event: ValidationRequiredEvent) {
+//        currentValidationEvent = event
+//
+//        val newForm = screenState.value.copy(
+//            twoFaArguments = TwoFaArguments(
+//                validationSid = event.sid,
+//                redirectUri = event.redirectUri,
+//                phoneMask = event.phoneMask,
+//                validationType = event.validationType,
+//                canResendSms = event.canResendSms,
+//                wrongCodeError = event.codeError,
+//            ),
+//            isNeedToOpenTwoFa = true
+//        )
+//        screenState.update { newForm }
+//    }
 
     override fun onSignInButtonClicked() {
         login()
@@ -235,12 +230,12 @@ class LoginViewModelImpl(
     }
 
     private fun login(forceSms: Boolean = false) {
-        currentValidationEvent?.let { event ->
-            if (!screenState.value.validationSid.isNullOrBlank() && screenState.value.validationCode == null) {
-                handleEvent(event)
-                return
-            }
-        }
+//        currentValidationEvent?.let { event ->
+//            if (!screenState.value.validationSid.isNullOrBlank() && screenState.value.validationCode == null) {
+//                handleEvent(event)
+//                return
+//            }
+//        }
 
         val state = screenState.value.copy()
 

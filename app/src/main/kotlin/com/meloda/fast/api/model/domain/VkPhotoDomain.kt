@@ -1,10 +1,14 @@
 package com.meloda.fast.api.model.domain
 
+import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
+import com.meloda.fast.api.model.data.AttachmentType
 import com.meloda.fast.api.model.data.VkPhotoData
+import com.meloda.fast.model.base.UiText
 import java.util.Stack
 
 
+// TODO: 11/04/2024, Danil Nikolaev: review
 data class VkPhotoDomain(
     val albumId: Int,
     val date: Int,
@@ -15,18 +19,14 @@ data class VkPhotoDomain(
     val sizes: List<VkPhotoData.Size>,
     val text: String?,
     val userId: Int?
-) : VkAttachment {
+) : VkMultipleAttachment {
 
-    companion object {
-        const val SIZE_TYPE_75 = 's'
-        const val SIZE_TYPE_130 = 'm'
-        const val SIZE_TYPE_604 = 'x'
-        const val SIZE_TYPE_807 = 'y'
-        const val SIZE_TYPE_1080_1024 = 'z'
-        const val SIZE_TYPE_2560_2048 = 'w'
-    }
+    override val type: AttachmentType = AttachmentType.PHOTO
 
     private val sizesChars = Stack<Char>()
+
+    override fun getUiText(size: Int): UiText =
+        UiText.QuantityResource(R.plurals.attachment_photos, size)
 
     init {
         sizesChars.push(SIZE_TYPE_75)
@@ -88,4 +88,12 @@ data class VkPhotoDomain(
         return null
     }
 
+    companion object {
+        const val SIZE_TYPE_75 = 's'
+        const val SIZE_TYPE_130 = 'm'
+        const val SIZE_TYPE_604 = 'x'
+        const val SIZE_TYPE_807 = 'y'
+        const val SIZE_TYPE_1080_1024 = 'z'
+        const val SIZE_TYPE_2560_2048 = 'w'
+    }
 }

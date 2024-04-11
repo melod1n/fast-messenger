@@ -1,14 +1,14 @@
 package com.meloda.fast.model.base
 
 import android.content.Context
-import android.os.Parcelable
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
-import kotlinx.parcelize.Parcelize
+import androidx.compose.ui.text.AnnotatedString
 import kotlinx.parcelize.RawValue
 
-@Parcelize
-sealed class UiText : Parcelable {
+sealed class UiText {
+
+    data object Empty : UiText()
 
     data class Resource(@StringRes val resId: Int) : UiText()
 
@@ -18,6 +18,8 @@ sealed class UiText : Parcelable {
     ) : UiText()
 
     data class Simple(val text: String) : UiText()
+
+    data class Annotated(val string: AnnotatedString) : UiText()
 
     data class QuantityResource(@PluralsRes val resId: Int, val quantity: Int) : UiText()
 }

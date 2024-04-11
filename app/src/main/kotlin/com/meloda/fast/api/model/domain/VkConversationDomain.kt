@@ -1,16 +1,23 @@
 package com.meloda.fast.api.model.domain
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isFalse
 import com.meloda.fast.ext.isTrue
-import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
@@ -63,6 +70,16 @@ data class VkConversationDomain(
 
     fun isPinned() = majorId > 0
 
+    fun getUserAndGroup(
+        usersMap: VkUsersMap,
+        groupsMap: VkGroupsMap
+    ): Pair<VkUserDomain?, VkGroupDomain?> {
+        val user: VkUserDomain? = usersMap.conversationUser(this)
+        val group: VkGroupDomain? = groupsMap.conversationGroup(this)
+
+        return user to group
+    }
+
     fun extractAvatar(): UiImage {
         val placeholderImage = UiImage.Resource(R.drawable.ic_account_circle_cut)
 
@@ -104,8 +121,8 @@ data class VkConversationDomain(
     }
 
     // TODO: 07.01.2023, Danil Nikolaev: rewrite
-    fun extractMessage(): String {
-        val actionMessage = VkUtils.getActionConversationText(
+    fun extractMessage(): AnnotatedString {
+        val actionMessage = VkUtils.getActionMessageText(
             message = lastMessage,
             youPrefix = "You",
             messageUser = lastMessage?.user,
@@ -117,8 +134,8 @@ data class VkConversationDomain(
 
         val attachmentIcon: UiImage? = when {
             lastMessage?.text == null -> null
-            !lastMessage?.forwards.isNullOrEmpty() -> {
-                if (lastMessage?.forwards?.size == 1) {
+            !lastMessage.forwards.isNullOrEmpty() -> {
+                if (lastMessage.forwards.size == 1) {
                     UiImage.Resource(R.drawable.ic_attachment_forwarded_message)
                 } else {
                     UiImage.Resource(R.drawable.ic_attachment_forwarded_messages)
@@ -136,40 +153,72 @@ data class VkConversationDomain(
             message = lastMessage
         ) else null)
 
-        val messageText =
-            lastMessage?.text
-                ?.let { VkUtils.prepareMessageText(it, forConversations = true) }
-                ?.let { VkUtils.visualizeMentions(it, 0).toString() }
-                ?.let(UiText::Simple)
+        val messageText = lastMessage?.text.orEmpty()
 
-        var prefix = when {
-            actionMessage != null -> ""
-            lastMessage?.isOut.isTrue -> "You: "
+
+        val prefixText: AnnotatedString? = when {
+            actionMessage != null -> null
+
+            lastMessage == null -> null
+
+            id == UserConfig.userId -> null
+
+            !peerType.isChat() && !lastMessage.isOut -> null
+
+            lastMessage.isOut -> buildAnnotatedString {
+                withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                    append(
+                        UiText.Resource(R.string.you_message_prefix).parseString(AppGlobal.Instance)
+                    )
+                }
+            }
+
             else ->
                 when {
-                    lastMessage?.user != null && lastMessage?.user?.firstName?.isNotBlank().isTrue -> {
-                        "${lastMessage?.user?.firstName}: "
+                    lastMessage.user?.firstName.orEmpty().isNotEmpty() -> buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                            append(lastMessage.user?.firstName)
+                        }
                     }
 
-                    lastMessage?.group != null && lastMessage?.group?.name?.isNotBlank().isTrue -> {
-                        "${lastMessage?.group?.name}: "
+                    lastMessage.group?.name.orEmpty().isNotEmpty() -> buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                            append(lastMessage.group?.name)
+                        }
                     }
 
-                    else -> ""
+                    else -> null
                 }
         }
 
-        if ((!peerType.isChat() && lastMessage?.isOut.isFalse) || id == UserConfig.userId)
-            prefix = ""
+        val prefix = buildAnnotatedString {
+            if (prefixText != null) {
+                append(prefixText)
+                append(": ")
+            }
+        }
 
-        val finalText =
-            (actionMessage ?: forwardsMessage ?: attachmentText ?: messageText)
-                ?.parseString(AppGlobal.Instance)
-                ?.let(VkUtils::prepareMessageText)
-                ?.let { text -> "$prefix$text" }
+        val finalText = when {
+            actionMessage != null -> {
+                prefix + actionMessage
+            }
 
+            forwardsMessage != null -> {
+                prefix + forwardsMessage
+            }
 
-        return finalText.orDots()
+            attachmentText != null -> {
+                prefix + attachmentText
+            }
+
+            else ->
+                messageText
+                    .let { text -> VkUtils.prepareMessageText(text, true) }
+                    .let { text -> VkUtils.getTextWithVisualizedMentions(text, Color.Red) }
+                    .let { text -> prefix + text }
+        }
+
+        return finalText
     }
 
     fun extractAttachmentImage(): UiImage? {

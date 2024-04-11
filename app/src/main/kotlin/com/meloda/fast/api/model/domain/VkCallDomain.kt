@@ -1,5 +1,9 @@
 package com.meloda.fast.api.model.domain
 
+import com.meloda.fast.R
+import com.meloda.fast.api.model.data.AttachmentType
+import com.meloda.fast.model.base.UiText
+
 data class VkCallDomain(
     val initiatorId: Int,
     val receiverId: Int,
@@ -9,5 +13,9 @@ data class VkCallDomain(
     val isVideo: Boolean
 ) : VkAttachment {
 
+    override val type: AttachmentType = AttachmentType.CALL
+
     val className: String = this::class.java.name
+
+    override fun getUiText(): UiText = UiText.Resource(R.string.message_attachments_call)
 }

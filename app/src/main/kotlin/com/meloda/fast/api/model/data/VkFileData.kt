@@ -15,7 +15,7 @@ data class VkFileData(
     @Json(name = "type") val type: Int,
     @Json(name = "url") val url: String,
     @Json(name = "preview") val preview: Preview?,
-    @Json(name = "ic_licensed") val isLicensed: Int,
+    @Json(name = "ic_licensed") val isLicensed: Int?,
     @Json(name = "access_key") val accessKey: String?,
     @Json(name = "web_preview_url") val webPreviewUrl: String?
 ) : VkAttachmentData {

@@ -5,19 +5,15 @@ import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.VkUtils.fill
+import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.longpoll.LongPollEvent
 import com.meloda.fast.api.longpoll.LongPollUpdatesParser
-import com.meloda.fast.api.model.data.VkGroupData
-import com.meloda.fast.api.model.data.VkUserData
+import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.domain.VkAttachment
-import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
-import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.processState
-import com.meloda.fast.base.viewmodel.VkEvent
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
@@ -26,7 +22,6 @@ import com.meloda.fast.data.videos.VideosRepository
 import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
-import com.meloda.fast.ext.toMap
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
@@ -157,44 +152,60 @@ class MessagesHistoryViewModelImpl(
             state.processState(
                 error = { error -> {} },
                 success = { response ->
-                    val profiles = response.profiles
-                        ?.map(VkUserData::mapToDomain)
-                        ?.toMap(hashMapOf(), VkUserDomain::id) ?: hashMapOf()
-                    val groups = response.groups
-                        ?.map(VkGroupData::mapToDomain)
-                        ?.toMap(hashMapOf(), VkGroupDomain::id) ?: hashMapOf()
+                    val usersMap = VkUsersMap.forUsers(response.profiles.orEmpty())
+                    val groupsMap = VkGroupsMap.forGroups(response.groups.orEmpty())
+
                     val newMessages = response.items
-                        .map { message -> message.mapToDomain() }
+                        .map(VkMessageData::mapToDomain)
                         .map { message ->
-                            message.copy(
-                                user = profiles[message.fromId],
-                                group = groups[message.fromId],
-                                actionUser = profiles[message.actionMemberId],
-                                actionGroup = groups[message.actionMemberId]
+                            val (actionUser, actionGroup) = message.getActionUserAndGroup(
+                                usersMap = usersMap,
+                                groupsMap = groupsMap
                             )
-                        }.sortedBy { message -> message.date }
+
+                            val (messageUser, messageGroup) = message.getUserAndGroup(
+                                usersMap = usersMap,
+                                groupsMap = groupsMap
+                            )
+
+                            message.copy(
+                                user = messageUser,
+                                group = messageGroup,
+                                actionUser = actionUser,
+                                actionGroup = actionGroup
+                            )
+                        }
+                        .sortedBy { message -> message.date }
+
                     messages.emit(newMessages)
 //                    messagesRepository.store(newMessages)
                     val conversations = response.conversations?.map { base ->
                         val lastMessage =
                             newMessages.find { message -> message.id == base.lastMessageId }
-                        base.mapToDomain()
-                            .fill(
-                                lastMessage = lastMessage,
-                                profiles = profiles,
-                                groups = groups
+
+                        base.mapToDomain(lastMessage = lastMessage).run {
+                            val (user, group) = getUserAndGroup(
+                                usersMap = usersMap,
+                                groupsMap = groupsMap
                             )
-                            .mapToPresentation()
+
+                            copy(
+                                conversationUser = user,
+                                conversationGroup = group
+                            )
+                        }.mapToPresentation()
                     } ?: emptyList()
-                    val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +
-                            groups.mapNotNull { group -> group.value.photo200 } +
+                    val photos = usersMap.users().mapNotNull { profile -> profile.photo200 } +
+                            groupsMap.groups().mapNotNull { group -> group.photo200 } +
                             conversations.mapNotNull { conversation -> conversation.avatar.extractUrl() }
+
                     photos.forEach { url ->
                         ImageRequest.Builder(AppGlobal.Instance)
                             .data(url)
                             .build()
                             .let(imageLoader::enqueue)
                     }
+
                     screenState.emitOnMainScope(
                         screenState.value.copy(
                             messages = newMessages,
@@ -719,33 +730,33 @@ class MessagesHistoryViewModelImpl(
     }
 }
 
-data class MessagesLoadedEvent(
-    val count: Int,
-    val conversations: HashMap<Int, VkConversationDomain>,
-    val messages: List<VkMessageDomain>,
-    val profiles: HashMap<Int, VkUserDomain>,
-    val groups: HashMap<Int, VkGroupDomain>,
-) : VkEvent()
-
-data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) :
-    VkEvent()
-
-data class MessagesPinEvent(val message: VkMessageDomain) : VkEvent()
-
-object MessagesUnpinEvent : VkEvent()
-
-data class MessagesDeleteEvent(val peerId: Int, val messagesIds: List<Int>) : VkEvent()
-
-data class MessagesEditEvent(val message: VkMessageDomain) : VkEvent()
-
-data class MessagesReadEvent(
-    val isOut: Boolean,
-    val peerId: Int,
-    val messageId: Int,
-) : VkEvent()
-
-data class MessagesNewEvent(
-    val message: VkMessageDomain,
-    val profiles: HashMap<Int, VkUserDomain>,
-    val groups: HashMap<Int, VkGroupDomain>,
-) : VkEvent()
+//data class MessagesLoadedEvent(
+//    val count: Int,
+//    val conversations: HashMap<Int, VkConversationDomain>,
+//    val messages: List<VkMessageDomain>,
+//    val profiles: HashMap<Int, VkUserDomain>,
+//    val groups: HashMap<Int, VkGroupDomain>,
+//) : VkEvent()
+//
+//data class MessagesMarkAsImportantEvent(val messagesIds: List<Int>, val important: Boolean) :
+//    VkEvent()
+//
+//data class MessagesPinEvent(val message: VkMessageDomain) : VkEvent()
+//
+//object MessagesUnpinEvent : VkEvent()
+//
+//data class MessagesDeleteEvent(val peerId: Int, val messagesIds: List<Int>) : VkEvent()
+//
+//data class MessagesEditEvent(val message: VkMessageDomain) : VkEvent()
+//
+//data class MessagesReadEvent(
+//    val isOut: Boolean,
+//    val peerId: Int,
+//    val messageId: Int,
+//) : VkEvent()
+//
+//data class MessagesNewEvent(
+//    val message: VkMessageDomain,
+//    val profiles: HashMap<Int, VkUserDomain>,
+//    val groups: HashMap<Int, VkGroupDomain>,
+//) : VkEvent()

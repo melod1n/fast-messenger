@@ -3,6 +3,8 @@ package com.meloda.fast.api.model.domain
 import androidx.compose.runtime.Immutable
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
+import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.util.TimeUtils
 
@@ -37,7 +39,7 @@ data class VkMessageDomain(
     val actionGroup: VkGroupDomain? = null,
 
     val state: State = State.Sent
-)  {
+) {
 
     fun isPeerChat() = peerId > 2_000_000_000
 
@@ -55,6 +57,26 @@ data class VkMessageDomain(
     fun getPreparedAction(): Action? {
         if (action == null) return null
         return Action.parse(action)
+    }
+
+    fun getUserAndGroup(
+        usersMap: VkUsersMap,
+        groupsMap: VkGroupsMap
+    ): Pair<VkUserDomain?, VkGroupDomain?> {
+        val user: VkUserDomain? = usersMap.messageUser(this)
+        val group: VkGroupDomain? = groupsMap.messageGroup(this)
+
+        return user to group
+    }
+
+    fun getActionUserAndGroup(
+        usersMap: VkUsersMap,
+        groupsMap: VkGroupsMap
+    ): Pair<VkUserDomain?, VkGroupDomain?> {
+        val user: VkUserDomain? = usersMap.messageActionUser(this)
+        val group: VkGroupDomain? = groupsMap.messageActionGroup(this)
+
+        return user to group
     }
 
     fun canEdit() =

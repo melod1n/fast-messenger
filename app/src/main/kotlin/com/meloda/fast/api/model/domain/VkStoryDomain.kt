@@ -1,5 +1,9 @@
 package com.meloda.fast.api.model.domain
 
+import com.meloda.fast.R
+import com.meloda.fast.api.model.data.AttachmentType
+import com.meloda.fast.model.base.UiText
+
 data class VkStoryDomain(
     val id: Int,
     val ownerId: Int,
@@ -7,9 +11,9 @@ data class VkStoryDomain(
     val photo: VkPhotoDomain?
 ) : VkAttachment {
 
-    fun isFromUser() = ownerId > 0
-
-    fun isFromGroup() = ownerId < 0
+    override val type: AttachmentType = AttachmentType.STORY
 
     val className: String = this::class.java.name
+
+    override fun getUiText(): UiText = UiText.Resource(R.string.message_attachments_story)
 }

@@ -53,7 +53,7 @@
     <string name="message_attachments_video_one">Видео</string>
     <string name="message_attachments_audio_one">Аудиозапись</string>
     <string name="message_attachments_files_one">Файл</string>
-    <string name="message_attachments_voice">Голосовое сообщение</string>
+    <string name="message_attachments_audio_message">Голосовое сообщение</string>
     <string name="message_attachments_link">Ссылка</string>
     <string name="message_attachments_mini_app">Мини-приложение</string>
     <string name="message_attachments_sticker">Стикер</string>

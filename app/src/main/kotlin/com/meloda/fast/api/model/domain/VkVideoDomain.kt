@@ -1,7 +1,10 @@
 package com.meloda.fast.api.model.domain
 
+import com.meloda.fast.R
 import com.meloda.fast.api.VkUtils
+import com.meloda.fast.api.model.data.AttachmentType
 import com.meloda.fast.api.model.data.VkVideoData
+import com.meloda.fast.model.base.UiText
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
@@ -12,9 +15,14 @@ data class VkVideoDomain(
     val firstFrames: List<VkVideoData.FirstFrame>?,
     val accessKey: String?,
     val title: String,
-) : VkAttachment {
+) : VkMultipleAttachment {
+
+    override val type: AttachmentType = AttachmentType.VIDEO
 
     val className: String = this::class.java.name
+
+    override fun getUiText(size: Int): UiText =
+        UiText.QuantityResource(R.plurals.attachment_videos, size)
 
     fun imageForWidth(width: Int): VideoImage? {
         return images.find { it.width == width }

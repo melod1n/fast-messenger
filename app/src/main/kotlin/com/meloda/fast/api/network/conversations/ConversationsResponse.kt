@@ -1,15 +1,15 @@
 package com.meloda.fast.api.network.conversations
 
-import com.meloda.fast.api.VkUtils.fill
-import com.meloda.fast.api.model.domain.VkGroupDomain
-import com.meloda.fast.api.model.domain.VkMessageDomain
-import com.meloda.fast.api.model.domain.VkUserDomain
+import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkUsersMap
+import com.meloda.fast.api.model.data.VkConversationData
 import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.data.VkUserData
-import com.meloda.fast.api.model.data.VkConversationData
 import com.meloda.fast.api.model.domain.VkConversationDomain
-import com.meloda.fast.ext.toMap
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -23,41 +23,51 @@ data class ConversationsGetResponse(
 ) {
 
     fun toDomain(): ConversationsResponseDomain {
-        val profiles = profiles
-            ?.map(VkUserData::mapToDomain)
-            ?.toMap(hashMapOf(), VkUserDomain::id) ?: hashMapOf()
-
-        val groups = groups
-            ?.map(VkGroupData::mapToDomain)
-            ?.toMap(hashMapOf(), VkGroupDomain::id) ?: hashMapOf()
+        val usersMap = VkUsersMap.forUsers(profiles.orEmpty())
+        val groupsMap = VkGroupsMap.forGroups(groups.orEmpty())
 
         val conversations = items
             .map { item ->
-                val lastMessage = item.lastMessage?.mapToDomain()
-                item.conversation.mapToDomain()
-                    .fill(
-                        lastMessage = lastMessage,
-                        profiles = profiles,
-                        groups = groups
+                val lastMessage = item.lastMessage?.mapToDomain()?.run {
+                    val (actionUser, actionGroup) = getActionUserAndGroup(
+                        usersMap = usersMap,
+                        groupsMap = groupsMap
                     )
+
+                    val (messageUser, messageGroup) = getUserAndGroup(
+                        usersMap = usersMap,
+                        groupsMap = groupsMap
+                    )
+
+                    copy(
+                        user = messageUser,
+                        group = messageGroup,
+                        actionUser = actionUser,
+                        actionGroup = actionGroup
+                    )
+                }
+
+                item.conversation.mapToDomain(lastMessage).run {
+                    val (user, group) = getUserAndGroup(
+                        usersMap = usersMap,
+                        groupsMap = groupsMap
+                    )
+
+                    copy(
+                        conversationUser = user,
+                        conversationGroup = group
+                    )
+                }
             }
 
-        val messages = conversations.mapNotNull { conversation ->
-            val message = conversation.lastMessage
-            message?.copy(
-                user = profiles[message.fromId],
-                group = groups[message.fromId],
-                actionUser = profiles[message.actionMemberId],
-                actionGroup = groups[message.actionMemberId]
-            )
-        }
+        val messages = conversations.mapNotNull(VkConversationDomain::lastMessage)
 
         return ConversationsResponseDomain(
             count = count,
             conversations = conversations,
             messages = messages,
-            profiles = profiles.values.toList(),
-            groups = groups.values.toList()
+            profiles = usersMap.users(),
+            groups = groupsMap.groups()
         )
     }
 }

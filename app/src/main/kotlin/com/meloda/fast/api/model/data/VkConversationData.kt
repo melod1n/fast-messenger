@@ -69,7 +69,7 @@ data class VkConversationData(
         @Json(name = "is_disappearing") val isDisappearing: Boolean = false,
         @Json(name = "is_service") val isService: Boolean = false,
         @Json(name = "theme") val theme: String?,
-        @Json(name = "pinned_message") val pinnedMessage: VkMessageData?,
+        @Json(name = "pinned_message") val pinnedMessage: VkPinnedMessageData?,
     ) {
 
         @JsonClass(generateAdapter = true)

@@ -1,6 +1,7 @@
 package com.meloda.fast.api.model.presentation
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.text.AnnotatedString
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
@@ -16,7 +17,7 @@ data class VkConversationUi(
     val title: String,
     val unreadCount: String?,
     val date: String,
-    val message: String,
+    val message: AnnotatedString,
     val attachmentImage: UiImage?,
     val isPinned: Boolean,
     // TODO: 10/03/2024, Danil Nikolaev: rewrite to use image

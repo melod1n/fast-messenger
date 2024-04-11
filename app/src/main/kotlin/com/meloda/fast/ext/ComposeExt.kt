@@ -15,6 +15,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
@@ -39,6 +40,14 @@ fun Modifier.handleEnterKey(
     if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
         action.invoke()
     } else false
+}
+
+@Composable
+fun UiText.annotatedString(): AnnotatedString? {
+    return when (this) {
+        is UiText.Annotated -> string
+        else -> null
+    }
 }
 
 @Composable
