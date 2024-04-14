@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.meloda.fast.modules.auth.screens.login.model.LoginScreenState
+import com.meloda.fast.modules.auth.screens.login.model.UiAction
 import com.meloda.fast.modules.auth.screens.login.presentation.LoginSignIn
 import org.junit.Rule
 import org.junit.Test
@@ -18,10 +19,7 @@ class LoginSignInTest {
     fun signInButtonIsClickable() {
         composeTestRule.setContent {
             LoginSignIn(
-                onSignInClick = {},
-                onLoginInputChanged = {},
-                onPasswordInputChanged = {},
-                onPasswordVisibilityButtonClicked = {},
+                onAction = {},
                 screenState = LoginScreenState.EMPTY
             )
         }
@@ -35,10 +33,15 @@ class LoginSignInTest {
 
         composeTestRule.setContent {
             LoginSignIn(
-                onSignInClick = { signInClicked = true },
-                onLoginInputChanged = {},
-                onPasswordInputChanged = {},
-                onPasswordVisibilityButtonClicked = {},
+                onAction = { action ->
+                    when (action) {
+                        UiAction.SignInClicked -> {
+                            signInClicked = true
+                        }
+
+                        else -> Unit
+                    }
+                },
                 screenState = LoginScreenState.EMPTY
             )
         }

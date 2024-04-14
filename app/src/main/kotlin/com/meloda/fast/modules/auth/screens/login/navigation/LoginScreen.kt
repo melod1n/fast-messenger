@@ -62,6 +62,11 @@ object LoginScreen : Screen {
                     is UiAction.NavigateToUserBanned -> {
                         navigator.push(UserBannedScreen(arguments = action.arguments))
                     }
+
+                    is UiAction.LoginInputChanged -> viewModel.onLoginInputChanged(action.newText)
+                    is UiAction.PasswordInputChanged -> viewModel.onPasswordInputChanged(action.newText)
+                    UiAction.PasswordVisibilityClicked -> viewModel.onPasswordVisibilityButtonClicked()
+                    UiAction.SignInClicked -> viewModel.onSignInButtonClicked()
                 }
             },
             viewModel = viewModel

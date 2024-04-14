@@ -10,6 +10,7 @@ import com.meloda.fast.modules.auth.screens.captcha.CaptchaViewModel
 import com.meloda.fast.modules.auth.screens.captcha.CaptchaViewModelImpl
 import org.koin.androidx.compose.koinViewModel
 
+// TODO: 14/04/2024, Danil Nikolaev: crash on app minimize
 data class CaptchaScreen(
     val arguments: CaptchaArguments,
     val codeResult: (String) -> Unit

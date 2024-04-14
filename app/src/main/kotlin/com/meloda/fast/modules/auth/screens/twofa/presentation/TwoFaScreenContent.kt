@@ -309,5 +309,4 @@ private fun TwoFaPreview() {
             )
         }
     }
-
 }

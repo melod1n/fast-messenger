@@ -285,15 +285,24 @@ data class VkConversationDomain(
             } else {
                 if (!peerType.isChat() && interactiveUsers.size == 1) {
                     when (interactionType) {
-                        InteractionType.File -> "Uploading file"
-                        InteractionType.Photo -> "Uploading photo"
-                        InteractionType.Typing -> "Typing"
-                        InteractionType.Video -> "Uploading Video"
-                        InteractionType.VoiceMessage -> "Recording voice message"
-                    }
+                        InteractionType.File -> R.string.chat_interaction_uploading_file
+                        InteractionType.Photo -> R.string.chat_interaction_uploading_photo
+                        InteractionType.Typing -> R.string.chat_interaction_typing
+                        InteractionType.Video -> R.string.chat_interaction_uploading_video
+                        InteractionType.VoiceMessage -> R.string.chat_interaction_recording_audio_message
+                    }.let(UiText::Resource)
                 } else {
-                    "$interactiveUsers are typing"
-                }
+                    if (interactiveUsers.size == 1) {
+                        R.string.chat_interaction_chat_single_typing
+                    } else {
+                        R.string.chat_interaction_chat_typing
+                    }.let { resId ->
+                        UiText.ResourceParams(
+                            resId,
+                            listOf(interactiveUsers.joinToString(separator = ", "))
+                        )
+                    }
+                }.parseString(AppGlobal.Instance)
             }
 
         return typingText

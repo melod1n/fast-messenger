@@ -24,8 +24,12 @@ data class VkAttachmentItemData(
     @Json(name = "curator") val curator: VkCuratorData?,
     @Json(name = "event") val event: VkEventData?,
     @Json(name = "story") val story: VkStoryData?,
-    @Json(name = "widget") val widget: VkWidgetData?
+    @Json(name = "widget") val widget: VkWidgetData?,
+    @Json(name = "artist") val artist: VkArtistData?,
+    @Json(name = "audios") val audios: List<VkAudioData>?,
+    @Json(name = "audio_playlist") val audioPlaylist: VkAudioPlaylistData?,
+    @Json(name = "podcast") val podcast: VkPodcastData?
 ) {
 
-    fun getPreparedType() = AttachmentType.parse(type)
+    fun getPreparedType(): AttachmentType = AttachmentType.parse(type)
 }

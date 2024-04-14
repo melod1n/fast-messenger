@@ -15,4 +15,12 @@ sealed class UiAction {
     data object NavigateToConversations : UiAction()
 
     data class NavigateToUserBanned(val arguments: UserBannedArguments) : UiAction()
+
+    data object SignInClicked : UiAction()
+
+    data class LoginInputChanged(val newText: String) : UiAction()
+
+    data class PasswordInputChanged(val newText: String) : UiAction()
+
+    data object PasswordVisibilityClicked : UiAction()
 }

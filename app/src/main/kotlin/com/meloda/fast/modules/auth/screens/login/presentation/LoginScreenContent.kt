@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -43,6 +44,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -60,7 +62,10 @@ import com.meloda.fast.modules.auth.screens.login.LoginViewModelImpl
 import com.meloda.fast.modules.auth.screens.login.model.LoginError
 import com.meloda.fast.modules.auth.screens.login.model.LoginScreenState
 import com.meloda.fast.modules.auth.screens.login.model.UiAction
+import com.meloda.fast.ui.widgets.autoFillRequestHandler
 import com.meloda.fast.ui.widgets.TextFieldErrorText
+import com.meloda.fast.ui.widgets.connectNode
+import com.meloda.fast.ui.widgets.defaultFocusChangeAutoFill
 import org.koin.androidx.compose.koinViewModel
 
 typealias OnAction = (UiAction) -> Unit
@@ -135,10 +140,7 @@ fun LoginScreenContent(
                 LoginLogo(viewModel)
             } else {
                 LoginSignIn(
-                    onSignInClick = viewModel::onSignInButtonClicked,
-                    onLoginInputChanged = viewModel::onLoginInputChanged,
-                    onPasswordInputChanged = viewModel::onPasswordInputChanged,
-                    onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+                    onAction = onAction,
                     screenState = screenState,
                 )
             }
@@ -196,10 +198,7 @@ fun LoginLogo(viewModel: LoginViewModel) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LoginSignIn(
-    onSignInClick: () -> Unit,
-    onLoginInputChanged: (String) -> Unit,
-    onPasswordInputChanged: (String) -> Unit,
-    onPasswordVisibilityButtonClicked: () -> Unit,
+    onAction: OnAction,
     screenState: LoginScreenState
 ) {
     val focusManager = LocalFocusManager.current
@@ -209,7 +208,7 @@ fun LoginSignIn(
     val goButtonClickAction = {
         if (!isLoading) {
             focusManager.clearFocus()
-            onSignInClick.invoke()
+            onAction(UiAction.SignInClicked)
         }
     }
     val loginFieldTabClick = {
@@ -239,17 +238,32 @@ fun LoginSignIn(
             var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
             val showLoginError = screenState.loginError
 
+            val autoFillEmailHandler = autoFillRequestHandler(
+                autofillTypes = listOf(AutofillType.EmailAddress),
+                onFill = { value ->
+                    loginText = TextFieldValue(text = value, selection = TextRange(value.length))
+                    onAction(UiAction.LoginInputChanged(newText = value))
+                }
+            )
+
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .handleEnterKey(loginFieldTabClick::invoke)
                     .handleTabKey(loginFieldTabClick::invoke)
-                    .focusRequester(loginFocusable),
+                    .focusRequester(loginFocusable)
+                    .connectNode(handler = autoFillEmailHandler)
+                    .defaultFocusChangeAutoFill(handler = autoFillEmailHandler),
                 value = loginText,
                 onValueChange = { newText ->
+                    val text = newText.text
+                    if (text.isEmpty()) {
+                        autoFillEmailHandler.requestVerifyManual()
+                    }
+
                     loginText = newText
-                    onLoginInputChanged.invoke(newText.text)
+                    onAction(UiAction.LoginInputChanged(newText = text))
                 },
                 label = { Text(text = stringResource(id = R.string.login_hint)) },
                 placeholder = { Text(text = stringResource(id = R.string.login_hint)) },
@@ -283,6 +297,14 @@ fun LoginSignIn(
             val showPasswordError = screenState.passwordError
             var passwordVisible = screenState.passwordVisible
 
+            val autoFillPasswordHandler = autoFillRequestHandler(
+                autofillTypes = listOf(AutofillType.Password),
+                onFill = { value ->
+                    passwordText = TextFieldValue(text = value, selection = TextRange(value.length))
+                    onAction(UiAction.PasswordInputChanged(newText = value))
+                }
+            )
+
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -291,11 +313,18 @@ fun LoginSignIn(
                         goButtonClickAction.invoke()
                         true
                     }
-                    .focusRequester(passwordFocusable),
+                    .focusRequester(passwordFocusable)
+                    .connectNode(handler = autoFillPasswordHandler)
+                    .defaultFocusChangeAutoFill(handler = autoFillPasswordHandler),
                 value = passwordText,
                 onValueChange = { newText ->
+                    val text = newText.text
+                    if (text.isEmpty()) {
+                        autoFillPasswordHandler.requestVerifyManual()
+                    }
+
                     passwordText = newText
-                    onPasswordInputChanged.invoke(newText.text)
+                    onAction(UiAction.PasswordInputChanged(newText = text))
                 },
                 label = { Text(text = stringResource(id = R.string.password_login_hint)) },
                 placeholder = { Text(text = stringResource(id = R.string.password_login_hint)) },
@@ -318,7 +347,7 @@ fun LoginSignIn(
 
                     IconButton(
                         onClick = {
-                            onPasswordVisibilityButtonClicked.invoke()
+                            onAction(UiAction.PasswordVisibilityClicked)
                             passwordVisible = !passwordVisible
                         }
                     ) {

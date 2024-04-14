@@ -156,7 +156,8 @@ fun SettingsRoute(
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
     ExperimentalHazeMaterialsApi::class
 )
 @Composable

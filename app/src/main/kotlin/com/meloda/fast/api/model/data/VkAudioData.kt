@@ -48,13 +48,13 @@ data class VkAudioData(
         data class Thumb(
             @Json(name = "width") val width: Int,
             @Json(name = "height") val height: Int,
-            @Json(name = "photo_34") val photo34: String,
-            @Json(name = "photo_68") val photo68: String,
-            @Json(name = "photo_135") val photo135: String,
-            @Json(name = "photo_270") val photo270: String,
-            @Json(name = "photo_300") val photo300: String,
-            @Json(name = "photo_600") val photo600: String,
-            @Json(name = "photo_1200") val photo1200: String
+            @Json(name = "photo_34") val photo34: String?,
+            @Json(name = "photo_68") val photo68: String?,
+            @Json(name = "photo_135") val photo135: String?,
+            @Json(name = "photo_270") val photo270: String?,
+            @Json(name = "photo_300") val photo300: String?,
+            @Json(name = "photo_600") val photo600: String?,
+            @Json(name = "photo_1200") val photo1200: String?
         )
     }
 }

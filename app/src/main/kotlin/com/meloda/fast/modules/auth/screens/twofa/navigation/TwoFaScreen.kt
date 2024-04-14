@@ -11,6 +11,7 @@ import com.meloda.fast.modules.auth.screens.twofa.model.UiAction
 import com.meloda.fast.modules.auth.screens.twofa.presentation.TwoFaRoute
 import org.koin.androidx.compose.koinViewModel
 
+// TODO: 14/04/2024, Danil Nikolaev: crash on app minimize
 data class TwoFaScreen(
     val arguments: TwoFaArguments,
     val codeResult: (String) -> Unit

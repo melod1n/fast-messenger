@@ -75,7 +75,13 @@ class LoginViewModelImpl(
             .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
 
     override fun onBackPressed() {
-        screenState.setValue { old -> old.copy(isNeedToShowLogo = true) }
+        screenState.setValue { old ->
+            old.copy(
+                isNeedToShowLogo = true,
+                loginError = false,
+                passwordError = false
+            )
+        }
     }
 
     override fun onPasswordVisibilityButtonClicked() {
@@ -231,6 +237,9 @@ class LoginViewModelImpl(
                             validationSid = null,
                             validationCode = null,
                             twoFaArguments = null,
+
+                            login = "",
+                            password = "",
 
                             isNeedToOpenConversations = true
                         )

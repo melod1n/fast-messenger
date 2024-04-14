@@ -22,7 +22,10 @@ enum class AttachmentType(var value: String) {
     CURATOR("curator"),
     EVENT("event"),
     STORY("story"),
-    WIDGET("widget");
+    WIDGET("widget"),
+    ARTIST("artist"),
+    AUDIO_PLAYLIST("audio_playlist"),
+    PODCAST("podcast");
 
     companion object {
         fun parse(value: String): AttachmentType {

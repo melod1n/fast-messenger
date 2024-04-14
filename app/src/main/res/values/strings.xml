@@ -109,6 +109,18 @@
     <string name="message_attachments_story">Story</string>
     <string name="message_attachments_widget">Widget</string>
     <string name="message_attachments_place">Place</string>
+    <string name="message_attachments_artist">Artist</string>
+    <string name="message_attachments_audio_playlist">Playlist</string>
+    <string name="message_attachments_podcast">Podcast</string>
+
+    <string name="chat_interaction_uploading_file">Uploading file</string>
+    <string name="chat_interaction_uploading_photo">Uploading photo</string>
+    <string name="chat_interaction_uploading_video">Uploading video</string>
+    <string name="chat_interaction_typing">Typing</string>
+    <string name="chat_interaction_recording_audio_message">Recording</string>
+
+    <string name="chat_interaction_chat_typing">%s are typing</string>
+    <string name="chat_interaction_chat_single_typing">%s is typing</string>
 
     <string name="file_size_in_bytes">%d bytes</string>
 

@@ -10,6 +10,7 @@ import androidx.compose.ui.text.withStyle
 import com.meloda.fast.R
 import com.meloda.fast.api.model.data.AttachmentType
 import com.meloda.fast.api.model.data.VkAttachmentItemData
+import com.meloda.fast.api.model.data.VkAudioData
 import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.api.model.domain.VkAudioDomain
@@ -101,6 +102,8 @@ object VkUtils {
 
         for (baseAttachment in baseAttachments) {
             when (baseAttachment.getPreparedType()) {
+                AttachmentType.UNKNOWN -> continue
+
                 AttachmentType.PHOTO -> {
                     val photo = baseAttachment.photo ?: continue
                     attachments += photo.toDomain()
@@ -196,7 +199,23 @@ object VkUtils {
                     attachments += widget.toDomain()
                 }
 
-                else -> continue
+                AttachmentType.ARTIST -> {
+                    val artist = baseAttachment.artist ?: continue
+                    attachments += artist.toDomain()
+
+                    val audios = baseAttachment.audios ?: continue
+                    audios.map(VkAudioData::toDomain).let(attachments::addAll)
+                }
+
+                AttachmentType.AUDIO_PLAYLIST -> {
+                    val audioPlaylist = baseAttachment.audioPlaylist ?: continue
+                    attachments += audioPlaylist.toDomain()
+                }
+
+                AttachmentType.PODCAST -> {
+                    val podcast = baseAttachment.podcast ?: continue
+                    attachments += podcast.toDomain()
+                }
             }
         }
 
@@ -614,14 +633,24 @@ object VkUtils {
                             .parseString(context)
                             .let(::append)
                     } else {
-                        if (isAttachmentsHaveOneType(attachments)) {
-                            getAttachmentUiText(attachments.first(), attachments.size)
-                                .parseString(context)
-                                .let(::append)
-                        } else {
-                            UiText.Resource(R.string.message_attachments_many)
-                                .parseString(context)
-                                .let(::append)
+                        when {
+                            isAttachmentsHaveOneType(attachments) -> {
+                                getAttachmentUiText(attachments.first(), attachments.size)
+                                    .parseString(context)
+                                    .let(::append)
+                            }
+
+                            attachments.any { it.type == AttachmentType.ARTIST } -> {
+                                getAttachmentUiText(attachments.first { it.type == AttachmentType.ARTIST })
+                                    .parseString(context)
+                                    .let(::append)
+                            }
+
+                            else -> {
+                                UiText.Resource(R.string.message_attachments_many)
+                                    .parseString(context)
+                                    .let(::append)
+                            }
                         }
                     }
                 }
@@ -664,7 +693,13 @@ object VkUtils {
             AttachmentType.CALL -> R.drawable.ic_attachment_call
             AttachmentType.GROUP_CALL_IN_PROGRESS -> R.drawable.ic_attachment_group_call
             AttachmentType.STORY -> R.drawable.ic_attachment_story
-            else -> null
+            AttachmentType.UNKNOWN -> null
+            AttachmentType.CURATOR -> null
+            AttachmentType.EVENT -> null
+            AttachmentType.WIDGET -> null
+            AttachmentType.ARTIST -> null
+            AttachmentType.AUDIO_PLAYLIST -> null
+            AttachmentType.PODCAST -> null
         }?.let(UiImage::Resource)
     }
 

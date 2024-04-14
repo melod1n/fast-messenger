@@ -15,10 +15,10 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.data.VkLongPollData
 import com.meloda.fast.base.processState
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.service.longpolling.data.LongPollUpdates
-import com.meloda.fast.service.longpolling.domain.usecase.LongPollUseCase
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.screens.settings.SettingsKeys
+import com.meloda.fast.service.longpolling.data.LongPollUpdates
+import com.meloda.fast.service.longpolling.domain.usecase.LongPollUseCase
 import com.meloda.fast.util.NotificationsUtils
 import com.slack.eithernet.ApiException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -130,7 +130,7 @@ class LongPollingService : Service() {
 
         return coroutineScope.launch {
             if (UserConfig.accessToken.isEmpty()) {
-                return@launch
+                throw NoAccessTokenException
             }
 
             var serverInfo = getServerInfo()
@@ -255,6 +255,8 @@ class LongPollingService : Service() {
         Log.d(STATE_TAG, "onLowMemory")
         super.onLowMemory()
     }
+
+    private object NoAccessTokenException : Exception()
 
     companion object {
         const val TAG = "LongPollTask"

@@ -15,7 +15,5 @@ data class VkCallDomain(
 
     override val type: AttachmentType = AttachmentType.CALL
 
-    val className: String = this::class.java.name
-
     override fun getUiText(): UiText = UiText.Resource(R.string.message_attachments_call)
 }
