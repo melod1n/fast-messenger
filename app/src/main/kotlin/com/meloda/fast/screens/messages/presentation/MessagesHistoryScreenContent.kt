@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -109,6 +108,7 @@ fun MessagesHistoryScreenContent(
     screenState: MessagesHistoryScreenState,
 ) {
     val title = screenState.title
+    val status = screenState.status
     val avatar = screenState.avatar
     val messages = screenState.messages
     val message = screenState.message
@@ -234,6 +234,13 @@ fun MessagesHistoryScreenContent(
                     ),
                     actions = actions
                 )
+
+                status?.let {
+                    Text(
+                        text = status,
+                        modifier = Modifier.background(Color.Black)
+                    )
+                }
 
                 if (isLoading && messages.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())

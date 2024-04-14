@@ -31,5 +31,6 @@ data class VkConversationUi(
     val peerType: ConversationPeerType,
     val interactionText: String?,
     val isExpanded: Boolean,
-    val options: List<ConversationOption>
+    val options: List<ConversationOption>,
+    val lastSeenStatus: String?
 )

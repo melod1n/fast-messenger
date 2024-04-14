@@ -6,6 +6,7 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkMemoryCache
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkMessageData
@@ -19,7 +20,6 @@ import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
-import com.meloda.fast.ext.emitOnMainScope
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
@@ -102,15 +102,13 @@ class MessagesHistoryViewModelImpl(
     override fun setArguments(arguments: MessagesHistoryArguments) {
         conversation = arguments.conversation
 
-        val title = conversation.title
-        val avatar = conversation.avatar
-
-        screenState.emitOnMainScope(
-            screenState.value.copy(
-                title = title,
-                avatar = avatar
+        screenState.setValue { old ->
+            old.copy(
+                title = conversation.title,
+                status = conversation.lastSeenStatus,
+                avatar = conversation.avatar
             )
-        )
+        }
 
         loadMessagesHistory()
     }
@@ -148,12 +146,15 @@ class MessagesHistoryViewModelImpl(
             state.processState(
                 error = { error -> {} },
                 success = { response ->
-                    val usersMap = VkUsersMap.forUsers(
-                        response.profiles.orEmpty().map(VkUserData::mapToDomain)
-                    )
-                    val groupsMap = VkGroupsMap.forGroups(
-                        response.groups.orEmpty().map(VkGroupData::mapToDomain)
-                    )
+                    // TODO: 14/04/2024, Danil Nikolaev: mapping in to usecase
+                    val profilesList = response.profiles.orEmpty().map(VkUserData::mapToDomain)
+                    val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
+
+                    VkMemoryCache.appendUsers(profilesList)
+                    VkMemoryCache.appendGroups(groupsList)
+
+                    val usersMap = VkUsersMap.forUsers(profilesList)
+                    val groupsMap = VkGroupsMap.forGroups(groupsList)
 
                     val newMessages = response.items
                         .map(VkMessageData::mapToDomain)
@@ -173,7 +174,7 @@ class MessagesHistoryViewModelImpl(
                                 group = messageGroup,
                                 actionUser = actionUser,
                                 actionGroup = actionGroup
-                            )
+                            ).also { fullMessage -> VkMemoryCache[fullMessage.id] = fullMessage }
                         }
                         .sortedBy { message -> message.date }
 
@@ -192,14 +193,14 @@ class MessagesHistoryViewModelImpl(
                             copy(
                                 conversationUser = user,
                                 conversationGroup = group
-                            )
+                            ).also { conversation -> VkMemoryCache[conversation.id] = conversation }
                         }.mapToPresentation(
                             usersMap = usersMap,
                             groupsMap = groupsMap
                         )
                     } ?: emptyList()
-                    val photos = usersMap.users().mapNotNull { profile -> profile.photo200 } +
-                            groupsMap.groups().mapNotNull { group -> group.photo200 } +
+                    val photos = profilesList.mapNotNull { profile -> profile.photo200 } +
+                            groupsList.mapNotNull { group -> group.photo200 } +
                             conversations.mapNotNull { conversation -> conversation.avatar.extractUrl() }
 
                     photos.forEach { url ->
@@ -209,12 +210,7 @@ class MessagesHistoryViewModelImpl(
                             .let(imageLoader::enqueue)
                     }
 
-                    screenState.emitOnMainScope(
-                        screenState.value.copy(
-                            messages = newMessages,
-                            isLoading = false
-                        )
-                    )
+                    screenState.setValue { old -> old.copy(messages = newMessages) }
                 }
             )
             screenState.emit(screenState.value.copy(isLoading = state.isLoading()))

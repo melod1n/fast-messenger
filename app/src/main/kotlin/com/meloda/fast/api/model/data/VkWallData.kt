@@ -47,7 +47,7 @@ data class VkWallData(
     data class Comments(
         val count: Int,
         val can_post: Int,
-        val groups_can_post: Boolean
+        val groups_can_post: Boolean?
     )
 
     @JsonClass(generateAdapter = true)

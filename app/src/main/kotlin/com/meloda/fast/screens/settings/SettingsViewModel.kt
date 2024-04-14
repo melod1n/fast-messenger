@@ -196,6 +196,17 @@ class SettingsViewModelImpl(
                 isVisible = accountVisible
             }
 
+            val generalTitle = SettingsItem.Title.build(
+                key = SettingsKeys.KEY_GENERAL,
+                title = UiText.Simple("General")
+            )
+            val generalUseContactNames = SettingsItem.Switch.build(
+                key = SettingsKeys.KEY_USE_CONTACT_NAMES,
+                title = UiText.Simple("Use contact names"),
+                summary = UiText.Simple("App will use available contact names for users"),
+                defaultValue = SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
+            )
+
             val appearanceTitle = SettingsItem.Title.build(
                 key = SettingsKeys.KEY_APPEARANCE,
                 title = UiText.Simple("Appearance")
@@ -363,6 +374,10 @@ class SettingsViewModelImpl(
                 accountTitle,
                 accountLogOut
             )
+            val generalList = listOf(
+                generalTitle,
+                generalUseContactNames
+            )
             val appearanceList = listOf(
                 appearanceTitle,
                 appearanceMultiline,
@@ -395,6 +410,7 @@ class SettingsViewModelImpl(
             val settingsList = mutableListOf<SettingsItem<*>>()
             listOf(
                 accountList,
+                generalList,
                 appearanceList,
                 featuresList,
                 visibilityList,

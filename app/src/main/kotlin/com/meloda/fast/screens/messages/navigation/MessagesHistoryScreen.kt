@@ -11,6 +11,7 @@ import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.presentation.MessagesHistoryRoute
 import org.koin.androidx.compose.koinViewModel
 
+// TODO: 14/04/2024, Danil Nikolaev: crash on app minimize
 data class MessagesHistoryScreen(
     val messagesHistoryArguments: MessagesHistoryArguments
 ) : Screen {

@@ -6,6 +6,10 @@ object SettingsKeys {
     const val KEY_ACCOUNT = "account"
     const val KEY_ACCOUNT_LOGOUT = "account_logout"
 
+    const val KEY_GENERAL = "general"
+    const val KEY_USE_CONTACT_NAMES = "general_use_contact_names"
+    const val DEFAULT_VALUE_USE_CONTACT_NAMES = false
+
     const val KEY_APPEARANCE = "appearance"
     const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"
     const val DEFAULT_VALUE_MULTILINE = true

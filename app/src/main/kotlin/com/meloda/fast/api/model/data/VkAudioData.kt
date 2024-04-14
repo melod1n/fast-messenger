@@ -19,7 +19,7 @@ data class VkAudioData(
     @Json(name = "is_licensed") val isLicensed: Boolean?,
     @Json(name = "track_code") val trackCode: String,
     @Json(name = "genre_id") val genreId: Int?,
-    @Json(name = "album") val album: Album,
+    @Json(name = "album") val album: Album?,
     @Json(name = "short_videos_allowed") val isShortVideosAllowed: Boolean,
     @Json(name = "stories_allowed") val isStoriesAllowed: Boolean,
     @Json(name = "stories_cover_allowed") val isStoriesCoverAllowed: Boolean

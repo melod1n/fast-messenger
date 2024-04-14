@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkMemoryCache
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.VkUtils
 import com.meloda.fast.api.model.ActionState
@@ -22,11 +23,15 @@ import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.ext.isFalse
 import com.meloda.fast.ext.isTrue
+import com.meloda.fast.ext.orDots
 import com.meloda.fast.model.base.UiImage
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.model.base.parseString
+import com.meloda.fast.screens.settings.SettingsKeys
 import com.meloda.fast.util.TimeUtils
 import java.util.Calendar
+import kotlin.math.ln
+import kotlin.math.pow
 
 @Immutable
 data class VkConversationDomain(
@@ -82,7 +87,7 @@ data class VkConversationDomain(
         return user to group
     }
 
-    fun extractAvatar(): UiImage {
+    private fun extractAvatar(): UiImage {
         val placeholderImage = UiImage.Resource(R.drawable.ic_account_circle_cut)
 
         val avatarLink = when {
@@ -102,23 +107,45 @@ data class VkConversationDomain(
         return avatarLink?.let(UiImage::Url) ?: placeholderImage
     }
 
-    fun extractTitle(): String {
+    private fun extractTitle(): String {
         return when {
             isAccount() -> UiText.Resource(R.string.favorites)
             peerType.isChat() -> UiText.Simple(conversationTitle ?: "...")
-            peerType.isUser() -> UiText.Simple(conversationUser?.fullName ?: "...")
+            peerType.isUser() -> {
+                UiText.Simple(
+                    conversationUser?.let { user ->
+                        (if (AppGlobal.preferences.getBoolean(
+                                SettingsKeys.KEY_USE_CONTACT_NAMES,
+                                SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
+                            )
+                        ) VkMemoryCache.getContact(user.id)?.name else null) ?: user.fullName
+                    }.orDots()
+                )
+            }
+
             peerType.isGroup() -> UiText.Simple(conversationGroup?.name ?: "...")
             else -> UiText.Simple("...")
         }.parseString(AppGlobal.Instance).orEmpty()
     }
 
-    fun extractUnreadCounterText(): String? {
+    private fun extractUnreadCounterText(): String? {
         if (lastMessage?.isOut.isFalse && !isInUnread()) return null
 
-        return when (unreadCount) {
-            in 1..999 -> unreadCount.toString()
-            0 -> null
-            else -> "%dK".format(unreadCount / 1000)
+        return when {
+            unreadCount == 0 -> null
+            unreadCount < 1000 -> unreadCount.toString()
+            else -> {
+                val exp = (ln(unreadCount.toDouble()) / ln(1000.0)).toInt()
+                val suffix = "KMBT"[exp - 1]
+
+                val result = unreadCount / 1000.0.pow(exp.toDouble())
+
+                if (result.toLong().toDouble() == result) {
+                    String.format("%.0f%s", result, suffix)
+                } else {
+                    String.format("%.1f%s", result, suffix)
+                }
+            }
         }
     }
 
@@ -308,6 +335,26 @@ data class VkConversationDomain(
         return typingText
     }
 
+    private fun extractLastSeenStatus(): String? {
+        return when {
+            isChat() -> {
+                membersCount?.let { count -> "Members: $count" }.orDots()
+            }
+
+            isGroup() -> {
+                conversationGroup?.membersCount?.let { count -> "Members: $count" }.orDots()
+            }
+
+            isUser() -> {
+                conversationUser?.lastSeen?.let { time ->
+                    TimeUtils.getLocalizedDate(AppGlobal.Instance, time * 1000L)
+                }.orDots()
+            }
+
+            else -> null
+        }
+    }
+
     fun mapToPresentation(
         usersMap: VkUsersMap,
         groupsMap: VkGroupsMap
@@ -332,6 +379,7 @@ data class VkConversationDomain(
         peerType = peerType,
         interactionText = extractInteractionText(usersMap = usersMap, groupsMap = groupsMap),
         isExpanded = false,
-        options = ImmutableList.of()
+        options = ImmutableList.of(),
+        lastSeenStatus = extractLastSeenStatus()
     )
 }

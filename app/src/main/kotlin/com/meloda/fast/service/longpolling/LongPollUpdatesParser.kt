@@ -5,6 +5,7 @@ import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkMemoryCache
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.data.VkGroupData
@@ -250,12 +251,11 @@ class LongPollUpdatesParser(
                         val messagesList = response.items
                         if (messagesList.isEmpty()) return@processState
 
-                        val usersMap = VkUsersMap.forUsers(
-                            response.profiles.orEmpty().map(VkUserData::mapToDomain)
-                        )
-                        val groupsMap = VkGroupsMap.forGroups(
-                            response.groups.orEmpty().map(VkGroupData::mapToDomain)
-                        )
+                        val profilesList = response.profiles.orEmpty().map(VkUserData::mapToDomain)
+                        val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
+
+                        val usersMap = VkUsersMap.forUsers(profilesList)
+                        val groupsMap = VkGroupsMap.forGroups(groupsList)
 
                         val message = messagesList.first().mapToDomain().run {
                             val (user, group) = getUserAndGroup(
@@ -272,7 +272,7 @@ class LongPollUpdatesParser(
                                 group = group,
                                 actionUser = actionUser,
                                 actionGroup = actionGroup
-                            )
+                            ).also { message -> VkMemoryCache[message.id] = message }
                         }
 
                         //messagesRepository.store(listOf(normalMessage))
@@ -281,8 +281,8 @@ class LongPollUpdatesParser(
                             ApiEvent.MessageNew -> {
                                 LongPollEvent.VkMessageNewEvent(
                                     message,
-                                    usersMap.users(),
-                                    groupsMap.groups()
+                                    profilesList,
+                                    groupsList
                                 )
                             }
 

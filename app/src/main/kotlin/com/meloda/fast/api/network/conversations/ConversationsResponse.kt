@@ -1,7 +1,9 @@
 package com.meloda.fast.api.network.conversations
 
 import com.meloda.fast.api.VkGroupsMap
+import com.meloda.fast.api.VkMemoryCache
 import com.meloda.fast.api.VkUsersMap
+import com.meloda.fast.api.model.data.VkContactData
 import com.meloda.fast.api.model.data.VkConversationData
 import com.meloda.fast.api.model.data.VkGroupData
 import com.meloda.fast.api.model.data.VkMessageData
@@ -19,46 +21,54 @@ data class ConversationsGetResponse(
     @Json(name = "items") val items: List<ConversationsResponseItems>,
     @Json(name = "unread_count") val unreadCount: Int?,
     @Json(name = "profiles") val profiles: List<VkUserData>?,
-    @Json(name = "groups") val groups: List<VkGroupData>?
+    @Json(name = "groups") val groups: List<VkGroupData>?,
+    @Json(name = "contacts") val contacts: List<VkContactData>?
 ) {
 
     fun toDomain(): ConversationsResponseDomain {
-        val usersMap = VkUsersMap.forUsers(profiles.orEmpty().map(VkUserData::mapToDomain))
-        val groupsMap = VkGroupsMap.forGroups(groups.orEmpty().map(VkGroupData::mapToDomain))
+        val profilesList = profiles.orEmpty().map(VkUserData::mapToDomain)
+        val groupsList = groups.orEmpty().map(VkGroupData::mapToDomain)
+        val contactsList = contacts.orEmpty().map(VkContactData::mapToDomain)
 
-        val conversations = items
-            .map { item ->
-                val lastMessage = item.lastMessage?.mapToDomain()?.run {
-                    val (actionUser, actionGroup) = getActionUserAndGroup(
-                        usersMap = usersMap,
-                        groupsMap = groupsMap
-                    )
+        VkMemoryCache.appendUsers(profilesList)
+        VkMemoryCache.appendGroups(groupsList)
+        VkMemoryCache.appendContacts(contactsList)
 
-                    val (messageUser, messageGroup) = getUserAndGroup(
-                        usersMap = usersMap,
-                        groupsMap = groupsMap
-                    )
+        val usersMap = VkUsersMap.forUsers(profilesList)
+        val groupsMap = VkGroupsMap.forGroups(groupsList)
 
-                    copy(
-                        user = messageUser,
-                        group = messageGroup,
-                        actionUser = actionUser,
-                        actionGroup = actionGroup
-                    )
-                }
+        val conversations = items.map { item ->
+            val lastMessage = item.lastMessage?.mapToDomain()?.run {
+                val (actionUser, actionGroup) = getActionUserAndGroup(
+                    usersMap = usersMap,
+                    groupsMap = groupsMap
+                )
 
-                item.conversation.mapToDomain(lastMessage).run {
-                    val (user, group) = getUserAndGroup(
-                        usersMap = usersMap,
-                        groupsMap = groupsMap
-                    )
+                val (messageUser, messageGroup) = getUserAndGroup(
+                    usersMap = usersMap,
+                    groupsMap = groupsMap
+                )
 
-                    copy(
-                        conversationUser = user,
-                        conversationGroup = group
-                    )
-                }
+                copy(
+                    user = messageUser,
+                    group = messageGroup,
+                    actionUser = actionUser,
+                    actionGroup = actionGroup
+                ).also { message -> VkMemoryCache[message.id] = message }
             }
+
+            item.conversation.mapToDomain(lastMessage).run {
+                val (user, group) = getUserAndGroup(
+                    usersMap = usersMap,
+                    groupsMap = groupsMap
+                )
+
+                copy(
+                    conversationUser = user,
+                    conversationGroup = group
+                ).also { conversation -> VkMemoryCache[conversation.id] = conversation }
+            }
+        }
 
         val messages = conversations.mapNotNull(VkConversationDomain::lastMessage)
 
@@ -66,8 +76,8 @@ data class ConversationsGetResponse(
             count = count,
             conversations = conversations,
             messages = messages,
-            profiles = usersMap.users(),
-            groups = groupsMap.groups()
+            profiles = profilesList,
+            groups = groupsList
         )
     }
 }
