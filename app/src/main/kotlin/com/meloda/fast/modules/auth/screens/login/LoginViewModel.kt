@@ -28,6 +28,7 @@ import com.meloda.fast.modules.auth.screens.login.validation.LoginValidator
 import com.meloda.fast.modules.auth.screens.twofa.model.TwoFaArguments
 import com.meloda.fast.screens.userbanned.model.UserBannedArguments
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -136,6 +137,7 @@ class LoginViewModelImpl(
         viewModelScope.launch(Dispatchers.IO) {
             accounts.insert(listOf(currentAccount))
 
+            delay(350)
             screenState.setValue { old -> old.copy(isNeedToRestart = true) }
         }
     }

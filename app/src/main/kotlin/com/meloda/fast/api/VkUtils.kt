@@ -740,6 +740,7 @@ object VkUtils {
         var currentIndex = 0
         val replacements = mutableListOf<Pair<IntRange, String>>()
 
+        // TODO: 25/04/2024, Danil Nikolaev: check why not working ([id279494346|@iworld2rist] да убери ты Елену Шлипс от меня)
         val result = regex.replace(originalText) { matchResult ->
             val idPrefix = matchResult.groups[1]?.value.orEmpty()
             val startIndex = matchResult.range.first
