@@ -41,7 +41,7 @@ class LogoViewModelImpl(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            accountsDao.insert(listOf(currentAccount))
+            accountsDao.insertAll(listOf(currentAccount))
 
             delay(350)
             screenState.setValue { old -> old.copy(isNeedToRestart = true) }

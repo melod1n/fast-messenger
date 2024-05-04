@@ -7,17 +7,11 @@ import androidx.room.Query
 import com.meloda.fast.model.AppAccount
 
 @Dao
-interface AccountsDao {
+abstract class AccountsDao : BaseDao<AppAccount> {
 
     @Query("SELECT * FROM accounts")
-    suspend fun getAll(): List<AppAccount>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(values: List<AppAccount>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(value: AppAccount)
+    abstract suspend fun getAll(): List<AppAccount>
 
     @Query("DELETE FROM accounts WHERE userId = :userId")
-    suspend fun deleteById(userId: Int)
+    abstract suspend fun deleteById(userId: Int)
 }

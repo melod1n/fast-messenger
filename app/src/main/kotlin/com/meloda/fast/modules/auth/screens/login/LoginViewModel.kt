@@ -188,7 +188,7 @@ class LoginViewModelImpl(
                         UserConfig.trustedHash = account.trustedHash
                     }
 
-                    accounts.insert(listOf(currentAccount))
+                    accounts.insertAll(listOf(currentAccount))
 
                     screenState.setValue { old ->
                         old.copy(
