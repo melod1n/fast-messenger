@@ -12,10 +12,6 @@ fun getLocalProperty(key: String, defValue: String): String {
     return gradleLocalProperties(rootDir, providers).getProperty(key, defValue)
 }
 
-val majorVersion = 1
-val minorVersion = 7
-val patchVersion = 1
-
 plugins {
     alias(libs.plugins.com.android.application)
     alias(libs.plugins.org.jetbrains.kotlin.android)
@@ -48,7 +44,6 @@ vkompose {
 
 androidComponents {
     onVariants { variant ->
-        val isDebug = variant.buildType == "debug"
         variant.buildConfigFields.apply {
             put(
                 "sdkPackage",
@@ -88,27 +83,29 @@ androidComponents {
 }
 
 android {
-    namespace = "com.meloda.fast"
-
-    compileSdk = 34
-
-//    applicationVariants.all {
-//        outputs.all {
-//            (this as BaseVariantOutputImpl).outputFileName =
-//                "${name}-${versionName}-${versionCode}.apk"
-//        }
-//    }
+    namespace = Configs.namespace
+    compileSdk = Configs.compileSdk
 
     defaultConfig {
-        applicationId = "com.meloda.app.fast"
-        minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "alpha"
+        applicationId = Configs.applicationId
+        minSdk = Configs.minSdk
+        targetSdk = Configs.targetSdk
+        versionCode = Configs.appCode
+        versionName = Configs.appName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
 
-        resourceConfigurations += listOf("en", "ru")
+    applicationVariants.all {
+        val variant = this
+        variant.outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                if (variant.buildType.name == "release") {
+                    val outputFileName = "fastvk-v${variant.versionName}-${variant.flavorName}.apk"
+                    output.outputFileName = outputFileName
+                }
+            }
     }
 
     signingConfigs {
@@ -136,55 +133,43 @@ android {
     }
 
     buildTypes {
-        debug {
+        named("debug") {
             signingConfig = signingConfigs.getByName("debugSigning")
-
-            versionNameSuffix = "_${getVersionName()}"
-
-            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
         }
-        release {
+        named("release") {
             signingConfig = signingConfigs.getByName("release")
 
-            isMinifyEnabled = false
-//            isShrinkResources = true
+            isMinifyEnabled = true
+            isShrinkResources = true
 
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-//            )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            )
+        }
+        register("staging") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".staging"
         }
     }
 
-    configurations {
-        debugImplementation {
-//            exclude(group = "junit", module = "junit")
-        }
-    }
-
-    val flavorDimension = "version"
-
+    val flavorDimension = "variant"
     flavorDimensions += flavorDimension
 
     productFlavors {
-        create("dev") {
-            resourceConfigurations += listOf("en", "xxhdpi")
-
+        register("amethyst") {
             dimension = flavorDimension
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
-        }
-        create("full") {
-            dimension = flavorDimension
+            isDefault = true
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = Configs.java
+        targetCompatibility = Configs.java
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = Configs.java.toString()
         freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
     }
 
@@ -194,14 +179,10 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.9"
+        kotlinCompilerExtensionVersion = Configs.composeCompiler
         useLiveLiterals = true
     }
 }
-
-fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
-
-val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
     // Tests zone
