@@ -157,11 +157,13 @@ fun RequestPermission(
     LaunchedEffect(Unit) { permission.launchPermissionRequest() }
 }
 
+// TODO: 04/05/2024, Danil Nikolaev: remove or improve
 fun getLanguages(context: Context): Map<String, String> {
     return listOf(
         UiText.Resource(R.string.language_system) to "system",
         UiText.Resource(R.string.language_english) to "en",
         UiText.Resource(R.string.language_russian) to "ru",
+        UiText.Resource(R.string.language_ukrainian) to "uk"
     ).associate { pair ->
         pair.first.parseString(context).orEmpty() to pair.second
     }
