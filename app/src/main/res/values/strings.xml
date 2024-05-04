@@ -245,6 +245,7 @@
     <string name="language_system">System</string>
     <string name="language_english" translatable="false">English</string>
     <string name="language_russian">Russian</string>
+    <string name="language_ukrainian">Ukrainian</string>
 
     <string name="action_apply">Apply</string>
     <string name="open_system_language_picker">Open system language picker</string>
