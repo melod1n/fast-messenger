@@ -9,10 +9,10 @@ import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
-interface UsersApi {
+interface UsersService {
 
     @FormUrlEncoded
-    @POST(UsersUrls.GetById)
+    @POST(UsersUrls.GET_BY_ID)
     suspend fun getById(
         @FieldMap params: Map<String, String>?
     ): ApiResult<ApiResponse<List<VkUserData>>, RestApiError>

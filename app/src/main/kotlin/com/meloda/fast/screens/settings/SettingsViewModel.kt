@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.fast.R
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.database.account.AccountsDao
+import com.meloda.fast.database.dao.AccountsDao
 import com.meloda.fast.ext.ifEmpty
 import com.meloda.fast.ext.isDebugSettingsShown
 import com.meloda.fast.ext.isSdkAtLeast

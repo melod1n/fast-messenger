@@ -1,11 +1,10 @@
-package com.meloda.fast.database.account
+package com.meloda.fast.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.meloda.fast.model.AppAccount
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AccountsDao {
@@ -21,5 +20,4 @@ interface AccountsDao {
 
     @Query("DELETE FROM accounts WHERE userId = :userId")
     suspend fun deleteById(userId: Int)
-
 }

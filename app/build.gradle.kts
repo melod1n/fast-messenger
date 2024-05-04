@@ -24,6 +24,11 @@ plugins {
     alias(libs.plugins.com.vk.vkompose)
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.generateKotlin", "true")
+}
+
 vkompose {
     skippabilityCheck = true
 
@@ -66,7 +71,7 @@ androidComponents {
                 "debugUserId",
                 BuildConfigField(
                     type = "String",
-                    value = if (isDebug) debugUserId else "\"0\"",
+                    value = debugUserId,
                     comment = "user id for debugging purposes"
                 )
             )
@@ -74,7 +79,7 @@ androidComponents {
                 "debugAccessToken",
                 BuildConfigField(
                     type = "String",
-                    value = if (isDebug) debugAccessToken else "\"\"",
+                    value = debugAccessToken,
                     comment = "access token for debugging purposes"
                 )
             )
@@ -83,7 +88,6 @@ androidComponents {
 }
 
 android {
-    // TODO: 07/04/2024, Danil Nikolaev: rename
     namespace = "com.meloda.fast"
 
     compileSdk = 34
@@ -221,6 +225,7 @@ dependencies {
     // Voyager zone
     implementation(libs.voyager.navigator)
     implementation(libs.voyager.koin)
+    implementation(libs.voyager.transitions)
     // end of Voyager zone
 
     // Coil for Compose
@@ -262,7 +267,7 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
     // end of Moshi zone
 
-    // TODO: найти решение проблемы с созданием PhotosService
+    // TODO: найти решение проблемы с созданием PhotosService в release type
     implementation(libs.retrofit)
 
     // Retrofit converters

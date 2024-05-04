@@ -3,8 +3,8 @@ package com.meloda.fast.modules.auth.screens.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.fast.BuildConfig
 import com.meloda.fast.api.UserConfig
+import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.network.CaptchaRequiredError
 import com.meloda.fast.api.network.InvalidCredentialsError
 import com.meloda.fast.api.network.UserBannedError
@@ -13,7 +13,8 @@ import com.meloda.fast.api.network.WrongTwoFaCode
 import com.meloda.fast.api.network.WrongTwoFaCodeFormat
 import com.meloda.fast.base.State
 import com.meloda.fast.base.processState
-import com.meloda.fast.database.account.AccountsDao
+import com.meloda.fast.data.users.domain.UsersUseCase
+import com.meloda.fast.database.dao.AccountsDao
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
@@ -27,32 +28,23 @@ import com.meloda.fast.modules.auth.screens.login.model.LoginValidationResult
 import com.meloda.fast.modules.auth.screens.login.validation.LoginValidator
 import com.meloda.fast.modules.auth.screens.twofa.model.TwoFaArguments
 import com.meloda.fast.screens.userbanned.model.UserBannedArguments
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 interface LoginViewModel {
     val screenState: StateFlow<LoginScreenState>
 
-    fun onBackPressed()
-
     fun onPasswordVisibilityButtonClicked()
-
-    fun onLogoNextButtonClicked()
 
     fun onLoginInputChanged(newLogin: String)
     fun onPasswordInputChanged(newPassword: String)
 
     fun onSignInButtonClicked()
 
-
     fun onErrorDialogDismissed()
-    fun onLogoLongClicked()
 
     fun onNavigatedToConversations()
 
@@ -60,11 +52,11 @@ interface LoginViewModel {
 
     fun onTwoFaCodeReceived(code: String)
     fun onCaptchaCodeReceived(code: String)
-    fun onRestarted()
 }
 
 class LoginViewModelImpl(
     private val oAuthUseCase: OAuthUseCase,
+    private val usersUseCase: UsersUseCase,
     private val accounts: AccountsDao,
     private val loginValidator: LoginValidator,
 ) : ViewModel(), LoginViewModel {
@@ -75,25 +67,8 @@ class LoginViewModelImpl(
         screenState.map(loginValidator::validate)
             .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
 
-    override fun onBackPressed() {
-        screenState.setValue { old ->
-            old.copy(
-                isNeedToShowLogo = true,
-                loginError = false,
-                passwordError = false
-            )
-        }
-    }
-
     override fun onPasswordVisibilityButtonClicked() {
-        val newState = screenState.value.copy(
-            passwordVisible = !screenState.value.passwordVisible
-        )
-        screenState.updateValue(newState)
-    }
-
-    override fun onLogoNextButtonClicked() {
-        screenState.setValue { old -> old.copy(isNeedToShowLogo = false) }
+        screenState.setValue { old -> old.copy(passwordVisible = !old.passwordVisible) }
     }
 
     override fun onLoginInputChanged(newLogin: String) {
@@ -118,28 +93,6 @@ class LoginViewModelImpl(
 
     override fun onErrorDialogDismissed() {
         screenState.setValue { old -> old.copy(error = null) }
-    }
-
-    override fun onLogoLongClicked() {
-        val currentAccount = AppAccount(
-            userId = BuildConfig.debugUserId.toInt(),
-            accessToken = BuildConfig.debugAccessToken,
-            fastToken = null,
-            trustedHash = null
-        ).also { account ->
-            UserConfig.currentUserId = account.userId
-            UserConfig.userId = account.userId
-            UserConfig.accessToken = account.accessToken
-            UserConfig.fastToken = account.fastToken
-            UserConfig.trustedHash = account.trustedHash
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            accounts.insert(listOf(currentAccount))
-
-            delay(350)
-            screenState.setValue { old -> old.copy(isNeedToRestart = true) }
-        }
     }
 
     override fun onNavigatedToConversations() {
@@ -177,10 +130,6 @@ class LoginViewModelImpl(
         login()
     }
 
-    override fun onRestarted() {
-        screenState.setValue { old -> old.copy(isNeedToRestart = false) }
-    }
-
     private fun login(forceSms: Boolean = false) {
         val currentState = screenState.value.copy()
 
@@ -210,11 +159,20 @@ class LoginViewModelImpl(
                     val userId = response.userId
                     val accessToken = response.accessToken
 
-                    // TODO: 02/12/2023, Danil Nikolaev: implement loading user info
-
                     if (userId == null || accessToken == null) {
                         // TODO: 11/04/2024, Danil Nikolaev: send unknown error event
                         return@processState
+                    }
+
+                    usersUseCase.getUserById(
+                        userId = userId,
+                        fields = VKConstants.USER_FIELDS,
+                        nomCase = null
+                    ).listenValue { state ->
+                        state.processState(
+                            error = {},
+                            success = { user -> user?.let { usersUseCase.storeUser(user) } }
+                        )
                     }
 
                     val currentAccount = AppAccount(

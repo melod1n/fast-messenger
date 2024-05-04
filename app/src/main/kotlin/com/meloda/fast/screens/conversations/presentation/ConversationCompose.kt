@@ -65,7 +65,7 @@ fun Conversation(
     onItemClick: () -> Unit,
     onItemLongClick: () -> Unit,
     isUserAccount: Boolean,
-    avatar: UiImage,
+    avatar: UiImage?,
     title: String,
     message: AnnotatedString,
     date: String,
@@ -83,6 +83,7 @@ fun Conversation(
     options: ImmutableList<ConversationOption>,
     onOptionClicked: (ConversationOption) -> Unit
 ) {
+
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -151,7 +152,7 @@ fun Conversation(
                                 )
                             }
                         } else {
-                            val avatarImage = avatar.getImage()
+                            val avatarImage = avatar?.getImage()
                             if (avatarImage is Painter) {
                                 Image(
                                     modifier = Modifier

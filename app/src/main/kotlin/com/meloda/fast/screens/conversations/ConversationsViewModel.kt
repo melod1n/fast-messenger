@@ -20,6 +20,7 @@ import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.processState
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.account.domain.usecase.AccountUseCase
+import com.meloda.fast.data.users.domain.UsersUseCase
 import com.meloda.fast.ext.createTimerFlow
 import com.meloda.fast.ext.emitOnScope
 import com.meloda.fast.ext.findIndex
@@ -65,6 +66,7 @@ class ConversationsViewModelImpl(
     private val imageLoader: ImageLoader,
     private val accountUseCase: AccountUseCase,
     private val conversationsUseCase: ConversationsUseCase,
+    private val usersUseCase: UsersUseCase
 ) : ConversationsViewModel, ViewModel() {
 
     private val context: Context get() = AppGlobal.Instance
@@ -130,7 +132,7 @@ class ConversationsViewModelImpl(
                 conversations = old.conversations.map { item ->
                     item.copy(
                         isExpanded =
-                        if (item.conversationId == conversation.conversationId) {
+                        if (item.id == conversation.id) {
                             !item.isExpanded
                         } else {
                             false
@@ -147,24 +149,24 @@ class ConversationsViewModelImpl(
     }
 
     override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
-        pinConversation(conversation.conversationId, !conversation.isPinned)
-        hideOptions(conversation.conversationId)
+        pinConversation(conversation.id, !conversation.isPinned)
+        hideOptions(conversation.id)
     }
 
     override fun onOptionClicked(conversation: VkConversationUi, option: ConversationOption) {
         when (option) {
             ConversationOption.Delete -> {
                 emitShowOptions { old ->
-                    old.copy(showDeleteDialog = conversation.conversationId)
+                    old.copy(showDeleteDialog = conversation.id)
                 }
             }
 
             ConversationOption.MarkAsRead -> {
                 readConversation(
-                    peerId = conversation.conversationId,
+                    peerId = conversation.id,
                     startMessageId = conversation.lastMessageId
                 )
-                hideOptions(conversation.conversationId)
+                hideOptions(conversation.id)
             }
 
             ConversationOption.Pin,
@@ -178,7 +180,7 @@ class ConversationsViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 conversations = old.conversations.map { item ->
-                    if (item.conversationId == conversationId) {
+                    if (item.id == conversationId) {
                         item.copy(isExpanded = false)
                     } else item
                 }
@@ -202,7 +204,7 @@ class ConversationsViewModelImpl(
             )
         }
         val avatars = uiConversations.mapNotNull { conversation ->
-            conversation.avatar.extractUrl()
+            conversation.avatar?.extractUrl()
         }
 
         avatars.forEach { avatar ->
@@ -234,9 +236,14 @@ class ConversationsViewModelImpl(
             extended = true
         ).listenValue { state ->
             state.processState(
-                error = { error ->  },
+                error = { error -> },
                 success = { response ->
                     val conversations = response.conversations
+
+                    conversationsUseCase.storeConversations(conversations)
+                    usersUseCase.storeUsers(response.profiles)
+                    conversationsUseCase.storeGroups(response.groups)
+                    conversationsUseCase.storeMessages(response.messages)
 
                     val pinnedConversationsCount =
                         conversations.filter(VkConversationDomain::isPinned).size
@@ -250,7 +257,7 @@ class ConversationsViewModelImpl(
                         )
                     }
                     val avatars = uiConversations.mapNotNull { conversation ->
-                        conversation.avatar.extractUrl()
+                        conversation.avatar?.extractUrl()
                     }
 
                     avatars.forEach { avatar ->
@@ -372,13 +379,30 @@ class ConversationsViewModelImpl(
                 // pizdets
             } else {
                 val conversation = newConversations[conversationIndex]
-                val newConversation = conversation.copy(
+                var newConversation = conversation.copy(
                     lastMessage = message,
                     lastMessageId = message.id,
                     lastConversationMessageId = -1,
                     unreadCount = if (message.isOut) conversation.unreadCount
                     else conversation.unreadCount + 1
                 )
+
+                interactionsTimers[conversation.id]?.let { job ->
+                    if (job.interactionType == InteractionType.Typing
+                        && message.fromId in conversation.interactionIds
+                    ) {
+                        val newInteractionIds = newConversation.interactionIds.filter { id ->
+                            id != message.fromId
+                        }
+
+                        newConversation = newConversation.copy(
+                            interactionType = if (newInteractionIds.isEmpty()) -1 else {
+                                newConversation.interactionType
+                            },
+                            interactionIds = newInteractionIds
+                        )
+                    }
+                }
 
                 if (conversation.isPinned()) {
                     newConversations[conversationIndex] = newConversation

@@ -409,7 +409,7 @@ fun ConversationsListComposable(
     ) {
         itemsIndexed(
             items = conversations,
-            key = { _, item -> item.conversationId },
+            key = { _, item -> item.id },
         ) { index, conversation ->
 
             val needToShowSpacer by remember {
@@ -424,7 +424,7 @@ fun ConversationsListComposable(
 
             val isUserAccount by remember(conversation) {
                 derivedStateOf {
-                    conversation.conversationId == UserConfig.userId
+                    conversation.id == UserConfig.userId
                 }
             }
 

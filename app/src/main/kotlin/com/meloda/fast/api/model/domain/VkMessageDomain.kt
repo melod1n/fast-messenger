@@ -6,39 +6,38 @@ import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.model.data.VkMessageData
+import com.meloda.fast.database.model.VkMessageDB
 import com.meloda.fast.util.TimeUtils
 
 @Immutable
 data class VkMessageDomain(
     val id: Int,
-    val text: String? = null,
+    val text: String?,
     val isOut: Boolean,
     val peerId: Int,
     val fromId: Int,
     val date: Int,
     val randomId: Int,
-    val action: String? = null,
-    val actionMemberId: Int? = null,
-    val actionText: String? = null,
-    val actionConversationMessageId: Int? = null,
-    val actionMessage: String? = null,
+    val action: String?,
+    val actionMemberId: Int?,
+    val actionText: String?,
+    val actionConversationMessageId: Int?,
+    val actionMessage: String?,
 
-    val updateTime: Int? = null,
+    val updateTime: Int?,
 
     val important: Boolean = false,
 
-    val forwards: List<VkMessageDomain>? = null,
-    val attachments: List<VkAttachment>? = null,
-    val replyMessage: VkMessageDomain? = null,
+    val forwards: List<VkMessageDomain>?,
+    val attachments: List<VkAttachment>?,
+    val replyMessage: VkMessageDomain?,
 
-    val geo: VkMessageData.Geo? = null,
+    val geo: VkMessageData.Geo?,
 
-    val user: VkUserDomain? = null,
-    val group: VkGroupDomain? = null,
-    val actionUser: VkUserDomain? = null,
-    val actionGroup: VkGroupDomain? = null,
-
-    val state: State = State.Sent
+    val user: VkUserDomain?,
+    val group: VkGroupDomain?,
+    val actionUser: VkUserDomain?,
+    val actionGroup: VkGroupDomain?,
 ) {
 
     fun isPeerChat() = peerId > 2_000_000_000
@@ -97,12 +96,6 @@ data class VkMessageDomain(
 
     fun isUpdated(): Boolean = updateTime != null && updateTime > 0
 
-    fun isSending(): Boolean = state == State.Sending
-
-    fun isError(): Boolean = state == State.Error
-
-    fun isSent(): Boolean = state == State.Sent
-
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),
         CHAT_PHOTO_UPDATE("chat_photo_update"),
@@ -124,7 +117,24 @@ data class VkMessageDomain(
         }
     }
 
-    enum class State {
-        Sending, Sent, Error
-    }
+    fun mapToDB(): VkMessageDB = VkMessageDB(
+        id = id,
+        text = text,
+        isOut = isOut,
+        peerId = peerId,
+        fromId = fromId,
+        date = date,
+        randomId = randomId,
+        action = action,
+        actionMemberId = actionMemberId,
+        actionText = actionText,
+        actionConversationMessageId = actionConversationMessageId,
+        actionMessage = actionMessage,
+        updateTime = updateTime,
+        important = important,
+        forwardIds = forwards.orEmpty().map(VkMessageDomain::id).joinToString(),
+        attachments = attachments.orEmpty().map(VkAttachment::type).joinToString(),
+        replyMessageId = replyMessage?.id,
+        geoType = geo?.type
+    )
 }

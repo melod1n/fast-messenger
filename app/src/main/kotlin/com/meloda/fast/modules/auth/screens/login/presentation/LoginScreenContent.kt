@@ -1,13 +1,8 @@
 package com.meloda.fast.modules.auth.screens.login.presentation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -39,7 +34,6 @@ import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -58,51 +52,22 @@ import com.meloda.fast.ext.handleEnterKey
 import com.meloda.fast.ext.handleTabKey
 import com.meloda.fast.model.base.UiText
 import com.meloda.fast.modules.auth.screens.login.LoginViewModel
-import com.meloda.fast.modules.auth.screens.login.LoginViewModelImpl
 import com.meloda.fast.modules.auth.screens.login.model.LoginError
 import com.meloda.fast.modules.auth.screens.login.model.LoginScreenState
 import com.meloda.fast.modules.auth.screens.login.model.UiAction
-import com.meloda.fast.ui.widgets.autoFillRequestHandler
 import com.meloda.fast.ui.widgets.TextFieldErrorText
+import com.meloda.fast.ui.widgets.autoFillRequestHandler
 import com.meloda.fast.ui.widgets.connectNode
 import com.meloda.fast.ui.widgets.defaultFocusChangeAutoFill
-import org.koin.androidx.compose.koinViewModel
 
 typealias OnAction = (UiAction) -> Unit
 
 @Composable
-fun LoginRoute(
-    onAction: OnAction,
-    viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-
-    BackHandler(enabled = !screenState.isNeedToShowLogo) {
-        viewModel.onBackPressed()
-    }
-
-    LoginScreenContent(
-        onAction = onAction,
-        screenState = screenState,
-        viewModel = viewModel
-    )
-
-    HandleError(
-        onDismiss = viewModel::onErrorDialogDismissed,
-        error = screenState.error
-    )
-}
-
-@Composable
 fun LoginScreenContent(
     onAction: OnAction,
-    screenState: LoginScreenState,
     viewModel: LoginViewModel,
 ) {
-    if (screenState.isNeedToRestart) {
-        viewModel.onRestarted()
-        onAction(UiAction.Restart)
-    }
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
     if (screenState.isNeedToOpenUserBanned) {
         viewModel.onNavigatedToUserBanned()
@@ -136,63 +101,17 @@ fun LoginScreenContent(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (screenState.isNeedToShowLogo) {
-                LoginLogo(viewModel)
-            } else {
-                LoginSignIn(
-                    onAction = onAction,
-                    screenState = screenState,
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun LoginLogo(viewModel: LoginViewModel) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(30.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_logo_big),
-                contentDescription = "Application Logo",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                modifier = Modifier.combinedClickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onLongClick = viewModel::onLogoLongClicked,
-                    onClick = {}
-                )
-            )
-            Spacer(modifier = Modifier.height(46.dp))
-            Text(
-                text = stringResource(id = R.string.fast_messenger),
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        FloatingActionButton(
-            onClick = viewModel::onLogoNextButtonClicked,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_arrow_end),
-                contentDescription = "Go button",
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            LoginSignIn(
+                onAction = onAction,
+                screenState = screenState,
             )
         }
     }
+
+    HandleError(
+        onDismiss = viewModel::onErrorDialogDismissed,
+        error = screenState.error
+    )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

@@ -11,7 +11,6 @@ import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.presentation.MessagesHistoryRoute
 import org.koin.androidx.compose.koinViewModel
 
-// TODO: 14/04/2024, Danil Nikolaev: crash on app minimize
 data class MessagesHistoryScreen(
     val messagesHistoryArguments: MessagesHistoryArguments
 ) : Screen {
@@ -22,9 +21,7 @@ data class MessagesHistoryScreen(
         viewModel.setArguments(messagesHistoryArguments)
 
         MessagesHistoryRoute(
-            openChatMaterials = {
-                navigator.push(ChatMaterials)
-            },
+            openChatMaterials = { navigator.push(ChatMaterials) },
             onBackClicked = navigator::pop,
             viewModel = viewModel
         )

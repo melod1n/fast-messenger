@@ -1,5 +1,9 @@
 package com.meloda.fast.screens.conversations.data.usecase
 
+import com.meloda.fast.api.model.domain.VkConversationDomain
+import com.meloda.fast.api.model.domain.VkGroupDomain
+import com.meloda.fast.api.model.domain.VkMessageDomain
+import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
 import com.meloda.fast.api.network.conversations.ConversationsGetRequest
 import com.meloda.fast.api.network.conversations.ConversationsPinRequest
@@ -7,6 +11,10 @@ import com.meloda.fast.api.network.conversations.ConversationsResponseDomain
 import com.meloda.fast.api.network.conversations.ConversationsUnpinRequest
 import com.meloda.fast.base.State
 import com.meloda.fast.base.toStateApiError
+import com.meloda.fast.database.dao.ConversationsDao
+import com.meloda.fast.database.dao.GroupsDao
+import com.meloda.fast.database.dao.MessagesDao
+import com.meloda.fast.database.dao.UsersDao
 import com.meloda.fast.screens.conversations.domain.repository.ConversationsRepository
 import com.meloda.fast.screens.conversations.domain.usecase.ConversationsUseCase
 import com.slack.eithernet.fold
@@ -14,7 +22,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class ConversationsUseCaseImpl(
-    private val conversationsRepository: ConversationsRepository
+    private val conversationsRepository: ConversationsRepository,
+    private val conversationsDao: ConversationsDao,
+    private val groupsDao: GroupsDao,
+    private val messagesDao: MessagesDao
 ) : ConversationsUseCase {
 
     override fun getConversations(
@@ -89,5 +100,17 @@ class ConversationsUseCaseImpl(
             onApiFailure = { result -> result.error.toStateApiError() }
         )
         emit(newState)
+    }
+
+    override suspend fun storeConversations(conversations: List<VkConversationDomain>) {
+        conversationsDao.insertAll(conversations.map(VkConversationDomain::mapToDb))
+    }
+
+    override suspend fun storeGroups(groups: List<VkGroupDomain>) {
+        groupsDao.insertAll(groups.map(VkGroupDomain::mapToDB))
+    }
+
+    override suspend fun storeMessages(messages: List<VkMessageDomain>) {
+        messagesDao.insertAll(messages.map(VkMessageDomain::mapToDB))
     }
 }

@@ -5,9 +5,9 @@ import com.meloda.fast.modules.auth.screens.captcha.model.CaptchaArguments
 import com.meloda.fast.modules.auth.screens.twofa.model.TwoFaArguments
 import com.meloda.fast.screens.userbanned.model.UserBannedArguments
 
+// TODO: 04/05/2024, Danil Nikolaev: simplify
 @Immutable
 data class LoginScreenState(
-    val isNeedToShowLogo: Boolean,
     val login: String,
     val password: String,
     val captchaCode: String?,
@@ -25,13 +25,11 @@ data class LoginScreenState(
     val twoFaArguments: TwoFaArguments?,
     val captchaArguments: CaptchaArguments?,
     val userBannedArguments: UserBannedArguments?,
-    val isNeedToRestart: Boolean,
     val error: LoginError?
 ) {
 
     companion object {
         val EMPTY = LoginScreenState(
-            isNeedToShowLogo = true,
             login = "",
             password = "",
             captchaCode = null,
@@ -49,7 +47,6 @@ data class LoginScreenState(
             twoFaArguments = null,
             captchaArguments = null,
             userBannedArguments = null,
-            isNeedToRestart = false,
             error = null,
         )
     }

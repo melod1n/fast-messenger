@@ -6,8 +6,6 @@ import com.meloda.fast.screens.userbanned.model.UserBannedArguments
 
 sealed class UiAction {
 
-    data object Restart : UiAction()
-
     data class NavigateToTwoFa(val arguments: TwoFaArguments) : UiAction()
 
     data class NavigateToCaptcha(val arguments: CaptchaArguments) : UiAction()

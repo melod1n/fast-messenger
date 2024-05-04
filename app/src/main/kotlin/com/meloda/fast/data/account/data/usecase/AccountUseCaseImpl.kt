@@ -6,7 +6,7 @@ import com.meloda.fast.base.State
 import com.meloda.fast.base.toStateApiError
 import com.meloda.fast.data.account.domain.repository.AccountRepository
 import com.meloda.fast.data.account.domain.usecase.AccountUseCase
-import com.meloda.fast.database.account.AccountsDao
+import com.meloda.fast.database.dao.AccountsDao
 import com.meloda.fast.model.AppAccount
 import com.slack.eithernet.fold
 import kotlinx.coroutines.flow.Flow

@@ -2,23 +2,15 @@ package com.meloda.fast.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import com.meloda.fast.database.account.AccountsDao
+import com.meloda.fast.database.dao.AccountsDao
 import com.meloda.fast.model.AppAccount
 
 @Database(
     entities = [AppAccount::class],
-    version = 2,
-    exportSchema = false
+    version = 2
 )
 abstract class AccountsDatabase : RoomDatabase() {
-    abstract val accountsDao: AccountsDao
-
-    // TODO: 09.08.2023, Danil Nikolaev: implement
-    companion object {
-        val migrationToTrustedHash = Migration(startVersion = 1, endVersion = 2) { db ->
-        }
-    }
+    abstract fun accountsDao(): AccountsDao
 }
 
 

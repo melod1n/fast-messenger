@@ -3,10 +3,10 @@ package com.meloda.fast.data.videos
 import okhttp3.MultipartBody
 
 class VideosRepository(
-    private val videosApi: VideosApi
+    private val videosService: VideosService
 ) {
 
-    suspend fun save() = videosApi.save()
+    suspend fun save() = videosService.save()
 
-    suspend fun upload(url: String, file: MultipartBody.Part) = videosApi.upload(url, file)
+    suspend fun upload(url: String, file: MultipartBody.Part) = videosService.upload(url, file)
 }

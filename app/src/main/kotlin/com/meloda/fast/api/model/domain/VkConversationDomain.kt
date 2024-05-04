@@ -21,6 +21,7 @@ import com.meloda.fast.api.model.ConversationPeerType
 import com.meloda.fast.api.model.InteractionType
 import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.common.AppGlobal
+import com.meloda.fast.database.model.VkConversationDB
 import com.meloda.fast.ext.isFalse
 import com.meloda.fast.ext.isTrue
 import com.meloda.fast.ext.orDots
@@ -38,8 +39,10 @@ data class VkConversationDomain(
     val id: Int,
     val localId: Int,
     val ownerId: Int?,
-    val conversationTitle: String?,
-    val conversationPhoto: String?,
+    val title: String?,
+    val photo50: String?,
+    val photo100: String?,
+    val photo200: String?,
     val isCallInProgress: Boolean,
     val isPhantom: Boolean,
     val lastConversationMessageId: Int,
@@ -100,7 +103,7 @@ data class VkConversationDomain(
             }
 
             peerType.isGroup() -> conversationGroup?.photo200
-            peerType.isChat() -> conversationPhoto
+            peerType.isChat() -> photo200
             else -> null
         }
 
@@ -110,7 +113,7 @@ data class VkConversationDomain(
     private fun extractTitle(): String {
         return when {
             isAccount() -> UiText.Resource(R.string.favorites)
-            peerType.isChat() -> UiText.Simple(conversationTitle ?: "...")
+            peerType.isChat() -> UiText.Simple(title ?: "...")
             peerType.isUser() -> {
                 UiText.Simple(
                     conversationUser?.let { user ->
@@ -359,7 +362,7 @@ data class VkConversationDomain(
         usersMap: VkUsersMap,
         groupsMap: VkGroupsMap
     ): VkConversationUi = VkConversationUi(
-        conversationId = id,
+        id = id,
         lastMessageId = lastMessageId,
         avatar = extractAvatar(),
         title = extractTitle(),
@@ -381,5 +384,30 @@ data class VkConversationDomain(
         isExpanded = false,
         options = ImmutableList.of(),
         lastSeenStatus = extractLastSeenStatus()
+    )
+
+    fun mapToDb(): VkConversationDB = VkConversationDB(
+        id = id,
+        localId = localId,
+        ownerId = ownerId,
+        title = title,
+        photo50 = photo50,
+        photo100 = photo100,
+        photo200 = photo200,
+        isPhantom = isPhantom,
+        lastConversationMessageId = lastConversationMessageId,
+        inReadCmId = inReadCmId,
+        outReadCmId = outReadCmId,
+        inRead = inRead,
+        outRead = outRead,
+        lastMessageId = lastMessageId,
+        unreadCount = unreadCount,
+        membersCount = membersCount,
+        canChangePin = canChangePin,
+        canChangeInfo = canChangeInfo,
+        majorId = majorId,
+        minorId = minorId,
+        pinnedMessageId = pinnedMessageId,
+        peerType = peerType.value
     )
 }

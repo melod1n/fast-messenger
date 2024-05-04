@@ -117,8 +117,10 @@ data class VkConversationData(
     ): VkConversationDomain = VkConversationDomain(
         id = peer.id,
         localId = peer.localId,
-        conversationTitle = chatSettings?.title,
-        conversationPhoto = chatSettings?.photo?.photo200,
+        title = chatSettings?.title,
+        photo50 = chatSettings?.photo?.photo50,
+        photo100 = chatSettings?.photo?.photo100,
+        photo200 = chatSettings?.photo?.photo200,
         isCallInProgress = callInProgress != null,
         isPhantom = chatSettings?.isDisappearing == true,
         lastConversationMessageId = lastConversationMessageId,

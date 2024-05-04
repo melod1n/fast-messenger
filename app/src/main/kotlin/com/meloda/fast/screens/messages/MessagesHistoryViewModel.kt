@@ -13,13 +13,13 @@ import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.api.model.domain.VkMessageDomain
-import com.meloda.fast.api.model.presentation.VkConversationUi
 import com.meloda.fast.base.processState
 import com.meloda.fast.common.AppGlobal
 import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
 import com.meloda.fast.data.photos.PhotosRepository
 import com.meloda.fast.data.videos.VideosRepository
+import com.meloda.fast.database.dao.ConversationsDao
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.suspendCoroutine
-import kotlin.properties.Delegates
 
 interface MessagesHistoryViewModel {
 
@@ -62,7 +61,7 @@ class MessagesHistoryViewModelImpl(
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
 
-    private var conversation: VkConversationUi by Delegates.notNull()
+    private var conversationId: Int = -1
 
     private val messages = MutableStateFlow<List<VkMessageDomain>>(emptyList())
 
@@ -100,13 +99,13 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun setArguments(arguments: MessagesHistoryArguments) {
-        conversation = arguments.conversation
+        this.conversationId = arguments.conversationId
 
         screenState.setValue { old ->
             old.copy(
-                title = conversation.title,
-                status = conversation.lastSeenStatus,
-                avatar = conversation.avatar
+                title = arguments.title,
+                status = arguments.status,
+                avatar = arguments.avatar
             )
         }
 
@@ -137,7 +136,7 @@ class MessagesHistoryViewModelImpl(
         messagesUseCase.getHistory(
             count = 100,
             offset = null,
-            peerId = conversation.conversationId,
+            peerId = conversationId,
             extended = true,
             startMessageId = null,
             rev = null,
@@ -179,7 +178,6 @@ class MessagesHistoryViewModelImpl(
                         .sortedBy { message -> message.date }
 
                     messages.emit(newMessages)
-//                    messagesRepository.store(newMessages)
                     val conversations = response.conversations?.map { base ->
                         val lastMessage =
                             newMessages.find { message -> message.id == base.lastMessageId }
@@ -201,7 +199,7 @@ class MessagesHistoryViewModelImpl(
                     } ?: emptyList()
                     val photos = profilesList.mapNotNull { profile -> profile.photo200 } +
                             groupsList.mapNotNull { group -> group.photo200 } +
-                            conversations.mapNotNull { conversation -> conversation.avatar.extractUrl() }
+                            conversations.mapNotNull { conversation -> conversation.avatar?.extractUrl() }
 
                     photos.forEach { url ->
                         ImageRequest.Builder(AppGlobal.Instance)

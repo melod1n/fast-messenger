@@ -9,7 +9,9 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.edit
+import com.conena.nanokt.android.app.stopForegroundCompat
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
 import com.meloda.fast.api.model.data.VkLongPollData
@@ -115,7 +117,7 @@ class LongPollingService : Service() {
 
             startForeground(NOTIFICATION_ID, notification)
         } else {
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopForegroundCompat(ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
         return START_STICKY
     }

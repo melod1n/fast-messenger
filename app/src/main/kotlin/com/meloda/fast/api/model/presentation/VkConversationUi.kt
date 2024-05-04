@@ -11,9 +11,9 @@ import com.meloda.fast.screens.conversations.model.ConversationOption
 
 @Immutable
 data class VkConversationUi(
-    val conversationId: Int,
+    val id: Int,
     val lastMessageId: Int,
-    val avatar: UiImage,
+    val avatar: UiImage?,
     val title: String,
     val unreadCount: String?,
     val date: String,

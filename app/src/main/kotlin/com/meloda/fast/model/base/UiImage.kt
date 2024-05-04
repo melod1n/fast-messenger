@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import com.meloda.fast.screens.messages.model.Avatar
 
 sealed class UiImage {
 
@@ -45,5 +46,10 @@ sealed class UiImage {
             is Resource -> painterResource(id = resId)
             else -> null
         }
+    }
+
+    fun mapToAvatar(): Avatar = when (this) {
+        is Url -> Avatar.Url(url = url)
+        else -> Avatar.Empty
     }
 }

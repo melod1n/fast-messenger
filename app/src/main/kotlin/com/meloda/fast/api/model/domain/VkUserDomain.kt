@@ -1,5 +1,7 @@
 package com.meloda.fast.api.model.domain
 
+import com.meloda.fast.database.model.VkUserDB
+
 data class VkUserDomain(
     val id: Int,
     val firstName: String,
@@ -23,5 +25,21 @@ data class VkUserDomain(
         data object Offline : OnlineStatus(null)
 
         fun isOnline(): Boolean = this is Online || this is OnlineMobile
+        fun isMobile(): Boolean = this is OnlineMobile
     }
+
+    fun mapToDB(): VkUserDB = VkUserDB(
+        id = id,
+        firstName = firstName,
+        lastName = lastName,
+        isOnline = onlineStatus.isOnline(),
+        isOnlineMobile = onlineStatus.isMobile(),
+        onlineAppId = onlineStatus.appId,
+        lastSeen = lastSeen,
+        lastSeenStatus = lastSeenStatus,
+        birthday = birthday,
+        photo50 = photo50,
+        photo100 = photo100,
+        photo200 = photo200
+    )
 }

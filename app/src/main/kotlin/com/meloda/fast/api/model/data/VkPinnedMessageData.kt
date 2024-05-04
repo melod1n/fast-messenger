@@ -46,7 +46,13 @@ data class VkPinnedMessageData(
         updateTime = updateTime,
         forwards = VkUtils.parseForwards(fwdMessages).orEmpty(),
         attachments = VkUtils.parseAttachments(attachments).orEmpty(),
-        replyMessage = VkUtils.parseReplyMessage(replyMessage)
+
+        replyMessage = VkUtils.parseReplyMessage(replyMessage),
+
+        user = null,
+        group = null,
+        actionUser = null,
+        actionGroup = null
     )
 }
 

@@ -12,7 +12,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Url
 
-interface VideosApi {
+interface VideosService {
 
     @POST(VideosUrls.Save)
     suspend fun save(): ApiResult<ApiResponse<VideosSaveResponse>, RestApiError>

@@ -4,27 +4,27 @@ import com.squareup.moshi.Json
 import okhttp3.MultipartBody
 
 class FilesRepository(
-    private val filesApi: FilesApi
+    private val filesService: FilesService
 ) {
 
     enum class FileType(val value: String) {
         @Json(name = "doc")
-        File("doc"),
+        FILE("doc"),
 
         @Json(name = "audio_message")
-        VoiceMessage("audio_message")
+        AUDIO_MESSAGE("audio_message")
     }
 
     suspend fun getMessagesUploadServer(peerId: Int, type: FileType) =
-        filesApi.getUploadServer(
+        filesService.getUploadServer(
             mapOf(
                 "peer_id" to peerId.toString(),
                 "type" to type.value
             )
         )
 
-    suspend fun uploadFile(url: String, file: MultipartBody.Part) = filesApi.upload(url, file)
+    suspend fun uploadFile(url: String, file: MultipartBody.Part) = filesService.upload(url, file)
 
-    suspend fun saveMessageFile(file: String) = filesApi.save(mapOf("file" to file))
+    suspend fun saveMessageFile(file: String) = filesService.save(mapOf("file" to file))
 
 }

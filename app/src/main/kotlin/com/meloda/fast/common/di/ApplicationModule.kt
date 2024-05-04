@@ -1,11 +1,10 @@
 package com.meloda.fast.common.di
 
 import com.meloda.fast.data.account.di.accountModule
-import com.meloda.fast.di.apiModule
-import com.meloda.fast.di.dataModule
 import com.meloda.fast.di.databaseModule
 import com.meloda.fast.di.networkModule
 import com.meloda.fast.di.utilModule
+import com.meloda.fast.modules.api.di.apiModule
 import com.meloda.fast.modules.auth.di.authModule
 import com.meloda.fast.screens.conversations.di.conversationsModule
 import com.meloda.fast.screens.languagepicker.di.languagePickerModule
@@ -20,7 +19,6 @@ val applicationModule = module {
     includes(
         databaseModule,
         networkModule,
-        dataModule,
         apiModule,
         utilModule,
         conversationsModule,
