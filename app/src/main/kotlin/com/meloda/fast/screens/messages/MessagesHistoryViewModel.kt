@@ -2,28 +2,21 @@ package com.meloda.fast.screens.messages
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.ImageLoader
-import coil.request.ImageRequest
+import com.conena.nanokt.collections.indexOfOrNull
+import com.conena.nanokt.text.isEmptyOrBlank
+import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkMemoryCache
-import com.meloda.fast.api.VkUsersMap
-import com.meloda.fast.api.model.data.VkGroupData
-import com.meloda.fast.api.model.data.VkMessageData
-import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.api.model.domain.VkAttachment
 import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.base.processState
-import com.meloda.fast.common.AppGlobal
-import com.meloda.fast.data.audios.AudiosRepository
 import com.meloda.fast.data.files.FilesRepository
-import com.meloda.fast.data.photos.PhotosRepository
-import com.meloda.fast.data.videos.VideosRepository
-import com.meloda.fast.database.dao.ConversationsDao
+import com.meloda.fast.ext.findIndex
 import com.meloda.fast.ext.listenValue
 import com.meloda.fast.ext.setValue
 import com.meloda.fast.ext.updateValue
 import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
+import com.meloda.fast.screens.messages.model.ActionMode
 import com.meloda.fast.screens.messages.model.MessagesHistoryArguments
 import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
 import com.meloda.fast.service.longpolling.LongPollEvent
@@ -34,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.suspendCoroutine
+import kotlin.random.Random
 
 interface MessagesHistoryViewModel {
 
@@ -51,19 +45,12 @@ interface MessagesHistoryViewModel {
 
 class MessagesHistoryViewModelImpl(
     private val messagesUseCase: MessagesUseCase,
-    updatesParser: LongPollUpdatesParser,
-    private val photosRepository: PhotosRepository,
-    private val filesRepository: FilesRepository,
-    private val audiosRepository: AudiosRepository,
-    private val videosRepository: VideosRepository,
-    private val imageLoader: ImageLoader
+    updatesParser: LongPollUpdatesParser
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
 
-    private var conversationId: Int = -1
-
-    private val messages = MutableStateFlow<List<VkMessageDomain>>(emptyList())
+    private var lastMessageText: String? = null
 
     init {
         updatesParser.onNewMessage(::handleNewMessage)
@@ -77,6 +64,14 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onInputChanged(newText: String) {
+        screenState.setValue { old ->
+            old.copy(
+                message = newText,
+                actionMode = if (newText.isEmptyOrBlank()) ActionMode.Record
+                else ActionMode.Send
+            )
+        }
+
         screenState.value.copy(message = newText).let { newValue ->
             screenState.updateValue(newValue)
         }
@@ -87,7 +82,21 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onActionButtonClicked() {
+        when (screenState.value.actionMode) {
+            ActionMode.Delete -> {
 
+            }
+
+            ActionMode.Edit -> {
+
+            }
+
+            ActionMode.Record -> {
+
+            }
+
+            ActionMode.Send -> sendMessage()
+        }
     }
 
     override fun onTopAppBarMenuClicked(id: Int) {
@@ -99,10 +108,9 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun setArguments(arguments: MessagesHistoryArguments) {
-        this.conversationId = arguments.conversationId
-
         screenState.setValue { old ->
             old.copy(
+                conversationId = arguments.conversationId,
                 title = arguments.title,
                 status = arguments.status,
                 avatar = arguments.avatar
@@ -117,11 +125,33 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+        val message = event.message
+        if (message.peerId != screenState.value.conversationId) return
 
+        val randomIds = screenState.value.messages.map(VkMessageDomain::randomId)
+        if (message.randomId != 0 && message.randomId in randomIds) return
+
+        val messages = screenState.value.messages.toMutableList()
+        messages.add(message)
+
+        screenState.setValue { old -> old.copy(messages = messages) }
     }
 
     private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+        val message = event.message
+        if (message.peerId != screenState.value.conversationId) return
 
+        screenState.value.messages
+            .findIndex { it.id == message.id }
+            ?.let { index ->
+                screenState.setValue { old ->
+                    old.copy(
+                        messages = old.messages.toMutableList().apply {
+                            this[index] = message
+                        }
+                    )
+                }
+            }
     }
 
     private fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
@@ -134,187 +164,80 @@ class MessagesHistoryViewModelImpl(
 
     private fun loadMessagesHistory() {
         messagesUseCase.getHistory(
-            count = 100,
+            count = 30,
             offset = null,
-            peerId = conversationId,
+            peerId = screenState.value.conversationId,
             extended = true,
             startMessageId = null,
             rev = null,
             fields = VKConstants.ALL_FIELDS
         ).listenValue { state ->
             state.processState(
-                error = { error -> {} },
-                success = { response ->
-                    // TODO: 14/04/2024, Danil Nikolaev: mapping in to usecase
-                    val profilesList = response.profiles.orEmpty().map(VkUserData::mapToDomain)
-                    val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
-
-                    VkMemoryCache.appendUsers(profilesList)
-                    VkMemoryCache.appendGroups(groupsList)
-
-                    val usersMap = VkUsersMap.forUsers(profilesList)
-                    val groupsMap = VkGroupsMap.forGroups(groupsList)
-
-                    val newMessages = response.items
-                        .map(VkMessageData::mapToDomain)
-                        .map { message ->
-                            val (actionUser, actionGroup) = message.getActionUserAndGroup(
-                                usersMap = usersMap,
-                                groupsMap = groupsMap
-                            )
-
-                            val (messageUser, messageGroup) = message.getUserAndGroup(
-                                usersMap = usersMap,
-                                groupsMap = groupsMap
-                            )
-
-                            message.copy(
-                                user = messageUser,
-                                group = messageGroup,
-                                actionUser = actionUser,
-                                actionGroup = actionGroup
-                            ).also { fullMessage -> VkMemoryCache[fullMessage.id] = fullMessage }
-                        }
-                        .sortedBy { message -> message.date }
-
-                    messages.emit(newMessages)
-                    val conversations = response.conversations?.map { base ->
-                        val lastMessage =
-                            newMessages.find { message -> message.id == base.lastMessageId }
-
-                        base.mapToDomain(lastMessage = lastMessage).run {
-                            val (user, group) = getUserAndGroup(
-                                usersMap = usersMap,
-                                groupsMap = groupsMap
-                            )
-
-                            copy(
-                                conversationUser = user,
-                                conversationGroup = group
-                            ).also { conversation -> VkMemoryCache[conversation.id] = conversation }
-                        }.mapToPresentation(
-                            usersMap = usersMap,
-                            groupsMap = groupsMap
-                        )
-                    } ?: emptyList()
-                    val photos = profilesList.mapNotNull { profile -> profile.photo200 } +
-                            groupsList.mapNotNull { group -> group.photo200 } +
-                            conversations.mapNotNull { conversation -> conversation.avatar?.extractUrl() }
-
-                    photos.forEach { url ->
-                        ImageRequest.Builder(AppGlobal.Instance)
-                            .data(url)
-                            .build()
-                            .let(imageLoader::enqueue)
-                    }
-
-                    screenState.setValue { old -> old.copy(messages = newMessages) }
+                error = { },
+                success = { messages ->
+                    screenState.setValue { old -> old.copy(messages = messages) }
                 }
             )
             screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
         }
-
-//        viewModelScope.launch(Dispatchers.IO) {
-//            screenState.setValue { old -> old.copy(isLoading = true) }
-
-//            sendRequest(
-//                request = {
-//                    messagesRepository.getHistory(
-//                        MessagesGetHistoryRequest(
-//                            count = 100,
-//                            peerId = conversation.conversationId,
-//                            extended = true,
-//                            fields = VKConstants.ALL_FIELDS,
-//                        )
-//                    )
-//                },
-//                onResponse = { response ->
-//                    val answer = response.response ?: return@sendRequest
-//
-//                    val profiles = answer.profiles
-//                        ?.map(VkUserData::mapToDomain)
-//                        ?.toMap(hashMapOf(), VkUserDomain::id) ?: hashMapOf()
-//
-//                    val groups = answer.groups
-//                        ?.map(VkGroupData::mapToDomain)
-//                        ?.toMap(hashMapOf(), VkGroupDomain::id) ?: hashMapOf()
-//
-//                    val newMessages = answer.items
-//                        .map { message -> message.asVkMessage() }
-//                        .map { message ->
-//                            message.copy(
-//                                user = profiles[message.fromId],
-//                                group = groups[message.fromId],
-//                                actionUser = profiles[message.actionMemberId],
-//                                actionGroup = groups[message.actionMemberId]
-//                            )
-//                        }.sortedBy { message -> message.date }
-//
-//                    messages.emit(newMessages)
-//                    messagesRepository.store(newMessages)
-//
-//                    val conversations = answer.conversations?.map { base ->
-//                        val lastMessage =
-//                            newMessages.find { message -> message.id == base.last_message_id }
-//
-//                        base.mapToDomain(lastMessage = lastMessage)
-//                            .fill(lastMessage = lastMessage, profiles = profiles, groups = groups)
-//                            .mapToPresentation()
-//                    } ?: emptyList()
-//
-//                    val photos = profiles.mapNotNull { profile -> profile.value.photo200 } +
-//                            groups.mapNotNull { group -> group.value.photo200 } +
-//                            conversations.mapNotNull { conversation -> conversation.avatar.extractUrl() }
-//
-//                    photos.forEach { url ->
-//                        ImageRequest.Builder(AppGlobal.Instance)
-//                            .data(url)
-//                            .build()
-//                            .let(imageLoader::enqueue)
-//                    }
-//
-//                    screenState.emitOnMainScope(
-//                        screenState.value.copy(
-//                            messages = newMessages,
-//                            isLoading = false
-//                        )
-//                    )
-//                },
-//                onAnyResult = {
-//                    screenState.setValue { old -> old.copy(isLoading = true) }
-//                }
-//            )
-//        }
     }
 
-    fun sendMessage(
-        peerId: Int,
-        message: String? = null,
-        randomId: Int = 0,
-        replyTo: Int? = null,
-        setId: ((messageId: Int) -> Unit)? = null,
-        attachments: List<VkAttachment>? = null,
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
+    private fun sendMessage() {
+        lastMessageText = screenState.value.message
 
-//            sendRequest(
-//                request = {
-//                    messagesRepository.send(
-//                        MessagesSendRequest(
-//                            peerId = peerId,
-//                            randomId = randomId,
-//                            message = message,
-//                            replyTo = replyTo,
-//                            attachments = attachments
-//
-//                        )
-//                    )
-//                },
-//                onResponse = { response ->
-//                    val sentMessageId = response.response ?: -1
-//                    setId?.invoke(sentMessageId)
-//                },
-//            )
+        val newMessage = VkMessageDomain(
+            id = 0,
+            text = lastMessageText,
+            isOut = true,
+            peerId = screenState.value.conversationId,
+            fromId = UserConfig.userId,
+            date = (System.currentTimeMillis() / 1000).toInt(),
+            randomId = Random.nextInt(),
+            action = null,
+            actionMemberId = null,
+            actionText = null,
+            actionConversationMessageId = null,
+            actionMessage = null,
+            updateTime = null,
+            important = false,
+            forwards = emptyList(),
+            attachments = emptyList(),
+            replyMessage = null,
+            geo = null,
+            user = VkMemoryCache.getUser(UserConfig.userId),
+            group = null,
+            actionUser = null,
+            actionGroup = null
+        )
+
+        screenState.setValue { old ->
+            old.copy(
+                message = "",
+                actionMode = ActionMode.Record,
+                messages = old.messages.toMutableList().apply {
+                    add(newMessage)
+                }
+            )
+        }
+
+        messagesUseCase.sendMessage(
+            peerId = newMessage.peerId,
+            randomId = newMessage.randomId,
+            message = newMessage.text,
+            replyTo = null,
+            attachments = null
+        ).listenValue { state ->
+            state.processState(
+                error = {},
+                success = { messageId ->
+                    val messages = screenState.value.messages.toMutableList()
+                    messages.indexOfOrNull(newMessage)?.let { index ->
+                        messages[index] = newMessage.copy(id = messageId)
+                    }
+
+                    screenState.setValue { old -> old.copy(messages = messages) }
+                }
+            )
         }
     }
 

@@ -6,6 +6,7 @@ import com.meloda.fast.api.model.domain.VkMessageDomain
 
 @Immutable
 data class MessagesHistoryScreenState(
+    val conversationId: Int,
     val title: String,
     val status: String?,
     val avatar: Avatar,
@@ -13,12 +14,13 @@ data class MessagesHistoryScreenState(
     val message: String,
     val attachments: List<VkAttachment>,
     val isLoading: Boolean,
-    val actionButtonMode: MessagesHistoryActionButtonMode,
+    val actionMode: ActionMode,
     val isNeedToOpenChatMaterials: Boolean
 ) {
 
     companion object {
         val EMPTY: MessagesHistoryScreenState = MessagesHistoryScreenState(
+            conversationId = -1,
             title = "Loading...",
             status = null,
             avatar = Avatar.Empty,
@@ -26,7 +28,7 @@ data class MessagesHistoryScreenState(
             message = "",
             attachments = emptyList(),
             isLoading = true,
-            actionButtonMode = MessagesHistoryActionButtonMode.Record,
+            actionMode = ActionMode.Record,
             isNeedToOpenChatMaterials = false
         )
     }

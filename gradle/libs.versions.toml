@@ -6,7 +6,6 @@ haze = "0.7.0"
 hijacker = "1.1.0"
 kotlin = "1.9.23"
 ksp = "1.9.23-1.0.20"
-vkompose = "0.1"
 
 accompanist = "0.34.0"
 coil = "2.6.0"
@@ -96,4 +95,3 @@ com-android-application = { id = "com.android.application", version.ref = "agp" 
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 org-jetbrains-kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
-com-vk-vkompose = { id = "com.vk.vkompose", version.ref = "vkompose" }

@@ -1,5 +1,6 @@
 package com.meloda.fast.screens.messages.presentation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,40 +54,12 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.fast.R
-import com.meloda.fast.api.model.domain.VkMessageDomain
 import com.meloda.fast.screens.messages.MessagesHistoryViewModel
-import com.meloda.fast.screens.messages.model.MessagesHistoryScreenState
-import dev.chrisbanes.haze.HazeState
+import com.meloda.fast.screens.messages.model.ActionMode
+import com.meloda.fast.screens.messages.model.UiAction
 import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 
-@Composable
-fun MessagesHistoryRoute(
-    openChatMaterials: () -> Unit,
-    onBackClicked: () -> Unit,
-    viewModel: MessagesHistoryViewModel
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-
-    if (screenState.isNeedToOpenChatMaterials) {
-        viewModel.onChatMaterialsOpened()
-        openChatMaterials()
-    }
-
-    MessagesHistoryScreenContent(
-        onBackClicked = onBackClicked,
-        onAvatarClicked = {},
-        onAttachmentAddClick = {},
-        onTextInputChanged = viewModel::onInputChanged,
-        onEmojiClicked = {},
-        onEmojiLongClicked = {},
-        onSendClicked = {},
-        onSendLongClicked = {},
-        onMessageAvatarClicked = {},
-        onMessageAvatarLongClicked = {},
-        onTopBarMenuClick = viewModel::onTopAppBarMenuClicked,
-        screenState = screenState
-    )
-}
+typealias OnAction = (UiAction) -> Unit
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -94,35 +67,23 @@ fun MessagesHistoryRoute(
 )
 @Composable
 fun MessagesHistoryScreenContent(
-    onBackClicked: () -> Unit,
-    onAvatarClicked: () -> Unit,
-    onAttachmentAddClick: () -> Unit,
-    onTextInputChanged: (String) -> Unit,
-    onEmojiClicked: () -> Unit,
-    onEmojiLongClicked: () -> Unit,
-    onSendClicked: () -> Unit,
-    onSendLongClicked: () -> Unit,
-    onMessageAvatarClicked: (message: VkMessageDomain) -> Unit,
-    onMessageAvatarLongClicked: (message: VkMessageDomain) -> Unit,
-    onTopBarMenuClick: (id: Int) -> Unit,
-    screenState: MessagesHistoryScreenState,
+    onAction: OnAction,
+    viewModel: MessagesHistoryViewModel
 ) {
-    val title = screenState.title
-    val status = screenState.status
-    val avatar = screenState.avatar
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    if (screenState.isNeedToOpenChatMaterials) {
+        viewModel.onChatMaterialsOpened()
+        onAction(UiAction.OpenChatMaterials)
+    }
+
     val messages = screenState.messages
-    val message = screenState.message
-    val attachments = screenState.attachments
-    val isLoading = screenState.isLoading
-    val actionButtonMode = screenState.actionButtonMode
 
     var wasEmpty by remember {
         mutableStateOf(true)
     }
 
     val lazyListState = rememberLazyListState()
-
-    val hazeState = remember { HazeState() }
 
     // TODO: 26/11/2023, Danil Nikolaev: remove when fixed
     rememberLazyListStateHijacker(listState = lazyListState)
@@ -200,7 +161,7 @@ fun MessagesHistoryScreenContent(
                     ) {
                         DropdownMenuItem(
                             onClick = {
-                                onTopBarMenuClick.invoke(0)
+                                viewModel.onTopAppBarMenuClicked(0)
                                 dropDownMenuExpanded = false
                             },
                             text = {
@@ -209,7 +170,7 @@ fun MessagesHistoryScreenContent(
                         )
                         DropdownMenuItem(
                             onClick = {
-                                onTopBarMenuClick.invoke(1)
+                                viewModel.onTopAppBarMenuClicked(1)
                                 dropDownMenuExpanded = false
                             },
                             text = {
@@ -220,9 +181,9 @@ fun MessagesHistoryScreenContent(
                 }
                 TopAppBar(
                     modifier = Modifier.fillMaxWidth(),
-                    title = { Text(text = title) },
+                    title = { Text(text = screenState.title) },
                     navigationIcon = {
-                        IconButton(onClick = onBackClicked) {
+                        IconButton(onClick = { onAction(UiAction.BackClicked) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                                 contentDescription = "Back button"
@@ -235,14 +196,14 @@ fun MessagesHistoryScreenContent(
                     actions = actions
                 )
 
-                status?.let {
+                screenState.status?.let { status ->
                     Text(
                         text = status,
-                        modifier = Modifier.background(Color.Black)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     )
                 }
 
-                if (isLoading && messages.isNotEmpty()) {
+                if (screenState.isLoading && messages.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
@@ -264,7 +225,7 @@ fun MessagesHistoryScreenContent(
                 ) {
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    IconButton(onClick = onAttachmentAddClick) {
+                    IconButton(onClick = viewModel::onAttachmentButtonClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_round_add_circle_outline_24),
                             contentDescription = "Add attachment button",
@@ -281,17 +242,10 @@ fun MessagesHistoryScreenContent(
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        var text by remember {
-                            mutableStateOf(TextFieldValue(text = message))
-                        }
-
                         TextField(
                             modifier = Modifier.weight(1f),
-                            value = text,
-                            onValueChange = { newText ->
-                                text = newText
-                                onTextInputChanged.invoke(newText.text)
-                            },
+                            value = screenState.message,
+                            onValueChange = viewModel::onInputChanged,
                             colors = TextFieldDefaults.colors(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedContainerColor = Color.Transparent,
@@ -301,7 +255,7 @@ fun MessagesHistoryScreenContent(
                             placeholder = { Text(text = stringResource(id = R.string.message_input_hint)) }
                         )
 
-                        IconButton(onClick = onEmojiClicked) {
+                        IconButton(onClick = viewModel::onEmojiButtonClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_outline_emoji_emotions_24),
                                 contentDescription = "Emoji button",
@@ -309,11 +263,22 @@ fun MessagesHistoryScreenContent(
                             )
                         }
 
-                        IconButton(onClick = onSendClicked) {
+                        IconButton(onClick = viewModel::onActionButtonClicked) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_round_mic_none_24),
-                                // TODO: 11/04/2024, Danil Nikolaev: handle current button state
-                                contentDescription = "Send icon",
+                                painter = painterResource(
+                                    id = when (screenState.actionMode) {
+                                        ActionMode.Delete -> R.drawable.round_delete_outline_24
+                                        ActionMode.Edit -> R.drawable.ic_round_done_24
+                                        ActionMode.Record -> R.drawable.ic_round_mic_none_24
+                                        ActionMode.Send -> R.drawable.round_send_24
+                                    }
+                                ),
+                                contentDescription = when (screenState.actionMode) {
+                                    ActionMode.Delete -> "Delete message button"
+                                    ActionMode.Edit -> "Edit message button"
+                                    ActionMode.Record -> "Record audio message button"
+                                    ActionMode.Send -> "Send message button"
+                                },
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -325,7 +290,7 @@ fun MessagesHistoryScreenContent(
                 }
             }
 
-            if (isLoading && messages.isEmpty()) {
+            if (screenState.isLoading && messages.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }

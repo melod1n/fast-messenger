@@ -31,6 +31,7 @@ import com.meloda.fast.screens.conversations.domain.usecase.ConversationsUseCase
 import com.meloda.fast.screens.conversations.model.ConversationOption
 import com.meloda.fast.screens.conversations.model.ConversationsScreenState
 import com.meloda.fast.screens.conversations.model.ConversationsShowOptions
+import com.meloda.fast.screens.messages.domain.usecase.MessagesUseCase
 import com.meloda.fast.service.longpolling.LongPollEvent
 import com.meloda.fast.service.longpolling.LongPollUpdatesParser
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +67,8 @@ class ConversationsViewModelImpl(
     private val imageLoader: ImageLoader,
     private val accountUseCase: AccountUseCase,
     private val conversationsUseCase: ConversationsUseCase,
-    private val usersUseCase: UsersUseCase
+    private val usersUseCase: UsersUseCase,
+    private val messagesUseCase: MessagesUseCase
 ) : ConversationsViewModel, ViewModel() {
 
     private val context: Context get() = AppGlobal.Instance
@@ -243,7 +245,7 @@ class ConversationsViewModelImpl(
                     conversationsUseCase.storeConversations(conversations)
                     usersUseCase.storeUsers(response.profiles)
                     conversationsUseCase.storeGroups(response.groups)
-                    conversationsUseCase.storeMessages(response.messages)
+                    messagesUseCase.storeMessages(response.messages)
 
                     val pinnedConversationsCount =
                         conversations.filter(VkConversationDomain::isPinned).size

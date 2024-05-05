@@ -2,8 +2,6 @@ package com.meloda.fast.screens.conversations.data.usecase
 
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
-import com.meloda.fast.api.model.domain.VkMessageDomain
-import com.meloda.fast.api.model.domain.VkUserDomain
 import com.meloda.fast.api.network.conversations.ConversationsDeleteRequest
 import com.meloda.fast.api.network.conversations.ConversationsGetRequest
 import com.meloda.fast.api.network.conversations.ConversationsPinRequest
@@ -14,7 +12,6 @@ import com.meloda.fast.base.toStateApiError
 import com.meloda.fast.database.dao.ConversationsDao
 import com.meloda.fast.database.dao.GroupsDao
 import com.meloda.fast.database.dao.MessagesDao
-import com.meloda.fast.database.dao.UsersDao
 import com.meloda.fast.screens.conversations.domain.repository.ConversationsRepository
 import com.meloda.fast.screens.conversations.domain.usecase.ConversationsUseCase
 import com.slack.eithernet.fold
@@ -108,9 +105,5 @@ class ConversationsUseCaseImpl(
 
     override suspend fun storeGroups(groups: List<VkGroupDomain>) {
         groupsDao.insertAll(groups.map(VkGroupDomain::mapToDB))
-    }
-
-    override suspend fun storeMessages(messages: List<VkMessageDomain>) {
-        messagesDao.insertAll(messages.map(VkMessageDomain::mapToDB))
     }
 }

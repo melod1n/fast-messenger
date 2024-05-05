@@ -1,5 +1,6 @@
 package com.meloda.fast.api
 
+import com.meloda.fast.api.model.data.VkMessageData
 import com.meloda.fast.api.model.domain.VkConversationDomain
 import com.meloda.fast.api.model.domain.VkGroupDomain
 import com.meloda.fast.api.model.domain.VkMessageDomain
@@ -21,11 +22,19 @@ class VkGroupsMap(
         else map[abs(conversation.id)]
 
     fun messageActionGroup(message: VkMessageDomain): VkGroupDomain? =
-        if (message.actionMemberId == null || message.actionMemberId <= 0) null
+        if (message.actionMemberId == null || message.actionMemberId >= 0) null
         else map[abs(message.actionMemberId)]
+
+    fun messageActionGroup(message: VkMessageData): VkGroupDomain? =
+        if (message.action?.memberId == null || message.action.memberId >= 0) null
+        else map[abs(message.action.memberId)]
 
     fun messageGroup(message: VkMessageDomain): VkGroupDomain? =
         if (!message.isGroup()) null
+        else map[abs(message.fromId)]
+
+    fun messageGroup(message: VkMessageData): VkGroupDomain? =
+        if (message.fromId >= 0) null
         else map[abs(message.fromId)]
 
     fun group(groupId: Int): VkGroupDomain? = map[abs(groupId)]

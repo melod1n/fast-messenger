@@ -27,5 +27,4 @@ interface ConversationsUseCase {
 
     suspend fun storeConversations(conversations: List<VkConversationDomain>)
     suspend fun storeGroups(groups: List<VkGroupDomain>)
-    suspend fun storeMessages(messages: List<VkMessageDomain>)
 }

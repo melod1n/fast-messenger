@@ -4,12 +4,8 @@ import android.util.Log
 import com.meloda.fast.api.ApiEvent
 import com.meloda.fast.api.UserConfig
 import com.meloda.fast.api.VKConstants
-import com.meloda.fast.api.VkGroupsMap
 import com.meloda.fast.api.VkMemoryCache
-import com.meloda.fast.api.VkUsersMap
 import com.meloda.fast.api.model.InteractionType
-import com.meloda.fast.api.model.data.VkGroupData
-import com.meloda.fast.api.model.data.VkUserData
 import com.meloda.fast.base.processState
 import com.meloda.fast.ext.asInt
 import com.meloda.fast.ext.asList
@@ -149,17 +145,19 @@ class LongPollUpdatesParser(
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val messageId = event[1].asInt()
 
-        coroutineScope.launch {
-            val newMessageEvent: LongPollEvent.VkMessageNewEvent =
+        coroutineScope.launch(Dispatchers.IO) {
+            val newMessageEvent: LongPollEvent.VkMessageNewEvent? =
                 loadNormalMessage(
                     eventType,
                     messageId
                 )
 
-            listenersMap[ApiEvent.MessageNew]?.let {
-                it.map { vkEventCallback ->
-                    (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageNewEvent>)
-                        .onEvent(newMessageEvent)
+            newMessageEvent?.let { event->
+                listenersMap[ApiEvent.MessageNew]?.let {
+                    it.map { vkEventCallback ->
+                        (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageNewEvent>)
+                            .onEvent(event)
+                    }
                 }
             }
         }
@@ -170,16 +168,18 @@ class LongPollUpdatesParser(
         val messageId = event[1].asInt()
 
         coroutineScope.launch {
-            val editedMessageEvent: LongPollEvent.VkMessageEditEvent =
+            val editedMessageEvent: LongPollEvent.VkMessageEditEvent? =
                 loadNormalMessage(
                     eventType,
                     messageId
                 )
 
-            listenersMap[ApiEvent.MessageEdit]?.let {
-                it.map { vkEventCallback ->
-                    (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageEditEvent>)
-                        .onEvent(editedMessageEvent)
+            editedMessageEvent?.let { event ->
+                listenersMap[ApiEvent.MessageEdit]?.let {
+                    it.map { vkEventCallback ->
+                        (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageEditEvent>)
+                            .onEvent(event)
+                    }
                 }
             }
         }
@@ -236,10 +236,10 @@ class LongPollUpdatesParser(
     private suspend fun <T : LongPollEvent> loadNormalMessage(
         eventType: ApiEvent,
         messageId: Int
-    ): T = suspendCoroutine {
+    ): T? = suspendCoroutine {
         coroutineScope.launch(Dispatchers.IO) {
             messagesUseCase.getById(
-                messagesIds = listOf(messageId),
+                messageId = messageId,
                 extended = true,
                 fields = VKConstants.ALL_FIELDS
             ).listenValue(this) { state ->
@@ -248,52 +248,19 @@ class LongPollUpdatesParser(
                         Log.e("LongPollUpdatesParser", "loadNormalMessage: error: $error")
                     },
                     success = { response ->
-                        val messagesList = response.items
-                        if (messagesList.isEmpty()) return@processState
+                        response?.let { message ->
+                            VkMemoryCache[message.id] = message
+                            messagesUseCase.storeMessage(message)
 
-                        val profilesList = response.profiles.orEmpty().map(VkUserData::mapToDomain)
-                        val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
+                            val resumeValue: LongPollEvent? = when (eventType) {
+                                ApiEvent.MessageNew -> LongPollEvent.VkMessageNewEvent(message)
+                                ApiEvent.MessageEdit -> LongPollEvent.VkMessageEditEvent(message)
 
-                        val usersMap = VkUsersMap.forUsers(profilesList)
-                        val groupsMap = VkGroupsMap.forGroups(groupsList)
-
-                        val message = messagesList.first().mapToDomain().run {
-                            val (user, group) = getUserAndGroup(
-                                usersMap = usersMap,
-                                groupsMap = groupsMap
-                            )
-                            val (actionUser, actionGroup) = getActionUserAndGroup(
-                                usersMap = usersMap,
-                                groupsMap = groupsMap
-                            )
-
-                            copy(
-                                user = user,
-                                group = group,
-                                actionUser = actionUser,
-                                actionGroup = actionGroup
-                            ).also { message -> VkMemoryCache[message.id] = message }
-                        }
-
-                        //messagesRepository.store(listOf(normalMessage))
-
-                        val resumeValue: LongPollEvent? = when (eventType) {
-                            ApiEvent.MessageNew -> {
-                                LongPollEvent.VkMessageNewEvent(
-                                    message,
-                                    profilesList,
-                                    groupsList
-                                )
+                                else -> null
                             }
 
-                            ApiEvent.MessageEdit -> {
-                                LongPollEvent.VkMessageEditEvent(message)
-                            }
-
-                            else -> null
-                        }
-
-                        resumeValue?.let { value -> it.resume(value as T) }
+                            resumeValue?.let { value -> it.resume(value as T) }
+                        } ?: it.resume(null)
                     }
                 )
             }

@@ -72,18 +72,6 @@ object VkUtils {
         }
     }
 
-//    fun isPreviousMessageSentFiveMinutesAgo(
-//        prevMessage: VkMessageDomain?,
-//        message: VkMessageDomain?
-//    ) =
-//        prevMessage != null && message != null && (message.date - prevMessage.date >= 300)
-
-//    fun isPreviousMessageFromDifferentSender(
-//        prevMessage: VkMessageDomain?,
-//        message: VkMessageDomain?
-//    ) =
-//        prevMessage != null && message != null && prevMessage.fromId != message.fromId
-
     // TODO: 11/04/2024, Danil Nikolaev: fill
     fun parseForwards(baseForwards: List<VkMessageData>?): List<VkMessageDomain>? =
         baseForwards?.map(VkMessageData::mapToDomain)

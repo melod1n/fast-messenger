@@ -17,29 +17,11 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
-    alias(libs.plugins.com.vk.vkompose)
 }
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.generateKotlin", "true")
-}
-
-vkompose {
-    skippabilityCheck = true
-
-    recompose {
-        isHighlighterEnabled = true
-        isLoggerEnabled = true
-    }
-
-    testTag {
-        isApplierEnabled = true
-        isDrawerEnabled = false
-        isCleanerEnabled = false
-    }
-
-    sourceInformationClean = true
 }
 
 androidComponents {
@@ -144,7 +126,8 @@ android {
             isShrinkResources = true
 
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
         register("staging") {
