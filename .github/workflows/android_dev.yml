@@ -39,10 +39,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-dev-debug.apk
-          path: app/build/outputs/apk/dev/debug/app-dev-debug.apk
+          path: app/build/outputs/apk/amethyst/debug/app-amethyst-debug.apk
 
       - name: Upload dev-release APK
         uses: actions/upload-artifact@v4
         with:
           name: app-dev-release.apk
-          path: app/build/outputs/apk/dev/release/app-dev-release.apk
+          path: app/build/outputs/apk/amethyst/release/app-amethyst-release.apk
