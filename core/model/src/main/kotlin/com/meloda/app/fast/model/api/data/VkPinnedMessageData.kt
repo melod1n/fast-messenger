@@ -1,0 +1,52 @@
+package com.meloda.app.fast.model.api.data
+
+import com.meloda.app.fast.model.api.domain.VkMessage
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class VkPinnedMessageData(
+    @Json(name = "id") val id: Int?,
+    @Json(name = "peer_id") val peerId: Int?,
+    @Json(name = "date") val date: Int,
+    @Json(name = "from_id") val fromId: Int,
+    @Json(name = "out") val out: Boolean?,
+    @Json(name = "text") val text: String,
+    @Json(name = "conversation_message_id") val conversationMessageId: Int,
+    @Json(name = "fwd_messages") val forwards: List<VkMessageData>?,
+    @Json(name = "important") val important: Boolean = false,
+    @Json(name = "random_id") val randomId: Int = 0,
+    @Json(name = "attachments") val attachments: List<VkAttachmentItemData>?,
+    @Json(name = "is_hidden") val isHidden: Boolean = false,
+    @Json(name = "payload") val payload: String?,
+    @Json(name = "geo") val geo: VkMessageData.Geo?,
+    @Json(name = "action") val action: VkMessageData.Action?,
+    @Json(name = "ttl") val ttl: Int?,
+    @Json(name = "reply_message") val replyMessage: VkMessageData?,
+    @Json(name = "update_time") val updateTime: Int?
+) {
+
+    fun mapToDomain(): VkMessage = VkMessage(
+        id = id ?: -1,
+        text = text.ifBlank { null },
+        isOut = out == true,
+        peerId = peerId ?: -1,
+        fromId = fromId,
+        date = date,
+        randomId = randomId,
+        action = action?.type,
+        actionMemberId = action?.memberId,
+        actionText = action?.text,
+        actionConversationMessageId = action?.conversationMessageId,
+        actionMessage = action?.message,
+        geoType = geo?.type,
+        important = important,
+        updateTime = updateTime,
+        forwards = forwards.orEmpty().map(VkMessageData::asDomain),
+
+        // TODO: 05/05/2024, Danil Nikolaev: parse attachments
+        attachments = emptyList(),
+        replyMessage = replyMessage?.asDomain()
+    )
+}
+

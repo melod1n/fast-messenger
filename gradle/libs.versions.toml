@@ -27,6 +27,10 @@ voyager = "1.0.0"
 room = "2.6.1"
 preference-ktx = "1.2.1"
 nanokt = "1.1.0"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+appcompat = "1.6.1"
+compose-destinations = "2.0.0-beta04"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
@@ -77,6 +81,12 @@ preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = 
 nanokt = { module = "com.conena.nanokt:nanokt", version.ref = "nanokt" }
 nanokt-android = { module = "com.conena.nanokt:nanokt-android", version.ref = "nanokt" }
 nanokt-jvm = { module = "com.conena.nanokt:nanokt-jvm", version.ref = "nanokt" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+compose-destinations-core = { module = "io.github.raamcosta.compose-destinations:core", version.ref = "compose-destinations" }
+compose-destinations-ksp = { module = "io.github.raamcosta.compose-destinations:ksp", version.ref = "compose-destinations" }
+
 
 [bundles]
 compose = [
@@ -95,3 +105,4 @@ com-android-application = { id = "com.android.application", version.ref = "agp" 
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 org-jetbrains-kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }

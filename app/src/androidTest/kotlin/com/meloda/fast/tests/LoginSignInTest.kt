@@ -1,12 +1,12 @@
-package com.meloda.fast.tests
+package com.meloda.app.fast.tests
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.meloda.fast.modules.auth.screens.login.model.LoginScreenState
-import com.meloda.fast.modules.auth.screens.login.model.UiAction
-import com.meloda.fast.modules.auth.screens.login.presentation.LoginSignIn
+import com.meloda.app.fast.auth.screens.login.model.LoginScreenState
+import com.meloda.app.fast.auth.screens.login.model.UiAction
+import com.meloda.app.fast.auth.screens.login.presentation.LoginSignIn
 import org.junit.Rule
 import org.junit.Test
 

@@ -2,10 +2,6 @@ import org.gradle.api.JavaVersion
 
 object Configs {
 
-    const val namespace = "com.meloda.fast"
-
-    const val applicationId = "com.meloda.app.fast"
-
     const val appCode = 1
     const val appName = "1.8.1"
 
