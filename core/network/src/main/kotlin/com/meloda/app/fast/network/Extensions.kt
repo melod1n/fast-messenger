@@ -10,7 +10,7 @@ fun <Success : Any, Error : Any, SuccessDomain : Any, ErrorDomain : Any>
     successMapper: (Success) -> SuccessDomain,
     errorMapper: (Error?) -> ErrorDomain?
 ): ApiResult<SuccessDomain, ErrorDomain> {
-//    if (BuildConfig.DEBUG) printStackTraceIfAny()
+    if (BuildConfig.DEBUG) printStackTraceIfAny()
 
     return when (this) {
         is ApiResult.Success -> ApiResult.success(successMapper(value))

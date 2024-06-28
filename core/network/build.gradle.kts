@@ -26,6 +26,9 @@ android {
     kotlinOptions {
         jvmTarget = Configs.java.toString()
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
