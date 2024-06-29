@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
 }
 
 group = "com.meloda.app.fast.chatmaterials"
@@ -54,4 +56,7 @@ dependencies {
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
+
+    implementation(libs.kotlin.serialization)
+    implementation(libs.androidx.navigation.compose)
 }

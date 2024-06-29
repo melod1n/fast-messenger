@@ -4,7 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import com.meloda.app.fast.datastore.UserConfig
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.createTimerFlow
 import com.meloda.app.fast.data.api.account.AccountUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler

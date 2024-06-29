@@ -96,12 +96,7 @@ class MainActivity : AppCompatActivity() {
                     useDynamicColors = theme.usingDynamicColors,
                     useAmoledBackground = theme.usingAmoledBackground
                 ) {
-                    RootNavigation()
-//                    DestinationsNavHost(
-//                        navGraph = MainNavGraph,
-//                        modifier = Modifier.fillMaxSize()
-//                    )
-
+                    RootGraph()
                 }
             }
         }
@@ -220,7 +215,7 @@ fun NotificationsPermissionChecker(
     val permission =
         rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
 
-    if (screenState.openAppPermissions) {
+    if (screenState.isNeedToOpenAppPermissions) {
         viewModel.onAppPermissionsOpened()
 
         LocalContext.current.apply {
@@ -233,7 +228,7 @@ fun NotificationsPermissionChecker(
         }
     }
 
-    if (screenState.requestNotifications) {
+    if (screenState.isNeedToRequestNotifications) {
         RequestPermission(permission = permission)
     }
 

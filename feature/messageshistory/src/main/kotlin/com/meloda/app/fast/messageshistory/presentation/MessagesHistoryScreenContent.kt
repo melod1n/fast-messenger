@@ -52,27 +52,29 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
+import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.ActionMode
-import com.meloda.app.fast.messageshistory.model.UiAction
+import com.meloda.app.fast.model.BaseError
 import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
+import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
-
-typealias OnAction = (UiAction) -> Unit
 
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
 )
 @Composable
-fun MessagesHistoryScreenContent(
-    onAction: OnAction,
-    viewModel: MessagesHistoryViewModel
+fun MessagesHistoryScreen(
+    onError: (BaseError) -> Unit,
+    onBack: () -> Unit,
+    onNavigateToChatMaterials: () -> Unit,
+    viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
     if (screenState.isNeedToOpenChatMaterials) {
         viewModel.onChatMaterialsOpened()
-        onAction(UiAction.OpenChatMaterials)
+        onNavigateToChatMaterials()
     }
 
     val messages = screenState.messages
@@ -181,7 +183,7 @@ fun MessagesHistoryScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     title = { Text(text = screenState.title) },
                     navigationIcon = {
-                        IconButton(onClick = { onAction(UiAction.BackClicked) }) {
+                        IconButton(onClick = onBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                                 contentDescription = "Back button"

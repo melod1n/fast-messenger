@@ -9,8 +9,9 @@ data class MainScreenState(
     val accountsLoaded: Boolean,
     val useDarkTheme: Boolean,
     val useDynamicColors: Boolean,
-    val requestNotifications: Boolean,
-    val openAppPermissions: Boolean
+    val isNeedToRequestNotifications: Boolean,
+    val isNeedToOpenAppPermissions: Boolean,
+    val isNeedToOpenAuth: Boolean,
 ) {
 
     companion object {
@@ -21,8 +22,9 @@ data class MainScreenState(
             // TODO: 05/05/2024, Danil Nikolaev: implement
             useDarkTheme = false,
             useDynamicColors = false,
-            requestNotifications = false,
-            openAppPermissions = false
+            isNeedToRequestNotifications = false,
+            isNeedToOpenAppPermissions = false,
+            isNeedToOpenAuth = false,
         )
     }
 }

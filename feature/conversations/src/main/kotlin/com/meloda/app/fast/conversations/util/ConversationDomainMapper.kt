@@ -11,13 +11,13 @@ import com.conena.nanokt.jvm.util.dayOfMonth
 import com.conena.nanokt.jvm.util.month
 import com.meloda.app.fast.common.UiImage
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.orDots
 import com.meloda.app.fast.common.parseString
 import com.meloda.app.fast.common.util.TimeUtils
 import com.meloda.app.fast.conversations.model.ActionState
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.data.VkMemoryCache
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.api.PeerType

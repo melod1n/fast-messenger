@@ -12,12 +12,12 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.conena.nanokt.android.app.stopForegroundCompat
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.model.api.data.LongPollUpdates
 import com.meloda.app.fast.model.api.data.VkLongPollData
 import com.meloda.app.fast.util.NotificationsUtils

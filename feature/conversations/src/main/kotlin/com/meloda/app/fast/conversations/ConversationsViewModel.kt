@@ -2,7 +2,6 @@ package com.meloda.app.fast.conversations
 
 import android.content.SharedPreferences
 import android.content.res.Resources
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
@@ -18,14 +17,16 @@ import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.ConversationsShowOptions
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.conversations.util.asPresentation
+import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.designsystem.ImmutableList
+import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.LongPollEvent
 import com.meloda.app.fast.model.api.domain.VkConversation
+import com.meloda.app.fast.network.VkErrorCodes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,7 @@ import kotlin.coroutines.cancellation.CancellationException
 interface ConversationsViewModel {
 
     val screenState: StateFlow<ConversationsScreenState>
+    val baseError: StateFlow<BaseError?>
 
     fun onDeleteDialogDismissed()
 
@@ -52,6 +54,8 @@ interface ConversationsViewModel {
     fun onPinDialogDismissed()
     fun onPinDialogPositiveClick(conversation: UiConversation)
     fun onOptionClicked(conversation: UiConversation, option: ConversationOption)
+
+    fun onErrorConsumed()
 }
 
 class ConversationsViewModelImpl(
@@ -64,6 +68,7 @@ class ConversationsViewModelImpl(
 ) : ConversationsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
+    override val baseError = MutableStateFlow<BaseError?>(null)
 
     private val conversations = MutableStateFlow<List<VkConversation>>(emptyList())
 
@@ -170,6 +175,10 @@ class ConversationsViewModelImpl(
         }
     }
 
+    override fun onErrorConsumed() {
+        baseError.setValue { null }
+    }
+
     private fun hideOptions(conversationId: Int) {
         screenState.setValue { old ->
             old.copy(
@@ -189,11 +198,32 @@ class ConversationsViewModelImpl(
 
     private fun loadConversations(offset: Int? = null) {
         conversationsUseCase.getConversations(
-            count = 60,
-            offset = 0
+            count = 30,
+            offset = offset
         ).listenValue { state ->
             state.processState(
-                error = { error -> },
+                error = { error ->
+                    when (error) {
+                        is State.Error.ApiError -> {
+                            val (code, message) = error
+
+                            when (code) {
+                                VkErrorCodes.UserAuthorizationFailed -> {
+                                    baseError.setValue { BaseError.SessionExpired }
+                                }
+
+                                else -> {
+                                    Unit
+                                }
+                            }
+                        }
+
+                        State.Error.ConnectionError -> TODO()
+                        State.Error.InternalError -> TODO()
+                        is State.Error.OAuthError -> TODO()
+                        State.Error.Unknown -> TODO()
+                    }
+                },
                 success = { response ->
                     conversationsUseCase.storeConversations(response)
 
@@ -237,19 +267,19 @@ class ConversationsViewModelImpl(
     }
 
     private fun loadProfileUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            accountsRepository.getAccounts().let { accounts ->
-                Log.d("ConversationsViewModel", "initUserConfig: accounts: $accounts")
-                if (accounts.isNotEmpty()) {
-                    val currentAccount = accounts.find { it.userId == UserConfig.currentUserId }
-                    if (currentAccount != null) {
-                        UserConfig.userId = currentAccount.userId
-                        UserConfig.accessToken = currentAccount.accessToken
-                        UserConfig.fastToken = currentAccount.fastToken
-                        UserConfig.trustedHash = currentAccount.trustedHash
-                    }
-                }
-            }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            accountsRepository.getAccounts().let { accounts ->
+//                Log.d("ConversationsViewModel", "initUserConfig: accounts: $accounts")
+//                if (accounts.isNotEmpty()) {
+//                    val currentAccount = accounts.find { it.userId == UserConfig.currentUserId }
+//                    if (currentAccount != null) {
+//                        UserConfig.userId = currentAccount.userId
+//                        UserConfig.accessToken = currentAccount.accessToken
+//                        UserConfig.fastToken = currentAccount.fastToken
+//                        UserConfig.trustedHash = currentAccount.trustedHash
+//                    }
+//                }
+//            }
 
 //            sendRequest(
 //                request = {
@@ -264,7 +294,7 @@ class ConversationsViewModelImpl(
 //            )
 
             loadConversations()
-        }
+//        }
     }
 
     private fun deleteConversation(peerId: Int) {

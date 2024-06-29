@@ -6,12 +6,12 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.datastore.isDebugSettingsShown
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.settings.model.SettingsItem

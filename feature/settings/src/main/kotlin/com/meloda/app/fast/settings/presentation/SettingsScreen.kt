@@ -34,11 +34,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isUsingDarkMode
 import com.meloda.app.fast.designsystem.MaterialDialog
+import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
 import com.meloda.app.fast.settings.SettingsViewModelImpl
@@ -70,6 +71,7 @@ typealias OnAction = (NavigationAction) -> Unit
 )
 @Composable
 fun SettingsScreen(
+    onError: (BaseError) -> Unit,
     onAction: OnAction,
     viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
@@ -294,7 +296,7 @@ fun SettingsScreen(
         performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
         logoutPositiveClick = {
             viewModel.onLogOutAlertPositiveClick()
-            onAction(NavigationAction.NavigateToLogin)
+            onAction(NavigationAction.NavigateToAuth)
         },
         logoutDismissed = viewModel::onLogOutAlertDismissed,
         longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,

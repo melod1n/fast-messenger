@@ -130,7 +130,6 @@ dependencies {
     implementation(projects.feature.messageshistory)
     implementation(projects.feature.photoviewer)
     implementation(projects.feature.settings)
-    implementation(projects.feature.userbanned)
 
     implementation(projects.core.common)
     implementation(projects.core.ui)

@@ -9,7 +9,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -61,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.orDots
 import com.meloda.app.fast.conversations.ConversationsViewModel
 import com.meloda.app.fast.conversations.ConversationsViewModelImpl
@@ -68,10 +68,10 @@ import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.NavigationAction
 import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.model.BaseError
+import com.meloda.app.fast.ui.ErrorView
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -98,6 +98,8 @@ fun ConversationsScreen(
     onAction: OnAction,
     viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
 ) {
+    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+
     val view = LocalView.current
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -218,16 +220,6 @@ fun ConversationsScreen(
                 }
             }
 
-            val title = @Composable {
-                Row(modifier = Modifier) {
-                    Text(
-                        text = if (isLoading) "Loading..." else "Conversations",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
             val toolbarColorAlpha by animateFloatAsState(
                 targetValue = if (!listState.canScrollBackward) 1f else 0f,
                 label = "toolbarColorAlpha",
@@ -236,7 +228,13 @@ fun ConversationsScreen(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 TopAppBar(
-                    title = title,
+                    title = {
+                        Text(
+                            text = if (isLoading) "Loading..." else "Conversations",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     actions = actions,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface.copy(
@@ -255,7 +253,7 @@ fun ConversationsScreen(
                         .fillMaxWidth(),
                 )
 
-                if (isLoading && conversations.isNotEmpty()) {
+                AnimatedVisibility(visible = isLoading && conversations.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
@@ -280,88 +278,100 @@ fun ConversationsScreen(
             }
         }
     ) { padding ->
-        if (isLoading && conversations.isEmpty()) {
-            Loader()
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
-                    .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
-                    .padding(bottom = padding.calculateBottomPadding())
-            ) {
-                val pullRefreshState = rememberPullRefreshState(
-                    refreshing = screenState.isLoading,
-                    onRefresh = viewModel::onRefresh
+        when {
+            baseError is BaseError.SessionExpired -> {
+                ErrorView(
+                    text = "Session expired",
+                    buttonText = "Log out",
+                    onButtonClick = { onError(BaseError.SessionExpired) }
                 )
-                val listModifier = remember(showPullRefresh) {
-                    if (showPullRefresh) {
-                        Modifier
-                            .fillMaxWidth()
-                            .pullRefresh(pullRefreshState)
-                    } else {
-                        Modifier.fillMaxWidth()
-                    }
-                }
+            }
 
-                if (useLightList) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = listModifier
-                    ) {
-                        items(
-                            count = conversations.size,
-                            key = { index -> index }
-                        ) { index ->
-                            Text(
-                                text = "Text #${index + 1}",
-                                modifier = Modifier.height(64.dp)
-                            )
+            isLoading && conversations.isEmpty() -> Loader()
+
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
+                        .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
+                        .padding(bottom = padding.calculateBottomPadding())
+                ) {
+                    val pullRefreshState = rememberPullRefreshState(
+                        refreshing = screenState.isLoading,
+                        onRefresh = viewModel::onRefresh
+                    )
+                    val listModifier = remember(showPullRefresh) {
+                        if (showPullRefresh) {
+                            Modifier
+                                .fillMaxWidth()
+                                .pullRefresh(pullRefreshState)
+                        } else {
+                            Modifier.fillMaxWidth()
                         }
                     }
-                } else {
-                    ConversationsListComposable(
-                        onConversationsClick = {
-                            onAction(
-                                NavigationAction.NavigateToMessagesHistory(
-                                    it.id
-                                )
-                            )
-                        },
-                        onConversationsLongClick = viewModel::onConversationItemLongClick,
-                        screenState = screenState,
-                        state = listState,
-                        maxLines = maxLines,
-                        showOnlyPlaceholders = showOnlyPlaceholders,
-                        modifier = listModifier.then(
-                            if (currentTheme.usingBlur) {
-                                Modifier.haze(
-                                    state = hazeState,
-                                    style = HazeMaterials.thick()
-                                )
-                            } else Modifier
-                        ),
-                        onOptionClicked = viewModel::onOptionClicked,
-                        padding = padding
-                    )
 
-                    AnimatedVisibility(
-                        visible = showPullRefresh,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = padding.calculateTopPadding())
-                    ) {
-                        PullRefreshIndicator(
-                            refreshing = screenState.isLoading,
-                            state = pullRefreshState,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .wrapContentSize(),
-                            colors = PullRefreshIndicatorDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
+                    if (useLightList) {
+                        LazyColumn(
+                            state = listState,
+                            modifier = listModifier
+                        ) {
+                            items(
+                                count = conversations.size,
+                                key = { index -> index }
+                            ) { index ->
+                                Text(
+                                    text = "Text #${index + 1}",
+                                    modifier = Modifier.height(64.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        ConversationsListComposable(
+                            onConversationsClick = {
+                                onAction(
+                                    NavigationAction.NavigateToMessagesHistory(
+                                        it.id
+                                    )
+                                )
+                            },
+                            onConversationsLongClick = viewModel::onConversationItemLongClick,
+                            screenState = screenState,
+                            state = listState,
+                            maxLines = maxLines,
+                            showOnlyPlaceholders = showOnlyPlaceholders,
+                            modifier = listModifier.then(
+                                if (currentTheme.usingBlur) {
+                                    Modifier.haze(
+                                        state = hazeState,
+                                        style = HazeMaterials.thick()
+                                    )
+                                } else Modifier
+                            ),
+                            onOptionClicked = viewModel::onOptionClicked,
+                            padding = padding
                         )
+
+                        AnimatedVisibility(
+                            visible = showPullRefresh,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = padding.calculateTopPadding())
+                        ) {
+                            PullRefreshIndicator(
+                                refreshing = screenState.isLoading,
+                                state = pullRefreshState,
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .wrapContentSize(),
+                                colors = PullRefreshIndicatorDefaults.colors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                        2.dp
+                                    ),
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -426,6 +436,7 @@ fun ConversationsListComposable(
                 }
             }
 
+            // TODO: 29/06/2024, Danil Nikolaev: wtf
             val options by remember(conversation) {
                 derivedStateOf {
                     conversation.options

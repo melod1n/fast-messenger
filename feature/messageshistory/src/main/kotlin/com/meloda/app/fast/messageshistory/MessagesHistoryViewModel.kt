@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
 import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.messageshistory.domain.MessagesUseCase
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
@@ -101,12 +101,7 @@ class MessagesHistoryViewModelImpl(
 
     override fun setArguments(arguments: MessagesHistoryArguments) {
         screenState.setValue { old ->
-            old.copy(
-                conversationId = arguments.conversationId,
-                title = arguments.title,
-                status = arguments.status,
-                avatar = arguments.avatar
-            )
+            old.copy(conversationId = arguments.conversationId)
         }
 
         loadMessagesHistory()

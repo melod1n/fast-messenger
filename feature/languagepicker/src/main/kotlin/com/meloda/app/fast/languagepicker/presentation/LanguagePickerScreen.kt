@@ -56,12 +56,9 @@ import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModel
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
-import com.meloda.app.fast.languagepicker.model.UiAction
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
-
-typealias OnAction = (UiAction) -> Unit
 
 // TODO: 05/05/2024, Danil Nikolaev: remove or improve
 private fun getLanguages(resources: Resources): Map<String, String> {
@@ -77,42 +74,24 @@ private fun getLanguages(resources: Resources): Map<String, String> {
     }.toMap()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguagePickerScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: LanguagePickerViewModel = koinViewModel<LanguagePickerViewModelImpl>()
 ) {
     val context = LocalContext.current
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val userSettings: UserSettings = koinInject()
-    val viewModel: LanguagePickerViewModel = koinViewModel<LanguagePickerViewModelImpl>()
     val language by userSettings.language.collectAsStateWithLifecycle()
+    val languages = screenState.languages
 
-    // TODO: 14/05/2024, Danil Nikolaev: improve
     LaunchedEffect(true) {
         viewModel.setLanguages(
             locales = getLanguages(context.resources),
             currentCode = language
         )
     }
-
-    LanguagePickerScreenContent(
-        onAction = { action ->
-            when (action) {
-                UiAction.BackClicked -> onBack()
-            }
-        },
-        viewModel = viewModel
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LanguagePickerScreenContent(
-    onAction: OnAction,
-    viewModel: LanguagePickerViewModel
-) {
-    val context = LocalContext.current
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val languages = screenState.languages
 
     val isButtonEnabled by remember(screenState) {
         derivedStateOf {
@@ -133,7 +112,7 @@ fun LanguagePickerScreenContent(
             LargeTopAppBar(
                 title = { Text(text = stringResource(id = UiR.string.title_application_language)) },
                 navigationIcon = {
-                    IconButton(onClick = { onAction(UiAction.BackClicked) }) {
+                    IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Navigate back"

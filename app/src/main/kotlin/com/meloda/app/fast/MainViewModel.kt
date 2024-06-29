@@ -3,13 +3,14 @@ package com.meloda.app.fast
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.app.fast.datastore.UserConfig
+import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.LongPollState
 import com.meloda.app.fast.model.MainScreenState
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,10 @@ interface MainViewModel {
     fun onNotificationsRequested()
 
     fun onAppPermissionsOpened()
+
+    fun onError(error: BaseError)
+
+    fun onAuthOpened()
 }
 
 class MainViewModelImpl(
@@ -76,9 +81,9 @@ class MainViewModelImpl(
     override fun onRequestNotificationsPermissionClicked(fromRationale: Boolean) {
         screenState.setValue { old ->
             if (fromRationale) {
-                old.copy(openAppPermissions = true)
+                old.copy(isNeedToOpenAppPermissions = true)
             } else {
-                old.copy(requestNotifications = true)
+                old.copy(isNeedToRequestNotifications = true)
             }
         }
     }
@@ -94,11 +99,23 @@ class MainViewModelImpl(
     }
 
     override fun onNotificationsRequested() {
-        screenState.setValue { old -> old.copy(requestNotifications = false) }
+        screenState.setValue { old -> old.copy(isNeedToRequestNotifications = false) }
     }
 
     override fun onAppPermissionsOpened() {
-        screenState.setValue { old -> old.copy(openAppPermissions = false) }
+        screenState.setValue { old -> old.copy(isNeedToOpenAppPermissions = false) }
+    }
+
+    override fun onError(error: BaseError) {
+        when (error) {
+            BaseError.SessionExpired -> {
+                screenState.setValue { old -> old.copy(isNeedToOpenAuth = true) }
+            }
+        }
+    }
+
+    override fun onAuthOpened() {
+        screenState.setValue { old -> old.copy(isNeedToOpenAuth = false) }
     }
 
     private fun loadAccounts() {
@@ -119,12 +136,12 @@ class MainViewModelImpl(
                 }
             }
 
-            screenState.emit(
-                screenState.value.copy(
+            screenState.setValue { old ->
+                old.copy(
                     accounts = accounts,
                     accountsLoaded = true
                 )
-            )
+            }
         }
     }
 }

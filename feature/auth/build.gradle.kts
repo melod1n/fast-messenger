@@ -4,9 +4,6 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
 val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
 
-val debugUserId: String = getLocalProperty("userId", "\"0\"")
-val debugAccessToken: String = getLocalProperty("accessToken", "\"\"")
-
 fun getLocalProperty(key: String, defValue: String): String {
     return gradleLocalProperties(rootDir, providers).getProperty(key, defValue)
 }
@@ -39,23 +36,6 @@ androidComponents {
                     type = "String",
                     value = sdkFingerprint,
                     comment = "sdkFingerprint for VK"
-                )
-            )
-
-            put(
-                "debugUserId",
-                BuildConfigField(
-                    type = "String",
-                    value = debugUserId,
-                    comment = "user id for debugging purposes"
-                )
-            )
-            put(
-                "debugAccessToken",
-                BuildConfigField(
-                    type = "String",
-                    value = debugAccessToken,
-                    comment = "access token for debugging purposes"
                 )
             )
         }
@@ -98,21 +78,15 @@ dependencies {
     implementation(projects.core.ui)
 
     implementation(projects.feature.conversations)
-    implementation(projects.feature.userbanned)
 
-    implementation(libs.nanokt.android)
-    implementation(libs.nanokt.jvm)
-    implementation(libs.nanokt)
+    implementation(projects.feature.auth.login)
+    implementation(projects.feature.auth.captcha)
+    implementation(projects.feature.auth.twofa)
+    implementation(projects.feature.auth.userbanned)
 
-    implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.android)
 
-    implementation(platform(libs.compose.bom))
-    implementation(libs.bundles.compose)
-
-    implementation(libs.coil.compose)
-
-    implementation(libs.eithernet)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlin.serialization)
 }
