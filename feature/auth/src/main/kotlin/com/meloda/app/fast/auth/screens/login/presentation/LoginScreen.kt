@@ -48,8 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.auth.screens.login.LoginViewModel
 import com.meloda.app.fast.auth.screens.login.LoginViewModelImpl
+import com.meloda.app.fast.auth.screens.login.OnAction
 import com.meloda.app.fast.auth.screens.login.model.LoginError
-import com.meloda.app.fast.auth.screens.login.model.NavigationUiAction
+import com.meloda.app.fast.auth.screens.login.model.UiAction
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
@@ -62,8 +63,7 @@ import com.meloda.app.fast.model.BaseError
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-private typealias OnAction = (NavigationUiAction) -> Unit
-
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LoginScreen(
     onError: (BaseError) -> Unit,
@@ -76,61 +76,33 @@ fun LoginScreen(
         viewModel.onNavigatedToUserBanned()
 
         screenState.userBannedArguments?.let { arguments ->
-            onAction(NavigationUiAction.NavigateToUserBanned(arguments))
+            onAction(UiAction.NavigateToUserBanned(arguments))
         }
     }
 
     if (screenState.isNeedToOpenConversations) {
         viewModel.onNavigatedToConversations()
 
-        onAction(NavigationUiAction.NavigateToConversations)
+        onAction(UiAction.NavigateToConversations)
     }
 
     if (screenState.isNeedToOpenCaptcha) {
         screenState.captchaArguments?.let { arguments ->
-            onAction(NavigationUiAction.NavigateToCaptcha(arguments))
+            onAction(UiAction.NavigateToCaptcha(arguments))
         }
     }
 
     if (screenState.isNeedToOpenTwoFa) {
         screenState.twoFaArguments?.let { arguments ->
-            onAction(NavigationUiAction.NavigateToTwoFa(arguments))
+            onAction(UiAction.NavigateToTwoFa(arguments))
         }
     }
-
-    Scaffold { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            LoginSignIn(
-                onAction = onAction,
-                viewModel = viewModel
-            )
-        }
-    }
-
-    HandleError(
-        onDismiss = viewModel::onErrorDialogDismissed,
-        error = screenState.error
-    )
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun LoginSignIn(
-    onAction: OnAction,
-    viewModel: LoginViewModel
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
-    val isLoading = screenState.isLoading
 
     // TODO: 29/06/2024, Danil Nikolaev: remove lambda
     val goButtonClickAction = {
-        if (!isLoading) {
+        if (!screenState.isLoading) {
             focusManager.clearFocus()
             viewModel.onSignInButtonClicked()
         }
@@ -140,188 +112,203 @@ fun LoginSignIn(
         true
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(30.dp)
-            .imePadding()
-    ) {
-        Column(
+    Scaffold { padding ->
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
+                .fillMaxSize()
+                .padding(padding)
         ) {
-            Text(
-                text = stringResource(id = UiR.string.sign_in_to_vk),
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.displayMedium
-            )
-
-            Spacer(modifier = Modifier.height(58.dp))
-
-            var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
-            val showLoginError = screenState.loginError
-
-            val autoFillEmailHandler = autoFillRequestHandler(
-                autofillTypes = listOf(AutofillType.EmailAddress),
-                onFill = { value ->
-                    loginText = TextFieldValue(text = value, selection = TextRange(value.length))
-                    viewModel.onLoginInputChanged(value)
-                }
-            )
-
-            TextField(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .handleEnterKey(loginFieldTabClick::invoke)
-                    .handleTabKey(loginFieldTabClick::invoke)
-                    .focusRequester(loginFocusable)
-                    .connectNode(handler = autoFillEmailHandler)
-                    .defaultFocusChangeAutoFill(handler = autoFillEmailHandler),
-                value = loginText,
-                onValueChange = { newText ->
-                    val text = newText.text
-                    if (text.isEmpty()) {
-                        autoFillEmailHandler.requestVerifyManual()
-                    }
+                    .fillMaxSize()
+                    .padding(30.dp)
+                    .imePadding()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                ) {
+                    Text(
+                        text = stringResource(id = UiR.string.sign_in_to_vk),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.displayMedium
+                    )
 
-                    loginText = newText
-                    viewModel.onLoginInputChanged(text)
-                },
-                label = { Text(text = stringResource(id = UiR.string.login_hint)) },
-                placeholder = { Text(text = stringResource(id = UiR.string.login_hint)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = UiR.drawable.ic_round_person_24),
-                        contentDescription = "Login icon",
-                        tint = if (showLoginError) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.primary
+                    Spacer(modifier = Modifier.height(58.dp))
+
+                    var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
+                    val showLoginError = screenState.loginError
+
+                    val autoFillEmailHandler = autoFillRequestHandler(
+                        autofillTypes = listOf(AutofillType.EmailAddress),
+                        onFill = { value ->
+                            loginText =
+                                TextFieldValue(text = value, selection = TextRange(value.length))
+                            viewModel.onLoginInputChanged(value)
                         }
                     )
-                },
-                shape = RoundedCornerShape(10.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next,
-                    keyboardType = KeyboardType.Email
-                ),
-                keyboardActions = KeyboardActions(onNext = { passwordFocusable.requestFocus() }),
-                isError = showLoginError,
-                singleLine = true
-            )
-            AnimatedVisibility(visible = showLoginError) {
-                TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    TextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .handleEnterKey(loginFieldTabClick::invoke)
+                            .handleTabKey(loginFieldTabClick::invoke)
+                            .focusRequester(loginFocusable)
+                            .connectNode(handler = autoFillEmailHandler)
+                            .defaultFocusChangeAutoFill(handler = autoFillEmailHandler),
+                        value = loginText,
+                        onValueChange = { newText ->
+                            val text = newText.text
+                            if (text.isEmpty()) {
+                                autoFillEmailHandler.requestVerifyManual()
+                            }
 
-            var passwordText by remember { mutableStateOf(TextFieldValue(screenState.password)) }
-            val showPasswordError = screenState.passwordError
-
-            val autoFillPasswordHandler = autoFillRequestHandler(
-                autofillTypes = listOf(AutofillType.Password),
-                onFill = { value ->
-                    passwordText = TextFieldValue(text = value, selection = TextRange(value.length))
-                    viewModel.onPasswordInputChanged(value)
-                }
-            )
-
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .handleEnterKey {
-                        goButtonClickAction.invoke()
-                        true
+                            loginText = newText
+                            viewModel.onLoginInputChanged(text)
+                        },
+                        label = { Text(text = stringResource(id = UiR.string.login_hint)) },
+                        placeholder = { Text(text = stringResource(id = UiR.string.login_hint)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = UiR.drawable.ic_round_person_24),
+                                contentDescription = "Login icon",
+                                tint = if (showLoginError) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                }
+                            )
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Email
+                        ),
+                        keyboardActions = KeyboardActions(onNext = { passwordFocusable.requestFocus() }),
+                        isError = showLoginError,
+                        singleLine = true
+                    )
+                    AnimatedVisibility(visible = showLoginError) {
+                        TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
                     }
-                    .focusRequester(passwordFocusable)
-                    .connectNode(handler = autoFillPasswordHandler)
-                    .defaultFocusChangeAutoFill(handler = autoFillPasswordHandler),
-                value = passwordText,
-                onValueChange = { newText ->
-                    val text = newText.text
-                    if (text.isEmpty()) {
-                        autoFillPasswordHandler.requestVerifyManual()
-                    }
 
-                    passwordText = newText
-                    viewModel.onPasswordInputChanged(text)
-                },
-                label = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
-                placeholder = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = UiR.drawable.round_vpn_key_24),
-                        contentDescription = "Password icon",
-                        tint = if (showPasswordError) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.primary
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    var passwordText by remember { mutableStateOf(TextFieldValue(screenState.password)) }
+                    val showPasswordError = screenState.passwordError
+
+                    val autoFillPasswordHandler = autoFillRequestHandler(
+                        autofillTypes = listOf(AutofillType.Password),
+                        onFill = { value ->
+                            passwordText =
+                                TextFieldValue(text = value, selection = TextRange(value.length))
+                            viewModel.onPasswordInputChanged(value)
                         }
                     )
-                },
-                trailingIcon = {
-                    val imagePainter = painterResource(
-                        id = if (screenState.passwordVisible) UiR.drawable.round_visibility_off_24
-                        else UiR.drawable.round_visibility_24
-                    )
 
-                    IconButton(onClick = viewModel::onPasswordVisibilityButtonClicked) {
+                    TextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .handleEnterKey {
+                                goButtonClickAction.invoke()
+                                true
+                            }
+                            .focusRequester(passwordFocusable)
+                            .connectNode(handler = autoFillPasswordHandler)
+                            .defaultFocusChangeAutoFill(handler = autoFillPasswordHandler),
+                        value = passwordText,
+                        onValueChange = { newText ->
+                            val text = newText.text
+                            if (text.isEmpty()) {
+                                autoFillPasswordHandler.requestVerifyManual()
+                            }
+
+                            passwordText = newText
+                            viewModel.onPasswordInputChanged(text)
+                        },
+                        label = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
+                        placeholder = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = UiR.drawable.round_vpn_key_24),
+                                contentDescription = "Password icon",
+                                tint = if (showPasswordError) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                }
+                            )
+                        },
+                        trailingIcon = {
+                            val imagePainter = painterResource(
+                                id = if (screenState.passwordVisible) UiR.drawable.round_visibility_off_24
+                                else UiR.drawable.round_visibility_24
+                            )
+
+                            IconButton(onClick = viewModel::onPasswordVisibilityButtonClicked) {
+                                Icon(
+                                    painter = imagePainter,
+                                    contentDescription = if (screenState.passwordVisible) "Password visible icon"
+                                    else "Password invisible icon"
+                                )
+                            }
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            imeAction = ImeAction.Go,
+                            keyboardType = KeyboardType.Password
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onGo = { goButtonClickAction.invoke() }
+                        ),
+                        isError = showPasswordError,
+                        visualTransformation = if (screenState.passwordVisible) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        singleLine = true
+                    )
+                    AnimatedVisibility(visible = showPasswordError) {
+                        TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
+                    }
+                }
+
+                Box(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    FloatingActionButton(
+                        onClick = goButtonClickAction::invoke,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.testTag("Sign in button")
+                    ) {
                         Icon(
-                            painter = imagePainter,
-                            contentDescription = if (screenState.passwordVisible) "Password visible icon"
-                            else "Password invisible icon"
+                            painter = painterResource(id = UiR.drawable.ic_arrow_end),
+                            contentDescription = "Sign in icon",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
-                },
-                shape = RoundedCornerShape(10.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Go,
-                    keyboardType = KeyboardType.Password
-                ),
-                keyboardActions = KeyboardActions(
-                    onGo = { goButtonClickAction.invoke() }
-                ),
-                isError = showPasswordError,
-                visualTransformation = if (screenState.passwordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                singleLine = true
-            )
-            AnimatedVisibility(visible = showPasswordError) {
-                TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
-            }
-        }
-
-        Box(
-            modifier = Modifier.align(Alignment.BottomCenter),
-            contentAlignment = Alignment.Center
-        ) {
-
-            FloatingActionButton(
-                onClick = goButtonClickAction::invoke,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.testTag("Sign in button")
-            ) {
-                Icon(
-                    painter = painterResource(id = UiR.drawable.ic_arrow_end),
-                    contentDescription = "Sign in icon",
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-            AnimatedVisibility(
-                visible = isLoading,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                CircularProgressIndicator()
+                    AnimatedVisibility(
+                        visible = screenState.isLoading,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
     }
+
+    HandleError(
+        onDismiss = viewModel::onErrorDialogDismissed,
+        error = screenState.error
+    )
 }
 
 @Composable

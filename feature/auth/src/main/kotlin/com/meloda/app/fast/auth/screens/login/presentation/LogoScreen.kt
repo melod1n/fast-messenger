@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.screens.logo.presentation
+package com.meloda.app.fast.auth.screens.login.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -22,50 +22,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.auth.screens.logo.LogoViewModel
-import com.meloda.app.fast.auth.screens.logo.LogoViewModelImpl
-import com.meloda.app.fast.auth.screens.logo.model.LogoUiAction
-import com.meloda.app.fast.common.extensions.restartApp
+import com.meloda.app.fast.auth.screens.login.LoginViewModel
+import com.meloda.app.fast.auth.screens.login.LoginViewModelImpl
+import com.meloda.app.fast.auth.screens.login.OnAction
+import com.meloda.app.fast.auth.screens.login.model.UiAction
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-private typealias OnAction = (LogoUiAction) -> Unit
-
-@Composable
-fun LogoScreen(
-    viewModel: LogoViewModel = koinViewModel<LogoViewModelImpl>(),
-) {
-    val context = LocalContext.current
-
-    LogoScreenContent(
-        onAction = { action ->
-            when (action) {
-                LogoUiAction.NextClicked -> {
-//                    navigator.navigate(LoginDestination)
-                }
-                LogoUiAction.Restart -> context.restartApp()
-            }
-        },
-        viewModel = viewModel
-    )
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LogoScreenContent(
+fun LogoScreen(
     onAction: OnAction,
-    viewModel: LogoViewModel
+    viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
     if (screenState.isNeedToRestart) {
         viewModel.onRestarted()
-        onAction(LogoUiAction.Restart)
+        onAction(UiAction.Restart)
     }
 
     Scaffold { padding ->
@@ -101,7 +79,7 @@ fun LogoScreenContent(
             }
 
             FloatingActionButton(
-                onClick = { onAction(LogoUiAction.NextClicked) },
+                onClick = { onAction(UiAction.NextClicked) },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {

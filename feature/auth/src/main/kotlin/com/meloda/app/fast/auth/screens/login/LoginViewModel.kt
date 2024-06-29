@@ -3,6 +3,7 @@ package com.meloda.app.fast.auth.screens.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meloda.app.fast.auth.BuildConfig
 import com.meloda.app.fast.auth.OAuthUseCase
 import com.meloda.app.fast.auth.screens.login.model.LoginScreenState
 import com.meloda.app.fast.auth.screens.login.model.LoginValidationResult
@@ -19,11 +20,14 @@ import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.network.OAuthErrorDomain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 interface LoginViewModel {
     val screenState: StateFlow<LoginScreenState>
@@ -43,6 +47,9 @@ interface LoginViewModel {
 
     fun onTwoFaCodeReceived(code: String)
     fun onCaptchaCodeReceived(code: String)
+
+    fun onLogoLongClicked()
+    fun onRestarted()
 }
 
 class LoginViewModelImpl(
@@ -119,6 +126,32 @@ class LoginViewModelImpl(
         )
 
         login()
+    }
+
+    override fun onLogoLongClicked() {
+        val currentAccount = AccountEntity(
+            userId = BuildConfig.debugUserId.toInt(),
+            accessToken = BuildConfig.debugAccessToken,
+            fastToken = null,
+            trustedHash = null
+        ).also { account ->
+            UserConfig.currentUserId = account.userId
+            UserConfig.userId = account.userId
+            UserConfig.accessToken = account.accessToken
+            UserConfig.fastToken = account.fastToken
+            UserConfig.trustedHash = account.trustedHash
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            accountsRepository.storeAccounts(listOf(currentAccount))
+
+            delay(350)
+            screenState.setValue { old -> old.copy(isNeedToRestart = true) }
+        }
+    }
+
+    override fun onRestarted() {
+        screenState.setValue { old -> old.copy(isNeedToRestart = false) }
     }
 
     private fun login(forceSms: Boolean = false) {

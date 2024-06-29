@@ -86,8 +86,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (NavigationAction) -> Unit
-
+internal typealias OnAction = (NavigationAction) -> Unit
 
 @OptIn(
     ExperimentalMaterial3Api::class,

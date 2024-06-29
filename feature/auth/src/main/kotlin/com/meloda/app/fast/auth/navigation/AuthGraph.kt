@@ -4,8 +4,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.navigation
-import com.meloda.app.fast.auth.screens.login.navigation.Login
+import com.meloda.app.fast.auth.screens.login.navigation.Logo
 import com.meloda.app.fast.auth.screens.login.navigation.loginRoute
+import com.meloda.app.fast.auth.screens.login.navigation.navigateToLogin
 import com.meloda.app.fast.auth.screens.twofa.navigation.TwoFa
 import com.meloda.app.fast.auth.screens.twofa.navigation.setTwoFaResult
 import com.meloda.app.fast.auth.screens.twofa.navigation.twoFaRoute
@@ -21,7 +22,7 @@ fun NavGraphBuilder.authNavGraph(
     navController: NavHostController
 ) {
     navigation<AuthGraph>(
-        startDestination = Login
+        startDestination = Logo
     ) {
         loginRoute(
             onError = onError,
@@ -34,7 +35,8 @@ fun NavGraphBuilder.authNavGraph(
             onNavigateToConversations = navController::navigateToConversations,
             onNavigateToUserBanned = {
 
-            }
+            },
+            onNavigateToLogin = navController::navigateToLogin,
         )
 
         twoFaRoute(

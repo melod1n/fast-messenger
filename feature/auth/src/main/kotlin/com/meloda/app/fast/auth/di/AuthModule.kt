@@ -6,7 +6,6 @@ import com.meloda.app.fast.auth.OAuthUseCase
 import com.meloda.app.fast.auth.OAuthUseCaseImpl
 import com.meloda.app.fast.auth.screens.captcha.di.captchaModule
 import com.meloda.app.fast.auth.screens.login.di.loginModule
-import com.meloda.app.fast.auth.screens.logo.di.logoModule
 import com.meloda.app.fast.auth.screens.twofa.di.twoFaModule
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -17,7 +16,6 @@ val authModule = module {
     singleOf(::AuthUseCaseImpl) bind AuthUseCase::class
 
     includes(
-        logoModule,
         loginModule,
         twoFaModule,
         captchaModule,
