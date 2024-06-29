@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.kotlin.compose.compiler)
 }
 
 android {
@@ -19,10 +20,6 @@ android {
         versionName = Configs.appName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ksp {
-            arg("compose-destinations.moduleName", "main")
-        }
     }
 
     // TODO: 06/05/2024, Danil Nikolaev: придумать, как совместить с github actions
@@ -70,16 +67,22 @@ android {
         named("release") {
             signingConfig = signingConfigs.getByName("release")
 
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+
+        // TODO: 15/05/2024, Danil Nikolaev: add to other modules with build convention
         register("staging") {
             initWith(getByName("release"))
+
+            isMinifyEnabled = false
+            isShrinkResources = false
+
             applicationIdSuffix = ".staging"
         }
     }
@@ -109,7 +112,6 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = Configs.composeCompiler
         useLiveLiterals = true
     }
 
@@ -148,15 +150,6 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-    // Voyager zone
-    implementation(libs.voyager.navigator)
-    implementation(libs.voyager.koin)
-    implementation(libs.voyager.transitions)
-
-    implementation(libs.compose.destinations.core)
-    ksp(libs.compose.destinations.ksp)
-    // end of Voyager zone
-
     // Coil for Compose
     implementation(libs.coil.compose)
 
@@ -183,4 +176,6 @@ dependencies {
     implementation(libs.nanokt)
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
+
+    implementation(libs.androidx.navigation.compose)
 }

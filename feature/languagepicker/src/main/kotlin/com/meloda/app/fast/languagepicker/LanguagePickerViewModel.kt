@@ -3,6 +3,7 @@ package com.meloda.app.fast.languagepicker
 import androidx.lifecycle.ViewModel
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,44 +14,43 @@ interface LanguagePickerViewModel {
 
     fun setLanguages(
         locales: Map<String, String>,
-        currentLanguage: String
+        currentCode: String
     )
 
     fun onLanguagePicked(position: Int)
 
     fun onApplyButtonClicked()
-
-    fun onLanguageChanged()
 }
 
 class LanguagePickerViewModelImpl(
-    userSettings: UserSettings
+    private val userSettings: UserSettings
 ) : LanguagePickerViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(
-        LanguagePickerScreenState.EMPTY.copy(
+        LanguagePickerScreenState(
+            languages = ImmutableList.empty(),
             currentLanguage = userSettings.language.value
         )
     )
 
     override fun setLanguages(
         locales: Map<String, String>,
-        currentLanguage: String
+        currentCode: String
     ) {
-        val languages = locales.keys.toList()
+        val codes = locales.keys.toList()
 
-        val selectableLanguages = languages.map { language ->
+        val selectableLanguages = codes.map { code ->
             SelectableLanguage(
-                language = language,
-                key = locales[language].orEmpty(),
-                isSelected = locales[language] == currentLanguage
+                language = locales[code].orEmpty(),
+                key = code,
+                isSelected = code == currentCode
             )
         }
 
         screenState.setValue { old ->
             old.copy(
-                languages = selectableLanguages,
-                currentLanguage = currentLanguage
+                languages = ImmutableList.copyOf(selectableLanguages),
+                currentLanguage = currentCode
             )
         }
     }
@@ -64,16 +64,13 @@ class LanguagePickerViewModelImpl(
     }
 
     override fun onApplyButtonClicked() {
-        // TODO: 05/05/2024, Danil Nikolaev: implement
-//        AppGlobal.preferences.put(
-//            SettingsKeys.KEY_APPEARANCE_LANGUAGE,
-//            screenState.value.languages.find(SelectableLanguage::isSelected)?.key ?: "en"
-//        )
+        val selectableLanguage =
+            screenState.value.languages.singleOrNull(SelectableLanguage::isSelected)
 
-        screenState.setValue { old -> old.copy(isNeedToChangeLanguage = true) }
-    }
-
-    override fun onLanguageChanged() {
-        screenState.setValue { old -> old.copy(isNeedToChangeLanguage = false) }
+        if (selectableLanguage != null) {
+            val newCode = selectableLanguage.key
+            userSettings.setLanguage(newCode)
+            screenState.setValue { old -> old.copy(currentLanguage = newCode) }
+        }
     }
 }

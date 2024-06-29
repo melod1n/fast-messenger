@@ -11,7 +11,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class ConversationsGetResponse(
     @Json(name = "count") val count: Int,
-    @Json(name = "items") val items: List<ConversationsResponseItems>,
+    @Json(name = "items") val items: List<ConversationsResponseItem>,
     @Json(name = "unread_count") val unreadCount: Int?,
     @Json(name = "profiles") val profiles: List<VkUserData>?,
     @Json(name = "groups") val groups: List<VkGroupData>?,
@@ -76,7 +76,7 @@ data class ConversationsGetResponse(
 }
 
 @JsonClass(generateAdapter = true)
-data class ConversationsResponseItems(
+data class ConversationsResponseItem(
     @Json(name = "conversation") val conversation: VkConversationData,
     @Json(name = "last_message") val lastMessage: VkMessageData?
 )

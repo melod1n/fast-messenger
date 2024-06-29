@@ -1,14 +1,13 @@
 package com.meloda.app.fast
 
 import android.util.Log
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.app.fast.common.AppGlobal
-import com.meloda.app.fast.common.UserConfig
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
 import com.meloda.app.fast.data.db.AccountsRepository
+import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.model.LongPollState
@@ -49,7 +48,7 @@ class MainViewModelImpl(
     override val screenState = MutableStateFlow(MainScreenState.EMPTY)
 
     override val longPollState = MutableStateFlow(
-        if (AppGlobal.preferences.getBoolean(
+        if (SettingsController.getBoolean(
                 SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
                 SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
             )
@@ -60,7 +59,7 @@ class MainViewModelImpl(
         }
     )
     override val startOnlineService = MutableStateFlow(
-        AppGlobal.preferences.getBoolean(
+        SettingsController.getBoolean(
             SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
             SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
         )
@@ -85,7 +84,7 @@ class MainViewModelImpl(
     }
 
     override fun onNotificationsAlertNegativeClicked() {
-        AppGlobal.preferences.edit {
+        SettingsController.edit {
             putBoolean(
                 SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
                 false

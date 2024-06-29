@@ -1,10 +1,10 @@
 package com.meloda.app.fast.service.longpolling
 
 import android.util.Log
-import com.meloda.app.fast.common.UserConfig
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.asInt
-import com.meloda.app.fast.common.extensions.asList
+import com.meloda.app.fast.common.extensions.toList
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.data.processState
@@ -87,7 +87,7 @@ class LongPollUpdatesParser(
         }
 
         val peerId = event[1].asInt()
-        val userIds = event[2].asList(Any::asInt).filter { it != UserConfig.userId }
+        val userIds = event[2].toList(Any::asInt).filter { it != UserConfig.userId }
         val totalCount = event[3].asInt()
         val timestamp = event[4].asInt()
 

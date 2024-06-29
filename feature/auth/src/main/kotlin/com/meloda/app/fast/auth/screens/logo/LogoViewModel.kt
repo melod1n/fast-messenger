@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.auth.BuildConfig
 import com.meloda.app.fast.auth.screens.logo.model.LogoScreenState
-import com.meloda.app.fast.common.UserConfig
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.model.database.AccountEntity

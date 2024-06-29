@@ -1,6 +1,7 @@
 package com.meloda.app.fast.settings.model
 
 import androidx.compose.runtime.Immutable
+import com.meloda.app.fast.datastore.isDebugSettingsShown
 import com.meloda.app.fast.settings.HapticType
 
 @Immutable
@@ -18,9 +19,7 @@ data class SettingsScreenState(
             settings = emptyList(),
             useHaptics = HapticType.None,
             isNeedToRequestNotificationPermission = false,
-
-            // TODO: 05/05/2024, Danil Nikolaev: implement
-            showDebugOptions = true//isDebugSettingsShown(AppGlobal.Instance)
+            showDebugOptions = isDebugSettingsShown()
         )
     }
 }

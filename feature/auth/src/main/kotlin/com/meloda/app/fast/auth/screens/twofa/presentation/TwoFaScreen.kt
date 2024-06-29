@@ -41,83 +41,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.auth.navigation.AuthGraph
 import com.meloda.app.fast.auth.screens.twofa.TwoFaViewModel
 import com.meloda.app.fast.auth.screens.twofa.TwoFaViewModelImpl
 import com.meloda.app.fast.auth.screens.twofa.model.TwoFaArguments
-import com.meloda.app.fast.auth.screens.twofa.model.UiAction
+import com.meloda.app.fast.auth.screens.twofa.model.TwoFaUiAction
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
 import com.meloda.app.fast.designsystem.getString
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.result.ResultBackNavigator
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (UiAction) -> Unit
+private typealias OnAction = (TwoFaUiAction) -> Unit
 
-@Destination<AuthGraph>(route = "twofa")
-@Suppress("NonSkippableComposable")
 @Composable
 fun TwoFaScreen(
-    validationSid: String,
-    redirectUri: String,
-    phoneMask: String,
-    validationType: String,
-    canResendSms: Boolean,
-    wrongCodeError: String?,
-    navigator: ResultBackNavigator<String>,
-    viewModel: TwoFaViewModel = koinViewModel<TwoFaViewModelImpl>()
-) {
-    viewModel.setArguments(
-        TwoFaArguments(
-            validationSid = validationSid,
-            redirectUri = redirectUri,
-            phoneMask = phoneMask,
-            validationType = validationType,
-            canResendSms = canResendSms,
-            wrongCodeError = wrongCodeError
-        )
-    )
-
-    TwoFaScreenContent(
-        onAction = { action ->
-            when (action) {
-                UiAction.BackClicked -> {
-                    navigator.navigateBack()
-                }
-
-                is UiAction.CodeInputChanged -> {
-                    viewModel.onCodeInputChanged(action.newCode)
-                }
-
-                is UiAction.CodeResult -> {
-                    navigator.navigateBack(result = action.code)
-                }
-
-                UiAction.DoneButtonClicked -> {
-                    viewModel.onDoneButtonClicked()
-                }
-
-                UiAction.RequestSmsButtonClicked -> {
-                    viewModel.onRequestSmsButtonClicked()
-                }
-
-                UiAction.TextFieldDoneClicked -> {
-                    viewModel.onTextFieldDoneClicked()
-                }
-            }
-        },
-        viewModel = viewModel
-    )
-}
-
-@Composable
-fun TwoFaScreenContent(
+    arguments: TwoFaArguments,
     onAction: OnAction,
-    viewModel: TwoFaViewModel,
+    viewModel: TwoFaViewModel = koinViewModel<TwoFaViewModelImpl>(),
 ) {
+    viewModel.setArguments(arguments)
+
     val focusManager = LocalFocusManager.current
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -131,7 +75,7 @@ fun TwoFaScreenContent(
     }
 
     if (confirmedExit) {
-        onAction(UiAction.BackClicked)
+        onAction(TwoFaUiAction.BackClicked)
     }
 
     BackHandler(enabled = !confirmedExit) {
@@ -158,9 +102,9 @@ fun TwoFaScreenContent(
 
         val code = screenState.twoFaCode
         if (code == null) {
-            onAction(UiAction.BackClicked)
+            onAction(TwoFaUiAction.BackClicked)
         } else {
-            onAction(UiAction.CodeResult(code = code))
+            onAction(TwoFaUiAction.CodeResult(code = code))
         }
     }
 
@@ -173,7 +117,7 @@ fun TwoFaScreenContent(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             ExtendedFloatingActionButton(
-                onClick = { onAction(UiAction.BackClicked) },
+                onClick = { onAction(TwoFaUiAction.BackClicked) },
                 text = {
                     Text(
                         text = "Cancel",
@@ -224,7 +168,7 @@ fun TwoFaScreenContent(
                         if (newText.text.length > 6) return@TextField
 
                         code = newText
-                        onAction(UiAction.CodeInputChanged(newText.text))
+                        viewModel.onCodeInputChanged((newText.text))
                     },
                     label = { Text(text = "Code") },
                     placeholder = { Text(text = "Code") },
@@ -250,7 +194,7 @@ fun TwoFaScreenContent(
                     keyboardActions = KeyboardActions(
                         onDone = {
                             focusManager.clearFocus()
-                            onAction(UiAction.TextFieldDoneClicked)
+                            viewModel.onTextFieldDoneClicked()
                         }
                     ),
                     isError = codeError != null
@@ -272,7 +216,7 @@ fun TwoFaScreenContent(
                     visible = canResendSms,
                 ) {
                     ExtendedFloatingActionButton(
-                        onClick = { onAction(UiAction.RequestSmsButtonClicked) },
+                        onClick = viewModel::onRequestSmsButtonClicked,
                         text = {
                             Text(
                                 text = "Request SMS",
@@ -293,7 +237,7 @@ fun TwoFaScreenContent(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 FloatingActionButton(
-                    onClick = { onAction(UiAction.DoneButtonClicked) },
+                    onClick = viewModel::onDoneButtonClicked,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ) {
                     Icon(

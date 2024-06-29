@@ -10,6 +10,4 @@ object Configs {
     const val targetSdk = 34
 
     val java = JavaVersion.VERSION_17
-
-    const val composeCompiler = "1.5.13"
 }

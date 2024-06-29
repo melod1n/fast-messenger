@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.designsystem.ImmutableList.Companion.toImmutableList
 
 // TODO: 08.04.2023, Danil Nikolaev: review
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,8 +53,8 @@ fun MaterialDialog(
     neutralText: UiText? = null,
     neutralAction: (() -> Unit)? = null,
     itemsSelectionType: ItemsSelectionType = ItemsSelectionType.None,
-    preSelectedItems: List<Int> = emptyList(),
-    items: List<UiText> = emptyList(),
+    preSelectedItems: ImmutableList<Int> = ImmutableList.empty(),
+    items: ImmutableList<UiText> = ImmutableList.empty(),
     onItemClick: ((index: Int) -> Unit)? = null,
     buttonsInvokeDismiss: Boolean = true,
     customContent: (@Composable () -> Unit)? = null,
@@ -170,7 +171,7 @@ fun MaterialDialog(
                                         newItems[index] =
                                             oldItem.copy(isSelected = !oldItem.isSelected)
 
-                                        alertItems = newItems
+                                        alertItems = newItems.toImmutableList()
                                     }
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
@@ -267,7 +268,7 @@ fun AlertItemsPreview() {
     AppTheme {
         AlertItems(
             selectionType = ItemsSelectionType.None,
-            items = List(5) { index ->
+            items = ImmutableList(5) { index ->
                 DialogItem(
                     title = "Item #${index + 1}",
                     isSelected = index % 2 == 0
@@ -281,7 +282,7 @@ fun AlertItemsPreview() {
 @Composable
 private fun AlertItems(
     selectionType: ItemsSelectionType,
-    items: List<DialogItem>,
+    items: ImmutableList<DialogItem>,
     onItemClick: ((index: Int) -> Unit)? = null,
     onItemCheckedChanged: ((index: Int) -> Unit)? = null
 ) {

@@ -1,6 +1,6 @@
 package com.meloda.app.fast.common
 
-import android.content.Context
+import android.content.res.Resources
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 
@@ -20,20 +20,20 @@ sealed class UiText {
     data class QuantityResource(@PluralsRes val resId: Int, val quantity: Int) : UiText()
 }
 
-fun UiText?.parseString(context: Context): String? {
+fun UiText?.parseString(resources: Resources): String? {
     return when (this) {
-        is UiText.Resource -> context.getString(resId)
+        is UiText.Resource -> resources.getString(resId)
         is UiText.ResourceParams -> {
             val processedArgs = args.map { any ->
                 when (any) {
-                    is UiText -> any.parseString(context)
+                    is UiText -> any.parseString(resources)
                     else -> any
                 }
             }
-            context.getString(value, *processedArgs.toTypedArray())
+            resources.getString(value, *processedArgs.toTypedArray())
         }
 
-        is UiText.QuantityResource -> context.resources.getQuantityString(resId, quantity, quantity)
+        is UiText.QuantityResource -> resources.getQuantityString(resId, quantity, quantity)
         is UiText.Simple -> text
         else -> null
     }

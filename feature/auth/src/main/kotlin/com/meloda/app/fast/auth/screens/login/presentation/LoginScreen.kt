@@ -46,12 +46,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.auth.navigation.AuthGraph
 import com.meloda.app.fast.auth.screens.login.LoginViewModel
 import com.meloda.app.fast.auth.screens.login.LoginViewModelImpl
 import com.meloda.app.fast.auth.screens.login.model.LoginError
-import com.meloda.app.fast.auth.screens.login.model.LoginScreenState
-import com.meloda.app.fast.auth.screens.login.model.UiAction
+import com.meloda.app.fast.auth.screens.login.model.NavigationUiAction
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
@@ -60,92 +58,17 @@ import com.meloda.app.fast.designsystem.connectNode
 import com.meloda.app.fast.designsystem.defaultFocusChangeAutoFill
 import com.meloda.app.fast.designsystem.handleEnterKey
 import com.meloda.app.fast.designsystem.handleTabKey
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.generated.auth.destinations.CaptchaDestination
-import com.ramcosta.composedestinations.generated.auth.destinations.TwofaDestination
-import com.ramcosta.composedestinations.generated.conversations.destinations.ConversationsDestination
-import com.ramcosta.composedestinations.generated.destinations.UserbannedDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.meloda.app.fast.model.BaseError
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (UiAction) -> Unit
+private typealias OnAction = (NavigationUiAction) -> Unit
 
-
-@Destination<AuthGraph>(route = "login")
 @Composable
 fun LoginScreen(
-    navigator: DestinationsNavigator,
-    viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>(),
-) {
-    LoginScreenContent(
-        onAction = { action ->
-            when (action) {
-                is UiAction.NavigateToCaptcha -> {
-                    navigator.navigate(
-                        CaptchaDestination(
-                            captchaSid = action.arguments.captchaSid,
-                            captchaImage = action.arguments.captchaImage
-                        )
-                    )
-                }
-
-                UiAction.NavigateToConversations -> {
-                    navigator.navigate(ConversationsDestination(null)) {
-                        popUpTo("logo") { inclusive = true }
-                    }
-                }
-
-                is UiAction.NavigateToTwoFa -> {
-                    navigator.navigate(
-                        TwofaDestination(
-                            validationSid = action.arguments.validationSid,
-                            redirectUri = action.arguments.redirectUri,
-                            phoneMask = action.arguments.phoneMask,
-                            validationType = action.arguments.validationType,
-                            canResendSms = action.arguments.canResendSms,
-                            wrongCodeError = action.arguments.wrongCodeError
-                        )
-                    )
-                }
-
-                is UiAction.NavigateToUserBanned -> {
-                    navigator.navigate(
-                        UserbannedDestination(
-                            name = action.arguments.name,
-                            message = action.arguments.message,
-                            isLastScreenLogin = true
-                        )
-                    ) {
-                        popUpTo("logo") { inclusive = true }
-                    }
-                }
-
-                is UiAction.LoginInputChanged -> {
-                    viewModel.onLoginInputChanged(action.newText)
-                }
-
-                is UiAction.PasswordInputChanged -> {
-                    viewModel.onPasswordInputChanged(action.newText)
-                }
-
-                UiAction.PasswordVisibilityClicked -> {
-                    viewModel.onPasswordVisibilityButtonClicked()
-                }
-
-                UiAction.SignInClicked -> {
-                    viewModel.onSignInButtonClicked()
-                }
-            }
-        },
-        viewModel = viewModel
-    )
-}
-
-@Composable
-fun LoginScreenContent(
+    onError: (BaseError) -> Unit,
     onAction: OnAction,
-    viewModel: LoginViewModel
+    viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
@@ -153,25 +76,25 @@ fun LoginScreenContent(
         viewModel.onNavigatedToUserBanned()
 
         screenState.userBannedArguments?.let { arguments ->
-            onAction(UiAction.NavigateToUserBanned(arguments))
+            onAction(NavigationUiAction.NavigateToUserBanned(arguments))
         }
     }
 
     if (screenState.isNeedToOpenConversations) {
         viewModel.onNavigatedToConversations()
 
-        onAction(UiAction.NavigateToConversations)
+        onAction(NavigationUiAction.NavigateToConversations)
     }
 
     if (screenState.isNeedToOpenCaptcha) {
         screenState.captchaArguments?.let { arguments ->
-            onAction(UiAction.NavigateToCaptcha(arguments))
+            onAction(NavigationUiAction.NavigateToCaptcha(arguments))
         }
     }
 
     if (screenState.isNeedToOpenTwoFa) {
         screenState.twoFaArguments?.let { arguments ->
-            onAction(UiAction.NavigateToTwoFa(arguments))
+            onAction(NavigationUiAction.NavigateToTwoFa(arguments))
         }
     }
 
@@ -182,8 +105,8 @@ fun LoginScreenContent(
                 .padding(padding)
         ) {
             LoginSignIn(
-                onAction = {},
-                screenState = screenState,
+                onAction = onAction,
+                viewModel = viewModel
             )
         }
     }
@@ -198,16 +121,18 @@ fun LoginScreenContent(
 @Composable
 fun LoginSignIn(
     onAction: OnAction,
-    screenState: LoginScreenState
+    viewModel: LoginViewModel
 ) {
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
     val isLoading = screenState.isLoading
 
+    // TODO: 29/06/2024, Danil Nikolaev: remove lambda
     val goButtonClickAction = {
         if (!isLoading) {
             focusManager.clearFocus()
-            onAction(UiAction.SignInClicked)
+            viewModel.onSignInButtonClicked()
         }
     }
     val loginFieldTabClick = {
@@ -241,7 +166,7 @@ fun LoginSignIn(
                 autofillTypes = listOf(AutofillType.EmailAddress),
                 onFill = { value ->
                     loginText = TextFieldValue(text = value, selection = TextRange(value.length))
-                    onAction(UiAction.LoginInputChanged(newText = value))
+                    viewModel.onLoginInputChanged(value)
                 }
             )
 
@@ -262,7 +187,7 @@ fun LoginSignIn(
                     }
 
                     loginText = newText
-                    onAction(UiAction.LoginInputChanged(newText = text))
+                    viewModel.onLoginInputChanged(text)
                 },
                 label = { Text(text = stringResource(id = UiR.string.login_hint)) },
                 placeholder = { Text(text = stringResource(id = UiR.string.login_hint)) },
@@ -294,13 +219,12 @@ fun LoginSignIn(
 
             var passwordText by remember { mutableStateOf(TextFieldValue(screenState.password)) }
             val showPasswordError = screenState.passwordError
-            var passwordVisible = screenState.passwordVisible
 
             val autoFillPasswordHandler = autoFillRequestHandler(
                 autofillTypes = listOf(AutofillType.Password),
                 onFill = { value ->
                     passwordText = TextFieldValue(text = value, selection = TextRange(value.length))
-                    onAction(UiAction.PasswordInputChanged(newText = value))
+                    viewModel.onPasswordInputChanged(value)
                 }
             )
 
@@ -323,7 +247,7 @@ fun LoginSignIn(
                     }
 
                     passwordText = newText
-                    onAction(UiAction.PasswordInputChanged(newText = text))
+                    viewModel.onPasswordInputChanged(text)
                 },
                 label = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
                 placeholder = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
@@ -340,19 +264,14 @@ fun LoginSignIn(
                 },
                 trailingIcon = {
                     val imagePainter = painterResource(
-                        id = if (passwordVisible) UiR.drawable.round_visibility_off_24
+                        id = if (screenState.passwordVisible) UiR.drawable.round_visibility_off_24
                         else UiR.drawable.round_visibility_24
                     )
 
-                    IconButton(
-                        onClick = {
-                            onAction(UiAction.PasswordVisibilityClicked)
-                            passwordVisible = !passwordVisible
-                        }
-                    ) {
+                    IconButton(onClick = viewModel::onPasswordVisibilityButtonClicked) {
                         Icon(
                             painter = imagePainter,
-                            contentDescription = if (passwordVisible) "Password visible icon"
+                            contentDescription = if (screenState.passwordVisible) "Password visible icon"
                             else "Password invisible icon"
                         )
                     }
@@ -366,7 +285,7 @@ fun LoginSignIn(
                     onGo = { goButtonClickAction.invoke() }
                 ),
                 isError = showPasswordError,
-                visualTransformation = if (passwordVisible) {
+                visualTransformation = if (screenState.passwordVisible) {
                     VisualTransformation.None
                 } else {
                     PasswordVisualTransformation()

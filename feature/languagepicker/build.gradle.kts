@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.org.jetbrains.kotlin.android)
+    alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.kotlin.compose.compiler)
 }
 
 group = "com.meloda.app.fast.languagepicker"
@@ -31,7 +33,6 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = Configs.composeCompiler
         useLiveLiterals = true
     }
 }
@@ -47,10 +48,6 @@ dependencies {
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-
-    implementation(libs.voyager.navigator)
-    implementation(libs.voyager.koin)
-    implementation(libs.voyager.transitions)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)

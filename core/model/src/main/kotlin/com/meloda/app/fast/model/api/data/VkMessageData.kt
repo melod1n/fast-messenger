@@ -65,7 +65,7 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     fromId = fromId,
     date = date,
     randomId = randomId,
-    action = action?.type,
+    action = VkMessage.Action.parse(action?.type),
     actionMemberId = action?.memberId,
     actionText = action?.text,
     actionConversationMessageId = action?.conversationMessageId,
@@ -78,5 +78,9 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     // TODO: 05/05/2024, Danil Nikolaev: parse attachments
     attachments = emptyList(),
     replyMessage = replyMessage?.asDomain(),
+    user = null,
+    group = null,
+    actionUser = null,
+    actionGroup = null,
 )
 

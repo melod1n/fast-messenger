@@ -27,7 +27,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
-fun ChatMaterialsScreenContent() {
+fun ChatMaterialsScreen() {
     val hazeState = remember { HazeState() }
 
     Scaffold(

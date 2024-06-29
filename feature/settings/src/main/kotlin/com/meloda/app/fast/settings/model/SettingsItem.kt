@@ -1,6 +1,7 @@
 package com.meloda.app.fast.settings.model
 
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.datastore.SettingsController
 import kotlin.properties.Delegates
 
 // TODO: 24/12/2023, Danil Nikolaev: refactor
@@ -38,21 +39,7 @@ sealed class SettingsItem<Value>(
 
         onValueChanged?.invoke(newValue)
 
-        saveValueToPreferences(key, value)
-    }
-
-    private fun saveValueToPreferences(key: String, value: Any?) {
-        // TODO: 05/05/2024, Danil Nikolaev: implement
-//        AppGlobal.preferences.edit {
-//            when (value) {
-//                is String -> putString(key, value)
-//                is Boolean -> putBoolean(key, value)
-//                is Int -> putInt(key, value)
-//                is Long -> putLong(key, value)
-//                is Float -> putFloat(key, value)
-//                else -> throw IllegalArgumentException("unknown class \"${value?.javaClass}\" with value \"$value\"")
-//            }
-//        }
+        SettingsController.put(key, newValue)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -61,19 +48,18 @@ sealed class SettingsItem<Value>(
         classToGet: Class<T>,
         defaultValue: Any?
     ): T? {
-        // TODO: 05/05/2024, Danil Nikolaev: implement
-//        val preferences = AppGlobal.preferences
-//
-//        return when (classToGet) {
-//            String::class.java -> preferences.getString(key, defaultValue as? String)
-//            Boolean::class.java -> preferences.getBoolean(key, defaultValue as? Boolean == true)
-//            Int::class.java -> preferences.getInt(key, defaultValue as? Int ?: -1)
-//            Long::class.java -> preferences.getLong(key, defaultValue as? Long ?: -1)
-//            Float::class.java -> preferences.getFloat(key, defaultValue as? Float ?: -1f)
-//            else -> null
-//        }.let { value -> value as? T }
+        return when (classToGet) {
+            String::class.java -> SettingsController.getString(key, defaultValue as? String)
 
-        return null
+            Boolean::class.java -> {
+                SettingsController.getBoolean(key, defaultValue as? Boolean == true)
+            }
+
+            Int::class.java -> SettingsController.getInt(key, defaultValue as? Int ?: -1)
+            Long::class.java -> SettingsController.getLong(key, defaultValue as? Long ?: -1)
+            Float::class.java -> SettingsController.getFloat(key, defaultValue as? Float ?: -1f)
+            else -> null
+        }.let { value -> value as? T }
     }
 
     var defaultValue: Value? = null
@@ -163,9 +149,7 @@ sealed class SettingsItem<Value>(
                     this.isEnabled = isEnabled
                     this.isVisible = isVisible
 
-                    // TODO: 05/05/2024, Danil Nikolaev: implement
-                    this.value = null
-//                        AppGlobal.preferences.getString(key, defaultValue)
+                    this.value = SettingsController.getString(key, defaultValue)
                 }.apply(builder)
             }
         }
@@ -192,10 +176,9 @@ sealed class SettingsItem<Value>(
                     this.defaultValue = defaultValue
                     this.isVisible = isVisible
 
-                    // TODO: 05/05/2024, Danil Nikolaev: implement
-//                    this.value = defaultValue
-//                        ?.let { value -> AppGlobal.preferences.getBoolean(key, value) }
-//                        ?: isChecked
+                    this.value = defaultValue
+                        ?.let { value -> SettingsController.getBoolean(key, value) }
+                        ?: isChecked
                 }.apply(builder)
             }
         }

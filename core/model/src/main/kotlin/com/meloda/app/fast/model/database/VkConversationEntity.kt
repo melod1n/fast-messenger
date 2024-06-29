@@ -58,5 +58,7 @@ fun VkConversationEntity.asExternalModel(): VkConversation = VkConversation(
     interactionIds = emptyList(),
     peerType = PeerType.parse(peerType),
     lastMessage = null,//lastMessage?.asExternalModel(),
-    pinnedMessage = null,//pinnedMessage?.asExternalModel()
+    pinnedMessage = null,//pinnedMessage?.asExternalModel(),
+    user = null,
+    group = null,
 )

@@ -24,25 +24,7 @@ package com.meloda.app.fast
         return user to group
     }
 
-    private fun extractAvatar(): UiImage {
-        val placeholderImage = UiImage.Resource(R.drawable.ic_account_circle_cut)
 
-        val avatarLink = when {
-            peerType.isUser() -> {
-                if (id == UserConfig.userId) {
-                    null
-                } else {
-                    conversationUser?.photo200
-                }
-            }
-
-            peerType.isGroup() -> conversationGroup?.photo200
-            peerType.isChat() -> photo200
-            else -> null
-        }
-
-        return avatarLink?.let(UiImage::Url) ?: placeholderImage
-    }
 
     private fun extractTitle(): String {
         return when {

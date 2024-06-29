@@ -23,9 +23,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.designsystem.AppTheme
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.ExternalModuleGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.meloda.app.fast.designsystem.R as UiR
 
 @Preview
@@ -41,16 +38,14 @@ fun UserBannedScreenPreview() {
     }
 }
 
-@Destination<ExternalModuleGraph>(route = "userbanned")
 @Composable
 fun UserBannedScreen(
     name: String,
     message: String,
     isLastScreenLogin: Boolean,
-    navigator: DestinationsNavigator
 ) {
     UserBannedScreenContent(
-        onBackClick = navigator::popBackStack,
+        onBackClick = {},
         name = name,
         message = message,
         isLastScreenLogin = isLastScreenLogin

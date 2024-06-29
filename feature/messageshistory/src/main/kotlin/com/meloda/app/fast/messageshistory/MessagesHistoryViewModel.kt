@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.messageshistory.domain.MessagesUseCase
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
@@ -192,6 +192,10 @@ class MessagesHistoryViewModelImpl(
             attachments = emptyList(),
             replyMessage = null,
             geoType = null,
+            user = null,
+            group = null,
+            actionUser = null,
+            actionGroup = null,
         )
 
         screenState.setValue { old ->

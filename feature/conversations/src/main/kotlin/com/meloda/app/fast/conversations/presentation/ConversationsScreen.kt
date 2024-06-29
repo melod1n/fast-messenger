@@ -61,19 +61,17 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.orDots
 import com.meloda.app.fast.conversations.ConversationsViewModel
 import com.meloda.app.fast.conversations.ConversationsViewModelImpl
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
-import com.meloda.app.fast.conversations.model.UiAction
-import com.meloda.app.fast.conversations.model.VkConversationUi
+import com.meloda.app.fast.conversations.model.NavigationAction
+import com.meloda.app.fast.conversations.model.UiConversation
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.designsystem.MaterialDialog
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.ExternalModuleGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.meloda.app.fast.model.BaseError
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -88,45 +86,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (UiAction) -> Unit
-
-@Destination<ExternalModuleGraph>(route = "conversations")
-@Composable
-// TODO: 06/05/2024, Danil Nikolaev: find out what causes bug with no args
-fun ConversationsScreen(
-    testArg: String? = null,
-    navigator: DestinationsNavigator,
-    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
-) {
-    val view = LocalView.current
-
-    ConversationsScreenContent(
-        onAction = { action ->
-            when (action) {
-                UiAction.CreateChatClicked -> {
-                    view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
-                }
-
-                is UiAction.NavigateToMessagesHistory -> {
-//                    MessagesHistoryArguments(
-//                        conversationId = conversation.id,
-//                        title = conversation.title,
-//                        status = conversation.lastSeenStatus,
-//                        avatar = when {
-//                            conversation.id == UserConfig.userId -> Avatar.Favorites
-//                            else -> conversation.avatar?.mapToAvatar() ?: Avatar.Empty
-//                        }
-//                    )
-                }
-
-                UiAction.NavigateToSettings -> {
-
-                }
-            }
-        },
-        viewModel = viewModel
-    )
-}
+typealias OnAction = (NavigationAction) -> Unit
 
 
 @OptIn(
@@ -134,10 +94,12 @@ fun ConversationsScreen(
     ExperimentalHazeMaterialsApi::class,
 )
 @Composable
-fun ConversationsScreenContent(
+fun ConversationsScreen(
+    onError: (BaseError) -> Unit,
     onAction: OnAction,
-    viewModel: ConversationsViewModel
+    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
 ) {
+    val view = LocalView.current
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val conversations = screenState.conversations
@@ -206,7 +168,7 @@ fun ConversationsScreenContent(
                 ) {
                     DropdownMenuItem(
                         onClick = {
-                            onAction(UiAction.NavigateToSettings)
+                            onAction(NavigationAction.NavigateToSettings)
                             dropDownMenuExpanded = false
                         },
                         text = {
@@ -306,7 +268,11 @@ fun ConversationsScreenContent(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                FloatingActionButton(onClick = { onAction(UiAction.CreateChatClicked) }) {
+                FloatingActionButton(
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                    }
+                ) {
                     Icon(
                         painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
                         contentDescription = "Pencil icon"
@@ -356,7 +322,13 @@ fun ConversationsScreenContent(
                     }
                 } else {
                     ConversationsListComposable(
-                        onConversationsClick = { onAction(UiAction.NavigateToMessagesHistory(it.id)) },
+                        onConversationsClick = {
+                            onAction(
+                                NavigationAction.NavigateToMessagesHistory(
+                                    it.id
+                                )
+                            )
+                        },
                         onConversationsLongClick = viewModel::onConversationItemLongClick,
                         screenState = screenState,
                         state = listState,
@@ -418,14 +390,14 @@ fun Loader() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationsListComposable(
-    onConversationsClick: (VkConversationUi) -> Unit,
-    onConversationsLongClick: (VkConversationUi) -> Unit,
+    onConversationsClick: (UiConversation) -> Unit,
+    onConversationsLongClick: (UiConversation) -> Unit,
     screenState: ConversationsScreenState,
     state: LazyListState,
     maxLines: Int,
     showOnlyPlaceholders: Boolean,
     modifier: Modifier,
-    onOptionClicked: (VkConversationUi, ConversationOption) -> Unit,
+    onOptionClicked: (UiConversation, ConversationOption) -> Unit,
     padding: PaddingValues
 ) {
     val conversations = screenState.conversations
@@ -461,7 +433,7 @@ fun ConversationsListComposable(
                 }
             }
 
-            Conversation(
+            ConversationItem(
                 onItemClick = {
                     onConversationsClick(conversation)
                 },
@@ -483,7 +455,7 @@ fun ConversationsListComposable(
                 unreadCount = conversation.unreadCount,
                 interactionText = conversation.interactionText,
                 showOnlyPlaceholders = showOnlyPlaceholders,
-                modifier = Modifier.animateItemPlacement(),
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                 options = options,
                 onOptionClicked = { option ->
                     onOptionClicked(conversation, option)
@@ -554,7 +526,7 @@ fun DeleteDialog(
 
 @Composable
 fun PinDialog(
-    conversation: VkConversationUi,
+    conversation: UiConversation,
     viewModel: ConversationsViewModel
 ) {
     MaterialDialog(

@@ -1,19 +1,10 @@
 package com.meloda.app.fast.languagepicker.model
 
 import androidx.compose.runtime.Immutable
+import com.meloda.app.fast.designsystem.ImmutableList
 
 @Immutable
 data class LanguagePickerScreenState(
-    val languages: List<SelectableLanguage>,
+    val languages: ImmutableList<SelectableLanguage>,
     val currentLanguage: String?,
-    val isNeedToChangeLanguage: Boolean
-) {
-
-    companion object {
-        val EMPTY: LanguagePickerScreenState = LanguagePickerScreenState(
-            languages = emptyList(),
-            currentLanguage = null,
-            isNeedToChangeLanguage = false
-        )
-    }
-}
+)

@@ -3,8 +3,9 @@ package com.meloda.app.fast.network
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+// TODO: 09/05/2024, Danil Nikolaev: reimplement as sealed class
 @JsonClass(generateAdapter = true)
-open class BaseOAuthError(
+open class OAuthError(
     @Json(name = "error") open val error: String,
     @Json(name = "error_description") open val errorDescription: String?,
     @Json(name = "error_type") open val errorType: String?
@@ -20,7 +21,7 @@ data class ValidationRequiredError(
     @Json(name = "redirect_uri") val redirectUri: String,
     @Json(name = "validation_resend") val validationResend: String?, // Приходит, если для отправки кода нужно вызвать метод auth.validatePhone
     @Json(name = "cant_get_code_open_restore") val restoreIfCannotGetCode: Boolean?
-) : BaseOAuthError(
+) : OAuthError(
     error = error,
     errorDescription = errorDescription,
     errorType = null
@@ -36,7 +37,7 @@ data class CaptchaRequiredError(
     @Json(name = "captcha_track") val captchaTrack: String?,
     @Json(name = "is_refresh_enabled") val isRefreshEnabled: Boolean?,
     @Json(name = "is_sound_captcha_available") val isSoundCaptchaAvailable: Boolean?
-) : BaseOAuthError(
+) : OAuthError(
     error = error,
     errorDescription = null,
     errorType = null
@@ -47,7 +48,7 @@ data class UserBannedError(
     @Json(name = "error") override val error: String, // need_validation
     @Json(name = "error_description") override val errorDescription: String, // user has been banned
     @Json(name = "ban_info") val banInfo: BanInfo
-) : BaseOAuthError(
+) : OAuthError(
     error = error,
     errorDescription = errorDescription,
     errorType = null
@@ -67,7 +68,7 @@ data class InvalidCredentialsError(
     @Json(name = "error") override val error: String, // "invalid_client"
     @Json(name = "error_description") override val errorDescription: String,
     @Json(name = "error_type") override val errorType: String // "username_or_password_is_incorrect"
-) : BaseOAuthError(
+) : OAuthError(
     error = error,
     errorDescription = errorDescription,
     errorType = errorType
@@ -78,7 +79,7 @@ data class WrongTwoFaCode(
     @Json(name = "error") override val error: String, // "invalid_request"
     @Json(name = "error_description") override val errorDescription: String,
     @Json(name = "error_type") override val errorType: String // "wrong_otp"
-) : BaseOAuthError(
+) : OAuthError(
     error = error,
     errorDescription = errorDescription,
     errorType = errorType
@@ -89,8 +90,52 @@ data class WrongTwoFaCodeFormat(
     @Json(name = "error") override val error: String, // "invalid_request"
     @Json(name = "error_description") override val errorDescription: String,
     @Json(name = "error_type") override val errorType: String // "otp_format_is_incorrect"
-) : BaseOAuthError(
+) : OAuthError(
     error = error,
     errorDescription = errorDescription,
     errorType = errorType
 )
+
+fun OAuthError.toDomain(): OAuthErrorDomain? = when (this) {
+    is ValidationRequiredError -> {
+        OAuthErrorDomain.ValidationRequiredError(
+            description = errorDescription,
+            validationType = ValidationType.parse(validationType),
+            validationSid = validationSid,
+            phoneMask = phoneMask,
+            redirectUri = redirectUri,
+            validationResend = validationResend,
+            restoreIfCannotGetCode = restoreIfCannotGetCode
+        )
+    }
+
+    is CaptchaRequiredError -> {
+        OAuthErrorDomain.CaptchaRequiredError(
+            captchaSid = captchaSid,
+            captchaImageUrl = captchaImage
+        )
+    }
+
+    is UserBannedError -> {
+        OAuthErrorDomain.UserBannedError(
+            memberName = banInfo.memberName,
+            message = banInfo.message,
+            accessToken = banInfo.accessToken,
+            restoreUrl = banInfo.restoreUrl
+        )
+    }
+
+    is InvalidCredentialsError -> {
+        OAuthErrorDomain.InvalidCredentialsError
+    }
+
+    is WrongTwoFaCode -> {
+        OAuthErrorDomain.WrongTwoFaCode
+    }
+
+    is WrongTwoFaCodeFormat -> {
+        OAuthErrorDomain.WrongTwoFaCodeFormat
+    }
+
+    else -> null
+}

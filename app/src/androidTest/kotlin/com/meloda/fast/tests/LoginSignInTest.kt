@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.meloda.app.fast.auth.screens.login.model.LoginScreenState
-import com.meloda.app.fast.auth.screens.login.model.UiAction
+import com.meloda.app.fast.auth.screens.login.model.NavigationUiAction
 import com.meloda.app.fast.auth.screens.login.presentation.LoginSignIn
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +35,7 @@ class LoginSignInTest {
             LoginSignIn(
                 onAction = { action ->
                     when (action) {
-                        UiAction.SignInClicked -> {
+                        NavigationUiAction.SignInClicked -> {
                             signInClicked = true
                         }
 

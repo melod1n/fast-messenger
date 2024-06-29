@@ -34,7 +34,7 @@ data class VkPinnedMessageData(
         fromId = fromId,
         date = date,
         randomId = randomId,
-        action = action?.type,
+        action = VkMessage.Action.parse(action?.type),
         actionMemberId = action?.memberId,
         actionText = action?.text,
         actionConversationMessageId = action?.conversationMessageId,
@@ -46,7 +46,11 @@ data class VkPinnedMessageData(
 
         // TODO: 05/05/2024, Danil Nikolaev: parse attachments
         attachments = emptyList(),
-        replyMessage = replyMessage?.asDomain()
+        replyMessage = replyMessage?.asDomain(),
+        user = null,
+        group = null,
+        actionUser = null,
+        actionGroup = null,
     )
 }
 

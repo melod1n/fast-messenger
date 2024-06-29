@@ -3,6 +3,7 @@ package com.meloda.app.fast.service.longpolling
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.IBinder
@@ -10,13 +11,13 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import androidx.core.content.edit
 import com.conena.nanokt.android.app.stopForegroundCompat
-import com.meloda.app.fast.common.AppGlobal
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.model.api.data.LongPollUpdates
 import com.meloda.app.fast.model.api.data.VkLongPollData
 import com.meloda.app.fast.util.NotificationsUtils
@@ -47,6 +48,7 @@ class LongPollingService : Service() {
 
     private val longPollUseCase: LongPollUseCase by inject()
     private val updatesParser: LongPollUpdatesParser by inject()
+    private val preferences: SharedPreferences by inject()
 
     private var currentJob: Job? = null
 
@@ -63,13 +65,10 @@ class LongPollingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        // TODO: 05/05/2024, Danil Nikolaev: implement
-//        val asForeground = AppGlobal.preferences.getBoolean(
-//            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-//            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-//        )
-
-        val asForeground = false
+        val asForeground = preferences.getBoolean(
+            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+        )
 
         Log.d(
             STATE_TAG,
@@ -181,9 +180,7 @@ class LongPollingService : Service() {
                             if (updates == null) {
                                 failCount++
                             } else {
-                                updates.forEach { item ->
-                                    handleUpdateEvent(item)
-                                }
+                                updates.forEach(updatesParser::parseNextUpdate)
                             }
 
                             lastUpdatesResponse = getUpdatesResponse(serverInfo.copy(ts = newTs))
@@ -236,14 +233,10 @@ class LongPollingService : Service() {
         }
     }
 
-    private fun handleUpdateEvent(event: List<Any>) {
-        updatesParser.parseNextUpdate(event)
-    }
-
     override fun onDestroy() {
         Log.d(STATE_TAG, "onDestroy")
         try {
-            AppGlobal.preferences.edit {
+            SettingsController.edit {
                 putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true)
             }
             job.cancel()

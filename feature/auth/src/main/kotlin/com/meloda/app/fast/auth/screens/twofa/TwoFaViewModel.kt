@@ -1,6 +1,7 @@
 package com.meloda.app.fast.auth.screens.twofa
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.auth.AuthUseCase
@@ -41,7 +42,8 @@ interface TwoFaViewModel {
 
 class TwoFaViewModelImpl(
     private val validator: TwoFaValidator,
-    private val authUseCase: AuthUseCase
+    private val authUseCase: AuthUseCase,
+    savedStateHandle: SavedStateHandle
 ) : TwoFaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)

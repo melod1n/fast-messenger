@@ -1,6 +1,5 @@
 package com.meloda.app.fast.data
 
-import com.meloda.app.fast.common.extensions.toHashMap
 import com.meloda.app.fast.model.api.data.VkMessageData
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkMessage
@@ -11,7 +10,7 @@ class VkUsersMap(
 ) {
 
     private val map: HashMap<Int, VkUserDomain> by lazy {
-        users.associateBy(VkUserDomain::id).toHashMap()
+        HashMap(users.associateBy(VkUserDomain::id))
     }
 
     fun users(): List<VkUserDomain> = map.values.toList()

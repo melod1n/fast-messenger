@@ -2,6 +2,7 @@
     <string name="app_name" translatable="false">Fast</string>
     <string name="fast_messenger" translatable="false">Fast Messenger</string>
 
+    <string name="message_attachment">Attachment</string>
     <string name="message_attachments_many">Attachments</string>
 
     <string name="error_occurred">Error occurred</string>
@@ -22,7 +23,6 @@
     <string name="code_hint">Code</string>
 
     <string name="input_validation_code">Input code from sms</string>
-
     <string name="you_message_prefix">You</string>
 
     <string name="message_geo">Geolocation</string>
@@ -36,15 +36,6 @@
 
     <string name="messages_self_destructed">Messages self-destructed</string>
 
-    <string name="yesterday">Yesterday</string>
-
-    <string name="today">Today</string>
-
-    <string name="year_short">Y</string>
-    <string name="month_short">M</string>
-    <string name="week_short">W</string>
-    <string name="day_short">D</string>
-    <string name="time_now">Now</string>
     <string name="message_input_hint">Start typing here&#8230;</string>
     <string name="input_login_hint">Input login</string>
     <string name="input_password_hint">Input password</string>
@@ -251,5 +242,6 @@
     <string name="open_system_language_picker">Open system language picker</string>
     <string name="title_application_language">Application language</string>
     <string name="action_refresh">Refresh</string>
+    <string name="members_count">Members: %d</string>
 
 </resources>

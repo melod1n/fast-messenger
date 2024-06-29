@@ -7,7 +7,8 @@ import com.meloda.app.fast.auth.OAuthUseCase
 import com.meloda.app.fast.auth.screens.login.model.LoginScreenState
 import com.meloda.app.fast.auth.screens.login.model.LoginValidationResult
 import com.meloda.app.fast.auth.screens.login.validation.LoginValidator
-import com.meloda.app.fast.common.UserConfig
+import com.meloda.app.fast.auth.screens.twofa.model.TwoFaArguments
+import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
@@ -15,7 +16,9 @@ import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.users.UsersUseCase
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.model.database.AccountEntity
+import com.meloda.app.fast.network.OAuthErrorDomain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -91,7 +94,7 @@ class LoginViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 isNeedToOpenUserBanned = false,
-//                userBannedArguments = null
+                userBannedArguments = null
             )
         }
     }
@@ -152,16 +155,16 @@ class LoginViewModelImpl(
                         return@processState
                     }
 
-//                    usersUseCase.getUserById(
-//                        userId = userId,
-//                        fields = VKConstants.USER_FIELDS,
-//                        nomCase = null
-//                    ).listenValue { state ->
-//                        state.processState(
-//                            error = {},
-//                            success = { user -> user?.let { usersUseCase.storeUser(user) } }
-//                        )
-//                    }
+                    usersUseCase.getUserById(
+                        userId = userId,
+                        fields = VkConstants.USER_FIELDS,
+                        nomCase = null
+                    ).listenValue { state ->
+                        state.processState(
+                            error = {},
+                            success = { user -> user?.let { usersUseCase.storeUser(user) } }
+                        )
+                    }
 
                     val currentAccount = AccountEntity(
                         userId = userId,
@@ -200,7 +203,39 @@ class LoginViewModelImpl(
 
     // TODO: 05/05/2024, Danil Nikolaev: implement
     private fun parseError(stateError: State.Error): Boolean {
-        return false
+        return when (stateError) {
+            is State.Error.OAuthError -> {
+                when (val error = stateError.error) {
+                    is OAuthErrorDomain.ValidationRequiredError -> {
+                        val twoFaArguments = TwoFaArguments(
+                            validationSid = error.validationSid,
+                            redirectUri = error.redirectUri,
+                            phoneMask = error.phoneMask,
+                            validationType = error.validationType.value,
+                            canResendSms = error.validationResend == "sms",
+                            wrongCodeError = null
+                        )
+                        screenState.setValue { old ->
+                            old.copy(
+                                isNeedToOpenTwoFa = true,
+                                twoFaArguments = twoFaArguments
+                            )
+                        }
+                        true
+                    }
+
+                    is OAuthErrorDomain.CaptchaRequiredError -> TODO()
+                    OAuthErrorDomain.InvalidCredentialsError -> TODO()
+                    is OAuthErrorDomain.UserBannedError -> TODO()
+                    OAuthErrorDomain.WrongTwoFaCode -> TODO()
+                    OAuthErrorDomain.WrongTwoFaCodeFormat -> TODO()
+                }
+            }
+
+            else -> false
+        }
+
+
 //        return when (val error =
 //            (stateError as? State.Error.OAuthError<*>)?.error) {
 //            null -> false

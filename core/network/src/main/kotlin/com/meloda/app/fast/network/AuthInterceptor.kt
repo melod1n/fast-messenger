@@ -2,12 +2,11 @@ package com.meloda.app.fast.network
 
 import androidx.core.net.toUri
 import com.meloda.app.fast.common.AppConstants
-import com.meloda.app.fast.common.UserConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.net.URLEncoder
 
-class AuthInterceptor : Interceptor {
+class AuthInterceptor(private val accessToken: String) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val builder = chain.request().url.newBuilder()
@@ -21,9 +20,8 @@ class AuthInterceptor : Interceptor {
             )
         }
 
-        UserConfig.accessToken.let {
-            if (it.isNotBlank())
-                builder.addQueryParameter("access_token", URLEncoder.encode(it, "utf-8"))
+        if (accessToken.isNotBlank()) {
+            builder.addQueryParameter("access_token", URLEncoder.encode(accessToken, "utf-8"))
         }
 
         return chain.proceed(chain.request().newBuilder().apply { url(builder.build()) }.build())

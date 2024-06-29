@@ -27,6 +27,8 @@ enum class AttachmentType(var value: String) {
     AUDIO_PLAYLIST("audio_playlist"),
     PODCAST("podcast");
 
+    fun isMultiple(): Boolean = this in listOf(PHOTO, VIDEO, AUDIO, FILE)
+
     companion object {
         fun parse(value: String): AttachmentType {
             val parsedValue = entries.firstOrNull {

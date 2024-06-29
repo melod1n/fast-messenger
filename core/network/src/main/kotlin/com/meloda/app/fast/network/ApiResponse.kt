@@ -11,4 +11,5 @@ data class ApiResponse<T>(
     val isSuccessful get() = error == null && response != null
 
     fun requireResponse(): T = requireNotNull(response)
+    fun requireError(): RestApiError = requireNotNull(error)
 }

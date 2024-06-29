@@ -1,6 +1,7 @@
 package com.meloda.app.fast.languagepicker.presentation
 
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,31 +50,69 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.parseString
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModel
+import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
+import com.meloda.app.fast.languagepicker.model.UiAction
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
+
+typealias OnAction = (UiAction) -> Unit
+
+// TODO: 05/05/2024, Danil Nikolaev: remove or improve
+private fun getLanguages(resources: Resources): Map<String, String> {
+    val languageTitles = listOf(
+        UiText.Resource(UiR.string.language_system),
+        UiText.Resource(UiR.string.language_english),
+        UiText.Resource(UiR.string.language_russian),
+        UiText.Resource(UiR.string.language_ukrainian)
+    ).map { it.parseString(resources) }
+
+    return listOf("", "en", "ru", "uk").mapIndexed { index, code ->
+        code to languageTitles[index].orEmpty()
+    }.toMap()
+}
+
+@Composable
+fun LanguagePickerScreen(
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val userSettings: UserSettings = koinInject()
+    val viewModel: LanguagePickerViewModel = koinViewModel<LanguagePickerViewModelImpl>()
+    val language by userSettings.language.collectAsStateWithLifecycle()
+
+    // TODO: 14/05/2024, Danil Nikolaev: improve
+    LaunchedEffect(true) {
+        viewModel.setLanguages(
+            locales = getLanguages(context.resources),
+            currentCode = language
+        )
+    }
+
+    LanguagePickerScreenContent(
+        onAction = { action ->
+            when (action) {
+                UiAction.BackClicked -> onBack()
+            }
+        },
+        viewModel = viewModel
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguagePickerScreenContent(
-    onLanguagePicked: (String) -> Unit,
-    onBackClick: () -> Unit,
+    onAction: OnAction,
     viewModel: LanguagePickerViewModel
 ) {
     val context = LocalContext.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val languages = screenState.languages
-
-    val selectedLanguageKey by remember(languages) {
-        derivedStateOf {
-            languages.find(SelectableLanguage::isSelected)?.key.orEmpty()
-        }
-    }
-
-    if (screenState.isNeedToChangeLanguage) {
-        viewModel.onLanguageChanged()
-        onLanguagePicked(selectedLanguageKey)
-    }
 
     val isButtonEnabled by remember(screenState) {
         derivedStateOf {
@@ -93,7 +133,7 @@ fun LanguagePickerScreenContent(
             LargeTopAppBar(
                 title = { Text(text = stringResource(id = UiR.string.title_application_language)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onAction(UiAction.BackClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Navigate back"
@@ -163,7 +203,7 @@ fun LanguagePickerScreenContent(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                itemsIndexed(screenState.languages) { index, item ->
+                itemsIndexed(screenState.languages.toList()) { index, item ->
                     LanguageItem(
                         item = item,
                         onClick = { viewModel.onLanguagePicked(index) }

@@ -28,7 +28,7 @@ class OAuthResultCallFactory(private val moshi: Moshi) : CallAdapter.Factory() {
                 if (getRawType(callInnerType) == OAuthResponse::class.java) {
                     if (callInnerType is ParameterizedType) {
                         val resultInnerType = getParameterUpperBound(0, callInnerType)
-                        return ResultCallAdapter<Any, BaseOAuthError>(resultInnerType, moshi)
+                        return ResultCallAdapter<Any, OAuthError>(resultInnerType, moshi)
                     }
 
                     return ResultCallAdapter<Nothing, Nothing>(Nothing::class.java, moshi)
@@ -60,7 +60,7 @@ internal abstract class CallDelegate<In, Out>(protected val proxy: Call<In>) : C
     abstract fun cloneImpl(): Call<Out>
 }
 
-private class ResultCallAdapter<R : Any, E : BaseOAuthError>(
+private class ResultCallAdapter<R : Any, E : OAuthError>(
     private val type: Type,
     private val moshi: Moshi
 ) : CallAdapter<R, Call<OAuthResponse<R, E>>> {
@@ -70,7 +70,7 @@ private class ResultCallAdapter<R : Any, E : BaseOAuthError>(
     override fun adapt(call: Call<R>): Call<OAuthResponse<R, E>> = ResultCall(call, moshi)
 }
 
-internal class ResultCall<R : Any, E : BaseOAuthError>(
+internal class ResultCall<R : Any, E : OAuthError>(
     proxy: Call<R>,
     private val moshi: Moshi
 ) : CallDelegate<R, OAuthResponse<R, E>>(proxy) {
@@ -83,7 +83,7 @@ internal class ResultCall<R : Any, E : BaseOAuthError>(
         return ResultCall(proxy.clone(), moshi)
     }
 
-    private class ResultCallback<R : Any, E : BaseOAuthError>(
+    private class ResultCallback<R : Any, E : OAuthError>(
         private val proxy: ResultCall<R, E>,
         private val callback: Callback<OAuthResponse<R, E>>,
         private val moshi: Moshi
@@ -106,10 +106,10 @@ internal class ResultCall<R : Any, E : BaseOAuthError>(
                 else -> {
                     val errorBodyString = response.errorBody()?.string()
 
-                    val baseError: BaseOAuthError = moshi.adapter(BaseOAuthError::class.java)
+                    val baseError: OAuthError = moshi.adapter(OAuthError::class.java)
                         .fromJson(errorBodyString.orEmpty()) ?: return
 
-                    val error: BaseOAuthError? = when (baseError.error) {
+                    val error: OAuthError? = when (baseError.error) {
                         "invalid_client" -> {
                             moshi.adapter(InvalidCredentialsError::class.java)
                                 .fromJson(errorBodyString.orEmpty())
@@ -181,6 +181,7 @@ internal class ResultCall<R : Any, E : BaseOAuthError>(
         }
 
         override fun onFailure(call: Call<R>, error: Throwable) {
+            val b = error
             // TODO: 12/04/2024, Danil Nikolaev: handle
 //            callback.onResponse(
 //                proxy,

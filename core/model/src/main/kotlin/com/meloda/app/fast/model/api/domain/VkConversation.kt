@@ -31,9 +31,13 @@ data class VkConversation(
     val peerType: PeerType,
     val lastMessage: VkMessage?,
     val pinnedMessage: VkMessage?,
+    val user: VkUserDomain?,
+    val group: VkGroupDomain?
 ) {
 
     fun isPinned(): Boolean = majorId > 0
+    fun isInUnread() = inRead - (lastMessageId ?: 0) < 0
+    fun isOutUnread() = outRead - (lastMessageId ?: 0) < 0
 }
 
 fun VkConversation.asEntity(): VkConversationEntity = VkConversationEntity(

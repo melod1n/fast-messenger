@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.org.jetbrains.kotlin.android)
+    alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "com.meloda.app.fast.settings"
@@ -31,7 +34,6 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = Configs.composeCompiler
         useLiveLiterals = true
     }
 }
@@ -41,16 +43,15 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.ui)
 
+//    implementation(projects.feature.languagepicker)
+//    implementation(projects.feature.auth)
+
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
     implementation(libs.nanokt)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-
-    implementation(libs.voyager.navigator)
-    implementation(libs.voyager.koin)
-    implementation(libs.voyager.transitions)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
@@ -59,4 +60,7 @@ dependencies {
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization)
 }

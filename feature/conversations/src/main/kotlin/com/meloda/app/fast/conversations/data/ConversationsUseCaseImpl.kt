@@ -3,9 +3,13 @@ package com.meloda.app.fast.conversations.data
 import com.meloda.app.fast.conversations.domain.ConversationsUseCase
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsRepository
+import com.meloda.app.fast.data.toStateApiError
 import com.meloda.app.fast.model.api.domain.VkConversation
+import com.slack.eithernet.ApiResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 
 class ConversationsUseCaseImpl(
     private val conversationsRepository: ConversationsRepository,
@@ -92,10 +96,27 @@ class ConversationsUseCaseImpl(
 //    override suspend fun storeGroups(groups: List<VkGroupDomain>) {
 //        groupsDao.insertAll(groups.map(VkGroupDomain::mapToDB))
 //    }
-    override fun getConversations(count: Int?, offset: Int?): Flow<State<List<VkConversation>>> =
-        flow {}
+    override fun getConversations(
+        count: Int?, offset: Int?
+    ): Flow<State<List<VkConversation>>> = flow {
+        emit(State.Loading)
 
-    override suspend fun storeConversations(conversations: List<VkConversation>) {
+        val newState = when (
+            val result = conversationsRepository.getConversations(count, offset)
+        ) {
+            is ApiResult.Success -> State.Success(result.value)
+
+            is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
+            is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
+            is ApiResult.Failure.HttpFailure -> result.error.toStateApiError()
+            is ApiResult.Failure.ApiFailure -> result.error.toStateApiError()
+        }
+        emit(newState)
+    }
+
+    override suspend fun storeConversations(
+        conversations: List<VkConversation>
+    ) = withContext(Dispatchers.IO) {
         conversationsRepository.storeConversations(conversations)
     }
 }

@@ -1,7 +1,7 @@
 package com.meloda.app.fast.datastore
 
-import android.content.Context
-import com.meloda.app.fast.common.extensions.preferences
+import android.content.res.Resources
+import android.os.PowerManager
 import com.meloda.app.fast.datastore.model.ThemeConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,19 +44,28 @@ interface UserSettings {
 }
 
 class UserSettingsImpl(
-    context: Context
+    private val resources: Resources,
+    private val powerManager: PowerManager
 ) : UserSettings {
+
     override val multiline = MutableStateFlow(
-        context.preferences.getBoolean(
+        SettingsController.getBoolean(
             SettingsKeys.KEY_APPEARANCE_MULTILINE,
             SettingsKeys.DEFAULT_VALUE_MULTILINE
         )
     )
 
-    override val theme = MutableStateFlow(ThemeConfig.EMPTY)
+    override val theme = MutableStateFlow(
+        ThemeConfig(
+            usingDarkStyle = isUsingDarkMode(resources, powerManager),
+            usingDynamicColors = isUsingDynamicColors(),
+            usingAmoledBackground = isUsingAmoledBackground(),
+            usingBlur = isUsingBlur()
+        )
+    )
 
     override val language = MutableStateFlow(
-        context.preferences.getString(
+        SettingsController.getString(
             SettingsKeys.KEY_APPEARANCE_LANGUAGE,
             SettingsKeys.DEFAULT_VALUE_APPEARANCE_LANGUAGE
         ).orEmpty()
@@ -65,24 +74,32 @@ class UserSettingsImpl(
     override val languageChangedFromApp = MutableStateFlow(false)
 
     override val longPollBackground = MutableStateFlow(
-        context.preferences.getBoolean(
+        SettingsController.getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
     )
     override val online = MutableStateFlow(
-        context.preferences.getBoolean(
+        SettingsController.getBoolean(
             SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
             SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
         )
     )
 
-    // TODO: 05/05/2024, Danil Nikolaev: get default value
-    override val debugSettingsEnabled = MutableStateFlow(false)
+    override val debugSettingsEnabled = MutableStateFlow(
+        SettingsController.getBoolean(
+            SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
+            SettingsKeys.DEFAULT_VALUE_SHOW_DEBUG_CATEGORY
+        )
+    )
 
-    // TODO: 05/05/2024, Danil Nikolaev: get default value
     override fun updateUsingDarkTheme() {
-        useDarkThemeChanged(false)
+        useDarkThemeChanged(
+            isUsingDarkMode(
+                resources = resources,
+                powerManager = powerManager,
+            )
+        )
     }
 
     override fun useDarkThemeChanged(use: Boolean) {
@@ -98,15 +115,11 @@ class UserSettingsImpl(
     }
 
     override fun useDynamicColorsChanged(use: Boolean) {
-        theme.value = theme.value.copy(
-            usingDynamicColors = use
-        )
+        theme.value = theme.value.copy(usingDynamicColors = use)
     }
 
     override fun useBlurChanged(use: Boolean) {
-        theme.value = theme.value.copy(
-            usingBlur = use
-        )
+        theme.value = theme.value.copy(usingBlur = use)
     }
 
     override fun useMultiline(use: Boolean) {
@@ -121,7 +134,10 @@ class UserSettingsImpl(
         online.value = use
     }
 
+    // TODO: 14/05/2024, Danil Nikolaev: improve
     override fun setLanguage(newLanguage: String, withUpdate: Boolean) {
+        SettingsController.put(SettingsKeys.KEY_APPEARANCE_LANGUAGE, newLanguage)
+
         if (withUpdate) {
             languageChangedFromApp.update { true }
         }

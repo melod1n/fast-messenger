@@ -10,7 +10,7 @@ data class VkMessage(
     val fromId: Int,
     val date: Int,
     val randomId: Int,
-    val action: String?,
+    val action: Action?,
     val actionMemberId: Int?,
     val actionText: String?,
     val actionConversationMessageId: Int?,
@@ -25,6 +25,10 @@ data class VkMessage(
     val replyMessage: VkMessage?,
 
     val geoType: String?,
+    val user: VkUserDomain?,
+    val group: VkGroupDomain?,
+    val actionUser: VkUserDomain?,
+    val actionGroup: VkGroupDomain?
 ) {
 
     fun isPeerChat() = peerId > 2_000_000_000
@@ -39,11 +43,6 @@ data class VkMessage(
         } else {
             conversation.inRead - id >= 0
         }
-
-    fun getPreparedAction(): Action? {
-        if (action == null) return null
-        return Action.parse(action)
-    }
 
     fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
 
@@ -85,7 +84,7 @@ fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     fromId = fromId,
     date = date,
     randomId = randomId,
-    action = action,
+    action = action?.value,
     actionMemberId = actionMemberId,
     actionText = actionText,
     actionConversationMessageId = actionConversationMessageId,

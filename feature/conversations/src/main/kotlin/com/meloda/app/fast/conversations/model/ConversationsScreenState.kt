@@ -5,7 +5,7 @@ import androidx.compose.runtime.Immutable
 @Immutable
 data class ConversationsScreenState(
     val showOptions: ConversationsShowOptions,
-    val conversations: List<VkConversationUi>,
+    val conversations: List<UiConversation>,
     val isLoading: Boolean,
     val pinnedConversationsCount: Int,
 ) {

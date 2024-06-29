@@ -1,6 +1,5 @@
 package com.meloda.app.fast.data
 
-import com.meloda.app.fast.common.extensions.toHashMap
 import com.meloda.app.fast.model.api.data.VkMessageData
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkGroupDomain
@@ -12,7 +11,7 @@ class VkGroupsMap(
 ) {
 
     private val map: HashMap<Int, VkGroupDomain> by lazy {
-        groups.associateBy(VkGroupDomain::id).toHashMap()
+        HashMap(groups.associateBy(VkGroupDomain::id))
     }
 
     fun groups(): List<VkGroupDomain> = map.values.toList()

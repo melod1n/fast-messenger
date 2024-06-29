@@ -32,7 +32,3 @@ data class ConversationsPinRequest(val peerId: Int) {
 data class ConversationsUnpinRequest(val peerId: Int) {
     val map get() = mapOf("peer_id" to peerId.toString())
 }
-
-data class ConversationsReorderPinnedRequest(val params: Unit) {
-    val map get() = mapOf<String, String>()
-}

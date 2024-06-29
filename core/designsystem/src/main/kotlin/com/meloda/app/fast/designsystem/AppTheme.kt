@@ -18,9 +18,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
-
-private val LightColorScheme = lightColorScheme()
-private val DarkColorScheme = darkColorScheme()
+import com.meloda.app.fast.datastore.isUsingAmoledBackground
+import com.meloda.app.fast.datastore.isUsingDynamicColors
 
 private val googleSansFonts = FontFamily(
     Font(resId = R.font.google_sans_regular),
@@ -101,13 +100,12 @@ private val robotoFonts = FontFamily(
     )
 )
 
-// TODO: 05/05/2024, Danil Nikolaev: implement
 @Composable
 fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
-    useDarkTheme: Boolean = false/*isUsingDarkTheme()*/,
-    useDynamicColors: Boolean = false,// isUsingDynamicColors(),
-    useAmoledBackground: Boolean = false,//isUsingAmoledBackground(),
+    useDarkTheme: Boolean = isUsingDarkTheme(),
+    useDynamicColors: Boolean = isUsingDynamicColors(),
+    useAmoledBackground: Boolean = isUsingAmoledBackground(),
     content: @Composable () -> Unit
 ) {
     val colorScheme: ColorScheme = when {
@@ -117,8 +115,8 @@ fun AppTheme(
             else dynamicLightColorScheme(context)
         }
 
-        useDarkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        useDarkTheme -> darkColorScheme()
+        else -> lightColorScheme()
     }.let { scheme ->
         if (useDarkTheme && useAmoledBackground) {
             scheme.copy(

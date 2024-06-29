@@ -15,6 +15,9 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "com.meloda.app.fast.auth"
@@ -67,10 +70,6 @@ android {
         minSdk = Configs.minSdk
     }
 
-    ksp {
-        arg("compose-destinations.moduleName", "auth")
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -90,7 +89,6 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = Configs.composeCompiler
         useLiveLiterals = true
     }
 }
@@ -109,11 +107,12 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
-    implementation(libs.compose.destinations.core)
-    ksp(libs.compose.destinations.ksp)
-
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
 
     implementation(libs.coil.compose)
+
+    implementation(libs.eithernet)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization)
 }

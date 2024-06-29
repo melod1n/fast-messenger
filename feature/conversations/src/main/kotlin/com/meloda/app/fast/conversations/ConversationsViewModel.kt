@@ -1,10 +1,11 @@
 package com.meloda.app.fast.conversations
 
+import android.content.SharedPreferences
+import android.content.res.Resources
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.createTimerFlow
 import com.meloda.app.fast.common.extensions.emitOnScope
 import com.meloda.app.fast.common.extensions.findIndex
@@ -15,9 +16,12 @@ import com.meloda.app.fast.conversations.domain.ConversationsUseCase
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.ConversationsShowOptions
-import com.meloda.app.fast.conversations.model.VkConversationUi
+import com.meloda.app.fast.conversations.model.UiConversation
+import com.meloda.app.fast.conversations.util.asPresentation
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.LongPollEvent
@@ -43,11 +47,11 @@ interface ConversationsViewModel {
 
     fun onRefresh()
 
-    fun onConversationItemLongClick(conversation: VkConversationUi)
+    fun onConversationItemLongClick(conversation: UiConversation)
 
     fun onPinDialogDismissed()
-    fun onPinDialogPositiveClick(conversation: VkConversationUi)
-    fun onOptionClicked(conversation: VkConversationUi, option: ConversationOption)
+    fun onPinDialogPositiveClick(conversation: UiConversation)
+    fun onOptionClicked(conversation: UiConversation, option: ConversationOption)
 }
 
 class ConversationsViewModelImpl(
@@ -55,13 +59,15 @@ class ConversationsViewModelImpl(
     private val imageLoader: ImageLoader,
     private val accountsRepository: AccountsRepository,
     private val conversationsUseCase: ConversationsUseCase,
+    private val resources: Resources,
+    private val preferences: SharedPreferences
 ) : ConversationsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
 
-    private val domainConversations = MutableStateFlow<List<VkConversation>>(emptyList())
+    private val conversations = MutableStateFlow<List<VkConversation>>(emptyList())
 
-    private val pinnedConversationsCount = domainConversations.map { conversations ->
+    private val pinnedConversationsCount = conversations.map { conversations ->
         conversations.filter { conversation -> conversation.isPinned() }.size
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
@@ -89,7 +95,7 @@ class ConversationsViewModelImpl(
         loadConversations()
     }
 
-    override fun onConversationItemLongClick(conversation: VkConversationUi) {
+    override fun onConversationItemLongClick(conversation: UiConversation) {
         val options = mutableListOf<ConversationOption>()
         if (!conversation.isExpanded) {
             conversation.lastMessage?.run {
@@ -134,12 +140,12 @@ class ConversationsViewModelImpl(
         emitShowOptions { old -> old.copy(showPinDialog = null) }
     }
 
-    override fun onPinDialogPositiveClick(conversation: VkConversationUi) {
+    override fun onPinDialogPositiveClick(conversation: UiConversation) {
         pinConversation(conversation.id, !conversation.isPinned)
         hideOptions(conversation.id)
     }
 
-    override fun onOptionClicked(conversation: VkConversationUi, option: ConversationOption) {
+    override fun onOptionClicked(conversation: UiConversation, option: ConversationOption) {
         when (option) {
             ConversationOption.Delete -> {
                 emitShowOptions { old ->
@@ -148,11 +154,13 @@ class ConversationsViewModelImpl(
             }
 
             ConversationOption.MarkAsRead -> {
-                readConversation(
-                    peerId = conversation.id,
-                    startMessageId = conversation.lastMessageId
-                )
-                hideOptions(conversation.id)
+                conversation.lastMessageId?.let { lastMessageId ->
+                    readConversation(
+                        peerId = conversation.id,
+                        startMessageId = lastMessageId
+                    )
+                    hideOptions(conversation.id)
+                }
             }
 
             ConversationOption.Pin,
@@ -174,41 +182,6 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun emitDomainConversations(conversations: List<VkConversation>) {
-        val pinnedConversationsCount = conversations.filter(VkConversation::isPinned).size
-
-        domainConversations.emitOnScope { conversations }
-
-//        val usersMap = conversations.mapNotNull(VkConversation::conversationUser).toUsersMap()
-//        val groupsMap =
-//            conversations.mapNotNull(VkConversation::conversationGroup).toGroupsMap()
-
-//        val uiConversations = conversations.map { conversation ->
-//            conversation.mapToPresentation(
-//                usersMap = usersMap,
-//                groupsMap = groupsMap
-//            )
-//        }
-//        val avatars = uiConversations.mapNotNull { conversation ->
-//            conversation.avatar?.extractUrl()
-//        }
-
-//        avatars.forEach { avatar ->
-//            val request = ImageRequest.Builder(context)
-//                .data(avatar)
-//                .build()
-
-//            imageLoader.enqueue(request)
-//        }
-
-//        screenState.setValue { old ->
-//            old.copy(
-//                conversations = uiConversations,
-//                pinnedConversationsCount = pinnedConversationsCount,
-//            )
-//        }
-    }
-
     private fun emitShowOptions(function: (ConversationsShowOptions) -> ConversationsShowOptions) {
         val newShowOptions = function.invoke(screenState.value.showOptions)
         screenState.setValue { old -> old.copy(showOptions = newShowOptions) }
@@ -216,30 +189,29 @@ class ConversationsViewModelImpl(
 
     private fun loadConversations(offset: Int? = null) {
         conversationsUseCase.getConversations(
-            count = 30,
-            offset = offset
+            count = 60,
+            offset = 0
         ).listenValue { state ->
             state.processState(
                 error = { error -> },
                 success = { response ->
-//                    val conversations = response
+                    conversationsUseCase.storeConversations(response)
 
-//                    conversationsUseCase.storeConversations(conversations)
-//                    usersUseCase.storeUsers(response.profiles)
-//                    conversationsUseCase.storeGroups(response.groups)
-//                    messagesUseCase.storeMessages(response.messages)
+                    val pinnedConversationsCount =
+                        response.filter(VkConversation::isPinned).size
 
-//                    val pinnedConversationsCount =
-//                        conversations.filter(VkConversation::isPinned).size
-//
-//                    domainConversations.emitOnScope { conversations }
-//
-//                    val uiConversations = conversations.map {
-//                        it.mapToPresentation(
-//                            usersMap = VkUsersMap.forUsers(response.profiles),
-//                            groupsMap = VkGroupsMap.forGroups(response.groups)
-//                        )
-//                    }
+                    conversations.emitOnScope { response }
+
+                    val conversations = response.map {
+                        it.asPresentation(
+                            resources,
+                            preferences.getBoolean(
+                                SettingsKeys.KEY_USE_CONTACT_NAMES,
+                                SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
+                            )
+                        )
+                    }
+
 //                    val avatars = uiConversations.mapNotNull { conversation ->
 //                        conversation.avatar?.extractUrl()
 //                    }
@@ -252,16 +224,12 @@ class ConversationsViewModelImpl(
 //                        context.imageLoader.enqueue(request)
 //                    }
 
-//                    conversationsRepository.store(conversations)
-
-//                    messagesRepository.store(messages)
-
-//                    screenState.setValue { old ->
-//                        old.copy(
-//                            conversations = uiConversations,
-//                            pinnedConversationsCount = pinnedConversationsCount,
-//                        )
-//                    }
+                    screenState.setValue { old ->
+                        old.copy(
+                            conversations = conversations,
+                            pinnedConversationsCount = pinnedConversationsCount,
+                        )
+                    }
                 }
             )
             screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
@@ -358,7 +326,7 @@ class ConversationsViewModelImpl(
 
 //            messagesRepository.store(message)
 
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
             val conversationIndex =
                 newConversations.findIndex { it.id == message.peerId }
 
@@ -400,7 +368,12 @@ class ConversationsViewModelImpl(
                     newConversations.add(toPosition, newConversation)
                 }
 
-                emitDomainConversations(newConversations)
+                conversations.emit(newConversations)
+                screenState.setValue { old ->
+                    old.copy(
+                        conversations = newConversations.map { it.asPresentation(resources) }
+                    )
+                }
             }
         }
     }
@@ -411,7 +384,7 @@ class ConversationsViewModelImpl(
 
 //            messagesRepository.store(message)
 
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
 
             val conversationIndex = newConversations.findIndex { it.id == message.peerId }
             if (conversationIndex == null) { // диалога нет в списке
@@ -424,14 +397,19 @@ class ConversationsViewModelImpl(
                     lastConversationMessageId = -1
                 )
 
-                emitDomainConversations(newConversations)
+                conversations.emit(newConversations)
+                screenState.setValue { old ->
+                    old.copy(
+                        conversations = newConversations.map { it.asPresentation(resources) }
+                    )
+                }
             }
         }
     }
 
     private fun handleReadIncomingMessage(event: LongPollEvent.VkMessageReadIncomingEvent) {
         viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
 
             val conversationIndex =
                 newConversations.findIndex { it.id == event.peerId } ?: return@launch
@@ -442,13 +420,18 @@ class ConversationsViewModelImpl(
                     unreadCount = event.unreadCount
                 )
 
-            emitDomainConversations(newConversations)
+            conversations.emit(newConversations)
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
+                )
+            }
         }
     }
 
     private fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) =
         viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
 
             val conversationIndex =
                 newConversations.findIndex { it.id == event.peerId } ?: return@launch
@@ -459,13 +442,18 @@ class ConversationsViewModelImpl(
                     unreadCount = event.unreadCount
                 )
 
-            emitDomainConversations(newConversations)
+            conversations.emit(newConversations)
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
+                )
+            }
         }
 
     private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) =
         viewModelScope.launch(Dispatchers.IO) {
             var pinnedCount = pinnedConversationsCount.value
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
 
             val conversationIndex =
                 newConversations.findIndex { it.id == event.peerId } ?: return@launch
@@ -496,7 +484,12 @@ class ConversationsViewModelImpl(
                 newConversations += pinnedSubList + unpinnedSubList
             }
 
-            emitDomainConversations(newConversations)
+            conversations.emit(newConversations)
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
+                )
+            }
         }
 
     private val interactionsTimers = hashMapOf<Int, InteractionJob?>()
@@ -514,7 +507,7 @@ class ConversationsViewModelImpl(
         val userIds = event.userIds
 
         viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
             val conversationAndIndex =
                 newConversations.findWithIndex { it.id == peerId } ?: return@launch
 
@@ -524,7 +517,12 @@ class ConversationsViewModelImpl(
                     interactionIds = userIds
                 )
 
-            emitDomainConversations(newConversations)
+            conversations.emit(newConversations)
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
+                )
+            }
 
             interactionsTimers[peerId]?.let { interactionJob ->
                 if (interactionJob.interactionType == interactionType) {
@@ -556,7 +554,7 @@ class ConversationsViewModelImpl(
         interactionsTimers[peerId] ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = domainConversations.value.toMutableList()
+            val newConversations = conversations.value.toMutableList()
             val conversationAndIndex =
                 newConversations.findWithIndex { it.id == peerId } ?: return@launch
 
@@ -566,7 +564,12 @@ class ConversationsViewModelImpl(
                     interactionIds = emptyList()
                 )
 
-            emitDomainConversations(newConversations)
+            conversations.emit(newConversations)
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
+                )
+            }
 
             interactionJob.timerJob.cancel()
             interactionsTimers[peerId] = null

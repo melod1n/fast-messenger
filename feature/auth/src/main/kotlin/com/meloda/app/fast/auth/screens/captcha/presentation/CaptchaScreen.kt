@@ -46,28 +46,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.meloda.app.fast.auth.navigation.AuthGraph
 import com.meloda.app.fast.auth.screens.captcha.CaptchaViewModel
 import com.meloda.app.fast.auth.screens.captcha.CaptchaViewModelImpl
 import com.meloda.app.fast.auth.screens.captcha.model.CaptchaArguments
-import com.meloda.app.fast.auth.screens.captcha.model.UiAction
+import com.meloda.app.fast.auth.screens.captcha.model.CaptchaUiAction
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.result.ResultBackNavigator
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (UiAction) -> Unit
+private typealias OnAction = (CaptchaUiAction) -> Unit
 
-@Suppress("NonSkippableComposable")
-@Destination<AuthGraph>(route = "captcha")
 @Composable
 fun CaptchaScreen(
     captchaSid: String,
     captchaImage: String,
-    navigator: ResultBackNavigator<String>,
     viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
 ) {
     viewModel.setArguments(
@@ -80,27 +74,27 @@ fun CaptchaScreen(
     CaptchaScreenContent(
         onAction = { action ->
             when (action) {
-                UiAction.BackClicked -> {
-                    navigator.navigateBack()
+                CaptchaUiAction.BackClicked -> {
+//                    navigator.navigateBack()
                 }
 
-                UiAction.CancelButtonClicked -> {
-                    navigator.navigateBack()
+                CaptchaUiAction.CancelButtonClicked -> {
+//                    navigator.navigateBack()
                 }
 
-                is UiAction.CodeInputChanged -> {
+                is CaptchaUiAction.CodeInputChanged -> {
                     viewModel.onCodeInputChanged(action.newText)
                 }
 
-                UiAction.DoneButtonClicked -> {
+                CaptchaUiAction.DoneButtonClicked -> {
                     viewModel.onDoneButtonClicked()
                 }
 
-                is UiAction.OnResult -> {
-                    navigator.navigateBack(result = action.code)
+                is CaptchaUiAction.OnResult -> {
+//                    navigator.navigateBack(result = action.code)
                 }
 
-                UiAction.TextFieldDoneClicked -> {
+                CaptchaUiAction.TextFieldDoneClicked -> {
                     viewModel.onTextFieldDoneClicked()
                 }
             }
@@ -125,7 +119,7 @@ fun CaptchaScreenContent(
     }
 
     if (confirmedExit) {
-        onAction(UiAction.BackClicked)
+        onAction(CaptchaUiAction.BackClicked)
     }
 
     BackHandler(enabled = !confirmedExit) {
@@ -149,7 +143,7 @@ fun CaptchaScreenContent(
 
     if (screenState.isNeedToOpenLogin) {
         viewModel.onNavigatedToLogin()
-        onAction(UiAction.OnResult(screenState.captchaCode))
+        onAction(CaptchaUiAction.OnResult(screenState.captchaCode))
     }
 
     val focusManager = LocalFocusManager.current
@@ -163,7 +157,7 @@ fun CaptchaScreenContent(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             ExtendedFloatingActionButton(
-                onClick = { onAction(UiAction.CancelButtonClicked) },
+                onClick = { onAction(CaptchaUiAction.CancelButtonClicked) },
                 text = {
                     Text(
                         text = "Cancel",
@@ -238,7 +232,7 @@ fun CaptchaScreenContent(
                     value = code,
                     onValueChange = { newText ->
                         code = newText
-                        onAction(UiAction.CodeInputChanged(newText.text))
+                        onAction(CaptchaUiAction.CodeInputChanged(newText.text))
                     },
                     label = { Text(text = "Code") },
                     placeholder = { Text(text = "Code") },
@@ -261,7 +255,7 @@ fun CaptchaScreenContent(
                     keyboardActions = KeyboardActions(
                         onDone = {
                             focusManager.clearFocus()
-                            onAction(UiAction.TextFieldDoneClicked)
+                            onAction(CaptchaUiAction.TextFieldDoneClicked)
                         }
                     ),
                     isError = showError
@@ -273,7 +267,7 @@ fun CaptchaScreenContent(
             }
 
             FloatingActionButton(
-                onClick = { onAction(UiAction.DoneButtonClicked) },
+                onClick = { onAction(CaptchaUiAction.DoneButtonClicked) },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {

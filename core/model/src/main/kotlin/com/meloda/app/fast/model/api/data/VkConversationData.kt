@@ -137,6 +137,8 @@ data class VkConversationData(
         interactionIds = emptyList(),
         peerType = PeerType.parse(peer.type),
         lastMessage = lastMessage,
-        pinnedMessage = chatSettings?.pinnedMessage?.mapToDomain()
+        pinnedMessage = chatSettings?.pinnedMessage?.mapToDomain(),
+        user = null,
+        group = null,
     )
 }

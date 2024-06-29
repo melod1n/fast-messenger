@@ -6,11 +6,13 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.data.db.AccountsRepository
+import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserConfig
+import com.meloda.app.fast.datastore.isDebugSettingsShown
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.settings.model.SettingsItem
 import com.meloda.app.fast.settings.model.SettingsScreenState
@@ -113,22 +115,22 @@ class SettingsViewModelImpl(
             }
 
             SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
-                // TODO: 05/05/2024, Danil Nikolaev: implement
-//                val showDebugCategory = isDebugSettingsShown(AppGlobal.Instance)
-//                if (!showDebugCategory) return
+                val showDebugCategory = isDebugSettingsShown()
+                if (!showDebugCategory) return
 
-//                AppGlobal.preferences.edit {
-//                    putBoolean(SettingsKeys.KEY_SHOW_DEBUG_CATEGORY, false)
-//                }
+                SettingsController.put(
+                    SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
+                    false
+                )
 
-//                createSettings()
+                createSettings()
 
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        useHaptics = HapticType.Reject,
-//                        showDebugOptions = false
-//                    )
-//                }
+                screenState.setValue { old ->
+                    old.copy(
+                        useHaptics = HapticType.Reject,
+                        showDebugOptions = false
+                    )
+                }
             }
         }
     }
@@ -136,21 +138,19 @@ class SettingsViewModelImpl(
     override fun onSettingsItemLongClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS -> {
-                // TODO: 05/05/2024, Danil Nikolaev: implement
-//                val showDebugCategory = isDebugSettingsShown(AppGlobal.Instance)
-//                if (showDebugCategory) return
+                val showDebugCategory = isDebugSettingsShown()
+                if (showDebugCategory) return
 
-//                AppGlobal.preferences.edit {
-//                    putBoolean(SettingsKeys.KEY_SHOW_DEBUG_CATEGORY, true)
-//                }
-//                createSettings()
+                SettingsController.put(SettingsKeys.KEY_SHOW_DEBUG_CATEGORY, true)
 
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        useHaptics = HapticType.LongPress,
-//                        showDebugOptions = true
-//                    )
-//                }
+                createSettings()
+
+                screenState.setValue { old ->
+                    old.copy(
+                        useHaptics = HapticType.LongPress,
+                        showDebugOptions = true
+                    )
+                }
             }
         }
     }
@@ -225,30 +225,21 @@ class SettingsViewModelImpl(
             )
 
             val darkThemeValues = listOf(
-                AppCompatDelegate.MODE_NIGHT_YES,
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,
-                AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY,
-                AppCompatDelegate.MODE_NIGHT_NO
-            )
-            val darkThemeTitles = listOf(
-                UiText.Resource(UiR.string.settings_dark_theme_value_enabled),
-                UiText.Resource(UiR.string.settings_dark_theme_value_follow_system),
-                UiText.Resource(UiR.string.settings_dark_theme_value_battery_saver),
-                UiText.Resource(UiR.string.settings_dark_theme_value_disabled)
-            )
-            val darkThemeValuesMap = darkThemeValues.mapIndexed { index, value ->
-                value to darkThemeTitles[index]
-            }.toMap()
+                AppCompatDelegate.MODE_NIGHT_YES to UiText.Resource(UiR.string.settings_dark_theme_value_enabled),
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM to UiText.Resource(UiR.string.settings_dark_theme_value_follow_system),
+                AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY to UiText.Resource(UiR.string.settings_dark_theme_value_battery_saver),
+                AppCompatDelegate.MODE_NIGHT_NO to UiText.Resource(UiR.string.settings_dark_theme_value_disabled)
+            ).toMap()
 
             val appearanceDarkTheme = SettingsItem.ListItem.build(
                 key = SettingsKeys.KEY_APPEARANCE_DARK_THEME,
                 title = UiText.Resource(UiR.string.settings_dark_theme),
-                values = darkThemeValues,
-                valueTitles = darkThemeTitles,
+                values = darkThemeValues.keys.toList(),
+                valueTitles = darkThemeValues.values.toList(),
                 defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
             ) {
                 summaryProvider = SettingsItem.SummaryProvider { item ->
-                    val darkThemeValue = darkThemeValuesMap[item.value ?: 0]
+                    val darkThemeValue = darkThemeValues[item.value ?: 0]
 
                     UiText.ResourceParams(
                         value = UiR.string.settings_dark_theme_current_value,
@@ -273,17 +264,12 @@ class SettingsViewModelImpl(
                 defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
             )
 
-            val languageValues = listOf(
-                "system", "en", "ru",
-            )
             val languages = listOf(
-                UiText.Resource(UiR.string.language_system),
-                UiText.Resource(UiR.string.language_english),
-                UiText.Resource(UiR.string.language_russian),
-            )
-            val languageValuesMap = languageValues.mapIndexed { index, value ->
-                value to languages[index]
-            }.toMap()
+                "" to UiText.Resource(UiR.string.language_system),
+                "en" to UiText.Resource(UiR.string.language_english),
+                "ru" to UiText.Resource(UiR.string.language_russian),
+                "uk" to UiText.Resource(UiR.string.language_ukrainian)
+            ).toMap()
 
             val appearanceLanguage = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
@@ -291,11 +277,9 @@ class SettingsViewModelImpl(
             ) {
                 summaryProvider = SettingsItem.SummaryProvider { item ->
                     // TODO: 25/12/2023, Danil Nikolaev: update value, receive result from LanguagePickerScreen
-                    val languageValue = languageValuesMap[item.value ?: "system"]
-
                     UiText.ResourceParams(
                         value = UiR.string.settings_application_language_value,
-                        args = listOf(languageValue)
+                        args = listOf(languages[item.value.orEmpty()])
                     )
                 }
             }
@@ -423,10 +407,9 @@ class SettingsViewModelImpl(
                 debugList,
             ).forEach(settingsList::addAll)
 
-            // TODO: 05/05/2024, Danil Nikolaev: implement
-//            if (!isDebugSettingsShown(AppGlobal.Instance)) {
-            settingsList.removeAll(debugList)
-//            }
+            if (!isDebugSettingsShown()) {
+                settingsList.removeAll(debugList)
+            }
 
             screenState.setValue { old -> old.copy(settings = settingsList) }
         }

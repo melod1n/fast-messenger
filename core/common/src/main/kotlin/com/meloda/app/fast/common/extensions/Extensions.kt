@@ -3,11 +3,9 @@ package com.meloda.app.fast.common.extensions
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -39,11 +38,6 @@ fun Context.restartApp() {
     }
 }
 
-val Context.preferences: SharedPreferences
-    get() = PreferenceManager.getDefaultSharedPreferences(this)
-
-fun <K, V> Map<out K, V>.toHashMap(): HashMap<K, V> = HashMap(this)
-
 inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
     return indexOf(firstOrNull(predicate)).let { index -> if (index == -1) null else index }
 }
@@ -51,17 +45,6 @@ inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
 inline fun <T> Iterable<T>.findWithIndex(predicate: (T) -> Boolean): Pair<Int, T>? {
     val value = firstOrNull(predicate) ?: return null
     return indexOf(value).let { index -> if (index == -1) null else index to value }
-}
-
-inline fun <reified T, K, M : MutableMap<in K, T>> Iterable<T>.toMap(
-    destination: M,
-    keySelector: (T) -> K,
-): M {
-    for (element in this) {
-        val key = keySelector(element)
-        destination[key] = element
-    }
-    return destination
 }
 
 fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
@@ -75,23 +58,6 @@ fun <T> Flow<T>.listenValue(
     coroutineScope: CoroutineScope,
     action: suspend (T) -> Unit
 ): Job = onEach(action::invoke).launchIn(coroutineScope)
-
-//fun isSystemUsingDarkMode(): Boolean {
-//    val nightThemeMode = AppGlobal.preferences.getInt(
-//        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
-//        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
-//    )
-//    val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
-//    val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
-//
-//    val systemUiNightMode = AppGlobal.resources.configuration.uiMode
-//
-//    val isSystemBatterySaver = AndroidUtils.isBatterySaverOn()
-//    val isSystemUsingDarkTheme =
-//        systemUiNightMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-//
-//    return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-//}
 
 fun createTimerFlow(
     time: Int,
@@ -140,7 +106,7 @@ fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(Dispatchers
 
 context(ViewModel)
 fun <T> MutableSharedFlow<T>.emitOnScope(
-    coroutineContext: CoroutineContext = Dispatchers.Default,
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
     value: () -> T,
 ) {
     viewModelScope.launch(coroutineContext) {
@@ -172,7 +138,7 @@ fun Any.asInt(): Int {
     }
 }
 
-fun <T> Any.asList(mapper: (old: Any) -> T): List<T> {
+fun <T> Any.toList(mapper: (old: Any) -> T): List<T> {
     return when (this) {
         is List<*> -> this.mapNotNull { it?.run(mapper) }
 

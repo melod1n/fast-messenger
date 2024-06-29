@@ -21,7 +21,7 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
         annotations: Array<out Annotation>,
         retrofit: Retrofit
     ): Converter<ResponseBody, *>? {
-        val (errorType, _) = annotations.errorType() ?: return null
+        val (errorType, b) = annotations.errorType() ?: return null
         val errorRaw = getRawType(errorType.toType())
         return ResponseBodyConverter(
             successType = type,
@@ -48,7 +48,13 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
                         converter.fromJson(errorRaw, string)
                     }.fold(
                         onSuccess = { errorModel -> throw ApiException(errorModel) },
-                        onFailure = { if (!isUnit) throw it else return Unit }
+                        onFailure = { exception ->
+                            if (!isUnit) {
+                                throw exception
+                            } else {
+                                return Unit
+                            }
+                        }
                     )
                 }
             )

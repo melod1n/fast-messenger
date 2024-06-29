@@ -27,26 +27,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.auth.navigation.AuthGraph
 import com.meloda.app.fast.auth.screens.logo.LogoViewModel
 import com.meloda.app.fast.auth.screens.logo.LogoViewModelImpl
-import com.meloda.app.fast.auth.screens.logo.model.UiAction
+import com.meloda.app.fast.auth.screens.logo.model.LogoUiAction
 import com.meloda.app.fast.common.extensions.restartApp
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.generated.auth.destinations.LoginDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (UiAction) -> Unit
+private typealias OnAction = (LogoUiAction) -> Unit
 
-@Destination<AuthGraph>(
-    start = true,
-    route = "logo",
-)
 @Composable
 fun LogoScreen(
-    navigator: DestinationsNavigator,
     viewModel: LogoViewModel = koinViewModel<LogoViewModelImpl>(),
 ) {
     val context = LocalContext.current
@@ -54,8 +45,10 @@ fun LogoScreen(
     LogoScreenContent(
         onAction = { action ->
             when (action) {
-                UiAction.NextClicked -> navigator.navigate(LoginDestination)
-                UiAction.Restart -> context.restartApp()
+                LogoUiAction.NextClicked -> {
+//                    navigator.navigate(LoginDestination)
+                }
+                LogoUiAction.Restart -> context.restartApp()
             }
         },
         viewModel = viewModel
@@ -72,7 +65,7 @@ fun LogoScreenContent(
 
     if (screenState.isNeedToRestart) {
         viewModel.onRestarted()
-        onAction(UiAction.Restart)
+        onAction(LogoUiAction.Restart)
     }
 
     Scaffold { padding ->
@@ -108,7 +101,7 @@ fun LogoScreenContent(
             }
 
             FloatingActionButton(
-                onClick = { onAction(UiAction.NextClicked) },
+                onClick = { onAction(LogoUiAction.NextClicked) },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {

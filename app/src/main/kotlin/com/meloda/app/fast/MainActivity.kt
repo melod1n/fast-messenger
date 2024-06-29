@@ -13,26 +13,23 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
-import com.meloda.app.fast.common.AppGlobal
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
+import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.designsystem.AppTheme
@@ -40,17 +37,8 @@ import com.meloda.app.fast.designsystem.CheckPermission
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.RequestPermission
 import com.meloda.app.fast.model.MainScreenState
-import com.meloda.app.fast.navigation.MainGraph
 import com.meloda.app.fast.service.OnlineService
 import com.meloda.app.fast.service.longpolling.LongPollingService
-import com.ramcosta.composedestinations.DestinationsNavHost
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.generated.auth.destinations.LogoDestination
-import com.ramcosta.composedestinations.generated.conversations.destinations.ConversationsDestination
-import com.ramcosta.composedestinations.generated.main.navgraphs.MainNavGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.spec.Direction
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
@@ -73,18 +61,18 @@ class MainActivity : AppCompatActivity() {
                 val isOnline by userSettings.online.collectAsStateWithLifecycle()
                 toggleOnlineService(isOnline)
 
-                val language by userSettings.language.collectAsStateWithLifecycle()
-                val isNeedToSetLanguage by userSettings.languageChangedFromApp.collectAsStateWithLifecycle()
-                if (isNeedToSetLanguage) {
-                    userSettings.onLanguageChanged()
-                    setNewLanguage(language)
-                }
+//                val language by userSettings.language.collectAsStateWithLifecycle()
+//                val isNeedToSetLanguage by userSettings.languageChangedFromApp.collectAsStateWithLifecycle()
+//                if (isNeedToSetLanguage) {
+//                    userSettings.onLanguageChanged()
+//                    setNewLanguage(language)
+//                }
 
                 LocalLifecycleOwner.current.lifecycle.addObserver(
                     LifecycleEventObserver { _, event ->
                         when (event) {
                             Lifecycle.Event.ON_RESUME -> {
-                                checkExternalLanguageUpdate(userSettings)
+//                                checkExternalLanguageUpdate(userSettings)
                                 toggleOnlineService(isOnline)
                             }
 
@@ -108,10 +96,12 @@ class MainActivity : AppCompatActivity() {
                     useDynamicColors = theme.usingDynamicColors,
                     useAmoledBackground = theme.usingAmoledBackground
                 ) {
-                    DestinationsNavHost(
-                        navGraph = MainNavGraph,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    RootNavigation()
+//                    DestinationsNavHost(
+//                        navGraph = MainNavGraph,
+//                        modifier = Modifier.fillMaxSize()
+//                    )
+
                 }
             }
         }
@@ -149,9 +139,9 @@ class MainActivity : AppCompatActivity() {
 
         if (!appLocales.toLanguageTags().startsWith(currentSavedLanguage)) {
             val newLanguage = if (appLocales.isEmpty) {
-                "system"
+                ""
             } else {
-                appLocales.getFirstMatch(arrayOf(currentSavedLanguage))?.language ?: "system"
+                appLocales.getFirstMatch(arrayOf(currentSavedLanguage))?.language ?: ""
             }
 
             userSettings.setLanguage(newLanguage, withUpdate = false)
@@ -160,7 +150,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleLongPollService(
         enable: Boolean,
-        asForeground: Boolean = AppGlobal.preferences.getBoolean(
+        asForeground: Boolean = SettingsController.getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
@@ -189,7 +179,7 @@ class MainActivity : AppCompatActivity() {
     private fun stopServices() {
         toggleOnlineService(enable = false)
 
-        val asForeground = AppGlobal.preferences.getBoolean(
+        val asForeground = SettingsController.getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
@@ -201,7 +191,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setNewLanguage(newLanguage: String) {
         val appLocales = AppCompatDelegate.getApplicationLocales()
-        if (newLanguage == "system") {
+        if (newLanguage.isEmpty()) {
             if (!appLocales.isEmpty) {
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
             }
@@ -250,7 +240,7 @@ fun NotificationsPermissionChecker(
     val isNeedToCheckNotificationsPermission by remember {
         derivedStateOf {
             (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    AppGlobal.preferences.getBoolean(
+                    SettingsController.getBoolean(
                         SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
                         SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
                     ))
@@ -289,31 +279,4 @@ fun NotificationsPermissionChecker(
             permission = permission
         )
     }
-}
-
-@Destination<MainGraph>(start = true)
-@Composable
-fun MainScreenContent(navigator: DestinationsNavigator) {
-    val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
-
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    if (screenState.accountsLoaded) {
-        val destination: Direction =
-            if (screenState.accounts.isNotEmpty() && UserConfig.isLoggedIn()) {
-                ConversationsDestination(null)
-            } else {
-                LogoDestination
-            }
-
-        navigator.navigate(destination) {
-            popUpTo(route = "main") {
-                inclusive = true
-            }
-        }
-    }
-
-    NotificationsPermissionChecker(
-        screenState = screenState,
-        viewModel = viewModel
-    )
 }

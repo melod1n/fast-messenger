@@ -1,6 +1,5 @@
 package com.meloda.app.fast.model.database
 
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.meloda.app.fast.model.api.domain.VkAttachment
@@ -36,7 +35,7 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     fromId = fromId,
     date = date,
     randomId = randomId,
-    action = action,
+    action = VkMessage.Action.parse(action),
     actionMemberId = actionMemberId,
     actionText = actionText,
     actionConversationMessageId = actionConversationMessageId,
@@ -47,5 +46,9 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     // TODO: 05/05/2024, Danil Nikolaev: restore attachments
     attachments = attachments.orEmpty().map { object : VkAttachment {} },
     replyMessage = null,//replyMessage?.asExternalModel(),
-    geoType = geoType
+    geoType = geoType,
+    user = null,
+    group = null,
+    actionUser = null,
+    actionGroup = null,
 )

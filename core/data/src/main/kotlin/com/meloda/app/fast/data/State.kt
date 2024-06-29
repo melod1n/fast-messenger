@@ -1,5 +1,6 @@
 package com.meloda.app.fast.data
 
+import com.meloda.app.fast.network.OAuthErrorDomain
 import com.meloda.app.fast.network.RestApiErrorDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -35,6 +36,8 @@ sealed class State<out T> {
         data object Unknown : Error()
 
         data object InternalError : Error()
+
+        data class OAuthError(val error: OAuthErrorDomain) : Error()
     }
 
     fun isLoading(): Boolean = this is Loading
@@ -67,4 +70,9 @@ inline fun <T, R> Flow<State<T>>.mapSuccess(
 fun RestApiErrorDomain?.toStateApiError(): State.Error = when (this) {
     null -> State.Error.ConnectionError
     else -> State.Error.ApiError(code, message)
+}
+
+fun OAuthErrorDomain?.toStateApiError(): State.Error = when (this) {
+    null -> State.Error.ConnectionError
+    else -> State.Error.OAuthError(this)
 }

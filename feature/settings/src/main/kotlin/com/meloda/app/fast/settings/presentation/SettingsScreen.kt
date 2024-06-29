@@ -1,7 +1,7 @@
 package com.meloda.app.fast.settings.presentation
 
+import android.os.PowerManager
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -26,18 +26,23 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserConfig
 import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.datastore.isUsingDarkMode
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
+import com.meloda.app.fast.settings.SettingsViewModelImpl
+import com.meloda.app.fast.settings.model.NavigationAction
 import com.meloda.app.fast.settings.model.OnSettingsChangeListener
 import com.meloda.app.fast.settings.model.OnSettingsClickListener
 import com.meloda.app.fast.settings.model.OnSettingsLongClickListener
@@ -53,21 +58,22 @@ import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
+typealias OnAction = (NavigationAction) -> Unit
+
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
     ExperimentalHazeMaterialsApi::class
 )
 @Composable
-fun SettingsScreenContent(
-    onBackClick: () -> Unit,
-    navigateToLanguagePicker: () -> Unit,
-    navigateToLogin: () -> Unit,
-    viewModel: SettingsViewModel
+fun SettingsScreen(
+    onAction: OnAction,
+    viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
+    val context = LocalContext.current
     val view = LocalView.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
@@ -89,7 +95,7 @@ fun SettingsScreenContent(
     val clickListener = OnSettingsClickListener { key ->
         when (key) {
             SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
-                navigateToLanguagePicker()
+                onAction(NavigationAction.NavigateToLanguagePicker)
             }
 
             else -> viewModel.onSettingsItemClicked(key)
@@ -108,10 +114,14 @@ fun SettingsScreenContent(
                 val newMode = newValue as? Int ?: return@OnSettingsChangeListener
                 AppCompatDelegate.setDefaultNightMode(newMode)
 
+                val isUsing = context.getSystemService<PowerManager>()?.let { manager ->
+                    isUsingDarkMode(
+                        context.resources,
+                        manager
+                    )
+                } ?: false
 
-                // TODO: 05/05/2024, Danil Nikolaev: implement
-//                val isUsing = isUsingDarkTheme()
-//                userSettings.useDarkThemeChanged(isUsing)
+                userSettings.useDarkThemeChanged(isUsing)
             }
 
             SettingsKeys.KEY_APPEARANCE_AMOLED_THEME -> {
@@ -151,7 +161,7 @@ fun SettingsScreenContent(
         topBar = {
             val title = @Composable { Text(text = stringResource(id = UiR.string.title_settings)) }
             val navigationIcon = @Composable {
-                IconButton(onClick = onBackClick) {
+                IconButton(onClick = { onAction(NavigationAction.BackClick) }) {
                     Icon(
                         painter = painterResource(id = UiR.drawable.ic_round_arrow_back_24),
                         contentDescription = "Back button"
@@ -199,10 +209,10 @@ fun SettingsScreenContent(
         ) {
             items(
                 count = settingsList.size,
-                key = { index ->
-                    val item = settingsList[index]
-                    requireNotNull(item.title ?: item.summary)
-                },
+//                key = { index ->
+//                    val item = settingsList[index]
+//                    requireNotNull(item.title ?: item.summary)
+//                },
                 contentType = { index ->
                     when (settingsList[index]) {
                         is SettingsItem.ListItem -> "listitem"
@@ -227,7 +237,7 @@ fun SettingsScreenContent(
                     is SettingsItem.Title -> TitleSettingsItem(
                         item = item,
                         isMultiline = multilineEnabled,
-                        modifier = Modifier.animateItemPlacement()
+                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
@@ -235,7 +245,7 @@ fun SettingsScreenContent(
                         isMultiline = multilineEnabled,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
-                        modifier = Modifier.animateItemPlacement()
+                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.Switch -> SwitchSettingsItem(
@@ -244,7 +254,7 @@ fun SettingsScreenContent(
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener,
-                        modifier = Modifier.animateItemPlacement()
+                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.TextField -> EditTextSettingsItem(
@@ -253,7 +263,7 @@ fun SettingsScreenContent(
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener,
-                        modifier = Modifier.animateItemPlacement()
+                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.ListItem -> ListSettingsItem(
@@ -262,7 +272,7 @@ fun SettingsScreenContent(
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener,
-                        modifier = Modifier.animateItemPlacement()
+                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
                 }
 
@@ -284,7 +294,7 @@ fun SettingsScreenContent(
         performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
         logoutPositiveClick = {
             viewModel.onLogOutAlertPositiveClick()
-            navigateToLogin()
+            onAction(NavigationAction.NavigateToLogin)
         },
         logoutDismissed = viewModel::onLogOutAlertDismissed,
         longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,

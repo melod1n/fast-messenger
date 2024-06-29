@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.ContentAlpha
+import com.meloda.app.fast.designsystem.ImmutableList.Companion.toImmutableList
 import com.meloda.app.fast.designsystem.ItemsSelectionType
 import com.meloda.app.fast.designsystem.LocalContentAlpha
 import com.meloda.app.fast.designsystem.MaterialDialog
@@ -136,8 +137,8 @@ fun ListAlertDialog(
     MaterialDialog(
         onDismissAction = onDismissAction,
         title = item.title,
-        items = item.valueTitles,
-        preSelectedItems = listOf(checkedItem),
+        items = item.valueTitles.toImmutableList(),
+        preSelectedItems = listOf(checkedItem).toImmutableList(),
         itemsSelectionType = ItemsSelectionType.Single,
         onItemClick = { index ->
             selectedOption = item.values[index]

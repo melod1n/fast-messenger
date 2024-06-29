@@ -20,7 +20,7 @@ object SettingsKeys {
     const val KEY_USE_DYNAMIC_COLORS = "appearance_use_dynamic_colors"
     const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
     const val KEY_APPEARANCE_LANGUAGE = "appearance_language"
-    const val DEFAULT_VALUE_APPEARANCE_LANGUAGE = "system"
+    const val DEFAULT_VALUE_APPEARANCE_LANGUAGE = ""
     const val KEY_APPEARANCE_BLUR = "appearance_blur"
     const val DEFAULT_VALUE_KEY_APPEARANCE_BLUR = false
 

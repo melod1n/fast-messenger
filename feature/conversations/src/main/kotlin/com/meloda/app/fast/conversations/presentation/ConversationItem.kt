@@ -83,7 +83,7 @@ fun UiImage.getImage(): Any {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Conversation(
+fun ConversationItem(
     onItemClick: () -> Unit,
     onItemLongClick: () -> Unit,
     isUserAccount: Boolean,
