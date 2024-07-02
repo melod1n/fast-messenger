@@ -97,12 +97,16 @@ class ConversationsUseCaseImpl(
 //        groupsDao.insertAll(groups.map(VkGroupDomain::mapToDB))
 //    }
     override fun getConversations(
-        count: Int?, offset: Int?
+        count: Int?,
+        offset: Int?
     ): Flow<State<List<VkConversation>>> = flow {
         emit(State.Loading)
 
         val newState = when (
-            val result = conversationsRepository.getConversations(count, offset)
+            val result = conversationsRepository.getConversations(
+                count = count,
+                offset = offset
+            )
         ) {
             is ApiResult.Success -> State.Success(result.value)
 

@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,7 +58,7 @@ fun MaterialDialog(
     items: ImmutableList<UiText> = ImmutableList.empty(),
     onItemClick: ((index: Int) -> Unit)? = null,
     buttonsInvokeDismiss: Boolean = true,
-    customContent: (@Composable () -> Unit)? = null,
+    customContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     var isVisible by remember {
         mutableStateOf(true)
@@ -178,7 +179,7 @@ fun MaterialDialog(
                             } else {
                                 customContent?.let { content ->
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    content.invoke()
+                                    content.invoke(this)
                                     Spacer(modifier = Modifier.height(10.dp))
                                 }
                             }

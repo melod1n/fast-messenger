@@ -44,8 +44,6 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.ui)
 
-    implementation(projects.feature.settings)
-
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
     implementation(libs.nanokt)

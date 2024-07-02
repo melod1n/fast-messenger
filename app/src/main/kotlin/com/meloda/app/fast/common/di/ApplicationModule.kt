@@ -13,6 +13,7 @@ import com.meloda.app.fast.messageshistory.di.messagesHistoryModule
 import com.meloda.app.fast.photoviewer.di.photoViewModule
 import com.meloda.app.fast.service.longpolling.di.longPollModule
 import com.meloda.app.fast.settings.di.settingsModule
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.qualifier
@@ -33,8 +34,8 @@ val applicationModule = module {
     // TODO: 14/05/2024, Danil Nikolaev: research on memory leaks and potentials errors
     // TODO: 14/05/2024, Danil Nikolaev: extract all operations with preferences to standalone class
     singleOf(PreferenceManager::getDefaultSharedPreferences)
-    single<Resources> { get<Context>().resources }
-    factory<PowerManager> { get<Context>().getSystemService(Context.POWER_SERVICE) as PowerManager }
+    single<Resources> { androidContext().resources }
+    factory<PowerManager> { androidContext().getSystemService(Context.POWER_SERVICE) as PowerManager }
 
     viewModelOf(::MainViewModelImpl) {
         qualifier = qualifier("main")

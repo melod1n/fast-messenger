@@ -4,7 +4,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.settings.model.NavigationAction
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -19,13 +18,9 @@ fun NavGraphBuilder.settingsRoute(
     composable<Settings> {
         SettingsScreen(
             onError = onError,
-            onAction = { action ->
-                when (action) {
-                    NavigationAction.BackClick -> onBack()
-                    NavigationAction.NavigateToLanguagePicker -> onNavigateToLanguagePicker()
-                    NavigationAction.NavigateToAuth -> onNavigateToAuth()
-                }
-            }
+            onBack = onBack,
+            onNavigateToAuth = onNavigateToAuth,
+            onNavigateToLanguagePicker = onNavigateToLanguagePicker
         )
     }
 }

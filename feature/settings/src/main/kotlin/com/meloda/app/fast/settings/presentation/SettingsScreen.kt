@@ -43,7 +43,6 @@ import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
 import com.meloda.app.fast.settings.SettingsViewModelImpl
-import com.meloda.app.fast.settings.model.NavigationAction
 import com.meloda.app.fast.settings.model.OnSettingsChangeListener
 import com.meloda.app.fast.settings.model.OnSettingsClickListener
 import com.meloda.app.fast.settings.model.OnSettingsLongClickListener
@@ -63,8 +62,6 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
-typealias OnAction = (NavigationAction) -> Unit
-
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class
@@ -72,7 +69,9 @@ typealias OnAction = (NavigationAction) -> Unit
 @Composable
 fun SettingsScreen(
     onError: (BaseError) -> Unit,
-    onAction: OnAction,
+    onBack: () -> Unit,
+    onNavigateToAuth: () -> Unit,
+    onNavigateToLanguagePicker: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
     val context = LocalContext.current
@@ -97,7 +96,7 @@ fun SettingsScreen(
     val clickListener = OnSettingsClickListener { key ->
         when (key) {
             SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
-                onAction(NavigationAction.NavigateToLanguagePicker)
+                onNavigateToLanguagePicker()
             }
 
             else -> viewModel.onSettingsItemClicked(key)
@@ -163,7 +162,7 @@ fun SettingsScreen(
         topBar = {
             val title = @Composable { Text(text = stringResource(id = UiR.string.title_settings)) }
             val navigationIcon = @Composable {
-                IconButton(onClick = { onAction(NavigationAction.BackClick) }) {
+                IconButton(onClick = onBack) {
                     Icon(
                         painter = painterResource(id = UiR.drawable.ic_round_arrow_back_24),
                         contentDescription = "Back button"
@@ -296,7 +295,7 @@ fun SettingsScreen(
         performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
         logoutPositiveClick = {
             viewModel.onLogOutAlertPositiveClick()
-            onAction(NavigationAction.NavigateToAuth)
+            onNavigateToAuth()
         },
         logoutDismissed = viewModel::onLogOutAlertDismissed,
         longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,

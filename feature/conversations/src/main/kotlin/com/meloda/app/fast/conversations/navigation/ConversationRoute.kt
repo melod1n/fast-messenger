@@ -3,7 +3,6 @@ package com.meloda.app.fast.conversations.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.meloda.app.fast.conversations.model.NavigationAction
 import com.meloda.app.fast.conversations.presentation.ConversationsScreen
 import com.meloda.app.fast.model.BaseError
 import kotlinx.serialization.Serializable
@@ -19,15 +18,8 @@ fun NavGraphBuilder.conversationsRoute(
     composable<Conversations> {
         ConversationsScreen(
             onError = onError,
-            onAction = { action ->
-                when (action) {
-                    is NavigationAction.NavigateToMessagesHistory -> {
-                        onNavigateToMessagesHistory(action.conversationId)
-                    }
-
-                    NavigationAction.NavigateToSettings -> onNavigateToSettings()
-                }
-            }
+            onNavigateToMessagesHistory = onNavigateToMessagesHistory,
+            onNavigateToSettings = onNavigateToSettings
         )
     }
 }

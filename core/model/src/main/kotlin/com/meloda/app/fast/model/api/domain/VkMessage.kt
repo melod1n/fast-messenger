@@ -44,7 +44,7 @@ data class VkMessage(
             conversation.inRead - id >= 0
         }
 
-    fun hasAttachments(): Boolean = !attachments.isNullOrEmpty()
+    fun hasAttachments(): Boolean = attachments.orEmpty().isNotEmpty()
 
     fun hasReply(): Boolean = replyMessage != null
 

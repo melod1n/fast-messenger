@@ -37,7 +37,7 @@ fun VkConversation.asPresentation(
 ): UiConversation = UiConversation(
     id = id,
     lastMessageId = lastMessageId,
-    avatar = extractAvatar(this),
+    avatar = extractAvatar(),
     title = extractTitle(this, useContactName, resources),
     unreadCount = extractUnreadCount(lastMessage, this),
     date = TimeUtils.getLocalizedTime(resources, (lastMessage?.date ?: -1) * 1000L),
@@ -54,23 +54,17 @@ fun VkConversation.asPresentation(
     peerType = peerType,
     interactionText = extractInteractionText(resources, this),
     isExpanded = false,
-    options = ImmutableList.empty(),
-    lastSeenStatus = extractLastSeenStatus(resources, this)
+    options = ImmutableList.empty()
 )
 
-private fun extractAvatar(conversation: VkConversation) = when (conversation.peerType) {
+fun VkConversation.extractAvatar() = when (peerType) {
     PeerType.USER -> {
-        if (isAccount(conversation.id)) null
-        else conversation.user?.photo200
+        if (isAccount(id)) null
+        else user?.photo200
     }
 
-    PeerType.GROUP -> {
-        conversation.group?.photo200
-    }
-
-    PeerType.CHAT -> {
-        conversation.photo200
-    }
+    PeerType.GROUP -> { group?.photo200 }
+    PeerType.CHAT -> { photo200 }
 }?.let(UiImage::Url) ?: UiImage.Resource(UiR.drawable.ic_account_circle_cut)
 
 private fun extractTitle(
@@ -229,6 +223,7 @@ private fun extractActionText(
 ): AnnotatedString? {
     if (lastMessage == null) return null
 
+    val fromId = lastMessage.fromId
     val text = lastMessage.actionMessage.orDots()
     val groupName = lastMessage.group?.name.orDots()
     val userName = lastMessage.user?.fullName.orDots()
@@ -329,7 +324,7 @@ private fun extractActionText(
             }
 
             VkMessage.Action.CHAT_KICK_USER -> {
-                if (memberId == lastMessage.fromId) {
+                if (memberId == fromId) {
                     UiText.ResourceParams(
                         UiR.string.message_action_chat_user_left,
                         listOf(memberPrefix)
@@ -347,7 +342,7 @@ private fun extractActionText(
 
                     val string = UiText.ResourceParams(
                         UiR.string.message_action_chat_user_kicked,
-                        listOf(memberPrefix, postfix)
+                        listOf(prefix, postfix)
                     ).parseString(resources).orEmpty()
 
                     append(string)
@@ -355,7 +350,7 @@ private fun extractActionText(
                     addStyle(
                         style = SpanStyle(fontWeight = FontWeight.SemiBold),
                         start = 0,
-                        end = memberPrefix.length
+                        end = prefix.length
                     )
 
                     val postfixStartIndex = string.indexOf(postfix)

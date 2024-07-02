@@ -2,13 +2,16 @@ package com.meloda.app.fast.common
 
 import android.app.Application
 import androidx.preference.PreferenceManager
+import coil.ImageLoader
+import coil.ImageLoaderFactory
 import com.meloda.app.fast.common.di.applicationModule
 import com.meloda.app.fast.datastore.SettingsController
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
 
-class AppGlobal : Application() {
+class AppGlobal : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
@@ -27,4 +30,6 @@ class AppGlobal : Application() {
             modules(applicationModule)
         }
     }
+
+    override fun newImageLoader(): ImageLoader = get()
 }

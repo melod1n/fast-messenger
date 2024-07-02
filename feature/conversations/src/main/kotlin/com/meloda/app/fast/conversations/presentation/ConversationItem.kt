@@ -32,7 +32,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,8 +55,8 @@ import coil.request.ImageRequest
 import com.meloda.app.fast.common.UiImage
 import com.meloda.app.fast.conversations.DotsFlashing
 import com.meloda.app.fast.conversations.model.ConversationOption
+import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.designsystem.ContentAlpha
-import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.designsystem.LocalContentAlpha
 import com.meloda.app.fast.designsystem.getString
 import com.meloda.app.fast.designsystem.R as UiR
@@ -84,48 +85,39 @@ fun UiImage.getImage(): Any {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationItem(
-    onItemClick: () -> Unit,
-    onItemLongClick: () -> Unit,
-    isUserAccount: Boolean,
-    avatar: UiImage?,
-    title: String,
-    message: AnnotatedString,
-    date: String,
+    onItemClick: (Int) -> Unit,
+    onItemLongClick: (conversation: UiConversation) -> Unit,
+    onOptionClicked: (UiConversation, ConversationOption) -> Unit,
     maxLines: Int,
-    isUnread: Boolean,
-    isPinned: Boolean,
-    isOnline: Boolean,
-    isBirthday: Boolean,
-    interactionText: String?,
-    attachmentImage: UiImage?,
-    isExpanded: Boolean,
-    unreadCount: String?,
-    showOnlyPlaceholders: Boolean,
-    modifier: Modifier,
-    options: ImmutableList<ConversationOption>,
-    onOptionClicked: (ConversationOption) -> Unit
+    isUserAccount: Boolean,
+    conversation: UiConversation,
+    modifier: Modifier = Modifier,
 ) {
-
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
     val bottomStartCornerRadius by animateDpAsState(
-        targetValue = if (isExpanded) 10.dp else 34.dp, label = "bottomStartCornerRadius"
+        targetValue = if (conversation.isExpanded) 10.dp else 34.dp,
+        label = "bottomStartCornerRadius"
     )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = onItemClick,
+                onClick = { onItemClick(conversation.id) },
                 onLongClick = {
-                    onItemLongClick()
+                    onItemLongClick(conversation)
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                 }
             )
     ) {
+        val showBackground by remember(conversation) {
+            derivedStateOf { conversation.isUnread || conversation.isExpanded }
+        }
+
         AnimatedVisibility(
-            visible = isUnread || isExpanded,
+            visible = showBackground,
             modifier = Modifier
                 .matchParentSize()
                 .padding(start = 8.dp),
@@ -137,7 +129,8 @@ fun ConversationItem(
                     .matchParentSize()
                     .clip(
                         RoundedCornerShape(
-                            topStart = 34.dp, bottomStart = bottomStartCornerRadius
+                            topStart = 34.dp,
+                            bottomStart = bottomStartCornerRadius
                         )
                     )
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
@@ -149,56 +142,46 @@ fun ConversationItem(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(modifier = Modifier.size(56.dp)) {
-                    if (showOnlyPlaceholders) {
-                        Image(
-                            painter = painterResource(id = UiR.drawable.ic_account_circle_cut),
-                            contentDescription = "Photo placeholder",
+                    if (isUserAccount) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
-                        )
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Image(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(32.dp),
+                                painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
+                                contentDescription = "Favorites icon"
+                            )
+                        }
                     } else {
-                        if (isUserAccount) {
-                            Box(
+                        val avatarImage = conversation.avatar?.getImage()
+                        if (avatarImage is Painter) {
+                            Image(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                            ) {
-                                Image(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .size(32.dp),
-                                    painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
-                                    contentDescription = "Favorites icon"
-                                )
-                            }
+                                    .clip(CircleShape),
+                                painter = avatarImage,
+                                contentDescription = "Avatar",
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                            )
                         } else {
-                            val avatarImage = avatar?.getImage()
-                            if (avatarImage is Painter) {
-                                Image(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
-                                    painter = avatarImage,
-                                    contentDescription = "Avatar",
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
-                                )
-                            } else {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context).data(avatarImage)
-                                        .crossfade(true).build(),
-                                    contentDescription = "Avatar",
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
-                                    placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
-                                )
-                            }
+                            AsyncImage(
+                                model = ImageRequest.Builder(context).data(avatarImage)
+                                    .crossfade(true).build(),
+                                contentDescription = "Avatar",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
+                            )
                         }
                     }
 
-                    if (isPinned) {
+                    if (conversation.isPinned) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -215,13 +198,13 @@ fun ConversationItem(
                         }
                     }
 
-                    if (isOnline) {
+                    if (conversation.isOnline) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(18.dp)
                                 .background(
-                                    if (isUnread) {
+                                    if (conversation.isUnread) {
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
                                     } else {
                                         MaterialTheme.colorScheme.background
@@ -239,13 +222,13 @@ fun ConversationItem(
                         }
                     }
 
-                    if (isBirthday) {
+                    if (conversation.isBirthday) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(16.dp)
                                 .background(
-                                    if (isUnread) {
+                                    if (conversation.isUnread) {
                                         MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
                                     } else {
                                         MaterialTheme.colorScheme.background
@@ -278,7 +261,7 @@ fun ConversationItem(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = title,
+                        text = conversation.title,
                         modifier = Modifier,
                         minLines = 1,
                         maxLines = maxLines,
@@ -286,9 +269,10 @@ fun ConversationItem(
                     )
 
                     Row {
-                        if (interactionText != null) {
+                        if (conversation.interactionText != null) {
                             Text(
-                                text = interactionText, color = MaterialTheme.colorScheme.primary
+                                text = conversation.interactionText,
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             DotsFlashing(
@@ -299,7 +283,7 @@ fun ConversationItem(
                                 dotColor = MaterialTheme.colorScheme.primary
                             )
                         } else {
-                            attachmentImage?.getResourcePainter()?.let { painter ->
+                            conversation.attachmentImage?.getResourcePainter()?.let { painter ->
                                 Column {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Image(
@@ -316,7 +300,7 @@ fun ConversationItem(
                             LocalContentAlpha(alpha = ContentAlpha.medium) {
                                 Text(
                                     modifier = Modifier.weight(1f),
-                                    text = message,
+                                    text = conversation.message,
                                     minLines = 1,
                                     maxLines = maxLines,
                                     style = MaterialTheme.typography.bodyLarge,
@@ -331,11 +315,12 @@ fun ConversationItem(
                 Column {
                     LocalContentAlpha(alpha = ContentAlpha.medium) {
                         Text(
-                            text = date, style = MaterialTheme.typography.bodySmall
+                            text = conversation.date,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
 
-                    unreadCount?.let { count ->
+                    conversation.unreadCount?.let { count ->
                         Spacer(modifier = Modifier.height(6.dp))
                         Box(
                             modifier = Modifier
@@ -359,7 +344,7 @@ fun ConversationItem(
                 Spacer(modifier = Modifier.width(24.dp))
             }
 
-            AnimatedVisibility(visible = isExpanded) {
+            AnimatedVisibility(conversation.isExpanded) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -374,11 +359,9 @@ fun ConversationItem(
                             .padding(horizontal = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        options.forEach { option ->
+                        conversation.options.forEach { option ->
                             ElevatedAssistChip(
-                                onClick = {
-                                    onOptionClicked(option)
-                                },
+                                onClick = { onOptionClicked(conversation, option) },
                                 leadingIcon = {
                                     option.icon.getResourcePainter()?.let { painter ->
                                         Icon(
@@ -398,7 +381,7 @@ fun ConversationItem(
             }
 
             val bottomSpacerHeight by animateDpAsState(
-                targetValue = if (isExpanded) 4.dp else 8.dp,
+                targetValue = if (conversation.isExpanded) 4.dp else 8.dp,
                 label = "bottomSpacerHeight"
             )
 

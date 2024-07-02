@@ -28,5 +28,4 @@ data class UiConversation(
     val interactionText: String?,
     val isExpanded: Boolean,
     val options: ImmutableList<ConversationOption>,
-    val lastSeenStatus: String?
 )

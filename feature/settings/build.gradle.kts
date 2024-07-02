@@ -43,9 +43,6 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.ui)
 
-//    implementation(projects.feature.languagepicker)
-//    implementation(projects.feature.auth)
-
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
     implementation(libs.nanokt)
