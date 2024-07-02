@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
@@ -197,12 +200,6 @@ fun ConversationsScreen(
         }
     }
 
-    val showFab by remember(screenState) {
-        derivedStateOf {
-            !screenState.isLoading || screenState.conversations.isNotEmpty()
-        }
-    }
-
     val hazeState = remember { HazeState() }
 
     Scaffold(
@@ -320,10 +317,10 @@ fun ConversationsScreen(
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = showFab,
+                visible = listState.isScrollingDown(),
                 modifier = Modifier.navigationBarsPadding(),
-                enter = fadeIn(),
-                exit = fadeOut()
+                enter = slideIn { IntOffset(0, 400) },
+                exit = slideOut { IntOffset(0, 400) }
             ) {
                 FloatingActionButton(
                     onClick = {
@@ -332,7 +329,7 @@ fun ConversationsScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
-                        contentDescription = "Pencil icon"
+                        contentDescription = "Add chat button"
                     )
                 }
             }
@@ -494,3 +491,21 @@ fun PinDialog(
     )
 }
 
+
+@Composable
+private fun LazyListState.isScrollingDown(): Boolean {
+    var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
+    var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
+    return remember(this) {
+        derivedStateOf {
+            if (previousIndex != firstVisibleItemIndex) {
+                previousIndex > firstVisibleItemIndex
+            } else {
+                previousScrollOffset >= firstVisibleItemScrollOffset
+            }.also {
+                previousIndex = firstVisibleItemIndex
+                previousScrollOffset = firstVisibleItemScrollOffset
+            }
+        }
+    }.value
+}

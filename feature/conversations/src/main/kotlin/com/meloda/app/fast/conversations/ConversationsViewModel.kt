@@ -272,7 +272,11 @@ class ConversationsViewModelImpl(
                     }
                 },
                 success = { response ->
-                    canPaginate.setValue { response.size == 30 }
+                    val itemsCountSufficient = response.size == 30
+                    canPaginate.setValue { itemsCountSufficient }
+
+                    val paginationExhausted = !itemsCountSufficient &&
+                            screenState.value.conversations.isNotEmpty()
 
                     imagesToPreload.setValue {
                         response.mapNotNull { it.extractAvatar().extractUrl() }
@@ -289,15 +293,20 @@ class ConversationsViewModelImpl(
                         )
                     }
 
+                    val newState = screenState.value.copy(
+                        isPaginationExhausted = paginationExhausted
+                    )
                     if (offset == 0) {
                         conversations.emit(response)
-                        screenState.setValue { old ->
-                            old.copy(conversations = loadedConversations)
+                        screenState.setValue {
+                            newState.copy(conversations = loadedConversations)
                         }
                     } else {
                         conversations.emit(conversations.value.plus(response))
-                        screenState.setValue { old ->
-                            old.copy(conversations = old.conversations.plus(loadedConversations))
+                        screenState.setValue {
+                            newState.copy(
+                                conversations = newState.conversations.plus(loadedConversations)
+                            )
                         }
                     }
                 }
