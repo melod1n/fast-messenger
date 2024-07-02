@@ -2,6 +2,7 @@ package com.meloda.app.fast.conversations.presentation
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
@@ -48,9 +49,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -83,6 +86,7 @@ import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
+import kotlinx.coroutines.launch
 import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -316,6 +320,9 @@ fun ConversationsScreen(
             }
         },
         floatingActionButton = {
+            val scope = rememberCoroutineScope()
+            val rotation = remember { Animatable(0f) }
+
             AnimatedVisibility(
                 visible = listState.isScrollingDown(),
                 modifier = Modifier.navigationBarsPadding(),
@@ -325,7 +332,23 @@ fun ConversationsScreen(
                 FloatingActionButton(
                     onClick = {
                         view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
-                    }
+
+                        scope.launch {
+                            for (i in 20 downTo 0 step 4) {
+                                rotation.animateTo(
+                                    targetValue = i.toFloat(),
+                                    animationSpec = tween(50)
+                                )
+                                if (i > 0) {
+                                    rotation.animateTo(
+                                        targetValue = -i.toFloat(),
+                                        animationSpec = tween(50)
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.rotate(rotation.value)
                 ) {
                     Icon(
                         painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
@@ -401,9 +424,7 @@ fun ConversationsScreen(
                                 .align(Alignment.TopCenter)
                                 .wrapContentSize(),
                             colors = PullRefreshIndicatorDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                    2.dp
-                                ),
+                                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
                                 contentColor = MaterialTheme.colorScheme.primary
                             )
                         )
