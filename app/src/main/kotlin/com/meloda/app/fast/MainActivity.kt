@@ -22,9 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -57,36 +55,23 @@ class MainActivity : AppCompatActivity() {
         setContent {
             KoinContext {
                 val userSettings: UserSettings = koinInject()
+                LaunchedEffect(true) {
+                    userSettings.updateUsingDarkTheme()
+                }
 
                 val isLongPollInBackground by userSettings.longPollBackground.collectAsStateWithLifecycle()
                 toggleLongPollService(true, isLongPollInBackground)
 
                 val isOnline by userSettings.online.collectAsStateWithLifecycle()
-                toggleOnlineService(isOnline)
+                LifecycleResumeEffect(isOnline) {
+                    toggleOnlineService(isOnline)
 
-                LocalLifecycleOwner.current.lifecycle.addObserver(
-                    LifecycleEventObserver { _, event ->
-                        when (event) {
-                            Lifecycle.Event.ON_RESUME -> {
-                                toggleOnlineService(isOnline)
-                            }
-
-                            Lifecycle.Event.ON_PAUSE -> {
-                                toggleOnlineService(false)
-                            }
-
-                            else -> Unit
-                        }
+                    onPauseOrDispose {
+                        toggleOnlineService(false)
                     }
-                )
-
-                val theme by userSettings.theme.collectAsStateWithLifecycle()
-
-                LaunchedEffect(true) {
-                    // TODO: 03/07/2024, Danil Nikolaev: check
-                    userSettings.updateUsingDarkTheme()
                 }
 
+                val theme by userSettings.theme.collectAsStateWithLifecycle()
                 CompositionLocalProvider(
                     LocalTheme provides ThemeConfig(
                         usingDarkStyle = theme.usingDarkStyle,
