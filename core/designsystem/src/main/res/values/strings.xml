@@ -243,5 +243,7 @@
     <string name="title_application_language">Application language</string>
     <string name="action_refresh">Refresh</string>
     <string name="members_count">Members: %d</string>
+    <string name="title_loading">Loading&#8230;</string>
+    <string name="title_conversations">Conversations</string>
 
 </resources>

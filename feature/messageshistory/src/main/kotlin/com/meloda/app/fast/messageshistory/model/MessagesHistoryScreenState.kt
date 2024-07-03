@@ -15,6 +15,8 @@ data class MessagesHistoryScreenState(
     val message: String,
     val attachments: List<VkAttachment>,
     val isLoading: Boolean,
+    val isPaginating: Boolean,
+    val isPaginationExhausted: Boolean,
     val actionMode: ActionMode,
     val isNeedToOpenChatMaterials: Boolean
 ) {
@@ -22,13 +24,15 @@ data class MessagesHistoryScreenState(
     companion object {
         val EMPTY: MessagesHistoryScreenState = MessagesHistoryScreenState(
             conversationId = -1,
-            title = "Loading...",
+            title = "",
             status = null,
             avatar = UiImage.Color(0),
             messages = emptyList(),
             message = "",
             attachments = emptyList(),
             isLoading = true,
+            isPaginating = false,
+            isPaginationExhausted = false,
             actionMode = ActionMode.Record,
             isNeedToOpenChatMaterials = false
         )

@@ -65,7 +65,7 @@ class ConversationsRepositoryImpl(
                             actionGroup = groupsMap.messageActionGroup(message)
                         ).also { VkMemoryCache[message.id] = it }
                     }
-                    item.conversation.mapToDomain(lastMessage).let { conversation ->
+                    item.conversation.asDomain(lastMessage).let { conversation ->
                         conversation.copy(
                             user = usersMap.conversationUser(conversation),
                             group = groupsMap.conversationGroup(conversation)

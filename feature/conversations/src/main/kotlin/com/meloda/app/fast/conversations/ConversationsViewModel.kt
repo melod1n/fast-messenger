@@ -2,7 +2,6 @@ package com.meloda.app.fast.conversations
 
 import android.content.SharedPreferences
 import android.content.res.Resources
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
@@ -11,7 +10,6 @@ import com.meloda.app.fast.common.extensions.findIndex
 import com.meloda.app.fast.common.extensions.findWithIndex
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.conversations.domain.ConversationsUseCase
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.ConversationsShowOptions
@@ -19,6 +17,7 @@ import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.conversations.util.asPresentation
 import com.meloda.app.fast.conversations.util.extractAvatar
 import com.meloda.app.fast.data.State
+import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsKeys
@@ -45,15 +44,11 @@ interface ConversationsViewModel {
     val screenState: StateFlow<ConversationsScreenState>
     val baseError: StateFlow<BaseError?>
     val imagesToPreload: StateFlow<List<String>>
-
-    val loadCount: StateFlow<Int>
     val currentOffset: StateFlow<Int>
 
     val canPaginate: StateFlow<Boolean>
 
     fun onMetPaginationCondition()
-
-    fun onChangeCountAndOffset(count: Int, offset: Int)
 
     fun onDeleteDialogDismissed()
 
@@ -83,8 +78,6 @@ class ConversationsViewModelImpl(
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
     override val baseError = MutableStateFlow<BaseError?>(null)
     override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
-
-    override val loadCount = MutableStateFlow(30)
     override val currentOffset = MutableStateFlow(0)
 
     override val canPaginate = MutableStateFlow(false)
@@ -92,11 +85,6 @@ class ConversationsViewModelImpl(
     override fun onMetPaginationCondition() {
         currentOffset.update { screenState.value.conversations.size }
         loadConversations()
-    }
-
-    override fun onChangeCountAndOffset(count: Int, offset: Int) {
-        loadCount.update { count }
-        currentOffset.update { offset }
     }
 
     private val conversations = MutableStateFlow<List<VkConversation>>(emptyList())
@@ -126,10 +114,7 @@ class ConversationsViewModelImpl(
     }
 
     override fun onRefresh() {
-        loadConversations(
-            count = 30,
-            offset = 0
-        )
+        loadConversations(offset = 0)
     }
 
     override fun onConversationItemClick(conversationId: Int) {
@@ -239,15 +224,9 @@ class ConversationsViewModelImpl(
     }
 
     private fun loadConversations(
-        count: Int = loadCount.value,
         offset: Int = currentOffset.value
     ) {
-        Log.d(
-            "ConversationsViewModel",
-            "loadConversations($count, $offset);"
-        )
-
-        conversationsUseCase.getConversations(count = count, offset = offset).listenValue { state ->
+        conversationsUseCase.getConversations(count = 30, offset = offset).listenValue { state ->
             state.processState(
                 error = { error ->
                     when (error) {

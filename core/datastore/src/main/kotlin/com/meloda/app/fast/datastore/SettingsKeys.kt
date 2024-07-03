@@ -9,6 +9,8 @@ object SettingsKeys {
     const val KEY_GENERAL = "general"
     const val KEY_USE_CONTACT_NAMES = "general_use_contact_names"
     const val DEFAULT_VALUE_USE_CONTACT_NAMES = false
+    const val KEY_SHOW_EMOJI_BUTTON = "general_show_emoji_button"
+    const val DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON = false
 
     const val KEY_APPEARANCE = "appearance"
     const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"

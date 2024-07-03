@@ -108,7 +108,7 @@ data class VkConversationData(
         )
     }
 
-    fun mapToDomain(
+    fun asDomain(
         lastMessage: VkMessage? = null,
     ): VkConversation = VkConversation(
         id = peer.id,

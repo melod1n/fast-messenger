@@ -1,8 +1,10 @@
 package com.meloda.app.fast.network
 
+import android.util.Log
 import com.slack.eithernet.ApiException
 import com.slack.eithernet.errorType
 import com.slack.eithernet.toType
+import com.squareup.moshi.JsonDataException
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
@@ -40,14 +42,23 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
             kotlin.runCatching {
                 converter.fromJson(successType, string)
             }.fold(
-                onSuccess = { successModel -> return successModel },
-                onFailure = {
+                onSuccess = { successModel ->
+                    return successModel
+                },
+                onFailure = { failure ->
+                    if(failure is JsonDataException) {
+                        throw failure
+                    }
+
                     val isUnit = successType == Unit::class.java
 
                     kotlin.runCatching {
                         converter.fromJson(errorRaw, string)
                     }.fold(
-                        onSuccess = { errorModel -> throw ApiException(errorModel) },
+                        onSuccess = { errorModel ->
+                            Log.d("ResponseBodyConverter", "convert: $errorModel")
+                            throw ApiException(errorModel)
+                        },
                         onFailure = { exception ->
                             if (!isUnit) {
                                 throw exception

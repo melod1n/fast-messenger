@@ -9,7 +9,7 @@ data class VkPollData(
     val multiple: Boolean,
     val id: Int,
     val votes: Int,
-    val anonymous: Boolean,
+    val anonymous: Boolean?,
     val closed: Boolean,
     @Json(name = "end_date") val endDate: Int,
     @Json(name = "is_board") val isBoard: Boolean,
@@ -24,7 +24,7 @@ data class VkPollData(
     val friends: List<Friend>?,
     @Json(name = "embed_hash") val embedHash: String,
     val answers: List<Answer>,
-    @Json(name = "author_id") val authorId: Int,
+    @Json(name = "author_id") val authorId: Int?,
     val background: Background?
 ) {
 

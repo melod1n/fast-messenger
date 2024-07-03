@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations.domain
+package com.meloda.app.fast.data.api.conversations
 
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.model.api.domain.VkConversation

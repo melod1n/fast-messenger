@@ -1,5 +1,8 @@
 package com.meloda.app.fast.messageshistory
 
+import android.content.SharedPreferences
+import android.content.res.Resources
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfOrNull
@@ -8,22 +11,36 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
+import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
+import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.messageshistory.domain.MessagesUseCase
+import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
+import com.meloda.app.fast.messageshistory.util.extractAvatar
+import com.meloda.app.fast.messageshistory.util.extractTitle
+import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 interface MessagesHistoryViewModel {
 
     val screenState: StateFlow<MessagesHistoryScreenState>
+
+    val baseError: StateFlow<BaseError?>
+    val imagesToPreload: StateFlow<List<String>>
+
+    val currentOffset: StateFlow<Int>
+
+    val canPaginate: StateFlow<Boolean>
 
     fun onAttachmentButtonClicked()
     fun onInputChanged(newText: String)
@@ -33,14 +50,28 @@ interface MessagesHistoryViewModel {
     fun setArguments(arguments: MessagesHistoryArguments)
 
     fun onChatMaterialsOpened()
+
+    fun onMetPaginationCondition()
 }
 
 class MessagesHistoryViewModelImpl(
     private val messagesUseCase: MessagesUseCase,
-//    updatesParser: LongPollUpdatesParser
+    private val conversationsUseCase: ConversationsUseCase,
+    private val preferences: SharedPreferences,
+    private val resources: Resources
+//    updatesParser: LongPollUpdatesParser,
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
+
+    override val baseError = MutableStateFlow<BaseError?>(null)
+    override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
+
+    override val currentOffset = MutableStateFlow(0)
+
+    override val canPaginate = MutableStateFlow(false)
+
+    private val messages = MutableStateFlow<List<VkMessage>>(emptyList())
 
     private var lastMessageText: String? = null
 
@@ -100,15 +131,19 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun setArguments(arguments: MessagesHistoryArguments) {
-        screenState.setValue { old ->
-            old.copy(conversationId = arguments.conversationId)
-        }
+        if (arguments.conversationId == screenState.value.conversationId) return
 
+        screenState.setValue { old -> old.copy(conversationId = arguments.conversationId) }
         loadMessagesHistory()
     }
 
     override fun onChatMaterialsOpened() {
         screenState.setValue { old -> old.copy(isNeedToOpenChatMaterials = false) }
+    }
+
+    override fun onMetPaginationCondition() {
+        currentOffset.update { screenState.value.messages.size }
+        loadMessagesHistory()
     }
 
 //    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
@@ -149,19 +184,83 @@ class MessagesHistoryViewModelImpl(
 //
 //    }
 
-    private fun loadMessagesHistory() {
+    private fun loadMessagesHistory(offset: Int = currentOffset.value) {
+        Log.d("MessagesHistoryViewModel", "loadMessagesHistory: $offset")
+
         messagesUseCase.getMessagesHistory(
             conversationId = screenState.value.conversationId,
-            count = 30,
-            offset = null,
+            count = MESSAGES_LOAD_COUNT,
+            offset = offset,
         ).listenValue { state ->
             state.processState(
-                error = { },
-                success = { messages ->
-                    screenState.setValue { old -> old.copy(messages = messages) }
+                error = { error ->
+
+                },
+                success = { response ->
+                    val messages = response.messages
+                    val conversations = response.conversations
+
+                    imagesToPreload.setValue {
+                        messages.mapNotNull { it.extractAvatar().extractUrl() }
+                    }
+
+                    messagesUseCase.storeMessages(messages)
+                    conversationsUseCase.storeConversations(conversations)
+
+                    val loadedMessages = messages.map {
+                        // TODO: 02/07/2024, Danil Nikolaev: map to ui
+
+                        it
+                    }
+
+
+                    delay(1000)
+
+                    val itemsCountSufficient = messages.size == MESSAGES_LOAD_COUNT
+
+                    val paginationExhausted = !itemsCountSufficient &&
+                            screenState.value.messages.isNotEmpty()
+                    var newState = screenState.value.copy(
+                        isPaginationExhausted = paginationExhausted,
+                    )
+
+                    conversations
+                        .firstOrNull { it.id == screenState.value.conversationId }
+                        ?.let { conversation ->
+                            newState = newState.copy(
+                                title = conversation.extractTitle(
+                                    useContactName = preferences.getBoolean(
+                                        SettingsKeys.KEY_USE_CONTACT_NAMES,
+                                        SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
+                                    ),
+                                    resources = resources
+                                ),
+                                avatar = conversation.extractAvatar()
+                            )
+                        }
+
+                    if (offset == 0) {
+                        this.messages.emit(messages)
+                        screenState.setValue {
+                            newState.copy(messages = loadedMessages)
+                        }
+                    } else {
+                        this.messages.emit(this.messages.value.plus(messages))
+                        screenState.setValue {
+                            newState.copy(messages = newState.messages.plus(loadedMessages))
+                        }
+                    }
+
+                    canPaginate.setValue { itemsCountSufficient }
                 }
             )
-            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
+
+            screenState.setValue { old ->
+                old.copy(
+                    isLoading = offset == 0 && state.isLoading(),
+                    isPaginating = offset > 0 && state.isLoading()
+                )
+            }
         }
     }
 
@@ -330,6 +429,10 @@ class MessagesHistoryViewModelImpl(
 
             // TODO: 25.08.2023, Danil Nikolaev: update messages
         }
+    }
+
+    companion object {
+        const val MESSAGES_LOAD_COUNT = 30
     }
 }
 

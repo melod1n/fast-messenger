@@ -6,12 +6,16 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
+import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.presentation.MessagesHistoryScreen
 import com.meloda.app.fast.model.BaseError
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.typeOf
 
 @Serializable
@@ -38,15 +42,23 @@ fun NavGraphBuilder.messagesHistoryRoute(
     onBack: () -> Unit,
     onNavigateToChatAttachments: () -> Unit
 ) {
-    composable<MessagesHistory>(typeMap = mapOf(typeOf<MessagesHistoryArguments>() to MessagesHistoryNavType)) {
+    composable<MessagesHistory>(
+        typeMap = mapOf(typeOf<MessagesHistoryArguments>() to MessagesHistoryNavType)
+    ) { backStackEntry ->
+        val arguments: MessagesHistory = backStackEntry.toRoute()
+
+        val viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
+        viewModel.setArguments(arguments.arguments)
+
         MessagesHistoryScreen(
             onError = onError,
             onBack = onBack,
-            onNavigateToChatMaterials = onNavigateToChatAttachments
+            onNavigateToChatMaterials = onNavigateToChatAttachments,
+            viewModel = viewModel
         )
     }
 }
 
-fun NavController.navigateToMessagesHistory(arguments: MessagesHistoryArguments) {
-    this.navigate(MessagesHistory(arguments))
+fun NavController.navigateToMessagesHistory(conversationId: Int) {
+    this.navigate(MessagesHistory(MessagesHistoryArguments(conversationId)))
 }

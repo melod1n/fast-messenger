@@ -52,9 +52,7 @@ fun RootGraph(navController: NavHostController = rememberNavController()) {
                 onError = viewModel::onError,
                 onNavigateToSettings = navController::navigateToSettings,
                 onNavigateToMessagesHistory = { id ->
-                    navController.navigateToMessagesHistory(
-                        MessagesHistoryArguments(conversationId = id)
-                    )
+                    navController.navigateToMessagesHistory(conversationId = id)
                 }
             )
             messagesHistoryRoute(

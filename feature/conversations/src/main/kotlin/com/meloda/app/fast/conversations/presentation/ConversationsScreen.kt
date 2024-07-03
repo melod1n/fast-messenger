@@ -1,7 +1,7 @@
 package com.meloda.app.fast.conversations.presentation
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -9,22 +9,18 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,7 +34,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
@@ -58,7 +53,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
@@ -87,7 +81,6 @@ import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.launch
-import me.gingerninja.lazylist.hijacker.rememberLazyListStateHijacker
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
@@ -119,8 +112,6 @@ fun ConversationsScreen(
     val view = LocalView.current
     val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val loadCount by viewModel.loadCount.collectAsStateWithLifecycle()
-    val currentOffset by viewModel.currentOffset.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
     val currentTheme by userSettings.theme.collectAsStateWithLifecycle()
@@ -134,9 +125,6 @@ fun ConversationsScreen(
 
     val listState = rememberLazyListState()
 
-    // TODO: 26/11/2023, Danil Nikolaev: remove when fixed
-    rememberLazyListStateHijacker(listState = listState)
-
     val paginationConditionMet by remember {
         derivedStateOf {
             canPaginate &&
@@ -144,63 +132,10 @@ fun ConversationsScreen(
                         ?: -9) >= (listState.layoutInfo.totalItemsCount - 6)
         }
     }
-    Log.d(
-        "ConversationsScreen",
-        "paginationCondMet: $paginationConditionMet; size: ${screenState.conversations.size}"
-    )
 
     LaunchedEffect(paginationConditionMet) {
         if (paginationConditionMet && !screenState.isPaginating) {
             viewModel.onMetPaginationCondition()
-        }
-    }
-
-    var showPullRefresh by remember {
-        mutableStateOf(true)
-    }
-    var showCountOffsetAlert by remember {
-        mutableStateOf(false)
-    }
-
-    if (showCountOffsetAlert) {
-        var count by remember {
-            mutableStateOf(loadCount.toString())
-        }
-        var offset by remember {
-            mutableStateOf(currentOffset.toString())
-        }
-
-        MaterialDialog(
-            onDismissAction = { showCountOffsetAlert = false },
-            confirmText = UiText.Simple("Apply"),
-            confirmAction = {
-                viewModel.onChangeCountAndOffset(
-                    count.toIntOrNull() ?: 30,
-                    offset.toIntOrNull() ?: 0
-                )
-            },
-            cancelText = UiText.Resource(UiR.string.cancel)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                TextField(
-                    value = count,
-                    onValueChange = { newText -> count = newText },
-                    label = { Text(text = "Count") },
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = offset,
-                    onValueChange = { newText -> offset = newText },
-                    label = { Text(text = "Offset") },
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-            }
         }
     }
 
@@ -214,72 +149,17 @@ fun ConversationsScreen(
                 mutableStateOf(false)
             }
 
-            val actions: @Composable RowScope.() -> Unit = @Composable {
-                IconButton(
-                    onClick = {
-                        dropDownMenuExpanded = true
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = "Options"
-                    )
-                }
-
-                DropdownMenu(
-                    modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-                    expanded = dropDownMenuExpanded,
-                    onDismissRequest = {
-                        dropDownMenuExpanded = false
-                    },
-                    offset = DpOffset(x = (10).dp, y = (-60).dp)
-                ) {
-                    DropdownMenuItem(
-                        onClick = {
-                            onNavigateToSettings()
-                            dropDownMenuExpanded = false
-                        },
-                        text = {
-                            Text(text = stringResource(id = UiR.string.title_settings))
-                        }
-                    )
-                    DropdownMenuItem(
-                        onClick = {
-                            viewModel.onRefresh()
-                            dropDownMenuExpanded = false
-                        },
-                        text = {
-                            Text(text = stringResource(id = UiR.string.action_refresh))
-                        }
-                    )
-
-                    val isDebugMenuShown by userSettings.debugSettingsEnabled.collectAsStateWithLifecycle()
-
-                    if (isDebugMenuShown) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(text = "Toggle pull to refresh")
-                            },
-                            onClick = {
-                                showPullRefresh = !showPullRefresh
-                                dropDownMenuExpanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Text(text = "Change count and offset")
-                            },
-                            onClick = {
-                                showCountOffsetAlert = true
-                                dropDownMenuExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
             val toolbarColorAlpha by animateFloatAsState(
                 targetValue = if (!listState.canScrollBackward) 1f else 0f,
+                label = "toolbarColorAlpha",
+                animationSpec = tween(durationMillis = 50)
+            )
+
+            val toolbarContainerColor by animateColorAsState(
+                targetValue =
+                if (listState.canScrollBackward)
+                    MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                else MaterialTheme.colorScheme.surface,
                 label = "toolbarColorAlpha",
                 animationSpec = tween(durationMillis = 50)
             )
@@ -288,14 +168,56 @@ fun ConversationsScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = if (screenState.isLoading) "Loading..." else "Conversations",
+                            text = stringResource(
+                                id = if (screenState.isLoading) UiR.string.title_loading
+                                else UiR.string.title_conversations
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     },
-                    actions = actions,
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                dropDownMenuExpanded = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreVert,
+                                contentDescription = "Options button"
+                            )
+                        }
+
+                        DropdownMenu(
+                            modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+                            expanded = dropDownMenuExpanded,
+                            onDismissRequest = {
+                                dropDownMenuExpanded = false
+                            },
+                            offset = DpOffset(x = (10).dp, y = (-60).dp)
+                        ) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    onNavigateToSettings()
+                                    dropDownMenuExpanded = false
+                                },
+                                text = {
+                                    Text(text = stringResource(id = UiR.string.title_settings))
+                                }
+                            )
+                            DropdownMenuItem(
+                                onClick = {
+                                    viewModel.onRefresh()
+                                    dropDownMenuExpanded = false
+                                },
+                                text = {
+                                    Text(text = stringResource(id = UiR.string.action_refresh))
+                                }
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(
+                        containerColor = toolbarContainerColor.copy(
                             alpha = if (currentTheme.usingBlur) toolbarColorAlpha else 1f
                         )
                     ),
@@ -381,14 +303,6 @@ fun ConversationsScreen(
                         refreshing = screenState.isLoading,
                         onRefresh = viewModel::onRefresh
                     )
-                    val listModifier = remember(showPullRefresh) {
-                        Modifier
-                            .fillMaxSize()
-                            .then(
-                                if (showPullRefresh) Modifier.pullRefresh(pullRefreshState)
-                                else Modifier
-                            )
-                    }
 
                     ConversationsListComposable(
                         onConversationsClick = { id ->
@@ -399,36 +313,32 @@ fun ConversationsScreen(
                         screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
-                        modifier = listModifier.then(
-                            if (currentTheme.usingBlur) {
-                                Modifier.haze(
-                                    state = hazeState,
-                                    style = HazeMaterials.thick()
-                                )
-                            } else Modifier
-                        ),
+                        modifier = Modifier
+                            .pullRefresh(pullRefreshState)
+                            .then(
+                                if (currentTheme.usingBlur) {
+                                    Modifier.haze(
+                                        state = hazeState,
+                                        style = HazeMaterials.thick()
+                                    )
+                                } else Modifier
+                            ),
                         onOptionClicked = viewModel::onOptionClicked,
                         padding = padding
                     )
 
-                    AnimatedVisibility(
-                        visible = showPullRefresh,
+                    PullRefreshIndicator(
+                        refreshing = screenState.isLoading,
+                        state = pullRefreshState,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = padding.calculateTopPadding())
-                    ) {
-                        PullRefreshIndicator(
-                            refreshing = screenState.isLoading,
-                            state = pullRefreshState,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .wrapContentSize(),
-                            colors = PullRefreshIndicatorDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
+                            .align(Alignment.TopCenter)
+                            .wrapContentSize()
+                            .padding(top = padding.calculateTopPadding()),
+                        colors = PullRefreshIndicatorDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+                            contentColor = MaterialTheme.colorScheme.primary
                         )
-                    }
+                    )
                 }
             }
         }

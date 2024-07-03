@@ -20,7 +20,7 @@ data class VkWallData(
     @Json(name = "is_favorite") val is_favorite: Boolean,
     @Json(name = "donut") val donut: Donut?,
     @Json(name = "access_key") val access_key: String?,
-    @Json(name = "short_text_rate") val short_text_rate: Double
+    @Json(name = "short_text_rate") val short_text_rate: Double?
 ) {
 
     @JsonClass(generateAdapter = true)
@@ -32,22 +32,16 @@ data class VkWallData(
     @JsonClass(generateAdapter = true)
     data class Comments(
         val count: Int,
-        val can_post: Int,
-        val groups_can_post: Boolean?
     )
 
     @JsonClass(generateAdapter = true)
     data class Likes(
-        val count: Int,
-        val user_likes: Int,
-        val can_like: Int,
-        val can_publish: Int,
+        val count: Int
     )
 
     @JsonClass(generateAdapter = true)
     data class Reposts(
         val count: Int,
-        val user_reposted: Int
     )
 
     @JsonClass(generateAdapter = true)

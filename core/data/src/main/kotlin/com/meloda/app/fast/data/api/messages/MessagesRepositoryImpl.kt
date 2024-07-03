@@ -2,10 +2,13 @@ package com.meloda.app.fast.data.api.messages
 
 import com.meloda.app.fast.model.api.domain.VkMessage
 import com.meloda.app.fast.model.api.domain.asEntity
-import com.meloda.app.fast.model.database.VkMessageEntity
 import com.meloda.app.fast.model.database.asExternalModel
+import com.meloda.app.fast.network.RestApiErrorDomain
+import com.slack.eithernet.ApiResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 
 // TODO: 05/05/2024, Danil Nikolaev: implement syncing
 class MessagesRepositoryImpl(
@@ -13,26 +16,28 @@ class MessagesRepositoryImpl(
     private val localDataSource: MessagesLocalDataSource
 ) : MessagesRepository {
 
-    override suspend fun getMessages(
+    override suspend fun getMessagesHistory(
         conversationId: Int,
         offset: Int?,
         count: Int?
-    ): Flow<List<VkMessage>> = flow {
-        val localMessages = localDataSource.getMessages(
-            conversationId = conversationId,
-            offset = offset,
-            count = count
-        ).map(VkMessageEntity::asExternalModel)
+    ): ApiResult<MessagesHistoryDomain, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+//        val localMessages = localDataSource.getMessages(
+//            conversationId = conversationId,
+//            offset = offset,
+//            count = count
+//        ).map(VkMessageEntity::asExternalModel)
+//
+//        emit(localMessages)
+//
+//        val networkMessages = networkDataSource.getMessagesHistory(
+//            conversationId = conversationId,
+//            offset = offset,
+//            count = count
+//        )
+//
+//        emit(networkMessages)
 
-        emit(localMessages)
-
-        val networkMessages = networkDataSource.getMessagesHistory(
-            conversationId = conversationId,
-            offset = offset,
-            count = count
-        )
-
-        emit(networkMessages)
+       networkDataSource.getMessagesHistory(conversationId, offset, count)
     }
 
     override suspend fun getMessage(messageId: Int): Flow<VkMessage?> = flow {

@@ -1,6 +1,5 @@
 package com.meloda.app.fast.conversations.presentation
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
@@ -50,21 +49,13 @@ fun ConversationsListComposable(
         modifier = modifier,
         state = state
     ) {
-        itemsIndexed(
+        item {
+            Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
+        }
+        items(
             items = conversations,
-            key = { _, item -> item.id },
-        ) { index, conversation ->
-
-            val needToShowSpacer by remember(conversations) {
-                derivedStateOf {
-                    index == 0
-                }
-            }
-
-            if (needToShowSpacer) {
-                Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
-            }
-
+            key = UiConversation::id,
+        ) { conversation ->
             val isUserAccount by remember(conversation) {
                 derivedStateOf {
                     conversation.id == UserConfig.userId
@@ -81,43 +72,22 @@ fun ConversationsListComposable(
                 modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
             )
 
-            val showDefaultSpacer by remember(conversations) {
-                derivedStateOf { index < conversations.size - 1 }
-            }
-
-            if (showDefaultSpacer) {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            val showBottomNavigationBarsSpacer by remember(conversations) {
-                derivedStateOf { !screenState.isPaginating && index == conversations.size - 1 }
-            }
-
-            if (showBottomNavigationBarsSpacer) {
-                Spacer(modifier = Modifier.navigationBarsPadding())
-            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         item {
-            AnimatedVisibility(screenState.isPaginating) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateItem(fadeInSpec = null, fadeOutSpec = null)
+                    .navigationBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (screenState.isPaginating) {
                     CircularProgressIndicator()
-                    Spacer(modifier = Modifier.navigationBarsPadding())
                 }
-            }
 
-            AnimatedVisibility(screenState.isPaginationExhausted) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                if (screenState.isPaginationExhausted) {
                     IconButton(
                         onClick = {
                             coroutineScope.launch(Dispatchers.Main) {
@@ -131,7 +101,6 @@ fun ConversationsListComposable(
                             contentDescription = null
                         )
                     }
-                    Spacer(modifier = Modifier.navigationBarsPadding())
                 }
             }
         }

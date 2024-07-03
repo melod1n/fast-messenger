@@ -1,23 +1,43 @@
-package com.meloda.app.fast.messageshistory.data
+package com.meloda.app.fast.messageshistory.domain
 
 import com.meloda.app.fast.data.State
+import com.meloda.app.fast.data.api.messages.MessagesHistoryDomain
 import com.meloda.app.fast.data.api.messages.MessagesRepository
-import com.meloda.app.fast.messageshistory.domain.MessagesUseCase
+import com.meloda.app.fast.data.api.messages.MessagesUseCase
+import com.meloda.app.fast.data.toStateApiError
 import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
+import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class MessagesUseCaseImpl(
-    private val messagesRepository: MessagesRepository,
-//    private val conversationsUseCase: ConversationsUseCase
+    private val messagesRepository: MessagesRepository
 ) : MessagesUseCase {
 
     override fun getMessagesHistory(
         conversationId: Int,
         count: Int?,
         offset: Int?
-    ): Flow<State<List<VkMessage>>> = flow {}
+    ): Flow<State<MessagesHistoryDomain>> = flow {
+        emit(State.Loading)
+
+        val newState = when (
+            val result = messagesRepository.getMessagesHistory(
+                conversationId = conversationId,
+                offset = offset,
+                count = count
+            )
+        ) {
+            is ApiResult.Success -> State.Success(result.value)
+
+            is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
+            is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
+            is ApiResult.Failure.HttpFailure -> result.error.toStateApiError()
+            is ApiResult.Failure.ApiFailure -> result.error.toStateApiError()
+        }
+        emit(newState)
+    }
 //        messagesRepository.getMessages(conversationId, offset, count).map {
 //            State.Success(it)
 //        }

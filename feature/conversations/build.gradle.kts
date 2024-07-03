@@ -54,13 +54,13 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
 
-    // Hack for Lazy-* composables which fixes bug with scrolling
-    implementation(libs.hijacker)
-
     implementation(libs.coil.compose)
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
+
+    // TODO: 03/07/2024, Danil Nikolaev: remove when stable release
+    implementation("androidx.compose.foundation:foundation:1.7.0-beta04")
 
     // Material3 Pull-to-Refresh (until official release)
     // TODO: 27/12/2023, Danil Nikolaev: remove when official release

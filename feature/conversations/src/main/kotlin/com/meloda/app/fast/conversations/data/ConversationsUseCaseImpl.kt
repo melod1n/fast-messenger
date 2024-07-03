@@ -1,8 +1,8 @@
 package com.meloda.app.fast.conversations.data
 
-import com.meloda.app.fast.conversations.domain.ConversationsUseCase
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsRepository
+import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.toStateApiError
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.slack.eithernet.ApiResult

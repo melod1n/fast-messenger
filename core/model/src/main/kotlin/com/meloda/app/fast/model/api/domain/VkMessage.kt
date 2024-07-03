@@ -1,5 +1,6 @@
 package com.meloda.app.fast.model.api.domain
 
+import com.meloda.app.fast.model.api.PeerType
 import com.meloda.app.fast.model.database.VkMessageEntity
 
 data class VkMessage(

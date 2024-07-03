@@ -1,15 +1,17 @@
 package com.meloda.app.fast.data.api.messages
 
 import com.meloda.app.fast.model.api.domain.VkMessage
+import com.meloda.app.fast.network.RestApiErrorDomain
+import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.flow.Flow
 
 interface MessagesRepository {
 
-    suspend fun getMessages(
+    suspend fun getMessagesHistory(
         conversationId: Int,
         offset: Int?,
         count: Int?
-    ): Flow<List<VkMessage>>
+    ): ApiResult<MessagesHistoryDomain, RestApiErrorDomain>
 
     suspend fun getMessage(messageId: Int): Flow<VkMessage?>
 

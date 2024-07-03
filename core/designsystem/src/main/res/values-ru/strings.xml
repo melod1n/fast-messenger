@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="message_attachment">Вложение</string>
     <string name="message_attachments_many">Вложения</string>
     <string name="title_settings">Настройки</string>
     <string name="error_occurred">Произошла ошибка</string>
@@ -19,6 +20,7 @@
     <string name="forwarded_messages">Сообщения</string>
     <string name="no_messages">Нет сообщений</string>
     <string name="messages_self_destructed">Сообщение самоуничтожилось</string>
+    <string name="action_refresh">Обновить</string>
     <string name="yesterday">Вчера</string>
     <string name="today">Сегодня</string>
     <string name="year_short">Г</string>
@@ -50,6 +52,9 @@
     <string name="message_action_chat_screenshot">%s сделал(-а) скриншот беседы</string>
     <string name="message_action_chat_style_update">%s изменил(-а) тему беседы</string>
     <string name="message_attachments_photo_one">Фотография</string>
+    <string name="message_attachments_photo_few">%d фотографии</string>
+    <string name="message_attachments_photo_many">%d фотографий</string>
+    <string name="message_attachments_photo_other">%d фотографий</string>
     <string name="message_attachments_video_one">Видео</string>
     <string name="message_attachments_audio_one">Аудиозапись</string>
     <string name="message_attachments_files_one">Файл</string>

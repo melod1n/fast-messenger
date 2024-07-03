@@ -7,8 +7,8 @@ import com.squareup.moshi.JsonClass
 data class VkVideoData(
     val id: Int,
     val title: String,
-    val width: Int,
-    val height: Int,
+    val width: Int?,
+    val height: Int?,
     val duration: Int,
     val date: Int,
     val comments: Int?,
@@ -21,7 +21,7 @@ data class VkVideoData(
     val owner_id: Int,
     val is_favorite: Boolean?,
     val image: List<Image>,
-    val first_frame: List<FirstFrame>,
+    val first_frame: List<FirstFrame>?,
     val files: File?,
 ) : VkAttachmentData {
 

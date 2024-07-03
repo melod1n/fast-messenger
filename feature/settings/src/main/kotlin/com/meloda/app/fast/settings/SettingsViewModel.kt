@@ -352,7 +352,12 @@ class SettingsViewModelImpl(
                 defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_BLUR,
                 title = UiText.Simple("[WIP] Use blur"),
                 summary = UiText.Simple("Adds blur wherever possible\nOn android 11 and older will have transparency instead of blurring"),
-//                isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            )
+            val debugShowEmojiButton = SettingsItem.Switch.build(
+                key = SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
+                title = UiText.Simple("Show emoji button"),
+                summary = UiText.Simple("Show emoji button in chat panel"),
+                defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
             )
 
             val debugHideDebugList = SettingsItem.TitleSummary.build(
@@ -392,7 +397,8 @@ class SettingsViewModelImpl(
                 debugPerformCrash,
                 debugShowCrashAlert,
                 debugShowExactTimeOnTimeStamp,
-                debugUseBlur
+                debugUseBlur,
+                debugShowEmojiButton
             ).forEach(debugList::add)
 
             debugList += debugHideDebugList
