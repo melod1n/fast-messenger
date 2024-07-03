@@ -12,9 +12,6 @@ interface UserSettings {
 
     val theme: StateFlow<ThemeConfig>
 
-    val language: StateFlow<String>
-    val languageChangedFromApp: StateFlow<Boolean>
-
     val longPollBackground: StateFlow<Boolean>
     val online: StateFlow<Boolean>
 
@@ -35,10 +32,6 @@ interface UserSettings {
     fun setLongPollBackground(background: Boolean)
 
     fun setOnline(use: Boolean)
-
-    fun setLanguage(newLanguage: String, withUpdate: Boolean = true)
-
-    fun onLanguageChanged()
 
     fun enableDebugSettings(enable: Boolean)
 }
@@ -63,15 +56,6 @@ class UserSettingsImpl(
             usingBlur = isUsingBlur()
         )
     )
-
-    override val language = MutableStateFlow(
-        SettingsController.getString(
-            SettingsKeys.KEY_APPEARANCE_LANGUAGE,
-            SettingsKeys.DEFAULT_VALUE_APPEARANCE_LANGUAGE
-        ).orEmpty()
-    )
-
-    override val languageChangedFromApp = MutableStateFlow(false)
 
     override val longPollBackground = MutableStateFlow(
         SettingsController.getBoolean(
@@ -132,20 +116,6 @@ class UserSettingsImpl(
 
     override fun setOnline(use: Boolean) {
         online.value = use
-    }
-
-    // TODO: 14/05/2024, Danil Nikolaev: improve
-    override fun setLanguage(newLanguage: String, withUpdate: Boolean) {
-        SettingsController.put(SettingsKeys.KEY_APPEARANCE_LANGUAGE, newLanguage)
-
-        if (withUpdate) {
-            languageChangedFromApp.update { true }
-        }
-        language.update { newLanguage }
-    }
-
-    override fun onLanguageChanged() {
-        languageChangedFromApp.update { false }
     }
 
     override fun enableDebugSettings(enable: Boolean) {

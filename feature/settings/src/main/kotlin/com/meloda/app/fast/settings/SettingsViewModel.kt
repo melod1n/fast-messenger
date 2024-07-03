@@ -264,25 +264,10 @@ class SettingsViewModelImpl(
                 defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
             )
 
-            val languages = listOf(
-                "" to UiText.Resource(UiR.string.language_system),
-                "en" to UiText.Resource(UiR.string.language_english),
-                "ru" to UiText.Resource(UiR.string.language_russian),
-                "uk" to UiText.Resource(UiR.string.language_ukrainian)
-            ).toMap()
-
             val appearanceLanguage = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
                 title = UiText.Resource(UiR.string.settings_application_language),
-            ) {
-                summaryProvider = SettingsItem.SummaryProvider { item ->
-                    // TODO: 25/12/2023, Danil Nikolaev: update value, receive result from LanguagePickerScreen
-                    UiText.ResourceParams(
-                        value = UiR.string.settings_application_language_value,
-                        args = listOf(languages[item.value.orEmpty()])
-                    )
-                }
-            }
+            )
 
             val featuresTitle = SettingsItem.Title.build(
                 key = "features",

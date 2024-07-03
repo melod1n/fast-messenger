@@ -127,22 +127,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkExternalLanguageUpdate(userSettings: UserSettings) {
-        val currentSavedLanguage = userSettings.language.value
-
-        val appLocales = AppCompatDelegate.getApplicationLocales()
-
-        if (!appLocales.toLanguageTags().startsWith(currentSavedLanguage)) {
-            val newLanguage = if (appLocales.isEmpty) {
-                ""
-            } else {
-                appLocales.getFirstMatch(arrayOf(currentSavedLanguage))?.language ?: ""
-            }
-
-            userSettings.setLanguage(newLanguage, withUpdate = false)
-        }
-    }
-
     private fun toggleLongPollService(
         enable: Boolean,
         asForeground: Boolean = SettingsController.getBoolean(

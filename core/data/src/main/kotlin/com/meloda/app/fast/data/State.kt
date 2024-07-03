@@ -6,22 +6,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 
-/** Возможные состояния для одного потока данных в репозитории */
 sealed class State<out T> {
 
-    /**
-     * Репозиторий еще ничего не делал
-     */
     data object Idle : State<Nothing>()
-
-    /**
-     * Получение данных репозиторием закончилось успехом
-     */
     data class Success<T>(val data: T) : State<T>()
-
-    /**
-     * Репозиторий в процессе получения данных
-     */
     data object Loading : State<Nothing>()
 
     sealed class Error : State<Nothing>() {

@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -88,7 +89,8 @@ import com.meloda.app.fast.designsystem.R as UiR
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class, ExperimentalLayoutApi::class,
+    ExperimentalHazeMaterialsApi::class,
+    ExperimentalLayoutApi::class,
 )
 @Composable
 fun MessagesHistoryScreen(
@@ -106,11 +108,6 @@ fun MessagesHistoryScreen(
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-    if (screenState.isNeedToOpenChatMaterials) {
-        viewModel.onChatMaterialsOpened()
-        onNavigateToChatMaterials()
-    }
 
     val messages = screenState.messages
 
@@ -193,8 +190,17 @@ fun MessagesHistoryScreen(
                         onDismissRequest = {
                             dropDownMenuExpanded = false
                         },
-                        offset = DpOffset(x = (10).dp, y = (-60).dp)
+                        offset = DpOffset(x = (-4).dp, y = (-60).dp)
                     ) {
+                        DropdownMenuItem(
+                            onClick = {
+                                dropDownMenuExpanded = false
+                                onNavigateToChatMaterials()
+                            },
+                            text = {
+                                Text(text = "Materials")
+                            }
+                        )
                         DropdownMenuItem(
                             onClick = {
                                 viewModel.onTopAppBarMenuClicked(0)
@@ -202,15 +208,12 @@ fun MessagesHistoryScreen(
                             },
                             text = {
                                 Text(text = "Refresh")
-                            }
-                        )
-                        DropdownMenuItem(
-                            onClick = {
-                                viewModel.onTopAppBarMenuClicked(1)
-                                dropDownMenuExpanded = false
                             },
-                            text = {
-                                Text(text = "Materials")
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Refresh,
+                                    contentDescription = null
+                                )
                             }
                         )
                     }

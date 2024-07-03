@@ -24,7 +24,6 @@ import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -48,8 +47,6 @@ interface MessagesHistoryViewModel {
     fun onActionButtonClicked()
     fun onTopAppBarMenuClicked(id: Int)
     fun setArguments(arguments: MessagesHistoryArguments)
-
-    fun onChatMaterialsOpened()
 
     fun onMetPaginationCondition()
 }
@@ -124,8 +121,7 @@ class MessagesHistoryViewModelImpl(
 
     override fun onTopAppBarMenuClicked(id: Int) {
         when (id) {
-            0 -> loadMessagesHistory()
-            1 -> screenState.setValue { old -> old.copy(isNeedToOpenChatMaterials = true) }
+            0 -> loadMessagesHistory(0)
             else -> Unit
         }
     }
@@ -135,10 +131,6 @@ class MessagesHistoryViewModelImpl(
 
         screenState.setValue { old -> old.copy(conversationId = arguments.conversationId) }
         loadMessagesHistory()
-    }
-
-    override fun onChatMaterialsOpened() {
-        screenState.setValue { old -> old.copy(isNeedToOpenChatMaterials = false) }
     }
 
     override fun onMetPaginationCondition() {
@@ -212,9 +204,6 @@ class MessagesHistoryViewModelImpl(
 
                         it
                     }
-
-
-                    delay(1000)
 
                     val itemsCountSufficient = messages.size == MESSAGES_LOAD_COUNT
 

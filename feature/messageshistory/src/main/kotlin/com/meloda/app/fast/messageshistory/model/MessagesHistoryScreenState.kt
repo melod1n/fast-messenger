@@ -18,7 +18,6 @@ data class MessagesHistoryScreenState(
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean,
     val actionMode: ActionMode,
-    val isNeedToOpenChatMaterials: Boolean
 ) {
 
     companion object {
@@ -34,7 +33,6 @@ data class MessagesHistoryScreenState(
             isPaginating = false,
             isPaginationExhausted = false,
             actionMode = ActionMode.Record,
-            isNeedToOpenChatMaterials = false
         )
     }
 }

@@ -233,10 +233,15 @@
     <string name="settings_application_language">Application Language</string>
     <string name="settings_application_language_value">Current: %s</string>
 
+    <string name="language_key_system" translatable="false">System</string>
+    <string name="language_key_english" translatable="false">English</string>
+    <string name="language_key_russian" translatable="false">Russian</string>
+    <string name="language_key_ukrainian" translatable="false">Ukrainian</string>
+
     <string name="language_system">System</string>
     <string name="language_english" translatable="false">English</string>
-    <string name="language_russian">Russian</string>
-    <string name="language_ukrainian">Ukrainian</string>
+    <string name="language_russian" translatable="false">Русский</string>
+    <string name="language_ukrainian" translatable="false">Українська</string>
 
     <string name="action_apply">Apply</string>
     <string name="open_system_language_picker">Open system language picker</string>

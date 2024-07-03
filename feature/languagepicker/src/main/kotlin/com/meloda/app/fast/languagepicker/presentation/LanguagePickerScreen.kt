@@ -1,12 +1,13 @@
 package com.meloda.app.fast.languagepicker.presentation
 
 import android.content.Intent
-import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -19,11 +20,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -31,6 +31,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -43,36 +45,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.parseString
-import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModel
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
-
-// TODO: 05/05/2024, Danil Nikolaev: remove or improve
-private fun getLanguages(resources: Resources): Map<String, String> {
-    val languageTitles = listOf(
-        UiText.Resource(UiR.string.language_system),
-        UiText.Resource(UiR.string.language_english),
-        UiText.Resource(UiR.string.language_russian),
-        UiText.Resource(UiR.string.language_ukrainian)
-    ).map { it.parseString(resources) }
-
-    return listOf("", "en", "ru", "uk").mapIndexed { index, code ->
-        code to languageTitles[index].orEmpty()
-    }.toMap()
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,15 +68,10 @@ fun LanguagePickerScreen(
 ) {
     val context = LocalContext.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val userSettings: UserSettings = koinInject()
-    val language by userSettings.language.collectAsStateWithLifecycle()
     val languages = screenState.languages
 
     LaunchedEffect(true) {
-        viewModel.setLanguages(
-            locales = getLanguages(context.resources),
-            currentCode = language
-        )
+        viewModel.updateCurrentLocale(AppCompatDelegate.getApplicationLocales().toLanguageTags())
     }
 
     val isButtonEnabled by remember(screenState) {
@@ -142,7 +123,7 @@ fun LanguagePickerScreen(
                         onDismissRequest = {
                             dropDownMenuExpanded = false
                         },
-                        offset = DpOffset(x = (10).dp, y = (-60).dp)
+                        offset = DpOffset(x = (-10).dp, y = (-60).dp)
                     ) {
                         DropdownMenuItem(
                             onClick = {
@@ -182,10 +163,10 @@ fun LanguagePickerScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                itemsIndexed(screenState.languages.toList()) { index, item ->
+                items(screenState.languages.toList()) { item ->
                     LanguageItem(
                         item = item,
-                        onClick = { viewModel.onLanguagePicked(index) }
+                        onClick = viewModel::onLanguagePicked
                     )
                 }
 
@@ -219,26 +200,31 @@ fun LanguagePickerScreen(
 @Composable
 fun LanguageItem(
     item: SelectableLanguage,
-    onClick: () -> Unit,
+    onClick: (item: SelectableLanguage) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clickable { onClick() },
+            .clickable { onClick(item) }
+            .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = item.language,
-            modifier = Modifier.weight(1f)
+        RadioButton(
+            selected = item.isSelected,
+            onClick = null
         )
-        if (item.isSelected) {
-            Icon(
-                imageVector = Icons.Rounded.Done,
-                contentDescription = "Done icon"
+        Spacer(modifier = Modifier.width(24.dp))
+        Column {
+            Text(
+                text = item.language.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.alpha(0.7f),
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = item.local
+            )
         }
     }
 }

@@ -83,10 +83,8 @@
     <string name="settings_dynamic_colors_description">Цвета для приложения будут извлечены из ваших обоев на главном экране</string>
     <string name="settings_application_language">Язык приложения</string>
     <string name="settings_application_language_value">Текущий: %s</string>
+    <string name="language_system">Системный</string>
     <string name="action_apply">Применить</string>
     <string name="open_system_language_picker">Открыть системный пикер языка</string>
     <string name="title_application_language">Язык приложения</string>
-    <string name="language_system">Системный</string>
-    <string name="language_russian">Русский</string>
-    <string name="language_ukrainian">Украинский</string>
 </resources>

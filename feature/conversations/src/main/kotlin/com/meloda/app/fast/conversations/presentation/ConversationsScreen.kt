@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -194,7 +196,7 @@ fun ConversationsScreen(
                             onDismissRequest = {
                                 dropDownMenuExpanded = false
                             },
-                            offset = DpOffset(x = (10).dp, y = (-60).dp)
+                            offset = DpOffset(x = (-4).dp, y = (-60).dp)
                         ) {
                             DropdownMenuItem(
                                 onClick = {
@@ -203,6 +205,12 @@ fun ConversationsScreen(
                                 },
                                 text = {
                                     Text(text = stringResource(id = UiR.string.title_settings))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Settings,
+                                        contentDescription = null
+                                    )
                                 }
                             )
                             DropdownMenuItem(
@@ -212,6 +220,12 @@ fun ConversationsScreen(
                                 },
                                 text = {
                                     Text(text = stringResource(id = UiR.string.action_refresh))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Refresh,
+                                        contentDescription = null
+                                    )
                                 }
                             )
                         }
