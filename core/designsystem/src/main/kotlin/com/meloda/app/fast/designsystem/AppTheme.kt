@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -20,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
 import com.meloda.app.fast.datastore.isUsingAmoledBackground
 import com.meloda.app.fast.datastore.isUsingDynamicColors
+import com.meloda.app.fast.datastore.model.ThemeConfig
+import com.meloda.app.fast.datastore.selectedColorScheme
+import com.meloda.app.fast.designsystem.colorschemes.ClassicColorScheme
 
 private val googleSansFonts = FontFamily(
     Font(resId = R.font.google_sans_regular),
@@ -100,11 +104,23 @@ private val robotoFonts = FontFamily(
     )
 )
 
+val LocalTheme = compositionLocalOf {
+    ThemeConfig(
+        usingDarkStyle = false,
+        usingDynamicColors = false,
+        selectedColorScheme = 0,
+        usingAmoledBackground = false,
+        usingBlur = false,
+        multiline = false
+    )
+}
+
 @Composable
 fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
     useDarkTheme: Boolean = isUsingDarkTheme(),
     useDynamicColors: Boolean = isUsingDynamicColors(),
+    selectedColorScheme: Int = selectedColorScheme(),
     useAmoledBackground: Boolean = isUsingAmoledBackground(),
     content: @Composable () -> Unit
 ) {
@@ -115,8 +131,13 @@ fun AppTheme(
             else dynamicLightColorScheme(context)
         }
 
-        useDarkTheme -> darkColorScheme()
-        else -> lightColorScheme()
+        else -> {
+            // TODO: 03/07/2024, Danil Nikolaev: add color picker to settings
+            when (selectedColorScheme) {
+                1 -> if (useDarkTheme) darkColorScheme() else lightColorScheme()
+                else -> if (useDarkTheme) ClassicColorScheme.darkScheme else ClassicColorScheme.lightScheme
+            }
+        }
     }.let { scheme ->
         if (useDarkTheme && useAmoledBackground) {
             scheme.copy(

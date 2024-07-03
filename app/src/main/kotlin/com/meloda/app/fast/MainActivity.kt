@@ -14,6 +14,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -32,8 +33,10 @@ import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.datastore.model.ThemeConfig
 import com.meloda.app.fast.designsystem.AppTheme
 import com.meloda.app.fast.designsystem.CheckPermission
+import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.RequestPermission
 import com.meloda.app.fast.model.MainScreenState
@@ -61,18 +64,10 @@ class MainActivity : AppCompatActivity() {
                 val isOnline by userSettings.online.collectAsStateWithLifecycle()
                 toggleOnlineService(isOnline)
 
-//                val language by userSettings.language.collectAsStateWithLifecycle()
-//                val isNeedToSetLanguage by userSettings.languageChangedFromApp.collectAsStateWithLifecycle()
-//                if (isNeedToSetLanguage) {
-//                    userSettings.onLanguageChanged()
-//                    setNewLanguage(language)
-//                }
-
                 LocalLifecycleOwner.current.lifecycle.addObserver(
                     LifecycleEventObserver { _, event ->
                         when (event) {
                             Lifecycle.Event.ON_RESUME -> {
-//                                checkExternalLanguageUpdate(userSettings)
                                 toggleOnlineService(isOnline)
                             }
 
@@ -88,15 +83,28 @@ class MainActivity : AppCompatActivity() {
                 val theme by userSettings.theme.collectAsStateWithLifecycle()
 
                 LaunchedEffect(true) {
+                    // TODO: 03/07/2024, Danil Nikolaev: check
                     userSettings.updateUsingDarkTheme()
                 }
 
-                AppTheme(
-                    useDarkTheme = theme.usingDarkStyle,
-                    useDynamicColors = theme.usingDynamicColors,
-                    useAmoledBackground = theme.usingAmoledBackground
+                CompositionLocalProvider(
+                    LocalTheme provides ThemeConfig(
+                        usingDarkStyle = theme.usingDarkStyle,
+                        usingDynamicColors = theme.usingDynamicColors,
+                        selectedColorScheme = theme.selectedColorScheme,
+                        usingAmoledBackground = theme.usingAmoledBackground,
+                        usingBlur = theme.usingBlur,
+                        multiline = theme.multiline
+                    )
                 ) {
-                    RootGraph()
+                    AppTheme(
+                        useDarkTheme = LocalTheme.current.usingDarkStyle,
+                        useDynamicColors = LocalTheme.current.usingDynamicColors,
+                        selectedColorScheme = LocalTheme.current.selectedColorScheme,
+                        useAmoledBackground = LocalTheme.current.usingAmoledBackground,
+                    ) {
+                        RootGraph()
+                    }
                 }
             }
         }

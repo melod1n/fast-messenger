@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 interface UserSettings {
-    val multiline: StateFlow<Boolean>
-
     val theme: StateFlow<ThemeConfig>
 
     val longPollBackground: StateFlow<Boolean>
@@ -41,19 +39,14 @@ class UserSettingsImpl(
     private val powerManager: PowerManager
 ) : UserSettings {
 
-    override val multiline = MutableStateFlow(
-        SettingsController.getBoolean(
-            SettingsKeys.KEY_APPEARANCE_MULTILINE,
-            SettingsKeys.DEFAULT_VALUE_MULTILINE
-        )
-    )
-
     override val theme = MutableStateFlow(
         ThemeConfig(
             usingDarkStyle = isUsingDarkMode(resources, powerManager),
             usingDynamicColors = isUsingDynamicColors(),
+            selectedColorScheme = selectedColorScheme(),
             usingAmoledBackground = isUsingAmoledBackground(),
-            usingBlur = isUsingBlur()
+            usingBlur = isUsingBlur(),
+            multiline = isMultiline()
         )
     )
 
@@ -107,7 +100,7 @@ class UserSettingsImpl(
     }
 
     override fun useMultiline(use: Boolean) {
-        multiline.value = use
+        theme.value = theme.value.copy(multiline = use)
     }
 
     override fun setLongPollBackground(background: Boolean) {

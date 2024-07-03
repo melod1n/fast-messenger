@@ -36,6 +36,11 @@ fun isUsingAmoledBackground(): Boolean = SettingsController.getBoolean(
     SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME
 )
 
+fun selectedColorScheme(): Int = SettingsController.getInt(
+    SettingsKeys.KEY_APPEARANCE_COLOR_SCHEME,
+    SettingsKeys.DEFAULT_VALUE_APPEARANCE_COLOR_SCHEME
+)
+
 fun isUsingBlur(): Boolean = SettingsController.getBoolean(
     SettingsKeys.KEY_APPEARANCE_BLUR,
     SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_BLUR
@@ -44,4 +49,9 @@ fun isUsingBlur(): Boolean = SettingsController.getBoolean(
 fun isDebugSettingsShown(): Boolean = SettingsController.getBoolean(
     SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
     SettingsKeys.DEFAULT_VALUE_SHOW_DEBUG_CATEGORY
+)
+
+fun isMultiline(): Boolean = SettingsController.getBoolean(
+    SettingsKeys.KEY_APPEARANCE_MULTILINE,
+    SettingsKeys.DEFAULT_VALUE_MULTILINE
 )

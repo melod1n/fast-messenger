@@ -38,6 +38,7 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isUsingDarkMode
+import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.settings.HapticType
@@ -88,8 +89,7 @@ fun SettingsScreen(
 
     userSettings.enableDebugSettings(screenState.showDebugOptions)
 
-    val currentTheme by userSettings.theme.collectAsStateWithLifecycle()
-    val multilineEnabled by userSettings.multiline.collectAsStateWithLifecycle()
+    val currentTheme = LocalTheme.current
 
     val settingsList = screenState.settings
 
@@ -237,13 +237,13 @@ fun SettingsScreen(
                 when (val item = settingsList[index]) {
                     is SettingsItem.Title -> TitleSettingsItem(
                         item = item,
-                        isMultiline = multilineEnabled,
+                        isMultiline = currentTheme.multiline,
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
                         item = item,
-                        isMultiline = multilineEnabled,
+                        isMultiline = currentTheme.multiline,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
@@ -251,7 +251,7 @@ fun SettingsScreen(
 
                     is SettingsItem.Switch -> SwitchSettingsItem(
                         item = item,
-                        isMultiline = multilineEnabled,
+                        isMultiline = currentTheme.multiline,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener,
@@ -260,7 +260,7 @@ fun SettingsScreen(
 
                     is SettingsItem.TextField -> EditTextSettingsItem(
                         item = item,
-                        isMultiline = multilineEnabled,
+                        isMultiline = currentTheme.multiline,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener,
@@ -269,7 +269,7 @@ fun SettingsScreen(
 
                     is SettingsItem.ListItem -> ListSettingsItem(
                         item = item,
-                        isMultiline = multilineEnabled,
+                        isMultiline = currentTheme.multiline,
                         onSettingsClickListener = clickListener,
                         onSettingsLongClickListener = longClickListener,
                         onSettingsChangeListener = changeListener,

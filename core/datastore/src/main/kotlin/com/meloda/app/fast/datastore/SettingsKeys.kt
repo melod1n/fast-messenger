@@ -21,6 +21,8 @@ object SettingsKeys {
     const val DEFAULT_VALUE_APPEARANCE_AMOLED_THEME = false
     const val KEY_USE_DYNAMIC_COLORS = "appearance_use_dynamic_colors"
     const val DEFAULT_VALUE_USE_DYNAMIC_COLORS = false
+    const val KEY_APPEARANCE_COLOR_SCHEME = "appearance_color_scheme"
+    const val DEFAULT_VALUE_APPEARANCE_COLOR_SCHEME = 0
     const val KEY_APPEARANCE_LANGUAGE = "appearance_language"
     const val KEY_APPEARANCE_BLUR = "appearance_blur"
     const val DEFAULT_VALUE_KEY_APPEARANCE_BLUR = false

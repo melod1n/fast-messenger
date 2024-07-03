@@ -69,7 +69,7 @@ import com.meloda.app.fast.conversations.ConversationsViewModel
 import com.meloda.app.fast.conversations.ConversationsViewModelImpl
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.ErrorView
@@ -84,7 +84,6 @@ import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
 @OptIn(
@@ -112,16 +111,14 @@ fun ConversationsScreen(
     }
 
     val view = LocalView.current
-    val userSettings: UserSettings = koinInject()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
-    val currentTheme by userSettings.theme.collectAsStateWithLifecycle()
+    val currentTheme = LocalTheme.current
 
-    val multilineEnabled by userSettings.multiline.collectAsStateWithLifecycle()
-    val maxLines by remember(multilineEnabled) {
+    val maxLines by remember {
         derivedStateOf {
-            if (multilineEnabled) 2 else 1
+            if (currentTheme.multiline) 2 else 1
         }
     }
 

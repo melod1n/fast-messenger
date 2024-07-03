@@ -71,7 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.ActionMode
@@ -102,9 +102,7 @@ fun MessagesHistoryScreen(
     val view = LocalView.current
 
     val preferences: SharedPreferences = koinInject()
-
-    val userSettings: UserSettings = koinInject()
-    val currentTheme by userSettings.theme.collectAsStateWithLifecycle()
+    val currentTheme = LocalTheme.current
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
