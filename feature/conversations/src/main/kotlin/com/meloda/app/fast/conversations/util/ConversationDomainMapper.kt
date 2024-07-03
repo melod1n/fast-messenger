@@ -224,7 +224,7 @@ private fun extractActionText(
     if (lastMessage == null) return null
 
     val fromId = lastMessage.fromId
-    val text = lastMessage.actionMessage.orDots()
+    val text = lastMessage.actionText.orDots()
     val groupName = lastMessage.group?.name.orDots()
     val userName = lastMessage.user?.fullName.orDots()
     val actionGroupName = lastMessage.actionGroup?.name.orDots()
