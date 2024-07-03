@@ -48,6 +48,9 @@ dependencies {
     implementation(libs.nanokt.jvm)
     implementation(libs.nanokt)
 
+    implementation(libs.coil.compose)
+    implementation(libs.coil)
+
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 

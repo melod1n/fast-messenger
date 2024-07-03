@@ -124,7 +124,6 @@ suspend fun <T> MutableSharedFlow<T>.emitWithMain(value: T) {
 context(ViewModel)
 fun <T> MutableStateFlow<T>.updateValue(newValue: T) = this.update { newValue }
 
-context(ViewModel)
 fun <T> MutableStateFlow<T>.setValue(function: (T) -> T) {
     val newValue = function(value)
     update { newValue }

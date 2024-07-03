@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
+import com.meloda.app.fast.common.UiImage
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
@@ -18,6 +19,8 @@ import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
+import com.meloda.app.fast.messageshistory.model.UiMessage
+import com.meloda.app.fast.messageshistory.util.asPresentation
 import com.meloda.app.fast.messageshistory.util.extractAvatar
 import com.meloda.app.fast.messageshistory.util.extractTitle
 import com.meloda.app.fast.model.BaseError
@@ -28,6 +31,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.random.Random
 
 interface MessagesHistoryViewModel {
@@ -49,6 +54,7 @@ interface MessagesHistoryViewModel {
     fun setArguments(arguments: MessagesHistoryArguments)
 
     fun onMetPaginationCondition()
+    fun onShowDatesClicked()
 }
 
 class MessagesHistoryViewModelImpl(
@@ -138,6 +144,16 @@ class MessagesHistoryViewModelImpl(
         loadMessagesHistory()
     }
 
+    override fun onShowDatesClicked() {
+        screenState.setValue { old ->
+            old.copy(
+                messages = old.messages.map { message ->
+                    message.copy(showDate = !message.showDate)
+                }
+            )
+        }
+    }
+
 //    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
 //        val message = event.message
 //        if (message.peerId != screenState.value.conversationId) return
@@ -190,6 +206,12 @@ class MessagesHistoryViewModelImpl(
                 },
                 success = { response ->
                     val messages = response.messages
+                    val fullMessages = if (offset == 0) {
+                        messages
+                    } else {
+                        this.messages.value.plus(messages)
+                    }.sorted()
+
                     val conversations = response.conversations
 
                     imagesToPreload.setValue {
@@ -199,10 +221,11 @@ class MessagesHistoryViewModelImpl(
                     messagesUseCase.storeMessages(messages)
                     conversationsUseCase.storeConversations(conversations)
 
-                    val loadedMessages = messages.map {
-                        // TODO: 02/07/2024, Danil Nikolaev: map to ui
-
-                        it
+                    val loadedMessages = fullMessages.mapIndexed { index, message ->
+                        message.asPresentation(
+                            prevMessage = messages.getOrNull(index + 1),
+                            nextMessage = messages.getOrNull(index - 1)
+                        )
                     }
 
                     val itemsCountSufficient = messages.size == MESSAGES_LOAD_COUNT
@@ -228,18 +251,8 @@ class MessagesHistoryViewModelImpl(
                             )
                         }
 
-                    if (offset == 0) {
-                        this.messages.emit(messages)
-                        screenState.setValue {
-                            newState.copy(messages = loadedMessages)
-                        }
-                    } else {
-                        this.messages.emit(this.messages.value.plus(messages))
-                        screenState.setValue {
-                            newState.copy(messages = newState.messages.plus(loadedMessages))
-                        }
-                    }
-
+                    this.messages.emit(fullMessages)
+                    screenState.setValue { newState.copy(messages = loadedMessages) }
                     canPaginate.setValue { itemsCountSufficient }
                 }
             )
@@ -253,46 +266,49 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
+    private fun List<VkMessage>.sorted(): List<VkMessage> {
+        return sortedWith { m1, m2 ->
+            val dateDiff = m2.date - m1.date
+            if (dateDiff != 0) {
+                dateDiff
+            } else {
+                val idDiff = m2.id - m1.id
+                idDiff
+            }
+        }
+    }
+
     private fun sendMessage() {
         lastMessageText = screenState.value.message
 
-        val newMessage = VkMessage(
+        val newMessage = UiMessage(
             id = 0,
             text = lastMessageText,
             isOut = true,
-            peerId = screenState.value.conversationId,
             fromId = UserConfig.userId,
-            date = (System.currentTimeMillis() / 1000).toInt(),
+            date = SimpleDateFormat(
+                "HH:mm",
+                Locale.getDefault()
+            ).format(System.currentTimeMillis()),
             randomId = Random.nextInt(),
-            action = null,
-            actionMemberId = null,
-            actionText = null,
-            actionConversationMessageId = null,
-            actionMessage = null,
-            updateTime = null,
-            important = false,
-            forwards = emptyList(),
-            attachments = emptyList(),
-            replyMessage = null,
-            geoType = null,
-            user = null,
-            group = null,
-            actionUser = null,
-            actionGroup = null,
+            isInChat = screenState.value.conversationId > 2_000_000_000,
+            name = "...",
+            showDate = false,
+            showAvatar = false,
+            showTitle = false,
+            avatar = UiImage.Color(0)
         )
 
         screenState.setValue { old ->
             old.copy(
                 message = "",
                 actionMode = ActionMode.Record,
-                messages = old.messages.toMutableList().apply {
-                    add(newMessage)
-                }
+                messages = old.messages.plus(newMessage)
             )
         }
 
         messagesUseCase.sendMessage(
-            peerId = newMessage.peerId,
+            peerId = screenState.value.conversationId,
             randomId = newMessage.randomId,
             message = newMessage.text,
             replyTo = null,

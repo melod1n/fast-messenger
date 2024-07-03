@@ -169,6 +169,9 @@ dependencies {
     implementation(libs.preference.ktx)
     implementation(libs.material)
 
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
+
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 

@@ -21,4 +21,9 @@ sealed class UiImage {
         is Url -> this.url
         else -> null
     }
+
+    fun extractResId(): Int = when (this) {
+        is Resource -> this.resId
+        else -> throw IllegalStateException("this UiImage is not Resource")
+    }
 }

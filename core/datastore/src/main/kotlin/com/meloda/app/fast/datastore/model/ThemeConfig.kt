@@ -6,5 +6,6 @@ data class ThemeConfig(
     val selectedColorScheme: Int,
     val usingAmoledBackground: Boolean,
     val usingBlur: Boolean,
-    val multiline: Boolean
+    val multiline: Boolean,
+    val bubblesWithPinch: Boolean = true
 )

@@ -8,10 +8,12 @@ import com.meloda.app.fast.common.extensions.orDots
 import com.meloda.app.fast.common.parseString
 import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.designsystem.R
+import com.meloda.app.fast.messageshistory.model.UiMessage
 import com.meloda.app.fast.model.api.PeerType
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkMessage
-
+import java.text.SimpleDateFormat
+import java.util.Locale
 import com.meloda.app.fast.designsystem.R as UiR
 
 private fun isAccount(fromId: Int) = fromId == UserConfig.userId
@@ -29,7 +31,21 @@ fun VkMessage.extractAvatar() = when {
     else -> null
 }?.let(UiImage::Url) ?: UiImage.Resource(UiR.drawable.ic_account_circle_cut)
 
-fun VkConversation.extractAvatar() = when (peerType) {
+fun VkMessage.extractDate(): String =
+    SimpleDateFormat("HH:mm", Locale.getDefault()).format(date * 1000L)
+
+fun VkMessage.extractTitle(): String = when {
+    isUser() -> "%s %s".format(
+        user?.firstName.orDots(),
+        user?.lastName?.firstOrNull()?.toString().orEmpty().plus(".")
+    )
+
+    isGroup() -> group?.name.orDots()
+
+    else -> throw IllegalStateException("Message is not from user nor group. fromId: $fromId")
+}
+
+fun VkConversation.extractAvatar(): UiImage = when (peerType) {
     PeerType.USER -> {
         if (isAccount(id)) null
         else user?.photo200
@@ -67,3 +83,31 @@ fun VkConversation.extractTitle(
     PeerType.GROUP -> UiText.Simple(group?.name.orDots())
     PeerType.CHAT -> UiText.Simple(title.orDots())
 }.parseString(resources).orDots()
+
+fun VkMessage.asPresentation(
+    prevMessage: VkMessage?,
+    nextMessage: VkMessage?
+): UiMessage = UiMessage(
+    id = id,
+    text = text,
+    isOut = isOut,
+    fromId = fromId,
+    date = extractDate(),
+    randomId = randomId,
+    isInChat = isPeerChat(),
+    name = extractTitle(),
+    showDate = false,
+    showAvatar = extractShowAvatar(nextMessage),
+    showTitle = extractShowTitle(prevMessage),
+    avatar = extractAvatar()
+)
+
+fun VkMessage.extractShowAvatar(nextMessage: VkMessage?): Boolean {
+    if (isOut) return false
+    return nextMessage == null || nextMessage.fromId != fromId
+}
+
+fun VkMessage.extractShowTitle(prevMessage: VkMessage?): Boolean {
+    if (isOut || !isPeerChat()) return false
+    return prevMessage == null || prevMessage.fromId != fromId
+}
