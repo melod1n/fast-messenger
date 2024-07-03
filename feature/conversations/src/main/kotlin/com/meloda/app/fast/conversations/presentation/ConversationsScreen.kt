@@ -159,9 +159,10 @@ fun ConversationsScreen(
 
             val toolbarContainerColor by animateColorAsState(
                 targetValue =
-                if (listState.canScrollBackward)
-                    MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-                else MaterialTheme.colorScheme.surface,
+                if (currentTheme.usingBlur || !listState.canScrollBackward)
+                    MaterialTheme.colorScheme.surface
+                else
+                    MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                 label = "toolbarColorAlpha",
                 animationSpec = tween(durationMillis = 50)
             )
