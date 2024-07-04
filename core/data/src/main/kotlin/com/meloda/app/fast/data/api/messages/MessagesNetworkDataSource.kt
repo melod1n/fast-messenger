@@ -27,5 +27,10 @@ interface MessagesNetworkDataSource {
         attachments: List<VkAttachment>?
     ): ApiResult<Int, RestApiErrorDomain>
 
+    suspend fun markAsRead(
+        peerId: Int,
+        startMessageId: Int?
+    ): ApiResult<Int, RestApiErrorDomain>
+
     suspend fun getMessage(messageId: Int): VkMessage?
 }

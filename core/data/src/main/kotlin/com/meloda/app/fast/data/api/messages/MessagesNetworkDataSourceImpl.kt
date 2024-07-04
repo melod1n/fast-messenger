@@ -13,6 +13,7 @@ import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkMessage
 import com.meloda.app.fast.model.api.requests.MessagesGetByIdRequest
 import com.meloda.app.fast.model.api.requests.MessagesGetHistoryRequest
+import com.meloda.app.fast.model.api.requests.MessagesMarkAsReadRequest
 import com.meloda.app.fast.model.api.requests.MessagesSendRequest
 import com.meloda.app.fast.network.RestApiErrorDomain
 import com.meloda.app.fast.network.mapApiDefault
@@ -137,6 +138,18 @@ class MessagesNetworkDataSourceImpl(
         )
 
         messagesService.send(requestModel.map).mapApiDefault()
+    }
+
+    override suspend fun markAsRead(
+        peerId: Int,
+        startMessageId: Int?
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesMarkAsReadRequest(
+            peerId = peerId,
+            startMessageId = startMessageId
+        )
+
+        messagesService.markAsRead(requestModel.map).mapApiDefault()
     }
 
     override suspend fun getMessage(messageId: Int): VkMessage? = withContext(Dispatchers.IO) {

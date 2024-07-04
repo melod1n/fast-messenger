@@ -36,6 +36,12 @@ interface MessagesService {
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<VkLongPollData>, RestApiError>
 
+    @FormUrlEncoded
+    @POST(MessagesUrls.MARK_AS_READ)
+    suspend fun markAsRead(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
+
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.MarkAsImportant)
 //    suspend fun markAsImportant(
@@ -66,11 +72,6 @@ interface MessagesService {
 //        @FieldMap params: Map<String, String>
 //    ): ApiResult<ApiResponse<Int>, RestApiError>
 //
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.MarkAsRead)
-//    suspend fun markAsRead(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<Int>, RestApiError>
 //
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.GetChat)

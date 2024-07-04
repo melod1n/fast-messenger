@@ -69,6 +69,13 @@ class MessagesRepositoryImpl(
         )
     }
 
+    override suspend fun markAsRead(
+        peerId: Int,
+        startMessageId: Int?
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        networkDataSource.markAsRead(peerId, startMessageId)
+    }
+
     override suspend fun getMessage(messageId: Int): Flow<VkMessage?> = flow {
         val localMessage = localDataSource.getMessage(messageId)?.asExternalModel()
 

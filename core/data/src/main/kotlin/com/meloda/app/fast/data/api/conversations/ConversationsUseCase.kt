@@ -11,11 +11,9 @@ interface ConversationsUseCase {
         offset: Int?,
     ): Flow<State<List<VkConversation>>>
 
-//    fun delete(peerId: Int): Flow<State<Unit>>
-//
-//    fun pin(peerId: Int): Flow<State<Unit>>
-//
-//    fun unpin(peerId: Int): Flow<State<Unit>>
+    fun delete(peerId: Int): Flow<State<Int>>
+
+    fun changePinState(peerId: Int, pin: Boolean): Flow<State<Int>>
 
     suspend fun storeConversations(conversations: List<VkConversation>)
 }

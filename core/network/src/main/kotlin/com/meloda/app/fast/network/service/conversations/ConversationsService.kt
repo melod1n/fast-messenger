@@ -1,5 +1,6 @@
 package com.meloda.app.fast.network.service.conversations
 
+import com.meloda.app.fast.model.api.responses.ConversationsDeleteResponse
 import com.meloda.app.fast.model.api.responses.ConversationsGetResponse
 import com.meloda.app.fast.network.ApiResponse
 import com.meloda.app.fast.network.RestApiError
@@ -20,15 +21,15 @@ interface ConversationsService {
     @POST(ConversationsUrls.DELETE)
     suspend fun delete(
         @FieldMap params: Map<String, String>
-    ): ApiResult<Unit, RestApiError>
+    ): ApiResult<ApiResponse<ConversationsDeleteResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(ConversationsUrls.PIN)
-    suspend fun pin(@FieldMap params: Map<String, String>): ApiResult<Unit, RestApiError>
+    suspend fun pin(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<Int>, RestApiError>
 
     @FormUrlEncoded
     @POST(ConversationsUrls.UNPIN)
-    suspend fun unpin(@FieldMap params: Map<String, String>): ApiResult<Unit, RestApiError>
+    suspend fun unpin(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<Int>, RestApiError>
 
     @FormUrlEncoded
     @POST(ConversationsUrls.REORDER_PINNED)

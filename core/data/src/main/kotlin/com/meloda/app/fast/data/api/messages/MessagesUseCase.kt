@@ -33,6 +33,11 @@ interface MessagesUseCase {
         attachments: List<VkAttachment>?
     ): Flow<State<Int>>
 
+    fun markAsRead(
+        peerId: Int,
+        startMessageId: Int
+    ): Flow<State<Int>>
+
     suspend fun storeMessage(message: VkMessage)
     suspend fun storeMessages(messages: List<VkMessage>)
 }

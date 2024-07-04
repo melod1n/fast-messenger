@@ -106,6 +106,20 @@ class MessagesUseCaseImpl(
         emit(newState)
     }
 
+    override fun markAsRead(
+        peerId: Int,
+        startMessageId: Int
+    ): Flow<State<Int>> = flow {
+        emit(State.Loading)
+
+        val newState = messagesRepository.markAsRead(
+            peerId = peerId,
+            startMessageId = startMessageId
+        ).mapToState()
+
+        emit(newState)
+    }
+
     override suspend fun storeMessage(message: VkMessage) {
         messagesRepository.storeMessages(listOf(message))
     }

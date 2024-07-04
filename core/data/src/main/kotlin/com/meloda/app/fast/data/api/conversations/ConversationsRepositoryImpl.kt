@@ -16,8 +16,8 @@ import com.meloda.app.fast.model.api.requests.ConversationsGetRequest
 import com.meloda.app.fast.model.api.requests.ConversationsPinRequest
 import com.meloda.app.fast.model.api.requests.ConversationsUnpinRequest
 import com.meloda.app.fast.network.RestApiErrorDomain
+import com.meloda.app.fast.network.mapApiDefault
 import com.meloda.app.fast.network.mapApiResult
-import com.meloda.app.fast.network.mapResult
 import com.meloda.app.fast.network.service.conversations.ConversationsService
 import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
@@ -83,36 +83,27 @@ class ConversationsRepositoryImpl(
         conversationDao.insertAll(conversations.map(VkConversation::asEntity))
     }
 
-    override suspend fun delete(
-        peerId: Int
-    ): ApiResult<Boolean, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val requestModel = ConversationsDeleteRequest(peerId = peerId)
+    override suspend fun delete(peerId: Int): ApiResult<Int, RestApiErrorDomain> =
+        withContext(Dispatchers.IO) {
+            val requestModel = ConversationsDeleteRequest(peerId = peerId)
 
-        conversationsService.delete(requestModel.map).mapResult(
-            successMapper = { true },
-            errorMapper = { error -> error?.toDomain() }
-        )
-    }
+            conversationsService.delete(requestModel.map).mapApiResult(
+                successMapper = { response -> response.requireResponse().lastDeletedId },
+                errorMapper = { error -> error?.toDomain() }
+            )
+        }
 
     override suspend fun pin(
         peerId: Int
-    ): ApiResult<Boolean, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = ConversationsPinRequest(peerId = peerId)
-
-        conversationsService.pin(requestModel.map).mapResult(
-            successMapper = { true },
-            errorMapper = { error -> error?.toDomain() }
-        )
+        conversationsService.pin(requestModel.map).mapApiDefault()
     }
 
     override suspend fun unpin(
         peerId: Int
-    ): ApiResult<Boolean, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = ConversationsUnpinRequest(peerId = peerId)
-
-        conversationsService.unpin(requestModel.map).mapResult(
-            successMapper = { true },
-            errorMapper = { error -> error?.toDomain() }
-        )
+        conversationsService.unpin(requestModel.map).mapApiDefault()
     }
 }

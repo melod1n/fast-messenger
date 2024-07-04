@@ -66,14 +66,15 @@ data class MessagesSendRequest(
 
 data class MessagesMarkAsReadRequest(
     val peerId: Int,
-    val messageIds: List<Int>?,
     val startMessageId: Int?
 ) {
 
     val map: Map<String, String>
         get() = mutableMapOf(
-            "peerId" to peerId.toString(),
-        )
+            "peer_id" to peerId.toString(),
+        ).apply {
+            startMessageId?.let { this["start_message_id"] = it.toString() }
+        }
 }
 
 data class MessagesMarkAsImportantRequest(

@@ -28,6 +28,11 @@ interface MessagesRepository {
         attachments: List<VkAttachment>?
     ): ApiResult<Int, RestApiErrorDomain>
 
+    suspend fun markAsRead(
+        peerId: Int,
+        startMessageId: Int?
+    ): ApiResult<Int, RestApiErrorDomain>
+
     suspend fun getMessage(messageId: Int): Flow<VkMessage?>
 
     suspend fun storeMessages(messages: List<VkMessage>)
@@ -54,14 +59,6 @@ interface MessagesRepository {
 //
 //    suspend fun edit(
 //        params: MessagesEditRequest
-//    ): ApiResult<Int, RestApiErrorDomain>
-//
-//    suspend fun getById(
-//        params: MessagesGetByIdRequest
-//    ): ApiResult<MessagesGetByIdResponse, RestApiErrorDomain>
-//
-//    suspend fun markAsRead(
-//        params: MessagesMarkAsReadRequest
 //    ): ApiResult<Int, RestApiErrorDomain>
 //
 //    suspend fun getChat(

@@ -3,6 +3,7 @@ package com.meloda.app.fast.conversations.data
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsRepository
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
+import com.meloda.app.fast.data.mapToState
 import com.meloda.app.fast.data.toStateApiError
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.slack.eithernet.ApiResult
@@ -44,21 +45,8 @@ class ConversationsUseCaseImpl(
 //        emit(newState)
 //    }
 //
-//    override fun delete(peerId: Int): Flow<com.meloda.app.fast.network.State<Unit>> = flow {
-//        emit(com.meloda.app.fast.network.State.Loading)
-//
-//        val newState = conversationsRepository.delete(
-//            ConversationsDeleteRequest(peerId = peerId)
-//        ).fold(
-//            onSuccess = { com.meloda.app.fast.network.State.Success(Unit) },
-//            onNetworkFailure = { com.meloda.app.fast.network.State.Error.ConnectionError },
-//            onUnknownFailure = { com.meloda.app.fast.network.State.UNKNOWN_ERROR },
-//            onHttpFailure = { result -> result.error.toStateApiError() },
-//            onApiFailure = { result -> result.error.toStateApiError() }
-//        )
-//        emit(newState)
-//    }
-//
+
+    //
 //    override fun pin(peerId: Int): Flow<com.meloda.app.fast.network.State<Unit>> = flow {
 //        emit(com.meloda.app.fast.network.State.Loading)
 //
@@ -122,5 +110,24 @@ class ConversationsUseCaseImpl(
         conversations: List<VkConversation>
     ) = withContext(Dispatchers.IO) {
         conversationsRepository.storeConversations(conversations)
+    }
+
+    override fun delete(peerId: Int): Flow<State<Int>> = flow {
+        emit(State.Loading)
+
+        val newState = conversationsRepository.delete(peerId = peerId).mapToState()
+        emit(newState)
+    }
+
+    override fun changePinState(peerId: Int, pin: Boolean): Flow<State<Int>> = flow {
+        emit(State.Loading)
+
+        val newState = if (pin) {
+            conversationsRepository.pin(peerId)
+        } else {
+            conversationsRepository.unpin(peerId)
+        }.mapToState()
+
+        emit(newState)
     }
 }

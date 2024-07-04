@@ -18,6 +18,7 @@ import com.meloda.app.fast.conversations.util.extractAvatar
 import com.meloda.app.fast.data.LongPollUpdatesParser
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
+import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.designsystem.ImmutableList
@@ -26,7 +27,6 @@ import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.LongPollEvent
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.network.VkErrorCodes
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 interface ConversationsViewModel {
@@ -68,6 +67,7 @@ interface ConversationsViewModel {
 class ConversationsViewModelImpl(
     updatesParser: LongPollUpdatesParser,
     private val conversationsUseCase: ConversationsUseCase,
+    private val messagesUseCase: MessagesUseCase,
     private val resources: Resources,
     private val preferences: SharedPreferences
 ) : ConversationsViewModel, ViewModel() {
@@ -298,56 +298,53 @@ class ConversationsViewModelImpl(
     }
 
     private fun deleteConversation(peerId: Int) {
-//        conversationsUseCase.delete(peerId).listenValue { state ->
-//            state.processState(
-//                error = {},
-//                success = {
-//                    val newConversations = domainConversations.value.toMutableList()
-//                    val conversationIndex =
-//                        newConversations.findIndex { it.id == peerId }
-//                            ?: return@processState
-//
-//                    newConversations.removeAt(conversationIndex)
-//
-//                    emitDomainConversations(newConversations)
-//                }
-//            )
-//            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
-//        }
+        conversationsUseCase.delete(peerId).listenValue { state ->
+            state.processState(
+                error = { error ->
+
+                },
+                success = {
+                    val newConversations = conversations.value.toMutableList()
+                    val conversationIndex =
+                        newConversations.indexOfFirstOrNull { it.id == peerId }
+                            ?: return@processState
+
+                    newConversations.removeAt(conversationIndex)
+                    conversations.update { newConversations }
+                    screenState.setValue { old ->
+                        old.copy(
+                            conversations = newConversations.map { it.asPresentation(resources) }
+                        )
+                    }
+                }
+            )
+            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
+        }
     }
 
     private fun pinConversation(peerId: Int, pin: Boolean) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            if (pin) {
-//                sendRequest(
-//                    request = {
-//                        conversationsRepository.pin(ConversationsPinRequest(peerId))
-//                    },
-//                    onResponse = {
-//                        handlePinStateChanged(
-//                            LongPollEvent.VkConversationPinStateChangedEvent(
-//                                peerId = peerId,
-//                                majorId = (pinnedConversationsCount.value + 1) * 16
-//                            )
-//                        )
-//                    }
-//                )
-//            } else {
-//                sendRequest(
-//                    request = {
-//                        conversationsRepository.unpin(ConversationsUnpinRequest(peerId))
-//                    },
-//                    onResponse = {
-//                        handlePinStateChanged(
-//                            LongPollEvent.VkConversationPinStateChangedEvent(
-//                                peerId = peerId,
-//                                majorId = 0
-//                            )
-//                        )
-//                    }
-//                )
-//            }
-//        }
+        conversationsUseCase.changePinState(peerId, pin)
+            .listenValue { state ->
+                state.processState(
+                    error = { error ->
+
+                    },
+                    success = {
+                        handlePinStateChanged(
+                            LongPollEvent.VkConversationPinStateChangedEvent(
+                                peerId = peerId,
+                                majorId = if (pin) {
+                                    (pinnedConversationsCount.value + 1) * 16
+                                } else {
+                                    0
+                                }
+                            )
+                        )
+                    }
+                )
+
+                screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
+            }
     }
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
@@ -566,52 +563,54 @@ class ConversationsViewModelImpl(
     private fun stopInteraction(peerId: Int, interactionJob: InteractionJob) {
         interactionsTimers[peerId] ?: return
 
-        viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = conversations.value.toMutableList()
-            val conversationAndIndex =
-                newConversations.findWithIndex { it.id == peerId } ?: return@launch
+        val newConversations = conversations.value.toMutableList()
+        val conversationAndIndex =
+            newConversations.findWithIndex { it.id == peerId } ?: return
 
-            newConversations[conversationAndIndex.first] =
-                conversationAndIndex.second.copy(
-                    interactionType = -1,
-                    interactionIds = emptyList()
-                )
+        newConversations[conversationAndIndex.first] =
+            conversationAndIndex.second.copy(
+                interactionType = -1,
+                interactionIds = emptyList()
+            )
 
-            conversations.emit(newConversations)
-            screenState.setValue { old ->
-                old.copy(
-                    conversations = newConversations.map { it.asPresentation(resources) }
-                )
-            }
-
-            interactionJob.timerJob.cancel()
-            interactionsTimers[peerId] = null
+        conversations.update { newConversations }
+        screenState.setValue { old ->
+            old.copy(
+                conversations = newConversations.map { it.asPresentation(resources) }
+            )
         }
+
+        interactionJob.timerJob.cancel()
+        interactionsTimers[peerId] = null
     }
 
     private fun readConversation(peerId: Int, startMessageId: Int) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            sendRequest(
-//                request = {
-//                    messagesRepository.markAsRead(
-//                        peerId = peerId,
-//                        startMessageId = startMessageId
-//                    )
-//                },
-//                onResponse = {
-//                    val newConversations = domainConversations.value.toMutableList()
-//                    val conversationIndex =
-//                        newConversations.findIndex { it.id == peerId } ?: return@sendRequest
-//
-//                    newConversations[conversationIndex] =
-//                        newConversations[conversationIndex].copyWithEssentials { old ->
-//                            old.copy(inRead = startMessageId)
-//                        }
-//
-//                    emitDomainConversations(newConversations)
-//                }
-//            )
-//        }
+        messagesUseCase.markAsRead(
+            peerId = peerId,
+            startMessageId = startMessageId
+        ).listenValue { state ->
+            state.processState(
+                error = { error ->
+
+                },
+                success = {
+                    val newConversations = conversations.value.toMutableList()
+                    val conversationIndex =
+                        newConversations.indexOfFirstOrNull { it.id == peerId }
+                            ?: return@listenValue
+
+                    newConversations[conversationIndex] =
+                        newConversations[conversationIndex].copy(inRead = startMessageId)
+
+                    conversations.update { newConversations }
+                    screenState.setValue { old ->
+                        old.copy(
+                            conversations = newConversations.map { it.asPresentation(resources) }
+                        )
+                    }
+                }
+            )
+        }
     }
 }
 
