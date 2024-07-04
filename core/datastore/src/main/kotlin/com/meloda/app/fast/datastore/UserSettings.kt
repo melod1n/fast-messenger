@@ -66,7 +66,7 @@ class UserSettingsImpl(
     override val debugSettingsEnabled = MutableStateFlow(
         SettingsController.getBoolean(
             SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-            SettingsKeys.DEFAULT_VALUE_SHOW_DEBUG_CATEGORY
+            false
         )
     )
 

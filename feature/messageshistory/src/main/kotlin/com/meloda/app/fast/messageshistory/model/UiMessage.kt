@@ -13,6 +13,6 @@ data class UiMessage(
     val name: String,
     val showDate: Boolean,
     val showAvatar: Boolean,
-    val showTitle: Boolean,
+    val showName: Boolean,
     val avatar: UiImage
 )

@@ -3,6 +3,7 @@ package com.meloda.app.fast.messageshistory
 import android.content.SharedPreferences
 import android.content.res.Resources
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfOrNull
@@ -22,6 +23,7 @@ import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
 import com.meloda.app.fast.messageshistory.model.UiMessage
 import com.meloda.app.fast.messageshistory.util.asPresentation
 import com.meloda.app.fast.messageshistory.util.extractAvatar
+import com.meloda.app.fast.messageshistory.util.extractShowName
 import com.meloda.app.fast.messageshistory.util.extractTitle
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.api.domain.VkAttachment
@@ -54,7 +56,8 @@ interface MessagesHistoryViewModel {
     fun setArguments(arguments: MessagesHistoryArguments)
 
     fun onMetPaginationCondition()
-    fun onShowDatesClicked()
+    fun onShowDatesClicked(showDates: Boolean)
+    fun onShowNamesClicked(showNames: Boolean)
 }
 
 class MessagesHistoryViewModelImpl(
@@ -144,11 +147,33 @@ class MessagesHistoryViewModelImpl(
         loadMessagesHistory()
     }
 
-    override fun onShowDatesClicked() {
+    override fun onShowDatesClicked(showDates: Boolean) {
+        preferences.edit { putBoolean(SettingsKeys.KEY_SHOW_DATE_UNDER_BUBBLES, showDates) }
+
         screenState.setValue { old ->
             old.copy(
                 messages = old.messages.map { message ->
-                    message.copy(showDate = !message.showDate)
+                    message.copy(showDate = showDates)
+                }
+            )
+        }
+    }
+
+    override fun onShowNamesClicked(showNames: Boolean) {
+        preferences.edit { putBoolean(SettingsKeys.KEY_SHOW_NAME_IN_BUBBLES, showNames) }
+
+        screenState.setValue { old ->
+            old.copy(
+                messages = old.messages.map { message ->
+                    message.copy(
+                        showName = if (showNames) {
+                            val index = messages.value.indexOfFirst { it.id == message.id }
+                            val domainMessage = messages.value[index]
+                            val prevMessage = messages.value.getOrNull(index + 1)
+
+                            domainMessage.extractShowName(prevMessage)
+                        } else false
+                    )
                 }
             )
         }
@@ -221,10 +246,17 @@ class MessagesHistoryViewModelImpl(
                     messagesUseCase.storeMessages(messages)
                     conversationsUseCase.storeConversations(conversations)
 
+                    val showDate =
+                        preferences.getBoolean(SettingsKeys.KEY_SHOW_DATE_UNDER_BUBBLES, false)
+                    val showName =
+                        preferences.getBoolean(SettingsKeys.KEY_SHOW_NAME_IN_BUBBLES, false)
+
                     val loadedMessages = fullMessages.mapIndexed { index, message ->
                         message.asPresentation(
+                            showDate = showDate,
+                            showName = showName,
                             prevMessage = messages.getOrNull(index + 1),
-                            nextMessage = messages.getOrNull(index - 1)
+                            nextMessage = messages.getOrNull(index - 1),
                         )
                     }
 
@@ -295,7 +327,7 @@ class MessagesHistoryViewModelImpl(
             name = "...",
             showDate = false,
             showAvatar = false,
-            showTitle = false,
+            showName = false,
             avatar = UiImage.Color(0)
         )
 

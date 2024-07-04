@@ -72,7 +72,7 @@ fun IncomingMessageBubble(
         }
 
         Column {
-            if (message.showTitle) {
+            AnimatedVisibility(visible = message.showName) {
                 Text(
                     modifier = Modifier
                         .padding(start = 12.dp)

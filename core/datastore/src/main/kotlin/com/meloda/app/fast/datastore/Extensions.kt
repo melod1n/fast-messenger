@@ -48,7 +48,7 @@ fun isUsingBlur(): Boolean = SettingsController.getBoolean(
 
 fun isDebugSettingsShown(): Boolean = SettingsController.getBoolean(
     SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-    SettingsKeys.DEFAULT_VALUE_SHOW_DEBUG_CATEGORY
+    false
 )
 
 fun isMultiline(): Boolean = SettingsController.getBoolean(

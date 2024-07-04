@@ -27,7 +27,6 @@ object SettingsKeys {
     const val KEY_APPEARANCE_BLUR = "appearance_blur"
     const val DEFAULT_VALUE_KEY_APPEARANCE_BLUR = false
 
-
     const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
     const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
     const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"
@@ -38,15 +37,13 @@ object SettingsKeys {
     const val DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS = false
 
     const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
-
     const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
-
     const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
-
     const val KEY_SHOW_EXACT_TIME_ON_TIME_STAMP = "wip_show_exact_time_on_time_stamp"
+    const val KEY_SHOW_NAME_IN_BUBBLES = "debug_show_title_in_bubbles"
+    const val KEY_SHOW_DATE_UNDER_BUBBLES = "debug_show_date_under_bubbles"
 
     const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
-    const val DEFAULT_VALUE_SHOW_DEBUG_CATEGORY = false
 
     const val ID_DMITRY = 37610580
 }

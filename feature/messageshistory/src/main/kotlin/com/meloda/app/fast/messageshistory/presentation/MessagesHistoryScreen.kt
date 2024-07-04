@@ -124,6 +124,24 @@ fun MessagesHistoryScreen(
 
     val hazeSate = remember { HazeState() }
 
+    var datesShown by remember {
+        mutableStateOf(
+            preferences.getBoolean(
+                SettingsKeys.KEY_SHOW_DATE_UNDER_BUBBLES,
+                false
+            )
+        )
+    }
+
+    var namesShown by remember {
+        mutableStateOf(
+            preferences.getBoolean(
+                SettingsKeys.KEY_SHOW_NAME_IN_BUBBLES,
+                false
+            )
+        )
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
@@ -211,11 +229,23 @@ fun MessagesHistoryScreen(
 
                             DropdownMenuItem(
                                 text = {
-                                    Text(text = "Toggle showing dates")
+                                    Text(text = if (datesShown) "Hide dates" else "Show dates")
                                 },
                                 onClick = {
                                     dropDownMenuExpanded = false
-                                    viewModel.onShowDatesClicked()
+                                    datesShown = !datesShown
+                                    viewModel.onShowDatesClicked(datesShown)
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = if (namesShown) "Hide names" else "Show names")
+                                },
+                                onClick = {
+                                    dropDownMenuExpanded = false
+                                    namesShown = !namesShown
+                                    viewModel.onShowNamesClicked(namesShown)
                                 }
                             )
                         }

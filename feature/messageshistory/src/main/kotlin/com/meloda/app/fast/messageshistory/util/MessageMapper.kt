@@ -85,6 +85,8 @@ fun VkConversation.extractTitle(
 }.parseString(resources).orDots()
 
 fun VkMessage.asPresentation(
+    showDate: Boolean,
+    showName: Boolean,
     prevMessage: VkMessage?,
     nextMessage: VkMessage?
 ): UiMessage = UiMessage(
@@ -96,9 +98,9 @@ fun VkMessage.asPresentation(
     randomId = randomId,
     isInChat = isPeerChat(),
     name = extractTitle(),
-    showDate = false,
+    showDate = showDate,
     showAvatar = extractShowAvatar(nextMessage),
-    showTitle = extractShowTitle(prevMessage),
+    showName = showName && extractShowName(prevMessage),
     avatar = extractAvatar()
 )
 
@@ -107,7 +109,7 @@ fun VkMessage.extractShowAvatar(nextMessage: VkMessage?): Boolean {
     return nextMessage == null || nextMessage.fromId != fromId
 }
 
-fun VkMessage.extractShowTitle(prevMessage: VkMessage?): Boolean {
+fun VkMessage.extractShowName(prevMessage: VkMessage?): Boolean {
     if (isOut || !isPeerChat()) return false
     return prevMessage == null || prevMessage.fromId != fromId
 }
