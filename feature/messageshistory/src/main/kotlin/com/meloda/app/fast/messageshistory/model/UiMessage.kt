@@ -14,5 +14,6 @@ data class UiMessage(
     val showDate: Boolean,
     val showAvatar: Boolean,
     val showName: Boolean,
-    val avatar: UiImage
+    val avatar: UiImage,
+    val isEdited: Boolean
 )

@@ -20,8 +20,6 @@ import com.meloda.app.fast.messageshistory.model.UiMessage
 fun OutgoingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiMessage,
-    isTopPortion: Boolean,
-    isBottomPortion: Boolean
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -39,8 +37,8 @@ fun OutgoingMessageBubble(
                 modifier = Modifier,
                 text = message.text.orDots(),
                 isOut = true,
-                isTopPortion = isTopPortion,
-                isBottomPortion = isBottomPortion,
+                date = null,
+                edited = message.isEdited,
             )
 
             if (message.showDate) {

@@ -101,7 +101,8 @@ fun VkMessage.asPresentation(
     showDate = showDate,
     showAvatar = extractShowAvatar(nextMessage),
     showName = showName && extractShowName(prevMessage),
-    avatar = extractAvatar()
+    avatar = extractAvatar(),
+    isEdited = updateTime != null
 )
 
 fun VkMessage.extractShowAvatar(nextMessage: VkMessage?): Boolean {

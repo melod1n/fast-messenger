@@ -76,8 +76,6 @@ fun MessagesList(
                         else Modifier
                     ),
                     message = message,
-                    isTopPortion = false,
-                    isBottomPortion = false,
                 )
             } else {
                 IncomingMessageBubble(
@@ -90,8 +88,6 @@ fun MessagesList(
                         else Modifier
                     ),
                     message = message,
-                    isTopPortion = false,
-                    isBottomPortion = false
                 )
             }
 
