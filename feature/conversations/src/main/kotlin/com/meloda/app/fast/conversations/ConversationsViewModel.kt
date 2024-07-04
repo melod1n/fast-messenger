@@ -4,9 +4,8 @@ import android.content.SharedPreferences
 import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.ImageLoader
+import com.conena.nanokt.collections.indexOfFirstOrNull
 import com.meloda.app.fast.common.extensions.createTimerFlow
-import com.meloda.app.fast.common.extensions.findIndex
 import com.meloda.app.fast.common.extensions.findWithIndex
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
@@ -16,9 +15,9 @@ import com.meloda.app.fast.conversations.model.ConversationsShowOptions
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.conversations.util.asPresentation
 import com.meloda.app.fast.conversations.util.extractAvatar
+import com.meloda.app.fast.data.LongPollUpdatesParser
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
-import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.designsystem.ImmutableList
@@ -67,9 +66,7 @@ interface ConversationsViewModel {
 }
 
 class ConversationsViewModelImpl(
-//    updatesParser: LongPollUpdatesParser,
-    private val imageLoader: ImageLoader,
-    private val accountsRepository: AccountsRepository,
+    updatesParser: LongPollUpdatesParser,
     private val conversationsUseCase: ConversationsUseCase,
     private val resources: Resources,
     private val preferences: SharedPreferences
@@ -94,12 +91,12 @@ class ConversationsViewModelImpl(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
-//        updatesParser.onNewMessage(::handleNewMessage)
-//        updatesParser.onMessageEdited(::handleEditedMessage)
-//        updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
-//        updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
-//        updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
-//        updatesParser.onInteractions(::handleInteraction)
+        updatesParser.onNewMessage(::handleNewMessage)
+        updatesParser.onMessageEdited(::handleEditedMessage)
+        updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
+        updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
+        updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
+        updatesParser.onInteractions(::handleInteraction)
 
         loadConversations()
     }
@@ -354,174 +351,160 @@ class ConversationsViewModelImpl(
     }
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val message = event.message
+        val message = event.message
+        val newConversations = conversations.value.toMutableList()
+        val conversationIndex =
+            newConversations.indexOfFirstOrNull { it.id == message.peerId }
 
-//            messagesRepository.store(message)
+        if (conversationIndex == null) { // диалога нет в списке
+            // pizdets
+            // TODO: 04/07/2024, Danil Nikolaev: load conversation and store info
+        } else {
+            val conversation = newConversations[conversationIndex]
+            var newConversation = conversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
+                lastConversationMessageId = -1,
+                unreadCount = if (message.isOut) conversation.unreadCount
+                else conversation.unreadCount + 1
+            )
 
-            val newConversations = conversations.value.toMutableList()
-            val conversationIndex =
-                newConversations.findIndex { it.id == message.peerId }
-
-            if (conversationIndex == null) { // диалога нет в списке
-                // pizdets
-            } else {
-                val conversation = newConversations[conversationIndex]
-                var newConversation = conversation.copy(
-                    lastMessage = message,
-                    lastMessageId = message.id,
-                    lastConversationMessageId = -1,
-                    unreadCount = if (message.isOut) conversation.unreadCount
-                    else conversation.unreadCount + 1
-                )
-
-                interactionsTimers[conversation.id]?.let { job ->
-                    if (job.interactionType == InteractionType.Typing
-                        && message.fromId in conversation.interactionIds
-                    ) {
-                        val newInteractionIds = newConversation.interactionIds.filter { id ->
-                            id != message.fromId
-                        }
-
-                        newConversation = newConversation.copy(
-                            interactionType = if (newInteractionIds.isEmpty()) -1 else {
-                                newConversation.interactionType
-                            },
-                            interactionIds = newInteractionIds
-                        )
+            interactionsTimers[conversation.id]?.let { job ->
+                if (job.interactionType == InteractionType.Typing
+                    && message.fromId in conversation.interactionIds
+                ) {
+                    val newInteractionIds = newConversation.interactionIds.filter { id ->
+                        id != message.fromId
                     }
-                }
 
-                if (conversation.isPinned()) {
-                    newConversations[conversationIndex] = newConversation
-                } else {
-                    newConversations.removeAt(conversationIndex)
-
-                    val toPosition = pinnedConversationsCount.value
-                    newConversations.add(toPosition, newConversation)
-                }
-
-                conversations.emit(newConversations)
-                screenState.setValue { old ->
-                    old.copy(
-                        conversations = newConversations.map { it.asPresentation(resources) }
+                    newConversation = newConversation.copy(
+                        interactionType = if (newInteractionIds.isEmpty()) -1 else {
+                            newConversation.interactionType
+                        },
+                        interactionIds = newInteractionIds
                     )
                 }
+            }
+
+            if (conversation.isPinned()) {
+                newConversations[conversationIndex] = newConversation
+            } else {
+                newConversations.removeAt(conversationIndex)
+
+                val toPosition = pinnedConversationsCount.value
+                newConversations.add(toPosition, newConversation)
+            }
+
+            conversations.update { newConversations }
+
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
+                )
             }
         }
     }
 
     private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val message = event.message
+        val message = event.message
+        val newConversations = conversations.value.toMutableList()
 
-//            messagesRepository.store(message)
+        val conversationIndex = newConversations.indexOfFirstOrNull { it.id == message.peerId }
+        if (conversationIndex == null) { // диалога нет в списке
+            //  pizdets
+        } else {
+            val conversation = newConversations[conversationIndex]
+            newConversations[conversationIndex] = conversation.copy(
+                lastMessage = message,
+                lastMessageId = message.id,
+                lastConversationMessageId = -1
+            )
+            conversations.update { newConversations }
 
-            val newConversations = conversations.value.toMutableList()
-
-            val conversationIndex = newConversations.findIndex { it.id == message.peerId }
-            if (conversationIndex == null) { // диалога нет в списке
-                //  pizdets
-            } else {
-                val conversation = newConversations[conversationIndex]
-                newConversations[conversationIndex] = conversation.copy(
-                    lastMessage = message,
-                    lastMessageId = message.id,
-                    lastConversationMessageId = -1
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map { it.asPresentation(resources) }
                 )
-
-                conversations.emit(newConversations)
-                screenState.setValue { old ->
-                    old.copy(
-                        conversations = newConversations.map { it.asPresentation(resources) }
-                    )
-                }
             }
         }
     }
 
     private fun handleReadIncomingMessage(event: LongPollEvent.VkMessageReadIncomingEvent) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = conversations.value.toMutableList()
+        val newConversations = conversations.value.toMutableList()
 
-            val conversationIndex =
-                newConversations.findIndex { it.id == event.peerId } ?: return@launch
+        val conversationIndex =
+            newConversations.indexOfFirstOrNull { it.id == event.peerId } ?: return
 
-            newConversations[conversationIndex] =
-                newConversations[conversationIndex].copy(
-                    inRead = event.messageId,
-                    unreadCount = event.unreadCount
-                )
+        newConversations[conversationIndex] =
+            newConversations[conversationIndex].copy(
+                inRead = event.messageId,
+                unreadCount = event.unreadCount
+            )
 
-            conversations.emit(newConversations)
-            screenState.setValue { old ->
-                old.copy(
-                    conversations = newConversations.map { it.asPresentation(resources) }
-                )
-            }
+        conversations.update { newConversations }
+
+        screenState.setValue { old ->
+            old.copy(
+                conversations = newConversations.map { it.asPresentation(resources) }
+            )
         }
     }
 
-    private fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) =
-        viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = conversations.value.toMutableList()
+    private fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+        val newConversations = conversations.value.toMutableList()
 
-            val conversationIndex =
-                newConversations.findIndex { it.id == event.peerId } ?: return@launch
+        val conversationIndex =
+            newConversations.indexOfFirstOrNull { it.id == event.peerId } ?: return
 
-            newConversations[conversationIndex] =
-                newConversations[conversationIndex].copy(
-                    outRead = event.messageId,
-                    unreadCount = event.unreadCount
-                )
+        newConversations[conversationIndex] =
+            newConversations[conversationIndex].copy(
+                outRead = event.messageId,
+                unreadCount = event.unreadCount
+            )
 
-            conversations.emit(newConversations)
-            screenState.setValue { old ->
-                old.copy(
-                    conversations = newConversations.map { it.asPresentation(resources) }
-                )
-            }
+        conversations.update { newConversations }
+        screenState.setValue { old ->
+            old.copy(
+                conversations = newConversations.map { it.asPresentation(resources) }
+            )
+        }
+    }
+
+    private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) {
+        var pinnedCount = pinnedConversationsCount.value
+        val newConversations = conversations.value.toMutableList()
+
+        val conversationIndex =
+            newConversations.indexOfFirstOrNull { it.id == event.peerId } ?: return
+
+        val pin = event.majorId > 0
+
+        val conversation = newConversations[conversationIndex].copy(majorId = event.majorId)
+
+        newConversations.removeAt(conversationIndex)
+
+        if (pin) {
+            newConversations.add(0, conversation)
+        } else {
+            pinnedCount -= 1
+
+            newConversations.add(conversation)
+
+            val pinnedSubList = newConversations.filter(VkConversation::isPinned)
+            val unpinnedSubList = newConversations
+                .filterNot(VkConversation::isPinned)
+                .sortedByDescending { it.lastMessage?.date }
+
+            newConversations.clear()
+            newConversations += pinnedSubList + unpinnedSubList
         }
 
-    private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) =
-        viewModelScope.launch(Dispatchers.IO) {
-            var pinnedCount = pinnedConversationsCount.value
-            val newConversations = conversations.value.toMutableList()
+        conversations.update { newConversations }
 
-            val conversationIndex =
-                newConversations.findIndex { it.id == event.peerId } ?: return@launch
-
-            val pin = event.majorId > 0
-
-            val conversation = newConversations[conversationIndex].copy(majorId = event.majorId)
-
-            newConversations.removeAt(conversationIndex)
-
-            if (pin) {
-                newConversations.add(0, conversation)
-            } else {
-                pinnedCount -= 1
-
-                newConversations.add(conversation)
-
-                val pinnedSubList = newConversations.filter(VkConversation::isPinned)
-                val unpinnedSubList = newConversations
-                    .filterNot(VkConversation::isPinned)
-                    .toMutableList()
-
-                unpinnedSubList.sortByDescending { item ->
-                    item.lastMessage?.date
-                }
-
-                newConversations.clear()
-                newConversations += pinnedSubList + unpinnedSubList
-            }
-
-            conversations.emit(newConversations)
-            screenState.setValue { old ->
-                old.copy(conversations = newConversations.map { it.asPresentation(resources) })
-            }
+        screenState.setValue { old ->
+            old.copy(conversations = newConversations.map { it.asPresentation(resources) })
         }
+    }
 
     private val interactionsTimers = hashMapOf<Int, InteractionJob?>()
 
@@ -537,47 +520,46 @@ class ConversationsViewModelImpl(
         val peerId = event.peerId
         val userIds = event.userIds
 
-        viewModelScope.launch(Dispatchers.IO) {
-            val newConversations = conversations.value.toMutableList()
-            val conversationAndIndex =
-                newConversations.findWithIndex { it.id == peerId } ?: return@launch
+        val newConversations = conversations.value.toMutableList()
+        val conversationAndIndex =
+            newConversations.findWithIndex { it.id == peerId } ?: return
 
-            newConversations[conversationAndIndex.first] =
-                conversationAndIndex.second.copy(
-                    interactionType = interactionType.value,
-                    interactionIds = userIds
-                )
-
-            conversations.emit(newConversations)
-            screenState.setValue { old ->
-                old.copy(
-                    conversations = newConversations.map { it.asPresentation(resources) }
-                )
-            }
-
-            interactionsTimers[peerId]?.let { interactionJob ->
-                if (interactionJob.interactionType == interactionType) {
-                    interactionJob.timerJob.cancel(NewInteractionException)
-                }
-            }
-
-            var timeoutAction: (() -> Unit)? = null
-
-            val timerJob = createTimerFlow(
-                time = 5,
-                onTimeoutAction = { timeoutAction?.invoke() }
-            ).launchIn(viewModelScope)
-
-            val newInteractionJob = InteractionJob(
-                interactionType = interactionType,
-                timerJob = timerJob
+        newConversations[conversationAndIndex.first] =
+            conversationAndIndex.second.copy(
+                interactionType = interactionType.value,
+                interactionIds = userIds
             )
 
-            interactionsTimers[peerId] = newInteractionJob
+        conversations.update { newConversations }
 
-            timeoutAction = {
-                stopInteraction(peerId, newInteractionJob)
+        screenState.setValue { old ->
+            old.copy(
+                conversations = newConversations.map { it.asPresentation(resources) }
+            )
+        }
+
+        interactionsTimers[peerId]?.let { interactionJob ->
+            if (interactionJob.interactionType == interactionType) {
+                interactionJob.timerJob.cancel(NewInteractionException)
             }
+        }
+
+        var timeoutAction: (() -> Unit)? = null
+
+        val timerJob = createTimerFlow(
+            time = 5,
+            onTimeoutAction = { timeoutAction?.invoke() }
+        ).launchIn(viewModelScope)
+
+        val newInteractionJob = InteractionJob(
+            interactionType = interactionType,
+            timerJob = timerJob
+        )
+
+        interactionsTimers[peerId] = newInteractionJob
+
+        timeoutAction = {
+            stopInteraction(peerId, newInteractionJob)
         }
     }
 

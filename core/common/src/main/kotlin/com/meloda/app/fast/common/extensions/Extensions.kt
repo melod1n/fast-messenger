@@ -38,10 +38,6 @@ fun Context.restartApp() {
     }
 }
 
-inline fun <T> Iterable<T>.findIndex(predicate: (T) -> Boolean): Int? {
-    return indexOf(firstOrNull(predicate)).let { index -> if (index == -1) null else index }
-}
-
 inline fun <T> Iterable<T>.findWithIndex(predicate: (T) -> Boolean): Pair<Int, T>? {
     val value = firstOrNull(predicate) ?: return null
     return indexOf(value).let { index -> if (index == -1) null else index to value }
