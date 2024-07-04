@@ -6,13 +6,15 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.conena.nanokt.collections.indexOfFirstOrNull
 import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
-import com.meloda.app.fast.common.UiImage
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
+import com.meloda.app.fast.data.LongPollUpdatesParser
+import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
@@ -20,12 +22,12 @@ import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
-import com.meloda.app.fast.messageshistory.model.UiMessage
 import com.meloda.app.fast.messageshistory.util.asPresentation
 import com.meloda.app.fast.messageshistory.util.extractAvatar
 import com.meloda.app.fast.messageshistory.util.extractShowName
 import com.meloda.app.fast.messageshistory.util.extractTitle
 import com.meloda.app.fast.model.BaseError
+import com.meloda.app.fast.model.LongPollEvent
 import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.Dispatchers
@@ -33,8 +35,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 import kotlin.random.Random
 
 interface MessagesHistoryViewModel {
@@ -58,14 +58,15 @@ interface MessagesHistoryViewModel {
     fun onMetPaginationCondition()
     fun onShowDatesClicked(showDates: Boolean)
     fun onShowNamesClicked(showNames: Boolean)
+    fun onEnableAnimationsClicked(enableAnimations: Boolean)
 }
 
 class MessagesHistoryViewModelImpl(
     private val messagesUseCase: MessagesUseCase,
     private val conversationsUseCase: ConversationsUseCase,
     private val preferences: SharedPreferences,
-    private val resources: Resources
-//    updatesParser: LongPollUpdatesParser,
+    private val resources: Resources,
+    updatesParser: LongPollUpdatesParser,
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
@@ -81,11 +82,13 @@ class MessagesHistoryViewModelImpl(
 
     private var lastMessageText: String? = null
 
+    private val sendingMessages: MutableList<VkMessage> = mutableListOf()
+
     init {
-//        updatesParser.onNewMessage(::handleNewMessage)
-//        updatesParser.onMessageEdited(::handleEditedMessage)
-//        updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
-//        updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
+        updatesParser.onNewMessage(::handleNewMessage)
+        updatesParser.onMessageEdited(::handleEditedMessage)
+        updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
+        updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
     }
 
     override fun onAttachmentButtonClicked() {
@@ -179,43 +182,79 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
-//    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
-//        val message = event.message
-//        if (message.peerId != screenState.value.conversationId) return
-//
-//        val randomIds = screenState.value.messages.map(VkMessageDomain::randomId)
-//        if (message.randomId != 0 && message.randomId in randomIds) return
-//
-//        val messages = screenState.value.messages.toMutableList()
-//        messages.add(message)
-//
-//        screenState.setValue { old -> old.copy(messages = messages) }
-//    }
+    override fun onEnableAnimationsClicked(enableAnimations: Boolean) {
+        preferences.edit {
+            putBoolean(
+                SettingsKeys.KEY_ENABLE_ANIMATIONS_IN_MESSAGES,
+                enableAnimations
+            )
+        }
+    }
 
-//    private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
-//        val message = event.message
-//        if (message.peerId != screenState.value.conversationId) return
-//
-//        screenState.value.messages
-//            .findIndex { it.id == message.id }
-//            ?.let { index ->
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        messages = old.messages.toMutableList().apply {
-//                            this[index] = message
-//                        }
-//                    )
-//                }
-//            }
-//    }
-//
-//    private fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
-//
-//    }
-//
-//    private fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
-//
-//    }
+    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+        val message = event.message
+
+        Log.d("MessagesHistoryViewModel", "handleNewMessage: $message")
+        if (message.peerId != screenState.value.conversationId) return
+
+        val randomIds = messages.value.map(VkMessage::randomId)
+        if (message.randomId != 0 && message.randomId in randomIds) return
+
+        val newMessages = screenState.value.messages.toMutableList()
+        val prevMessage = messages.value.firstOrNull()
+
+        messages.setValue { old ->
+            old.toMutableList().also { it.add(0, message) }
+        }
+
+        val newMessage = message.asPresentation(
+            showDate = false,
+            showName = false,
+            prevMessage = prevMessage,
+            nextMessage = null
+        )
+        newMessages.add(0, newMessage)
+
+        prevMessage?.let { prev ->
+            newMessages[1] = prev.asPresentation(
+                showDate = false,
+                showName = false,
+                prevMessage = prevMessage,
+                nextMessage = messages.value.first()
+            )
+        }
+
+        screenState.setValue { old -> old.copy(messages = newMessages) }
+    }
+
+    private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+        val message = event.message
+        if (message.peerId != screenState.value.conversationId) return
+
+        screenState.value.messages
+            .indexOfFirstOrNull { it.id == message.id }
+            ?.let { index ->
+                val newMessage = message.asPresentation(
+                    showDate = false,
+                    showName = false,
+                    prevMessage = messages.value.getOrNull(index + 1),
+                    nextMessage = messages.value.getOrNull(index - 1)
+                )
+
+                val newMessages = screenState.value.messages.toMutableList()
+                newMessages[index] = newMessage
+
+                screenState.setValue { old -> old.copy(messages = newMessages) }
+            }
+    }
+
+    private fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
+
+    }
+
+    private fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+
+    }
 
     private fun loadMessagesHistory(offset: Int = currentOffset.value) {
         Log.d("MessagesHistoryViewModel", "loadMessagesHistory: $offset")
@@ -313,29 +352,50 @@ class MessagesHistoryViewModelImpl(
     private fun sendMessage() {
         lastMessageText = screenState.value.message
 
-        val newMessage = UiMessage(
-            id = 0,
+        val newMessage = VkMessage(
+            id = -1 - sendingMessages.size,
             text = lastMessageText,
             isOut = true,
+            peerId = screenState.value.conversationId,
             fromId = UserConfig.userId,
-            date = SimpleDateFormat(
-                "HH:mm",
-                Locale.getDefault()
-            ).format(System.currentTimeMillis()),
+            date = (System.currentTimeMillis() / 1000).toInt(),
             randomId = Random.nextInt(),
-            isInChat = screenState.value.conversationId > 2_000_000_000,
-            name = "...",
-            showDate = false,
-            showAvatar = false,
-            showName = false,
-            avatar = UiImage.Color(0)
+            action = null,
+            actionMemberId = null,
+            actionText = null,
+            actionConversationMessageId = null,
+            actionMessage = null,
+            updateTime = null,
+            important = false,
+            forwards = null,
+            attachments = null,
+            replyMessage = null,
+            geoType = null,
+            user = VkMemoryCache.getUser(UserConfig.userId),
+            group = null,
+            actionUser = null,
+            actionGroup = null
         )
+        sendingMessages += newMessage
+
+        val newMessages = screenState.value.messages.toMutableList()
+        val newUiMessage = newMessage.asPresentation(
+            showDate = false,
+            showName = false,
+            prevMessage = messages.value.firstOrNull(),
+            nextMessage = null
+        )
+        newMessages.add(0, newUiMessage)
+
+        messages.setValue { old ->
+            listOf(newMessage).plus(old)
+        }
 
         screenState.setValue { old ->
             old.copy(
                 message = "",
                 actionMode = ActionMode.Record,
-                messages = old.messages.plus(newMessage)
+                messages = listOf(newUiMessage).plus(old.messages)
             )
         }
 
@@ -347,11 +407,16 @@ class MessagesHistoryViewModelImpl(
             attachments = null
         ).listenValue { state ->
             state.processState(
-                error = {},
+                error = { error ->
+                    sendingMessages -= newMessage
+                },
                 success = { messageId ->
+                    sendingMessages += newMessage
+
                     val messages = screenState.value.messages.toMutableList()
-                    messages.indexOfOrNull(newMessage)?.let { index ->
-                        messages[index] = newMessage.copy(id = messageId)
+
+                    messages.indexOfOrNull(newUiMessage)?.let { index ->
+                        messages[index] = messages[index].copy(id = messageId)
                     }
 
                     screenState.setValue { old -> old.copy(messages = messages) }

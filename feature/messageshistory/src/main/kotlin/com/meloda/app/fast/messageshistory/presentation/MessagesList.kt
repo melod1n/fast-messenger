@@ -32,6 +32,7 @@ fun MessagesList(
     listState: LazyListState,
     immutableMessages: ImmutableList<UiMessage>,
     isPaginating: Boolean,
+    enableAnimations: Boolean
 ) {
     val messages = immutableMessages.toList()
     val currentTheme = LocalTheme.current
@@ -66,12 +67,28 @@ fun MessagesList(
         ) { message ->
             if (message.isOut) {
                 OutgoingMessageBubble(
+                    modifier =
+                    Modifier.then(
+                        if (enableAnimations) Modifier.animateItem(
+                            fadeInSpec = null,
+                            fadeOutSpec = null
+                        )
+                        else Modifier
+                    ),
                     message = message,
                     isTopPortion = false,
                     isBottomPortion = false,
                 )
             } else {
                 IncomingMessageBubble(
+                    modifier =
+                    Modifier.then(
+                        if (enableAnimations) Modifier.animateItem(
+                            fadeInSpec = null,
+                            fadeOutSpec = null
+                        )
+                        else Modifier
+                    ),
                     message = message,
                     isTopPortion = false,
                     isBottomPortion = false

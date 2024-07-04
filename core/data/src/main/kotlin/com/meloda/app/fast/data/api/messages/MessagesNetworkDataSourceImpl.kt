@@ -8,10 +8,14 @@ import com.meloda.app.fast.model.api.data.VkContactData
 import com.meloda.app.fast.model.api.data.VkGroupData
 import com.meloda.app.fast.model.api.data.VkUserData
 import com.meloda.app.fast.model.api.data.asDomain
+import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkMessage
+import com.meloda.app.fast.model.api.requests.MessagesGetByIdRequest
 import com.meloda.app.fast.model.api.requests.MessagesGetHistoryRequest
+import com.meloda.app.fast.model.api.requests.MessagesSendRequest
 import com.meloda.app.fast.network.RestApiErrorDomain
+import com.meloda.app.fast.network.mapApiDefault
 import com.meloda.app.fast.network.mapApiResult
 import com.meloda.app.fast.network.service.messages.MessagesService
 import com.slack.eithernet.ApiResult
@@ -83,6 +87,56 @@ class MessagesNetworkDataSourceImpl(
                 error?.toDomain()
             }
         )
+    }
+
+    override suspend fun getMessageById(
+        messagesIds: List<Int>,
+        extended: Boolean?,
+        fields: String?
+    ): ApiResult<VkMessage, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesGetByIdRequest(
+            messagesIds = messagesIds,
+            extended = extended,
+            fields = fields
+        )
+
+        messagesService.getById(requestModel.map).mapApiResult(
+            successMapper = { apiResponse ->
+                val response = apiResponse.requireResponse()
+
+                val message = response.items.single()
+                val usersMap =
+                    VkUsersMap.forUsers(response.profiles.orEmpty().map(VkUserData::mapToDomain))
+                val groupsMap =
+                    VkGroupsMap.forGroups(response.groups.orEmpty().map(VkGroupData::mapToDomain))
+
+                message.asDomain().copy(
+                    user = usersMap.messageUser(message),
+                    group = groupsMap.messageGroup(message),
+                    actionUser = usersMap.messageActionUser(message),
+                    actionGroup = groupsMap.messageActionGroup(message)
+                )
+            },
+            errorMapper = { error -> error?.toDomain() }
+        )
+    }
+
+    override suspend fun send(
+        peerId: Int,
+        randomId: Int,
+        message: String?,
+        replyTo: Int?,
+        attachments: List<VkAttachment>?
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesSendRequest(
+            peerId = peerId,
+            randomId = randomId,
+            message = message,
+            replyTo = replyTo,
+            attachments = attachments
+        )
+
+        messagesService.send(requestModel.map).mapApiDefault()
     }
 
     override suspend fun getMessage(messageId: Int): VkMessage? = withContext(Dispatchers.IO) {

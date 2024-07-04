@@ -30,7 +30,7 @@ data class MessagesGetHistoryRequest(
 data class MessagesSendRequest(
     val peerId: Int,
     val randomId: Int = 0,
-    val message: String? = null,
+    val message: String?,
     val lat: Int? = null,
     val lon: Int? = null,
     val replyTo: Int? = null,

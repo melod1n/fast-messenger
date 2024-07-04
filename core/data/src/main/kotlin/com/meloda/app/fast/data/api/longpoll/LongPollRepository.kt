@@ -2,17 +2,23 @@ package com.meloda.app.fast.data.api.longpoll
 
 import com.meloda.app.fast.model.api.data.LongPollUpdates
 import com.meloda.app.fast.model.api.data.VkLongPollData
-import com.meloda.app.fast.model.api.requests.LongPollGetUpdatesRequest
-import com.meloda.app.fast.model.api.requests.MessagesGetLongPollServerRequest
+import com.meloda.app.fast.network.RestApiErrorDomain
+import com.slack.eithernet.ApiResult
 
 interface LongPollRepository {
 
     suspend fun getLongPollServer(
-        params: MessagesGetLongPollServerRequest
-    ): VkLongPollData?
+        needPts: Boolean,
+        version: Int
+    ): ApiResult<VkLongPollData, RestApiErrorDomain>
 
     suspend fun getLongPollUpdates(
         serverUrl: String,
-        params: LongPollGetUpdatesRequest
-    ): LongPollUpdates?
+        act: String,
+        key: String,
+        ts: Int,
+        wait: Int,
+        mode: Int,
+        version: Int
+    ): ApiResult<LongPollUpdates, RestApiErrorDomain>
 }

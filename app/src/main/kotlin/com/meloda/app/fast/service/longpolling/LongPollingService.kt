@@ -15,6 +15,8 @@ import com.conena.nanokt.android.app.stopForegroundCompat
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
+import com.meloda.app.fast.data.LongPollUpdatesParser
+import com.meloda.app.fast.data.LongPollUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys

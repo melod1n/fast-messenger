@@ -1,5 +1,6 @@
 package com.meloda.app.fast.data.api.messages
 
+import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
 import com.meloda.app.fast.model.api.domain.asEntity
 import com.meloda.app.fast.model.database.asExternalModel
@@ -37,7 +38,35 @@ class MessagesRepositoryImpl(
 //
 //        emit(networkMessages)
 
-       networkDataSource.getMessagesHistory(conversationId, offset, count)
+        networkDataSource.getMessagesHistory(conversationId, offset, count)
+    }
+
+    override suspend fun getMessageById(
+        messagesIds: List<Int>,
+        extended: Boolean?,
+        fields: String?
+    ): ApiResult<VkMessage, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        networkDataSource.getMessageById(
+            messagesIds = messagesIds,
+            extended = extended,
+            fields = fields
+        )
+    }
+
+    override suspend fun send(
+        peerId: Int,
+        randomId: Int,
+        message: String?,
+        replyTo: Int?,
+        attachments: List<VkAttachment>?
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        networkDataSource.send(
+            peerId,
+            randomId,
+            message,
+            replyTo,
+            attachments
+        )
     }
 
     override suspend fun getMessage(messageId: Int): Flow<VkMessage?> = flow {

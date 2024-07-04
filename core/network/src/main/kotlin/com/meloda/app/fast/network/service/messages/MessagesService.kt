@@ -1,6 +1,7 @@
 package com.meloda.app.fast.network.service.messages
 
 import com.meloda.app.fast.model.api.data.VkLongPollData
+import com.meloda.app.fast.model.api.responses.MessagesGetByIdResponse
 import com.meloda.app.fast.model.api.responses.MessagesGetHistoryResponse
 import com.meloda.app.fast.network.ApiResponse
 import com.meloda.app.fast.network.RestApiError
@@ -16,6 +17,12 @@ interface MessagesService {
     suspend fun getHistory(
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<MessagesGetHistoryResponse>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.GET_BY_ID)
+    suspend fun getById(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<MessagesGetByIdResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.SEND)
@@ -58,12 +65,6 @@ interface MessagesService {
 //    suspend fun edit(
 //        @FieldMap params: Map<String, String>
 //    ): ApiResult<ApiResponse<Int>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.GetById)
-//    suspend fun getById(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<MessagesGetByIdResponse>, RestApiError>
 //
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.MarkAsRead)

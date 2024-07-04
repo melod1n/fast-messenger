@@ -17,9 +17,11 @@ fun <Success : Any, Error : Any, SuccessDomain : Any, ErrorDomain : Any>
         is ApiResult.Failure.NetworkFailure -> {
             ApiResult.networkFailure(error)
         }
+
         is ApiResult.Failure.UnknownFailure -> {
             ApiResult.unknownFailure(error)
         }
+
         is ApiResult.Failure.HttpFailure -> {
             val c = code
             val k = error
@@ -32,6 +34,7 @@ fun <Success : Any, Error : Any, SuccessDomain : Any, ErrorDomain : Any>
 
             ApiResult.httpFailure(code, errorMapper(error))
         }
+
         is ApiResult.Failure.ApiFailure -> {
             ApiResult.apiFailure(errorMapper(error))
         }
@@ -60,6 +63,12 @@ fun <Success : ApiResponse<*>, SuccessDomain : Any, ErrorDomain : Any>
         is ApiResult.Failure.ApiFailure -> ApiResult.apiFailure(errorMapper(error))
     }
 }
+
+fun <T : Any, R : ApiResponse<T>> ApiResult<R, RestApiError>.mapApiDefault(): ApiResult<T, RestApiErrorDomain> =
+    mapResult(
+        successMapper = { response -> response.requireResponse() },
+        errorMapper = { error -> error?.toDomain() }
+    )
 
 //@OptIn(ExperimentalContracts::class)
 //inline fun <R : Any, E : Any, C> OAuthResponse<R, E>.fold(

@@ -42,6 +42,7 @@ object SettingsKeys {
     const val KEY_SHOW_EXACT_TIME_ON_TIME_STAMP = "wip_show_exact_time_on_time_stamp"
     const val KEY_SHOW_NAME_IN_BUBBLES = "debug_show_title_in_bubbles"
     const val KEY_SHOW_DATE_UNDER_BUBBLES = "debug_show_date_under_bubbles"
+    const val KEY_ENABLE_ANIMATIONS_IN_MESSAGES = "debug_enable_animations_in_messages"
 
     const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
 

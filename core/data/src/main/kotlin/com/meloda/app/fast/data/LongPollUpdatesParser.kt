@@ -1,4 +1,4 @@
-package com.meloda.app.fast.service.longpolling
+package com.meloda.app.fast.data
 
 import android.util.Log
 import com.meloda.app.fast.common.UserConfig
@@ -6,9 +6,7 @@ import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.asInt
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.toList
-import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.data.api.messages.MessagesUseCase
-import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.model.ApiEvent
 import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.LongPollEvent

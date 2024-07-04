@@ -32,6 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -142,6 +143,15 @@ fun MessagesHistoryScreen(
         )
     }
 
+    var animationsEnabled by remember {
+        mutableStateOf(
+            preferences.getBoolean(
+                SettingsKeys.KEY_ENABLE_ANIMATIONS_IN_MESSAGES,
+                false
+            )
+        )
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
@@ -227,27 +237,45 @@ fun MessagesHistoryScreen(
                                 }
                             )
 
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = if (datesShown) "Hide dates" else "Show dates")
-                                },
-                                onClick = {
-                                    dropDownMenuExpanded = false
-                                    datesShown = !datesShown
-                                    viewModel.onShowDatesClicked(datesShown)
-                                }
-                            )
+                            if (preferences.getBoolean(
+                                    SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
+                                    false
+                                )
+                            ) {
+                                HorizontalDivider()
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = if (datesShown) "Hide dates" else "Show dates")
+                                    },
+                                    onClick = {
+                                        dropDownMenuExpanded = false
+                                        datesShown = !datesShown
+                                        viewModel.onShowDatesClicked(datesShown)
+                                    }
+                                )
 
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = if (namesShown) "Hide names" else "Show names")
-                                },
-                                onClick = {
-                                    dropDownMenuExpanded = false
-                                    namesShown = !namesShown
-                                    viewModel.onShowNamesClicked(namesShown)
-                                }
-                            )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = if (namesShown) "Hide names" else "Show names")
+                                    },
+                                    onClick = {
+                                        dropDownMenuExpanded = false
+                                        namesShown = !namesShown
+                                        viewModel.onShowNamesClicked(namesShown)
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = if (animationsEnabled) "Disable animations" else "Enable animations")
+                                    },
+                                    onClick = {
+                                        dropDownMenuExpanded = false
+                                        animationsEnabled = !animationsEnabled
+                                        viewModel.onEnableAnimationsClicked(animationsEnabled)
+                                    }
+                                )
+                            }
                         }
                     }
                 )
@@ -268,7 +296,8 @@ fun MessagesHistoryScreen(
                 hazeState = hazeSate,
                 listState = listState,
                 immutableMessages = ImmutableList.copyOf(messages),
-                isPaginating = screenState.isPaginating
+                isPaginating = screenState.isPaginating,
+                enableAnimations = animationsEnabled
             )
 
             Column(
