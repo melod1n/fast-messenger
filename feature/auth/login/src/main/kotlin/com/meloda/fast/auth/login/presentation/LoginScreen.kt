@@ -162,6 +162,7 @@ fun LoginScreen(
 
                     TextField(
                         modifier = Modifier
+                            .height(58.dp)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .handleEnterKey(loginFieldTabClick::invoke)
@@ -192,7 +193,6 @@ fun LoginScreen(
                                 }
                             )
                         },
-                        shape = RoundedCornerShape(10.dp),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             imeAction = ImeAction.Next,
                             keyboardType = KeyboardType.Email
@@ -209,6 +209,7 @@ fun LoginScreen(
 
                     TextField(
                         modifier = Modifier
+                            .height(58.dp)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .handleEnterKey {
@@ -255,7 +256,6 @@ fun LoginScreen(
                                 )
                             }
                         },
-                        shape = RoundedCornerShape(10.dp),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             imeAction = ImeAction.Go,
                             keyboardType = KeyboardType.Password
