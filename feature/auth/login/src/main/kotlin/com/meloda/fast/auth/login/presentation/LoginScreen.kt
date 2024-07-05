@@ -111,6 +111,30 @@ fun LoginScreen(
         true
     }
 
+    var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
+    val showLoginError = screenState.loginError
+
+    val autoFillEmailHandler = autoFillRequestHandler(
+        autofillTypes = listOf(AutofillType.EmailAddress),
+        onFill = { value ->
+            loginText =
+                TextFieldValue(text = value, selection = TextRange(value.length))
+            viewModel.onLoginInputChanged(value)
+        }
+    )
+
+    var passwordText by remember { mutableStateOf(TextFieldValue(screenState.password)) }
+    val showPasswordError = screenState.passwordError
+
+    val autoFillPasswordHandler = autoFillRequestHandler(
+        autofillTypes = listOf(AutofillType.Password),
+        onFill = { value ->
+            passwordText =
+                TextFieldValue(text = value, selection = TextRange(value.length))
+            viewModel.onPasswordInputChanged(value)
+        }
+    )
+
     Scaffold { padding ->
         Box(
             modifier = Modifier
@@ -135,18 +159,6 @@ fun LoginScreen(
                     )
 
                     Spacer(modifier = Modifier.height(58.dp))
-
-                    var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
-                    val showLoginError = screenState.loginError
-
-                    val autoFillEmailHandler = autoFillRequestHandler(
-                        autofillTypes = listOf(AutofillType.EmailAddress),
-                        onFill = { value ->
-                            loginText =
-                                TextFieldValue(text = value, selection = TextRange(value.length))
-                            viewModel.onLoginInputChanged(value)
-                        }
-                    )
 
                     TextField(
                         modifier = Modifier
@@ -194,18 +206,6 @@ fun LoginScreen(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    var passwordText by remember { mutableStateOf(TextFieldValue(screenState.password)) }
-                    val showPasswordError = screenState.passwordError
-
-                    val autoFillPasswordHandler = autoFillRequestHandler(
-                        autofillTypes = listOf(AutofillType.Password),
-                        onFill = { value ->
-                            passwordText =
-                                TextFieldValue(text = value, selection = TextRange(value.length))
-                            viewModel.onPasswordInputChanged(value)
-                        }
-                    )
 
                     TextField(
                         modifier = Modifier
