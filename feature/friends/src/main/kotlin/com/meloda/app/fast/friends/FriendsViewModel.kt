@@ -58,6 +58,8 @@ class FriendsViewModelImpl(
     private val friends = MutableStateFlow<List<VkUser>>(emptyList())
 
     init {
+        userSettings.useContactNames.listenValue(::updateFriendsNames)
+
         loadFriends()
     }
 
@@ -151,5 +153,23 @@ class FriendsViewModelImpl(
                 )
             }
         }
+    }
+
+    private fun updateFriendsNames(useContactNames: Boolean) {
+        val friends = friends.value
+        if (friends.isEmpty()) return
+
+        val uiFriends = friends.map { conversation ->
+            conversation.asPresentation(useContactNames)
+        }
+
+        val onlineUiFriends = uiOnlineFriends.value.mapNotNull { friend ->
+            uiFriends.find { it.userId == friend.userId }
+        }
+
+        screenState.setValue { old ->
+            old.copy(friends = uiFriends)
+        }
+        uiOnlineFriends.setValue { onlineUiFriends }
     }
 }

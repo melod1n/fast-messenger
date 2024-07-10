@@ -144,8 +144,8 @@ fun NavGraphBuilder.mainScreen(
                 NavHost(
                     navController = navController,
                     startDestination = MainGraph,
-                    enterTransition = { fadeIn(animationSpec = tween(350)) },
-                    exitTransition = { fadeOut(animationSpec = tween(350)) }
+                    enterTransition = { fadeIn(animationSpec = tween(200)) },
+                    exitTransition = { fadeOut(animationSpec = tween(200)) }
                 ) {
                     navigation<MainGraph>(startDestination = Conversations) {
                         friendsRoute(

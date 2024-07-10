@@ -1,5 +1,8 @@
 package com.meloda.app.fast
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -40,7 +43,9 @@ fun RootGraph(navController: NavHostController = rememberNavController()) {
 
         NavHost(
             navController = navController,
-            startDestination = if (isNeedToShowConversations) Main else AuthGraph
+            startDestination = if (isNeedToShowConversations) Main else AuthGraph,
+            enterTransition = { fadeIn(animationSpec = tween(200)) },
+            exitTransition = { fadeOut(animationSpec = tween(200)) }
         ) {
             authNavGraph(
                 onError = viewModel::onError,
