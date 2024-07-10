@@ -1,226 +1,184 @@
-@file:Suppress("UnstableApiUsage")
-
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
-val sdkPackage: String = gradleLocalProperties(rootDir).getProperty("sdkPackage", "\"\"")
-val sdkFingerprint: String = gradleLocalProperties(rootDir).getProperty("sdkFingerprint", "\"\"")
-
-val msAppCenterToken: String =
-    gradleLocalProperties(rootDir).getProperty("msAppCenterAppToken", "\"\"")
-val otaSecretCode: String = gradleLocalProperties(rootDir).getProperty("otaSecretCode", "\"\"")
-
-val majorVersion = 1
-val minorVersion = 6
-val patchVersion = 4
+import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-kapt")
-    id("kotlin-parcelize")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.com.android.application)
+    alias(libs.plugins.org.jetbrains.kotlin.android)
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
+    alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.meloda.fast"
-
-    compileSdk = 34
-
-    applicationVariants.all {
-        outputs.all {
-            (this as BaseVariantOutputImpl).outputFileName =
-                "${name}-${versionName}-${versionCode}.apk"
-        }
-    }
+    namespace = "com.meloda.app.fast"
+    compileSdk = Configs.compileSdk
 
     defaultConfig {
-        applicationId = "com.meloda.fast"
-        minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "alpha"
+        applicationId = "com.meloda.app.fast"
+        minSdk = Configs.minSdk
+        targetSdk = Configs.targetSdk
+        versionCode = Configs.appCode
+        versionName = Configs.appName
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-//                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // TODO: 06/05/2024, Danil Nikolaev: придумать, как совместить с github actions
+//    applicationVariants.all {
+//        val variant = this
+//        variant.outputs
+//            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+//            .forEach { output ->
+//                if (variant.buildType.name == "release") {
+//                    val outputFileName = "fastvk-v${variant.versionName}-${variant.flavorName}.apk"
+//                    output.outputFileName = outputFileName
+//                }
+//            }
+//    }
+
+    signingConfigs {
+        create("release") {
+            val keystoreProperties = Properties()
+            val keystorePropertiesFile = file("keystore/keystore.properties")
+
+            storeFile = file("keystore/keystore.jks")
+
+            if (keystorePropertiesFile.exists()) {
+                keystorePropertiesFile.inputStream().let(keystoreProperties::load)
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            } else {
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_SIGN_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_SIGN_KEY_PASSWORD")
             }
+        }
+
+        create("debugSigning") {
+            initWith(getByName("release"))
         }
     }
 
     buildTypes {
-        getByName("debug") {
-            buildConfigField("String", "sdkPackage", sdkPackage)
-            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
-
-            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
-
-            buildConfigField("String", "otaSecretCode", otaSecretCode)
-
-            versionNameSuffix = "_${getVersionName()}"
+        named("debug") {
+            signingConfig = signingConfigs.getByName("debugSigning")
+            applicationIdSuffix = ".debug"
         }
-        getByName("release") {
-            isMinifyEnabled = false
+        named("release") {
+            signingConfig = signingConfigs.getByName("release")
 
-            buildConfigField("String", "sdkPackage", sdkPackage)
-            buildConfigField("String", "sdkFingerprint", sdkFingerprint)
-
-            buildConfigField("String", "msAppCenterAppToken", msAppCenterToken)
-
-            buildConfigField("String", "otaSecretCode", otaSecretCode)
+            isMinifyEnabled = true
+            isShrinkResources = true
 
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
+        }
+
+        // TODO: 15/05/2024, Danil Nikolaev: add to other modules with build convention
+        register("staging") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".staging"
         }
     }
 
-    val flavorDimension = "version"
-
+    val flavorDimension = "variant"
     flavorDimensions += flavorDimension
 
     productFlavors {
-        create("dev") {
-            resourceConfigurations += listOf("en", "xxhdpi")
-
+        register("amethyst") {
             dimension = flavorDimension
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
-        }
-        create("full") {
-            dimension = flavorDimension
+            isDefault = true
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = Configs.java
+        targetCompatibility = Configs.java
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = Configs.java.toString()
         freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
     }
 
     buildFeatures {
-        viewBinding = true
         compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.5"
         useLiveLiterals = true
     }
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging = false
-        }
-    }
+
+//    packaging {
+//        resources {
+//            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+//        }
+//    }
 }
-
-kapt {
-    correctErrorTypes = true
-}
-
-fun getVersionName() = "$majorVersion.$minorVersion.$patchVersion"
-
-val currentTime get() = (System.currentTimeMillis() / 1000).toInt()
 
 dependencies {
+    implementation(projects.feature.auth)
+    implementation(projects.feature.chatmaterials)
+    implementation(projects.feature.conversations)
+    implementation(projects.feature.languagepicker)
+    implementation(projects.feature.messageshistory)
+    implementation(projects.feature.photoviewer)
+    implementation(projects.feature.settings)
+    implementation(projects.feature.friends)
+    implementation(projects.feature.profile)
 
+    implementation(projects.core.common)
+    implementation(projects.core.ui)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.data)
+    implementation(projects.core.model)
+    implementation(projects.core.datastore)
 
-    // DI zone
-    implementation("io.insert-koin:koin-android:3.4.0")
-    // end of DI zone
+    // Tests zone
+    testImplementation(libs.junit)
+    // end of Tests zone
 
-    implementation("com.github.skydoves:cloudy:0.1.2")
+    // Compose-Bom zone
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
+    // end of Compose-Bom zone
 
-    implementation("io.coil-kt:coil-compose:2.3.0")
-    implementation("io.coil-kt:coil:2.3.0")
+    implementation(libs.accompanist.permissions)
 
-    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
-    implementation("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
+    // Coil for Compose
+    implementation(libs.coil.compose)
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
+    debugImplementation(libs.compose.ui.tooling)
 
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.compose.navigation)
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation(libs.coil)
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.core.ktx)
 
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
 
-    implementation("androidx.activity:activity-ktx:1.7.2")
+    implementation(libs.preference.ktx)
+    implementation(libs.material)
 
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 
-    implementation("androidx.preference:preference-ktx:1.2.0")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation(libs.nanokt)
+    implementation(libs.nanokt.android)
+    implementation(libs.nanokt.jvm)
 
-    implementation("androidx.recyclerview:recyclerview:1.3.1")
-
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
-
-    implementation("androidx.room:room-ktx:2.5.2")
-    implementation("androidx.room:room-runtime:2.5.2")
-    ksp("androidx.room:room-compiler:2.5.2")
-
-    implementation("com.github.terrakok:cicerone:7.1")
-
-    implementation("com.github.massoudss:waveformSeekBar:5.0.0")
-
-    implementation("com.github.bumptech.glide:glide:4.15.1")
-    ksp("com.github.bumptech.glide:compiler:4.15.1")
-
-    implementation("com.github.fondesa:kpermissions:3.4.0")
-    implementation("com.github.fondesa:kpermissions-coroutines:3.4.0")
-
-    implementation("com.microsoft.appcenter:appcenter-analytics:5.0.1")
-    implementation("com.microsoft.appcenter:appcenter-crashes:5.0.1")
-
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.7.1")
-
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
-
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    implementation("com.google.guava:guava:31.1-jre")
-
-    implementation("com.google.android.material:material:1.9.0")
-
-    implementation("com.github.chuckerteam.chucker:library:3.5.2")
-
-    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
-
-    // Compose zone
-    implementation(platform("androidx.compose:compose-bom:2023.04.01"))
-
-    implementation("androidx.compose.material3:material3:1.1.1")
-//    implementation("androidx.compose.material:material:1.4.3")
-    implementation("androidx.compose.ui:ui:1.4.3")
-
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.3")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.4.3")
-
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
-
-    implementation("androidx.activity:activity-compose:1.7.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
-
-    implementation("androidx.compose.runtime:runtime-saveable:1.6.0-alpha02")
-    // end of Compose zone
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization)
 }

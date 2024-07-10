@@ -1,7 +1,0 @@
-<resources>
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
-
-
-    <dimen name="messages_history_input_panel_height_with_margins">84dp</dimen>
-</resources>
