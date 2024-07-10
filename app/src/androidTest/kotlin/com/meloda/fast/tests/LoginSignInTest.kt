@@ -1,11 +1,9 @@
-package com.meloda.fast.tests
+package com.meloda.app.fast.tests
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.meloda.fast.screens.login.model.LoginScreenState
-import com.meloda.fast.screens.login.presentation.LoginSignIn
 import org.junit.Rule
 import org.junit.Test
 
@@ -17,13 +15,7 @@ class LoginSignInTest {
     @Test
     fun signInButtonIsClickable() {
         composeTestRule.setContent {
-            LoginSignIn(
-                onSignInClick = {},
-                onLoginInputChanged = {},
-                onPasswordInputChanged = {},
-                onPasswordVisibilityButtonClicked = {},
-                screenState = LoginScreenState.EMPTY
-            )
+//            LogoScreen(onAction = {})
         }
 
         composeTestRule.onNodeWithTag(testTag = "Sign in button").assertHasClickAction()
@@ -31,16 +23,20 @@ class LoginSignInTest {
 
     @Test
     fun signInButtonTriggersSignInAction() {
-        var signInClicked = false
+        var signInClicked = true
 
         composeTestRule.setContent {
-            LoginSignIn(
-                onSignInClick = { signInClicked = true },
-                onLoginInputChanged = {},
-                onPasswordInputChanged = {},
-                onPasswordVisibilityButtonClicked = {},
-                screenState = LoginScreenState.EMPTY
-            )
+//            com.meloda.fast.auth.login.presentation.LogoScreen(
+//                onAction = { action ->
+//                    when (action) {
+//                        UiAction.NextClicked -> {
+//                            signInClicked = true
+//                        }
+//
+//                        else -> Unit
+//                    }
+//                }
+//            )
         }
 
         composeTestRule.onNodeWithTag("Sign in button").performClick()

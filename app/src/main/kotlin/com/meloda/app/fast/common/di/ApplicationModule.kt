@@ -1,0 +1,47 @@
+package com.meloda.app.fast.common.di
+
+import android.content.Context
+import android.content.res.Resources
+import android.os.PowerManager
+import androidx.preference.PreferenceManager
+import com.meloda.app.fast.MainViewModelImpl
+import com.meloda.app.fast.auth.authModule
+import com.meloda.app.fast.conversations.di.conversationsModule
+import com.meloda.app.fast.data.di.dataModule
+import com.meloda.app.fast.friends.di.friendsModule
+import com.meloda.app.fast.languagepicker.di.languagePickerModule
+import com.meloda.app.fast.messageshistory.di.messagesHistoryModule
+import com.meloda.app.fast.photoviewer.di.photoViewModule
+import com.meloda.app.fast.profile.di.profileModule
+import com.meloda.app.fast.service.longpolling.di.longPollModule
+import com.meloda.app.fast.settings.di.settingsModule
+import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModelOf
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.qualifier
+import org.koin.dsl.module
+
+val applicationModule = module {
+    includes(dataModule)
+    includes(
+        authModule,
+        conversationsModule,
+        settingsModule,
+        messagesHistoryModule,
+        photoViewModule,
+        languagePickerModule,
+        longPollModule,
+        friendsModule,
+        profileModule
+    )
+
+    // TODO: 14/05/2024, Danil Nikolaev: research on memory leaks and potentials errors
+    // TODO: 14/05/2024, Danil Nikolaev: extract all operations with preferences to standalone class
+    singleOf(PreferenceManager::getDefaultSharedPreferences)
+    single<Resources> { androidContext().resources }
+    factory<PowerManager> { androidContext().getSystemService(Context.POWER_SERVICE) as PowerManager }
+
+    viewModelOf(::MainViewModelImpl) {
+        qualifier = qualifier("main")
+    }
+}
