@@ -45,4 +45,7 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 }

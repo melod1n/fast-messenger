@@ -4,16 +4,14 @@ import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsRepository
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.mapToState
-import com.meloda.app.fast.data.toStateApiError
 import com.meloda.app.fast.model.api.domain.VkConversation
-import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 class ConversationsUseCaseImpl(
-    private val conversationsRepository: ConversationsRepository,
+    private val repository: ConversationsRepository,
 ) : ConversationsUseCase {
 
     //    override fun getConversations(
@@ -90,32 +88,20 @@ class ConversationsUseCaseImpl(
     ): Flow<State<List<VkConversation>>> = flow {
         emit(State.Loading)
 
-        val newState = when (
-            val result = conversationsRepository.getConversations(
-                count = count,
-                offset = offset
-            )
-        ) {
-            is ApiResult.Success -> State.Success(result.value)
-
-            is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
-            is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
-            is ApiResult.Failure.HttpFailure -> result.error.toStateApiError()
-            is ApiResult.Failure.ApiFailure -> result.error.toStateApiError()
-        }
+        val newState = repository.getConversations(count, offset).mapToState()
         emit(newState)
     }
 
     override suspend fun storeConversations(
         conversations: List<VkConversation>
     ) = withContext(Dispatchers.IO) {
-        conversationsRepository.storeConversations(conversations)
+        repository.storeConversations(conversations)
     }
 
     override fun delete(peerId: Int): Flow<State<Int>> = flow {
         emit(State.Loading)
 
-        val newState = conversationsRepository.delete(peerId = peerId).mapToState()
+        val newState = repository.delete(peerId = peerId).mapToState()
         emit(newState)
     }
 
@@ -123,9 +109,9 @@ class ConversationsUseCaseImpl(
         emit(State.Loading)
 
         val newState = if (pin) {
-            conversationsRepository.pin(peerId)
+            repository.pin(peerId)
         } else {
-            conversationsRepository.unpin(peerId)
+            repository.unpin(peerId)
         }.mapToState()
 
         emit(newState)

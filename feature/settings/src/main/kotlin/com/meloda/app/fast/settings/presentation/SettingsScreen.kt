@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -87,10 +88,11 @@ fun SettingsScreen(
 
     val userSettings: UserSettings = koinInject()
 
-    userSettings.enableDebugSettings(screenState.showDebugOptions)
+    LaunchedEffect(true) {
+        userSettings.enableDebugSettings(screenState.showDebugOptions)
+    }
 
     val currentTheme = LocalTheme.current
-
     val settingsList = screenState.settings
 
     val clickListener = OnSettingsClickListener { key ->
@@ -148,6 +150,11 @@ fun SettingsScreen(
             SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS -> {
                 val isUsing = newValue as? Boolean ?: false
                 userSettings.setOnline(isUsing)
+            }
+
+            SettingsKeys.KEY_USE_CONTACT_NAMES -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.onUseContactNamesChanged(isUsing)
             }
 
             else -> viewModel.onSettingsItemChanged(key, newValue)

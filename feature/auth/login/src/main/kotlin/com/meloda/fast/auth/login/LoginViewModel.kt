@@ -17,8 +17,8 @@ import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.network.OAuthErrorDomain
 import com.meloda.fast.auth.login.model.CaptchaArguments
 import com.meloda.fast.auth.login.model.LoginScreenState
+import com.meloda.fast.auth.login.model.LoginTwoFaArguments
 import com.meloda.fast.auth.login.model.LoginValidationResult
-import com.meloda.fast.auth.login.model.TwoFaArguments
 import com.meloda.fast.auth.login.validation.LoginValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -41,7 +41,7 @@ interface LoginViewModel {
 
     fun onErrorDialogDismissed()
 
-    fun onNavigatedToConversations()
+    fun onNavigatedToMain()
     fun onNavigatedToUserBanned()
     fun onNavigatedToCaptcha()
     fun onNavigatedToTwoFa()
@@ -93,8 +93,8 @@ class LoginViewModelImpl(
         screenState.setValue { old -> old.copy(error = null) }
     }
 
-    override fun onNavigatedToConversations() {
-        screenState.setValue { old -> old.copy(isNeedToOpenConversations = false) }
+    override fun onNavigatedToMain() {
+        screenState.setValue { old -> old.copy(isNeedToNavigateToMain = false) }
     }
 
     override fun onNavigatedToUserBanned() {
@@ -139,7 +139,7 @@ class LoginViewModelImpl(
             accountsRepository.storeAccounts(listOf(currentAccount))
 
             delay(350)
-            screenState.setValue { old -> old.copy(isNeedToOpenConversations = true) }
+            screenState.setValue { old -> old.copy(isNeedToNavigateToMain = true) }
         }
     }
 
@@ -214,7 +214,7 @@ class LoginViewModelImpl(
                             login = "",
                             password = "",
 
-                            isNeedToOpenConversations = true
+                            isNeedToNavigateToMain = true
                         )
                     }
                 }
@@ -228,7 +228,7 @@ class LoginViewModelImpl(
             is State.Error.OAuthError -> {
                 when (val error = stateError.error) {
                     is OAuthErrorDomain.ValidationRequiredError -> {
-                        val twoFaArguments = TwoFaArguments(
+                        val twoFaArguments = LoginTwoFaArguments(
                             validationSid = error.validationSid,
                             redirectUri = error.redirectUri,
                             phoneMask = error.phoneMask,
@@ -253,6 +253,7 @@ class LoginViewModelImpl(
                     is OAuthErrorDomain.UserBannedError -> TODO()
                     OAuthErrorDomain.WrongTwoFaCode -> TODO()
                     OAuthErrorDomain.WrongTwoFaCodeFormat -> TODO()
+                    OAuthErrorDomain.UnknownError -> TODO()
                 }
             }
 

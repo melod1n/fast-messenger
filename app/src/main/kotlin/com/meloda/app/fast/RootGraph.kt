@@ -5,6 +5,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -14,11 +15,8 @@ import com.meloda.app.fast.auth.navigateToAuth
 import com.meloda.app.fast.chatmaterials.navigation.chatMaterialsRoute
 import com.meloda.app.fast.chatmaterials.navigation.navigateToChatMaterials
 import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.conversations.navigation.Conversations
-import com.meloda.app.fast.conversations.navigation.conversationsRoute
 import com.meloda.app.fast.languagepicker.navigation.languagePickerRoute
 import com.meloda.app.fast.languagepicker.navigation.navigateToLanguagePicker
-import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.navigation.messagesHistoryRoute
 import com.meloda.app.fast.messageshistory.navigation.navigateToMessagesHistory
 import com.meloda.app.fast.settings.presentation.navigateToSettings
@@ -42,19 +40,19 @@ fun RootGraph(navController: NavHostController = rememberNavController()) {
 
         NavHost(
             navController = navController,
-            startDestination = if (isNeedToShowConversations) Conversations else AuthGraph
+            startDestination = if (isNeedToShowConversations) Main else AuthGraph
         ) {
             authNavGraph(
                 onError = viewModel::onError,
+                onNavigateToMain = navController::navigateToMain,
                 navController = navController
             )
-            conversationsRoute(
+            mainScreen(
                 onError = viewModel::onError,
                 onNavigateToSettings = navController::navigateToSettings,
-                onNavigateToMessagesHistory = { id ->
-                    navController.navigateToMessagesHistory(conversationId = id)
-                }
+                onNavigateToMessagesHistory = navController::navigateToMessagesHistory
             )
+
             messagesHistoryRoute(
                 onError = viewModel::onError,
                 onBack = navController::navigateUp,
@@ -78,4 +76,12 @@ fun RootGraph(navController: NavHostController = rememberNavController()) {
         screenState = screenState,
         viewModel = viewModel
     )
+}
+
+fun NavController.navigateToMain() {
+    this.navigate(Main) {
+        popUpTo(0) {
+            inclusive = true
+        }
+    }
 }

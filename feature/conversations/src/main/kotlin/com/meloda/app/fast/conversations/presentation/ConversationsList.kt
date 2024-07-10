@@ -91,6 +91,7 @@ fun ConversationsListComposable(
                     IconButton(
                         onClick = {
                             coroutineScope.launch(Dispatchers.Main) {
+                                state.scrollToItem(14)
                                 state.animateScrollToItem(0)
                             }
                         },

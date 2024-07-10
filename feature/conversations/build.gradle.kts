@@ -32,7 +32,6 @@ android {
     buildFeatures {
         compose = true
     }
-
     composeOptions {
         useLiveLiterals = true
     }
@@ -61,10 +60,6 @@ dependencies {
 
     // TODO: 03/07/2024, Danil Nikolaev: remove when stable release
     implementation("androidx.compose.foundation:foundation:1.7.0-beta04")
-
-    // Material3 Pull-to-Refresh (until official release)
-    // TODO: 27/12/2023, Danil Nikolaev: remove when official release
-    implementation(libs.compose.material3.pullrefresh)
 
     implementation(libs.eithernet)
 

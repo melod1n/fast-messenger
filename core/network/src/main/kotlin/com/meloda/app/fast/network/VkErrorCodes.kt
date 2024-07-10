@@ -44,20 +44,17 @@ object VkErrorCodes {
     const val AccessTokenExpired = 1117
 }
 
-object VkErrors {
-    const val Unknown = "unknown_error"
+object VkOAuthErrors {
+    const val UNKNOWN = "unknown_error"
 
-    const val NeedValidation = "need_validation"
-    const val NeedCaptcha = "need_captcha"
-    const val InvalidRequest = "invalid_request"
+    const val NEED_VALIDATION = "need_validation"
+    const val NEED_CAPTCHA = "need_captcha"
+    const val INVALID_CLIENT = "invalid_client"
+    const val INVALID_REQUEST = "invalid_request"
 
 }
 
 object VkErrorTypes {
-    const val OtpFormatIncorrect = "otp_format_is_incorrect"
-    const val WrongOtp = "wrong_otp"
-}
-
-object VkErrorMessages {
-    const val UserBanned = "user has been banned"
+    const val WRONG_OTP_FORMAT = "otp_format_is_incorrect"
+    const val WRONG_OTP = "wrong_otp"
 }

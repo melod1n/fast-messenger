@@ -1,7 +1,7 @@
 package com.meloda.app.fast.data.api.users
 
 import com.meloda.app.fast.data.State
-import com.meloda.app.fast.model.api.domain.VkUserDomain
+import com.meloda.app.fast.model.api.domain.VkUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -15,7 +15,7 @@ class UsersUseCaseImpl(
         userId: Int,
         fields: String?,
         nomCase: String?
-    ): Flow<State<VkUserDomain?>> = flow {
+    ): Flow<State<VkUser?>> = flow {
 //        emit(State.Loading)
 //
 //        val newState = usersRepository.getById(
@@ -38,7 +38,7 @@ class UsersUseCaseImpl(
         userIds: List<Int>,
         fields: String?,
         nomCase: String?
-    ): Flow<State<List<VkUserDomain>>> = flow {
+    ): Flow<State<List<VkUser>>> = flow {
 //        emit(State.Loading)
 //
 //        val newState = usersRepository.getById(
@@ -57,11 +57,11 @@ class UsersUseCaseImpl(
 //        emit(newState)
     }
 
-    override suspend fun storeUser(user: VkUserDomain) {
+    override suspend fun storeUser(user: VkUser) {
 
     }
 
-    override suspend fun storeUsers(users: List<VkUserDomain>) {
+    override suspend fun storeUsers(users: List<VkUser>) {
 
     }
 }

@@ -9,29 +9,21 @@ import kotlinx.coroutines.flow.update
 
 interface UserSettings {
     val theme: StateFlow<ThemeConfig>
-
     val longPollBackground: StateFlow<Boolean>
     val online: StateFlow<Boolean>
-
     val debugSettingsEnabled: StateFlow<Boolean>
+    val useContactNames: StateFlow<Boolean>
 
     fun updateUsingDarkTheme()
-
     fun useDarkThemeChanged(use: Boolean)
-
     fun useAmoledThemeChanged(use: Boolean)
-
     fun useDynamicColorsChanged(use: Boolean)
-
     fun useBlurChanged(use: Boolean)
-
     fun useMultiline(use: Boolean)
-
     fun setLongPollBackground(background: Boolean)
-
     fun setOnline(use: Boolean)
-
     fun enableDebugSettings(enable: Boolean)
+    fun onUseContactNamesChanged(use: Boolean)
 }
 
 class UserSettingsImpl(
@@ -67,6 +59,13 @@ class UserSettingsImpl(
         SettingsController.getBoolean(
             SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
             false
+        )
+    )
+
+    override val useContactNames = MutableStateFlow(
+        SettingsController.getBoolean(
+            SettingsKeys.KEY_USE_CONTACT_NAMES,
+            SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
         )
     )
 
@@ -113,5 +112,9 @@ class UserSettingsImpl(
 
     override fun enableDebugSettings(enable: Boolean) {
         debugSettingsEnabled.update { enable }
+    }
+
+    override fun onUseContactNamesChanged(use: Boolean) {
+        useContactNames.update { use }
     }
 }

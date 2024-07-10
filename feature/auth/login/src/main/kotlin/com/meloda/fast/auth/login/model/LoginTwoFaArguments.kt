@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Parcelize
-data class TwoFaArguments(
+data class LoginTwoFaArguments(
     val validationSid: String,
     val redirectUri: String,
     val phoneMask: String,

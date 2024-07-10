@@ -13,6 +13,7 @@ import com.meloda.app.fast.network.service.audios.AudiosService
 import com.meloda.app.fast.network.service.auth.AuthService
 import com.meloda.app.fast.network.service.conversations.ConversationsService
 import com.meloda.app.fast.network.service.files.FilesService
+import com.meloda.app.fast.network.service.friends.FriendsService
 import com.meloda.app.fast.network.service.longpoll.LongPollService
 import com.meloda.app.fast.network.service.messages.MessagesService
 import com.meloda.app.fast.network.service.oauth.OAuthService
@@ -87,6 +88,7 @@ val networkModule = module {
     single { service(PhotosService::class.java) }
     single { service(UsersService::class.java) }
     single { service(VideosService::class.java) }
+    single { service(FriendsService::class.java) }
 }
 
 private fun <T> Scope.service(className: Class<T>): T = get<Retrofit>().create(className)

@@ -4,18 +4,18 @@ import com.meloda.app.fast.model.api.domain.VkContactDomain
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkGroupDomain
 import com.meloda.app.fast.model.api.domain.VkMessage
-import com.meloda.app.fast.model.api.domain.VkUserDomain
+import com.meloda.app.fast.model.api.domain.VkUser
 import kotlin.math.abs
 
 object VkMemoryCache {
 
-    private val users: HashMap<Int, VkUserDomain> = hashMapOf()
+    private val users: HashMap<Int, VkUser> = hashMapOf()
     private val groups: HashMap<Int, VkGroupDomain> = hashMapOf()
     private val messages: HashMap<Int, VkMessage> = hashMapOf()
     private val conversations: HashMap<Int, VkConversation> = hashMapOf()
     private val contacts: HashMap<Int, VkContactDomain> = hashMapOf()
 
-    fun appendUsers(users: List<VkUserDomain>) {
+    fun appendUsers(users: List<VkUser>) {
         users.forEach { user -> VkMemoryCache.users[user.id] = user }
     }
 
@@ -37,7 +37,7 @@ object VkMemoryCache {
         contacts.forEach { contact -> VkMemoryCache.contacts[contact.userId] = contact }
     }
 
-    operator fun set(userId: Int, user: VkUserDomain) {
+    operator fun set(userId: Int, user: VkUser) {
         users[userId] = user
     }
 
@@ -57,15 +57,15 @@ object VkMemoryCache {
         contacts[contactId] = contact
     }
 
-    fun getUser(id: Int): VkUserDomain? {
+    fun getUser(id: Int): VkUser? {
         return getUsers(id).firstOrNull()
     }
 
-    fun getUsers(vararg ids: Int): List<VkUserDomain> {
+    fun getUsers(vararg ids: Int): List<VkUser> {
         return getUsers(ids.toList())
     }
 
-    fun getUsers(ids: List<Int>): List<VkUserDomain> {
+    fun getUsers(ids: List<Int>): List<VkUser> {
         return ids.mapNotNull { id -> users[id] }
     }
 

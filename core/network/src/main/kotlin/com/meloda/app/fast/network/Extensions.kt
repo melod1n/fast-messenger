@@ -23,14 +23,36 @@ fun <Success : Any, Error : Any, SuccessDomain : Any, ErrorDomain : Any>
         }
 
         is ApiResult.Failure.HttpFailure -> {
-            val c = code
-            val k = error
-            val m = errorMapper(error)
+            ApiResult.httpFailure(code, errorMapper(error))
+        }
 
+        is ApiResult.Failure.ApiFailure -> {
+            ApiResult.apiFailure(errorMapper(error))
+        }
+    }
+}
 
-            val b = c
-            val j = k
-            val n = m
+fun <Success : Any, Error : Any, SuccessDomain : Any, ErrorDomain : Any>
+        ApiResult<Success, Error>.mapOAuthResult(
+    successMapper: (Success) -> SuccessDomain,
+    errorMapper: (Error?) -> ErrorDomain?
+): ApiResult<SuccessDomain, ErrorDomain> {
+    if (BuildConfig.DEBUG) printStackTraceIfAny()
+
+    return when (this) {
+        is ApiResult.Success -> {
+            ApiResult.success(successMapper(value))
+        }
+
+        is ApiResult.Failure.NetworkFailure -> {
+            ApiResult.networkFailure(error)
+        }
+
+        is ApiResult.Failure.UnknownFailure -> {
+            ApiResult.unknownFailure(error)
+        }
+
+        is ApiResult.Failure.HttpFailure -> {
 
             ApiResult.httpFailure(code, errorMapper(error))
         }

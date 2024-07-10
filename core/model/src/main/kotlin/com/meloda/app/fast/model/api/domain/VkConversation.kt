@@ -31,7 +31,7 @@ data class VkConversation(
     val peerType: PeerType,
     val lastMessage: VkMessage?,
     val pinnedMessage: VkMessage?,
-    val user: VkUserDomain?,
+    val user: VkUser?,
     val group: VkGroupDomain?
 ) {
 

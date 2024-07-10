@@ -1,51 +1,38 @@
 package com.meloda.app.fast.auth.captcha.navigation
 
-import android.os.Bundle
-import androidx.core.os.BundleCompat
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.auth.captcha.CaptchaViewModel
-import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
 import com.meloda.app.fast.auth.captcha.model.CaptchaArguments
 import com.meloda.app.fast.auth.captcha.presentation.CaptchaScreen
+import com.meloda.app.fast.common.customNavType
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.typeOf
 
 @Serializable
-data class Captcha(val arguments: CaptchaArguments)
+data class Captcha(val arguments: CaptchaArguments) {
 
-val CaptchaNavType = object : NavType<CaptchaArguments>(isNullableAllowed = false) {
-    override fun get(bundle: Bundle, key: String): CaptchaArguments? =
-        BundleCompat.getParcelable(bundle, key, CaptchaArguments::class.java)
+    companion object {
+        val typeMap = mapOf(typeOf<CaptchaArguments>() to customNavType<CaptchaArguments>())
 
-    override fun parseValue(value: String): CaptchaArguments = Json.decodeFromString(value)
-
-    override fun serializeAsValue(value: CaptchaArguments): String = Json.encodeToString(value)
-
-    override fun put(bundle: Bundle, key: String, value: CaptchaArguments) {
-        bundle.putParcelable(key, value)
+        fun from(savedStateHandle: SavedStateHandle) =
+            savedStateHandle.toRoute<Captcha>(typeMap)
     }
-
-    override val name: String = "CaptchaArguments"
 }
+
 
 fun NavGraphBuilder.captchaRoute(
     onBack: () -> Unit,
     onResult: (String) -> Unit
 ) {
-    composable<Captcha>(typeMap = mapOf(typeOf<CaptchaArguments>() to CaptchaNavType)) { backStackEntry ->
-        val viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
-        viewModel.setArguments(backStackEntry.toRoute())
+    composable<Captcha>(
+        typeMap = Captcha.typeMap
+    ) {
         CaptchaScreen(
             onBack = onBack,
-            onResult = onResult,
-            viewModel = viewModel
+            onResult = onResult
         )
     }
 }

@@ -1,7 +1,7 @@
 package com.meloda.fast.auth.login
 
 import com.meloda.app.fast.data.State
-import com.meloda.app.fast.model.api.responses.AuthDirectResponse
+import com.meloda.fast.auth.login.model.AuthInfo
 import kotlinx.coroutines.flow.Flow
 
 interface OAuthUseCase {
@@ -13,5 +13,5 @@ interface OAuthUseCase {
         twoFaCode: String?,
         captchaSid: String?,
         captchaKey: String?
-    ): Flow<State<AuthDirectResponse>>
+    ): Flow<State<AuthInfo>>
 }

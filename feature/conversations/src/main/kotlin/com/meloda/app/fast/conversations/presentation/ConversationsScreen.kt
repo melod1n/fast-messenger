@@ -18,14 +18,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +35,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +49,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -71,6 +72,7 @@ import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
+import com.meloda.app.fast.designsystem.components.FullScreenLoader
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.ErrorView
 import dev.chrisbanes.haze.HazeState
@@ -78,10 +80,6 @@ import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
-import eu.bambooapps.material3.pullrefresh.PullRefreshIndicatorDefaults
-import eu.bambooapps.material3.pullrefresh.pullRefresh
-import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
@@ -94,7 +92,7 @@ import com.meloda.app.fast.designsystem.R as UiR
 fun ConversationsScreen(
     onError: (BaseError) -> Unit,
     onNavigateToMessagesHistory: (conversationId: Int) -> Unit,
-    onNavigateToSettings: () -> Unit,
+    onListScrollingUp: (Boolean) -> Unit,
     viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
 ) {
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
@@ -124,6 +122,12 @@ fun ConversationsScreen(
 
     val listState = rememberLazyListState()
 
+    val isListScrollingUp = listState.isScrollingUp()
+
+    LaunchedEffect(isListScrollingUp) {
+        onListScrollingUp(isListScrollingUp)
+    }
+
     val paginationConditionMet by remember {
         derivedStateOf {
             canPaginate &&
@@ -140,30 +144,36 @@ fun ConversationsScreen(
 
     val hazeState = remember { HazeState() }
 
+    var dropDownMenuExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    val toolbarColorAlpha by animateFloatAsState(
+        targetValue = if (!listState.canScrollBackward) 1f else 0f,
+        label = "toolbarColorAlpha",
+        animationSpec = tween(durationMillis = 50)
+    )
+
+    val toolbarContainerColor by animateColorAsState(
+        targetValue =
+        if (currentTheme.usingBlur || !listState.canScrollBackward)
+            MaterialTheme.colorScheme.surface
+        else
+            MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+        label = "toolbarColorAlpha",
+        animationSpec = tween(durationMillis = 50)
+    )
+
+    val pullToRefreshAlpha by animateFloatAsState(
+        targetValue = if (!listState.canScrollBackward) 1f else 0f,
+        label = "pullToRefreshAlpha",
+        animationSpec = tween(durationMillis = 50)
+    )
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            var dropDownMenuExpanded by remember {
-                mutableStateOf(false)
-            }
-
-            val toolbarColorAlpha by animateFloatAsState(
-                targetValue = if (!listState.canScrollBackward) 1f else 0f,
-                label = "toolbarColorAlpha",
-                animationSpec = tween(durationMillis = 50)
-            )
-
-            val toolbarContainerColor by animateColorAsState(
-                targetValue =
-                if (currentTheme.usingBlur || !listState.canScrollBackward)
-                    MaterialTheme.colorScheme.surface
-                else
-                    MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-                label = "toolbarColorAlpha",
-                animationSpec = tween(durationMillis = 50)
-            )
-
             Column(modifier = Modifier.fillMaxWidth()) {
                 TopAppBar(
                     title = {
@@ -196,21 +206,6 @@ fun ConversationsScreen(
                             },
                             offset = DpOffset(x = (-4).dp, y = (-60).dp)
                         ) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    onNavigateToSettings()
-                                    dropDownMenuExpanded = false
-                                },
-                                text = {
-                                    Text(text = stringResource(id = UiR.string.title_settings))
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Settings,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
                             DropdownMenuItem(
                                 onClick = {
                                     viewModel.onRefresh()
@@ -258,7 +253,7 @@ fun ConversationsScreen(
             val rotation = remember { Animatable(0f) }
 
             AnimatedVisibility(
-                visible = listState.isScrollingDown(),
+                visible = isListScrollingUp,
                 modifier = Modifier.navigationBarsPadding(),
                 enter = slideIn { IntOffset(0, 400) },
                 exit = slideOut { IntOffset(0, 400) }
@@ -301,21 +296,19 @@ fun ConversationsScreen(
                 )
             }
 
-            screenState.isLoading && screenState.conversations.isEmpty() -> Loader()
+            screenState.isLoading && screenState.conversations.isEmpty() -> FullScreenLoader()
 
             else -> {
+                val pullToRefreshState = rememberPullToRefreshState()
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                         .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
                         .padding(bottom = padding.calculateBottomPadding())
+                        .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 ) {
-                    val pullRefreshState = rememberPullRefreshState(
-                        refreshing = screenState.isLoading,
-                        onRefresh = viewModel::onRefresh
-                    )
-
                     ConversationsListComposable(
                         onConversationsClick = { id ->
                             onNavigateToMessagesHistory(id)
@@ -325,31 +318,37 @@ fun ConversationsScreen(
                         screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
-                        modifier = Modifier
-                            .pullRefresh(pullRefreshState)
-                            .then(
-                                if (currentTheme.usingBlur) {
-                                    Modifier.haze(
-                                        state = hazeState,
-                                        style = HazeMaterials.thick()
-                                    )
-                                } else Modifier
-                            ),
+                        modifier = if (currentTheme.usingBlur) {
+                            Modifier.haze(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else {
+                            Modifier
+                        }.fillMaxSize(),
                         onOptionClicked = viewModel::onOptionClicked,
                         padding = padding
                     )
 
-                    PullRefreshIndicator(
-                        refreshing = screenState.isLoading,
-                        state = pullRefreshState,
+                    if (pullToRefreshState.isRefreshing) {
+                        LaunchedEffect(true) {
+                            viewModel.onRefresh()
+                        }
+                    }
+
+                    LaunchedEffect(screenState.isLoading) {
+                        if (!screenState.isLoading) {
+                            pullToRefreshState.endRefresh()
+                        }
+                    }
+
+                    PullToRefreshContainer(
+                        state = pullToRefreshState,
                         modifier = Modifier
+                            .alpha(pullToRefreshAlpha)
                             .align(Alignment.TopCenter)
-                            .wrapContentSize()
                             .padding(top = padding.calculateTopPadding()),
-                        colors = PullRefreshIndicatorDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
+                        contentColor = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -359,18 +358,6 @@ fun ConversationsScreen(
             screenState = screenState,
             viewModel = viewModel
         )
-    }
-}
-
-@Composable
-fun Loader() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
     }
 }
 
@@ -436,7 +423,7 @@ fun PinDialog(
 
 
 @Composable
-private fun LazyListState.isScrollingDown(): Boolean {
+private fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
     var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
     return remember(this) {

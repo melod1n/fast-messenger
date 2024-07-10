@@ -1,9 +1,12 @@
 package com.meloda.app.fast.auth.captcha
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.meloda.app.fast.auth.captcha.model.CaptchaArguments
 import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
+import com.meloda.app.fast.auth.captcha.navigation.Captcha
 import com.meloda.app.fast.auth.captcha.validation.CaptchaValidator
+import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,9 +28,21 @@ interface CaptchaViewModel {
 
 class CaptchaViewModelImpl(
     private val validator: CaptchaValidator,
+    savedStateHandle: SavedStateHandle
 ) : CaptchaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
+
+    init {
+        val arguments = Captcha.from(savedStateHandle).arguments
+
+        screenState.setValue { old ->
+            old.copy(
+                captchaSid = arguments.captchaSid,
+                captchaImage = arguments.captchaImage
+            )
+        }
+    }
 
     override fun onCodeInputChanged(newCode: String) {
         val newState = screenState.value.copy(captchaCode = newCode.trim())
@@ -46,12 +61,12 @@ class CaptchaViewModelImpl(
     }
 
     override fun setArguments(arguments: CaptchaArguments) {
-        screenState.updateValue(
-            screenState.value.copy(
-                captchaSid = arguments.captchaSid,
-                captchaImage = arguments.captchaImage
-            )
-        )
+//        screenState.updateValue(
+//            screenState.value.copy(
+//                captchaSid = arguments.captchaSid,
+//                captchaImage = arguments.captchaImage
+//            )
+//        )
     }
 
     override fun onNavigatedToLogin() {

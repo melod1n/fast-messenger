@@ -250,5 +250,7 @@
     <string name="members_count">Members: %d</string>
     <string name="title_loading">Loading&#8230;</string>
     <string name="title_conversations">Conversations</string>
+    <string name="title_friends">Friends</string>
+    <string name="title_profile">Profile</string>
 
 </resources>

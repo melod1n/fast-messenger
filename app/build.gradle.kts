@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
     alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -130,6 +131,8 @@ dependencies {
     implementation(projects.feature.messageshistory)
     implementation(projects.feature.photoviewer)
     implementation(projects.feature.settings)
+    implementation(projects.feature.friends)
+    implementation(projects.feature.profile)
 
     implementation(projects.core.common)
     implementation(projects.core.ui)
@@ -158,6 +161,7 @@ dependencies {
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.compose.navigation)
 
     implementation(libs.coil)
 
@@ -180,4 +184,5 @@ dependencies {
     implementation(libs.nanokt.jvm)
 
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization)
 }

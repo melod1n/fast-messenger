@@ -10,9 +10,7 @@ sealed class OAuthErrorDomain {
         val redirectUri: String,
         val validationResend: String?,
         val restoreIfCannotGetCode: Boolean?
-    ) : OAuthErrorDomain() {
-
-    }
+    ) : OAuthErrorDomain()
 
     data class CaptchaRequiredError(
         val captchaSid: String,
@@ -29,4 +27,5 @@ sealed class OAuthErrorDomain {
     data object InvalidCredentialsError : OAuthErrorDomain()
     data object WrongTwoFaCode : OAuthErrorDomain()
     data object WrongTwoFaCodeFormat : OAuthErrorDomain()
+    data object UnknownError : OAuthErrorDomain()
 }

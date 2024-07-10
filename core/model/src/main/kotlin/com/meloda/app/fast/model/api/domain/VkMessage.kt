@@ -1,6 +1,5 @@
 package com.meloda.app.fast.model.api.domain
 
-import com.meloda.app.fast.model.api.PeerType
 import com.meloda.app.fast.model.database.VkMessageEntity
 
 data class VkMessage(
@@ -26,9 +25,9 @@ data class VkMessage(
     val replyMessage: VkMessage?,
 
     val geoType: String?,
-    val user: VkUserDomain?,
+    val user: VkUser?,
     val group: VkGroupDomain?,
-    val actionUser: VkUserDomain?,
+    val actionUser: VkUser?,
     val actionGroup: VkGroupDomain?
 ) {
 

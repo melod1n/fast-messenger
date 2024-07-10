@@ -59,7 +59,7 @@ import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import com.meloda.fast.auth.login.model.CaptchaArguments
 import com.meloda.fast.auth.login.model.LoginError
-import com.meloda.fast.auth.login.model.TwoFaArguments
+import com.meloda.fast.auth.login.model.LoginTwoFaArguments
 import com.meloda.fast.auth.login.model.UserBannedArguments
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
@@ -69,16 +69,16 @@ import com.meloda.app.fast.designsystem.R as UiR
 fun LoginScreen(
     onError: (BaseError) -> Unit,
     onNavigateToUserBanned: (UserBannedArguments) -> Unit,
-    onNavigateToConversations: () -> Unit,
+    onNavigateToMain: () -> Unit,
     onNavigateToCaptcha: (CaptchaArguments) -> Unit,
-    onNavigateToTwoFa: (TwoFaArguments) -> Unit,
+    onNavigateToTwoFa: (LoginTwoFaArguments) -> Unit,
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
-    if (screenState.isNeedToOpenConversations) {
-        viewModel.onNavigatedToConversations()
-        onNavigateToConversations()
+    if (screenState.isNeedToNavigateToMain) {
+        viewModel.onNavigatedToMain()
+        onNavigateToMain()
     }
 
     screenState.userBannedArguments?.let { arguments ->

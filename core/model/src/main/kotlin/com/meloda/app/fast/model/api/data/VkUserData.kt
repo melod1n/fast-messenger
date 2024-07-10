@@ -1,6 +1,7 @@
 package com.meloda.app.fast.model.api.data
 
-import com.meloda.app.fast.model.api.domain.VkUserDomain
+import com.meloda.app.fast.model.api.domain.OnlineStatus
+import com.meloda.app.fast.model.api.domain.VkUser
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -33,19 +34,19 @@ data class VkUserData(
         @Json(name = "app_id") val appId: Int?
     )
 
-    fun mapToDomain() = VkUserDomain(
+    fun mapToDomain() = VkUser(
         id = id,
         firstName = firstName,
         lastName = lastName,
         // TODO: 05/05/2024, Danil Nikolaev: improve
         onlineStatus = when {
-            online != 1 -> VkUserDomain.OnlineStatus.Offline
+            online != 1 -> OnlineStatus.Offline
             onlineInfo?.onlineMobile == true -> {
-                VkUserDomain.OnlineStatus.OnlineMobile(appId = onlineInfo.appId)
+                OnlineStatus.OnlineMobile(appId = onlineInfo.appId)
             }
 
             else -> {
-                VkUserDomain.OnlineStatus.Online(appId = onlineInfo?.appId)
+                OnlineStatus.Online(appId = onlineInfo?.appId)
             }
         },
         photo50 = photo50,

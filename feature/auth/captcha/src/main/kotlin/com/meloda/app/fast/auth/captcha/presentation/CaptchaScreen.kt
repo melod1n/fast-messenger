@@ -47,16 +47,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.meloda.app.fast.auth.captcha.CaptchaViewModel
+import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
+import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
 @Composable
 fun CaptchaScreen(
     onBack: () -> Unit,
     onResult: (String) -> Unit,
-    viewModel: CaptchaViewModel
+    viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 

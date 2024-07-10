@@ -262,7 +262,6 @@ fun ConversationItem(
                 ) {
                     Text(
                         text = conversation.title,
-                        modifier = Modifier,
                         minLines = 1,
                         maxLines = maxLines,
                         style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp)

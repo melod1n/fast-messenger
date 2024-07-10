@@ -1,6 +1,5 @@
 package com.meloda.app.fast.conversations
 
-import android.content.SharedPreferences
 import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +19,7 @@ import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.InteractionType
@@ -43,7 +42,6 @@ interface ConversationsViewModel {
     val baseError: StateFlow<BaseError?>
     val imagesToPreload: StateFlow<List<String>>
     val currentOffset: StateFlow<Int>
-
     val canPaginate: StateFlow<Boolean>
 
     fun onMetPaginationCondition()
@@ -69,14 +67,13 @@ class ConversationsViewModelImpl(
     private val conversationsUseCase: ConversationsUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val resources: Resources,
-    private val preferences: SharedPreferences
+    private val userSettings: UserSettings
 ) : ConversationsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
     override val baseError = MutableStateFlow<BaseError?>(null)
     override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
     override val currentOffset = MutableStateFlow(0)
-
     override val canPaginate = MutableStateFlow(false)
 
     override fun onMetPaginationCondition() {
@@ -91,6 +88,8 @@ class ConversationsViewModelImpl(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
+        userSettings.useContactNames.listenValue(::updateConversationsNames)
+
         updatesParser.onNewMessage(::handleNewMessage)
         updatesParser.onMessageEdited(::handleEditedMessage)
         updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
@@ -262,10 +261,7 @@ class ConversationsViewModelImpl(
                     val loadedConversations = response.map {
                         it.asPresentation(
                             resources,
-                            preferences.getBoolean(
-                                SettingsKeys.KEY_USE_CONTACT_NAMES,
-                                SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
-                            )
+                            userSettings.useContactNames.value
                         )
                     }
 
@@ -610,6 +606,19 @@ class ConversationsViewModelImpl(
                     }
                 }
             )
+        }
+    }
+
+    private fun updateConversationsNames(useContactNames: Boolean) {
+        val conversations = conversations.value
+        if (conversations.isEmpty()) return
+
+        val uiConversations = conversations.map { conversation ->
+            conversation.asPresentation(resources, useContactNames)
+        }
+
+        screenState.setValue { old ->
+            old.copy(conversations = uiConversations)
         }
     }
 }

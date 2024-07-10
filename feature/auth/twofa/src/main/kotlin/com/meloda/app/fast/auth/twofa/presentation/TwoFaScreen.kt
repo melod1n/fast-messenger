@@ -42,11 +42,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.auth.twofa.TwoFaViewModel
+import com.meloda.app.fast.auth.twofa.TwoFaViewModelImpl
 import com.meloda.app.fast.auth.twofa.model.TwoFaUiAction
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
 import com.meloda.app.fast.designsystem.getString
+import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
 private typealias OnAction = (TwoFaUiAction) -> Unit
@@ -54,7 +56,7 @@ private typealias OnAction = (TwoFaUiAction) -> Unit
 @Composable
 fun TwoFaScreen(
     onAction: OnAction,
-    viewModel: TwoFaViewModel,
+    viewModel: TwoFaViewModel = koinViewModel<TwoFaViewModelImpl>(),
 ) {
     val focusManager = LocalFocusManager.current
 

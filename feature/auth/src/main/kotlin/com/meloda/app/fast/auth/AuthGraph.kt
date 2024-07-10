@@ -12,7 +12,6 @@ import com.meloda.app.fast.auth.twofa.model.TwoFaArguments
 import com.meloda.app.fast.auth.twofa.navigation.navigateToTwoFa
 import com.meloda.app.fast.auth.twofa.navigation.setTwoFaResult
 import com.meloda.app.fast.auth.twofa.navigation.twoFaRoute
-import com.meloda.app.fast.conversations.navigation.navigateToConversations
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.userbanned.model.UserBannedArguments
 import com.meloda.app.fast.userbanned.navigation.navigateToUserBanned
@@ -27,6 +26,7 @@ object AuthGraph
 
 fun NavGraphBuilder.authNavGraph(
     onError: (BaseError) -> Unit,
+    onNavigateToMain: () -> Unit,
     navController: NavHostController
 ) {
     navigation<AuthGraph>(
@@ -54,7 +54,7 @@ fun NavGraphBuilder.authNavGraph(
                     )
                 )
             },
-            onNavigateToConversations = navController::navigateToConversations,
+            onNavigateToMain = onNavigateToMain,
             onNavigateToUserBanned = { arguments ->
                 navController.navigateToUserBanned(
                     UserBannedArguments(
@@ -66,6 +66,7 @@ fun NavGraphBuilder.authNavGraph(
                 )
             },
             onNavigateToCredentials = navController::navigateToLogin,
+            navController = navController
         )
 
         twoFaRoute(

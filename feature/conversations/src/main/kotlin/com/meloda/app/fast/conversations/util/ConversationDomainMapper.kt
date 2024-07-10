@@ -63,8 +63,13 @@ fun VkConversation.extractAvatar() = when (peerType) {
         else user?.photo200
     }
 
-    PeerType.GROUP -> { group?.photo200 }
-    PeerType.CHAT -> { photo200 }
+    PeerType.GROUP -> {
+        group?.photo200
+    }
+
+    PeerType.CHAT -> {
+        photo200
+    }
 }?.let(UiImage::Url) ?: UiImage.Resource(UiR.drawable.ic_account_circle_cut)
 
 private fun extractTitle(
@@ -78,7 +83,7 @@ private fun extractTitle(
         } else {
             val userName = conversation.user?.let { user ->
                 if (useContactName) {
-                    VkMemoryCache.getContact(user.id)?.name
+                    VkMemoryCache.getContact(user.id)?.name ?: user.fullName
                 } else {
                     user.fullName
                 }

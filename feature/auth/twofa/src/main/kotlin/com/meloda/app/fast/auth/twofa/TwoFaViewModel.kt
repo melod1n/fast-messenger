@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.auth.twofa.model.TwoFaArguments
 import com.meloda.app.fast.auth.twofa.model.TwoFaScreenState
 import com.meloda.app.fast.auth.twofa.model.TwoFaValidationType
+import com.meloda.app.fast.auth.twofa.navigation.TwoFa
 import com.meloda.app.fast.auth.twofa.validation.TwoFaValidator
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.extensions.createTimerFlow
@@ -48,6 +49,23 @@ class TwoFaViewModelImpl(
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
 
     private var delayJob: Job? = null
+
+    init {
+        // TODO: 08/07/2024, Danil Nikolaev: use when fixed
+        //savedStateHandle.toRoute<TwoFa>().arguments
+
+        val arguments = TwoFa.from(savedStateHandle).arguments
+
+        screenState.setValue { old ->
+            old.copy(
+                twoFaSid = arguments.validationSid,
+                canResendSms = arguments.canResendSms,
+                codeError = arguments.wrongCodeError,
+                twoFaText = getTwoFaText(TwoFaValidationType.parse(arguments.validationType)),
+                phoneMask = arguments.phoneMask
+            )
+        }
+    }
 
     override fun onCodeInputChanged(newCode: String) {
         screenState.updateValue(
@@ -99,15 +117,15 @@ class TwoFaViewModelImpl(
     override fun setArguments(arguments: TwoFaArguments) {
         Log.d("TwoFaViewModel", "TwoFaArguments: $arguments")
 
-        screenState.updateValue(
-            screenState.value.copy(
-                twoFaSid = arguments.validationSid,
-                canResendSms = arguments.canResendSms,
-                codeError = arguments.wrongCodeError,
-                twoFaText = getTwoFaText(TwoFaValidationType.parse(arguments.validationType)),
-                phoneMask = arguments.phoneMask
-            )
-        )
+//        screenState.updateValue(
+//            screenState.value.copy(
+//                twoFaSid = arguments.validationSid,
+//                canResendSms = arguments.canResendSms,
+//                codeError = arguments.wrongCodeError,
+//                twoFaText = getTwoFaText(TwoFaValidationType.parse(arguments.validationType)),
+//                phoneMask = arguments.phoneMask
+//            )
+//        )
     }
 
     private fun processValidation(): Boolean {

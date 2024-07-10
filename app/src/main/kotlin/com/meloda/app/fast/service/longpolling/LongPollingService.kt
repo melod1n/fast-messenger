@@ -40,7 +40,10 @@ class LongPollingService : Service() {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "error: $throwable")
-        throwable.printStackTrace()
+
+        if (throwable !is NoAccessTokenException) {
+            throwable.printStackTrace()
+        }
     }
 
     private val coroutineContext: CoroutineContext
@@ -133,7 +136,7 @@ class LongPollingService : Service() {
 
         return coroutineScope.launch {
             if (UserConfig.accessToken.isEmpty()) {
-                throw LongPollException(message = "No access token")
+                throw NoAccessTokenException
             }
 
             var serverInfo = getServerInfo()
@@ -265,3 +268,4 @@ class LongPollingService : Service() {
 }
 
 private data class LongPollException(override val message: String) : Throwable()
+private data object NoAccessTokenException : Throwable()
