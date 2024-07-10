@@ -68,8 +68,8 @@ android {
         named("release") {
             signingConfig = signingConfigs.getByName("release")
 
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -80,10 +80,6 @@ android {
         // TODO: 15/05/2024, Danil Nikolaev: add to other modules with build convention
         register("staging") {
             initWith(getByName("release"))
-
-            isMinifyEnabled = false
-            isShrinkResources = false
-
             applicationIdSuffix = ".staging"
         }
     }

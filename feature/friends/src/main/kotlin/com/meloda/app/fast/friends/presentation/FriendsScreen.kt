@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -183,12 +184,14 @@ fun FriendsScreen(
                 val pagerState = rememberPagerState { tabItems.size }
 
                 LaunchedEffect(selectedTabIndex) {
-                    pagerState.scrollToPage(selectedTabIndex)
+                    pagerState.animateScrollToPage(selectedTabIndex)
                 }
 
-                LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-                    if (!pagerState.isScrollInProgress) {
-                        selectedTabIndex = pagerState.currentPage
+                LaunchedEffect(pagerState) {
+                    snapshotFlow {
+                        pagerState.currentPage
+                    }.collect { page ->
+                        selectedTabIndex = page
                     }
                 }
 

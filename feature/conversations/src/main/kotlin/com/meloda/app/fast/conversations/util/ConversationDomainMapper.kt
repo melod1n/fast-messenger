@@ -201,19 +201,15 @@ private fun extractMessage(
 
         else ->
             messageText
-                .let { text ->
-                    text.apply {
-                        replace("\n", " ")
-                        replace("&amp;", "&")
-                        replace("&quot;", "\"")
-                        replace("<br>", "\n")
-                        replace("&gt;", ">")
-                        replace("&lt;", "<")
-                        replace("<br/>", "\n")
-                        replace("&ndash;", "-")
-                        trim()
-                    }
-                }
+                .replace("\n", " ")
+                .replace("&amp;", "&")
+                .replace("&quot;", "\"")
+                .replace("<br>", " ")
+                .replace("&gt;", ">")
+                .replace("&lt;", "<")
+                .replace("<br/>", " ")
+                .replace("&ndash;", "-")
+                .trim()
                 .let { text -> getTextWithVisualizedMentions(text, Color.Red) }
                 .let { text -> prefix + text }
     }
@@ -849,29 +845,4 @@ private fun extractInteractionUsers(conversation: VkConversation): List<String> 
             else -> null
         }
     }
-}
-
-private fun extractLastSeenStatus(
-    resources: Resources,
-    conversation: VkConversation
-): String? = when (conversation.peerType) {
-    PeerType.USER -> {
-        conversation.user?.lastSeen?.let { time ->
-            TimeUtils.getLocalizedDate(resources, time * 1000L)
-        }.orDots()
-    }
-
-    PeerType.GROUP -> {
-        conversation.group?.membersCount?.let { count ->
-            UiText.ResourceParams(UiR.string.members_count, listOf(count))
-        }.parseString(resources)
-    }
-
-    PeerType.CHAT -> {
-        conversation.membersCount?.let { count ->
-            UiText.ResourceParams(UiR.string.members_count, listOf(count))
-        }.parseString(resources)
-    }
-
-    else -> null
 }
