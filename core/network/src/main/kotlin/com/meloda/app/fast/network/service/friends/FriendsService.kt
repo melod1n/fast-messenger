@@ -15,4 +15,10 @@ interface FriendsService {
     suspend fun getFriends(
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<GetFriendsResponse>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(FriendsUrls.GET_ONLINE)
+    suspend fun getOnlineFriends(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
 }

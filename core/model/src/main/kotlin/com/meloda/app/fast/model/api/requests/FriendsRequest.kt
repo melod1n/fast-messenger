@@ -16,3 +16,18 @@ data class GetFriendsRequest(
                 fields?.let { this["fields"] = it }
             }
 }
+
+data class GetOnlineFriendsRequest(
+    val order: String?,
+    val count: Int?,
+    val offset: Int?,
+) {
+
+    val map
+        get() = mutableMapOf<String, String>()
+            .apply {
+                order?.let { this["order"] = it }
+                count?.let { this["count"] = it.toString() }
+                offset?.let { this["offset"] = it.toString() }
+            }
+}

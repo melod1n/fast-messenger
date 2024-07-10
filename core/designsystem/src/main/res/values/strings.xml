@@ -252,5 +252,8 @@
     <string name="title_conversations">Conversations</string>
     <string name="title_friends">Friends</string>
     <string name="title_profile">Profile</string>
+    <string name="title_friends_all">All</string>
+    <string name="title_friends_online">Online</string>
+    <string name="no_items">No items</string>
 
 </resources>
