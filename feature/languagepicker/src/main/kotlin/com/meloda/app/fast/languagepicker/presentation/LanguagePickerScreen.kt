@@ -37,7 +37,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModel
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
@@ -70,8 +70,10 @@ fun LanguagePickerScreen(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val languages = screenState.languages
 
-    LaunchedEffect(true) {
+    LifecycleResumeEffect(true) {
         viewModel.updateCurrentLocale(AppCompatDelegate.getApplicationLocales().toLanguageTags())
+
+        onPauseOrDispose {}
     }
 
     val isButtonEnabled by remember(screenState) {
