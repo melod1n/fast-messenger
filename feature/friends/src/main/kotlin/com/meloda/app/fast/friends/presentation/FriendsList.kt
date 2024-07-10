@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -22,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.designsystem.ImmutableList
-import com.meloda.app.fast.designsystem.components.NoItemsView
 import com.meloda.app.fast.friends.model.FriendsScreenState
 import com.meloda.app.fast.friends.model.UiFriend
 import kotlinx.coroutines.Dispatchers
@@ -35,22 +33,11 @@ fun FriendsList(
     uiFriends: ImmutableList<UiFriend>,
     listState: LazyListState,
     maxLines: Int,
-    onlineOnly: Boolean,
     padding: PaddingValues
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     val friends = uiFriends.toList()
-
-    if (friends.isEmpty()) {
-        NoItemsView(
-            modifier = modifier
-                .padding(padding.calculateTopPadding())
-                .padding(top = 64.dp),
-            customText = "No${if (onlineOnly) " online" else ""} friends :("
-        )
-        return
-    }
 
     LazyColumn(
         modifier = modifier,

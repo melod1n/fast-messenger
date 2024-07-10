@@ -21,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -49,6 +51,7 @@ import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.TabItem
 import com.meloda.app.fast.designsystem.components.BlurrableTopAppBar
 import com.meloda.app.fast.designsystem.components.FullScreenLoader
+import com.meloda.app.fast.designsystem.components.NoItemsView
 import com.meloda.app.fast.friends.FriendsViewModel
 import com.meloda.app.fast.friends.FriendsViewModelImpl
 import com.meloda.app.fast.model.BaseError
@@ -202,6 +205,9 @@ fun FriendsScreen(
                                 .padding(bottom = padding.calculateBottomPadding())
                                 .nestedScroll(pullToRefreshState.nestedScrollConnection)
                         ) {
+                            val friendsToDisplay = if (index == 0) friends
+                            else onlineFriends
+
                             FriendsList(
                                 modifier = if (currentTheme.usingBlur) {
                                     Modifier.haze(
@@ -212,15 +218,20 @@ fun FriendsScreen(
                                     Modifier
                                 }.fillMaxSize(),
                                 screenState = screenState,
-                                uiFriends = ImmutableList.copyOf(
-                                    if (index == 0) friends
-                                    else onlineFriends
-                                ),
+                                uiFriends = ImmutableList.copyOf(friendsToDisplay),
                                 listState = listState,
                                 maxLines = maxLines,
-                                onlineOnly = index == 1,
                                 padding = padding
                             )
+
+                            if (friendsToDisplay.isEmpty()) {
+                                NoItemsView(
+                                    modifier = Modifier
+                                        .padding(padding.calculateTopPadding())
+                                        .padding(top = 64.dp),
+                                    customText = "No${if (index == 1) " online" else ""} friends :("
+                                )
+                            }
 
                             if (pullToRefreshState.isRefreshing) {
                                 LaunchedEffect(true) {
@@ -250,7 +261,7 @@ fun FriendsScreen(
                         selectedTabIndex = selectedTabIndex,
                         modifier = Modifier
                             .padding(top = padding.calculateTopPadding() - 4.dp)
-                            .height(50.dp)
+                            .height(56.dp)
                             .then(
                                 if (currentTheme.usingBlur) {
                                     Modifier.hazeChild(
@@ -263,7 +274,13 @@ fun FriendsScreen(
                             ),
                         containerColor = tabsContainerColor.copy(
                             alpha = if (currentTheme.usingBlur) tabsColorAlpha else 1f
-                        )
+                        ),
+                        indicator = { tabPositions ->
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                width = 48.dp
+                            )
+                        }
                     ) {
                         tabItems.forEachIndexed { index, item ->
                             Tab(
