@@ -103,6 +103,7 @@
     <string name="message_attachments_artist">Artist</string>
     <string name="message_attachments_audio_playlist">Playlist</string>
     <string name="message_attachments_podcast">Podcast</string>
+    <string name="message_attachments_narrative">Narrative</string>
 
     <string name="chat_interaction_uploading_file">Uploading file</string>
     <string name="chat_interaction_uploading_photo">Uploading photo</string>

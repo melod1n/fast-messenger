@@ -610,6 +610,7 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.ARTIST -> null
         AttachmentType.AUDIO_PLAYLIST -> null
         AttachmentType.PODCAST -> null
+        AttachmentType.NARRATIVE -> null
     }?.let(UiImage::Resource)
 }
 
@@ -755,6 +756,7 @@ private fun getAttachmentUiText(
         AttachmentType.ARTIST -> UiR.string.message_attachments_artist
         AttachmentType.AUDIO_PLAYLIST -> UiR.string.message_attachments_audio_playlist
         AttachmentType.PODCAST -> UiR.string.message_attachments_podcast
+        AttachmentType.NARRATIVE -> UiR.string.message_attachments_narrative
     }.let(UiText::Resource)
 }
 

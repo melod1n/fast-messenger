@@ -2,8 +2,8 @@ package com.meloda.app.fast.model.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
+import com.meloda.app.fast.model.api.domain.VkUnknownAttachment
 
 @Entity(tableName = "messages")
 data class VkMessageEntity(
@@ -46,7 +46,7 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     important = important,
     forwards = emptyList(),//forwards.orEmpty().map(VkMessageEntity::asExternalModel),
     // TODO: 05/05/2024, Danil Nikolaev: restore attachments
-    attachments = attachments.orEmpty().map { object : VkAttachment {} },
+    attachments = attachments.orEmpty().map { VkUnknownAttachment },
     replyMessage = null,//replyMessage?.asExternalModel(),
     geoType = geoType,
     user = null,
