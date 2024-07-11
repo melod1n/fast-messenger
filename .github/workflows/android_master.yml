@@ -12,9 +12,8 @@ env:
 jobs:
   build_apk_aab:
     runs-on: ubuntu-latest
-    name: Build full artifacts
+    name: Build artifacts
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -31,17 +30,17 @@ jobs:
       - name: Build and sign debug APKs
         run: ./gradlew assembleDebug
 
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: app/build/outputs/apk/amethyst/debug/app-amethyst-debug.apk
+
       - name: Build and sign release APKs
         run: ./gradlew assembleRelease
 
-      - name: Upload full-debug APK
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-full-debug.apk
-          path: app/build/outputs/apk/full/debug/app-full-debug.apk
-
-      - name: Upload full-release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-full-release.apk
-          path: app/build/outputs/apk/full/release/app-full-release.apk
+          name: app-release.apk
+          path: app/build/outputs/apk/amethyst/release/app-amethyst-release.apk

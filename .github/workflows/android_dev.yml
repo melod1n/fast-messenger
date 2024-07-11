@@ -1,8 +1,6 @@
 name: Android CI
 
 on:
-  pull_request:
-    branches: [ "dev" ]
   push:
     branches: [ "dev" ]
 
@@ -14,7 +12,7 @@ env:
 jobs:
   build_apk_aab:
     runs-on: ubuntu-latest
-    name: Build dev artifacts
+    name: Build artifacts
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,17 +30,17 @@ jobs:
       - name: Build and sign debug APKs
         run: ./gradlew assembleDebug
 
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: app/build/outputs/apk/amethyst/debug/app-amethyst-debug.apk
+
       - name: Build and sign release APKs
         run: ./gradlew assembleRelease
 
-      - name: Upload dev-debug APK
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-dev-debug.apk
-          path: app/build/outputs/apk/amethyst/debug/app-amethyst-debug.apk
-
-      - name: Upload dev-release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-dev-release.apk
+          name: app-release.apk
           path: app/build/outputs/apk/amethyst/release/app-amethyst-release.apk
