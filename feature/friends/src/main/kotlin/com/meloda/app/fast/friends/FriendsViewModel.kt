@@ -77,7 +77,7 @@ class FriendsViewModelImpl(
     }
 
     private fun loadFriends(offset: Int = currentOffset.value) {
-        friendsUseCase.getAllFriends(count = 30, offset = offset).listenValue { state ->
+        friendsUseCase.getAllFriends(count = LOAD_COUNT, offset = offset).listenValue { state ->
             state.processState(
                 error = { error ->
                     when (error) {
@@ -103,11 +103,11 @@ class FriendsViewModelImpl(
                 },
                 success = { info ->
                     val response = info.friends
-                    val itemsCountSufficient = response.size == 30
+                    val itemsCountSufficient = response.size == LOAD_COUNT
                     canPaginate.setValue { itemsCountSufficient }
 
                     val paginationExhausted = !itemsCountSufficient &&
-                            screenState.value.friends.size >= 30
+                            screenState.value.friends.size >= LOAD_COUNT
 
                     imagesToPreload.setValue {
                         response.mapNotNull(VkUser::photo100)
@@ -171,5 +171,9 @@ class FriendsViewModelImpl(
             old.copy(friends = uiFriends)
         }
         uiOnlineFriends.setValue { onlineUiFriends }
+    }
+
+    companion object {
+        const val LOAD_COUNT = 30
     }
 }

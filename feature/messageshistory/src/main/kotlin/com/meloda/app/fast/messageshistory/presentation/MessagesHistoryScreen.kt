@@ -90,7 +90,7 @@ import com.meloda.app.fast.designsystem.R as UiR
 fun MessagesHistoryScreen(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onNavigateToChatMaterials: () -> Unit,
+    onNavigateToChatMaterials: (peerId: Int, conversationMessageId: Int) -> Unit,
     viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {
     val view = LocalView.current
@@ -215,7 +215,12 @@ fun MessagesHistoryScreen(
                             DropdownMenuItem(
                                 onClick = {
                                     dropDownMenuExpanded = false
-                                    onNavigateToChatMaterials()
+
+                                    // TODO: 11/07/2024, Danil Nikolaev: to VM
+                                    onNavigateToChatMaterials(
+                                        screenState.conversationId,
+                                        screenState.messages.first().conversationMessageId
+                                    )
                                 },
                                 text = {
                                     Text(text = "Materials")

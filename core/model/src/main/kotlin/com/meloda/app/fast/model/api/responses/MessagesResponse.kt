@@ -1,11 +1,13 @@
 package com.meloda.app.fast.model.api.responses
 
+import com.meloda.app.fast.model.api.data.VkAttachmentHistoryMessageData
 import com.meloda.app.fast.model.api.data.VkChatMemberData
 import com.meloda.app.fast.model.api.data.VkContactData
 import com.meloda.app.fast.model.api.data.VkConversationData
 import com.meloda.app.fast.model.api.data.VkGroupData
 import com.meloda.app.fast.model.api.data.VkMessageData
 import com.meloda.app.fast.model.api.data.VkUserData
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
@@ -32,4 +34,13 @@ data class MessagesGetConversationMembersResponse(
     val items: List<VkChatMemberData>?,
     val profiles: List<VkUserData>?,
     val groups: List<VkGroupData>?
+)
+
+@JsonClass(generateAdapter = true)
+data class MessagesGetHistoryAttachmentsResponse(
+    @Json(name = "items") val items: List<VkAttachmentHistoryMessageData>,
+    @Json(name = "next_from") val nextFrom: String?,
+    @Json(name = "profiles") val profiles: List<VkUserData>?,
+    @Json(name = "groups") val groups: List<VkGroupData>?,
+    @Json(name = "contacts") val contacts: List<VkContactData>?
 )

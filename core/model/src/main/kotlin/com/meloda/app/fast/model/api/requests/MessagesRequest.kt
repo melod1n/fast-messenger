@@ -243,3 +243,27 @@ data class MessagesRemoveChatUserRequest(
             "member_id" to memberId.toString()
         )
 }
+
+data class MessagesGetHistoryAttachmentsRequest(
+    val peerId: Int,
+    val extended: Boolean?,
+    val count: Int?,
+    val offset: Int?,
+    val preserveOrder: Boolean?,
+    val attachmentTypes: List<String>,
+    val conversationMessageId: Int,
+    val fields: String?
+) {
+
+    val map = mutableMapOf(
+        "peer_id" to peerId.toString(),
+        "attachment_types" to attachmentTypes.joinToString(","),
+        "cmid" to conversationMessageId.toString()
+    ).apply {
+        extended?.let { this["extended"] = it.toString() }
+        count?.let { this["count"] = it.toString() }
+        offset?.let { this["offset"] = it.toString() }
+        preserveOrder?.let { this["preserve_order"] = it.toString() }
+        fields?.let { this["fields"] = it }
+    }
+}

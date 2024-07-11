@@ -1,6 +1,5 @@
 package com.meloda.app.fast.model.api.data
 
-import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkMessage
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -60,6 +59,7 @@ data class VkMessageData(
 
 fun VkMessageData.asDomain(): VkMessage = VkMessage(
     id = id ?: -1,
+    conversationMessageId = conversationMessageId,
     text = text.ifBlank { null },
     isOut = out == 1,
     peerId = peerId ?: -1,
@@ -75,134 +75,10 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     important = important,
     updateTime = updateTime,
     forwards = fwdMessages.orEmpty().map(VkMessageData::asDomain),
-    attachments = parseAttachments(),
+    attachments = attachments.map(VkAttachmentItemData::toDomain),
     replyMessage = replyMessage?.asDomain(),
     user = null,
     group = null,
     actionUser = null,
     actionGroup = null,
 )
-
-private fun VkMessageData.parseAttachments(): List<VkAttachment> {
-    if (attachments.isEmpty()) return emptyList()
-
-    val attachments = mutableListOf<VkAttachment>()
-
-    for (baseAttachment in this.attachments) {
-        when (baseAttachment.getPreparedType()) {
-            AttachmentType.UNKNOWN -> continue
-            AttachmentType.PHOTO -> {
-                val photo = baseAttachment.photo ?: continue
-                attachments += photo.toDomain()
-            }
-
-            AttachmentType.VIDEO -> {
-                val video = baseAttachment.video ?: continue
-                attachments += video.toDomain()
-            }
-
-            AttachmentType.AUDIO -> {
-                val audio = baseAttachment.audio ?: continue
-                attachments += audio.toDomain()
-            }
-
-            AttachmentType.FILE -> {
-                val file = baseAttachment.file ?: continue
-                attachments += file.toDomain()
-            }
-
-            AttachmentType.LINK -> {
-                val link = baseAttachment.link ?: continue
-                attachments += link.toDomain()
-            }
-
-            AttachmentType.MINI_APP -> {
-                val miniApp = baseAttachment.miniApp ?: continue
-                attachments += miniApp.toDomain()
-            }
-
-            AttachmentType.AUDIO_MESSAGE -> {
-                val voiceMessage = baseAttachment.voiceMessage ?: continue
-                attachments += voiceMessage.toDomain()
-            }
-
-            AttachmentType.STICKER -> {
-                val sticker = baseAttachment.sticker ?: continue
-                attachments += sticker.toDomain()
-            }
-
-            AttachmentType.GIFT -> {
-                val gift = baseAttachment.gift ?: continue
-                attachments += gift.toDomain()
-            }
-
-            AttachmentType.WALL -> {
-                val wall = baseAttachment.wall ?: continue
-                attachments += wall.toDomain()
-            }
-
-            AttachmentType.GRAFFITI -> {
-                val graffiti = baseAttachment.graffiti ?: continue
-                attachments += graffiti.toDomain()
-            }
-
-            AttachmentType.POLL -> {
-                val poll = baseAttachment.poll ?: continue
-                attachments += poll.toDomain()
-            }
-
-            AttachmentType.WALL_REPLY -> {
-                val wallReply = baseAttachment.wallReply ?: continue
-                attachments += wallReply.toDomain()
-            }
-
-            AttachmentType.CALL -> {
-                val call = baseAttachment.call ?: continue
-                attachments += call.toDomain()
-            }
-
-            AttachmentType.GROUP_CALL_IN_PROGRESS -> {
-                val groupCall = baseAttachment.groupCall ?: continue
-                attachments += groupCall.toDomain()
-            }
-
-            AttachmentType.CURATOR -> {
-                val curator = baseAttachment.curator ?: continue
-                attachments += curator.toDomain()
-            }
-
-            AttachmentType.EVENT -> {
-                val event = baseAttachment.event ?: continue
-                attachments += event.toDomain()
-            }
-
-            AttachmentType.STORY -> {
-                val story = baseAttachment.story ?: continue
-                attachments += story.toDomain()
-            }
-
-            AttachmentType.WIDGET -> {
-                val widget = baseAttachment.widget ?: continue
-                attachments += widget.toDomain()
-            }
-
-            AttachmentType.ARTIST -> {
-                val artist = baseAttachment.artist ?: continue
-                attachments += artist.toDomain()
-                val audios = baseAttachment.audios ?: continue
-                audios.map(VkAudioData::toDomain).let(attachments::addAll)
-            }
-
-            AttachmentType.AUDIO_PLAYLIST -> {
-                val audioPlaylist = baseAttachment.audioPlaylist ?: continue
-                attachments += audioPlaylist.toDomain()
-            }
-
-            AttachmentType.PODCAST -> {
-                val podcast = baseAttachment.podcast ?: continue
-                attachments += podcast.toDomain()
-            }
-        }
-    }
-    return attachments
-}

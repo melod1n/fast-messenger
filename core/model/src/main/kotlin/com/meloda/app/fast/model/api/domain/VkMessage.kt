@@ -4,6 +4,7 @@ import com.meloda.app.fast.model.database.VkMessageEntity
 
 data class VkMessage(
     val id: Int,
+    val conversationMessageId: Int,
     val text: String?,
     val isOut: Boolean,
     val peerId: Int,
@@ -78,6 +79,7 @@ data class VkMessage(
 
 fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     id = id,
+    conversationMessageId = conversationMessageId,
     text = text,
     isOut = isOut,
     peerId = peerId,

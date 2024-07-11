@@ -231,13 +231,13 @@ class LongPollUpdatesParser(
         Log.d("LongPollUpdatesParser", "$eventType: $event")
     }
 
-    private suspend fun <T : LongPollEvent> loadNormalMessage(
+    private suspend inline fun <reified T : LongPollEvent> loadNormalMessage(
         eventType: ApiEvent,
         messageId: Int
-    ): T? = suspendCoroutine {
+    ): T? = suspendCoroutine { continuation ->
         coroutineScope.launch(Dispatchers.IO) {
             messagesUseCase.getById(
-                messageId = messageId,
+                messageIds = listOf(messageId),
                 extended = true,
                 fields = VkConstants.ALL_FIELDS
             ).listenValue(this) { state ->
@@ -245,20 +245,26 @@ class LongPollUpdatesParser(
                     error = { error ->
                         Log.e("LongPollUpdatesParser", "loadNormalMessage: error: $error")
                     },
-                    success = { response ->
-                        response?.let { message ->
-                            VkMemoryCache[message.id] = message
-                            messagesUseCase.storeMessage(message)
+                    success = { messages ->
+                        val message = messages.singleOrNull() ?: run {
+                            continuation.resume(null)
+                            return@listenValue
+                        }
 
-                            val resumeValue: LongPollEvent? = when (eventType) {
-                                ApiEvent.MESSAGE_NEW -> LongPollEvent.VkMessageNewEvent(message)
-                                ApiEvent.MESSAGE_EDIT -> LongPollEvent.VkMessageEditEvent(message)
+                        VkMemoryCache[message.id] = message
+                        messagesUseCase.storeMessage(message)
 
-                                else -> null
+                        val resumeValue: LongPollEvent? = when (eventType) {
+                            ApiEvent.MESSAGE_NEW -> LongPollEvent.VkMessageNewEvent(message)
+                            ApiEvent.MESSAGE_EDIT -> LongPollEvent.VkMessageEditEvent(message)
+
+                            else -> {
+                                continuation.resume(null)
+                                null
                             }
+                        }
 
-                            resumeValue?.let { value -> it.resume(value as T) }
-                        } ?: it.resume(null)
+                        resumeValue?.let { value -> continuation.resume(value as T) }
                     }
                 )
             }

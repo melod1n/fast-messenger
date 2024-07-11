@@ -15,10 +15,6 @@ import com.meloda.app.fast.data.api.friends.FriendsRepository
 import com.meloda.app.fast.data.api.friends.FriendsRepositoryImpl
 import com.meloda.app.fast.data.api.longpoll.LongPollRepository
 import com.meloda.app.fast.data.api.longpoll.LongPollRepositoryImpl
-import com.meloda.app.fast.data.api.messages.MessagesLocalDataSource
-import com.meloda.app.fast.data.api.messages.MessagesLocalDataSourceImpl
-import com.meloda.app.fast.data.api.messages.MessagesNetworkDataSource
-import com.meloda.app.fast.data.api.messages.MessagesNetworkDataSourceImpl
 import com.meloda.app.fast.data.api.messages.MessagesRepository
 import com.meloda.app.fast.data.api.messages.MessagesRepositoryImpl
 import com.meloda.app.fast.data.api.oauth.OAuthRepository
@@ -59,8 +55,6 @@ val dataModule = module {
 
     singleOf(::LongPollRepositoryImpl) bind LongPollRepository::class
 
-    singleOf(::MessagesLocalDataSourceImpl) bind MessagesLocalDataSource::class
-    singleOf(::MessagesNetworkDataSourceImpl) bind MessagesNetworkDataSource::class
     singleOf(::MessagesRepositoryImpl) bind MessagesRepository::class
 
     singleOf(::OAuthRepositoryImpl) bind OAuthRepository::class

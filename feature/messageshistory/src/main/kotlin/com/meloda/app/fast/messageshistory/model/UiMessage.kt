@@ -4,6 +4,7 @@ import com.meloda.app.fast.common.UiImage
 
 data class UiMessage(
     val id: Int,
+    val conversationMessageId: Int,
     val text: String?,
     val isOut: Boolean,
     val fromId: Int,

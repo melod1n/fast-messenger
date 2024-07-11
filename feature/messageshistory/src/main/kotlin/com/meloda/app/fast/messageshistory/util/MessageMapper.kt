@@ -91,6 +91,7 @@ fun VkMessage.asPresentation(
     nextMessage: VkMessage?
 ): UiMessage = UiMessage(
     id = id,
+    conversationMessageId = conversationMessageId,
     text = text,
     isOut = isOut,
     fromId = fromId,

@@ -1,27 +1,28 @@
 package com.meloda.app.fast.messageshistory.domain
 
 import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.messages.MessagesHistoryDomain
+import com.meloda.app.fast.data.api.messages.MessagesHistoryInfo
 import com.meloda.app.fast.data.api.messages.MessagesRepository
 import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.mapToState
 import com.meloda.app.fast.model.api.domain.VkAttachment
+import com.meloda.app.fast.model.api.domain.VkAttachmentHistoryMessage
 import com.meloda.app.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class MessagesUseCaseImpl(
-    private val messagesRepository: MessagesRepository
+    private val repository: MessagesRepository
 ) : MessagesUseCase {
 
     override fun getMessagesHistory(
         conversationId: Int,
         count: Int?,
         offset: Int?
-    ): Flow<State<MessagesHistoryDomain>> = flow {
+    ): Flow<State<MessagesHistoryInfo>> = flow {
         emit(State.Loading)
 
-        val newState = messagesRepository.getMessagesHistory(
+        val newState = repository.getHistory(
             conversationId = conversationId,
             offset = offset,
             count = count
@@ -31,60 +32,20 @@ class MessagesUseCaseImpl(
     }
 
     override fun getById(
-        messageId: Int,
-        extended: Boolean?,
-        fields: String?
-    ): Flow<State<VkMessage?>> = flow {
-        emit(State.Loading)
-
-        val newState = messagesRepository.getMessageById(
-            messagesIds = listOf(messageId),
-            extended = extended,
-            fields = fields
-        ).mapToState()
-        emit(newState)
-    }
-
-    override fun getByIds(
         messageIds: List<Int>,
         extended: Boolean?,
         fields: String?
-    ): Flow<State<List<VkMessage>>> = flow {}
-//        flow {
-//        emit(State.Loading)
-//
-//        val newState = messagesRepository.getById(
-//            params = MessagesGetByIdRequest(
-//                messagesIds = messageIds,
-//                extended = extended,
-//                fields = fields
-//            )
-//        ).fold(
-//            onSuccess = { response ->
-//                val messages = response.items
-//                val usersMap =
-//                    VkUsersMap.forUsers(response.profiles.orEmpty().map(VkUserData::mapToDomain))
-//                val groupsMap =
-//                    VkGroupsMap.forGroups(response.groups.orEmpty().map(VkGroupData::mapToDomain))
-//
-//                com.meloda.app.fast.network.State.Success(
-//                    messages.map { message ->
-//                        message.mapToDomain(
-//                            user = usersMap.messageUser(message),
-//                            group = groupsMap.messageGroup(message),
-//                            actionUser = usersMap.messageActionUser(message),
-//                            actionGroup = groupsMap.messageActionGroup(message)
-//                        )
-//                    }
-//                )
-//            },
-//            onNetworkFailure = { com.meloda.app.fast.network.State.Error.ConnectionError },
-//            onUnknownFailure = { com.meloda.app.fast.network.State.UNKNOWN_ERROR },
-//            onHttpFailure = { result -> result.error.toStateApiError() },
-//            onApiFailure = { result -> result.error.toStateApiError() }
-//        )
-//        emit(newState)
-//    }
+    ): Flow<State<List<VkMessage>>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.getById(
+            messagesIds = messageIds,
+            extended = extended,
+            fields = fields
+        ).mapToState()
+
+        emit(newState)
+    }
 
     override fun sendMessage(
         peerId: Int,
@@ -95,7 +56,7 @@ class MessagesUseCaseImpl(
     ): Flow<State<Int>> = flow {
         emit(State.Loading)
 
-        val newState = messagesRepository.send(
+        val newState = repository.send(
             peerId = peerId,
             randomId = randomId,
             message = message,
@@ -112,7 +73,7 @@ class MessagesUseCaseImpl(
     ): Flow<State<Int>> = flow {
         emit(State.Loading)
 
-        val newState = messagesRepository.markAsRead(
+        val newState = repository.markAsRead(
             peerId = peerId,
             startMessageId = startMessageId
         ).mapToState()
@@ -120,11 +81,31 @@ class MessagesUseCaseImpl(
         emit(newState)
     }
 
+    override fun getHistoryAttachments(
+        peerId: Int,
+        count: Int?,
+        offset: Int?,
+        attachmentTypes: List<String>,
+        conversationMessageId: Int
+    ): Flow<State<List<VkAttachmentHistoryMessage>>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.getHistoryAttachments(
+            peerId = peerId,
+            count = count,
+            offset = offset,
+            attachmentTypes = attachmentTypes,
+            conversationMessageId = conversationMessageId
+        ).mapToState()
+
+        emit(newState)
+    }
+
     override suspend fun storeMessage(message: VkMessage) {
-        messagesRepository.storeMessages(listOf(message))
+        repository.storeMessages(listOf(message))
     }
 
     override suspend fun storeMessages(messages: List<VkMessage>) {
-        messagesRepository.storeMessages(messages)
+        repository.storeMessages(messages)
     }
 }

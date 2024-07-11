@@ -40,7 +40,7 @@ val MessagesHistoryNavType = object : NavType<MessagesHistoryArguments>(isNullab
 fun NavGraphBuilder.messagesHistoryRoute(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onNavigateToChatAttachments: () -> Unit
+    onNavigateToChatAttachments: (peerId: Int, conversationMessageId: Int) -> Unit
 ) {
     composable<MessagesHistory>(
         typeMap = mapOf(typeOf<MessagesHistoryArguments>() to MessagesHistoryNavType)

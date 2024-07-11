@@ -27,6 +27,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = Configs.java.toString()
+        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
     }
     buildFeatures {
         compose = true

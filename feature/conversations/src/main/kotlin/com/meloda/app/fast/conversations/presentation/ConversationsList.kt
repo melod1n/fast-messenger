@@ -27,6 +27,7 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
+import com.meloda.app.fast.designsystem.LocalBottomPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -44,6 +45,8 @@ fun ConversationsListComposable(
     val coroutineScope = rememberCoroutineScope()
 
     val conversations = screenState.conversations
+
+    val bottomPadding = LocalBottomPadding.current
 
     LazyColumn(
         modifier = modifier,
@@ -104,6 +107,10 @@ fun ConversationsListComposable(
                     }
                 }
             }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(bottomPadding))
         }
     }
 }

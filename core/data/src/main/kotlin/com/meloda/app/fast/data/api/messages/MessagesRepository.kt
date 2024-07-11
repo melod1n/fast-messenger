@@ -1,24 +1,24 @@
 package com.meloda.app.fast.data.api.messages
 
 import com.meloda.app.fast.model.api.domain.VkAttachment
+import com.meloda.app.fast.model.api.domain.VkAttachmentHistoryMessage
 import com.meloda.app.fast.model.api.domain.VkMessage
 import com.meloda.app.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
-import kotlinx.coroutines.flow.Flow
 
 interface MessagesRepository {
 
-    suspend fun getMessagesHistory(
+    suspend fun getHistory(
         conversationId: Int,
         offset: Int?,
         count: Int?
-    ): ApiResult<MessagesHistoryDomain, RestApiErrorDomain>
+    ): ApiResult<MessagesHistoryInfo, RestApiErrorDomain>
 
-    suspend fun getMessageById(
+    suspend fun getById(
         messagesIds: List<Int>,
         extended: Boolean?,
         fields: String?
-    ): ApiResult<VkMessage, RestApiErrorDomain>
+    ): ApiResult<List<VkMessage>, RestApiErrorDomain>
 
     suspend fun send(
         peerId: Int,
@@ -33,13 +33,15 @@ interface MessagesRepository {
         startMessageId: Int?
     ): ApiResult<Int, RestApiErrorDomain>
 
-    suspend fun getMessage(messageId: Int): Flow<VkMessage?>
+    suspend fun getHistoryAttachments(
+        peerId: Int,
+        count: Int?,
+        offset: Int?,
+        attachmentTypes: List<String>,
+        conversationMessageId: Int
+    ): ApiResult<List<VkAttachmentHistoryMessage>, RestApiErrorDomain>
 
     suspend fun storeMessages(messages: List<VkMessage>)
-
-//    suspend fun getHistory(
-//        params: MessagesGetHistoryRequest
-//    ): ApiResult<MessagesGetHistoryResponse, RestApiErrorDomain>
 
 //    suspend fun markAsImportant(
 //        params: MessagesMarkAsImportantRequest

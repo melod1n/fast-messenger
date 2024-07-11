@@ -6,6 +6,7 @@ import android.os.PowerManager
 import androidx.preference.PreferenceManager
 import com.meloda.app.fast.MainViewModelImpl
 import com.meloda.app.fast.auth.authModule
+import com.meloda.app.fast.chatmaterials.di.chatMaterialsModule
 import com.meloda.app.fast.conversations.di.conversationsModule
 import com.meloda.app.fast.data.di.dataModule
 import com.meloda.app.fast.friends.di.friendsModule
@@ -32,7 +33,8 @@ val applicationModule = module {
         languagePickerModule,
         longPollModule,
         friendsModule,
-        profileModule
+        profileModule,
+        chatMaterialsModule
     )
 
     // TODO: 14/05/2024, Danil Nikolaev: research on memory leaks and potentials errors

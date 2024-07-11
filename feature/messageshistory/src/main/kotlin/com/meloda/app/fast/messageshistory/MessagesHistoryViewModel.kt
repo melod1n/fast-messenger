@@ -354,6 +354,7 @@ class MessagesHistoryViewModelImpl(
 
         val newMessage = VkMessage(
             id = -1 - sendingMessages.size,
+            conversationMessageId = -1,
             text = lastMessageText,
             isOut = true,
             peerId = screenState.value.conversationId,

@@ -8,6 +8,7 @@ import com.meloda.app.fast.model.api.domain.VkMessage
 @Entity(tableName = "messages")
 data class VkMessageEntity(
     @PrimaryKey val id: Int,
+    val conversationMessageId: Int,
     val text: String?,
     val isOut: Boolean,
     val peerId: Int,
@@ -29,6 +30,7 @@ data class VkMessageEntity(
 
 fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     id = id,
+    conversationMessageId = conversationMessageId,
     text = text,
     isOut = isOut,
     peerId = peerId,

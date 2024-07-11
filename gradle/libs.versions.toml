@@ -2,7 +2,7 @@
 agp = "8.5.0"
 converterMoshi = "2.11.0"
 eithernet = "1.9.0"
-haze = "0.7.2"
+haze = "0.7.3"
 kotlin = "2.0.0"
 ksp = "2.0.0-1.0.22"
 
@@ -26,7 +26,7 @@ nanokt = "1.2.0"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
-androidx-navigation = "2.8.0-beta04"
+androidx-navigation = "2.8.0-beta05"
 serialization = "1.7.1"
 
 [libraries]
@@ -47,7 +47,6 @@ compose-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 eithernet = { module = "com.slack.eithernet:eithernet", version.ref = "eithernet" }
-eithernet-retrofit-integration = { module = "com.slack.eithernet:eithernet-integration-retrofit", version.ref = "eithernet" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 junit = { module = "junit:junit", version.ref = "junit" }

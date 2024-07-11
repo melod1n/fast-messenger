@@ -5,16 +5,20 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -61,6 +65,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
@@ -70,6 +75,8 @@ import com.meloda.app.fast.conversations.ConversationsViewModel
 import com.meloda.app.fast.conversations.ConversationsViewModelImpl
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
+import com.meloda.app.fast.designsystem.LocalBottomPadding
+import com.meloda.app.fast.designsystem.LocalHazeState
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.components.FullScreenLoader
@@ -142,7 +149,8 @@ fun ConversationsScreen(
         }
     }
 
-    val hazeState = remember { HazeState() }
+//    val hazeState = remember { HazeState() }
+    val hazeState = LocalHazeState.current
 
     var dropDownMenuExpanded by remember {
         mutableStateOf(false)
@@ -252,38 +260,42 @@ fun ConversationsScreen(
             val scope = rememberCoroutineScope()
             val rotation = remember { Animatable(0f) }
 
-            AnimatedVisibility(
-                visible = isListScrollingUp,
-                modifier = Modifier.navigationBarsPadding(),
-                enter = slideIn { IntOffset(0, 400) },
-                exit = slideOut { IntOffset(0, 400) }
-            ) {
-                FloatingActionButton(
-                    onClick = {
-                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+            Column {
+                AnimatedVisibility(
+                    visible = isListScrollingUp,
+                    modifier = Modifier.navigationBarsPadding(),
+                    enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
+                    exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
+                ) {
+                    FloatingActionButton(
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
 
-                        scope.launch {
-                            for (i in 20 downTo 0 step 4) {
-                                rotation.animateTo(
-                                    targetValue = i.toFloat(),
-                                    animationSpec = tween(50)
-                                )
-                                if (i > 0) {
+                            scope.launch {
+                                for (i in 20 downTo 0 step 4) {
                                     rotation.animateTo(
-                                        targetValue = -i.toFloat(),
+                                        targetValue = i.toFloat(),
                                         animationSpec = tween(50)
                                     )
+                                    if (i > 0) {
+                                        rotation.animateTo(
+                                            targetValue = -i.toFloat(),
+                                            animationSpec = tween(50)
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    },
-                    modifier = Modifier.rotate(rotation.value)
-                ) {
-                    Icon(
-                        painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
-                        contentDescription = "Add chat button"
-                    )
+                        },
+                        modifier = Modifier.rotate(rotation.value)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
+                            contentDescription = "Add chat button"
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }
         }
     ) { padding ->
