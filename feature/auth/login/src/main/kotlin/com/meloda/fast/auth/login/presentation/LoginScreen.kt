@@ -62,7 +62,6 @@ import com.meloda.fast.auth.login.model.LoginCaptchaArguments
 import com.meloda.fast.auth.login.model.LoginError
 import com.meloda.fast.auth.login.model.LoginTwoFaArguments
 import com.meloda.fast.auth.login.model.LoginUserBannedArguments
-import com.theapache64.rebugger.Rebugger
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
@@ -337,30 +336,6 @@ fun LoginScreen(
     HandleError(
         onDismiss = viewModel::onErrorDialogDismissed,
         error = loginError
-    )
-
-    Rebugger(
-        trackMap = mapOf(
-            "onError" to onError,
-            "onNavigateToUserBanned" to onNavigateToUserBanned,
-            "onNavigateToMain" to onNavigateToMain,
-            "onNavigateToCaptcha" to onNavigateToCaptcha,
-            "onNavigateToTwoFa" to onNavigateToTwoFa,
-            "viewModel" to viewModel,
-            "screenState" to screenState,
-            "isNeedToOpenMain" to isNeedToOpenMain,
-            "userBannedArguments" to userBannedArguments,
-            "captchaArguments" to captchaArguments,
-            "twoFaArguments" to twoFaArguments,
-            "loginError" to loginError,
-            "focusManager" to focusManager,
-            "loginText" to loginText,
-            "showLoginError" to showLoginError,
-            "autoFillEmailHandler" to autoFillEmailHandler,
-            "passwordText" to passwordText,
-            "showPasswordError" to showPasswordError,
-            "autoFillPasswordHandler" to autoFillPasswordHandler,
-        ),
     )
 }
 

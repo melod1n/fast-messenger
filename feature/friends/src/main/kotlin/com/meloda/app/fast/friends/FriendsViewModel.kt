@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
+// TODO: 13/07/2024, Danil Nikolaev: separate two lists and their pagination
 interface FriendsViewModel {
 
     val screenState: StateFlow<FriendsScreenState>
