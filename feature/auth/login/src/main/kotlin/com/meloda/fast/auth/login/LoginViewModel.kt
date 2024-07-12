@@ -135,11 +135,26 @@ class LoginViewModelImpl(
             UserConfig.trustedHash = account.trustedHash
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            accountsRepository.storeAccounts(listOf(currentAccount))
+        usersUseCase.get(
+            userIds = null,
+            fields = VkConstants.USER_FIELDS,
+            nomCase = null
+        ).listenValue { state ->
+            state.processState(
+                error = { error ->
 
-            delay(350)
-            screenState.setValue { old -> old.copy(isNeedToNavigateToMain = true) }
+                },
+                success = { response ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        accountsRepository.storeAccounts(listOf(currentAccount))
+
+                        delay(350)
+                        screenState.setValue { old -> old.copy(isNeedToNavigateToMain = true) }
+                    }
+                }
+            )
+
+            screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
         }
     }
 
@@ -177,16 +192,11 @@ class LoginViewModelImpl(
                         return@processState
                     }
 
-                    usersUseCase.getUserById(
-                        userId = userId,
+                    usersUseCase.get(
+                        userIds = listOf(userId),
                         fields = VkConstants.USER_FIELDS,
                         nomCase = null
-                    ).listenValue { state ->
-                        state.processState(
-                            error = {},
-                            success = { user -> user?.let { usersUseCase.storeUser(user) } }
-                        )
-                    }
+                    )
 
                     val currentAccount = AccountEntity(
                         userId = userId,

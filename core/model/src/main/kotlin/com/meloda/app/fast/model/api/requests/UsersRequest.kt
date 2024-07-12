@@ -9,7 +9,7 @@ data class UsersGetRequest(
     val map
         get() = mutableMapOf<String, String>()
             .apply {
-                userIds?.let { this["user_ids"] = it.joinToString() }
+                userIds?.let { this["user_ids"] = it.joinToString(",") }
                 fields?.let { this["fields"] = it }
                 nomCase?.let { this["nom_case"] = it }
             }

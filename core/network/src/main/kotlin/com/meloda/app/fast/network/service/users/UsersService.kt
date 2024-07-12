@@ -12,7 +12,7 @@ interface UsersService {
 
     @FormUrlEncoded
     @POST(UsersUrls.GET_BY_ID)
-    suspend fun getById(
+    suspend fun get(
         @FieldMap params: Map<String, String>?
     ): ApiResult<ApiResponse<List<VkUserData>>, RestApiError>
 }

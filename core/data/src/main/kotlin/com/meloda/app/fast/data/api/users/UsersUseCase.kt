@@ -6,17 +6,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface UsersUseCase {
 
-    fun getUserById(
-        userId: Int,
-        fields: String?,
-        nomCase: String?
-    ): Flow<State<VkUser?>>
-
-    fun getUsersByIds(
-        userIds: List<Int>,
+    fun get(
+        userIds: List<Int>?,
         fields: String?,
         nomCase: String?
     ): Flow<State<List<VkUser>>>
+
+    fun getLocalUser(userId: Int): Flow<State<VkUser?>>
 
     suspend fun storeUser(user: VkUser)
     suspend fun storeUsers(users: List<VkUser>)

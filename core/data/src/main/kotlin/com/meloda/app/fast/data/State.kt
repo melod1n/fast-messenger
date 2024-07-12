@@ -42,12 +42,22 @@ inline fun <T> State<T>.processState(
     success: (data: T) -> (Unit),
     idle: (() -> (Unit)) = {},
     loading: (() -> (Unit)) = {},
+    any: () -> Unit = {}
 ) {
     when (this) {
-        is State.Error -> error(this)
+        is State.Error -> {
+            error(this)
+            any()
+        }
+
         State.Idle -> idle()
+
         State.Loading -> loading()
-        is State.Success -> success(data)
+
+        is State.Success -> {
+            success(data)
+            any()
+        }
     }
 }
 
