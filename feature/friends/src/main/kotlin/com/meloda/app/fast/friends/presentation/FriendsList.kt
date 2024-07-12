@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.designsystem.ImmutableList
+import com.meloda.app.fast.designsystem.LocalBottomPadding
 import com.meloda.app.fast.friends.model.FriendsScreenState
 import com.meloda.app.fast.friends.model.UiFriend
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +39,8 @@ fun FriendsList(
     val coroutineScope = rememberCoroutineScope()
 
     val friends = uiFriends.toList()
+
+    val bottomPadding = LocalBottomPadding.current
 
     LazyColumn(
         modifier = modifier,
@@ -90,6 +93,10 @@ fun FriendsList(
                     }
                 }
             }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(bottomPadding))
         }
     }
 }

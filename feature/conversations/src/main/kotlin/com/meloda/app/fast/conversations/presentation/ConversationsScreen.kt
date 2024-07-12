@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
@@ -82,7 +81,6 @@ import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.components.FullScreenLoader
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.ErrorView
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -149,7 +147,6 @@ fun ConversationsScreen(
         }
     }
 
-//    val hazeState = remember { HazeState() }
     val hazeState = LocalHazeState.current
 
     var dropDownMenuExpanded by remember {

@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.meloda.app.fast.designsystem.ImmutableList
+import com.meloda.app.fast.designsystem.LocalHazeState
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.TabItem
 import com.meloda.app.fast.designsystem.components.BlurrableTopAppBar
@@ -57,7 +58,6 @@ import com.meloda.app.fast.friends.FriendsViewModel
 import com.meloda.app.fast.friends.FriendsViewModelImpl
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.ErrorView
-import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -113,7 +113,7 @@ fun FriendsScreen(
         }
     }
 
-    val hazeState = remember { HazeState() }
+    val hazeState = LocalHazeState.current
 
     val pullToRefreshAlpha by animateFloatAsState(
         targetValue = if (!listState.canScrollBackward) 1f else 0f,
