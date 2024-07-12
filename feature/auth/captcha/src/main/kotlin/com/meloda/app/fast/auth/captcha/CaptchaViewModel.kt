@@ -10,6 +10,7 @@ import com.meloda.app.fast.common.extensions.updateValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import java.net.URLDecoder
 
 interface CaptchaViewModel {
     val screenState: StateFlow<CaptchaScreenState>
@@ -37,7 +38,7 @@ class CaptchaViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 captchaSid = arguments.captchaSid,
-                captchaImage = arguments.captchaImage
+                captchaImage = URLDecoder.decode(arguments.captchaImage, "utf-8")
             )
         }
     }

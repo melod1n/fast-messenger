@@ -38,7 +38,7 @@ fun NavGraphBuilder.authNavGraph(
                 navController.navigateToCaptcha(
                     CaptchaArguments(
                         arguments.captchaSid,
-                        arguments.captchaImage
+                        URLEncoder.encode(arguments.captchaImage, "utf-8")
                     )
                 )
             },
