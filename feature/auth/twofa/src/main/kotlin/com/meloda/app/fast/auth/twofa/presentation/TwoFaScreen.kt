@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.auth.twofa.TwoFaViewModel
 import com.meloda.app.fast.auth.twofa.TwoFaViewModelImpl
-import com.meloda.app.fast.auth.twofa.model.TwoFaUiAction
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
@@ -51,16 +51,17 @@ import com.meloda.app.fast.designsystem.getString
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-private typealias OnAction = (TwoFaUiAction) -> Unit
-
 @Composable
 fun TwoFaScreen(
-    onAction: OnAction,
+    onBack: () -> Unit,
+    onCodeResult: (code: String) -> Unit,
     viewModel: TwoFaViewModel = koinViewModel<TwoFaViewModelImpl>(),
 ) {
     val focusManager = LocalFocusManager.current
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    val isNeedToOpenLogin by viewModel.isNeedToOpenLogin.collectAsStateWithLifecycle()
 
     var confirmedExit by rememberSaveable {
         mutableStateOf(false)
@@ -70,8 +71,10 @@ fun TwoFaScreen(
         mutableStateOf(false)
     }
 
-    if (confirmedExit) {
-        onAction(TwoFaUiAction.BackClicked)
+    LaunchedEffect(confirmedExit) {
+        if (confirmedExit) {
+            onBack()
+        }
     }
 
     BackHandler(enabled = !confirmedExit) {
@@ -93,16 +96,21 @@ fun TwoFaScreen(
         )
     }
 
-    if (screenState.isNeedToOpenLogin) {
-        viewModel.onNavigatedToLogin()
+    LaunchedEffect(isNeedToOpenLogin) {
+        if (isNeedToOpenLogin) {
+            viewModel.onNavigatedToLogin()
 
-        val code = screenState.twoFaCode
-        if (code == null) {
-            onAction(TwoFaUiAction.BackClicked)
-        } else {
-            onAction(TwoFaUiAction.CodeResult(code = code))
+            val code = screenState.twoFaCode
+            if (code == null) {
+                onBack()
+            } else {
+                onCodeResult(code)
+            }
         }
     }
+
+    var code by remember { mutableStateOf(TextFieldValue(screenState.twoFaCode.orEmpty())) }
+    val codeError = screenState.codeError
 
     Scaffold { padding ->
         Column(
@@ -113,7 +121,7 @@ fun TwoFaScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             ExtendedFloatingActionButton(
-                onClick = { onAction(TwoFaUiAction.BackClicked) },
+                onClick = onBack,
                 text = {
                     Text(
                         text = "Cancel",
@@ -154,9 +162,6 @@ fun TwoFaScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-
-                var code by remember { mutableStateOf(TextFieldValue(screenState.twoFaCode.orEmpty())) }
-                val codeError = screenState.codeError
 
                 TextField(
                     value = code,

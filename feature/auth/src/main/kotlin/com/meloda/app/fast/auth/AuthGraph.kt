@@ -2,7 +2,6 @@ package com.meloda.app.fast.auth
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import com.meloda.app.fast.auth.captcha.model.CaptchaArguments
 import com.meloda.app.fast.auth.captcha.navigation.captchaRoute
@@ -20,6 +19,7 @@ import com.meloda.fast.auth.login.navigation.Logo
 import com.meloda.fast.auth.login.navigation.loginRoute
 import com.meloda.fast.auth.login.navigation.navigateToLogin
 import kotlinx.serialization.Serializable
+import java.net.URLEncoder
 
 @Serializable
 object AuthGraph
@@ -27,7 +27,7 @@ object AuthGraph
 fun NavGraphBuilder.authNavGraph(
     onError: (BaseError) -> Unit,
     onNavigateToMain: () -> Unit,
-    navController: NavHostController
+    navController: NavController
 ) {
     navigation<AuthGraph>(
         startDestination = Logo
@@ -46,7 +46,7 @@ fun NavGraphBuilder.authNavGraph(
                 navController.navigateToTwoFa(
                     TwoFaArguments(
                         validationSid = arguments.validationSid,
-                        redirectUri = arguments.redirectUri,
+                        redirectUri = URLEncoder.encode(arguments.redirectUri, "utf-8"),
                         phoneMask = arguments.phoneMask,
                         validationType = arguments.validationType,
                         canResendSms = arguments.canResendSms,
@@ -70,7 +70,10 @@ fun NavGraphBuilder.authNavGraph(
         )
 
         twoFaRoute(
-            onBack = navController::navigateUp,
+            onBack = {
+                navController.navigateUp()
+                navController.setTwoFaResult(null)
+            },
             onResult = { code ->
                 navController.popBackStack()
                 navController.setTwoFaResult(code)
@@ -78,7 +81,10 @@ fun NavGraphBuilder.authNavGraph(
         )
 
         captchaRoute(
-            onBack = navController::navigateUp,
+            onBack = {
+                navController.navigateUp()
+                navController.setCaptchaResult(null)
+            },
             onResult = { code ->
                 navController.popBackStack()
                 navController.setCaptchaResult(code)

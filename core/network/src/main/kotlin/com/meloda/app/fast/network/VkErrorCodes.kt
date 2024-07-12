@@ -51,10 +51,12 @@ object VkOAuthErrors {
     const val NEED_CAPTCHA = "need_captcha"
     const val INVALID_CLIENT = "invalid_client"
     const val INVALID_REQUEST = "invalid_request"
+    const val FLOOD_CONTROL = "9;Flood control"
 
 }
 
 object VkErrorTypes {
     const val WRONG_OTP_FORMAT = "otp_format_is_incorrect"
     const val WRONG_OTP = "wrong_otp"
+    const val PASSWORD_BRUTEFORCE_ATTEMPT = "password_bruteforce_attempt"
 }

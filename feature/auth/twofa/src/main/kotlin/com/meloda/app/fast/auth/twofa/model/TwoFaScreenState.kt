@@ -9,7 +9,6 @@ data class TwoFaScreenState(
     val canResendSms: Boolean,
     val codeError: String?,
     val delayTime: Int,
-    val isNeedToOpenLogin: Boolean,
     val phoneMask: String
 ) {
 
@@ -21,7 +20,6 @@ data class TwoFaScreenState(
             canResendSms = false,
             codeError = null,
             delayTime = 0,
-            isNeedToOpenLogin = false,
             phoneMask = ""
         )
     }

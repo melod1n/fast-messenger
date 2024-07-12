@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -299,7 +300,35 @@ fun ConversationItem(
                             LocalContentAlpha(alpha = ContentAlpha.medium) {
                                 Text(
                                     modifier = Modifier.weight(1f),
-                                    text = conversation.message,
+                                    text = kotlin.run {
+                                        val builder =
+                                            AnnotatedString.Builder(conversation.message.text)
+
+                                        conversation.message.spanStyles.map { spanStyleRange ->
+                                            val updatedSpanStyle =
+                                                if (spanStyleRange.item.color == Color.Red) {
+                                                    spanStyleRange.item.copy(color = MaterialTheme.colorScheme.primary)
+                                                } else {
+                                                    spanStyleRange.item
+                                                }
+
+                                            builder.addStyle(
+                                                style = updatedSpanStyle,
+                                                start = spanStyleRange.start,
+                                                end = spanStyleRange.end
+                                            )
+                                        }
+
+                                        conversation.message.paragraphStyles.forEach { style ->
+                                            builder.addStyle(
+                                                style = style.item,
+                                                start = style.start,
+                                                end = style.end
+                                            )
+                                        }
+
+                                        builder.toAnnotatedString()
+                                    },
                                     minLines = 1,
                                     maxLines = maxLines,
                                     style = MaterialTheme.typography.bodyLarge,

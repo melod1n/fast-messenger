@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,7 @@ fun CaptchaScreen(
     viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val isNeedToOpenLogin by viewModel.isNeedToOpenLogin.collectAsStateWithLifecycle()
 
     var confirmedExit by rememberSaveable {
         mutableStateOf(false)
@@ -70,8 +72,10 @@ fun CaptchaScreen(
         mutableStateOf(false)
     }
 
-    if (confirmedExit) {
-        onBack()
+    LaunchedEffect(confirmedExit) {
+        if (confirmedExit) {
+            onBack()
+        }
     }
 
     BackHandler(enabled = !confirmedExit) {
@@ -93,9 +97,11 @@ fun CaptchaScreen(
         )
     }
 
-    if (screenState.isNeedToOpenLogin) {
-        viewModel.onNavigatedToLogin()
-        onResult(screenState.captchaCode)
+    LaunchedEffect(isNeedToOpenLogin) {
+        if (isNeedToOpenLogin) {
+            viewModel.onNavigatedToLogin()
+            onResult(screenState.captchaCode)
+        }
     }
 
     val focusManager = LocalFocusManager.current

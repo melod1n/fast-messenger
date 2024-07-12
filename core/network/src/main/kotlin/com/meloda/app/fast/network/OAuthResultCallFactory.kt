@@ -110,6 +110,11 @@ internal class ResultCall<R : Any, E : OAuthError>(
                         .fromJson(errorBodyString.orEmpty()) ?: return
 
                     val error: OAuthError? = when (baseError.error) {
+                        "9;Flood control" -> {
+                            moshi.adapter(TooManyTriesError::class.java)
+                                .fromJson(errorBodyString.orEmpty())
+                        }
+
                         "invalid_client" -> {
                             moshi.adapter(InvalidCredentialsError::class.java)
                                 .fromJson(errorBodyString.orEmpty())
@@ -123,12 +128,12 @@ internal class ResultCall<R : Any, E : OAuthError>(
                         "invalid_request" -> {
                             when (val type = baseError.errorType) {
                                 "wrong_otp" -> {
-                                    moshi.adapter(WrongTwoFaCode::class.java)
+                                    moshi.adapter(WrongTwoFaCodeError::class.java)
                                         .fromJson(errorBodyString.orEmpty())
                                 }
 
                                 "otp_format_is_incorrect" -> {
-                                    moshi.adapter(WrongTwoFaCodeFormat::class.java)
+                                    moshi.adapter(WrongTwoFaCodeFormatError::class.java)
                                         .fromJson(errorBodyString.orEmpty())
                                 }
 

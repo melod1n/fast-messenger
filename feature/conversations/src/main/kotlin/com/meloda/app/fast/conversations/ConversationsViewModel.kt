@@ -222,7 +222,7 @@ class ConversationsViewModelImpl(
     private fun loadConversations(
         offset: Int = currentOffset.value
     ) {
-        conversationsUseCase.getConversations(count = 30, offset = offset).listenValue { state ->
+        conversationsUseCase.getConversations(count = LOAD_COUNT, offset = offset).listenValue { state ->
             state.processState(
                 error = { error ->
                     when (error) {
@@ -247,7 +247,7 @@ class ConversationsViewModelImpl(
                     }
                 },
                 success = { response ->
-                    val itemsCountSufficient = response.size == 30
+                    val itemsCountSufficient = response.size == LOAD_COUNT
                     canPaginate.setValue { itemsCountSufficient }
 
                     val paginationExhausted = !itemsCountSufficient &&
@@ -620,6 +620,10 @@ class ConversationsViewModelImpl(
         screenState.setValue { old ->
             old.copy(conversations = uiConversations)
         }
+    }
+
+    companion object {
+        const val LOAD_COUNT = 30
     }
 }
 

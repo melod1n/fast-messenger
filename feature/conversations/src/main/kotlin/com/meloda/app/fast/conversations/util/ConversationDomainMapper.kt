@@ -611,6 +611,7 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.AUDIO_PLAYLIST -> null
         AttachmentType.PODCAST -> null
         AttachmentType.NARRATIVE -> null
+        AttachmentType.ARTICLE -> null
     }?.let(UiImage::Resource)
 }
 
@@ -660,18 +661,14 @@ private fun getTextWithVisualizedMentions(
     var currentIndex = 0
     val replacements = mutableListOf<Pair<IntRange, String>>()
 
-    // TODO: 25/04/2024, Danil Nikolaev: check why not working ([id279494346|@iworld2rist] да убери ты Елену Шлипс от меня)
     val result = regex.replace(originalText) { matchResult ->
         val idPrefix = matchResult.groups[1]?.value.orEmpty()
         val startIndex = matchResult.range.first
         val endIndex = matchResult.range.last
 
         val id = matchResult.groups[2]?.value ?: ""
-        val text = matchResult.groups[3]?.value ?: ""
 
-        val replaced =
-            text.substring(startIndex, endIndex + 1)
-                .replace("[$idPrefix$id|$text]", text)
+        val replaced = matchResult.groups[3]?.value.orEmpty()
 
         val indexRange =
             (startIndex + currentIndex)..startIndex + currentIndex + replaced.length
@@ -757,6 +754,7 @@ private fun getAttachmentUiText(
         AttachmentType.AUDIO_PLAYLIST -> UiR.string.message_attachments_audio_playlist
         AttachmentType.PODCAST -> UiR.string.message_attachments_podcast
         AttachmentType.NARRATIVE -> UiR.string.message_attachments_narrative
+        AttachmentType.ARTICLE -> UiR.string.message_attachments_article
     }.let(UiText::Resource)
 }
 

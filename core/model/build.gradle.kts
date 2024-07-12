@@ -32,6 +32,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
 
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
+
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)

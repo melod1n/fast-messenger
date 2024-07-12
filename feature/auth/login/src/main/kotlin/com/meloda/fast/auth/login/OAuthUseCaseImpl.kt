@@ -44,6 +44,10 @@ class OAuthUseCaseImpl(
                 )
             }
 
+            VkOAuthErrors.FLOOD_CONTROL -> {
+                State.Error.OAuthError(OAuthErrorDomain.TooManyTriesError)
+            }
+
             VkOAuthErrors.NEED_VALIDATION -> {
                 if (response.banInfo != null) {
                     val info = requireNotNull(response.banInfo)

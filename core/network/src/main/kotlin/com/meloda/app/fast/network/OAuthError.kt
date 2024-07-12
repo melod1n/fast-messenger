@@ -75,7 +75,7 @@ data class InvalidCredentialsError(
 )
 
 @JsonClass(generateAdapter = true)
-data class WrongTwoFaCode(
+data class WrongTwoFaCodeError(
     @Json(name = "error") override val error: String, // "invalid_request"
     @Json(name = "error_description") override val errorDescription: String,
     @Json(name = "error_type") override val errorType: String // "wrong_otp"
@@ -86,10 +86,21 @@ data class WrongTwoFaCode(
 )
 
 @JsonClass(generateAdapter = true)
-data class WrongTwoFaCodeFormat(
+data class WrongTwoFaCodeFormatError(
     @Json(name = "error") override val error: String, // "invalid_request"
     @Json(name = "error_description") override val errorDescription: String,
     @Json(name = "error_type") override val errorType: String // "otp_format_is_incorrect"
+) : OAuthError(
+    error = error,
+    errorDescription = errorDescription,
+    errorType = errorType
+)
+
+@JsonClass(generateAdapter = true)
+data class TooManyTriesError(
+    @Json(name = "error") override val error: String, // "9;Flood control"
+    @Json(name = "error_description") override val errorDescription: String,
+    @Json(name = "error_type") override val errorType: String // "password_bruteforce_attempt"
 ) : OAuthError(
     error = error,
     errorDescription = errorDescription,
@@ -129,12 +140,16 @@ fun OAuthError.toDomain(): OAuthErrorDomain? = when (this) {
         OAuthErrorDomain.InvalidCredentialsError
     }
 
-    is WrongTwoFaCode -> {
+    is WrongTwoFaCodeError -> {
         OAuthErrorDomain.WrongTwoFaCode
     }
 
-    is WrongTwoFaCodeFormat -> {
+    is WrongTwoFaCodeFormatError -> {
         OAuthErrorDomain.WrongTwoFaCodeFormat
+    }
+
+    is TooManyTriesError -> {
+        OAuthErrorDomain.TooManyTriesError
     }
 
     else -> null

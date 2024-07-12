@@ -1,10 +1,8 @@
 package com.meloda.app.fast.auth.twofa
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.app.fast.auth.twofa.model.TwoFaArguments
 import com.meloda.app.fast.auth.twofa.model.TwoFaScreenState
 import com.meloda.app.fast.auth.twofa.model.TwoFaValidationType
 import com.meloda.app.fast.auth.twofa.navigation.TwoFa
@@ -20,12 +18,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
 interface TwoFaViewModel {
 
     val screenState: StateFlow<TwoFaScreenState>
+
+    val isNeedToOpenLogin: StateFlow<Boolean>
 
     fun onCodeInputChanged(newCode: String)
 
@@ -36,8 +37,6 @@ interface TwoFaViewModel {
     fun onDoneButtonClicked()
 
     fun onNavigatedToLogin()
-
-    fun setArguments(arguments: TwoFaArguments)
 }
 
 class TwoFaViewModelImpl(
@@ -47,6 +46,8 @@ class TwoFaViewModelImpl(
 ) : TwoFaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(TwoFaScreenState.EMPTY)
+
+    override val isNeedToOpenLogin = MutableStateFlow(false)
 
     private var delayJob: Job? = null
 
@@ -88,12 +89,8 @@ class TwoFaViewModelImpl(
     }
 
     override fun onCancelButtonClicked() {
-        screenState.updateValue(
-            screenState.value.copy(
-                twoFaCode = null,
-                isNeedToOpenLogin = true
-            )
-        )
+        screenState.setValue { old -> old.copy(twoFaCode = null) }
+        isNeedToOpenLogin.update { true }
     }
 
     override fun onRequestSmsButtonClicked() {
@@ -107,25 +104,12 @@ class TwoFaViewModelImpl(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
-        screenState.updateValue(screenState.value.copy(isNeedToOpenLogin = true))
+        isNeedToOpenLogin.update { true }
     }
 
     override fun onNavigatedToLogin() {
         screenState.updateValue(TwoFaScreenState.EMPTY)
-    }
-
-    override fun setArguments(arguments: TwoFaArguments) {
-        Log.d("TwoFaViewModel", "TwoFaArguments: $arguments")
-
-//        screenState.updateValue(
-//            screenState.value.copy(
-//                twoFaSid = arguments.validationSid,
-//                canResendSms = arguments.canResendSms,
-//                codeError = arguments.wrongCodeError,
-//                twoFaText = getTwoFaText(TwoFaValidationType.parse(arguments.validationType)),
-//                phoneMask = arguments.phoneMask
-//            )
-//        )
+        isNeedToOpenLogin.update { false }
     }
 
     private fun processValidation(): Boolean {
@@ -147,7 +131,9 @@ class TwoFaViewModelImpl(
         authUseCase.sendSms(validationSid)
             .listenValue { state ->
                 state.processState(
-                    error = { error -> },
+                    error = { error ->
+
+                    },
                     success = { response ->
                         val newValidationType = response.validationType
                         val newCanResendSms = response.validationResend == "sms"

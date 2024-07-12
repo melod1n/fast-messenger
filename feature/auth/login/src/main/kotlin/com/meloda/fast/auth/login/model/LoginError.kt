@@ -1,6 +1,12 @@
 package com.meloda.fast.auth.login.model
 
-sealed interface LoginError {
+import androidx.compose.runtime.Immutable
 
-    data object WrongCredentials : LoginError
+@Immutable
+sealed class LoginError {
+    data object Unknown : LoginError()
+    data object WrongCredentials : LoginError()
+    data object TooManyTries : LoginError()
+    data object WrongTwoFaCode : LoginError()
+    data object WrongTwoFaCodeFormat : LoginError()
 }

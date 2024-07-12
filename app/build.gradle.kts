@@ -151,7 +151,7 @@ dependencies {
     // Coil for Compose
     implementation(libs.coil.compose)
 
-    androidTestImplementation(libs.compose.ui.test.junit4)
+//    androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
     debugImplementation(libs.compose.ui.tooling)
 

@@ -40,12 +40,15 @@ class OAuthRepositoryImpl(
                 requireNotNull(result.error)
             }
 
-            else -> throw IllegalStateException("Unknown result")
+            is ApiResult.Failure.ApiFailure -> TODO()
 
-//            is ApiResult.Failure.ApiFailure -> TODO()
-//            is ApiResult.Failure.HttpFailure -> TODO()
-//            is ApiResult.Failure.NetworkFailure -> TODO()
-//            is ApiResult.Failure.UnknownFailure -> TODO()
+            is ApiResult.Failure.NetworkFailure -> {
+                // TODO: 13/07/2024, Danil Nikolaev: implement showing network error
+                TODO()
+            }
+            is ApiResult.Failure.UnknownFailure -> TODO()
+
+            else -> throw IllegalStateException("Unknown result")
         }
     }
 }

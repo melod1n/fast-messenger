@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.meloda.app.fast.auth.twofa.model.TwoFaArguments
-import com.meloda.app.fast.auth.twofa.model.TwoFaUiAction
 import com.meloda.app.fast.auth.twofa.presentation.TwoFaScreen
 import com.meloda.app.fast.common.customNavType
 import kotlinx.serialization.Serializable
@@ -28,12 +27,8 @@ fun NavGraphBuilder.twoFaRoute(
 ) {
     composable<TwoFa>(typeMap = TwoFa.typeMap) {
         TwoFaScreen(
-            onAction = { action ->
-                when (action) {
-                    TwoFaUiAction.BackClicked -> onBack()
-                    is TwoFaUiAction.CodeResult -> onResult(action.code)
-                }
-            }
+            onBack = onBack,
+            onCodeResult = onResult
         )
     }
 }
@@ -42,8 +37,10 @@ fun NavController.navigateToTwoFa(arguments: TwoFaArguments) {
     this.navigate(TwoFa(arguments))
 }
 
-fun NavController.setTwoFaResult(code: String) {
+fun NavController.setTwoFaResult(code: String?) {
     this.currentBackStackEntry
         ?.savedStateHandle
         ?.set("twofacode", code)
 }
+
+

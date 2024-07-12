@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Parcelize
-data class CaptchaArguments(
-    val captchaSid: String,
-    val captchaImage: String
+data class LoginUserBannedArguments(
+    val name: String,
+    val message: String,
+    val restoreUrl: String,
+    val accessToken: String
 ) : Parcelable

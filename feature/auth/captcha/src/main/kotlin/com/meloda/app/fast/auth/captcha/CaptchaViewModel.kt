@@ -2,7 +2,6 @@ package com.meloda.app.fast.auth.captcha
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.auth.captcha.model.CaptchaArguments
 import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
 import com.meloda.app.fast.auth.captcha.navigation.Captcha
 import com.meloda.app.fast.auth.captcha.validation.CaptchaValidator
@@ -13,15 +12,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 interface CaptchaViewModel {
-
     val screenState: StateFlow<CaptchaScreenState>
+    val isNeedToOpenLogin: StateFlow<Boolean>
 
     fun onCodeInputChanged(newCode: String)
 
     fun onTextFieldDoneClicked()
     fun onDoneButtonClicked()
-
-    fun setArguments(arguments: CaptchaArguments)
 
     fun onNavigatedToLogin()
 }
@@ -32,6 +29,7 @@ class CaptchaViewModelImpl(
 ) : CaptchaViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
+    override val isNeedToOpenLogin = MutableStateFlow(false)
 
     init {
         val arguments = Captcha.from(savedStateHandle).arguments
@@ -57,20 +55,12 @@ class CaptchaViewModelImpl(
     override fun onDoneButtonClicked() {
         if (!processValidation()) return
 
-        screenState.updateValue(screenState.value.copy(isNeedToOpenLogin = true))
-    }
-
-    override fun setArguments(arguments: CaptchaArguments) {
-//        screenState.updateValue(
-//            screenState.value.copy(
-//                captchaSid = arguments.captchaSid,
-//                captchaImage = arguments.captchaImage
-//            )
-//        )
+        isNeedToOpenLogin.update { true }
     }
 
     override fun onNavigatedToLogin() {
         screenState.updateValue(CaptchaScreenState.EMPTY)
+        isNeedToOpenLogin.update { false }
     }
 
     private fun processValidation(): Boolean {

@@ -31,7 +31,8 @@ data class VkAttachmentItemData(
     @Json(name = "audios") val audios: List<VkAudioData>?,
     @Json(name = "audio_playlist") val audioPlaylist: VkAudioPlaylistData?,
     @Json(name = "podcast") val podcast: VkPodcastData?,
-    @Json(name = "narrative") val narrative: VkNarrativeData?
+    @Json(name = "narrative") val narrative: VkNarrativeData?,
+    @Json(name = "article") val article: VkArticleData?
 ) {
     fun toDomain(): VkAttachment = when (AttachmentType.parse(type)) {
         AttachmentType.UNKNOWN -> VkUnknownAttachment
@@ -58,5 +59,6 @@ data class VkAttachmentItemData(
         AttachmentType.AUDIO_PLAYLIST -> audioPlaylist?.toDomain()
         AttachmentType.PODCAST -> podcast?.toDomain()
         AttachmentType.NARRATIVE -> narrative?.toDomain()
+        AttachmentType.ARTICLE -> article?.toDomain()
     } ?: VkUnknownAttachment
 }

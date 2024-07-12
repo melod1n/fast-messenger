@@ -89,4 +89,6 @@ dependencies {
     implementation(libs.eithernet)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlin.serialization)
+
+    implementation(libs.rebugger)
 }

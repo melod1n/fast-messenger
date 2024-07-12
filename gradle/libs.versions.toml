@@ -5,6 +5,7 @@ eithernet = "1.9.0"
 haze = "0.7.3"
 kotlin = "2.0.0"
 ksp = "2.0.0-1.0.22"
+vkompose = "0.5.4-k2"
 
 accompanist = "0.34.0"
 coil = "2.6.0"
@@ -28,6 +29,7 @@ espressoCore = "3.6.1"
 appcompat = "1.7.0"
 androidx-navigation = "2.8.0-beta05"
 serialization = "1.7.1"
+rebugger = "1.0.0-rc03"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
@@ -80,6 +82,8 @@ appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "a
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
+rebugger = { module = "io.github.theapache64:rebugger-android", version.ref = "rebugger" }
+
 [bundles]
 compose = [
     "compose-material3",
@@ -100,3 +104,4 @@ com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" 
 org-jetbrains-kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+com-vk-vkompose = { id = "com.vk.vkompose", version.ref = "vkompose" }
