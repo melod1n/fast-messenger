@@ -3,10 +3,13 @@ package com.meloda.app.fast.chatmaterials.presentation
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -52,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -126,20 +130,26 @@ fun ChatMaterialsScreen(
 
     Log.d("ChatMaterialsScreen", "ChatMaterialsScreen: canScrollBackward: $canScrollBackward")
 
-    val toolbarColorAlpha by animateFloatAsState(
-        targetValue = if (!canScrollBackward) 1f else 0f,
+    val topBarContainerColorAlpha by animateFloatAsState(
+        targetValue = if (!currentTheme.usingBlur || !canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
-    val toolbarContainerColor by animateColorAsState(
+    val topBarContainerColor by animateColorAsState(
         targetValue =
         if (currentTheme.usingBlur || !canScrollBackward)
             MaterialTheme.colorScheme.surface
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
     val pullToRefreshAlpha by animateFloatAsState(
@@ -152,10 +162,7 @@ fun ChatMaterialsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Chat Materials")
-                },
+            Column(
                 modifier = Modifier
                     .then(
                         if (currentTheme.usingBlur) {
@@ -163,93 +170,99 @@ fun ChatMaterialsScreen(
                                 state = hazeState,
                                 style = hazeStyle
                             )
-                        } else Modifier
-                    )
-                    .fillMaxWidth(),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = toolbarContainerColor.copy(
-                        alpha = if (currentTheme.usingBlur) toolbarColorAlpha else 1f
-                    )
-                ),
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            dropDownMenuExpanded = true
+                        } else {
+                            Modifier
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.MoreVert,
-                            contentDescription = "Options button"
-                        )
-                    }
-
-                    DropdownMenu(
-                        modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-                        expanded = dropDownMenuExpanded,
-                        onDismissRequest = {
-                            dropDownMenuExpanded = false
-                        },
-                        offset = DpOffset(x = (-4).dp, y = (-60).dp)
-                    ) {
-                        DropdownMenuItem(
+                    )
+                    .background(topBarContainerColor.copy(alpha = topBarContainerColorAlpha))
+                    .fillMaxWidth()
+            ) {
+                TopAppBar(
+                    title = { Text(text = "Chat Materials") },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
                             onClick = {
-                                viewModel.onRefresh()
+                                dropDownMenuExpanded = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreVert,
+                                contentDescription = "Options button"
+                            )
+                        }
+
+                        DropdownMenu(
+                            modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+                            expanded = dropDownMenuExpanded,
+                            onDismissRequest = {
                                 dropDownMenuExpanded = false
                             },
-                            text = {
-                                Text(text = stringResource(id = R.string.action_refresh))
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.Refresh,
-                                    contentDescription = null
+                            offset = DpOffset(x = (-4).dp, y = (-60).dp)
+                        ) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    viewModel.onRefresh()
+                                    dropDownMenuExpanded = false
+                                },
+                                text = {
+                                    Text(text = stringResource(id = R.string.action_refresh))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Refresh,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+
+                            if (currentTheme.usingBlur) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = if (moreClearBlur) "Default blur" else "Clearer blur")
+                                    },
+                                    onClick = {
+                                        moreClearBlur = !moreClearBlur
+                                        dropDownMenuExpanded = false
+                                    }
                                 )
                             }
-                        )
 
-                        if (currentTheme.usingBlur) {
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = if (moreClearBlur) "Default blur" else "Clearer blur")
-                                },
-                                onClick = {
-                                    moreClearBlur = !moreClearBlur
-                                    dropDownMenuExpanded = false
-                                }
-                            )
+                            HorizontalDivider()
+
+                            titles.forEachIndexed { index, title ->
+                                DropdownMenuItem(
+                                    leadingIcon = {
+                                        RadioButton(
+                                            selected = checkedTypeIndex == index,
+                                            onClick = null
+                                        )
+                                    },
+                                    text = {
+                                        Text(text = title)
+                                    },
+                                    onClick = {
+                                        checkedTypeIndex = index
+                                        dropDownMenuExpanded = false
+                                    }
+                                )
+                            }
+
                         }
-
-                        HorizontalDivider()
-
-                        titles.forEachIndexed { index, title ->
-                            DropdownMenuItem(
-                                leadingIcon = {
-                                    RadioButton(
-                                        selected = checkedTypeIndex == index,
-                                        onClick = null
-                                    )
-                                },
-                                text = {
-                                    Text(text = title)
-                                },
-                                onClick = {
-                                    checkedTypeIndex = index
-                                    dropDownMenuExpanded = false
-                                }
-                            )
-                        }
-
                     }
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         Box(

@@ -48,7 +48,7 @@ fun FriendsList(
     ) {
         item {
             Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         items(

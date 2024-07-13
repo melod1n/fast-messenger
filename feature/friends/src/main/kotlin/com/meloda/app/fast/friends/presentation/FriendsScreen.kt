@@ -1,8 +1,10 @@
 package com.meloda.app.fast.friends.presentation
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -18,12 +19,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
@@ -39,9 +40,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,7 +54,6 @@ import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.designsystem.LocalHazeState
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.TabItem
-import com.meloda.app.fast.designsystem.components.BlurrableTopAppBar
 import com.meloda.app.fast.designsystem.components.FullScreenLoader
 import com.meloda.app.fast.designsystem.components.NoItemsView
 import com.meloda.app.fast.friends.FriendsViewModel
@@ -121,32 +123,98 @@ fun FriendsScreen(
         animationSpec = tween(durationMillis = 50)
     )
 
-    val tabsColorAlpha by animateFloatAsState(
-        targetValue = if (!listState.canScrollBackward) 1f else 0f,
+    val topBarContainerColorAlpha by animateFloatAsState(
+        targetValue = if (!currentTheme.usingBlur || !listState.canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
-    val tabsContainerColor by animateColorAsState(
+    val topBarContainerColor by animateColorAsState(
         targetValue =
         if (currentTheme.usingBlur || !listState.canScrollBackward)
             MaterialTheme.colorScheme.surface
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
+    )
+
+    var selectedTabIndex by rememberSaveable {
+        mutableIntStateOf(0)
+    }
+
+    val tabItems = listOf(
+        TabItem(
+            titleResId = UiR.string.title_friends_all,
+            unselectedIconResId = null,
+            selectedIconResId = null
+        ),
+        TabItem(
+            titleResId = UiR.string.title_friends_online,
+            unselectedIconResId = null,
+            selectedIconResId = null
+        )
     )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                BlurrableTopAppBar(
-                    title = stringResource(id = UiR.string.title_friends),
-                    listState = listState,
-                    hazeState = hazeState
+            Column(
+                modifier = Modifier
+                    .then(
+                        if (currentTheme.usingBlur) {
+                            Modifier.hazeChild(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .background(topBarContainerColor.copy(alpha = topBarContainerColorAlpha))
+                    .fillMaxWidth()
+            ) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(id = UiR.string.title_friends),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                PrimaryTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    modifier = Modifier,
+                    containerColor = Color.Transparent
+                ) {
+                    tabItems.forEachIndexed { index, item ->
+                        Tab(
+                            selected = index == selectedTabIndex,
+                            onClick = {
+                                if (selectedTabIndex != index) {
+                                    selectedTabIndex = index
+                                }
+                            },
+                            text = {
+                                item.titleResId?.let { resId ->
+                                    Text(text = stringResource(id = resId))
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     ) { padding ->
@@ -163,23 +231,6 @@ fun FriendsScreen(
 
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()
-
-                var selectedTabIndex by rememberSaveable {
-                    mutableIntStateOf(0)
-                }
-
-                val tabItems = listOf(
-                    TabItem(
-                        titleResId = UiR.string.title_friends_all,
-                        unselectedIconResId = null,
-                        selectedIconResId = null
-                    ),
-                    TabItem(
-                        titleResId = UiR.string.title_friends_online,
-                        unselectedIconResId = null,
-                        selectedIconResId = null
-                    )
-                )
 
                 val pagerState = rememberPagerState { tabItems.size }
 
@@ -231,7 +282,7 @@ fun FriendsScreen(
                                 NoItemsView(
                                     modifier = Modifier
                                         .padding(padding.calculateTopPadding())
-                                        .padding(top = 64.dp),
+                                        .padding(top = 16.dp),
                                     customText = "No${if (index == 1) " online" else ""} friends :("
                                 )
                             }
@@ -252,52 +303,9 @@ fun FriendsScreen(
                                 state = pullToRefreshState,
                                 modifier = Modifier
                                     .padding(top = padding.calculateTopPadding())
-                                    .padding(top = 46.dp)
                                     .alpha(pullToRefreshAlpha)
                                     .align(Alignment.TopCenter),
                                 contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    TabRow(
-                        selectedTabIndex = selectedTabIndex,
-                        modifier = Modifier
-                            .padding(top = padding.calculateTopPadding() - 4.dp)
-                            .height(56.dp)
-                            .then(
-                                if (currentTheme.usingBlur) {
-                                    Modifier.hazeChild(
-                                        state = hazeState,
-                                        style = HazeMaterials.thick()
-                                    )
-                                } else {
-                                    Modifier
-                                }
-                            ),
-                        containerColor = tabsContainerColor.copy(
-                            alpha = if (currentTheme.usingBlur) tabsColorAlpha else 1f
-                        ),
-                        indicator = { tabPositions ->
-                            TabRowDefaults.PrimaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                                width = 48.dp
-                            )
-                        }
-                    ) {
-                        tabItems.forEachIndexed { index, item ->
-                            Tab(
-                                selected = index == selectedTabIndex,
-                                onClick = {
-                                    if (selectedTabIndex != index) {
-                                        selectedTabIndex = index
-                                    }
-                                },
-                                text = {
-                                    item.titleResId?.let { resId ->
-                                        Text(text = stringResource(id = resId))
-                                    }
-                                }
                             )
                         }
                     }
