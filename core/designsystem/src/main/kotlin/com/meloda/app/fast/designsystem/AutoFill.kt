@@ -56,6 +56,9 @@ fun autoFillRequestHandler(
     }
     val autofill = LocalAutofill.current
     LocalAutofillTree.current += autoFillNode
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return EmptyAutoFillHandler
+
     return remember {
         @RequiresApi(Build.VERSION_CODES.O)
         object : AutoFillHandler {
@@ -112,10 +115,21 @@ fun Rect.toAndroidRect(): android.graphics.Rect {
 interface AutoFillHandler {
 
     val autoFill: Autofill?
-    val autoFillNode: AutofillNode
+    val autoFillNode: AutofillNode?
     fun requestVerifyManual()
     fun requestManual()
     fun request()
     fun cancel()
     fun Modifier.fillBounds(): Modifier
+}
+
+@ExperimentalComposeUiApi
+data object EmptyAutoFillHandler : AutoFillHandler {
+    override val autoFill: Autofill? = null
+    override val autoFillNode: AutofillNode? = null
+    override fun requestVerifyManual() {}
+    override fun requestManual() {}
+    override fun request() {}
+    override fun cancel() {}
+    override fun Modifier.fillBounds(): Modifier = this.then(Modifier)
 }
