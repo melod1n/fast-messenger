@@ -15,10 +15,10 @@ import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.network.OAuthErrorDomain
-import com.meloda.fast.auth.login.model.LoginCaptchaArguments
+import com.meloda.fast.auth.login.model.CaptchaArguments
 import com.meloda.fast.auth.login.model.LoginError
 import com.meloda.fast.auth.login.model.LoginScreenState
-import com.meloda.fast.auth.login.model.LoginTwoFaArguments
+import com.meloda.fast.auth.login.model.LoginValidationArguments
 import com.meloda.fast.auth.login.model.LoginUserBannedArguments
 import com.meloda.fast.auth.login.model.LoginValidationResult
 import com.meloda.fast.auth.login.validation.LoginValidator
@@ -36,10 +36,10 @@ interface LoginViewModel {
     val screenState: StateFlow<LoginScreenState>
     val loginError: StateFlow<LoginError?>
 
-    val twoFaCode: StateFlow<String?>
-    val twoFaArguments: StateFlow<LoginTwoFaArguments?>
+    val validationCode: StateFlow<String?>
+    val validationArguments: StateFlow<LoginValidationArguments?>
     val captchaCode: StateFlow<String?>
-    val captchaArguments: StateFlow<LoginCaptchaArguments?>
+    val captchaArguments: StateFlow<CaptchaArguments?>
     val userBannedArguments: StateFlow<LoginUserBannedArguments?>
     val isNeedToOpenMain: StateFlow<Boolean>
 
@@ -55,9 +55,9 @@ interface LoginViewModel {
     fun onNavigatedToMain()
     fun onNavigatedToUserBanned()
     fun onNavigatedToCaptcha()
-    fun onNavigatedToTwoFa()
+    fun onNavigatedToValidation()
 
-    fun onTwoFaCodeReceived(code: String)
+    fun onValidationCodeReceived(code: String)
     fun onCaptchaCodeReceived(code: String)
 
     fun onLogoLongClicked()
@@ -73,10 +73,10 @@ class LoginViewModelImpl(
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
     override val loginError = MutableStateFlow<LoginError?>(null)
 
-    override val twoFaCode = MutableStateFlow<String?>(null)
-    override val twoFaArguments = MutableStateFlow<LoginTwoFaArguments?>(null)
+    override val validationCode = MutableStateFlow<String?>(null)
+    override val validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
     override val captchaCode = MutableStateFlow<String?>(null)
-    override val captchaArguments = MutableStateFlow<LoginCaptchaArguments?>(null)
+    override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
     override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     override val isNeedToOpenMain = MutableStateFlow(false)
 
@@ -125,12 +125,12 @@ class LoginViewModelImpl(
         captchaArguments.update { null }
     }
 
-    override fun onNavigatedToTwoFa() {
-        twoFaArguments.update { null }
+    override fun onNavigatedToValidation() {
+        validationArguments.update { null }
     }
 
-    override fun onTwoFaCodeReceived(code: String) {
-        twoFaCode.update { code }
+    override fun onValidationCodeReceived(code: String) {
+        validationCode.update { code }
 
         login()
     }
@@ -186,7 +186,7 @@ class LoginViewModelImpl(
             "LoginViewModel",
             "auth: login: ${currentState.login}; " +
                     "password: ${currentState.password}; " +
-                    "2fa code: ${twoFaCode.value}; " +
+                    "2fa code: ${validationCode.value}; " +
                     "captcha code: ${captchaCode.value}"
         )
 
@@ -197,7 +197,7 @@ class LoginViewModelImpl(
             login = currentState.login,
             password = currentState.password,
             forceSms = forceSms,
-            twoFaCode = twoFaCode.value,
+            validationCode = validationCode.value,
             captchaSid = captchaArguments.value?.captchaSid,
             captchaKey = captchaCode.value
         ).listenValue { state ->
@@ -205,7 +205,7 @@ class LoginViewModelImpl(
                 error = { error ->
                     Log.d("LoginViewModelImpl", "login: error: $error")
 
-                    twoFaCode.update { null }
+                    validationCode.update { null }
                     captchaCode.update { null }
 
                     parseError(error)
@@ -229,7 +229,7 @@ class LoginViewModelImpl(
                         userId = userId,
                         accessToken = accessToken,
                         fastToken = null,
-                        trustedHash = response.twoFaHash
+                        trustedHash = response.validationHash
                     ).also { account ->
                         UserConfig.currentUserId = account.userId
                         UserConfig.userId = account.userId
@@ -243,8 +243,8 @@ class LoginViewModelImpl(
                     captchaArguments.update { null }
                     captchaCode.update { null }
 
-                    twoFaArguments.update { null }
-                    twoFaCode.update { null }
+                    validationArguments.update { null }
+                    validationCode.update { null }
 
                     screenState.setValue { old ->
                         old.copy(
@@ -265,7 +265,7 @@ class LoginViewModelImpl(
             is State.Error.OAuthError -> {
                 when (val error = stateError.error) {
                     is OAuthErrorDomain.ValidationRequiredError -> {
-                        val arguments = LoginTwoFaArguments(
+                        val arguments = LoginValidationArguments(
                             validationSid = error.validationSid,
                             redirectUri = error.redirectUri,
                             phoneMask = error.phoneMask,
@@ -273,13 +273,13 @@ class LoginViewModelImpl(
                             canResendSms = error.validationResend == "sms",
                             wrongCodeError = null
                         )
-                        twoFaArguments.update { arguments }
+                        validationArguments.update { arguments }
                     }
 
                     is OAuthErrorDomain.CaptchaRequiredError -> {
-                        val arguments = LoginCaptchaArguments(
+                        val arguments = CaptchaArguments(
                             captchaSid = error.captchaSid,
-                            captchaImage = error.captchaImageUrl
+                            captchaImageUrl = error.captchaImageUrl
                         )
                         captchaArguments.update { arguments }
                     }
@@ -298,12 +298,12 @@ class LoginViewModelImpl(
                         userBannedArguments.update { arguments }
                     }
 
-                    OAuthErrorDomain.WrongTwoFaCode -> {
-                        loginError.update { LoginError.WrongTwoFaCode }
+                    OAuthErrorDomain.WrongValidationCode -> {
+                        loginError.update { LoginError.WrongValidationCode }
                     }
 
-                    OAuthErrorDomain.WrongTwoFaCodeFormat -> {
-                        loginError.update { LoginError.WrongTwoFaCodeFormat }
+                    OAuthErrorDomain.WrongValidationCodeFormat -> {
+                        loginError.update { LoginError.WrongValidationCodeFormat }
                     }
 
                     OAuthErrorDomain.TooManyTriesError -> {
@@ -320,102 +320,6 @@ class LoginViewModelImpl(
 
             else -> false
         }
-
-
-//        return when (val error =
-//            (stateError as? State.Error.OAuthError<*>)?.error) {
-//            null -> false
-
-//            is CaptchaRequiredError -> {
-//                val captchaArguments = CaptchaArguments(
-//                    captchaSid = error.captchaSid,
-//                    captchaImage = error.captchaImage,
-//                )
-//
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        isNeedToOpenCaptcha = true,
-//                        captchaArguments = captchaArguments
-//                    )
-//                }
-//
-//                true
-//            }
-//
-//            is InvalidCredentialsError -> {
-//                screenState.setValue { old -> old.copy(error = LoginError.WrongCredentials) }
-//
-//                true
-//            }
-//
-//            is UserBannedError -> {
-//                val banInfo = error.banInfo
-//
-//                val userBannedArguments = UserBannedArguments(
-//                    name = banInfo.memberName,
-//                    message = banInfo.message,
-//                    restoreUrl = banInfo.restoreUrl,
-//                    accessToken = banInfo.accessToken
-//                )
-//
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        isNeedToOpenUserBanned = true,
-//                        userBannedArguments = userBannedArguments
-//                    )
-//                }
-//
-//                true
-//            }
-//
-//            is ValidationRequiredError -> {
-//                val twoFaArguments = TwoFaArguments(
-//                    validationSid = error.validationSid,
-//                    redirectUri = error.redirectUri,
-//                    phoneMask = error.phoneMask,
-//                    validationType = error.validationType,
-//                    canResendSms = error.validationResend == "sms",
-//                    wrongCodeError = null
-//                )
-//
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        isNeedToOpenTwoFa = true,
-//                        twoFaArguments = twoFaArguments
-//                    )
-//                }
-//
-//                true
-//            }
-//
-//            is WrongTwoFaCode -> {
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        isNeedToOpenTwoFa = true,
-//                        twoFaArguments = old.twoFaArguments?.copy(
-//                            wrongCodeError = UiText.Simple("Wrong code")
-//                        )
-//                    )
-//                }
-//
-//                true
-//            }
-//
-//            is WrongTwoFaCodeFormat -> {
-//                screenState.setValue { old ->
-//                    old.copy(
-//                        isNeedToOpenTwoFa = true,
-//                        twoFaArguments = old.twoFaArguments?.copy(
-//                            wrongCodeError = UiText.Simple("Wrong code format")
-//                        )
-//                    )
-//                }
-//
-//                true
-//            }
-
-//            else -> false
-//        }
     }
 
     private fun processValidation() {

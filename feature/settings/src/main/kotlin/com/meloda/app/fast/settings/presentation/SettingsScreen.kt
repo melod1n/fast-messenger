@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,7 +24,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -41,13 +41,9 @@ import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isUsingDarkMode
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
 import com.meloda.app.fast.settings.SettingsViewModelImpl
-import com.meloda.app.fast.settings.model.OnSettingsChangeListener
-import com.meloda.app.fast.settings.model.OnSettingsClickListener
-import com.meloda.app.fast.settings.model.OnSettingsLongClickListener
 import com.meloda.app.fast.settings.model.SettingsItem
 import com.meloda.app.fast.settings.model.SettingsScreenState
 import com.meloda.app.fast.settings.presentation.items.EditTextSettingsItem
@@ -64,27 +60,15 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class
-)
 @Composable
-fun SettingsScreen(
-    onError: (BaseError) -> Unit,
+fun SettingsRoute(
     onBack: () -> Unit,
-    onNavigateToAuth: () -> Unit,
-    onNavigateToLanguagePicker: () -> Unit,
+    onLogOutButtonClicked: () -> Unit,
+    onLanguageItemClicked: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
     val context = LocalContext.current
-    val view = LocalView.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-
-    val hapticType = screenState.useHaptics
-    if (hapticType != HapticType.None) {
-        view.performHapticFeedback(hapticType.getHaptic())
-        viewModel.onHapticsUsed()
-    }
 
     val userSettings: UserSettings = koinInject()
 
@@ -92,74 +76,78 @@ fun SettingsScreen(
         userSettings.enableDebugSettings(screenState.showDebugOptions)
     }
 
+    SettingsScreen(screenState = screenState,
+        onBack = onBack,
+        onHapticPerformed = viewModel::onHapticPerformed,
+        onSettingsItemClicked = { key ->
+            when (key) {
+                SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
+                    onLanguageItemClicked()
+                }
+
+                else -> viewModel.onSettingsItemClicked(key)
+            }
+        },
+        onSettingsItemLongClicked = viewModel::onSettingsItemLongClicked,
+        onSettingsItemValueChanged = { key, newValue ->
+            when (key) {
+                SettingsKeys.KEY_APPEARANCE_DARK_THEME -> {
+                    val newMode = newValue as? Int ?: 0
+                    AppCompatDelegate.setDefaultNightMode(newMode)
+
+                    val isUsing = context.getSystemService<PowerManager>()?.let { manager ->
+                        isUsingDarkMode(
+                            context.resources,
+                            manager
+                        )
+                    } ?: false
+
+                    userSettings.useDarkThemeChanged(isUsing)
+                }
+
+                else -> viewModel.onSettingsItemChanged(key, newValue)
+            }
+        }
+    )
+
+    HandlePopups(
+        performCrashPositiveClick = viewModel::onPerformCrashPositiveButtonClicked,
+        performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
+        logoutPositiveClick = {
+            viewModel.onLogOutAlertPositiveClick()
+            onLogOutButtonClicked()
+        },
+        logoutDismissed = viewModel::onLogOutAlertDismissed,
+        longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,
+        longPollingDismissed = viewModel::onLongPollingAlertDismissed,
+        screenState = screenState
+    )
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalHazeMaterialsApi::class
+)
+@Composable
+fun SettingsScreen(
+    screenState: SettingsScreenState = SettingsScreenState.EMPTY,
+    onBack: () -> Unit = {},
+    onHapticPerformed: () -> Unit = {},
+    onSettingsItemClicked: (key: String) -> Unit = {},
+    onSettingsItemLongClicked: (key: String) -> Unit = {},
+    onSettingsItemValueChanged: (key: String, newValue: Any?) -> Unit = { _, _ -> }
+) {
+    val view = LocalView.current
+    val hapticType = screenState.useHaptics
+
+    LaunchedEffect(hapticType) {
+        if (hapticType != HapticType.None) {
+            view.performHapticFeedback(hapticType.getHaptic())
+            onHapticPerformed()
+        }
+    }
+
     val currentTheme = LocalTheme.current
-    val settingsList = screenState.settings
-
-    val clickListener = OnSettingsClickListener { key ->
-        when (key) {
-            SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
-                onNavigateToLanguagePicker()
-            }
-
-            else -> viewModel.onSettingsItemClicked(key)
-        }
-
-    }
-    val longClickListener = OnSettingsLongClickListener(viewModel::onSettingsItemLongClicked)
-    val changeListener = OnSettingsChangeListener { key, newValue ->
-        when (key) {
-            SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useMultiline(isUsing)
-            }
-
-            SettingsKeys.KEY_APPEARANCE_DARK_THEME -> {
-                val newMode = newValue as? Int ?: return@OnSettingsChangeListener
-                AppCompatDelegate.setDefaultNightMode(newMode)
-
-                val isUsing = context.getSystemService<PowerManager>()?.let { manager ->
-                    isUsingDarkMode(
-                        context.resources,
-                        manager
-                    )
-                } ?: false
-
-                userSettings.useDarkThemeChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_APPEARANCE_AMOLED_THEME -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useAmoledThemeChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_USE_DYNAMIC_COLORS -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useDynamicColorsChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_APPEARANCE_BLUR -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useBlurChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.setLongPollBackground(isUsing)
-            }
-
-            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.setOnline(isUsing)
-            }
-
-            SettingsKeys.KEY_USE_CONTACT_NAMES -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.onUseContactNamesChanged(isUsing)
-            }
-
-            else -> viewModel.onSettingsItemChanged(key, newValue)
-        }
-    }
 
     val hazeState = remember { HazeState() }
 
@@ -167,19 +155,16 @@ fun SettingsScreen(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            val title = @Composable { Text(text = stringResource(id = UiR.string.title_settings)) }
-            val navigationIcon = @Composable {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        painter = painterResource(id = UiR.drawable.ic_round_arrow_back_24),
-                        contentDescription = "Back button"
-                    )
-                }
-            }
-
             TopAppBar(
-                title = title,
-                navigationIcon = navigationIcon,
+                title = { Text(text = stringResource(id = UiR.string.title_settings)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            painter = painterResource(id = UiR.drawable.ic_round_arrow_back_24),
+                            contentDescription = "Back button"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(
                         alpha = if (currentTheme.usingBlur) 0f else 1f
@@ -215,33 +200,23 @@ fun SettingsScreen(
                 .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
                 .padding(bottom = padding.calculateBottomPadding())
         ) {
+            item {
+                Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
+            }
             items(
-                count = settingsList.size,
-//                key = { index ->
-//                    val item = settingsList[index]
-//                    requireNotNull(item.title ?: item.summary)
-//                },
-                contentType = { index ->
-                    when (settingsList[index]) {
-                        is SettingsItem.ListItem -> "listitem"
+                items = screenState.settings,
+                key = { item -> item.key },
+                contentType = { item ->
+                    when (item) {
+                        is SettingsItem.ListItem -> "list_item"
                         is SettingsItem.Switch -> "switch"
-                        is SettingsItem.TextField -> "textfield"
+                        is SettingsItem.TextField -> "text_field"
                         is SettingsItem.Title -> "title"
-                        is SettingsItem.TitleSummary -> "titlesummary"
+                        is SettingsItem.TitleSummary -> "title_summary"
                     }
                 }
-            ) { index ->
-                val needToShowSpacer by remember {
-                    derivedStateOf {
-                        index == 0
-                    }
-                }
-
-                if (needToShowSpacer) {
-                    Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
-                }
-
-                when (val item = settingsList[index]) {
+            ) { item ->
+                when (item) {
                     is SettingsItem.Title -> TitleSettingsItem(
                         item = item,
                         isMultiline = currentTheme.multiline,
@@ -251,67 +226,47 @@ fun SettingsScreen(
                     is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
                         item = item,
                         isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = clickListener,
-                        onSettingsLongClickListener = longClickListener,
+                        onSettingsClickListener = onSettingsItemClicked,
+                        onSettingsLongClickListener = onSettingsItemLongClicked,
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.Switch -> SwitchSettingsItem(
                         item = item,
                         isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = clickListener,
-                        onSettingsLongClickListener = longClickListener,
-                        onSettingsChangeListener = changeListener,
+                        onSettingsClickListener = onSettingsItemClicked,
+                        onSettingsLongClickListener = onSettingsItemLongClicked,
+                        onSettingsChangeListener = onSettingsItemValueChanged,
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.TextField -> EditTextSettingsItem(
                         item = item,
                         isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = clickListener,
-                        onSettingsLongClickListener = longClickListener,
-                        onSettingsChangeListener = changeListener,
+                        onSettingsClickListener = onSettingsItemClicked,
+                        onSettingsLongClickListener = onSettingsItemLongClicked,
+                        onSettingsChangeListener = onSettingsItemValueChanged,
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
 
                     is SettingsItem.ListItem -> ListSettingsItem(
                         item = item,
                         isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = clickListener,
-                        onSettingsLongClickListener = longClickListener,
-                        onSettingsChangeListener = changeListener,
+                        onSettingsClickListener = onSettingsItemClicked,
+                        onSettingsLongClickListener = onSettingsItemLongClicked,
+                        onSettingsChangeListener = onSettingsItemValueChanged,
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                     )
                 }
+            }
 
-                val showBottomNavigationBarsSpacer by remember {
-                    derivedStateOf {
-                        index == settingsList.size - 1
-                    }
-                }
-
-                if (showBottomNavigationBarsSpacer) {
-                    Spacer(modifier = Modifier.navigationBarsPadding())
-                }
+            item {
+                Spacer(modifier = Modifier.navigationBarsPadding())
             }
         }
     }
-
-    HandlePopups(
-        performCrashPositiveClick = viewModel::onPerformCrashPositiveButtonClicked,
-        performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
-        logoutPositiveClick = {
-            viewModel.onLogOutAlertPositiveClick()
-            onNavigateToAuth()
-        },
-        logoutDismissed = viewModel::onLogOutAlertDismissed,
-        longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,
-        longPollingDismissed = viewModel::onLongPollingAlertDismissed,
-        screenState = screenState
-    )
 }
 
-// TODO: 12/04/2024, Danil Nikolaev: rewrite to UiAction
 @Composable
 fun HandlePopups(
     performCrashPositiveClick: () -> Unit,

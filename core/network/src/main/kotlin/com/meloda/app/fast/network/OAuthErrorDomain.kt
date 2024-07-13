@@ -25,8 +25,8 @@ sealed class OAuthErrorDomain {
     ) : OAuthErrorDomain()
 
     data object InvalidCredentialsError : OAuthErrorDomain()
-    data object WrongTwoFaCode : OAuthErrorDomain()
-    data object WrongTwoFaCodeFormat : OAuthErrorDomain()
+    data object WrongValidationCode : OAuthErrorDomain()
+    data object WrongValidationCodeFormat : OAuthErrorDomain()
     data object TooManyTriesError:  OAuthErrorDomain()
 
     data object UnknownError : OAuthErrorDomain()

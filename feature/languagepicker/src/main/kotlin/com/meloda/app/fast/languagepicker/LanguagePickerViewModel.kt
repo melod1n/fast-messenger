@@ -1,9 +1,13 @@
 package com.meloda.app.fast.languagepicker
 
+import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
+import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.extensions.setValue
+import com.meloda.app.fast.common.parseString
+import com.meloda.app.fast.designsystem.R
 import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,25 +16,54 @@ import kotlinx.coroutines.flow.StateFlow
 interface LanguagePickerViewModel {
     val screenState: StateFlow<LanguagePickerScreenState>
 
-    fun setLanguages(languages: List<SelectableLanguage>)
-
     fun onLanguagePicked(newLanguage: SelectableLanguage)
-
     fun onApplyButtonClicked()
-
     fun updateCurrentLocale(locale: String)
 }
 
-class LanguagePickerViewModelImpl : LanguagePickerViewModel, ViewModel() {
+class LanguagePickerViewModelImpl(
+    private val resources: Resources
+) : LanguagePickerViewModel, ViewModel() {
 
-    override val screenState = MutableStateFlow(
-        LanguagePickerScreenState(
-            languages = emptyList(),
-            currentLanguage = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-        )
-    )
+    override val screenState = MutableStateFlow(LanguagePickerScreenState.EMPTY)
 
-    override fun setLanguages(languages: List<SelectableLanguage>) {
+    init {
+        val languages = listOf(
+            Triple(
+                "",
+                UiText.Resource(R.string.language_key_system),
+                UiText.Resource(R.string.language_system)
+            ),
+            Triple(
+                "en-US",
+                UiText.Resource(R.string.language_key_english),
+                UiText.Resource(R.string.language_english),
+            ),
+            Triple(
+                "ru-RU",
+                UiText.Resource(R.string.language_key_russian),
+                UiText.Resource(R.string.language_russian)
+            ),
+            Triple(
+                "uk-UA",
+                UiText.Resource(R.string.language_key_ukrainian),
+                UiText.Resource(R.string.language_ukrainian)
+            )
+        ).map { (key, language, local) ->
+            Triple(
+                key,
+                language.parseString(resources).orEmpty(),
+                local.parseString(resources).orEmpty()
+            )
+        }.map { (key, language, local) ->
+            SelectableLanguage(
+                local = local,
+                language = language,
+                key = key,
+                isSelected = key == AppCompatDelegate.getApplicationLocales().toLanguageTags()
+            )
+        }
+
         screenState.setValue { old -> old.copy(languages = languages) }
     }
 

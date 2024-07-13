@@ -12,6 +12,7 @@ import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isDebugSettingsShown
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.settings.model.SettingsItem
@@ -44,13 +45,14 @@ interface SettingsViewModel {
     fun onSettingsItemLongClicked(key: String)
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
-    fun onHapticsUsed()
+    fun onHapticPerformed()
 
     fun onNotificationsPermissionRequested()
 }
 
 class SettingsViewModelImpl(
     private val accountsRepository: AccountsRepository,
+    private val userSettings: UserSettings
 ) : SettingsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
@@ -159,6 +161,7 @@ class SettingsViewModelImpl(
         when (key) {
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 val isEnabled = (newValue as? Boolean) == true
+                userSettings.setLongPollBackground(isEnabled)
 
                 if (isEnabled) {
                     // TODO: 26/11/2023, Danil Nikolaev: implement
@@ -169,10 +172,41 @@ class SettingsViewModelImpl(
                     }
                 }
             }
+
+            SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.useMultiline(isUsing)
+            }
+
+
+            SettingsKeys.KEY_APPEARANCE_AMOLED_THEME -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.useAmoledThemeChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_USE_DYNAMIC_COLORS -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.useDynamicColorsChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_APPEARANCE_BLUR -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.useBlurChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.setOnline(isUsing)
+            }
+
+            SettingsKeys.KEY_USE_CONTACT_NAMES -> {
+                val isUsing = newValue as? Boolean ?: false
+                userSettings.onUseContactNamesChanged(isUsing)
+            }
         }
     }
 
-    override fun onHapticsUsed() {
+    override fun onHapticPerformed() {
         screenState.setValue { old -> old.copy(useHaptics = HapticType.None) }
     }
 

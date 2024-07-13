@@ -1,17 +1,15 @@
 package com.meloda.app.fast.auth.captcha.model
 
 data class CaptchaScreenState(
-    val captchaSid: String,
-    val captchaImage: String,
-    val captchaCode: String,
+    val captchaImageUrl: String,
+    val code: String,
     val codeError: Boolean
 ) {
 
     companion object {
         val EMPTY = CaptchaScreenState(
-            captchaSid = "",
-            captchaImage = "",
-            captchaCode = "",
+            captchaImageUrl = "",
+            code = "",
             codeError = false
         )
     }

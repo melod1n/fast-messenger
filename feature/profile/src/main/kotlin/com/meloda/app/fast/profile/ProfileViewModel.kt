@@ -5,14 +5,18 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
+import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.users.UsersUseCase
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.model.BaseError
+import com.meloda.app.fast.network.VkErrorCodes
 import com.meloda.app.fast.profile.model.ProfileScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface ProfileViewModel {
     val screenState: StateFlow<ProfileScreenState>
+    val baseError: StateFlow<BaseError?>
 }
 
 class ProfileViewModelImpl(
@@ -20,6 +24,7 @@ class ProfileViewModelImpl(
 ) : ViewModel(), ProfileViewModel {
 
     override val screenState = MutableStateFlow(ProfileScreenState.EMPTY)
+    override val baseError = MutableStateFlow<BaseError?>(null)
 
     init {
         getLocalAccountInfo()
@@ -30,6 +35,16 @@ class ProfileViewModelImpl(
             .listenValue { state ->
                 state.processState(
                     error = { error ->
+                        if (error is State.Error.ApiError) {
+                            when (error.errorCode) {
+                                VkErrorCodes.UserAuthorizationFailed -> {
+                                    baseError.setValue { BaseError.SessionExpired }
+                                }
+
+                                else -> Unit
+                            }
+                        }
+
                         screenState.setValue { old ->
                             old.copy(
                                 avatarUrl = null,

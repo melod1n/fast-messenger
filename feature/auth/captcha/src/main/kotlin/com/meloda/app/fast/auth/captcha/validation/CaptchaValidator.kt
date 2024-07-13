@@ -7,7 +7,7 @@ class CaptchaValidator {
 
     fun validate(screenState: CaptchaScreenState): CaptchaValidationResult {
         return when {
-            screenState.captchaCode.isEmpty() -> CaptchaValidationResult.Empty
+            screenState.code.trim().isEmpty() -> CaptchaValidationResult.Empty
             else -> CaptchaValidationResult.Valid
         }
     }

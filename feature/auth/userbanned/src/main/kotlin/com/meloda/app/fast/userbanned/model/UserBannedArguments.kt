@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Parcelize
 data class UserBannedArguments(
-    val name: String,
+    val userName: String,
     val message: String,
     val restoreUrl: String,
     val accessToken: String

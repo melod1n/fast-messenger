@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 data class FriendsScreenState(
     val isLoading: Boolean,
     val friends: List<UiFriend>,
+    val onlineFriends: List<UiFriend>,
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean
 ) {
@@ -14,6 +15,7 @@ data class FriendsScreenState(
         val EMPTY: FriendsScreenState = FriendsScreenState(
             isLoading = true,
             friends = emptyList(),
+            onlineFriends = emptyList(),
             isPaginating = false,
             isPaginationExhausted = false
         )

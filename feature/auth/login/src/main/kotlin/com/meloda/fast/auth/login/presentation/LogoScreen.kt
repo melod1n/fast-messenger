@@ -34,11 +34,10 @@ import com.meloda.fast.auth.login.LoginViewModelImpl
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LogoScreen(
+fun LogoRoute(
     onNavigateToMain: () -> Unit,
-    onShowCredentials: () -> Unit,
+    onGoNextButtonClicked: () -> Unit,
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
     val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
@@ -50,15 +49,37 @@ fun LogoScreen(
         }
     }
 
+    LogoScreen(
+        onLogoLongClicked = viewModel::onLogoLongClicked,
+        onGoNextButtonClicked = onGoNextButtonClicked
+    )
+}
+
+
+// TODO: 13/07/2024, Danil Nikolaev: replace with scaffold?
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun LogoScreen(
+    onLogoLongClicked: () -> Unit = {},
+    onGoNextButtonClicked: () -> Unit = {}
+) {
     Scaffold { padding ->
-        val topPadding by animateDpAsState(targetValue = padding.calculateTopPadding())
-        val bottomPadding by animateDpAsState(targetValue = padding.calculateBottomPadding())
+        val topPadding by animateDpAsState(
+            targetValue = padding.calculateTopPadding(),
+            label = "topPaddingAnimation"
+        )
+        val bottomPadding by animateDpAsState(
+            targetValue = padding.calculateBottomPadding(),
+            label = "bottomPaddingAnimation"
+        )
 
         val endPadding by animateDpAsState(
-            targetValue = padding.calculateEndPadding(LayoutDirection.Ltr)
+            targetValue = padding.calculateEndPadding(LayoutDirection.Ltr),
+            label = "endPaddingAnimation"
         )
         val startPadding by animateDpAsState(
-            targetValue = padding.calculateStartPadding(LayoutDirection.Ltr)
+            targetValue = padding.calculateStartPadding(LayoutDirection.Ltr),
+            label = "startPaddingAnimation"
         )
 
         Box(
@@ -85,7 +106,7 @@ fun LogoScreen(
                     modifier = Modifier.combinedClickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onLongClick = viewModel::onLogoLongClicked,
+                        onLongClick = onLogoLongClicked,
                         onClick = {}
                     )
                 )
@@ -98,7 +119,7 @@ fun LogoScreen(
             }
 
             FloatingActionButton(
-                onClick = onShowCredentials,
+                onClick = onGoNextButtonClicked,
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {

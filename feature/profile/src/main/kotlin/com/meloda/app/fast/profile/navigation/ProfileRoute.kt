@@ -7,24 +7,24 @@ import com.meloda.app.fast.common.extensions.navigation.sharedViewModel
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.profile.ProfileViewModel
 import com.meloda.app.fast.profile.ProfileViewModelImpl
-import com.meloda.app.fast.profile.presentation.ProfileScreen
+import com.meloda.app.fast.profile.presentation.ProfileRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
 object Profile
 
-fun NavGraphBuilder.profileRoute(
+fun NavGraphBuilder.profileScreen(
     onError: (BaseError) -> Unit,
-    onNavigateToSettings: () -> Unit,
+    onSettingsButtonClicked: () -> Unit,
     navController: NavController
 ) {
     composable<Profile> {
         val viewModel: ProfileViewModel =
             it.sharedViewModel<ProfileViewModelImpl>(navController = navController)
 
-        ProfileScreen(
+        ProfileRoute(
             onError = onError,
-            onNavigateToSettings = onNavigateToSettings,
+            onSettingsButtonClicked = onSettingsButtonClicked,
             viewModel = viewModel
         )
     }

@@ -18,7 +18,7 @@ interface CaptchaViewModel {
 
     fun onCodeInputChanged(newCode: String)
 
-    fun onTextFieldDoneClicked()
+    fun onTextFieldDoneAction()
     fun onDoneButtonClicked()
 
     fun onNavigatedToLogin()
@@ -32,24 +32,22 @@ class CaptchaViewModelImpl(
     override val screenState = MutableStateFlow(CaptchaScreenState.EMPTY)
     override val isNeedToOpenLogin = MutableStateFlow(false)
 
+
     init {
-        val arguments = Captcha.from(savedStateHandle).arguments
+        val captchaImage = Captcha.from(savedStateHandle).captchaImageUrl
 
         screenState.setValue { old ->
-            old.copy(
-                captchaSid = arguments.captchaSid,
-                captchaImage = URLDecoder.decode(arguments.captchaImage, "utf-8")
-            )
+            old.copy(captchaImageUrl = URLDecoder.decode(captchaImage, "utf-8"))
         }
     }
 
     override fun onCodeInputChanged(newCode: String) {
-        val newState = screenState.value.copy(captchaCode = newCode.trim())
+        val newState = screenState.value.copy(code = newCode.trim())
         screenState.update { newState }
         processValidation()
     }
 
-    override fun onTextFieldDoneClicked() {
+    override fun onTextFieldDoneAction() {
         onDoneButtonClicked()
     }
 

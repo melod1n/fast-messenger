@@ -16,11 +16,13 @@ import com.meloda.app.fast.model.MainScreenState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 interface MainViewModel {
 
     val screenState: StateFlow<MainScreenState>
+    val isNeedToOpenAuth: StateFlow<Boolean>
 
     val longPollState: StateFlow<LongPollState>
     val startOnlineService: StateFlow<Boolean>
@@ -38,7 +40,7 @@ interface MainViewModel {
 
     fun onError(error: BaseError)
 
-    fun onAuthOpened()
+    fun onNavigatedToAuth()
 }
 
 class MainViewModelImpl(
@@ -51,6 +53,7 @@ class MainViewModelImpl(
     }
 
     override val screenState = MutableStateFlow(MainScreenState.EMPTY)
+    override val isNeedToOpenAuth = MutableStateFlow(false)
 
     override val longPollState = MutableStateFlow(
         if (SettingsController.getBoolean(
@@ -109,13 +112,13 @@ class MainViewModelImpl(
     override fun onError(error: BaseError) {
         when (error) {
             BaseError.SessionExpired -> {
-                screenState.setValue { old -> old.copy(isNeedToOpenAuth = true) }
+                isNeedToOpenAuth.update { true }
             }
         }
     }
 
-    override fun onAuthOpened() {
-        screenState.setValue { old -> old.copy(isNeedToOpenAuth = false) }
+    override fun onNavigatedToAuth() {
+        isNeedToOpenAuth.update { false }
     }
 
     private fun loadAccounts() {

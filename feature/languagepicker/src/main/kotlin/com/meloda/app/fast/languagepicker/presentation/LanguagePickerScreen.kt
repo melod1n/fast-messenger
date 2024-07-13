@@ -56,31 +56,46 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModel
 import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
+import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguagePickerScreen(
+fun LanguagePickerRoute(
     onBack: () -> Unit,
     viewModel: LanguagePickerViewModel = koinViewModel<LanguagePickerViewModelImpl>()
 ) {
-    val context = LocalContext.current
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val languages = screenState.languages
-
     LifecycleResumeEffect(true) {
         viewModel.updateCurrentLocale(AppCompatDelegate.getApplicationLocales().toLanguageTags())
-
         onPauseOrDispose {}
     }
+
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    LanguagePickerScreen(
+        screenState = screenState,
+        onBack = onBack,
+        onLanguagePicked = viewModel::onLanguagePicked,
+        onApplyButtonClicked = viewModel::onApplyButtonClicked
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LanguagePickerScreen(
+    screenState: LanguagePickerScreenState = LanguagePickerScreenState.EMPTY,
+    onBack: () -> Unit = {},
+    onLanguagePicked: (SelectableLanguage) -> Unit = {},
+    onApplyButtonClicked: () -> Unit = {}
+) {
+    val context = LocalContext.current
 
     val isButtonEnabled by remember(screenState) {
         derivedStateOf {
             screenState.currentLanguage != null &&
-                    languages.isNotEmpty() &&
-                    languages.find(SelectableLanguage::isSelected)?.key != screenState.currentLanguage
+                    screenState.languages.isNotEmpty() &&
+                    screenState.languages.find(SelectableLanguage::isSelected)?.key != screenState.currentLanguage
         }
     }
 
@@ -165,10 +180,13 @@ fun LanguagePickerScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(screenState.languages.toList()) { item ->
+                items(
+                    items = screenState.languages.toList(),
+                    key = SelectableLanguage::key
+                ) { item ->
                     LanguageItem(
                         item = item,
-                        onClick = viewModel::onLanguagePicked
+                        onClick = onLanguagePicked
                     )
                 }
 
@@ -183,7 +201,7 @@ fun LanguagePickerScreen(
             }
 
             Button(
-                onClick = viewModel::onApplyButtonClicked,
+                onClick = onApplyButtonClicked,
                 enabled = isButtonEnabled,
                 modifier = Modifier
                     .fillMaxWidth()

@@ -72,6 +72,7 @@ import coil.request.ImageRequest
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.conversations.ConversationsViewModel
 import com.meloda.app.fast.conversations.ConversationsViewModelImpl
+import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.designsystem.LocalBottomPadding
@@ -89,34 +90,70 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
+@Composable
+fun ConversationsRoute(
+    onError: (BaseError) -> Unit,
+    onConversationItemClicked: (conversationId: Int) -> Unit,
+    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
+) {
+    val context = LocalContext.current
+
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+
+    val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
+    LaunchedEffect(imagesToPreload) {
+        imagesToPreload.forEach { url ->
+            context.imageLoader.enqueue(
+                ImageRequest.Builder(context)
+                    .data(url)
+                    .build()
+            )
+        }
+    }
+
+    ConversationsScreen(
+        screenState = screenState,
+        baseError = baseError,
+        canPaginate = canPaginate,
+        onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
+        onConversationItemClicked = { id ->
+            onConversationItemClicked(id)
+            viewModel.onConversationItemClick()
+        },
+        onConversationItemLongClicked = viewModel::onConversationItemLongClick,
+        onOptionClicked = viewModel::onOptionClicked,
+        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
+        onRefreshDropdownItemClicked = viewModel::onRefresh,
+        onRefresh = viewModel::onRefresh
+    )
+
+
+    HandleDialogs(
+        screenState = screenState,
+        viewModel = viewModel
+    )
+}
+
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class,
 )
 @Composable
 fun ConversationsScreen(
-    onError: (BaseError) -> Unit,
-    onNavigateToMessagesHistory: (conversationId: Int) -> Unit,
-    onListScrollingUp: (Boolean) -> Unit,
-    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
+    screenState: ConversationsScreenState = ConversationsScreenState.EMPTY,
+    baseError: BaseError? = null,
+    canPaginate: Boolean = false,
+    onSessionExpiredLogOutButtonClicked: () -> Unit,
+    onConversationItemClicked: (conversationId: Int) -> Unit = {},
+    onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
+    onOptionClicked: (UiConversation, ConversationOption) -> Unit = { _, _ -> },
+    onPaginationConditionsMet: () -> Unit = {},
+    onRefreshDropdownItemClicked: () -> Unit = {},
+    onRefresh: () -> Unit = {}
 ) {
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
-
-    val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
-    imagesToPreload.forEach { url ->
-        context.imageLoader.enqueue(
-            ImageRequest.Builder(context)
-                .data(url)
-                .build()
-        )
-    }
-
     val view = LocalView.current
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
     val currentTheme = LocalTheme.current
 
     val maxLines by remember {
@@ -129,10 +166,6 @@ fun ConversationsScreen(
 
     val isListScrollingUp = listState.isScrollingUp()
 
-    LaunchedEffect(isListScrollingUp) {
-        onListScrollingUp(isListScrollingUp)
-    }
-
     val paginationConditionMet by remember {
         derivedStateOf {
             canPaginate &&
@@ -143,7 +176,7 @@ fun ConversationsScreen(
 
     LaunchedEffect(paginationConditionMet) {
         if (paginationConditionMet && !screenState.isPaginating) {
-            viewModel.onMetPaginationCondition()
+            onPaginationConditionsMet()
         }
     }
 
@@ -213,7 +246,7 @@ fun ConversationsScreen(
                         ) {
                             DropdownMenuItem(
                                 onClick = {
-                                    viewModel.onRefresh()
+                                    onRefreshDropdownItemClicked()
                                     dropDownMenuExpanded = false
                                 },
                                 text = {
@@ -301,7 +334,7 @@ fun ConversationsScreen(
                 ErrorView(
                     text = "Session expired",
                     buttonText = "Log out",
-                    onButtonClick = { onError(BaseError.SessionExpired) }
+                    onButtonClick = onSessionExpiredLogOutButtonClicked
                 )
             }
 
@@ -320,10 +353,10 @@ fun ConversationsScreen(
                 ) {
                     ConversationsListComposable(
                         onConversationsClick = { id ->
-                            onNavigateToMessagesHistory(id)
-                            viewModel.onConversationItemClick(id)
+                            onConversationItemClicked(id)
+
                         },
-                        onConversationsLongClick = viewModel::onConversationItemLongClick,
+                        onConversationsLongClick = onConversationItemLongClicked,
                         screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
@@ -335,13 +368,13 @@ fun ConversationsScreen(
                         } else {
                             Modifier
                         }.fillMaxSize(),
-                        onOptionClicked = viewModel::onOptionClicked,
+                        onOptionClicked = onOptionClicked,
                         padding = padding
                     )
 
                     if (pullToRefreshState.isRefreshing) {
                         LaunchedEffect(true) {
-                            viewModel.onRefresh()
+                            onRefresh()
                         }
                     }
 
@@ -362,11 +395,6 @@ fun ConversationsScreen(
                 }
             }
         }
-
-        HandleDialogs(
-            screenState = screenState,
-            viewModel = viewModel
-        )
     }
 }
 

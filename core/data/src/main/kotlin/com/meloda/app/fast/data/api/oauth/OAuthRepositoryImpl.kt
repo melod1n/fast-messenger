@@ -16,7 +16,7 @@ class OAuthRepositoryImpl(
         login: String,
         password: String,
         forceSms: Boolean,
-        twoFaCode: String?,
+        validationCode: String?,
         captchaSid: String?,
         captchaKey: String?
     ): AuthDirectResponse = withContext(Dispatchers.IO) {
@@ -27,8 +27,8 @@ class OAuthRepositoryImpl(
             username = login,
             password = password,
             scope = VkConstants.Auth.SCOPE,
-            twoFaForceSms = forceSms,
-            twoFaCode = twoFaCode,
+            validationForceSms = forceSms,
+            validationCode = validationCode,
             captchaSid = captchaSid,
             captchaKey = captchaKey,
         )

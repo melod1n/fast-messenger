@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModel
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
+import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.R
 import dev.chrisbanes.haze.HazeState
@@ -75,6 +76,22 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 
+@Composable
+fun ChatMaterialsRoute(
+    onBack: () -> Unit,
+    viewModel: ChatMaterialsViewModel = koinViewModel<ChatMaterialsViewModelImpl>()
+) {
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    ChatMaterialsScreen(
+        screenState = screenState,
+        onBack = onBack,
+        onTypeChanged = viewModel::onTypeChanged,
+        onRefreshDropdownItemClicked = viewModel::onRefresh,
+        onRefresh = viewModel::onRefresh
+    )
+}
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -82,11 +99,14 @@ import org.koin.androidx.compose.koinViewModel
 )
 @Composable
 fun ChatMaterialsScreen(
-    onBack: () -> Unit,
-    viewModel: ChatMaterialsViewModel = koinViewModel<ChatMaterialsViewModelImpl>()
+    screenState: ChatMaterialsScreenState,
+    onBack: () -> Unit = {},
+    onTypeChanged: (String) -> Unit = {},
+    onRefreshDropdownItemClicked: () -> Unit = {},
+    onRefresh: () -> Unit = {}
 ) {
     val currentTheme = LocalTheme.current
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
     val attachments = screenState.materials
 
     val imageLoader = LocalContext.current.imageLoader
@@ -106,7 +126,7 @@ fun ChatMaterialsScreen(
     }
 
     LaunchedEffect(checkedTypeIndex) {
-        viewModel.onTypeChanged(
+        onTypeChanged(
             when (checkedTypeIndex) {
                 0 -> "photo"
                 1 -> "video"
@@ -213,7 +233,7 @@ fun ChatMaterialsScreen(
                         ) {
                             DropdownMenuItem(
                                 onClick = {
-                                    viewModel.onRefresh()
+                                    onRefreshDropdownItemClicked()
                                     dropDownMenuExpanded = false
                                 },
                                 text = {
@@ -342,7 +362,7 @@ fun ChatMaterialsScreen(
 
             if (pullToRefreshState.isRefreshing) {
                 LaunchedEffect(true) {
-                    viewModel.onRefresh()
+                    onRefresh()
                 }
             }
 

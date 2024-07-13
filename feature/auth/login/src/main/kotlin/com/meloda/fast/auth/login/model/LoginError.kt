@@ -7,6 +7,6 @@ sealed class LoginError {
     data object Unknown : LoginError()
     data object WrongCredentials : LoginError()
     data object TooManyTries : LoginError()
-    data object WrongTwoFaCode : LoginError()
-    data object WrongTwoFaCodeFormat : LoginError()
+    data object WrongValidationCode : LoginError()
+    data object WrongValidationCodeFormat : LoginError()
 }

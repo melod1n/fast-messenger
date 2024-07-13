@@ -44,7 +44,7 @@ interface ConversationsViewModel {
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
 
-    fun onMetPaginationCondition()
+    fun onPaginationConditionsMet()
 
     fun onDeleteDialogDismissed()
 
@@ -52,7 +52,7 @@ interface ConversationsViewModel {
 
     fun onRefresh()
 
-    fun onConversationItemClick(conversationId: Int)
+    fun onConversationItemClick()
     fun onConversationItemLongClick(conversation: UiConversation)
 
     fun onPinDialogDismissed()
@@ -76,7 +76,7 @@ class ConversationsViewModelImpl(
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
 
-    override fun onMetPaginationCondition() {
+    override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.conversations.size }
         loadConversations()
     }
@@ -113,7 +113,7 @@ class ConversationsViewModelImpl(
         loadConversations(offset = 0)
     }
 
-    override fun onConversationItemClick(conversationId: Int) {
+    override fun onConversationItemClick() {
         screenState.setValue { old ->
             old.copy(
                 conversations = old.conversations.map { item ->
@@ -225,25 +225,14 @@ class ConversationsViewModelImpl(
         conversationsUseCase.getConversations(count = LOAD_COUNT, offset = offset).listenValue { state ->
             state.processState(
                 error = { error ->
-                    when (error) {
-                        is State.Error.ApiError -> {
-                            val (code, message) = error
-
-                            when (code) {
-                                VkErrorCodes.UserAuthorizationFailed -> {
-                                    baseError.setValue { BaseError.SessionExpired }
-                                }
-
-                                else -> {
-                                    Unit
-                                }
+                    if (error is State.Error.ApiError) {
+                        when (error.errorCode) {
+                            VkErrorCodes.UserAuthorizationFailed -> {
+                                baseError.setValue { BaseError.SessionExpired }
                             }
-                        }
 
-                        State.Error.ConnectionError -> TODO()
-                        State.Error.InternalError -> TODO()
-                        is State.Error.OAuthError -> TODO()
-                        State.Error.Unknown -> TODO()
+                            else -> Unit
+                        }
                     }
                 },
                 success = { response ->

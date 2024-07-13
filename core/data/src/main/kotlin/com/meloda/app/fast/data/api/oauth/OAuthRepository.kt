@@ -8,7 +8,7 @@ interface OAuthRepository {
         login: String,
         password: String,
         forceSms: Boolean,
-        twoFaCode: String?,
+        validationCode: String?,
         captchaSid: String?,
         captchaKey: String?
     ): AuthDirectResponse

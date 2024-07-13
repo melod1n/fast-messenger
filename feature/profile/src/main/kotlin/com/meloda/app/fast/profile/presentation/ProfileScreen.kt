@@ -1,6 +1,5 @@
 package com.meloda.app.fast.profile.presentation
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,27 +37,42 @@ import coil.compose.AsyncImage
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.profile.ProfileViewModel
 import com.meloda.app.fast.profile.ProfileViewModelImpl
+import com.meloda.app.fast.profile.model.ProfileScreenState
 import org.koin.androidx.compose.koinViewModel
 
 import com.meloda.app.fast.designsystem.R as UiR
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
+fun ProfileRoute(
     onError: (BaseError) -> Unit,
-    onNavigateToSettings: () -> Unit,
+    onSettingsButtonClicked: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel<ProfileViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
 
-    Log.d("ProfileScreen", "isLoading: ${screenState.isLoading}")
+    ProfileScreen(
+        screenState = screenState,
+        baseError = baseError,
+        onSettingsButtonClicked = onSettingsButtonClicked
 
+    )
+}
+
+// TODO: 13/07/2024, Danil Nikolaev: handle expired session
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileScreen(
+    screenState: ProfileScreenState = ProfileScreenState.EMPTY,
+    baseError: BaseError? = null,
+    onSettingsButtonClicked: () -> Unit = {},
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {},
                 actions = {
-                    IconButton(onClick = onNavigateToSettings) {
+                    IconButton(onClick = onSettingsButtonClicked) {
                         Icon(
                             imageVector = Icons.Rounded.Settings,
                             contentDescription = null

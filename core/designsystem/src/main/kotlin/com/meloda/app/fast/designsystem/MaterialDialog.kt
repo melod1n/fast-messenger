@@ -81,167 +81,166 @@ fun MaterialDialog(
         )
     }
 
-    AppTheme {
-        if (isVisible) {
-//        AlertAnimation(visible = isVisible) {
-            BasicAlertDialog(
-                onDismissRequest = onDismissRequest
-            ) {
-                val scrollState = rememberScrollState()
-                val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
-                val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
 
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = AlertDialogDefaults.containerColor,
-                    shape = AlertDialogDefaults.shape,
-                    tonalElevation = AlertDialogDefaults.TonalElevation
-                ) {
-                    Column(modifier = Modifier.padding(bottom = 10.dp)) {
-                        val stringTitle = title?.getString()
-                        if (stringTitle != null) {
+    if (isVisible) {
+//        AlertAnimation(visible = isVisible) {
+        BasicAlertDialog(
+            onDismissRequest = onDismissRequest
+        ) {
+            val scrollState = rememberScrollState()
+            val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
+            val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = AlertDialogDefaults.containerColor,
+                shape = AlertDialogDefaults.shape,
+                tonalElevation = AlertDialogDefaults.TonalElevation
+            ) {
+                Column(modifier = Modifier.padding(bottom = 10.dp)) {
+                    val stringTitle = title?.getString()
+                    if (stringTitle != null) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    Row {
+                        stringTitle?.let { title ->
+                            Spacer(modifier = Modifier.width(24.dp))
+                            Text(
+                                modifier = Modifier.weight(1f),
+                                text = title,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Spacer(modifier = Modifier.width(20.dp))
+                        }
+                    }
+
+                    if (canScrollBackward) {
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = false)
+                            .verticalScroll(scrollState)
+                    ) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val stringMessage = text?.getString()
+                        if (stringMessage != null && stringTitle == null) {
                             Spacer(modifier = Modifier.height(20.dp))
                         }
 
                         Row {
-                            stringTitle?.let { title ->
+                            stringMessage?.let { message ->
                                 Spacer(modifier = Modifier.width(24.dp))
                                 Text(
                                     modifier = Modifier.weight(1f),
-                                    text = title,
-                                    style = MaterialTheme.typography.headlineSmall
+                                    text = message,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.width(20.dp))
                             }
                         }
 
-                        if (canScrollBackward) {
-                            HorizontalDivider(modifier = Modifier.fillMaxWidth())
-                        }
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f, fill = false)
-                                .verticalScroll(scrollState)
-                        ) {
-                            Spacer(modifier = Modifier.height(8.dp))
+                        if (alertItems.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            AlertItems(
+                                selectionType = itemsSelectionType,
+                                items = alertItems,
+                                onItemClick = { index ->
+                                    onItemClick?.invoke(index)
 
-                            val stringMessage = text?.getString()
-                            if (stringMessage != null && stringTitle == null) {
-                                Spacer(modifier = Modifier.height(20.dp))
-                            }
+                                    if (itemsSelectionType == ItemsSelectionType.None) {
+                                        onDismissRequest.invoke()
+                                    } else {
+                                        val newItems =
+                                            alertItems.mapIndexed { itemIndex, item ->
+                                                item.copy(isSelected = itemIndex == index)
+                                            }
 
-                            Row {
-                                stringMessage?.let { message ->
-                                    Spacer(modifier = Modifier.width(24.dp))
-                                    Text(
-                                        modifier = Modifier.weight(1f),
-                                        text = message,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.width(20.dp))
+                                        alertItems = newItems
+                                    }
+                                },
+                                onItemCheckedChanged = { index ->
+                                    val newItems = alertItems.toMutableList()
+                                    val oldItem = newItems[index]
+                                    newItems[index] =
+                                        oldItem.copy(isSelected = !oldItem.isSelected)
+
+                                    alertItems = newItems.toImmutableList()
                                 }
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            if (alertItems.isNotEmpty()) {
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                        } else {
+                            customContent?.let { content ->
                                 Spacer(modifier = Modifier.height(4.dp))
-                                AlertItems(
-                                    selectionType = itemsSelectionType,
-                                    items = alertItems,
-                                    onItemClick = { index ->
-                                        onItemClick?.invoke(index)
-
-                                        if (itemsSelectionType == ItemsSelectionType.None) {
-                                            onDismissRequest.invoke()
-                                        } else {
-                                            val newItems =
-                                                alertItems.mapIndexed { itemIndex, item ->
-                                                    item.copy(isSelected = itemIndex == index)
-                                                }
-
-                                            alertItems = newItems
-                                        }
-                                    },
-                                    onItemCheckedChanged = { index ->
-                                        val newItems = alertItems.toMutableList()
-                                        val oldItem = newItems[index]
-                                        newItems[index] =
-                                            oldItem.copy(isSelected = !oldItem.isSelected)
-
-                                        alertItems = newItems.toImmutableList()
-                                    }
-                                )
+                                content.invoke(this)
                                 Spacer(modifier = Modifier.height(10.dp))
-                            } else {
-                                customContent?.let { content ->
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    content.invoke(this)
-                                    Spacer(modifier = Modifier.height(10.dp))
+                            }
+                        }
+                    }
+
+                    if (canScrollForward) {
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    Row {
+                        Spacer(modifier = Modifier.width(20.dp))
+                        neutralText?.getString()?.let { text ->
+                            TextButton(
+                                onClick = {
+                                    if (buttonsInvokeDismiss) {
+                                        onDismissRequest.invoke()
+                                    } else {
+                                        isVisible = false
+                                    }
+                                    neutralAction?.invoke()
                                 }
+                            ) {
+                                Text(text = text)
                             }
                         }
 
-                        if (canScrollForward) {
-                            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        cancelText?.getString()?.let { text ->
+                            TextButton(
+                                onClick = {
+                                    if (buttonsInvokeDismiss) {
+                                        onDismissRequest.invoke()
+                                    } else {
+                                        isVisible = false
+                                    }
+                                    cancelAction?.invoke()
+                                }
+                            ) {
+                                Text(text = text)
+                            }
                         }
 
-                        Row {
-                            Spacer(modifier = Modifier.width(20.dp))
-                            neutralText?.getString()?.let { text ->
-                                TextButton(
-                                    onClick = {
-                                        if (buttonsInvokeDismiss) {
-                                            onDismissRequest.invoke()
-                                        } else {
-                                            isVisible = false
-                                        }
-                                        neutralAction?.invoke()
+                        Spacer(modifier = Modifier.width(2.dp))
+
+                        confirmText?.getString()?.let { text ->
+                            TextButton(
+                                onClick = {
+                                    if (buttonsInvokeDismiss) {
+                                        onDismissRequest.invoke()
+                                    } else {
+                                        isVisible = false
                                     }
-                                ) {
-                                    Text(text = text)
+                                    confirmAction?.invoke()
                                 }
+                            ) {
+                                Text(text = text)
                             }
-
-                            Spacer(modifier = Modifier.weight(1f))
-
-                            cancelText?.getString()?.let { text ->
-                                TextButton(
-                                    onClick = {
-                                        if (buttonsInvokeDismiss) {
-                                            onDismissRequest.invoke()
-                                        } else {
-                                            isVisible = false
-                                        }
-                                        cancelAction?.invoke()
-                                    }
-                                ) {
-                                    Text(text = text)
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(2.dp))
-
-                            confirmText?.getString()?.let { text ->
-                                TextButton(
-                                    onClick = {
-                                        if (buttonsInvokeDismiss) {
-                                            onDismissRequest.invoke()
-                                        } else {
-                                            isVisible = false
-                                        }
-                                        confirmAction?.invoke()
-                                    }
-                                ) {
-                                    Text(text = text)
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(20.dp))
                         }
+
+                        Spacer(modifier = Modifier.width(20.dp))
                     }
                 }
             }
@@ -261,23 +260,6 @@ fun AlertAnimation(
         exit = fadeOut(animationSpec = tween(150)),
         content = content
     )
-}
-
-@Preview
-@Composable
-fun AlertItemsPreview() {
-    AppTheme {
-        AlertItems(
-            selectionType = ItemsSelectionType.None,
-            items = ImmutableList(5) { index ->
-                DialogItem(
-                    title = "Item #${index + 1}",
-                    isSelected = index % 2 == 0
-                )
-            },
-            onItemClick = {}
-        )
-    }
 }
 
 @Composable

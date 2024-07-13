@@ -71,6 +71,7 @@ import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.ActionMode
+import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
 import com.meloda.app.fast.model.BaseError
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
@@ -81,6 +82,32 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.meloda.app.fast.designsystem.R as UiR
 
+@Composable
+fun MessagesHistoryRoute(
+    onError: (BaseError) -> Unit,
+    onBack: () -> Unit,
+    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit,
+    viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
+) {
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+
+    MessagesHistoryScreen(
+        screenState = screenState,
+        baseError = baseError,
+        canPaginate = canPaginate,
+        onBack = onBack,
+        onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
+        onRefreshDropdownItemClicked = viewModel::onRefresh,
+        onToggleAnimationsDropdownItemClicked = viewModel::onToggleAnimationsDropdownItemClicked,
+        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
+        onMessageInputChanged = viewModel::onMessageInputChanged,
+        onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
+        onActionButtonClicked = viewModel::onActionButtonClicked
+    )
+}
+
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class,
@@ -88,20 +115,22 @@ import com.meloda.app.fast.designsystem.R as UiR
 )
 @Composable
 fun MessagesHistoryScreen(
-    onError: (BaseError) -> Unit,
-    onBack: () -> Unit,
-    onNavigateToChatMaterials: (peerId: Int, conversationMessageId: Int) -> Unit,
-    viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
+    screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
+    baseError: BaseError? = null,
+    canPaginate: Boolean = false,
+    onBack: () -> Unit = {},
+    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
+    onRefreshDropdownItemClicked: () -> Unit = {},
+    onToggleAnimationsDropdownItemClicked: (Boolean) -> Unit = {},
+    onPaginationConditionsMet: () -> Unit = {},
+    onMessageInputChanged: (String) -> Unit = {},
+    onAttachmentButtonClicked: () -> Unit = {},
+    onActionButtonClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
 
     val preferences: SharedPreferences = koinInject()
     val currentTheme = LocalTheme.current
-
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-    val messages = screenState.messages
 
     val listState = rememberLazyListState()
 
@@ -115,7 +144,7 @@ fun MessagesHistoryScreen(
 
     LaunchedEffect(paginationConditionMet) {
         if (paginationConditionMet && !screenState.isPaginating) {
-            viewModel.onMetPaginationCondition()
+            onPaginationConditionsMet()
         }
     }
 
@@ -124,24 +153,6 @@ fun MessagesHistoryScreen(
     }
 
     val hazeSate = remember { HazeState() }
-
-    var datesShown by remember {
-        mutableStateOf(
-            preferences.getBoolean(
-                SettingsKeys.KEY_SHOW_DATE_UNDER_BUBBLES,
-                false
-            )
-        )
-    }
-
-    var namesShown by remember {
-        mutableStateOf(
-            preferences.getBoolean(
-                SettingsKeys.KEY_SHOW_NAME_IN_BUBBLES,
-                false
-            )
-        )
-    }
 
     var animationsEnabled by remember {
         mutableStateOf(
@@ -217,7 +228,8 @@ fun MessagesHistoryScreen(
                                     dropDownMenuExpanded = false
 
                                     // TODO: 11/07/2024, Danil Nikolaev: to VM
-                                    onNavigateToChatMaterials(
+
+                                    onChatMaterialsDropdownItemClicked(
                                         screenState.conversationId,
                                         screenState.messages.first().conversationMessageId
                                     )
@@ -228,7 +240,7 @@ fun MessagesHistoryScreen(
                             )
                             DropdownMenuItem(
                                 onClick = {
-                                    viewModel.onTopAppBarMenuClicked(0)
+                                    onRefreshDropdownItemClicked()
                                     dropDownMenuExpanded = false
                                 },
                                 text = {
@@ -248,27 +260,6 @@ fun MessagesHistoryScreen(
                                 )
                             ) {
                                 HorizontalDivider()
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(text = if (datesShown) "Hide dates" else "Show dates")
-                                    },
-                                    onClick = {
-                                        dropDownMenuExpanded = false
-                                        datesShown = !datesShown
-                                        viewModel.onShowDatesClicked(datesShown)
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(text = if (namesShown) "Hide names" else "Show names")
-                                    },
-                                    onClick = {
-                                        dropDownMenuExpanded = false
-                                        namesShown = !namesShown
-                                        viewModel.onShowNamesClicked(namesShown)
-                                    }
-                                )
 
                                 DropdownMenuItem(
                                     text = {
@@ -277,14 +268,14 @@ fun MessagesHistoryScreen(
                                     onClick = {
                                         dropDownMenuExpanded = false
                                         animationsEnabled = !animationsEnabled
-                                        viewModel.onEnableAnimationsClicked(animationsEnabled)
+                                        onToggleAnimationsDropdownItemClicked(animationsEnabled)
                                     }
                                 )
                             }
                         }
                     }
                 )
-                if (screenState.isLoading && messages.isNotEmpty()) {
+                if (screenState.isLoading && screenState.messages.isNotEmpty()) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
@@ -300,7 +291,7 @@ fun MessagesHistoryScreen(
             MessagesList(
                 hazeState = hazeSate,
                 listState = listState,
-                immutableMessages = ImmutableList.copyOf(messages),
+                immutableMessages = ImmutableList.copyOf(screenState.messages),
                 isPaginating = screenState.isPaginating,
                 enableAnimations = animationsEnabled
             )
@@ -372,7 +363,7 @@ fun MessagesHistoryScreen(
                         TextField(
                             modifier = Modifier.weight(1f),
                             value = screenState.message,
-                            onValueChange = viewModel::onInputChanged,
+                            onValueChange = onMessageInputChanged,
                             colors = TextFieldDefaults.colors(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedContainerColor = Color.Transparent,
@@ -382,7 +373,7 @@ fun MessagesHistoryScreen(
                             placeholder = { Text(text = stringResource(id = UiR.string.message_input_hint)) }
                         )
 
-                        IconButton(onClick = viewModel::onAttachmentButtonClicked) {
+                        IconButton(onClick = onAttachmentButtonClicked) {
                             Icon(
                                 painter = painterResource(id = UiR.drawable.round_attach_file_24),
                                 contentDescription = "Add attachment button",
@@ -414,7 +405,7 @@ fun MessagesHistoryScreen(
                                         }
                                     }
                                 } else {
-                                    viewModel.onActionButtonClicked()
+                                    onActionButtonClicked()
                                 }
                             },
                             modifier = Modifier.rotate(rotation.value)
@@ -445,7 +436,7 @@ fun MessagesHistoryScreen(
                 }
             }
 
-            if (screenState.isLoading && messages.isEmpty()) {
+            if (screenState.isLoading && screenState.messages.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }

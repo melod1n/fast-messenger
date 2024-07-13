@@ -18,7 +18,7 @@ class OAuthUseCaseImpl(
         login: String,
         password: String,
         forceSms: Boolean,
-        twoFaCode: String?,
+        validationCode: String?,
         captchaSid: String?,
         captchaKey: String?
     ): Flow<State<AuthInfo>> = flow {
@@ -27,7 +27,7 @@ class OAuthUseCaseImpl(
         val response = oAuthRepository.auth(
             login = login,
             password = password,
-            twoFaCode = twoFaCode,
+            validationCode = validationCode,
             captchaSid = captchaSid,
             captchaKey = captchaKey,
             forceSms = forceSms
@@ -39,7 +39,7 @@ class OAuthUseCaseImpl(
                     AuthInfo(
                         userId = response.userId,
                         accessToken = response.accessToken,
-                        twoFaHash = response.twoFaHash
+                        validationHash = response.validationHash
                     )
                 )
             }
@@ -92,11 +92,11 @@ class OAuthUseCaseImpl(
             VkOAuthErrors.INVALID_REQUEST -> {
                 when (response.errorType) {
                     VkErrorTypes.WRONG_OTP -> {
-                        State.Error.OAuthError(OAuthErrorDomain.WrongTwoFaCode)
+                        State.Error.OAuthError(OAuthErrorDomain.WrongValidationCode)
                     }
 
                     VkErrorTypes.WRONG_OTP_FORMAT -> {
-                        State.Error.OAuthError(OAuthErrorDomain.WrongTwoFaCodeFormat)
+                        State.Error.OAuthError(OAuthErrorDomain.WrongValidationCodeFormat)
                     }
 
                     else -> {

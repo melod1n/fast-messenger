@@ -58,6 +58,7 @@ import com.meloda.app.fast.designsystem.components.FullScreenLoader
 import com.meloda.app.fast.designsystem.components.NoItemsView
 import com.meloda.app.fast.friends.FriendsViewModel
 import com.meloda.app.fast.friends.FriendsViewModelImpl
+import com.meloda.app.fast.friends.model.FriendsScreenState
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.ErrorView
 import dev.chrisbanes.haze.haze
@@ -67,30 +68,53 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
-fun FriendsScreen(
+fun FriendsRoute(
     onError: (BaseError) -> Unit,
     viewModel: FriendsViewModel = koinViewModel<FriendsViewModelImpl>()
 ) {
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-
     val context = LocalContext.current
 
-    val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
-    imagesToPreload.forEach { url ->
-        context.imageLoader.enqueue(
-            ImageRequest.Builder(context)
-                .data(url)
-                .build()
-        )
-    }
-
+    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val friends by viewModel.uiFriends.collectAsStateWithLifecycle()
-    val onlineFriends by viewModel.uiOnlineFriends.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
+    val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
+    LaunchedEffect(imagesToPreload) {
+        imagesToPreload.forEach { url ->
+            context.imageLoader.enqueue(
+                ImageRequest.Builder(context)
+                    .data(url)
+                    .build()
+            )
+        }
+    }
+
+    FriendsScreen(
+        screenState = screenState,
+        baseError = baseError,
+        canPaginate = canPaginate,
+        onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
+        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
+        onRefresh = viewModel::onRefresh
+    )
+}
+
+
+// TODO: 13/07/2024, Danil Nikolaev: support for online
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalHazeMaterialsApi::class
+)
+@Composable
+fun FriendsScreen(
+    screenState: FriendsScreenState = FriendsScreenState.EMPTY,
+    baseError: BaseError? = null,
+    canPaginate: Boolean = false,
+    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
+    onPaginationConditionsMet: () -> Unit = {},
+    onRefresh: () -> Unit = {}
+) {
     val currentTheme = LocalTheme.current
 
     val maxLines by remember {
@@ -111,7 +135,7 @@ fun FriendsScreen(
 
     LaunchedEffect(paginationConditionMet) {
         if (paginationConditionMet && !screenState.isPaginating) {
-            viewModel.onMetPaginationCondition()
+            onPaginationConditionsMet()
         }
     }
 
@@ -223,11 +247,11 @@ fun FriendsScreen(
                 ErrorView(
                     text = "Session expired",
                     buttonText = "Log out",
-                    onButtonClick = { onError(BaseError.SessionExpired) }
+                    onButtonClick = onSessionExpiredLogOutButtonClicked
                 )
             }
 
-            screenState.isLoading && friends.isEmpty() -> FullScreenLoader()
+            screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
 
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()
@@ -259,8 +283,7 @@ fun FriendsScreen(
                                 .padding(bottom = padding.calculateBottomPadding())
                                 .nestedScroll(pullToRefreshState.nestedScrollConnection)
                         ) {
-                            val friendsToDisplay = if (index == 0) friends
-                            else onlineFriends
+                            val friendsToDisplay = screenState.friends
 
                             FriendsList(
                                 modifier = if (currentTheme.usingBlur) {
@@ -289,7 +312,7 @@ fun FriendsScreen(
 
                             if (pullToRefreshState.isRefreshing) {
                                 LaunchedEffect(true) {
-                                    viewModel.onRefresh()
+                                    onRefresh()
                                 }
                             }
 

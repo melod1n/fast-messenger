@@ -38,8 +38,6 @@ object SettingsKeys {
     const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
     const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
     const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
-    const val KEY_SHOW_NAME_IN_BUBBLES = "debug_show_title_in_bubbles"
-    const val KEY_SHOW_DATE_UNDER_BUBBLES = "debug_show_date_under_bubbles"
     const val KEY_ENABLE_ANIMATIONS_IN_MESSAGES = "debug_enable_animations_in_messages"
 
     const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"

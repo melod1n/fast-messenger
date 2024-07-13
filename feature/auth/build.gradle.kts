@@ -81,7 +81,7 @@ dependencies {
 
     implementation(projects.feature.auth.login)
     implementation(projects.feature.auth.captcha)
-    implementation(projects.feature.auth.twofa)
+    implementation(projects.feature.auth.validation)
     implementation(projects.feature.auth.userbanned)
 
     implementation(libs.koin.androidx.compose)

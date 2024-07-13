@@ -20,10 +20,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.meloda.app.fast.datastore.isUsingAmoledBackground
-import com.meloda.app.fast.datastore.isUsingDynamicColors
 import com.meloda.app.fast.datastore.model.ThemeConfig
-import com.meloda.app.fast.datastore.selectedColorScheme
 import com.meloda.app.fast.designsystem.colorschemes.ClassicColorScheme
 import dev.chrisbanes.haze.HazeState
 
@@ -128,10 +125,10 @@ val LocalBottomPadding = compositionLocalOf {
 @Composable
 fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
-    useDarkTheme: Boolean = isUsingDarkTheme(),
-    useDynamicColors: Boolean = isUsingDynamicColors(),
-    selectedColorScheme: Int = selectedColorScheme(),
-    useAmoledBackground: Boolean = isUsingAmoledBackground(),
+    useDarkTheme: Boolean = false,
+    useDynamicColors: Boolean = false,
+    useAmoledBackground: Boolean = false,
+    selectedColorScheme: Int = 0,
     content: @Composable () -> Unit
 ) {
     val colorScheme: ColorScheme = when {

@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -22,27 +23,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.designsystem.AppTheme
+import com.meloda.app.fast.userbanned.model.UserBannedScreenState
 import com.meloda.app.fast.designsystem.R as UiR
 
 @Preview
 @Composable
 fun UserBannedScreenPreview() {
-    AppTheme {
-        UserBannedScreen(
-            onBack = {},
-            name = "Calvin Harris",
-            message = "Eto konets"
+    UserBannedScreen(
+        screenState = UserBannedScreenState(
+            userName = "Andre Shultz",
+            message = "Bruteforce"
+        )
+    )
+}
+
+@Composable
+fun UserBannedRoute(
+    onBack: () -> Unit,
+    userName: String,
+    message: String
+) {
+    val screenState = remember(userName, message) {
+        UserBannedScreenState(
+            userName = userName,
+            message = message
         )
     }
+
+    UserBannedScreen(
+        screenState = screenState,
+        onBack = onBack
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserBannedScreen(
-    onBack: () -> Unit,
-    name: String,
-    message: String,
+    screenState: UserBannedScreenState = UserBannedScreenState.EMPTY,
+    onBack: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -80,7 +98,7 @@ fun UserBannedScreen(
                         append(": ")
                     }
 
-                    append(name)
+                    append(screenState.userName)
                 }
             )
             Text(
@@ -89,7 +107,7 @@ fun UserBannedScreen(
                         append(stringResource(id = UiR.string.blocking_reason_title))
                         append(": ")
                     }
-                    append(message)
+                    append(screenState.message)
                 }
             )
         }

@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.meloda.app.fast.auth.captcha.CaptchaViewModel
 import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
+import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
@@ -56,7 +57,7 @@ import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
 @Composable
-fun CaptchaScreen(
+fun CaptchaRoute(
     onBack: () -> Unit,
     onResult: (String) -> Unit,
     viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
@@ -64,6 +65,30 @@ fun CaptchaScreen(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isNeedToOpenLogin by viewModel.isNeedToOpenLogin.collectAsStateWithLifecycle()
 
+    LaunchedEffect(isNeedToOpenLogin) {
+        if (isNeedToOpenLogin) {
+            viewModel.onNavigatedToLogin()
+            onResult(screenState.code)
+        }
+    }
+
+    CaptchaScreen(
+        screenState = screenState,
+        onBack = onBack,
+        onCodeInputChanged = viewModel::onCodeInputChanged,
+        onTextFieldDoneAction = viewModel::onTextFieldDoneAction,
+        onDoneButtonClicked = viewModel::onDoneButtonClicked
+    )
+}
+
+@Composable
+fun CaptchaScreen(
+    screenState: CaptchaScreenState = CaptchaScreenState.EMPTY,
+    onBack: () -> Unit = {},
+    onCodeInputChanged: (String) -> Unit = {},
+    onTextFieldDoneAction: () -> Unit = {},
+    onDoneButtonClicked: () -> Unit = {}
+) {
     var confirmedExit by rememberSaveable {
         mutableStateOf(false)
     }
@@ -95,13 +120,6 @@ fun CaptchaScreen(
             },
             cancelText = UiText.Resource(UiR.string.no)
         )
-    }
-
-    LaunchedEffect(isNeedToOpenLogin) {
-        if (isNeedToOpenLogin) {
-            viewModel.onNavigatedToLogin()
-            onResult(screenState.captchaCode)
-        }
     }
 
     val focusManager = LocalFocusManager.current
@@ -171,7 +189,7 @@ fun CaptchaScreen(
                     } else {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(screenState.captchaImage)
+                                .data(screenState.captchaImageUrl)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Captcha image",
@@ -183,14 +201,14 @@ fun CaptchaScreen(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                var code by remember { mutableStateOf(TextFieldValue(screenState.captchaCode)) }
+                var code by remember { mutableStateOf(TextFieldValue(screenState.code)) }
                 val showError = screenState.codeError
 
                 TextField(
                     value = code,
                     onValueChange = { newText ->
                         code = newText
-                        viewModel.onCodeInputChanged(newText.text)
+                        onCodeInputChanged(newText.text)
                     },
                     label = { Text(text = "Code") },
                     placeholder = { Text(text = "Code") },
@@ -213,7 +231,7 @@ fun CaptchaScreen(
                     keyboardActions = KeyboardActions(
                         onDone = {
                             focusManager.clearFocus()
-                            viewModel.onTextFieldDoneClicked()
+                            onTextFieldDoneAction()
                         }
                     ),
                     isError = showError
@@ -225,7 +243,7 @@ fun CaptchaScreen(
             }
 
             FloatingActionButton(
-                onClick = viewModel::onDoneButtonClicked,
+                onClick = onDoneButtonClicked,
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {

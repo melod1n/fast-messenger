@@ -1,7 +1,6 @@
 package com.meloda.app.fast.friends
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.data.State
@@ -9,30 +8,24 @@ import com.meloda.app.fast.data.api.friends.FriendsUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.friends.model.FriendsScreenState
-import com.meloda.app.fast.friends.model.UiFriend
 import com.meloda.app.fast.friends.util.asPresentation
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.api.domain.VkUser
 import com.meloda.app.fast.network.VkErrorCodes
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 // TODO: 13/07/2024, Danil Nikolaev: separate two lists and their pagination
 interface FriendsViewModel {
 
     val screenState: StateFlow<FriendsScreenState>
-    val uiFriends: StateFlow<List<UiFriend>>
-    val uiOnlineFriends: StateFlow<List<UiFriend>>
     val baseError: StateFlow<BaseError?>
     val imagesToPreload: StateFlow<List<String>>
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
 
-    fun onMetPaginationCondition()
+    fun onPaginationConditionsMet()
 
     fun onRefresh()
 
@@ -45,11 +38,6 @@ class FriendsViewModelImpl(
 ) : ViewModel(), FriendsViewModel {
 
     override val screenState = MutableStateFlow(FriendsScreenState.EMPTY)
-
-    override val uiFriends = screenState.map { it.friends }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    override val uiOnlineFriends = MutableStateFlow<List<UiFriend>>(emptyList())
 
     override val baseError = MutableStateFlow<BaseError?>(null)
     override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
@@ -64,7 +52,7 @@ class FriendsViewModelImpl(
         loadFriends()
     }
 
-    override fun onMetPaginationCondition() {
+    override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.friends.size }
         loadFriends()
     }
@@ -130,18 +118,18 @@ class FriendsViewModelImpl(
                     if (offset == 0) {
                         friends.emit(response)
                         screenState.setValue {
-                            newState.copy(friends = loadedFriends)
+                            newState.copy(
+                                friends = loadedFriends,
+                                onlineFriends = loadedOnlineFriends
+                            )
                         }
-                        uiOnlineFriends.setValue { loadedOnlineFriends }
                     } else {
                         friends.emit(friends.value.plus(response))
                         screenState.setValue {
                             newState.copy(
-                                friends = newState.friends.plus(loadedFriends)
+                                friends = newState.friends.plus(loadedFriends),
+                                onlineFriends = newState.onlineFriends.plus(loadedOnlineFriends)
                             )
-                        }
-                        uiOnlineFriends.setValue { old ->
-                            old.plus(loadedFriends)
                         }
                     }
                 }
@@ -164,17 +152,19 @@ class FriendsViewModelImpl(
             conversation.asPresentation(useContactNames)
         }
 
-        val onlineUiFriends = uiOnlineFriends.value.mapNotNull { friend ->
+        val onlineUiFriends = screenState.value.onlineFriends.mapNotNull { friend ->
             uiFriends.find { it.userId == friend.userId }
         }
 
         screenState.setValue { old ->
-            old.copy(friends = uiFriends)
+            old.copy(
+                friends = uiFriends,
+                onlineFriends = onlineUiFriends
+            )
         }
-        uiOnlineFriends.setValue { onlineUiFriends }
     }
 
     companion object {
-        const val LOAD_COUNT = 30
+        const val LOAD_COUNT = 60
     }
 }

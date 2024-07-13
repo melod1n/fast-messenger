@@ -91,4 +91,7 @@ dependencies {
     implementation(libs.kotlin.serialization)
 
     implementation(libs.rebugger)
+
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }

@@ -3,20 +3,19 @@ package com.meloda.app.fast.auth
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
-import com.meloda.app.fast.auth.captcha.model.CaptchaArguments
-import com.meloda.app.fast.auth.captcha.navigation.captchaRoute
+import com.meloda.app.fast.auth.captcha.navigation.captchaScreen
 import com.meloda.app.fast.auth.captcha.navigation.navigateToCaptcha
 import com.meloda.app.fast.auth.captcha.navigation.setCaptchaResult
-import com.meloda.app.fast.auth.twofa.model.TwoFaArguments
-import com.meloda.app.fast.auth.twofa.navigation.navigateToTwoFa
-import com.meloda.app.fast.auth.twofa.navigation.setTwoFaResult
-import com.meloda.app.fast.auth.twofa.navigation.twoFaRoute
+import com.meloda.app.fast.auth.validation.model.ValidationArguments
+import com.meloda.app.fast.auth.validation.navigation.navigateToValidation
+import com.meloda.app.fast.auth.validation.navigation.setValidationResult
+import com.meloda.app.fast.auth.validation.navigation.validationScreen
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.userbanned.model.UserBannedArguments
 import com.meloda.app.fast.userbanned.navigation.navigateToUserBanned
 import com.meloda.app.fast.userbanned.navigation.userBannedRoute
 import com.meloda.fast.auth.login.navigation.Logo
-import com.meloda.fast.auth.login.navigation.loginRoute
+import com.meloda.fast.auth.login.navigation.loginScreen
 import com.meloda.fast.auth.login.navigation.navigateToLogin
 import kotlinx.serialization.Serializable
 import java.net.URLEncoder
@@ -25,26 +24,21 @@ import java.net.URLEncoder
 object AuthGraph
 
 fun NavGraphBuilder.authNavGraph(
-    onError: (BaseError) -> Unit,
     onNavigateToMain: () -> Unit,
     navController: NavController
 ) {
     navigation<AuthGraph>(
         startDestination = Logo
     ) {
-        loginRoute(
-            onError = onError,
+        loginScreen(
             onNavigateToCaptcha = { arguments ->
                 navController.navigateToCaptcha(
-                    CaptchaArguments(
-                        arguments.captchaSid,
-                        URLEncoder.encode(arguments.captchaImage, "utf-8")
-                    )
+                    captchaImageUrl = URLEncoder.encode(arguments.captchaImageUrl, "utf-8")
                 )
             },
-            onNavigateToTwoFa = { arguments ->
-                navController.navigateToTwoFa(
-                    TwoFaArguments(
+            onNavigateToValidation = { arguments ->
+                navController.navigateToValidation(
+                    ValidationArguments(
                         validationSid = arguments.validationSid,
                         redirectUri = URLEncoder.encode(arguments.redirectUri, "utf-8"),
                         phoneMask = arguments.phoneMask,
@@ -58,7 +52,7 @@ fun NavGraphBuilder.authNavGraph(
             onNavigateToUserBanned = { arguments ->
                 navController.navigateToUserBanned(
                     UserBannedArguments(
-                        name = arguments.name,
+                        userName = arguments.name,
                         message = arguments.message,
                         restoreUrl = arguments.restoreUrl,
                         accessToken = arguments.accessToken
@@ -69,18 +63,18 @@ fun NavGraphBuilder.authNavGraph(
             navController = navController
         )
 
-        twoFaRoute(
+        validationScreen(
             onBack = {
                 navController.navigateUp()
-                navController.setTwoFaResult(null)
+                navController.setValidationResult(null)
             },
             onResult = { code ->
                 navController.popBackStack()
-                navController.setTwoFaResult(code)
+                navController.setValidationResult(code)
             }
         )
 
-        captchaRoute(
+        captchaScreen(
             onBack = {
                 navController.navigateUp()
                 navController.setCaptchaResult(null)

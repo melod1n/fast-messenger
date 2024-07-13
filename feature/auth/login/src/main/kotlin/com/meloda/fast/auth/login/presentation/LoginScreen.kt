@@ -55,25 +55,23 @@ import com.meloda.app.fast.designsystem.connectNode
 import com.meloda.app.fast.designsystem.defaultFocusChangeAutoFill
 import com.meloda.app.fast.designsystem.handleEnterKey
 import com.meloda.app.fast.designsystem.handleTabKey
-import com.meloda.app.fast.model.BaseError
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
-import com.meloda.fast.auth.login.model.LoginCaptchaArguments
+import com.meloda.fast.auth.login.model.CaptchaArguments
 import com.meloda.fast.auth.login.model.LoginError
-import com.meloda.fast.auth.login.model.LoginTwoFaArguments
+import com.meloda.fast.auth.login.model.LoginScreenState
+import com.meloda.fast.auth.login.model.LoginValidationArguments
 import com.meloda.fast.auth.login.model.LoginUserBannedArguments
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.designsystem.R as UiR
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun LoginScreen(
-    onError: (BaseError) -> Unit,
+fun LoginRoute(
     onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
     onNavigateToMain: () -> Unit,
-    onNavigateToCaptcha: (LoginCaptchaArguments) -> Unit,
-    onNavigateToTwoFa: (LoginTwoFaArguments) -> Unit,
-    twoFaCode: String?,
+    onNavigateToCaptcha: (CaptchaArguments) -> Unit,
+    onNavigateToValidation: (LoginValidationArguments) -> Unit,
+    validationCode: String?,
     captchaCode: String?,
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
@@ -81,7 +79,7 @@ fun LoginScreen(
     val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
     val userBannedArguments by viewModel.userBannedArguments.collectAsStateWithLifecycle()
     val captchaArguments by viewModel.captchaArguments.collectAsStateWithLifecycle()
-    val twoFaArguments by viewModel.twoFaArguments.collectAsStateWithLifecycle()
+    val validationArguments by viewModel.validationArguments.collectAsStateWithLifecycle()
     val loginError by viewModel.loginError.collectAsStateWithLifecycle()
 
     LaunchedEffect(isNeedToOpenMain) {
@@ -105,16 +103,16 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(twoFaArguments) {
-        twoFaArguments?.let { arguments ->
-            viewModel.onNavigatedToTwoFa()
-            onNavigateToTwoFa(arguments)
+    LaunchedEffect(validationArguments) {
+        validationArguments?.let { arguments ->
+            viewModel.onNavigatedToValidation()
+            onNavigateToValidation(arguments)
         }
     }
 
-    LaunchedEffect(twoFaCode) {
-        if (twoFaCode != null) {
-            viewModel.onTwoFaCodeReceived(twoFaCode)
+    LaunchedEffect(validationCode) {
+        if (validationCode != null) {
+            viewModel.onValidationCodeReceived(validationCode)
         }
     }
 
@@ -124,9 +122,41 @@ fun LoginScreen(
         }
     }
 
+    LoginScreen(
+        screenState = screenState,
+        onLoginAutoFilled = viewModel::onLoginInputChanged,
+        onPasswordAutoFilled = viewModel::onPasswordInputChanged,
+        onLoginInputChanged = viewModel::onLoginInputChanged,
+        onPasswordInputChanged = viewModel::onPasswordInputChanged,
+        onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
+        onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+        onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
+        onSignInButtonClicked = viewModel::onSignInButtonClicked
+    )
+
+    HandleError(
+        onDismiss = viewModel::onErrorDialogDismissed,
+        error = loginError
+    )
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun LoginScreen(
+    screenState: LoginScreenState = LoginScreenState.EMPTY,
+    onLoginAutoFilled: (String) -> Unit = {},
+    onPasswordAutoFilled: (String) -> Unit = {},
+    onLoginInputChanged: (String) -> Unit = {},
+    onPasswordInputChanged: (String) -> Unit = {},
+    onPasswordFieldEnterKeyClicked: () -> Unit = {},
+    onPasswordVisibilityButtonClicked: () -> Unit = {},
+    onPasswordFieldGoAction: () -> Unit = {},
+    onSignInButtonClicked: () -> Unit = {}
+) {
     val focusManager = LocalFocusManager.current
     val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
 
+    // TODO: 13/07/2024, Danil Nikolaev: remove
     var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
     val showLoginError = screenState.loginError
 
@@ -135,7 +165,7 @@ fun LoginScreen(
         onFill = { value ->
             loginText =
                 TextFieldValue(text = value, selection = TextRange(value.length))
-            viewModel.onLoginInputChanged(value)
+            onLoginAutoFilled(value)
         }
     )
 
@@ -147,7 +177,7 @@ fun LoginScreen(
         onFill = { value ->
             passwordText =
                 TextFieldValue(text = value, selection = TextRange(value.length))
-            viewModel.onPasswordInputChanged(value)
+            onPasswordAutoFilled(value)
         }
     )
 
@@ -200,7 +230,7 @@ fun LoginScreen(
                             }
 
                             loginText = newText
-                            viewModel.onLoginInputChanged(text)
+                            onLoginInputChanged(text)
                         },
                         label = { Text(text = stringResource(id = UiR.string.login_hint)) },
                         placeholder = { Text(text = stringResource(id = UiR.string.login_hint)) },
@@ -236,7 +266,7 @@ fun LoginScreen(
                             .clip(RoundedCornerShape(10.dp))
                             .handleEnterKey {
                                 focusManager.clearFocus()
-                                viewModel.onSignInButtonClicked()
+                                onPasswordFieldEnterKeyClicked()
                                 true
                             }
                             .focusRequester(passwordFocusable)
@@ -250,7 +280,7 @@ fun LoginScreen(
                             }
 
                             passwordText = newText
-                            viewModel.onPasswordInputChanged(text)
+                            onPasswordInputChanged(text)
                         },
                         label = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
                         placeholder = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
@@ -271,7 +301,7 @@ fun LoginScreen(
                                 else UiR.drawable.round_visibility_24
                             )
 
-                            IconButton(onClick = viewModel::onPasswordVisibilityButtonClicked) {
+                            IconButton(onClick = onPasswordVisibilityButtonClicked) {
                                 Icon(
                                     painter = imagePainter,
                                     contentDescription = if (screenState.passwordVisible) "Password visible icon"
@@ -286,7 +316,7 @@ fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onGo = {
                                 focusManager.clearFocus()
-                                viewModel.onSignInButtonClicked()
+                                onPasswordFieldGoAction()
                             }
                         ),
                         isError = showPasswordError,
@@ -310,10 +340,10 @@ fun LoginScreen(
                     FloatingActionButton(
                         onClick = {
                             focusManager.clearFocus()
-                            viewModel.onSignInButtonClicked()
+                            onSignInButtonClicked()
                         },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.testTag("Sign in button")
+                        modifier = Modifier.testTag("sing_in_fab")
                     ) {
                         Icon(
                             painter = painterResource(id = UiR.drawable.ic_arrow_end),
@@ -332,11 +362,6 @@ fun LoginScreen(
             }
         }
     }
-
-    HandleError(
-        onDismiss = viewModel::onErrorDialogDismissed,
-        error = loginError
-    )
 }
 
 @Composable
@@ -375,7 +400,7 @@ fun HandleError(
         }
 
 
-        LoginError.WrongTwoFaCode -> {
+        LoginError.WrongValidationCode -> {
             MaterialDialog(
                 onDismissAction = onDismiss,
                 title = UiText.Simple("Error"),
@@ -384,7 +409,7 @@ fun HandleError(
             )
         }
 
-        LoginError.WrongTwoFaCodeFormat -> {
+        LoginError.WrongValidationCodeFormat -> {
             MaterialDialog(
                 onDismissAction = onDismiss,
                 title = UiText.Simple("Error"),

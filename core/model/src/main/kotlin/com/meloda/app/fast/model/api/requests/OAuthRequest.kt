@@ -7,9 +7,9 @@ data class AuthDirectRequest(
     val username: String,
     val password: String,
     val scope: String,
-    val twoFaSupported: Boolean = true,
-    val twoFaForceSms: Boolean = false,
-    val twoFaCode: String? = null,
+    val validationSupported: Boolean = true,
+    val validationForceSms: Boolean = false,
+    val validationCode: String? = null,
     val captchaSid: String? = null,
     val captchaKey: String? = null,
     val trustedHash: String? = null
@@ -23,11 +23,11 @@ data class AuthDirectRequest(
             "username" to username,
             "password" to password,
             "scope" to scope,
-            "2fa_supported" to if (twoFaSupported) "1" else "0",
-            "force_sms" to if (twoFaForceSms) "1" else "0"
+            "2fa_supported" to if (validationSupported) "1" else "0",
+            "force_sms" to if (validationForceSms) "1" else "0"
         )
             .apply {
-                twoFaCode?.let { this["code"] = it }
+                validationCode?.let { this["code"] = it }
                 captchaSid?.let { this["captcha_sid"] = it }
                 captchaKey?.let { this["captcha_key"] = it }
                 trustedHash?.let { this["trusted_hash"] = it }

@@ -7,16 +7,18 @@ kotlin = "2.0.0"
 ksp = "2.0.0-1.0.22"
 vkompose = "0.5.4-k2"
 
+
+compose-bom = "2024.06.00"
+koin = "3.5.6"
+
 accompanist = "0.34.0"
 coil = "2.6.0"
-compose-bom = "2024.06.00"
 coroutines = "1.9.0-RC"
 junit = "4.13.2"
 chucker = "4.0.0"
 guava = "33.2.1-jre"
 lifecycle = "2.8.3"
 core-ktx = "1.13.1"
-koin = "3.5.6"
 material = "1.12.0"
 loggingInterceptor = "5.0.0-alpha.14"
 moshi = "1.15.1"
@@ -30,24 +32,13 @@ appcompat = "1.7.0"
 androidx-navigation = "2.8.0-beta05"
 serialization = "1.7.1"
 rebugger = "1.0.0-rc03"
+uiTooling = "1.6.8"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
-compose-material3 = { module = "androidx.compose.material3:material3" }
-compose-ui = { module = "androidx.compose.ui:ui" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-compose-material3-windowsize = { module = "androidx.compose.material3:material3-window-size-class" }
-compose-activity = { module = "androidx.activity:activity-compose" }
-compose-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose" }
-compose-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-compose" }
-compose-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable" }
-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 eithernet = { module = "com.slack.eithernet:eithernet", version.ref = "eithernet" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
@@ -59,9 +50,6 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
-koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
-koin-androidx-compose-navigation = { module = "io.insert-koin:koin-androidx-compose-navigation", version.ref = "koin" }
-koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
@@ -84,6 +72,30 @@ kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-j
 
 rebugger = { module = "io.github.theapache64:rebugger-android", version.ref = "rebugger" }
 
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-material3-windowsize = { module = "androidx.compose.material3:material3-window-size-class" }
+compose-activity = { module = "androidx.activity:activity-compose" }
+compose-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose" }
+compose-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-compose" }
+compose-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+
+# TODO: remove version from non-bom dependencies
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-core-coroutines = { module = "io.insert-koin:koin-core-coroutines", version.ref = "koin" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-android-test = { module = "io.insert-koin:koin-android-test", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+koin-androidx-compose-navigation = { module = "io.insert-koin:koin-androidx-compose-navigation", version.ref = "koin" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+
 [bundles]
 compose = [
     "compose-material3",
@@ -95,6 +107,13 @@ compose = [
     "compose-lifecycle-runtime",
     "compose-runtime-saveable"
 ]
+koin = [
+    "koin-core",
+    "koin-core-coroutines",
+    "koin-android",
+    "koin-androidx-compose",
+    "koin-androidx-compose-navigation"
+]
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }
@@ -104,4 +123,3 @@ com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" 
 org-jetbrains-kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-com-vk-vkompose = { id = "com.vk.vkompose", version.ref = "vkompose" }

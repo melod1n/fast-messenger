@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonClass
 data class AuthDirectResponse(
     @Json(name = "access_token") val accessToken: String?,
     @Json(name = "user_id") val userId: Int?,
-    @Json(name = "trusted_hash") val twoFaHash: String?,
+    @Json(name = "trusted_hash") val validationHash: String?,
     @Json(name = "validation_sid") val validationSid: String?,
     @Json(name = "validation_type") val validationType: String?,
     @Json(name = "phone_mask") val phoneMask: String?,

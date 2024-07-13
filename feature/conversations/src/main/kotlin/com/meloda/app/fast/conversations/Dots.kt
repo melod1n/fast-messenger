@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.designsystem.AppTheme
 
 const val numberOfDots = 3
 val dotSize = 6.dp
@@ -298,7 +297,7 @@ fun DotsCollision() {
 
 @Preview(showBackground = true)
 @Composable
-fun DotsPreview() = AppTheme {
+fun DotsPreview() {
     Column(
         modifier = Modifier
             .padding(4.dp)

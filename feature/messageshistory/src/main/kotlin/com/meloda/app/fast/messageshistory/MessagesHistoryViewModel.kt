@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.content.res.Resources
 import android.util.Log
 import androidx.core.content.edit
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfFirstOrNull
@@ -20,11 +21,10 @@ import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.messageshistory.model.ActionMode
-import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
+import com.meloda.app.fast.messageshistory.navigation.MessagesHistory
 import com.meloda.app.fast.messageshistory.util.asPresentation
 import com.meloda.app.fast.messageshistory.util.extractAvatar
-import com.meloda.app.fast.messageshistory.util.extractShowName
 import com.meloda.app.fast.messageshistory.util.extractTitle
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.LongPollEvent
@@ -48,17 +48,14 @@ interface MessagesHistoryViewModel {
 
     val canPaginate: StateFlow<Boolean>
 
+    fun onRefresh()
     fun onAttachmentButtonClicked()
-    fun onInputChanged(newText: String)
+    fun onMessageInputChanged(newText: String)
     fun onEmojiButtonClicked()
     fun onActionButtonClicked()
-    fun onTopAppBarMenuClicked(id: Int)
-    fun setArguments(arguments: MessagesHistoryArguments)
 
-    fun onMetPaginationCondition()
-    fun onShowDatesClicked(showDates: Boolean)
-    fun onShowNamesClicked(showNames: Boolean)
-    fun onEnableAnimationsClicked(enableAnimations: Boolean)
+    fun onPaginationConditionsMet()
+    fun onToggleAnimationsDropdownItemClicked(enableAnimations: Boolean)
 }
 
 class MessagesHistoryViewModelImpl(
@@ -67,6 +64,7 @@ class MessagesHistoryViewModelImpl(
     private val preferences: SharedPreferences,
     private val resources: Resources,
     updatesParser: LongPollUpdatesParser,
+    savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
@@ -85,17 +83,26 @@ class MessagesHistoryViewModelImpl(
     private val sendingMessages: MutableList<VkMessage> = mutableListOf()
 
     init {
+        val arguments = MessagesHistory.from(savedStateHandle).arguments
+
+        screenState.setValue { old -> old.copy(conversationId = arguments.conversationId) }
+        loadMessagesHistory()
+
         updatesParser.onNewMessage(::handleNewMessage)
         updatesParser.onMessageEdited(::handleEditedMessage)
         updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
     }
 
+    override fun onRefresh() {
+        loadMessagesHistory(offset = 0)
+    }
+
     override fun onAttachmentButtonClicked() {
 
     }
 
-    override fun onInputChanged(newText: String) {
+    override fun onMessageInputChanged(newText: String) {
         screenState.setValue { old ->
             old.copy(
                 message = newText,
@@ -131,58 +138,12 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
-    override fun onTopAppBarMenuClicked(id: Int) {
-        when (id) {
-            0 -> loadMessagesHistory(0)
-            else -> Unit
-        }
-    }
-
-    override fun setArguments(arguments: MessagesHistoryArguments) {
-        if (arguments.conversationId == screenState.value.conversationId) return
-
-        screenState.setValue { old -> old.copy(conversationId = arguments.conversationId) }
-        loadMessagesHistory()
-    }
-
-    override fun onMetPaginationCondition() {
+    override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.messages.size }
         loadMessagesHistory()
     }
 
-    override fun onShowDatesClicked(showDates: Boolean) {
-        preferences.edit { putBoolean(SettingsKeys.KEY_SHOW_DATE_UNDER_BUBBLES, showDates) }
-
-        screenState.setValue { old ->
-            old.copy(
-                messages = old.messages.map { message ->
-                    message.copy(showDate = showDates)
-                }
-            )
-        }
-    }
-
-    override fun onShowNamesClicked(showNames: Boolean) {
-        preferences.edit { putBoolean(SettingsKeys.KEY_SHOW_NAME_IN_BUBBLES, showNames) }
-
-        screenState.setValue { old ->
-            old.copy(
-                messages = old.messages.map { message ->
-                    message.copy(
-                        showName = if (showNames) {
-                            val index = messages.value.indexOfFirst { it.id == message.id }
-                            val domainMessage = messages.value[index]
-                            val prevMessage = messages.value.getOrNull(index + 1)
-
-                            domainMessage.extractShowName(prevMessage)
-                        } else false
-                    )
-                }
-            )
-        }
-    }
-
-    override fun onEnableAnimationsClicked(enableAnimations: Boolean) {
+    override fun onToggleAnimationsDropdownItemClicked(enableAnimations: Boolean) {
         preferences.edit {
             putBoolean(
                 SettingsKeys.KEY_ENABLE_ANIMATIONS_IN_MESSAGES,
@@ -285,15 +246,10 @@ class MessagesHistoryViewModelImpl(
                     messagesUseCase.storeMessages(messages)
                     conversationsUseCase.storeConversations(conversations)
 
-                    val showDate =
-                        preferences.getBoolean(SettingsKeys.KEY_SHOW_DATE_UNDER_BUBBLES, false)
-                    val showName =
-                        preferences.getBoolean(SettingsKeys.KEY_SHOW_NAME_IN_BUBBLES, false)
-
                     val loadedMessages = fullMessages.mapIndexed { index, message ->
                         message.asPresentation(
-                            showDate = showDate,
-                            showName = showName,
+                            showDate = false,
+                            showName = false,
                             prevMessage = messages.getOrNull(index + 1),
                             nextMessage = messages.getOrNull(index - 1),
                         )

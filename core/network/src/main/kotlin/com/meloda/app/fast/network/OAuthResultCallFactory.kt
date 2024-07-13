@@ -128,12 +128,12 @@ internal class ResultCall<R : Any, E : OAuthError>(
                         "invalid_request" -> {
                             when (val type = baseError.errorType) {
                                 "wrong_otp" -> {
-                                    moshi.adapter(WrongTwoFaCodeError::class.java)
+                                    moshi.adapter(WrongValidationCodeError::class.java)
                                         .fromJson(errorBodyString.orEmpty())
                                 }
 
                                 "otp_format_is_incorrect" -> {
-                                    moshi.adapter(WrongTwoFaCodeFormatError::class.java)
+                                    moshi.adapter(WrongValidationCodeFormatError::class.java)
                                         .fromJson(errorBodyString.orEmpty())
                                 }
 
