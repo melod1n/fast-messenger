@@ -110,7 +110,8 @@ val LocalTheme = compositionLocalOf {
         selectedColorScheme = 0,
         usingAmoledBackground = false,
         usingBlur = false,
-        multiline = false
+        multiline = false,
+        isDeviceCompact = false
     )
 }
 

@@ -7,5 +7,5 @@ data class ThemeConfig(
     val usingAmoledBackground: Boolean,
     val usingBlur: Boolean,
     val multiline: Boolean,
-    val bubblesWithPinch: Boolean = true
+    val isDeviceCompact: Boolean
 )

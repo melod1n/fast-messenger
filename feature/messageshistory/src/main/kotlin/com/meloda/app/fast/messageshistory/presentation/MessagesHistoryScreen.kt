@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -163,16 +164,16 @@ fun MessagesHistoryScreen(
         )
     }
 
+    val toolbarColorAlpha by animateFloatAsState(
+        targetValue = if (!listState.canScrollForward) 1f else 0f,
+        label = "toolbarColorAlpha",
+        animationSpec = tween(durationMillis = 50)
+    )
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            val toolbarColorAlpha by animateFloatAsState(
-                targetValue = if (!listState.canScrollForward) 1f else 0f,
-                label = "toolbarColorAlpha",
-                animationSpec = tween(durationMillis = 50)
-            )
-
             Column(modifier = Modifier.fillMaxWidth()) {
                 TopAppBar(
                     modifier = Modifier
@@ -370,7 +371,13 @@ fun MessagesHistoryScreen(
                                 unfocusedIndicatorColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                             ),
-                            placeholder = { Text(text = stringResource(id = UiR.string.message_input_hint)) }
+                            placeholder = {
+                                Text(
+                                    text = stringResource(id = UiR.string.message_input_hint),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         )
 
                         IconButton(onClick = onAttachmentButtonClicked) {

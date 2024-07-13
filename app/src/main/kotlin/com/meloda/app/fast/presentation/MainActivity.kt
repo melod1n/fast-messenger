@@ -15,6 +15,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +29,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.meloda.app.fast.MainViewModel
@@ -57,7 +59,11 @@ class MainActivity : AppCompatActivity() {
 
         val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         val systemBarStyle = when (currentNightMode) {
-            Configuration.UI_MODE_NIGHT_NO -> SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb())
+            Configuration.UI_MODE_NIGHT_NO -> SystemBarStyle.light(
+                Color.Transparent.toArgb(),
+                Color.Transparent.toArgb()
+            )
+
             Configuration.UI_MODE_NIGHT_YES -> SystemBarStyle.dark(Color.Transparent.toArgb())
             else -> error("Illegal State, current mode is $currentNightMode")
         }
@@ -104,6 +110,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                val windowAdaptiveInfo = currentWindowAdaptiveInfo()
+
+                val isDeviceCompact by remember(windowAdaptiveInfo) {
+                    derivedStateOf {
+                        windowAdaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
+                    }
+                }
+
                 val theme by userSettings.theme.collectAsStateWithLifecycle()
                 CompositionLocalProvider(
                     LocalTheme provides ThemeConfig(
@@ -112,7 +126,8 @@ class MainActivity : AppCompatActivity() {
                         selectedColorScheme = theme.selectedColorScheme,
                         usingAmoledBackground = theme.usingAmoledBackground,
                         usingBlur = theme.usingBlur,
-                        multiline = theme.multiline
+                        multiline = theme.multiline,
+                        isDeviceCompact = isDeviceCompact
                     )
                 ) {
                     val currentTheme = LocalTheme.current

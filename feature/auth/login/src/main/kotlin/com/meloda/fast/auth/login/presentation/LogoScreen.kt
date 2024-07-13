@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import org.koin.androidx.compose.koinViewModel
@@ -64,6 +66,8 @@ fun LogoScreen(
     onLogoLongClicked: () -> Unit = {},
     onGoNextButtonClicked: () -> Unit = {}
 ) {
+    val currentTheme = LocalTheme.current
+
     Scaffold { padding ->
         val topPadding by animateDpAsState(
             targetValue = padding.calculateTopPadding(),
@@ -83,6 +87,24 @@ fun LogoScreen(
             label = "startPaddingAnimation"
         )
 
+        val iconWidth = if (currentTheme.isDeviceCompact) {
+            100.dp
+        } else {
+            134.dp
+        }
+
+        val appNameTextStyle = if (currentTheme.isDeviceCompact) {
+            MaterialTheme.typography.displaySmall
+        } else {
+            MaterialTheme.typography.displayMedium
+        }
+
+        val bottomAdditionalPadding = if (currentTheme.isDeviceCompact) {
+            10.dp
+        } else {
+            30.dp
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -92,7 +114,9 @@ fun LogoScreen(
                     end = endPadding,
                     bottom = bottomPadding
                 )
-                .padding(30.dp)
+                .padding(top = 30.dp)
+                .padding(horizontal = 30.dp)
+                .padding(bottom = bottomAdditionalPadding)
         ) {
             Column(
                 modifier = Modifier
@@ -104,17 +128,19 @@ fun LogoScreen(
                     painter = painterResource(id = UiR.drawable.ic_logo_big),
                     contentDescription = "Application Logo",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.combinedClickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onLongClick = onLogoLongClicked,
-                        onClick = {}
-                    )
+                    modifier = Modifier
+                        .width(iconWidth)
+                        .combinedClickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onLongClick = onLogoLongClicked,
+                            onClick = {}
+                        )
                 )
                 Spacer(modifier = Modifier.height(46.dp))
                 Text(
                     text = stringResource(id = UiR.string.fast_messenger),
-                    style = MaterialTheme.typography.displayMedium,
+                    style = appNameTextStyle,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }

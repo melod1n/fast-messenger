@@ -40,7 +40,8 @@ class UserSettingsImpl(
             selectedColorScheme = selectedColorScheme(),
             usingAmoledBackground = isUsingAmoledBackground(),
             usingBlur = isUsingBlur(),
-            multiline = isMultiline()
+            multiline = isMultiline(),
+            isDeviceCompact = false
         )
     )
 
