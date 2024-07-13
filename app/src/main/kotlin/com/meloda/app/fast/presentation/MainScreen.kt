@@ -25,8 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.meloda.app.fast.navigation.MainGraph
-import com.meloda.app.fast.conversations.navigation.Conversations
 import com.meloda.app.fast.conversations.navigation.conversationsScreen
 import com.meloda.app.fast.designsystem.LocalBottomPadding
 import com.meloda.app.fast.designsystem.LocalHazeState
@@ -34,6 +32,7 @@ import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.friends.navigation.friendsScreen
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.BottomNavigationItem
+import com.meloda.app.fast.navigation.MainGraph
 import com.meloda.app.fast.profile.navigation.profileScreen
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
@@ -118,7 +117,7 @@ fun MainScreen(
                     enterTransition = { fadeIn(animationSpec = tween(200)) },
                     exitTransition = { fadeOut(animationSpec = tween(200)) }
                 ) {
-                    navigation<MainGraph>(startDestination = Conversations) {
+                    navigation<MainGraph>(startDestination = navigationItems[selectedItemIndex].route) {
                         friendsScreen(
                             onError = onError,
                             navController = navController
