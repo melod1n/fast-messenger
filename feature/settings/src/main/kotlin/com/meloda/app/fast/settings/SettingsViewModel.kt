@@ -137,7 +137,7 @@ class SettingsViewModelImpl(
 
     override fun onSettingsItemLongClicked(key: String) {
         when (key) {
-            SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS -> {
+            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
                 val showDebugCategory = isDebugSettingsShown()
                 if (showDebugCategory) return
 
@@ -190,38 +190,38 @@ class SettingsViewModelImpl(
             val accountVisible = UserConfig.isLoggedIn()
             val accountTitle = SettingsItem.Title.build(
                 key = SettingsKeys.KEY_ACCOUNT,
-                title = UiText.Simple("Account")
+                title = UiText.Resource(UiR.string.settings_account_title)
             ) {
                 isVisible = accountVisible
             }
             val accountLogOut = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_ACCOUNT_LOGOUT,
-                title = UiText.Simple("Log out"),
-                summary = UiText.Simple("Log out from account and delete all local data related to this account")
+                title = UiText.Resource(UiR.string.settings_account_logout_title),
+                summary = UiText.Resource(UiR.string.settings_account_logout_summary)
             ) {
                 isVisible = accountVisible
             }
 
             val generalTitle = SettingsItem.Title.build(
                 key = SettingsKeys.KEY_GENERAL,
-                title = UiText.Simple("General")
+                title = UiText.Resource(UiR.string.settings_general_title)
             )
             val generalUseContactNames = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_USE_CONTACT_NAMES,
-                title = UiText.Simple("Use contact names"),
-                summary = UiText.Simple("App will use available contact names for users"),
+                title = UiText.Resource(UiR.string.settings_general_contact_names_title),
+                summary = UiText.Resource(UiR.string.settings_general_contact_names_summary),
                 defaultValue = SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
             )
 
             val appearanceTitle = SettingsItem.Title.build(
                 key = SettingsKeys.KEY_APPEARANCE,
-                title = UiText.Simple("Appearance")
+                title = UiText.Resource(UiR.string.settings_appearance_title)
             )
             val appearanceMultiline = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_APPEARANCE_MULTILINE,
                 defaultValue = SettingsKeys.DEFAULT_VALUE_MULTILINE,
-                title = UiText.Simple("Multiline titles and messages"),
-                summary = UiText.Simple("The title of the dialog and the text of the message can take up two lines")
+                title = UiText.Resource(UiR.string.settings_appearance_multiline_title),
+                summary = UiText.Resource(UiR.string.settings_appearance_multiline_summary)
             )
 
             val darkThemeValues = listOf(
@@ -271,17 +271,11 @@ class SettingsViewModelImpl(
 
             val featuresTitle = SettingsItem.Title.build(
                 key = "features",
-                title = UiText.Simple("Features")
-            )
-            val featuresHideKeyboardOnScroll = SettingsItem.Switch.build(
-                key = SettingsKeys.KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL,
-                defaultValue = true,
-                title = UiText.Simple("Hide keyboard on scroll"),
-                summary = UiText.Simple("Hides keyboard when you scrolling messages up in messages history screen")
+                title = UiText.Resource(UiR.string.settings_features_title)
             )
             val featuresFastText = SettingsItem.TextField.build(
                 key = SettingsKeys.KEY_FEATURES_FAST_TEXT,
-                title = UiText.Simple("Fast text"),
+                title = UiText.Resource(UiR.string.settings_features_fast_text_title),
                 defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT
             ).apply {
                 summaryProvider = SettingsItem.SummaryProvider { settingsItem ->
@@ -291,29 +285,27 @@ class SettingsViewModelImpl(
                     )
                 }
             }
-            val featuresLongPollBackground = SettingsItem.Switch.build(
+            val debugLongPollBackground = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
                 defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
-                title = UiText.Simple("LongPoll in background"),
-                summary = UiText.Simple(
-                    "Your messages will be updates even when app is not on the screen.\nApp will be restarted"
-                )
+                title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
+                summary = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
             )
 
-            val visibilityTitle = SettingsItem.Title.build(
-                key = "visibility",
-                title = UiText.Simple("Visibility")
+            val activityTitle = SettingsItem.Title.build(
+                key = "activity",
+                title = UiText.Resource(UiR.string.settings_activity_title)
             )
             val visibilitySendOnlineStatus = SettingsItem.Switch.build(
-                key = SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-                defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS,
-                title = UiText.Simple("Send online status"),
-                summary = UiText.Simple("Online status will be sent every five minutes")
+                key = SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS,
+                defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS,
+                title = UiText.Resource(UiR.string.settings_activity_send_online_title),
+                summary = UiText.Resource(UiR.string.settings_activity_send_online_summary)
             )
 
             val debugTitle = SettingsItem.Title.build(
                 key = "debug",
-                title = UiText.Simple("Debug")
+                title = UiText.Resource(UiR.string.settings_debug_title)
             )
             val debugPerformCrash = SettingsItem.TitleSummary.build(
                 key = SettingsKeys.KEY_DEBUG_PERFORM_CRASH,
@@ -325,12 +317,6 @@ class SettingsViewModelImpl(
                 defaultValue = true,
                 title = UiText.Simple("Show alert after crash"),
                 summary = UiText.Simple("Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually)")
-            )
-            val debugShowExactTimeOnTimeStamp = SettingsItem.Switch.build(
-                key = SettingsKeys.KEY_SHOW_EXACT_TIME_ON_TIME_STAMP,
-                title = UiText.Simple("[WIP] Show exact time on time stamp"),
-                summary = UiText.Simple("Shows hours and minutes on time stamp in messages history"),
-                defaultValue = false
             )
             val debugUseBlur = SettingsItem.Switch.build(
                 key = SettingsKeys.KEY_APPEARANCE_BLUR,
@@ -368,12 +354,10 @@ class SettingsViewModelImpl(
             )
             val featuresList = listOf(
                 featuresTitle,
-                featuresHideKeyboardOnScroll,
-                featuresFastText,
-                featuresLongPollBackground
+                featuresFastText
             )
             val visibilityList = listOf(
-                visibilityTitle,
+                activityTitle,
                 visibilitySendOnlineStatus,
             )
             val debugList = mutableListOf<SettingsItem<*>>()
@@ -381,7 +365,7 @@ class SettingsViewModelImpl(
                 debugTitle,
                 debugPerformCrash,
                 debugShowCrashAlert,
-                debugShowExactTimeOnTimeStamp,
+                debugLongPollBackground,
                 debugUseBlur,
                 debugShowEmojiButton
             ).forEach(debugList::add)

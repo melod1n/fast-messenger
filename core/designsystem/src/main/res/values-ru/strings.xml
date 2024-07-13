@@ -171,4 +171,21 @@
     <string name="title_friends_all">Все</string>
     <string name="title_friends_online">В сети</string>
     <string name="no_items">Нет элементов</string>
+    <string name="settings_account_title">Аккаунт</string>
+    <string name="settings_account_logout_title">Выйти из аккаунта</string>
+    <string name="settings_account_logout_summary">Выход из аккаунта удалит все связанные с текущим аккаунтом данные</string>
+    <string name="settings_general_title">Основное</string>
+    <string name="settings_general_contact_names_title">Использовать имена контактов</string>
+    <string name="settings_general_contact_names_summary">Приложение будет использовать доступные имена контактов для пользователей</string>
+    <string name="settings_appearance_title">Внешний вид</string>
+    <string name="settings_appearance_multiline_title">Многострочные заголовки и сообщения</string>
+    <string name="settings_appearance_multiline_summary">Заголовок чата и текст сообщения смогут занимать несколько строчек</string>
+    <string name="settings_features_title">Фичи</string>
+    <string name="settings_features_fast_text_title">Fast текст</string>
+    <string name="settings_features_long_poll_in_background_title">[WIP] LongPoll в фоне</string>
+    <string name="settings_features_long_poll_in_background_summary">Ваши сообщения будут обновляться, даже если приложение находится в фоне</string>
+    <string name="settings_activity_title">Активность</string>
+    <string name="settings_activity_send_online_title">Быть «в сети»</string>
+    <string name="settings_activity_send_online_summary">Статус «в сети» будет отправляться каждые 5 минут</string>
+    <string name="settings_debug_title">Отладка</string>
 </resources>

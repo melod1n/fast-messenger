@@ -229,5 +229,22 @@
     <string name="title_friends_all">All</string>
     <string name="title_friends_online">Online</string>
     <string name="no_items">No items</string>
+    <string name="settings_account_title">Account</string>
+    <string name="settings_account_logout_title">Log out</string>
+    <string name="settings_account_logout_summary">Log out from account and delete all local data related to this account</string>
+    <string name="settings_general_title">General</string>
+    <string name="settings_general_contact_names_title">Use contact names</string>
+    <string name="settings_general_contact_names_summary">App will use available contact names for users</string>
+    <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_multiline_title">Multiline titles and messages</string>
+    <string name="settings_appearance_multiline_summary">The title of the conversation and the text of the message can take up multiple lines</string>
+    <string name="settings_features_title">Features</string>
+    <string name="settings_features_fast_text_title">Fast text</string>
+    <string name="settings_features_long_poll_in_background_title">[WIP] LongPoll in background</string>
+    <string name="settings_features_long_poll_in_background_summary">Your messages will be updates even when app is not on the screen</string>
+    <string name="settings_activity_title">Activity</string>
+    <string name="settings_activity_send_online_title">Send online status</string>
+    <string name="settings_activity_send_online_summary">Online status will be sent every five minutes</string>
+    <string name="settings_debug_title">Debug</string>
 
 </resources>

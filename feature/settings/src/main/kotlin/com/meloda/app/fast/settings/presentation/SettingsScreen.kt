@@ -147,7 +147,7 @@ fun SettingsScreen(
                 userSettings.setLongPollBackground(isUsing)
             }
 
-            SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS -> {
+            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
                 val isUsing = newValue as? Boolean ?: false
                 userSettings.setOnline(isUsing)
             }

@@ -27,19 +27,17 @@ object SettingsKeys {
     const val KEY_APPEARANCE_BLUR = "appearance_blur"
     const val DEFAULT_VALUE_KEY_APPEARANCE_BLUR = false
 
-    const val KEY_FEATURES_HIDE_KEYBOARD_ON_SCROLL = "features_hide_keyboard_on_scroll"
     const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
     const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"
     const val KEY_FEATURES_LONG_POLL_IN_BACKGROUND = "features_lp_background"
     const val DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND = false
 
-    const val KEY_VISIBILITY_SEND_ONLINE_STATUS = "visibility_send_online_status"
-    const val DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS = false
+    const val KEY_ACTIVITY_SEND_ONLINE_STATUS = "activity_send_online_status"
+    const val DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS = false
 
     const val KEY_DEBUG_PERFORM_CRASH = "debug_perform_crash"
     const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
     const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
-    const val KEY_SHOW_EXACT_TIME_ON_TIME_STAMP = "wip_show_exact_time_on_time_stamp"
     const val KEY_SHOW_NAME_IN_BUBBLES = "debug_show_title_in_bubbles"
     const val KEY_SHOW_DATE_UNDER_BUBBLES = "debug_show_date_under_bubbles"
     const val KEY_ENABLE_ANIMATIONS_IN_MESSAGES = "debug_enable_animations_in_messages"

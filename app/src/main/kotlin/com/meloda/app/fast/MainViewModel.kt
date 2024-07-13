@@ -65,8 +65,8 @@ class MainViewModelImpl(
     )
     override val startOnlineService = MutableStateFlow(
         SettingsController.getBoolean(
-            SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-            SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
+            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS,
+            SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS
         )
     )
 
