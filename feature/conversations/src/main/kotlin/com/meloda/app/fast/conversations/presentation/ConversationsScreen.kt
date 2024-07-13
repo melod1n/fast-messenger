@@ -293,7 +293,6 @@ fun ConversationsScreen(
             Column {
                 AnimatedVisibility(
                     visible = isListScrollingUp,
-                    modifier = Modifier.navigationBarsPadding(),
                     enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
                     exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
                 ) {
