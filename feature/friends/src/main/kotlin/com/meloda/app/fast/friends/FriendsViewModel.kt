@@ -69,25 +69,14 @@ class FriendsViewModelImpl(
         friendsUseCase.getAllFriends(count = LOAD_COUNT, offset = offset).listenValue { state ->
             state.processState(
                 error = { error ->
-                    when (error) {
-                        is State.Error.ApiError -> {
-                            val (code, message) = error
-
-                            when (code) {
-                                VkErrorCodes.UserAuthorizationFailed -> {
-                                    baseError.setValue { BaseError.SessionExpired }
-                                }
-
-                                else -> {
-                                    Unit
-                                }
+                    if (error is State.Error.ApiError) {
+                        when (error.errorCode) {
+                            VkErrorCodes.UserAuthorizationFailed -> {
+                                baseError.setValue { BaseError.SessionExpired }
                             }
-                        }
 
-                        State.Error.ConnectionError -> TODO()
-                        State.Error.InternalError -> TODO()
-                        is State.Error.OAuthError -> TODO()
-                        State.Error.Unknown -> TODO()
+                            else -> Unit
+                        }
                     }
                 },
                 success = { info ->
