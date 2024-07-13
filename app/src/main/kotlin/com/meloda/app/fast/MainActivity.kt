@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.extensions.ifEmpty
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
@@ -55,6 +56,23 @@ class MainActivity : AppCompatActivity() {
         setContent {
             KoinContext {
                 val userSettings: UserSettings = koinInject()
+
+                LifecycleResumeEffect(true) {
+                    userSettings.onLanguageChanged(
+                        AppCompatDelegate.getApplicationLocales()
+                            .toLanguageTags()
+                            .ifEmpty { null }
+                            ?: LocaleListCompat.getDefault()
+                                .toLanguageTags()
+                                .split(",")
+                                .firstOrNull()
+                                .orEmpty()
+                                .take(5)
+                    )
+
+                    onPauseOrDispose {}
+                }
+
                 LaunchedEffect(true) {
                     userSettings.updateUsingDarkTheme()
                 }

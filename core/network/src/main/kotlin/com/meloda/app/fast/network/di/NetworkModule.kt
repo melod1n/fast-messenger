@@ -3,11 +3,13 @@ package com.meloda.app.fast.network.di
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.meloda.app.fast.common.AppConstants
-import com.meloda.app.fast.common.AuthInterceptor
 import com.meloda.app.fast.network.JsonConverter
 import com.meloda.app.fast.network.MoshiConverter
 import com.meloda.app.fast.network.OAuthResultCallFactory
 import com.meloda.app.fast.network.ResponseConverterFactory
+import com.meloda.app.fast.network.interceptor.AccessTokenInterceptor
+import com.meloda.app.fast.network.interceptor.LanguageInterceptor
+import com.meloda.app.fast.network.interceptor.VersionInterceptor
 import com.meloda.app.fast.network.service.account.AccountService
 import com.meloda.app.fast.network.service.audios.AudiosService
 import com.meloda.app.fast.network.service.auth.AuthService
@@ -39,12 +41,16 @@ val networkModule = module {
     singleOf(::MoshiConverter) bind JsonConverter::class
     single { ChuckerCollector(get()) }
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }
-    singleOf(::AuthInterceptor)
+    singleOf(::AccessTokenInterceptor)
+    singleOf(::VersionInterceptor)
+    singleOf(::LanguageInterceptor)
     single {
         OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(get<AuthInterceptor>())
+            .addInterceptor(get<AccessTokenInterceptor>())
+            .addInterceptor(get<VersionInterceptor>())
+            .addInterceptor(get<LanguageInterceptor>())
             .addInterceptor(get<ChuckerInterceptor>())
             .followRedirects(true)
             .followSslRedirects(true)
@@ -84,7 +90,6 @@ val networkModule = module {
     single { service(LongPollService::class.java) }
     single { service(MessagesService::class.java) }
     single { service(OAuthService::class.java) }
-//    single { get<Retrofit>(named("oauth")).create(OAuthService::class.java) }
     single { service(PhotosService::class.java) }
     single { service(UsersService::class.java) }
     single { service(VideosService::class.java) }

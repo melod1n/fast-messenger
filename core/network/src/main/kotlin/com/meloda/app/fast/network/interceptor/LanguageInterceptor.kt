@@ -1,28 +1,25 @@
-package com.meloda.app.fast.common
+package com.meloda.app.fast.network.interceptor
 
 import androidx.core.net.toUri
+import com.meloda.app.fast.common.ApiLanguage
+import com.meloda.app.fast.common.provider.Provider
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.net.URLEncoder
 
-class AuthInterceptor : Interceptor {
+class LanguageInterceptor(private val provider: Provider<ApiLanguage>) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val builder = chain.request().url.newBuilder()
 
         val uri = builder.build().toUri().toString().toUri()
 
-        if (uri.getQueryParameter("v") == null) {
-            builder.addQueryParameter(
-                name = "v",
-                value = URLEncoder.encode(AppConstants.API_VERSION, "utf-8")
-            )
-        }
+        val apiLanguage = provider.provide()?.value ?: "ru"
 
-        if (UserConfig.accessToken.isNotBlank()) {
+        if (uri.getQueryParameter("lang") == null) {
             builder.addQueryParameter(
-                "access_token",
-                URLEncoder.encode(UserConfig.accessToken, "utf-8")
+                name = "lang",
+                value = URLEncoder.encode(apiLanguage, "utf-8")
             )
         }
 

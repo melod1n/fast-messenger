@@ -13,6 +13,7 @@ interface UserSettings {
     val online: StateFlow<Boolean>
     val debugSettingsEnabled: StateFlow<Boolean>
     val useContactNames: StateFlow<Boolean>
+    val language: StateFlow<String>
 
     fun updateUsingDarkTheme()
     fun useDarkThemeChanged(use: Boolean)
@@ -24,6 +25,7 @@ interface UserSettings {
     fun setOnline(use: Boolean)
     fun enableDebugSettings(enable: Boolean)
     fun onUseContactNamesChanged(use: Boolean)
+    fun onLanguageChanged(newLanguage: String)
 }
 
 class UserSettingsImpl(
@@ -68,6 +70,8 @@ class UserSettingsImpl(
             SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
         )
     )
+
+    override val language = MutableStateFlow("")
 
     override fun updateUsingDarkTheme() {
         useDarkThemeChanged(
@@ -116,5 +120,9 @@ class UserSettingsImpl(
 
     override fun onUseContactNamesChanged(use: Boolean) {
         useContactNames.update { use }
+    }
+
+    override fun onLanguageChanged(newLanguage: String) {
+        language.update { newLanguage }
     }
 }
