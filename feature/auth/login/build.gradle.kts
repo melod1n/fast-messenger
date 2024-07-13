@@ -45,6 +45,8 @@ android {
 
     defaultConfig {
         minSdk = Configs.minSdk
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -92,6 +94,5 @@ dependencies {
 
     implementation(libs.rebugger)
 
-    androidTestImplementation(libs.compose.ui.test.junit4)
-    debugImplementation(libs.compose.ui.test.manifest)
+    androidTestImplementation(libs.bundles.compose.ui.test)
 }

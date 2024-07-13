@@ -7,7 +7,7 @@ import com.meloda.fast.auth.login.presentation.LoginScreen
 import org.junit.Rule
 import org.junit.Test
 
-class LoginSignInTests {
+class LoginScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
