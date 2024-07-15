@@ -32,15 +32,10 @@ interface SettingsViewModel {
     val isLongPollBackgroundEnabled: StateFlow<Boolean?>
 
     fun onLogOutAlertDismissed()
-
-    fun onPerformCrashAlertDismissed()
-
-    fun onPerformCrashPositiveButtonClicked()
-
     fun onLogOutAlertPositiveClick()
 
-    fun onLongPollingAlertPositiveClicked()
-    fun onLongPollingAlertDismissed()
+    fun onPerformCrashAlertDismissed()
+    fun onPerformCrashPositiveButtonClicked()
 
     fun onSettingsItemClicked(key: String)
     fun onSettingsItemLongClicked(key: String)
@@ -68,14 +63,6 @@ class SettingsViewModelImpl(
         emitShowOptions { old -> old.copy(showLogOut = false) }
     }
 
-    override fun onPerformCrashAlertDismissed() {
-        emitShowOptions { old -> old.copy(showPerformCrash = false) }
-    }
-
-    override fun onPerformCrashPositiveButtonClicked() {
-        throw Exception("Test exception")
-    }
-
     override fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
             accountsRepository.storeAccounts(
@@ -93,18 +80,12 @@ class SettingsViewModelImpl(
         }
     }
 
-    override fun onLongPollingAlertPositiveClicked() {
-        screenState.setValue { old -> old.copy(isNeedToRequestNotificationPermission = true) }
+    override fun onPerformCrashAlertDismissed() {
+        emitShowOptions { old -> old.copy(showPerformCrash = false) }
     }
 
-    override fun onLongPollingAlertDismissed() {
-        screenState.setValue { old ->
-            old.copy(
-                showOptions = old.showOptions.copy(
-                    showLongPollNotifications = false
-                )
-            )
-        }
+    override fun onPerformCrashPositiveButtonClicked() {
+        throw Exception("Test exception")
     }
 
     override fun onSettingsItemClicked(key: String) {

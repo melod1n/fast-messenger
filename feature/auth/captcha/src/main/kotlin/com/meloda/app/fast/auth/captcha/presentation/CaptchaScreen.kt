@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,7 @@ import coil.request.ImageRequest
 import com.meloda.app.fast.auth.captcha.CaptchaViewModel
 import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
 import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.designsystem.ActionInvokeDismiss
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
@@ -89,7 +90,7 @@ fun CaptchaScreen(
     onTextFieldDoneAction: () -> Unit = {},
     onDoneButtonClicked: () -> Unit = {}
 ) {
-    var confirmedExit by rememberSaveable {
+    var confirmedExit by remember {
         mutableStateOf(false)
     }
 
@@ -111,14 +112,13 @@ fun CaptchaScreen(
 
     if (showExitAlert) {
         MaterialDialog(
-            onDismissAction = { showExitAlert = false },
-            title = UiText.Simple("Confirmation"),
-            text = UiText.Simple("Are you sure? Captcha process will be cancelled."),
-            confirmText = UiText.Resource(UiR.string.yes),
-            confirmAction = {
-                confirmedExit = true
-            },
-            cancelText = UiText.Resource(UiR.string.no)
+            onDismissRequest = { showExitAlert = false },
+            title = stringResource(id = UiR.string.warning_confirmation),
+            text = stringResource(id = UiR.string.captcha_exit_warning),
+            confirmAction = { confirmedExit = true },
+            confirmText = stringResource(id = UiR.string.yes),
+            cancelText = stringResource(id = UiR.string.no),
+            actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
 

@@ -34,11 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isUsingDarkMode
+import com.meloda.app.fast.designsystem.ActionInvokeDismiss
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.settings.HapticType
@@ -118,8 +118,6 @@ fun SettingsRoute(
             onLogOutButtonClicked()
         },
         logoutDismissed = viewModel::onLogOutAlertDismissed,
-        longPollingPositiveClick = viewModel::onLongPollingAlertPositiveClicked,
-        longPollingDismissed = viewModel::onLongPollingAlertDismissed,
         screenState = screenState
     )
 }
@@ -273,8 +271,6 @@ fun HandlePopups(
     performCrashDismissed: () -> Unit,
     logoutPositiveClick: () -> Unit,
     logoutDismissed: () -> Unit,
-    longPollingPositiveClick: () -> Unit,
-    longPollingDismissed: () -> Unit,
     screenState: SettingsScreenState
 ) {
     val showOptions = screenState.showOptions
@@ -290,12 +286,6 @@ fun HandlePopups(
         dismiss = logoutDismissed,
         show = showOptions.showLogOut
     )
-
-    LongPollingNotificationsPermission(
-        positiveClick = longPollingPositiveClick,
-        dismiss = longPollingDismissed,
-        show = showOptions.showLongPollNotifications
-    )
 }
 
 @Composable
@@ -306,12 +296,13 @@ fun PerformCrashDialog(
 ) {
     if (show) {
         MaterialDialog(
-            title = UiText.Simple("Perform Crash"),
-            text = UiText.Simple("App will be crashed. Are you sure?"),
-            confirmText = UiText.Resource(UiR.string.yes),
+            onDismissRequest = dismiss,
+            title = "Perform crash",
+            text = "App will be crashed. Are you sure?",
             confirmAction = positiveClick,
-            cancelText = UiText.Resource(UiR.string.cancel),
-            onDismissAction = dismiss
+            confirmText = stringResource(id = UiR.string.yes),
+            cancelText = stringResource(id = UiR.string.cancel),
+            actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
 }
@@ -325,41 +316,20 @@ fun LogOutDialog(
     if (show) {
         val isEasterEgg = UserConfig.userId == SettingsKeys.ID_DMITRY
 
-        val title = UiText.Resource(
-            if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
-            else UiR.string.sign_out_confirm_title
-        )
-
-        val positiveText = UiText.Resource(
-            if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
-            else UiR.string.action_sign_out
-        )
-
         MaterialDialog(
-            title = title,
-            text = UiText.Resource(UiR.string.sign_out_confirm),
-            confirmText = positiveText,
+            onDismissRequest = dismiss,
+            title = stringResource(
+                id = if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
+                else UiR.string.sign_out_confirm_title
+            ),
+            text = stringResource(id = UiR.string.sign_out_confirm),
             confirmAction = positiveClick,
-            cancelText = UiText.Resource(UiR.string.cancel),
-            onDismissAction = dismiss
-        )
-    }
-}
-
-@Composable
-fun LongPollingNotificationsPermission(
-    positiveClick: () -> Unit,
-    dismiss: () -> Unit,
-    show: Boolean
-) {
-    if (show) {
-        MaterialDialog(
-            title = UiText.Resource(UiR.string.warning),
-            text = UiText.Simple("Long polling in background required notifications permission on Android 13 and up"),
-            confirmText = UiText.Simple("Grant"),
-            confirmAction = positiveClick,
-            cancelText = UiText.Resource(UiR.string.cancel),
-            onDismissAction = dismiss
+            confirmText = stringResource(
+                id = if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
+                else UiR.string.action_sign_out
+            ),
+            cancelText = stringResource(id = UiR.string.no),
+            actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
 }

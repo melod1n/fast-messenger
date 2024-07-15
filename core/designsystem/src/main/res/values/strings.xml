@@ -259,4 +259,7 @@
 
     <string name="notification_channel_long_polling_service_name">Message update service</string>
     <string name="notification_channel_long_polling_service_description">Message update service notifications</string>
-    </resources>
+    <string name="warning_confirmation">Confirmation</string>
+    <string name="captcha_exit_warning">Are you sure? Captcha process will be cancelled</string>
+    <string name="validation_exit_warning">Are you sure? Validation process will be cancelled</string>
+</resources>

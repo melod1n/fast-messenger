@@ -37,6 +37,208 @@ import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.parseString
 import com.meloda.app.fast.designsystem.ImmutableList.Companion.toImmutableList
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MaterialDialog(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    confirmText: String? = null,
+    confirmAction: (() -> Unit)? = null,
+    cancelText: String? = null,
+    cancelAction: (() -> Unit)? = null,
+    neutralText: String? = null,
+    neutralAction: (() -> Unit)? = null,
+    title: String? = null,
+    text: String? = null,
+    itemsSelectionType: ItemsSelectionType = ItemsSelectionType.None,
+    items: ImmutableList<String> = ImmutableList.empty(),
+    preSelectedItems: ImmutableList<Int> = ImmutableList.empty(),
+    onItemClick: ((index: Int) -> Unit)? = null,
+    properties: DialogProperties = DialogProperties(),
+    actionInvokeDismiss: ActionInvokeDismiss = ActionInvokeDismiss.IfNoAction,
+    customContent: (ColumnScope.() -> Unit)? = null
+) {
+    var alertItems by remember {
+        mutableStateOf(
+            items.mapIndexed { index, title ->
+                DialogItem(
+                    title,
+                    preSelectedItems.contains(index)
+                )
+            }
+        )
+    }
+
+    BasicAlertDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = modifier,
+        properties = properties
+    ) {
+        val scrollState = rememberScrollState()
+        val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
+        val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = AlertDialogDefaults.containerColor,
+            shape = AlertDialogDefaults.shape,
+            tonalElevation = AlertDialogDefaults.TonalElevation
+        ) {
+            Column(modifier = Modifier.padding(bottom = 10.dp)) {
+                if (title != null) {
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row {
+                        Spacer(modifier = Modifier.width(24.dp))
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = title,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Spacer(modifier = Modifier.width(20.dp))
+                    }
+                }
+
+                if (canScrollBackward) {
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(scrollState)
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (text != null && title == null) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    if (text != null) {
+                        Row {
+                            Spacer(modifier = Modifier.width(24.dp))
+                            Text(
+                                modifier = Modifier.weight(1f),
+                                text = text,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(20.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (alertItems.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        AlertItems(
+                            selectionType = itemsSelectionType,
+                            items = alertItems,
+                            onItemClick = { index ->
+                                onItemClick?.invoke(index)
+
+                                if (itemsSelectionType == ItemsSelectionType.None) {
+                                    onDismissRequest.invoke()
+                                } else {
+                                    val newItems =
+                                        alertItems.mapIndexed { itemIndex, item ->
+                                            item.copy(isSelected = itemIndex == index)
+                                        }
+
+                                    alertItems = newItems
+                                }
+                            },
+                            onItemCheckedChanged = { index ->
+                                val newItems = alertItems.toMutableList()
+                                val oldItem = newItems[index]
+                                newItems[index] =
+                                    oldItem.copy(isSelected = !oldItem.isSelected)
+
+                                alertItems = newItems.toImmutableList()
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    } else {
+                        if (customContent != null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            customContent.invoke(this)
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
+                }
+
+                if (canScrollForward) {
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                }
+
+                Row {
+                    Spacer(modifier = Modifier.width(20.dp))
+                    if (neutralText != null) {
+                        TextButton(
+                            onClick = {
+                                neutralAction?.invoke() ?: kotlin.run {
+                                    if (actionInvokeDismiss == ActionInvokeDismiss.IfNoAction) {
+                                        onDismissRequest()
+                                    }
+                                }
+
+                                if (actionInvokeDismiss == ActionInvokeDismiss.Always) {
+                                    onDismissRequest()
+                                }
+                            }
+                        ) {
+                            Text(text = neutralText)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    if (cancelText != null) {
+                        TextButton(
+                            onClick = {
+                                cancelAction?.invoke() ?: kotlin.run {
+                                    if (actionInvokeDismiss == ActionInvokeDismiss.IfNoAction) {
+                                        onDismissRequest()
+                                    }
+                                }
+
+                                if (actionInvokeDismiss == ActionInvokeDismiss.Always) {
+                                    onDismissRequest()
+                                }
+                            }
+                        ) {
+                            Text(text = cancelText)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(2.dp))
+
+                    if (confirmText != null) {
+                        TextButton(
+                            onClick = {
+                                confirmAction?.invoke() ?: kotlin.run {
+                                    if (actionInvokeDismiss == ActionInvokeDismiss.IfNoAction) {
+                                        onDismissRequest()
+                                    }
+                                }
+
+                                if (actionInvokeDismiss == ActionInvokeDismiss.Always) {
+                                    onDismissRequest()
+                                }
+                            }
+                        ) {
+                            Text(text = confirmText)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(20.dp))
+                }
+            }
+        }
+    }
+}
+
 // TODO: 08.04.2023, Danil Nikolaev: refactor this
 @Deprecated("need refactoring")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +286,7 @@ fun MaterialDialog(
         )
     }
 
-    AlertAnimation(visible = isVisible) {
+    if (isVisible) {
         BasicAlertDialog(
             onDismissRequest = onDismissRequest,
             properties = properties
@@ -251,21 +453,6 @@ fun MaterialDialog(
 }
 
 @Composable
-fun AlertAnimation(
-    visible: Boolean,
-    content: @Composable () -> Unit
-) {
-    if (visible) content()
-//    AnimatedVisibility(
-//        visible = visible,
-//        enter = fadeIn(animationSpec = tween(400)) +
-//                scaleIn(animationSpec = tween(400)),
-//        exit = fadeOut(animationSpec = tween(150)),
-//        content = content
-//    )
-}
-
-@Composable
 private fun AlertItems(
     selectionType: ItemsSelectionType,
     items: ImmutableList<DialogItem>,
@@ -324,8 +511,14 @@ data class DialogItem(
     val isSelected: Boolean
 )
 
-sealed interface ItemsSelectionType {
-    data object Single : ItemsSelectionType
-    data object Multi : ItemsSelectionType
-    data object None : ItemsSelectionType
+sealed class ActionInvokeDismiss {
+    data object Never : ActionInvokeDismiss()
+    data object IfNoAction : ActionInvokeDismiss()
+    data object Always : ActionInvokeDismiss()
+}
+
+sealed class ItemsSelectionType {
+    data object Single : ItemsSelectionType()
+    data object Multi : ItemsSelectionType()
+    data object None : ItemsSelectionType()
 }

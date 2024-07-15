@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -46,7 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.auth.validation.ValidationViewModel
 import com.meloda.app.fast.auth.validation.ValidationViewModelImpl
 import com.meloda.app.fast.auth.validation.model.ValidationScreenState
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.designsystem.ActionInvokeDismiss
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.TextFieldErrorText
 import com.meloda.app.fast.designsystem.getString
@@ -96,7 +97,7 @@ fun ValidationScreen(
 ) {
     val focusManager = LocalFocusManager.current
 
-    var confirmedExit by rememberSaveable {
+    var confirmedExit by remember {
         mutableStateOf(false)
     }
 
@@ -118,14 +119,13 @@ fun ValidationScreen(
 
     if (showExitAlert) {
         MaterialDialog(
-            onDismissAction = { showExitAlert = false },
-            title = UiText.Simple("Confirmation"),
-            text = UiText.Simple("Are you sure? Authorization process will be cancelled."),
-            confirmText = UiText.Resource(UiR.string.yes),
-            confirmAction = {
-                confirmedExit = true
-            },
-            cancelText = UiText.Resource(UiR.string.no)
+            onDismissRequest = { showExitAlert = false },
+            title = stringResource(id = UiR.string.warning_confirmation),
+            text = stringResource(id = UiR.string.validation_exit_warning),
+            confirmAction = { confirmedExit = true },
+            confirmText = stringResource(id = UiR.string.yes),
+            cancelText = stringResource(id = UiR.string.no),
+            actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
 

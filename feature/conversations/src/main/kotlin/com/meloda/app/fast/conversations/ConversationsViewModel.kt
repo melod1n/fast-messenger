@@ -47,8 +47,7 @@ interface ConversationsViewModel {
     fun onPaginationConditionsMet()
 
     fun onDeleteDialogDismissed()
-
-    fun onDeleteDialogPositiveClick(conversationId: Int)
+    fun onDeleteDialogPositiveClick()
 
     fun onRefresh()
 
@@ -56,7 +55,8 @@ interface ConversationsViewModel {
     fun onConversationItemLongClick(conversation: UiConversation)
 
     fun onPinDialogDismissed()
-    fun onPinDialogPositiveClick(conversation: UiConversation)
+    fun onPinDialogPositiveClick()
+
     fun onOptionClicked(conversation: UiConversation, option: ConversationOption)
 
     fun onErrorConsumed()
@@ -104,9 +104,11 @@ class ConversationsViewModelImpl(
         emitShowOptions { old -> old.copy(showDeleteDialog = null) }
     }
 
-    override fun onDeleteDialogPositiveClick(conversationId: Int) {
+    override fun onDeleteDialogPositiveClick() {
+        val conversationId = screenState.value.showOptions.showDeleteDialog ?: return
         deleteConversation(conversationId)
         hideOptions(conversationId)
+        onDeleteDialogDismissed()
     }
 
     override fun onRefresh() {
@@ -168,9 +170,11 @@ class ConversationsViewModelImpl(
         emitShowOptions { old -> old.copy(showPinDialog = null) }
     }
 
-    override fun onPinDialogPositiveClick(conversation: UiConversation) {
+    override fun onPinDialogPositiveClick() {
+        val conversation = screenState.value.showOptions.showPinDialog ?: return
         pinConversation(conversation.id, !conversation.isPinned)
         hideOptions(conversation.id)
+        onPinDialogDismissed()
     }
 
     override fun onOptionClicked(conversation: UiConversation, option: ConversationOption) {
@@ -222,64 +226,65 @@ class ConversationsViewModelImpl(
     private fun loadConversations(
         offset: Int = currentOffset.value
     ) {
-        conversationsUseCase.getConversations(count = LOAD_COUNT, offset = offset).listenValue { state ->
-            state.processState(
-                error = { error ->
-                    if (error is State.Error.ApiError) {
-                        when (error.errorCode) {
-                            VkErrorCodes.UserAuthorizationFailed -> {
-                                baseError.setValue { BaseError.SessionExpired }
+        conversationsUseCase.getConversations(count = LOAD_COUNT, offset = offset)
+            .listenValue { state ->
+                state.processState(
+                    error = { error ->
+                        if (error is State.Error.ApiError) {
+                            when (error.errorCode) {
+                                VkErrorCodes.UserAuthorizationFailed -> {
+                                    baseError.setValue { BaseError.SessionExpired }
+                                }
+
+                                else -> Unit
                             }
-
-                            else -> Unit
                         }
-                    }
-                },
-                success = { response ->
-                    val itemsCountSufficient = response.size == LOAD_COUNT
-                    canPaginate.setValue { itemsCountSufficient }
+                    },
+                    success = { response ->
+                        val itemsCountSufficient = response.size == LOAD_COUNT
+                        canPaginate.setValue { itemsCountSufficient }
 
-                    val paginationExhausted = !itemsCountSufficient &&
-                            screenState.value.conversations.isNotEmpty()
+                        val paginationExhausted = !itemsCountSufficient &&
+                                screenState.value.conversations.isNotEmpty()
 
-                    imagesToPreload.setValue {
-                        response.mapNotNull { it.extractAvatar().extractUrl() }
-                    }
-                    conversationsUseCase.storeConversations(response)
-
-                    val loadedConversations = response.map {
-                        it.asPresentation(
-                            resources,
-                            userSettings.useContactNames.value
-                        )
-                    }
-
-                    val newState = screenState.value.copy(
-                        isPaginationExhausted = paginationExhausted
-                    )
-                    if (offset == 0) {
-                        conversations.emit(response)
-                        screenState.setValue {
-                            newState.copy(conversations = loadedConversations)
+                        imagesToPreload.setValue {
+                            response.mapNotNull { it.extractAvatar().extractUrl() }
                         }
-                    } else {
-                        conversations.emit(conversations.value.plus(response))
-                        screenState.setValue {
-                            newState.copy(
-                                conversations = newState.conversations.plus(loadedConversations)
+                        conversationsUseCase.storeConversations(response)
+
+                        val loadedConversations = response.map {
+                            it.asPresentation(
+                                resources,
+                                userSettings.useContactNames.value
                             )
                         }
-                    }
-                }
-            )
 
-            screenState.setValue { old ->
-                old.copy(
-                    isLoading = offset == 0 && state.isLoading(),
-                    isPaginating = offset > 0 && state.isLoading()
+                        val newState = screenState.value.copy(
+                            isPaginationExhausted = paginationExhausted
+                        )
+                        if (offset == 0) {
+                            conversations.emit(response)
+                            screenState.setValue {
+                                newState.copy(conversations = loadedConversations)
+                            }
+                        } else {
+                            conversations.emit(conversations.value.plus(response))
+                            screenState.setValue {
+                                newState.copy(
+                                    conversations = newState.conversations.plus(loadedConversations)
+                                )
+                            }
+                        }
+                    }
                 )
+
+                screenState.setValue { old ->
+                    old.copy(
+                        isLoading = offset == 0 && state.isLoading(),
+                        isPaginating = offset > 0 && state.isLoading()
+                    )
+                }
             }
-        }
     }
 
     private fun deleteConversation(peerId: Int) {

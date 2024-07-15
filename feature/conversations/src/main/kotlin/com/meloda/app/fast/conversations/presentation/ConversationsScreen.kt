@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
@@ -68,7 +67,6 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
-import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.conversations.ConversationsViewModel
 import com.meloda.app.fast.conversations.ConversationsViewModelImpl
 import com.meloda.app.fast.conversations.model.ConversationOption
@@ -79,6 +77,7 @@ import com.meloda.app.fast.designsystem.LocalHazeState
 import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.designsystem.components.FullScreenLoader
+import com.meloda.app.fast.designsystem.isScrollingUp
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.ErrorView
 import dev.chrisbanes.haze.haze
@@ -398,72 +397,30 @@ fun HandleDialogs(
     val showOptions = screenState.showOptions
 
     if (showOptions.showDeleteDialog != null) {
-        val conversationId = showOptions.showDeleteDialog
-        DeleteDialog(
-            conversationId = conversationId,
-            viewModel = viewModel
+        MaterialDialog(
+            onDismissRequest = viewModel::onDeleteDialogDismissed,
+            title = stringResource(id = UiR.string.confirm_delete_conversation),
+            confirmAction = viewModel::onDeleteDialogPositiveClick,
+            confirmText = stringResource(id = UiR.string.action_delete),
+            cancelText = stringResource(id = UiR.string.cancel)
         )
     }
 
-    showOptions.showPinDialog?.let { conversation ->
-        PinDialog(
-            conversation = conversation,
-            viewModel = viewModel
+    if (showOptions.showPinDialog != null) {
+        val conversation = showOptions.showPinDialog
+
+        MaterialDialog(
+            onDismissRequest = viewModel::onPinDialogDismissed,
+            title = stringResource(
+                id = if (conversation.isPinned) UiR.string.confirm_unpin_conversation
+                else UiR.string.confirm_pin_conversation
+            ),
+            confirmAction = viewModel::onPinDialogPositiveClick,
+            confirmText = stringResource(
+                id = if (conversation.isPinned) UiR.string.action_unpin
+                else UiR.string.action_pin
+            ),
+            cancelText = stringResource(id = UiR.string.cancel)
         )
     }
-}
-
-@Composable
-fun DeleteDialog(
-    conversationId: Int,
-    viewModel: ConversationsViewModel
-) {
-    MaterialDialog(
-        title = UiText.Resource(UiR.string.confirm_delete_conversation),
-        confirmText = UiText.Resource(UiR.string.action_delete),
-        confirmAction = { viewModel.onDeleteDialogPositiveClick(conversationId) },
-        cancelText = UiText.Resource(UiR.string.cancel),
-        onDismissAction = viewModel::onDeleteDialogDismissed
-    )
-}
-
-@Composable
-fun PinDialog(
-    conversation: UiConversation,
-    viewModel: ConversationsViewModel
-) {
-    MaterialDialog(
-        title = UiText.Resource(
-            if (conversation.isPinned) UiR.string.confirm_unpin_conversation
-            else UiR.string.confirm_pin_conversation
-        ),
-        confirmText = UiText.Resource(
-            if (conversation.isPinned) UiR.string.action_unpin
-            else UiR.string.action_pin
-        ),
-        confirmAction = {
-            viewModel.onPinDialogPositiveClick(conversation)
-        },
-        cancelText = UiText.Resource(UiR.string.cancel),
-        onDismissAction = viewModel::onPinDialogDismissed
-    )
-}
-
-
-@Composable
-private fun LazyListState.isScrollingUp(): Boolean {
-    var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
-    var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
-    return remember(this) {
-        derivedStateOf {
-            if (previousIndex != firstVisibleItemIndex) {
-                previousIndex > firstVisibleItemIndex
-            } else {
-                previousScrollOffset >= firstVisibleItemScrollOffset
-            }.also {
-                previousIndex = firstVisibleItemIndex
-                previousScrollOffset = firstVisibleItemScrollOffset
-            }
-        }
-    }.value
 }
