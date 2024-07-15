@@ -4,7 +4,7 @@ import android.content.res.Resources
 import android.os.PowerManager
 import android.util.Log
 import com.meloda.app.fast.datastore.model.LongPollState
-import com.meloda.app.fast.datastore.model.ThemeConfig
+import com.meloda.app.fast.ui.model.ThemeConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

@@ -65,8 +65,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModel
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
 import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
-import com.meloda.app.fast.designsystem.LocalTheme
-import com.meloda.app.fast.designsystem.R
+import com.meloda.app.fast.ui.R
+import com.meloda.app.fast.ui.theme.LocalTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild

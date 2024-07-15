@@ -2,10 +2,8 @@ package com.meloda.app.fast.data
 
 import com.meloda.app.fast.network.OAuthErrorDomain
 import com.meloda.app.fast.network.RestApiErrorDomain
+import com.meloda.app.fast.network.VkErrorCode
 import com.slack.eithernet.ApiResult
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
 
 sealed class State<out T> {
 
@@ -16,7 +14,7 @@ sealed class State<out T> {
     sealed class Error : State<Nothing>() {
 
         data class ApiError(
-            val errorCode: Int,
+            val errorCode: VkErrorCode,
             val errorMessage: String,
         ) : Error()
 
@@ -61,19 +59,9 @@ inline fun <T> State<T>.processState(
     }
 }
 
-inline fun <T, R> Flow<State<T>>.mapSuccess(
-    crossinline transform: suspend (value: T) -> R
-): Flow<R> = filterIsInstance<State.Success<T>>()
-    .map { state -> transform.invoke(state.data) }
-
 fun RestApiErrorDomain?.toStateApiError(): State.Error = when (this) {
     null -> State.Error.ConnectionError
-    else -> State.Error.ApiError(code, message)
-}
-
-fun OAuthErrorDomain?.toStateApiError(): State.Error = when (this) {
-    null -> State.Error.ConnectionError
-    else -> State.Error.OAuthError(this)
+    else -> State.Error.ApiError(VkErrorCode.parse(code), message)
 }
 
 fun <T : Any> ApiResult<T, RestApiErrorDomain>.mapToState() = when (this) {

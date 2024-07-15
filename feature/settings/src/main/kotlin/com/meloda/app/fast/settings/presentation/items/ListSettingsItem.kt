@@ -23,17 +23,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.designsystem.ContentAlpha
-import com.meloda.app.fast.designsystem.ImmutableList.Companion.toImmutableList
-import com.meloda.app.fast.designsystem.ItemsSelectionType
-import com.meloda.app.fast.designsystem.LocalContentAlpha
-import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.designsystem.getString
 import com.meloda.app.fast.settings.model.OnSettingsChangeListener
 import com.meloda.app.fast.settings.model.OnSettingsClickListener
 import com.meloda.app.fast.settings.model.OnSettingsLongClickListener
 import com.meloda.app.fast.settings.model.SettingsItem
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.basic.ContentAlpha
+import com.meloda.app.fast.ui.basic.LocalContentAlpha
+import com.meloda.app.fast.ui.components.ItemsSelectionType
+import com.meloda.app.fast.ui.components.MaterialDialog
+import com.meloda.app.fast.ui.util.ImmutableList.Companion.toImmutableList
+import com.meloda.app.fast.ui.util.getString
+import com.meloda.app.fast.ui.R as UiR
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

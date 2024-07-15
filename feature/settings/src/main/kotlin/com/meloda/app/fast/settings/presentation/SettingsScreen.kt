@@ -38,9 +38,6 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isUsingDarkMode
-import com.meloda.app.fast.designsystem.ActionInvokeDismiss
-import com.meloda.app.fast.designsystem.LocalTheme
-import com.meloda.app.fast.designsystem.MaterialDialog
 import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
 import com.meloda.app.fast.settings.SettingsViewModelImpl
@@ -51,6 +48,9 @@ import com.meloda.app.fast.settings.presentation.items.ListSettingsItem
 import com.meloda.app.fast.settings.presentation.items.SwitchSettingsItem
 import com.meloda.app.fast.settings.presentation.items.TitleSettingsItem
 import com.meloda.app.fast.settings.presentation.items.TitleSummarySettingsItem
+import com.meloda.app.fast.ui.components.ActionInvokeDismiss
+import com.meloda.app.fast.ui.components.MaterialDialog
+import com.meloda.app.fast.ui.theme.LocalTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -58,7 +58,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun SettingsRoute(

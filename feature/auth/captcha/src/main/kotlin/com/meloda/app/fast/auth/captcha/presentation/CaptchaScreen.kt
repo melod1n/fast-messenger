@@ -49,11 +49,11 @@ import coil.compose.AsyncImage
 import com.meloda.app.fast.auth.captcha.CaptchaViewModel
 import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
 import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
-import com.meloda.app.fast.designsystem.ActionInvokeDismiss
-import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.designsystem.TextFieldErrorText
+import com.meloda.app.fast.ui.components.ActionInvokeDismiss
+import com.meloda.app.fast.ui.components.MaterialDialog
+import com.meloda.app.fast.ui.components.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun CaptchaRoute(

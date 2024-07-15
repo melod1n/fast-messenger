@@ -23,7 +23,7 @@ import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.model.LongPollState
-import com.meloda.app.fast.designsystem.R
+import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.model.api.data.LongPollUpdates
 import com.meloda.app.fast.model.api.data.VkLongPollData
 import com.meloda.app.fast.util.NotificationsUtils

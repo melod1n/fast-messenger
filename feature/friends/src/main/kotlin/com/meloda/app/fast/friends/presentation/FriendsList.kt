@@ -20,10 +20,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.designsystem.ImmutableList
-import com.meloda.app.fast.designsystem.LocalBottomPadding
 import com.meloda.app.fast.friends.model.FriendsScreenState
 import com.meloda.app.fast.friends.model.UiFriend
+import com.meloda.app.fast.ui.theme.LocalBottomPadding
+import com.meloda.app.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

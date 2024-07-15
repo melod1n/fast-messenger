@@ -53,13 +53,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.meloda.app.fast.common.UiImage
-import com.meloda.app.fast.conversations.DotsFlashing
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.designsystem.ContentAlpha
-import com.meloda.app.fast.designsystem.LocalContentAlpha
-import com.meloda.app.fast.designsystem.getString
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.basic.ContentAlpha
+import com.meloda.app.fast.ui.basic.LocalContentAlpha
+import com.meloda.app.fast.ui.components.DotsFlashing
+import com.meloda.app.fast.ui.util.getString
+import com.meloda.app.fast.ui.R as UiR
 
 val BirthdayColor = Color(0xffb00b69)
 

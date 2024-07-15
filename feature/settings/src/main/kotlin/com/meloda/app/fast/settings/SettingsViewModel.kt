@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 interface SettingsViewModel {
 

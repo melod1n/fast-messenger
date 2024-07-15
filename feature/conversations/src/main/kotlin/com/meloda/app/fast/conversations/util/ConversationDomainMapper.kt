@@ -18,18 +18,18 @@ import com.meloda.app.fast.common.util.TimeUtils
 import com.meloda.app.fast.conversations.model.ActionState
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.data.VkMemoryCache
-import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.api.PeerType
 import com.meloda.app.fast.model.api.data.AttachmentType
 import com.meloda.app.fast.model.api.domain.VkAttachment
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkMessage
+import com.meloda.app.fast.ui.util.ImmutableList
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.ln
 import kotlin.math.pow
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 fun VkConversation.asPresentation(
     resources: Resources,

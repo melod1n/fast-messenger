@@ -1,4 +1,4 @@
-package com.meloda.app.fast.designsystem
+package com.meloda.app.fast.ui.model
 
 data class TabItem(
     val titleResId: Int?,

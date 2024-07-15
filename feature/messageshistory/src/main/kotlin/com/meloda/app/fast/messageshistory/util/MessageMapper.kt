@@ -7,14 +7,14 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.orDots
 import com.meloda.app.fast.common.parseString
 import com.meloda.app.fast.data.VkMemoryCache
-import com.meloda.app.fast.designsystem.R
+import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.messageshistory.model.UiMessage
 import com.meloda.app.fast.model.api.PeerType
 import com.meloda.app.fast.model.api.domain.VkConversation
 import com.meloda.app.fast.model.api.domain.VkMessage
 import java.text.SimpleDateFormat
 import java.util.Locale
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 private fun isAccount(fromId: Int) = fromId == UserConfig.userId
 

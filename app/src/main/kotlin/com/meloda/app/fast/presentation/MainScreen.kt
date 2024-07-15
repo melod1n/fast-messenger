@@ -26,9 +26,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.meloda.app.fast.conversations.navigation.conversationsScreen
-import com.meloda.app.fast.designsystem.LocalBottomPadding
-import com.meloda.app.fast.designsystem.LocalHazeState
-import com.meloda.app.fast.designsystem.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalBottomPadding
+import com.meloda.app.fast.ui.theme.LocalHazeState
+import com.meloda.app.fast.ui.theme.LocalTheme
 import com.meloda.app.fast.friends.navigation.friendsScreen
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.BottomNavigationItem

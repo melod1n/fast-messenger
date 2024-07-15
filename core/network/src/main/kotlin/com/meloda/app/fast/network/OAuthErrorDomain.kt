@@ -2,6 +2,8 @@ package com.meloda.app.fast.network
 
 sealed class OAuthErrorDomain {
 
+    data object UnknownError : OAuthErrorDomain()
+
     data class ValidationRequiredError(
         val description: String,
         val validationType: ValidationType,
@@ -28,6 +30,4 @@ sealed class OAuthErrorDomain {
     data object WrongValidationCode : OAuthErrorDomain()
     data object WrongValidationCodeFormat : OAuthErrorDomain()
     data object TooManyTriesError:  OAuthErrorDomain()
-
-    data object UnknownError : OAuthErrorDomain()
 }

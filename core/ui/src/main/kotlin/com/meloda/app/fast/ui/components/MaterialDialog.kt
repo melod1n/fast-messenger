@@ -1,4 +1,4 @@
-package com.meloda.app.fast.designsystem
+package com.meloda.app.fast.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.parseString
-import com.meloda.app.fast.designsystem.ImmutableList.Companion.toImmutableList
+import com.meloda.app.fast.ui.util.ImmutableList
+import com.meloda.app.fast.ui.util.ImmutableList.Companion.toImmutableList
+import com.meloda.app.fast.ui.util.getString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -239,7 +241,7 @@ fun MaterialDialog(
     }
 }
 
-// TODO: 08.04.2023, Danil Nikolaev: refactor this
+// TODO: 08.04.2023, Danil Nikolaev: remove this
 @Deprecated("need refactoring")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -452,8 +454,9 @@ fun MaterialDialog(
     }
 }
 
+
 @Composable
-private fun AlertItems(
+fun AlertItems(
     selectionType: ItemsSelectionType,
     items: ImmutableList<DialogItem>,
     onItemClick: ((index: Int) -> Unit)? = null,

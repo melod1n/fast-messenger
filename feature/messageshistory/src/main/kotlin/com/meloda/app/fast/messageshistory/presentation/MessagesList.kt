@@ -16,9 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.designsystem.ImmutableList
-import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.messageshistory.model.UiMessage
+import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi

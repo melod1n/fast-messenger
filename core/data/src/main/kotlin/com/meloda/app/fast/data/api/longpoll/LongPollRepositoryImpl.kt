@@ -6,7 +6,7 @@ import com.meloda.app.fast.model.api.requests.LongPollGetUpdatesRequest
 import com.meloda.app.fast.model.api.requests.MessagesGetLongPollServerRequest
 import com.meloda.app.fast.network.RestApiErrorDomain
 import com.meloda.app.fast.network.mapApiResult
-import com.meloda.app.fast.network.mapResult
+import com.meloda.app.fast.network.mapDefault
 import com.meloda.app.fast.network.service.longpoll.LongPollService
 import com.meloda.app.fast.network.service.messages.MessagesService
 import com.slack.eithernet.ApiResult
@@ -49,9 +49,7 @@ class LongPollRepositoryImpl(
             mode = mode,
             version = version
         )
-        longPollService.getResponse(serverUrl, requestModel.map).mapResult(
-            successMapper = { response -> response },
-            errorMapper = { error -> error?.toDomain() }
-        )
+
+        longPollService.getResponse(serverUrl, requestModel.map).mapDefault()
     }
 }

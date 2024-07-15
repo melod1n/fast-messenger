@@ -4,8 +4,8 @@ import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.oauth.OAuthRepository
 import com.meloda.app.fast.network.OAuthErrorDomain
 import com.meloda.app.fast.network.ValidationType
-import com.meloda.app.fast.network.VkErrorTypes
-import com.meloda.app.fast.network.VkOAuthErrors
+import com.meloda.app.fast.network.VkOAuthError
+import com.meloda.app.fast.network.VkOAuthErrorType
 import com.meloda.fast.auth.login.model.AuthInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -33,7 +33,10 @@ class OAuthUseCaseImpl(
             forceSms = forceSms
         )
 
-        val newState = when (response.error) {
+        val error = response.error?.let(VkOAuthError::parse)
+        val errorType = response.errorType?.let(VkOAuthErrorType::parse)
+
+        val newState = when (error) {
             null -> {
                 State.Success(
                     AuthInfo(
@@ -44,11 +47,11 @@ class OAuthUseCaseImpl(
                 )
             }
 
-            VkOAuthErrors.FLOOD_CONTROL -> {
+            VkOAuthError.FLOOD_CONTROL -> {
                 State.Error.OAuthError(OAuthErrorDomain.TooManyTriesError)
             }
 
-            VkOAuthErrors.NEED_VALIDATION -> {
+            VkOAuthError.NEED_VALIDATION -> {
                 if (response.banInfo != null) {
                     val info = requireNotNull(response.banInfo)
 
@@ -76,7 +79,7 @@ class OAuthUseCaseImpl(
                 }
             }
 
-            VkOAuthErrors.NEED_CAPTCHA -> {
+            VkOAuthError.NEED_CAPTCHA -> {
                 State.Error.OAuthError(
                     OAuthErrorDomain.CaptchaRequiredError(
                         captchaSid = response.captchaSid.orEmpty(),
@@ -85,27 +88,29 @@ class OAuthUseCaseImpl(
                 )
             }
 
-            VkOAuthErrors.INVALID_CLIENT -> {
+            VkOAuthError.INVALID_CLIENT -> {
                 State.Error.OAuthError(OAuthErrorDomain.InvalidCredentialsError)
             }
 
-            VkOAuthErrors.INVALID_REQUEST -> {
-                when (response.errorType) {
-                    VkErrorTypes.WRONG_OTP -> {
+            VkOAuthError.INVALID_REQUEST -> {
+                when (errorType) {
+                    VkOAuthErrorType.WRONG_OTP -> {
                         State.Error.OAuthError(OAuthErrorDomain.WrongValidationCode)
                     }
 
-                    VkErrorTypes.WRONG_OTP_FORMAT -> {
+                    VkOAuthErrorType.WRONG_OTP_FORMAT -> {
                         State.Error.OAuthError(OAuthErrorDomain.WrongValidationCodeFormat)
                     }
 
-                    else -> {
-                        State.Error.OAuthError(OAuthErrorDomain.UnknownError)
+                    VkOAuthErrorType.PASSWORD_BRUTEFORCE_ATTEMPT -> {
+                        State.Error.OAuthError(OAuthErrorDomain.TooManyTriesError)
                     }
+
+                    null -> State.Error.OAuthError(OAuthErrorDomain.UnknownError)
                 }
             }
 
-            else -> {
+            VkOAuthError.UNKNOWN -> {
                 State.Error.OAuthError(OAuthErrorDomain.UnknownError)
             }
         }

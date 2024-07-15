@@ -36,16 +36,17 @@ android {
 }
 
 dependencies {
-    // TODO: 05/05/2024, Danil Nikolaev: maybe remove
     implementation(projects.core.common)
     implementation(projects.core.datastore)
+    implementation(projects.core.ui)
 
     implementation(libs.appcompat)
-    implementation(libs.accompanist.permissions)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
 
     implementation(libs.haze)
     implementation(libs.haze.materials)
+
+    debugImplementation(libs.compose.ui.tooling)
 }

@@ -11,7 +11,7 @@ import com.meloda.app.fast.friends.model.FriendsScreenState
 import com.meloda.app.fast.friends.util.asPresentation
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.api.domain.VkUser
-import com.meloda.app.fast.network.VkErrorCodes
+import com.meloda.app.fast.network.VkErrorCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -71,7 +71,7 @@ class FriendsViewModelImpl(
                 error = { error ->
                     if (error is State.Error.ApiError) {
                         when (error.errorCode) {
-                            VkErrorCodes.UserAuthorizationFailed -> {
+                            VkErrorCode.USER_AUTHORIZATION_FAILED -> {
                                 baseError.setValue { BaseError.SessionExpired }
                             }
 

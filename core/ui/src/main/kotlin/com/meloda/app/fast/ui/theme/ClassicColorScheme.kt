@@ -1,4 +1,4 @@
-package com.meloda.app.fast.designsystem.colorschemes
+package com.meloda.app.fast.ui.theme
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme

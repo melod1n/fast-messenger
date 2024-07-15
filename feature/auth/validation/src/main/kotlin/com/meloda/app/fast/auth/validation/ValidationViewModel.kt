@@ -129,7 +129,7 @@ class ValidationViewModelImpl(
     }
 
     private fun sendValidationCode() {
-        authUseCase.sendSms(validationSid.orEmpty())
+        authUseCase.validatePhone(validationSid.orEmpty())
             .listenValue { state ->
                 state.processState(
                     error = { error ->

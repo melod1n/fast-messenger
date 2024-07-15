@@ -9,7 +9,7 @@ import com.meloda.app.fast.model.BottomNavigationItem
 import com.meloda.app.fast.presentation.MainScreen
 import com.meloda.app.fast.profile.navigation.Profile
 import kotlinx.serialization.Serializable
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Serializable
 object MainGraph

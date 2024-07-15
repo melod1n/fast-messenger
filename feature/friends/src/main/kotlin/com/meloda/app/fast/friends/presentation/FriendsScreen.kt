@@ -50,23 +50,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
-import com.meloda.app.fast.designsystem.ImmutableList
-import com.meloda.app.fast.designsystem.LocalHazeState
-import com.meloda.app.fast.designsystem.LocalTheme
-import com.meloda.app.fast.designsystem.TabItem
-import com.meloda.app.fast.designsystem.components.FullScreenLoader
-import com.meloda.app.fast.designsystem.components.NoItemsView
 import com.meloda.app.fast.friends.FriendsViewModel
 import com.meloda.app.fast.friends.FriendsViewModelImpl
 import com.meloda.app.fast.friends.model.FriendsScreenState
 import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.ui.ErrorView
+import com.meloda.app.fast.ui.components.ErrorView
+import com.meloda.app.fast.ui.components.FullScreenLoader
+import com.meloda.app.fast.ui.components.NoItemsView
+import com.meloda.app.fast.ui.model.TabItem
+import com.meloda.app.fast.ui.theme.LocalHazeState
+import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun FriendsRoute(

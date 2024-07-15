@@ -37,15 +37,15 @@ import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.model.LongPollState
-import com.meloda.app.fast.datastore.model.ThemeConfig
-import com.meloda.app.fast.designsystem.AppTheme
-import com.meloda.app.fast.designsystem.LocalTheme
 import com.meloda.app.fast.service.OnlineService
 import com.meloda.app.fast.service.longpolling.LongPollingService
+import com.meloda.app.fast.ui.model.ThemeConfig
+import com.meloda.app.fast.ui.theme.AppTheme
+import com.meloda.app.fast.ui.theme.LocalTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 class MainActivity : AppCompatActivity() {
 

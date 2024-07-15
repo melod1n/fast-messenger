@@ -1,4 +1,4 @@
-package com.meloda.app.fast.datastore.model
+package com.meloda.app.fast.ui.model
 
 data class ThemeConfig(
     val usingDarkStyle: Boolean,

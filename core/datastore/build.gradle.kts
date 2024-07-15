@@ -29,6 +29,7 @@ android {
 
 dependencies {
     api(projects.core.common)
+    api(projects.core.ui)
 
     implementation(libs.koin.android)
 }

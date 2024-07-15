@@ -72,21 +72,21 @@ import com.meloda.app.fast.conversations.ConversationsViewModelImpl
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.designsystem.LocalBottomPadding
-import com.meloda.app.fast.designsystem.LocalHazeState
-import com.meloda.app.fast.designsystem.LocalTheme
-import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.designsystem.components.FullScreenLoader
-import com.meloda.app.fast.designsystem.isScrollingUp
 import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.ui.ErrorView
+import com.meloda.app.fast.ui.components.ErrorView
+import com.meloda.app.fast.ui.components.FullScreenLoader
+import com.meloda.app.fast.ui.components.MaterialDialog
+import com.meloda.app.fast.ui.theme.LocalBottomPadding
+import com.meloda.app.fast.ui.theme.LocalHazeState
+import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.util.isScrollingUp
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun ConversationsRoute(

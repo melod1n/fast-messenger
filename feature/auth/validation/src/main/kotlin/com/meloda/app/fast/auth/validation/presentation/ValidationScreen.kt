@@ -47,12 +47,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.auth.validation.ValidationViewModel
 import com.meloda.app.fast.auth.validation.ValidationViewModelImpl
 import com.meloda.app.fast.auth.validation.model.ValidationScreenState
-import com.meloda.app.fast.designsystem.ActionInvokeDismiss
-import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.designsystem.TextFieldErrorText
-import com.meloda.app.fast.designsystem.getString
+import com.meloda.app.fast.ui.components.ActionInvokeDismiss
+import com.meloda.app.fast.ui.components.MaterialDialog
+import com.meloda.app.fast.ui.components.TextFieldErrorText
+import com.meloda.app.fast.ui.util.getString
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun ValidationRoute(

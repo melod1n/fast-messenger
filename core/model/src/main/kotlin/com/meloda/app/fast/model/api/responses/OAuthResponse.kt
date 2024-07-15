@@ -4,6 +4,13 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class AuthDirectErrorOnlyResponse(
+    @Json(name = "error") val error: String,
+    @Json(name = "error_description") val errorDescription: String?,
+    @Json(name = "error_type") val errorType: String?
+)
+
+@JsonClass(generateAdapter = true)
 data class AuthDirectResponse(
     @Json(name = "access_token") val accessToken: String?,
     @Json(name = "user_id") val userId: Int?,
@@ -35,3 +42,9 @@ data class AuthDirectResponse(
         @Json(name = "restore_url") val restoreUrl: String
     )
 }
+
+@JsonClass(generateAdapter = true)
+data class GetAnonymousTokenResponse(
+    @Json(name = "token") val token: String,
+    @Json(name = "expired_at") val expiredAt: Int
+)

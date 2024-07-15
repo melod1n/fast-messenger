@@ -12,8 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.designsystem.getString
 import com.meloda.app.fast.settings.model.SettingsItem
+import com.meloda.app.fast.ui.util.getString
 
 @Composable
 fun TitleSettingsItem(

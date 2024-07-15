@@ -40,7 +40,7 @@ import com.meloda.app.fast.profile.ProfileViewModelImpl
 import com.meloda.app.fast.profile.model.ProfileScreenState
 import org.koin.androidx.compose.koinViewModel
 
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun ProfileRoute(

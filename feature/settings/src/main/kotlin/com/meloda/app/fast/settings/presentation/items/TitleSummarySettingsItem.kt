@@ -22,12 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.designsystem.ContentAlpha
-import com.meloda.app.fast.designsystem.LocalContentAlpha
-import com.meloda.app.fast.designsystem.getString
 import com.meloda.app.fast.settings.model.OnSettingsClickListener
 import com.meloda.app.fast.settings.model.OnSettingsLongClickListener
 import com.meloda.app.fast.settings.model.SettingsItem
+import com.meloda.app.fast.ui.basic.ContentAlpha
+import com.meloda.app.fast.ui.basic.LocalContentAlpha
+import com.meloda.app.fast.ui.util.getString
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

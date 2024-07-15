@@ -1,4 +1,4 @@
-package com.meloda.app.fast.designsystem.components
+package com.meloda.app.fast.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.meloda.app.fast.designsystem.R
+import androidx.compose.ui.tooling.preview.Preview
+import com.meloda.app.fast.ui.R
 
 @Composable
 fun NoItemsView(
@@ -24,4 +25,12 @@ fun NoItemsView(
             style = MaterialTheme.typography.titleLarge
         )
     }
+}
+
+@Preview
+@Composable
+private fun NoItemsViewPreview() {
+    NoItemsView(
+        customText = "Nothing here..."
+    )
 }

@@ -59,7 +59,7 @@ import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
 import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun LanguagePickerRoute(

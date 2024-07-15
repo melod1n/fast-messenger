@@ -20,12 +20,12 @@ import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.designsystem.ImmutableList
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.InteractionType
 import com.meloda.app.fast.model.LongPollEvent
 import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.network.VkErrorCodes
+import com.meloda.app.fast.network.VkErrorCode
+import com.meloda.app.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -232,7 +232,7 @@ class ConversationsViewModelImpl(
                     error = { error ->
                         if (error is State.Error.ApiError) {
                             when (error.errorCode) {
-                                VkErrorCodes.UserAuthorizationFailed -> {
+                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
                                     baseError.setValue { BaseError.SessionExpired }
                                 }
 

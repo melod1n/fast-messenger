@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations
+package com.meloda.app.fast.ui.components
 
 // TODO: 26.08.2023, Danil Nikolaev: rewrite
 
@@ -264,7 +264,7 @@ fun DotsCollision() {
         animationSpec = infiniteRepeatable(animation = keyframes {
             durationMillis = delayUnit * 3
             0f at 0 using LinearEasing
-            -maxOffset at delayUnit / 2 using LinearEasing
+            maxOffset at delayUnit / 2 using LinearEasing
             0f at delayUnit
         }), label = ""
     )

@@ -1,8 +1,7 @@
-package com.meloda.app.fast.designsystem
+package com.meloda.app.fast.ui.util
 
 import android.content.res.Configuration
 import android.view.KeyEvent
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -17,17 +16,17 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.util.AndroidUtils
-import com.meloda.app.fast.datastore.SettingsController
-import com.meloda.app.fast.datastore.SettingsKeys
 
 @Composable
 fun isUsingDarkTheme(): Boolean {
-    val nightThemeMode = SettingsController.getInt(
-        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
-        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
-    )
-    val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
-    val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
+//    val nightThemeMode = AppCompatDelegate.MODE_NIGHT_YES
+
+//        SettingsController.getInt(
+//        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+//        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
+//    )
+//    val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
+//    val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
 
     val context = LocalContext.current
 
@@ -37,7 +36,8 @@ fun isUsingDarkTheme(): Boolean {
     val isSystemUsingDarkTheme =
         systemUiNightMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
-    return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+    return true
+//    return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 }
 
 @Composable

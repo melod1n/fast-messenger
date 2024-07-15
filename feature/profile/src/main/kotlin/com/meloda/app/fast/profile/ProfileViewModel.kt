@@ -9,7 +9,7 @@ import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.users.UsersUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.network.VkErrorCodes
+import com.meloda.app.fast.network.VkErrorCode
 import com.meloda.app.fast.profile.model.ProfileScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +37,7 @@ class ProfileViewModelImpl(
                     error = { error ->
                         if (error is State.Error.ApiError) {
                             when (error.errorCode) {
-                                VkErrorCodes.UserAuthorizationFailed -> {
+                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
                                     baseError.setValue { BaseError.SessionExpired }
                                 }
 

@@ -7,11 +7,12 @@ import androidx.lifecycle.ViewModel
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.parseString
-import com.meloda.app.fast.designsystem.R
 import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+
+import com.meloda.app.fast.ui.R as UiR
 
 interface LanguagePickerViewModel {
     val screenState: StateFlow<LanguagePickerScreenState>
@@ -31,23 +32,23 @@ class LanguagePickerViewModelImpl(
         val languages = listOf(
             Triple(
                 "",
-                UiText.Resource(R.string.language_key_system),
-                UiText.Resource(R.string.language_system)
+                UiText.Resource(UiR.string.language_key_system),
+                UiText.Resource(UiR.string.language_system)
             ),
             Triple(
                 "en-US",
-                UiText.Resource(R.string.language_key_english),
-                UiText.Resource(R.string.language_english),
+                UiText.Resource(UiR.string.language_key_english),
+                UiText.Resource(UiR.string.language_english),
             ),
             Triple(
                 "ru-RU",
-                UiText.Resource(R.string.language_key_russian),
-                UiText.Resource(R.string.language_russian)
+                UiText.Resource(UiR.string.language_key_russian),
+                UiText.Resource(UiR.string.language_russian)
             ),
             Triple(
                 "uk-UA",
-                UiText.Resource(R.string.language_key_ukrainian),
-                UiText.Resource(R.string.language_ukrainian)
+                UiText.Resource(UiR.string.language_key_ukrainian),
+                UiText.Resource(UiR.string.language_ukrainian)
             )
         ).map { (key, language, local) ->
             Triple(

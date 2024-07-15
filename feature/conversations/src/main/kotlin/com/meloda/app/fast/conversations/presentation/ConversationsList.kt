@@ -27,7 +27,7 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.designsystem.LocalBottomPadding
+import com.meloda.app.fast.ui.theme.LocalBottomPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

@@ -31,11 +31,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.designsystem.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalTheme
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun LogoRoute(
@@ -58,8 +58,6 @@ fun LogoRoute(
     )
 }
 
-
-// TODO: 13/07/2024, Danil Nikolaev: replace with scaffold?
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LogoScreen(

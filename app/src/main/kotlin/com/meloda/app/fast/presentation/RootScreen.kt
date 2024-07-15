@@ -26,7 +26,7 @@ import com.meloda.app.fast.auth.authNavGraph
 import com.meloda.app.fast.auth.navigateToAuth
 import com.meloda.app.fast.chatmaterials.navigation.chatMaterialsScreen
 import com.meloda.app.fast.chatmaterials.navigation.navigateToChatMaterials
-import com.meloda.app.fast.designsystem.R
+import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.languagepicker.navigation.languagePickerScreen
 import com.meloda.app.fast.languagepicker.navigation.navigateToLanguagePicker
 import com.meloda.app.fast.messageshistory.navigation.messagesHistoryScreen

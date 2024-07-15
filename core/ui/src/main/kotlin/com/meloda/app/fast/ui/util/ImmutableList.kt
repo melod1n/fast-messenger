@@ -1,4 +1,4 @@
-package com.meloda.app.fast.designsystem
+package com.meloda.app.fast.ui.util
 
 import androidx.compose.runtime.Immutable
 

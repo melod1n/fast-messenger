@@ -82,8 +82,6 @@ compose-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
-# TODO: remove version from non-bom dependencies
-koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-core-coroutines = { module = "io.insert-koin:koin-core-coroutines", version.ref = "koin" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
@@ -102,13 +100,6 @@ compose = [
     "compose-lifecycle-viewmodel",
     "compose-lifecycle-runtime",
     "compose-runtime-saveable"
-]
-koin = [
-    "koin-core",
-    "koin-core-coroutines",
-    "koin-android",
-    "koin-androidx-compose",
-    "koin-androidx-compose-navigation"
 ]
 compose-ui-test = ["compose-ui-test-junit4", "compose-ui-test-manifest"]
 

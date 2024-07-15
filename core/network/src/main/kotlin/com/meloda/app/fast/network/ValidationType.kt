@@ -1,9 +1,10 @@
 package com.meloda.app.fast.network;
 
 enum class ValidationType(val value: String) {
-            APP("2fa_app"), SMS("2fa_sms");
+    APP("2fa_app"),
+    SMS("2fa_sms");
 
-            companion object {
-                fun parse(value: String): ValidationType = entries.first { it.value == value }
-            }
-        }
+    companion object {
+        fun parse(value: String): ValidationType = entries.first { it.value == value }
+    }
+}

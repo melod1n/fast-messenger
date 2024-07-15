@@ -51,14 +51,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.designsystem.LocalTheme
-import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.designsystem.TextFieldErrorText
-import com.meloda.app.fast.designsystem.autoFillRequestHandler
-import com.meloda.app.fast.designsystem.connectNode
-import com.meloda.app.fast.designsystem.defaultFocusChangeAutoFill
-import com.meloda.app.fast.designsystem.handleEnterKey
-import com.meloda.app.fast.designsystem.handleTabKey
+import com.meloda.app.fast.ui.basic.autoFillRequestHandler
+import com.meloda.app.fast.ui.basic.connectNode
+import com.meloda.app.fast.ui.basic.defaultFocusChangeAutoFill
+import com.meloda.app.fast.ui.components.MaterialDialog
+import com.meloda.app.fast.ui.components.TextFieldErrorText
+import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.util.handleEnterKey
+import com.meloda.app.fast.ui.util.handleTabKey
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import com.meloda.fast.auth.login.model.CaptchaArguments
@@ -67,7 +67,7 @@ import com.meloda.fast.auth.login.model.LoginScreenState
 import com.meloda.fast.auth.login.model.LoginUserBannedArguments
 import com.meloda.fast.auth.login.model.LoginValidationArguments
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.designsystem.R as UiR
+import com.meloda.app.fast.ui.R as UiR
 
 @Composable
 fun LoginRoute(
