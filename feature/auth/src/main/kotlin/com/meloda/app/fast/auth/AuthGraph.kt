@@ -43,8 +43,7 @@ fun NavGraphBuilder.authNavGraph(
                         redirectUri = URLEncoder.encode(arguments.redirectUri, "utf-8"),
                         phoneMask = arguments.phoneMask,
                         validationType = arguments.validationType,
-                        canResendSms = arguments.canResendSms,
-                        wrongCodeError = arguments.wrongCodeError
+                        canResendSms = arguments.canResendSms
                     )
                 )
             },

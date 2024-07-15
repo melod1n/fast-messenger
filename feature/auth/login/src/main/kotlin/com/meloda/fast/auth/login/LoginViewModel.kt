@@ -278,8 +278,7 @@ class LoginViewModelImpl(
                             redirectUri = error.redirectUri,
                             phoneMask = error.phoneMask,
                             validationType = error.validationType.value,
-                            canResendSms = error.validationResend == "sms",
-                            wrongCodeError = null
+                            canResendSms = error.validationResend == "sms"
                         )
                         validationArguments.update { arguments }
                     }

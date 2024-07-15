@@ -1,27 +1,20 @@
 package com.meloda.app.fast.auth.validation.model
 
-import com.meloda.app.fast.common.UiText
-
 data class ValidationScreenState(
     val code: String?,
-    val codeError: String?,
+    val codeError: Boolean,
     val isSmsButtonVisible: Boolean,
     val delayTime: Int,
-    val phoneMask: String,
-
-    // TODO: 13/07/2024, Danil Nikolaev: check wtf is this
-    val validationText: UiText,
+    val phoneMask: String
 ) {
 
     companion object {
         val EMPTY = ValidationScreenState(
             code = null,
-            codeError = null,
+            codeError = false,
             isSmsButtonVisible = false,
             delayTime = 0,
-            phoneMask = "",
-
-            validationText = UiText.Simple("")
+            phoneMask = ""
         )
     }
 }

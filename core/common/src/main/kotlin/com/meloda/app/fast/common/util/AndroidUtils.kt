@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.content.FileProvider
@@ -119,10 +118,6 @@ object AndroidUtils {
         )
 
         return intent
-    }
-
-    fun isBatterySaverOn(context: Context): Boolean {
-        return (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isPowerSaveMode == true
     }
 
     fun getImageToShare(context: Context, existingFile: File): Uri? {

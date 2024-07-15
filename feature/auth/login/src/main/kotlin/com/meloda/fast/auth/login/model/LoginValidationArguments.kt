@@ -11,6 +11,5 @@ data class LoginValidationArguments(
     val redirectUri: String,
     val phoneMask: String,
     val validationType: String,
-    val canResendSms: Boolean,
-    val wrongCodeError: String?,
+    val canResendSms: Boolean
 ) : Parcelable

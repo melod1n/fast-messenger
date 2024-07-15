@@ -7,7 +7,6 @@ import com.meloda.app.fast.auth.validation.model.ValidationScreenState
 import com.meloda.app.fast.auth.validation.model.ValidationType
 import com.meloda.app.fast.auth.validation.navigation.Validation
 import com.meloda.app.fast.auth.validation.validation.ValidationValidator
-import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.extensions.createTimerFlow
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
@@ -25,6 +24,8 @@ import kotlinx.coroutines.launch
 interface ValidationViewModel {
 
     val screenState: StateFlow<ValidationScreenState>
+
+    val validationType: StateFlow<ValidationType?>
 
     val isNeedToOpenLogin: StateFlow<Boolean>
 
@@ -47,10 +48,11 @@ class ValidationViewModelImpl(
 
     override val screenState = MutableStateFlow(ValidationScreenState.EMPTY)
 
+    override val validationType = MutableStateFlow<ValidationType?>(null)
+
     override val isNeedToOpenLogin = MutableStateFlow(false)
 
     private var validationSid: String? = null
-
     private var delayJob: Job? = null
 
     init {
@@ -61,11 +63,13 @@ class ValidationViewModelImpl(
 
         validationSid = arguments.validationSid
 
+        validationType.setValue {
+            ValidationType.parse(arguments.validationType)
+        }
+
         screenState.setValue { old ->
             old.copy(
                 isSmsButtonVisible = arguments.canResendSms,
-                codeError = arguments.wrongCodeError,
-                validationText = getValidationText(ValidationType.parse(arguments.validationType)),
                 phoneMask = arguments.phoneMask
             )
         }
@@ -75,7 +79,7 @@ class ValidationViewModelImpl(
         screenState.updateValue(
             screenState.value.copy(
                 code = newCode.trim(),
-                codeError = null
+                codeError = false
             )
         )
 
@@ -118,34 +122,29 @@ class ValidationViewModelImpl(
     private fun processValidation(): Boolean {
         val isValid = validator.validate(screenState.value).isValid()
 
-        screenState.updateValue(
-            screenState.value.copy(
-                codeError = if (isValid) null
-                else "Field must not be empty"
-            )
-        )
+        screenState.setValue { old -> old.copy(codeError = !isValid) }
 
         return isValid
     }
 
     private fun sendValidationCode() {
-        authUseCase.validatePhone(validationSid.orEmpty())
+        val sid = validationSid ?: return
+
+        authUseCase.validatePhone(sid)
             .listenValue { state ->
                 state.processState(
                     error = { error ->
 
                     },
                     success = { response ->
-                        val newValidationType = response.validationType
+                        response.validationType?.let { newValidationType ->
+                            validationType.setValue { ValidationType.parse(newValidationType) }
+                        }
+
                         val newCanResendSms = response.validationResend == "sms"
 
                         screenState.setValue { old ->
-                            old.copy(
-                                isSmsButtonVisible = newCanResendSms,
-                                validationText = getValidationText(
-                                    ValidationType.parse(newValidationType.orEmpty())
-                                )
-                            )
+                            old.copy(isSmsButtonVisible = newCanResendSms)
                         }
 
                         startTickTimer(response.delay)
@@ -158,7 +157,7 @@ class ValidationViewModelImpl(
             }
     }
 
-    fun startTickTimer(delay: Int?) {
+    private fun startTickTimer(delay: Int?) {
         if (delay == null || delayJob?.isActive == true) return
 
         delayJob = createTimerFlow(
@@ -181,19 +180,5 @@ class ValidationViewModelImpl(
                 )
             },
         ).launchIn(viewModelScope)
-    }
-
-    private fun getValidationText(validationType: ValidationType): UiText {
-        return when (validationType) {
-            ValidationType.Sms -> {
-                UiText.Simple("SMS with the code is sent to ${screenState.value.phoneMask}")
-            }
-
-            ValidationType.App -> {
-                UiText.Simple("Enter the code from the code generator application")
-            }
-
-            is ValidationType.Other -> UiText.Simple(validationType.type)
-        }
     }
 }

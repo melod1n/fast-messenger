@@ -42,15 +42,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.auth.validation.ValidationViewModel
 import com.meloda.app.fast.auth.validation.ValidationViewModelImpl
 import com.meloda.app.fast.auth.validation.model.ValidationScreenState
+import com.meloda.app.fast.auth.validation.model.ValidationType
 import com.meloda.app.fast.ui.components.ActionInvokeDismiss
 import com.meloda.app.fast.ui.components.MaterialDialog
 import com.meloda.app.fast.ui.components.TextFieldErrorText
-import com.meloda.app.fast.ui.util.getString
 import org.koin.androidx.compose.koinViewModel
 import com.meloda.app.fast.ui.R as UiR
 
@@ -62,6 +63,7 @@ fun ValidationRoute(
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isNeedToOpenLogin by viewModel.isNeedToOpenLogin.collectAsStateWithLifecycle()
+    val validationType by viewModel.validationType.collectAsStateWithLifecycle()
 
     LaunchedEffect(isNeedToOpenLogin) {
         if (isNeedToOpenLogin) {
@@ -78,6 +80,7 @@ fun ValidationRoute(
 
     ValidationScreen(
         screenState = screenState,
+        validationType = validationType,
         onBack = onBack,
         onCodeInputChanged = viewModel::onCodeInputChanged,
         onTextFieldDoneAction = viewModel::onTextFieldDoneAction,
@@ -89,6 +92,7 @@ fun ValidationRoute(
 @Composable
 fun ValidationScreen(
     screenState: ValidationScreenState = ValidationScreenState.EMPTY,
+    validationType: ValidationType? = null,
     onBack: () -> Unit = {},
     onCodeInputChanged: (String) -> Unit = {},
     onTextFieldDoneAction: () -> Unit = {},
@@ -103,6 +107,17 @@ fun ValidationScreen(
 
     var showExitAlert by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    val validationText by remember(validationType) {
+        mutableStateOf(
+            when (validationType) {
+                ValidationType.SMS -> "SMS with the code is sent to ${screenState.phoneMask}"
+                ValidationType.APP -> "Enter the code from the code generator application"
+
+                null -> ""
+            }
+        )
     }
 
     LaunchedEffect(confirmedExit) {
@@ -130,7 +145,6 @@ fun ValidationScreen(
     }
 
     var code by remember { mutableStateOf(TextFieldValue(screenState.code.orEmpty())) }
-    val codeError = screenState.codeError
 
     Scaffold { padding ->
         Column(
@@ -167,7 +181,7 @@ fun ValidationScreen(
                 )
                 Spacer(modifier = Modifier.height(38.dp))
                 Text(
-                    text = screenState.validationText.getString().orEmpty(),
+                    text = validationText.orEmpty(),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -201,7 +215,7 @@ fun ValidationScreen(
                         Icon(
                             painter = painterResource(id = UiR.drawable.round_qr_code_24),
                             contentDescription = "QR Code icon",
-                            tint = if (codeError != null) {
+                            tint = if (screenState.codeError) {
                                 MaterialTheme.colorScheme.error
                             } else {
                                 MaterialTheme.colorScheme.primary
@@ -219,11 +233,11 @@ fun ValidationScreen(
                             onTextFieldDoneAction()
                         }
                     ),
-                    isError = codeError != null
+                    isError = screenState.codeError
                 )
 
-                AnimatedVisibility(visible = codeError != null) {
-                    TextFieldErrorText(text = codeError.orEmpty())
+                AnimatedVisibility(screenState.codeError) {
+                    TextFieldErrorText(text = "Field must not be empty")
                 }
             }
 
@@ -278,4 +292,16 @@ fun ValidationScreen(
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun ValidationScreenPreview() {
+    ValidationScreen(
+        screenState = ValidationScreenState.EMPTY.copy(
+            phoneMask = "+7 (***) ***-**-21",
+            code = "222222"
+        ),
+        validationType = ValidationType.SMS
+    )
 }

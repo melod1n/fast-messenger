@@ -1,6 +1,5 @@
 package com.meloda.app.fast.ui.util
 
-import android.content.res.Configuration
 import android.view.KeyEvent
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -11,34 +10,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.util.AndroidUtils
-
-@Composable
-fun isUsingDarkTheme(): Boolean {
-//    val nightThemeMode = AppCompatDelegate.MODE_NIGHT_YES
-
-//        SettingsController.getInt(
-//        SettingsKeys.KEY_APPEARANCE_DARK_THEME,
-//        SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME
-//    )
-//    val appForceDarkMode = nightThemeMode == AppCompatDelegate.MODE_NIGHT_YES
-//    val appBatterySaver = nightThemeMode == AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
-
-    val context = LocalContext.current
-
-    val systemUiNightMode = context.resources.configuration.uiMode
-
-    val isSystemBatterySaver = AndroidUtils.isBatterySaverOn(context)
-    val isSystemUsingDarkTheme =
-        systemUiNightMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-
-    return true
-//    return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && nightThemeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-}
 
 @Composable
 fun UiText?.getString(): String? {
