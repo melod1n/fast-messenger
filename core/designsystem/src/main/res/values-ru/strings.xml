@@ -188,4 +188,14 @@
     <string name="settings_activity_send_online_title">Быть «в сети»</string>
     <string name="settings_activity_send_online_summary">Статус «в сети» будет отправляться каждые 5 минут</string>
     <string name="settings_debug_title">Отладка</string>
+    <string name="action_disable">Отключить</string>
+    <string name="background_long_poll_rationale_text">Приложение не сможет обновлять сообщения в фоне без доступа к уведомлениям</string>
+    <string name="background_long_poll_denied_text">Приложению нужен доступ к уведомлениям для обновления сообщений в фоне</string>
+    <string name="action_request">Запросить</string>
+    <string name="long_polling_service_notification_title">Обновление сообщений в фоне</string>
+    <string name="long_polling_service_notification_content">Нажмите, чтобы скрыть</string>
+    <string name="notification_channel_no_category_name">Без категории</string>
+    <string name="notification_channel_no_category_description">Уведомления без категории</string>
+    <string name="notification_channel_long_polling_service_name">Сервис обновления сообщений</string>
+    <string name="notification_channel_long_polling_service_description">Уведомления сервиса обновлений сообщений</string>
 </resources>

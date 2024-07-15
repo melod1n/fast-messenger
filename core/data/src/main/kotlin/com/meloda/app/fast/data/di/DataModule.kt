@@ -27,6 +27,7 @@ import com.meloda.app.fast.data.api.users.UsersUseCaseImpl
 import com.meloda.app.fast.data.api.videos.VideosRepository
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.db.AccountsRepositoryImpl
+import com.meloda.app.fast.data.db.GetCurrentAccountUseCase
 import com.meloda.app.fast.database.di.databaseModule
 import com.meloda.app.fast.datastore.di.dataStoreModule
 import com.meloda.app.fast.network.di.networkModule
@@ -67,6 +68,7 @@ val dataModule = module {
     singleOf(::VideosRepository)
 
     singleOf(::AccountsRepositoryImpl) bind AccountsRepository::class
+    singleOf(::GetCurrentAccountUseCase)
 
     singleOf(::FriendsRepositoryImpl) bind FriendsRepository::class
 }

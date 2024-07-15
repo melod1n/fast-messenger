@@ -9,6 +9,9 @@ class AccountsRepositoryImpl(
 
     override suspend fun getAccounts(): List<AccountEntity> = accountDao.getAll()
 
+    override suspend fun getAccountById(userId: Int): AccountEntity? =
+        accountDao.getById(userId)
+
     override suspend fun storeAccounts(
         accounts: List<AccountEntity>
     ) = accountDao.insertAll(accounts)

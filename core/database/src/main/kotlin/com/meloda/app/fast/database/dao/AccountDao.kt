@@ -10,6 +10,9 @@ abstract class AccountDao : EntityDao<AccountEntity> {
     @Query("SELECT * FROM accounts")
     abstract suspend fun getAll(): List<AccountEntity>
 
+    @Query("SELECT * FROM accounts WHERE userId = :userId")
+    abstract suspend fun getById(userId: Int): AccountEntity?
+
     @Query("DELETE FROM accounts WHERE userId = :userId")
     abstract suspend fun deleteById(userId: Int)
 }

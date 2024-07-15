@@ -1,11 +1,5 @@
 package com.meloda.app.fast.designsystem
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,15 +26,19 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.parseString
 import com.meloda.app.fast.designsystem.ImmutableList.Companion.toImmutableList
 
-// TODO: 08.04.2023, Danil Nikolaev: review
+// TODO: 08.04.2023, Danil Nikolaev: refactor this
+@Deprecated("need refactoring")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialDialog(
@@ -58,17 +56,22 @@ fun MaterialDialog(
     items: ImmutableList<UiText> = ImmutableList.empty(),
     onItemClick: ((index: Int) -> Unit)? = null,
     buttonsInvokeDismiss: Boolean = true,
+    properties: DialogProperties = DialogProperties(),
     customContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
-    var isVisible by remember {
+    var isVisible by rememberSaveable {
         mutableStateOf(true)
     }
-    val onDismissRequest = {
-        onDismissAction.invoke()
-        isVisible = false
+    val onDismissRequest = remember {
+        {
+            onDismissAction.invoke()
+            isVisible = false
+        }
     }
 
-    val stringTitles = items.map { it.getString().orEmpty() }
+    val context = LocalContext.current
+
+    val stringTitles = items.mapNotNull { it.parseString(context.resources) }
 
     var alertItems by remember {
         mutableStateOf(
@@ -81,11 +84,10 @@ fun MaterialDialog(
         )
     }
 
-
-    if (isVisible) {
-//        AlertAnimation(visible = isVisible) {
+    AlertAnimation(visible = isVisible) {
         BasicAlertDialog(
-            onDismissRequest = onDismissRequest
+            onDismissRequest = onDismissRequest,
+            properties = properties
         ) {
             val scrollState = rememberScrollState()
             val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
@@ -251,15 +253,16 @@ fun MaterialDialog(
 @Composable
 fun AlertAnimation(
     visible: Boolean,
-    content: @Composable AnimatedVisibilityScope.() -> Unit
+    content: @Composable () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(animationSpec = tween(400)) +
-                scaleIn(animationSpec = tween(400)),
-        exit = fadeOut(animationSpec = tween(150)),
-        content = content
-    )
+    if (visible) content()
+//    AnimatedVisibility(
+//        visible = visible,
+//        enter = fadeIn(animationSpec = tween(400)) +
+//                scaleIn(animationSpec = tween(400)),
+//        exit = fadeOut(animationSpec = tween(150)),
+//        content = content
+//    )
 }
 
 @Composable

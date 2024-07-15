@@ -182,5 +182,4 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlin.serialization)
 
-    implementation("androidx.compose.material3.adaptive:adaptive:1.0.0-beta04")
 }

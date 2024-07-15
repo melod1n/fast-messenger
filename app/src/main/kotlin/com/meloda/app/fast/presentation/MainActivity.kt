@@ -6,17 +6,13 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
+import android.util.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -26,34 +22,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.window.core.layout.WindowWidthSizeClass
+import com.conena.nanokt.android.content.pxToDp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.meloda.app.fast.MainViewModel
-import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.extensions.ifEmpty
+import com.meloda.app.fast.MainViewModelImpl
+import com.meloda.app.fast.common.AppConstants
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.datastore.SettingsController
-import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.datastore.model.ThemeConfig
 import com.meloda.app.fast.designsystem.AppTheme
-import com.meloda.app.fast.designsystem.CheckPermission
 import com.meloda.app.fast.designsystem.LocalTheme
-import com.meloda.app.fast.designsystem.MaterialDialog
-import com.meloda.app.fast.designsystem.RequestPermission
-import com.meloda.app.fast.model.MainScreenState
 import com.meloda.app.fast.service.OnlineService
 import com.meloda.app.fast.service.longpolling.LongPollingService
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
+
 import com.meloda.app.fast.designsystem.R as UiR
 
 class MainActivity : AppCompatActivity() {
 
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -76,30 +71,64 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             KoinContext {
+                val context = LocalContext.current
                 val userSettings: UserSettings = koinInject()
 
-                LifecycleResumeEffect(true) {
-                    userSettings.onLanguageChanged(
-                        AppCompatDelegate.getApplicationLocales()
-                            .toLanguageTags()
-                            .ifEmpty { null }
-                            ?: LocaleListCompat.getDefault()
-                                .toLanguageTags()
-                                .split(",")
-                                .firstOrNull()
-                                .orEmpty()
-                                .take(5)
-                    )
+                val longPollCurrentState by userSettings.longPollCurrentState.collectAsStateWithLifecycle()
+                val longPollStateToApply by userSettings.longPollStateToApply.collectAsStateWithLifecycle()
 
+                val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+
+                LifecycleResumeEffect(true) {
+                    viewModel.onAppResumed()
                     onPauseOrDispose {}
                 }
 
-                LaunchedEffect(true) {
-                    userSettings.updateUsingDarkTheme()
+                val permissionState =
+                    rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+
+                val isNeedToCheckPermission by viewModel.isNeedToCheckNotificationsPermission.collectAsStateWithLifecycle()
+                val isNeedToRequestPermission by viewModel.isNeedToRequestNotifications.collectAsStateWithLifecycle()
+
+                LaunchedEffect(isNeedToCheckPermission) {
+                    if (isNeedToCheckPermission) {
+                        viewModel.onPermissionCheckStatus(permissionState.status)
+
+                        if (permissionState.status.isGranted) {
+                            if (longPollCurrentState == LongPollState.InApp) {
+                                toggleLongPollService(false)
+                            }
+
+                            toggleLongPollService(
+                                enable = true,
+                                inBackground = true
+                            )
+                        }
+                    }
                 }
 
-                val isLongPollInBackground by userSettings.longPollBackground.collectAsStateWithLifecycle()
-                toggleLongPollService(true, isLongPollInBackground)
+                LaunchedEffect(isNeedToRequestPermission) {
+                    if (isNeedToRequestPermission) {
+                        viewModel.onPermissionsRequested()
+                        permissionState.launchPermissionRequest()
+                    }
+                }
+
+                LaunchedEffect(longPollStateToApply) {
+                    if (longPollStateToApply != LongPollState.Background) {
+                        if (longPollStateToApply.isLaunched() && longPollCurrentState.isLaunched()
+                            && longPollCurrentState != longPollStateToApply
+                        ) {
+                            toggleLongPollService(false)
+                            Log.d("LongPoll", "recreate()")
+                        }
+
+                        toggleLongPollService(
+                            enable = longPollStateToApply.isLaunched(),
+                            inBackground = longPollStateToApply == LongPollState.Background
+                        )
+                    }
+                }
 
                 val isOnline by userSettings.online.collectAsStateWithLifecycle()
                 LifecycleResumeEffect(isOnline) {
@@ -110,11 +139,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                val windowAdaptiveInfo = currentWindowAdaptiveInfo()
-
-                val isDeviceCompact by remember(windowAdaptiveInfo) {
+                val isDeviceCompact by remember(true) {
                     derivedStateOf {
-                        windowAdaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT
+                        context.resources.displayMetrics.widthPixels.pxToDp() <= 360
                     }
                 }
 
@@ -138,7 +165,7 @@ class MainActivity : AppCompatActivity() {
                         selectedColorScheme = currentTheme.selectedColorScheme,
                         useAmoledBackground = currentTheme.usingAmoledBackground,
                     ) {
-                        RootScreen()
+                        RootScreen(viewModel = viewModel)
                     }
                 }
             }
@@ -147,40 +174,37 @@ class MainActivity : AppCompatActivity() {
 
     private fun createNotificationChannels() {
         isSdkAtLeast(Build.VERSION_CODES.O) {
-            val dialogsName = "Dialogs"
-            val dialogsDescriptionText = "Channel for dialogs notifications"
-            val dialogsImportance = NotificationManager.IMPORTANCE_HIGH
-            val dialogsChannel =
-                NotificationChannel("simple_notifications", dialogsName, dialogsImportance).apply {
-                    description = dialogsDescriptionText
+            val noCategoryName = getString(UiR.string.notification_channel_no_category_name)
+            val noCategoryDescriptionText = getString(UiR.string.notification_channel_no_category_description)
+            val noCategoryImportance = NotificationManager.IMPORTANCE_HIGH
+            val noCategoryChannel =
+                NotificationChannel(AppConstants.NOTIFICATION_CHANNEL_UNCATEGORIZED, noCategoryName, noCategoryImportance).apply {
+                    description = noCategoryDescriptionText
                 }
 
-            val longPollName = "Long Polling"
-            val longPollDescriptionText = "Channel for long polling service"
+            val longPollName = getString(UiR.string.notification_channel_long_polling_service_name)
+            val longPollDescriptionText = getString(UiR.string.notification_channel_long_polling_service_description)
             val longPollImportance = NotificationManager.IMPORTANCE_NONE
             val longPollChannel =
-                NotificationChannel("long_polling", longPollName, longPollImportance).apply {
+                NotificationChannel(AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING, longPollName, longPollImportance).apply {
                     description = longPollDescriptionText
                 }
 
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            notificationManager.createNotificationChannels(listOf(dialogsChannel, longPollChannel))
+            notificationManager.createNotificationChannels(listOf(noCategoryChannel, longPollChannel))
         }
     }
 
     private fun toggleLongPollService(
         enable: Boolean,
-        asForeground: Boolean = SettingsController.getBoolean(
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-        )
+        inBackground: Boolean = SettingsController.isLongPollInBackgroundEnabled
     ) {
         if (enable) {
             val longPollIntent = Intent(this, LongPollingService::class.java)
 
-            if (asForeground) {
+            if (inBackground) {
                 ContextCompat.startForegroundService(this, longPollIntent)
             } else {
                 startService(longPollIntent)
@@ -201,104 +225,15 @@ class MainActivity : AppCompatActivity() {
     private fun stopServices() {
         toggleOnlineService(enable = false)
 
-        val asForeground = SettingsController.getBoolean(
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-        )
+        val asForeground = SettingsController.isLongPollInBackgroundEnabled
 
         if (!asForeground) {
             toggleLongPollService(enable = false)
         }
     }
 
-    private fun setNewLanguage(newLanguage: String) {
-        val appLocales = AppCompatDelegate.getApplicationLocales()
-        if (newLanguage.isEmpty()) {
-            if (!appLocales.isEmpty) {
-                AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
-            }
-        } else {
-            if (!appLocales.toLanguageTags().startsWith(newLanguage)) {
-                val newLocale = LocaleListCompat.forLanguageTags(newLanguage)
-                AppCompatDelegate.setApplicationLocales(newLocale)
-            }
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         stopServices()
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun NotificationsPermissionChecker(
-    screenState: MainScreenState,
-    viewModel: MainViewModel
-) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-
-    val permission =
-        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-
-    if (screenState.isNeedToOpenAppPermissions) {
-        viewModel.onAppPermissionsOpened()
-
-        LocalContext.current.apply {
-            startActivity(
-                Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", this.packageName, null)
-                )
-            )
-        }
-    }
-
-    if (screenState.isNeedToRequestNotifications) {
-        RequestPermission(permission = permission)
-    }
-
-    val isNeedToCheckNotificationsPermission by remember {
-        derivedStateOf {
-            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    SettingsController.getBoolean(
-                        SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                        SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-                    ))
-        }
-    }
-
-    if (isNeedToCheckNotificationsPermission) {
-        CheckPermission(
-            showRationale = {
-                MaterialDialog(
-                    title = UiText.Resource(UiR.string.warning),
-                    text = UiText.Simple("The application will not be able to work properly without permission to send notifications."),
-                    confirmText = UiText.Simple("Grant"),
-                    confirmAction = {
-                        viewModel.onRequestNotificationsPermissionClicked(true)
-                    },
-                    cancelText = UiText.Resource(UiR.string.cancel),
-                    cancelAction = viewModel::onNotificationsAlertNegativeClicked,
-                    onDismissAction = viewModel::onNotificationsAlertNegativeClicked,
-                    buttonsInvokeDismiss = false
-                )
-            },
-            onDenied = {
-                MaterialDialog(
-                    title = UiText.Resource(UiR.string.warning),
-                    text = UiText.Simple("The application needs permission to send notifications to update messages and other information."),
-                    confirmText = UiText.Simple("Grant"),
-                    confirmAction = {
-                        viewModel.onRequestNotificationsPermissionClicked(false)
-                    },
-                    cancelText = UiText.Resource(UiR.string.cancel),
-                    onDismissAction = {},
-                    buttonsInvokeDismiss = false
-                )
-            },
-            permission = permission
-        )
     }
 }

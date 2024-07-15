@@ -13,13 +13,16 @@ import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.users.UsersUseCase
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.network.OAuthErrorDomain
 import com.meloda.fast.auth.login.model.CaptchaArguments
 import com.meloda.fast.auth.login.model.LoginError
 import com.meloda.fast.auth.login.model.LoginScreenState
-import com.meloda.fast.auth.login.model.LoginValidationArguments
 import com.meloda.fast.auth.login.model.LoginUserBannedArguments
+import com.meloda.fast.auth.login.model.LoginValidationArguments
 import com.meloda.fast.auth.login.model.LoginValidationResult
 import com.meloda.fast.auth.login.validation.LoginValidator
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +70,8 @@ class LoginViewModelImpl(
     private val oAuthUseCase: OAuthUseCase,
     private val usersUseCase: UsersUseCase,
     private val accountsRepository: AccountsRepository,
-    private val loginValidator: LoginValidator
+    private val loginValidator: LoginValidator,
+    private val userSettings: UserSettings
 ) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
@@ -155,6 +159,8 @@ class LoginViewModelImpl(
             UserConfig.trustedHash = account.trustedHash
         }
 
+        startLongPoll()
+
         usersUseCase.get(
             userIds = null,
             fields = VkConstants.USER_FIELDS,
@@ -237,6 +243,8 @@ class LoginViewModelImpl(
                         UserConfig.fastToken = account.fastToken
                         UserConfig.trustedHash = account.trustedHash
                     }
+
+                    startLongPoll()
 
                     accountsRepository.storeAccounts(listOf(currentAccount))
 
@@ -337,5 +345,15 @@ class LoginViewModelImpl(
                 LoginValidationResult.Valid -> Unit
             }
         }
+    }
+
+    private fun startLongPoll() {
+        userSettings.setLongPollStateToApply(
+            if (SettingsController.isLongPollInBackgroundEnabled) {
+                LongPollState.Background
+            } else {
+                LongPollState.InApp
+            }
+        )
     }
 }

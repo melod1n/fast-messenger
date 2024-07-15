@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.conena.nanokt.android.app.stopForegroundCompat
+import com.meloda.app.fast.common.AppConstants
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
@@ -20,6 +21,9 @@ import com.meloda.app.fast.data.LongPollUseCase
 import com.meloda.app.fast.data.processState
 import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.datastore.model.LongPollState
+import com.meloda.app.fast.designsystem.R
 import com.meloda.app.fast.model.api.data.LongPollUpdates
 import com.meloda.app.fast.model.api.data.VkLongPollData
 import com.meloda.app.fast.util.NotificationsUtils
@@ -36,6 +40,8 @@ import kotlin.coroutines.suspendCoroutine
 
 class LongPollingService : Service() {
 
+    private val userSettings: UserSettings by inject()
+
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -44,6 +50,9 @@ class LongPollingService : Service() {
         if (throwable !is NoAccessTokenException) {
             throwable.printStackTrace()
         }
+
+        userSettings.updateLongPollCurrentState(LongPollState.Exception)
+        userSettings.setLongPollStateToApply(LongPollState.Exception)
     }
 
     private val coroutineContext: CoroutineContext
@@ -70,14 +79,14 @@ class LongPollingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        val asForeground = preferences.getBoolean(
+        val inBackground = preferences.getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
 
         Log.d(
             STATE_TAG,
-            "onStartCommand: asForeground: $asForeground; flags: $flags; startId: $startId;\ninstance: $this"
+            "onStartCommand: asForeground: $inBackground; flags: $flags; startId: $startId;\ninstance: $this"
         )
 
         if (currentJob != null) {
@@ -105,14 +114,19 @@ class LongPollingService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        if (asForeground) {
+        userSettings.updateLongPollCurrentState(
+            if (inBackground) LongPollState.Background
+            else LongPollState.InApp
+        )
+
+        if (inBackground) {
             val notification =
                 NotificationsUtils.createNotification(
                     context = this,
-                    title = "LongPoll",
-                    contentText = "нажмите, чтобы убрать уведомление",
+                    title = getString(R.string.long_polling_service_notification_title),
+                    contentText = getString(R.string.long_polling_service_notification_content),
                     notRemovable = false,
-                    channelId = "long_polling",
+                    channelId = AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING,
                     priority = NotificationsUtils.NotificationPriority.Low,
                     category = NotificationCompat.CATEGORY_SERVICE,
                     customNotificationId = NOTIFICATION_ID,
@@ -240,6 +254,7 @@ class LongPollingService : Service() {
 
     override fun onDestroy() {
         Log.d(STATE_TAG, "onDestroy")
+        userSettings.updateLongPollCurrentState(LongPollState.Stopped)
         try {
             SettingsController.edit {
                 putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true)

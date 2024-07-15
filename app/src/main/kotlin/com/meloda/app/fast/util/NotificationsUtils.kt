@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.meloda.app.fast.common.AppConstants
 import com.meloda.app.fast.designsystem.R as UiR
 
 object NotificationsUtils {
@@ -20,7 +21,7 @@ object NotificationsUtils {
         timeStampWhen: Long? = null,
         notify: Boolean = false,
         notRemovable: Boolean = false,
-        channelId: String = "simple_notifications",
+        channelId: String = AppConstants.NOTIFICATION_CHANNEL_UNCATEGORIZED,
         priority: NotificationPriority = NotificationPriority.Default,
         contentIntent: PendingIntent? = null,
         category: String? = null,

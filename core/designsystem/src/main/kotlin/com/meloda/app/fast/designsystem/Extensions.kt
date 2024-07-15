@@ -4,15 +4,11 @@ import android.content.res.Configuration
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
-import com.google.accompanist.permissions.PermissionStatus
 import com.meloda.app.fast.common.UiText
 import com.meloda.app.fast.common.util.AndroidUtils
 import com.meloda.app.fast.datastore.SettingsController
@@ -81,32 +77,3 @@ fun Modifier.handleEnterKey(
         action.invoke()
     } else false
 }
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun CheckPermission(
-    showRationale: @Composable () -> Unit,
-    onDenied: @Composable () -> Unit,
-    permission: PermissionState,
-) {
-    when (val status = permission.status) {
-        is PermissionStatus.Denied -> {
-            if (status.shouldShowRationale) {
-                showRationale()
-            } else {
-                onDenied()
-            }
-        }
-
-        is PermissionStatus.Granted -> Unit
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun RequestPermission(
-    permission: PermissionState
-) {
-    LaunchedEffect(Unit) { permission.launchPermissionRequest() }
-}
-

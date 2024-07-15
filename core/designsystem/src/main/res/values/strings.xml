@@ -246,5 +246,17 @@
     <string name="settings_activity_send_online_title">Send online status</string>
     <string name="settings_activity_send_online_summary">Online status will be sent every five minutes</string>
     <string name="settings_debug_title">Debug</string>
+    <string name="background_long_poll_rationale_text">The app won\'t be able to update messages in the background without access to notifications</string>
+    <string name="action_disable">Disable</string>
+    <string name="background_long_poll_denied_text">The app needs access to notifications to update messages in the background</string>
+    <string name="action_request">Request</string>
 
-</resources>
+    <string name="long_polling_service_notification_title">Updating messages in background</string>
+    <string name="long_polling_service_notification_content">Tap to hide</string>
+
+    <string name="notification_channel_no_category_name">Uncategorized</string>
+    <string name="notification_channel_no_category_description">Uncategorized notifications</string>
+
+    <string name="notification_channel_long_polling_service_name">Message update service</string>
+    <string name="notification_channel_long_polling_service_description">Message update service notifications</string>
+    </resources>

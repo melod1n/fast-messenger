@@ -2,6 +2,8 @@ package com.meloda.app.fast.datastore
 
 import android.content.res.Resources
 import android.os.PowerManager
+import android.util.Log
+import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.datastore.model.ThemeConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -9,7 +11,8 @@ import kotlinx.coroutines.flow.update
 
 interface UserSettings {
     val theme: StateFlow<ThemeConfig>
-    val longPollBackground: StateFlow<Boolean>
+    val longPollStateToApply: StateFlow<LongPollState>
+    val longPollCurrentState: StateFlow<LongPollState>
     val online: StateFlow<Boolean>
     val debugSettingsEnabled: StateFlow<Boolean>
     val useContactNames: StateFlow<Boolean>
@@ -21,7 +24,8 @@ interface UserSettings {
     fun useDynamicColorsChanged(use: Boolean)
     fun useBlurChanged(use: Boolean)
     fun useMultiline(use: Boolean)
-    fun setLongPollBackground(background: Boolean)
+    fun setLongPollStateToApply(newState: LongPollState)
+    fun updateLongPollCurrentState(currentState: LongPollState)
     fun setOnline(use: Boolean)
     fun enableDebugSettings(enable: Boolean)
     fun onUseContactNamesChanged(use: Boolean)
@@ -45,12 +49,9 @@ class UserSettingsImpl(
         )
     )
 
-    override val longPollBackground = MutableStateFlow(
-        SettingsController.getBoolean(
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-        )
-    )
+    override val longPollStateToApply = MutableStateFlow<LongPollState>(LongPollState.Stopped)
+    override val longPollCurrentState = MutableStateFlow<LongPollState>(LongPollState.Stopped)
+
     override val online = MutableStateFlow(
         SettingsController.getBoolean(
             SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS,
@@ -107,8 +108,14 @@ class UserSettingsImpl(
         theme.value = theme.value.copy(multiline = use)
     }
 
-    override fun setLongPollBackground(background: Boolean) {
-        longPollBackground.value = background
+    override fun setLongPollStateToApply(newState: LongPollState) {
+        longPollStateToApply.update { newState }
+        Log.d("UserSettings", "setLongPollState: $newState")
+    }
+
+    override fun updateLongPollCurrentState(currentState: LongPollState) {
+        longPollCurrentState.update { currentState }
+        Log.d("UserSettings", "updateLongPollCurrentState: $currentState")
     }
 
     override fun setOnline(use: Boolean) {

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
@@ -141,6 +142,7 @@ fun <T> Any.toList(mapper: (old: Any) -> T): List<T> {
     }
 }
 
+@ChecksSdkIntAtLeast(parameter = 0, lambda = 1)
 fun isSdkAtLeast(sdkInt: Int, action: (() -> Unit)? = null): Boolean {
     return if (Build.VERSION.SDK_INT >= sdkInt) {
         action?.invoke()

@@ -50,4 +50,15 @@ object SettingsController {
             }
         }
     }
+
+    var isLongPollInBackgroundEnabled: Boolean =
+        SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+        get() = getBoolean(
+            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+        )
+        set(value) {
+            field = value
+            put(SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND, value)
+        }
 }

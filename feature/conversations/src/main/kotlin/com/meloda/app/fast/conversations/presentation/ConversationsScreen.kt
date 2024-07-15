@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyListState
@@ -156,17 +155,13 @@ fun ConversationsScreen(
     val view = LocalView.current
     val currentTheme = LocalTheme.current
 
-    val maxLines by remember {
-        derivedStateOf {
-            if (currentTheme.multiline) 2 else 1
-        }
+    val maxLines by remember(currentTheme) {
+        mutableIntStateOf(if (currentTheme.multiline) 2 else 1)
     }
 
     val listState = rememberLazyListState()
 
-    val isListScrollingUp = listState.isScrollingUp()
-
-    val paginationConditionMet by remember {
+    val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
             canPaginate &&
                     (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
@@ -292,7 +287,7 @@ fun ConversationsScreen(
 
             Column {
                 AnimatedVisibility(
-                    visible = isListScrollingUp,
+                    visible = listState.isScrollingUp(),
                     enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
                     exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
                 ) {
@@ -351,10 +346,7 @@ fun ConversationsScreen(
                         .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 ) {
                     ConversationsListComposable(
-                        onConversationsClick = { id ->
-                            onConversationItemClicked(id)
-
-                        },
+                        onConversationsClick = onConversationItemClicked,
                         onConversationsLongClick = onConversationItemLongClicked,
                         screenState = screenState,
                         state = listState,

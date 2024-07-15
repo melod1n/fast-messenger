@@ -1,18 +1,24 @@
 package com.meloda.app.fast
 
+import android.os.Build
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.meloda.app.fast.auth.AuthGraph
 import com.meloda.app.fast.common.UserConfig
+import com.meloda.app.fast.common.extensions.ifEmpty
+import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.extensions.updateValue
-import com.meloda.app.fast.data.db.AccountsRepository
+import com.meloda.app.fast.data.db.GetCurrentAccountUseCase
 import com.meloda.app.fast.datastore.SettingsController
-import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
+import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.model.LongPollState
-import com.meloda.app.fast.model.MainScreenState
+import com.meloda.app.fast.navigation.Main
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,30 +27,33 @@ import kotlinx.coroutines.launch
 
 interface MainViewModel {
 
-    val screenState: StateFlow<MainScreenState>
-    val isNeedToOpenAuth: StateFlow<Boolean>
+    val startDestination: StateFlow<Any?>
+    val isNeedToReplaceWithAuth: StateFlow<Boolean>
 
-    val longPollState: StateFlow<LongPollState>
-    val startOnlineService: StateFlow<Boolean>
-
-    fun useDynamicColorsChanged(use: Boolean)
-
-    fun useDarkThemeChanged(use: Boolean)
-
-    fun onRequestNotificationsPermissionClicked(fromRationale: Boolean)
-    fun onNotificationsAlertNegativeClicked()
-
-    fun onNotificationsRequested()
-
-    fun onAppPermissionsOpened()
+    val isNeedToShowNotificationsDeniedDialog: StateFlow<Boolean>
+    val isNeedToShowNotificationsRationaleDialog: StateFlow<Boolean>
+    val isNeedToCheckNotificationsPermission: StateFlow<Boolean>
+    val isNeedToRequestNotifications: StateFlow<Boolean>
 
     fun onError(error: BaseError)
 
     fun onNavigatedToAuth()
+
+    fun onAppResumed()
+
+    @OptIn(ExperimentalPermissionsApi::class)
+    fun onPermissionCheckStatus(status: PermissionStatus)
+    fun onPermissionsRequested()
+
+    fun onNotificationsDeniedDialogConfirmClicked()
+    fun onNotificationsDeniedDialogCancelClicked()
+    fun onNotificationsDeniedDialogDismissed()
+    fun onNotificationsRationaleDialogDismissed()
+    fun onNotificationsRationaleDialogCancelClicked()
 }
 
 class MainViewModelImpl(
-    private val accountsRepository: AccountsRepository,
+    private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
     private val userSettings: UserSettings
 ) : MainViewModel, ViewModel() {
 
@@ -52,99 +61,137 @@ class MainViewModelImpl(
         loadAccounts()
     }
 
-    override val screenState = MutableStateFlow(MainScreenState.EMPTY)
-    override val isNeedToOpenAuth = MutableStateFlow(false)
+    override val startDestination = MutableStateFlow<Any?>(null)
+    override val isNeedToReplaceWithAuth = MutableStateFlow(false)
 
-    override val longPollState = MutableStateFlow(
-        if (SettingsController.getBoolean(
-                SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-            )
-        ) {
-            LongPollState.ForegroundService
-        } else {
-            LongPollState.DefaultService
-        }
-    )
-    override val startOnlineService = MutableStateFlow(
-        SettingsController.getBoolean(
-            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS,
-            SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS
-        )
-    )
-
-    override fun useDynamicColorsChanged(use: Boolean) {
-        screenState.updateValue(screenState.value.copy(useDynamicColors = use))
-    }
-
-    override fun useDarkThemeChanged(use: Boolean) {
-        screenState.updateValue(screenState.value.copy(useDarkTheme = use))
-    }
-
-    override fun onRequestNotificationsPermissionClicked(fromRationale: Boolean) {
-        screenState.setValue { old ->
-            if (fromRationale) {
-                old.copy(isNeedToOpenAppPermissions = true)
-            } else {
-                old.copy(isNeedToRequestNotifications = true)
-            }
-        }
-    }
-
-    override fun onNotificationsAlertNegativeClicked() {
-        SettingsController.edit {
-            putBoolean(
-                SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                false
-            )
-        }
-        userSettings.setLongPollBackground(false)
-    }
-
-    override fun onNotificationsRequested() {
-        screenState.setValue { old -> old.copy(isNeedToRequestNotifications = false) }
-    }
-
-    override fun onAppPermissionsOpened() {
-        screenState.setValue { old -> old.copy(isNeedToOpenAppPermissions = false) }
-    }
+    override val isNeedToShowNotificationsDeniedDialog = MutableStateFlow(false)
+    override val isNeedToShowNotificationsRationaleDialog = MutableStateFlow(false)
+    override val isNeedToCheckNotificationsPermission = MutableStateFlow(false)
+    override val isNeedToRequestNotifications = MutableStateFlow(false)
 
     override fun onError(error: BaseError) {
         when (error) {
             BaseError.SessionExpired -> {
-                isNeedToOpenAuth.update { true }
+                isNeedToReplaceWithAuth.update { true }
             }
         }
     }
 
     override fun onNavigatedToAuth() {
-        isNeedToOpenAuth.update { false }
+        isNeedToReplaceWithAuth.update { false }
+    }
+
+    override fun onAppResumed() {
+        if (isNeedToShowNotificationsRationaleDialog.value) {
+            isNeedToCheckNotificationsPermission.update { true }
+        }
+
+        userSettings.onLanguageChanged(
+            AppCompatDelegate.getApplicationLocales()
+                .toLanguageTags()
+                .ifEmpty { null }
+                ?: LocaleListCompat.getDefault()
+                    .toLanguageTags()
+                    .split(",")
+                    .firstOrNull()
+                    .orEmpty()
+                    .take(5)
+        )
+
+        userSettings.updateUsingDarkTheme()
+    }
+
+    @ExperimentalPermissionsApi
+    override fun onPermissionCheckStatus(status: PermissionStatus) {
+        isNeedToCheckNotificationsPermission.update { false }
+
+        when (status) {
+            is PermissionStatus.Denied -> {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+                if (status.shouldShowRationale) {
+                    isNeedToShowNotificationsRationaleDialog.update { true }
+                } else {
+                    isNeedToShowNotificationsDeniedDialog.update { true }
+                }
+            }
+
+            PermissionStatus.Granted -> {
+                if (isNeedToShowNotificationsRationaleDialog.value) {
+                    isNeedToShowNotificationsRationaleDialog.update { false }
+                }
+            }
+        }
+    }
+
+    override fun onPermissionsRequested() {
+        isNeedToRequestNotifications.update { false }
+    }
+
+    override fun onNotificationsDeniedDialogConfirmClicked() {
+        isNeedToRequestNotifications.update { true }
+    }
+
+    override fun onNotificationsDeniedDialogCancelClicked() {
+        isNeedToShowNotificationsDeniedDialog.update { false }
+        disableBackgroundLongPoll()
+    }
+
+    override fun onNotificationsDeniedDialogDismissed() {
+        isNeedToShowNotificationsDeniedDialog.update { false }
+    }
+
+    override fun onNotificationsRationaleDialogDismissed() {
+        isNeedToShowNotificationsRationaleDialog.update { false }
+    }
+
+    override fun onNotificationsRationaleDialogCancelClicked() {
+        isNeedToShowNotificationsRationaleDialog.update { false }
+        disableBackgroundLongPoll()
+    }
+
+    private fun listenLongPollState() {
+        userSettings.longPollStateToApply.listenValue { newState ->
+            if (newState == LongPollState.Background) {
+                isNeedToCheckNotificationsPermission.update { true }
+            }
+        }
     }
 
     private fun loadAccounts() {
         viewModelScope.launch(Dispatchers.IO) {
-            val accounts = accountsRepository.getAccounts()
+            val currentAccount = getCurrentAccountUseCase()
 
-            Log.d("MainViewModel", "initUserConfig: accounts: $accounts")
+            Log.d("MainViewModel", "currentAccount: $currentAccount")
 
-            if (accounts.isNotEmpty()) {
-                val currentAccount = accounts.find { it.userId == UserConfig.currentUserId }
-                if (currentAccount != null) {
-                    UserConfig.apply {
-                        this.userId = currentAccount.userId
-                        this.accessToken = currentAccount.accessToken
-                        this.fastToken = currentAccount.fastToken
-                        this.trustedHash = currentAccount.trustedHash
-                    }
+            listenLongPollState()
+
+            if (currentAccount != null) {
+                UserConfig.apply {
+                    this.userId = currentAccount.userId
+                    this.accessToken = currentAccount.accessToken
+                    this.fastToken = currentAccount.fastToken
+                    this.trustedHash = currentAccount.trustedHash
                 }
-            }
 
-            screenState.setValue { old ->
-                old.copy(
-                    accounts = accounts,
-                    accountsLoaded = true
+                userSettings.setLongPollStateToApply(
+                    if (SettingsController.isLongPollInBackgroundEnabled) {
+                        LongPollState.Background
+                    } else {
+                        LongPollState.InApp
+                    }
                 )
             }
+
+            startDestination.setValue {
+                if (currentAccount == null) AuthGraph
+                else Main
+            }
         }
+    }
+
+    private fun disableBackgroundLongPoll() {
+        SettingsController.isLongPollInBackgroundEnabled = false
+        userSettings.setLongPollStateToApply(LongPollState.InApp)
     }
 }

@@ -14,6 +14,7 @@ import com.meloda.app.fast.datastore.SettingsController
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isDebugSettingsShown
+import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.settings.model.SettingsItem
 import com.meloda.app.fast.settings.model.SettingsScreenState
@@ -161,7 +162,14 @@ class SettingsViewModelImpl(
         when (key) {
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
                 val isEnabled = (newValue as? Boolean) == true
-                userSettings.setLongPollBackground(isEnabled)
+                userSettings.setLongPollStateToApply(
+                    userSettings.longPollStateToApply.value.let { state ->
+                        if (state.isLaunched()) {
+                            if (isEnabled) LongPollState.Background
+                            else LongPollState.InApp
+                        } else state
+                    }
+                )
 
                 if (isEnabled) {
                     // TODO: 26/11/2023, Danil Nikolaev: implement

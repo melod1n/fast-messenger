@@ -20,6 +20,10 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
         return values.map(transform).toImmutableList()
     }
 
+    inline fun <R> mapNotNull(transform: (T) -> R?): ImmutableList<R> {
+        return values.mapNotNull(transform).toImmutableList()
+    }
+
     inline fun <R> mapIndexed(transform: (index: Int, T) -> R): ImmutableList<R> {
         return values.mapIndexed(transform).toImmutableList()
     }
