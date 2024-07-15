@@ -3,11 +3,7 @@ package com.meloda.app.fast.settings.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.settings.model.OnSettingsClickListener
 import com.meloda.app.fast.settings.presentation.SettingsRoute
-import com.meloda.app.fast.settings.presentation.SettingsScreen
 import kotlinx.serialization.Serializable
 
 @Serializable

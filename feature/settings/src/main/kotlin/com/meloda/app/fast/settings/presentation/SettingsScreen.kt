@@ -38,16 +38,15 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.datastore.isUsingDarkMode
-import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
 import com.meloda.app.fast.settings.SettingsViewModelImpl
-import com.meloda.app.fast.settings.model.SettingsItem
 import com.meloda.app.fast.settings.model.SettingsScreenState
-import com.meloda.app.fast.settings.presentation.items.EditTextSettingsItem
-import com.meloda.app.fast.settings.presentation.items.ListSettingsItem
-import com.meloda.app.fast.settings.presentation.items.SwitchSettingsItem
-import com.meloda.app.fast.settings.presentation.items.TitleSettingsItem
-import com.meloda.app.fast.settings.presentation.items.TitleSummarySettingsItem
+import com.meloda.app.fast.settings.model.UiItem
+import com.meloda.app.fast.settings.presentation.item.ListItem
+import com.meloda.app.fast.settings.presentation.item.SwitchItem
+import com.meloda.app.fast.settings.presentation.item.TextFieldItem
+import com.meloda.app.fast.settings.presentation.item.TitleItem
+import com.meloda.app.fast.settings.presentation.item.TitleTextItem
 import com.meloda.app.fast.ui.components.ActionInvokeDismiss
 import com.meloda.app.fast.ui.components.MaterialDialog
 import com.meloda.app.fast.ui.theme.LocalTheme
@@ -90,6 +89,8 @@ fun SettingsRoute(
         },
         onSettingsItemLongClicked = viewModel::onSettingsItemLongClicked,
         onSettingsItemValueChanged = { key, newValue ->
+            viewModel.onSettingsItemChanged(key, newValue)
+
             when (key) {
                 SettingsKeys.KEY_APPEARANCE_DARK_THEME -> {
                     val newMode = newValue as? Int ?: 0
@@ -104,8 +105,6 @@ fun SettingsRoute(
 
                     userSettings.useDarkThemeChanged(isUsing)
                 }
-
-                else -> viewModel.onSettingsItemChanged(key, newValue)
             }
         }
     )
@@ -139,7 +138,7 @@ fun SettingsScreen(
     val hapticType = screenState.useHaptics
 
     LaunchedEffect(hapticType) {
-        if (hapticType != HapticType.None) {
+        if (hapticType != null) {
             view.performHapticFeedback(hapticType.getHaptic())
             onHapticPerformed()
         }
@@ -201,60 +200,59 @@ fun SettingsScreen(
             item {
                 Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
             }
+
             items(
                 items = screenState.settings,
-                key = { item -> item.key },
+                key = UiItem::key,
                 contentType = { item ->
                     when (item) {
-                        is SettingsItem.ListItem -> "list_item"
-                        is SettingsItem.Switch -> "switch"
-                        is SettingsItem.TextField -> "text_field"
-                        is SettingsItem.Title -> "title"
-                        is SettingsItem.TitleSummary -> "title_summary"
+                        is UiItem.Title -> "title"
+                        is UiItem.TitleText -> "title_text"
+                        is UiItem.Switch -> "switch"
+                        is UiItem.TextField -> "text_field"
+                        is UiItem.List<*> -> "list"
                     }
                 }
             ) { item ->
                 when (item) {
-                    is SettingsItem.Title -> TitleSettingsItem(
-                        item = item,
-                        isMultiline = currentTheme.multiline,
-                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    )
+                    is UiItem.Title -> {
+                        TitleItem(item = item)
+                    }
 
-                    is SettingsItem.TitleSummary -> TitleSummarySettingsItem(
-                        item = item,
-                        isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = onSettingsItemClicked,
-                        onSettingsLongClickListener = onSettingsItemLongClicked,
-                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    )
+                    is UiItem.TitleText -> {
+                        TitleTextItem(
+                            item = item,
+                            onClick = onSettingsItemClicked,
+                            onLongClick = onSettingsItemLongClicked
+                        )
+                    }
 
-                    is SettingsItem.Switch -> SwitchSettingsItem(
-                        item = item,
-                        isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = onSettingsItemClicked,
-                        onSettingsLongClickListener = onSettingsItemLongClicked,
-                        onSettingsChangeListener = onSettingsItemValueChanged,
-                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    )
+                    is UiItem.Switch -> {
+                        SwitchItem(
+                            item = item,
+                            onClick = { onSettingsItemClicked(item.key) },
+                            onLongClick = { onSettingsItemLongClicked(item.key) },
+                            onChanged = { onSettingsItemValueChanged(item.key, it) }
+                        )
+                    }
 
-                    is SettingsItem.TextField -> EditTextSettingsItem(
-                        item = item,
-                        isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = onSettingsItemClicked,
-                        onSettingsLongClickListener = onSettingsItemLongClicked,
-                        onSettingsChangeListener = onSettingsItemValueChanged,
-                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    )
+                    is UiItem.TextField -> {
+                        TextFieldItem(
+                            item = item,
+                            onClick = { onSettingsItemClicked(item.key) },
+                            onLongClick = { onSettingsItemLongClicked(item.key) },
+                            onChanged = { onSettingsItemValueChanged(item.key, it) }
+                        )
+                    }
 
-                    is SettingsItem.ListItem -> ListSettingsItem(
-                        item = item,
-                        isMultiline = currentTheme.multiline,
-                        onSettingsClickListener = onSettingsItemClicked,
-                        onSettingsLongClickListener = onSettingsItemLongClicked,
-                        onSettingsChangeListener = onSettingsItemValueChanged,
-                        modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    )
+                    is UiItem.List<*> -> {
+                        ListItem(
+                            item = item,
+                            onClick = { onSettingsItemClicked(item.key) },
+                            onLongClick = { onSettingsItemLongClicked(item.key) },
+                            onChanged = { onSettingsItemValueChanged(item.key, it) }
+                        )
+                    }
                 }
             }
 

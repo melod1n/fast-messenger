@@ -7,8 +7,8 @@ import com.meloda.app.fast.settings.HapticType
 @Immutable
 data class SettingsScreenState(
     val showOptions: SettingsShowOptions,
-    val settings: List<SettingsItem<*>>,
-    val useHaptics: HapticType,
+    val settings: List<UiItem>,
+    val useHaptics: HapticType?,
     val isNeedToRequestNotificationPermission: Boolean,
     val showDebugOptions: Boolean
 ) {
@@ -17,7 +17,7 @@ data class SettingsScreenState(
         val EMPTY: SettingsScreenState = SettingsScreenState(
             showOptions = SettingsShowOptions.EMPTY,
             settings = emptyList(),
-            useHaptics = HapticType.None,
+            useHaptics = null,
             isNeedToRequestNotificationPermission = false,
             showDebugOptions = isDebugSettingsShown()
         )

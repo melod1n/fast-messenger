@@ -57,6 +57,11 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
         fun <T> List<T>.toImmutableList(): ImmutableList<T> = ImmutableList(this)
 
         fun <T> empty(): ImmutableList<T> = ImmutableList(emptyList())
+
+        fun <T> of(vararg elements: T) =
+            if (elements.isNotEmpty()) copyOf(elements.asList()) else empty()
+
+        fun <T> of(element: T) = ImmutableList(listOf(element))
     }
 
     override fun iterator(): Iterator<T> = values.listIterator()

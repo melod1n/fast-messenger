@@ -52,13 +52,13 @@ fun MaterialDialog(
     neutralAction: (() -> Unit)? = null,
     title: String? = null,
     text: String? = null,
-    itemsSelectionType: ItemsSelectionType = ItemsSelectionType.None,
+    selectionType: SelectionType = SelectionType.None,
     items: ImmutableList<String> = ImmutableList.empty(),
     preSelectedItems: ImmutableList<Int> = ImmutableList.empty(),
     onItemClick: ((index: Int) -> Unit)? = null,
     properties: DialogProperties = DialogProperties(),
     actionInvokeDismiss: ActionInvokeDismiss = ActionInvokeDismiss.IfNoAction,
-    customContent: (ColumnScope.() -> Unit)? = null
+    customContent: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     var alertItems by remember {
         mutableStateOf(
@@ -135,12 +135,12 @@ fun MaterialDialog(
                     if (alertItems.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         AlertItems(
-                            selectionType = itemsSelectionType,
+                            selectionType = selectionType,
                             items = alertItems,
                             onItemClick = { index ->
                                 onItemClick?.invoke(index)
 
-                                if (itemsSelectionType == ItemsSelectionType.None) {
+                                if (selectionType == SelectionType.None) {
                                     onDismissRequest.invoke()
                                 } else {
                                     val newItems =
@@ -255,7 +255,7 @@ fun MaterialDialog(
     cancelAction: (() -> Unit)? = null,
     neutralText: UiText? = null,
     neutralAction: (() -> Unit)? = null,
-    itemsSelectionType: ItemsSelectionType = ItemsSelectionType.None,
+    selectionType: SelectionType = SelectionType.None,
     preSelectedItems: ImmutableList<Int> = ImmutableList.empty(),
     items: ImmutableList<UiText> = ImmutableList.empty(),
     onItemClick: ((index: Int) -> Unit)? = null,
@@ -356,12 +356,12 @@ fun MaterialDialog(
                         if (alertItems.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(4.dp))
                             AlertItems(
-                                selectionType = itemsSelectionType,
+                                selectionType = selectionType,
                                 items = alertItems,
                                 onItemClick = { index ->
                                     onItemClick?.invoke(index)
 
-                                    if (itemsSelectionType == ItemsSelectionType.None) {
+                                    if (selectionType == SelectionType.None) {
                                         onDismissRequest.invoke()
                                     } else {
                                         val newItems =
@@ -457,7 +457,7 @@ fun MaterialDialog(
 
 @Composable
 fun AlertItems(
-    selectionType: ItemsSelectionType,
+    selectionType: SelectionType,
     items: ImmutableList<DialogItem>,
     onItemClick: ((index: Int) -> Unit)? = null,
     onItemCheckedChanged: ((index: Int) -> Unit)? = null
@@ -468,7 +468,7 @@ fun AlertItems(
                 .fillMaxWidth()
                 .height(48.dp)
                 .clickable {
-                    if (selectionType == ItemsSelectionType.Multi) {
+                    if (selectionType == SelectionType.Multi) {
                         onItemCheckedChanged?.invoke(index)
                     } else {
                         onItemClick?.invoke(index)
@@ -478,7 +478,7 @@ fun AlertItems(
         ) {
             // TODO: 29/12/2023, Danil Nikolaev: check onClick & onCheckedChange actions
             when (selectionType) {
-                ItemsSelectionType.Multi -> {
+                SelectionType.Multi -> {
                     Spacer(modifier = Modifier.width(10.dp))
                     Checkbox(
                         checked = item.isSelected,
@@ -486,7 +486,7 @@ fun AlertItems(
                     )
                 }
 
-                ItemsSelectionType.Single -> {
+                SelectionType.Single -> {
                     Spacer(modifier = Modifier.width(10.dp))
                     RadioButton(
                         selected = item.isSelected,
@@ -494,7 +494,7 @@ fun AlertItems(
                     )
                 }
 
-                ItemsSelectionType.None -> {
+                SelectionType.None -> {
                     Spacer(modifier = Modifier.width(26.dp))
                 }
             }
@@ -520,8 +520,8 @@ sealed class ActionInvokeDismiss {
     data object Always : ActionInvokeDismiss()
 }
 
-sealed class ItemsSelectionType {
-    data object Single : ItemsSelectionType()
-    data object Multi : ItemsSelectionType()
-    data object None : ItemsSelectionType()
+sealed class SelectionType {
+    data object Single : SelectionType()
+    data object Multi : SelectionType()
+    data object None : SelectionType()
 }

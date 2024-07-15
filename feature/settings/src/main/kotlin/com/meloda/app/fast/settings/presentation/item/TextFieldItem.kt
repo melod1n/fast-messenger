@@ -1,4 +1,4 @@
-package com.meloda.app.fast.settings.presentation.items
+package com.meloda.app.fast.settings.presentation.item
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -20,78 +20,63 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.settings.model.OnSettingsChangeListener
-import com.meloda.app.fast.settings.model.OnSettingsClickListener
-import com.meloda.app.fast.settings.model.OnSettingsLongClickListener
-import com.meloda.app.fast.settings.model.SettingsItem
+import com.meloda.app.fast.settings.model.UiItem
+import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.ui.basic.ContentAlpha
 import com.meloda.app.fast.ui.basic.LocalContentAlpha
+import com.meloda.app.fast.ui.components.ActionInvokeDismiss
 import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.util.getString
-import com.meloda.app.fast.ui.R as UiR
+import com.meloda.app.fast.ui.theme.LocalTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EditTextSettingsItem(
-    item: SettingsItem.TextField,
-    isMultiline: Boolean,
-    onSettingsClickListener: OnSettingsClickListener,
-    onSettingsLongClickListener: OnSettingsLongClickListener,
-    onSettingsChangeListener: OnSettingsChangeListener,
-    modifier: Modifier
+fun TextFieldItem(
+    item: UiItem.TextField,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onChanged: (fieldText: String) -> Unit
 ) {
-    var title by remember { mutableStateOf(item.title) }
-    item.onTitleChanged = { newTitle -> title = newTitle }
+    if (!item.isVisible) return
 
-    var summary by remember { mutableStateOf(item.summary) }
-    item.onSummaryChanged = { newSummary -> summary = newSummary }
+    val currentTheme = LocalTheme.current
 
-    var isEnabled by remember { mutableStateOf(item.isEnabled) }
-    item.onEnabledStateChanged = { newEnabled -> isEnabled = newEnabled }
-
-    var isVisible by remember { mutableStateOf(item.isVisible) }
-    item.onVisibleStateChanged = { newVisible -> isVisible = newVisible }
-
-    var showDialog by remember {
+    var showDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
     if (showDialog) {
         EditTextAlert(
             item = item,
-            onSettingsChangeListener = { key, newValue ->
-                summary = item.summaryProvider?.provideSummary(item)
-                onSettingsChangeListener.onChange(key, newValue)
-            },
-            onDismiss = { showDialog = false }
+            onAlertConfirmClicked = onChanged,
+            onDismiss = { showDialog = false },
         )
     }
 
-    if (!isVisible) return
     Row(
         modifier = modifier
             .heightIn(min = 56.dp)
             .fillMaxWidth()
             .animateContentSize()
             .combinedClickable(
-                enabled = isEnabled,
+                enabled = item.isEnabled,
                 onClick = {
-                    onSettingsClickListener.onClick(item.key)
+                    onClick()
                     showDialog = true
                 },
-                onLongClick = { onSettingsLongClickListener.onLongClick(item.key) },
+                onLongClick = onLongClick,
             )
     ) {
         Spacer(modifier = Modifier.width(16.dp))
@@ -102,26 +87,26 @@ fun EditTextSettingsItem(
         ) {
             Spacer(modifier = Modifier.height(14.dp))
             LocalContentAlpha(
-                alpha = if (isEnabled) ContentAlpha.high else ContentAlpha.disabled
+                alpha = if (item.isEnabled) ContentAlpha.high else ContentAlpha.disabled
             ) {
-                title?.getString()?.let { title ->
+                item.title?.let { title ->
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall,
-                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.multiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
 
             LocalContentAlpha(
-                alpha = if (isEnabled) ContentAlpha.medium else ContentAlpha.disabled
+                alpha = if (item.isEnabled) ContentAlpha.medium else ContentAlpha.disabled
             ) {
-                summary?.getString()?.let { summary ->
+                item.text?.let { text ->
                     Text(
-                        text = summary,
+                        text = text,
                         style = MaterialTheme.typography.bodyMedium,
-                        maxLines = if (isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.multiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -132,32 +117,27 @@ fun EditTextSettingsItem(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EditTextAlert(
-    item: SettingsItem.TextField,
-    onSettingsChangeListener: OnSettingsChangeListener,
+    item: UiItem.TextField,
+    onAlertConfirmClicked: (newValue: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val (textFieldFocusable) = FocusRequester.createRefs()
 
     var textFieldValue by remember {
-        mutableStateOf(TextFieldValue(item.value.orEmpty()))
+        mutableStateOf(TextFieldValue(item.fieldText))
     }
 
     MaterialDialog(
+        onDismissRequest = onDismiss,
         title = item.title,
-        confirmText = UiText.Resource(UiR.string.ok),
+        confirmText = stringResource(id = R.string.ok),
         confirmAction = {
-            val newValue = textFieldValue.text.trim()
-
-            if (item.value != newValue) {
-                item.value = newValue
-                onSettingsChangeListener.onChange(item.key, newValue)
-            }
+            onAlertConfirmClicked(textFieldValue.text.trim())
         },
-        cancelText = UiText.Resource(UiR.string.cancel),
-        onDismissAction = onDismiss
+        cancelText = stringResource(id = R.string.cancel),
+        actionInvokeDismiss = ActionInvokeDismiss.Always
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.width(20.dp))
