@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common
+package com.meloda.app.fast.common.extensions
 
 import android.os.Bundle
 import android.os.Parcelable

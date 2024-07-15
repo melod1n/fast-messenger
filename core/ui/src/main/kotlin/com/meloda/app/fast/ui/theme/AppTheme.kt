@@ -9,7 +9,6 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -104,19 +103,17 @@ private val robotoFonts = FontFamily(
     )
 )
 
-val LocalTheme = compositionLocalOf {
+val LocalThemeConfig = compositionLocalOf {
     ThemeConfig(
-        usingDarkStyle = false,
-        usingDynamicColors = false,
+        darkMode = false,
+        dynamicColors = false,
         selectedColorScheme = 0,
-        usingAmoledBackground = false,
-        usingBlur = false,
-        isMultiline = false,
+        amoledDark = false,
+        enableBlur = false,
+        enableMultiline = false,
         isDeviceCompact = false
     )
 }
-
-val LocalIsDarkTheme = compositionLocalOf { false }
 
 val LocalHazeState = compositionLocalOf {
     HazeState()
@@ -181,11 +178,9 @@ fun AppTheme(
         }
     }
 
-    CompositionLocalProvider(LocalIsDarkTheme provides useDarkTheme) {
-        MaterialTheme(
-            colorScheme = predefinedColorScheme ?: colorScheme,
-            typography = typography,
-            content = content
-        )
-    }
+    MaterialTheme(
+        colorScheme = predefinedColorScheme ?: colorScheme,
+        typography = typography,
+        content = content
+    )
 }

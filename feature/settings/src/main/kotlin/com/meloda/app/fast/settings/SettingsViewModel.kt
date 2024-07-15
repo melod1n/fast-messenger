@@ -6,17 +6,18 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.LongPollController
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.findWithIndex
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
 import com.meloda.app.fast.common.extensions.setValue
+import com.meloda.app.fast.common.model.DarkMode
+import com.meloda.app.fast.common.model.LongPollState
+import com.meloda.app.fast.common.model.UiText
 import com.meloda.app.fast.data.db.AccountsRepository
-import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.datastore.AppSettings
 import com.meloda.app.fast.datastore.SettingsKeys
 import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.isDebugSettingsShown
-import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.settings.model.SettingsItem
 import com.meloda.app.fast.settings.model.SettingsScreenState
@@ -32,8 +33,7 @@ import com.meloda.app.fast.ui.R as UiR
 interface SettingsViewModel {
 
     val screenState: StateFlow<SettingsScreenState>
-
-    val isLongPollBackgroundEnabled: StateFlow<Boolean?>
+    val hapticType: StateFlow<HapticType?>
 
     fun onLogOutAlertDismissed()
     fun onLogOutAlertPositiveClick()
@@ -46,21 +46,19 @@ interface SettingsViewModel {
     fun onSettingsItemChanged(key: String, newValue: Any?)
 
     fun onHapticPerformed()
-
-    fun onNotificationsPermissionRequested()
 }
 
 class SettingsViewModelImpl(
     private val accountsRepository: AccountsRepository,
     private val userSettings: UserSettings,
-    private val resources: Resources
+    private val resources: Resources,
+    private val longPollController: LongPollController
 ) : SettingsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
+    override val hapticType = MutableStateFlow<HapticType?>(null)
 
     private val settings = MutableStateFlow<List<SettingsItem<*>>>(emptyList())
-
-    override val isLongPollBackgroundEnabled = MutableStateFlow<Boolean?>(null)
 
     init {
         createSettings()
@@ -106,22 +104,15 @@ class SettingsViewModelImpl(
             }
 
             SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
-                val showDebugCategory = isDebugSettingsShown()
+                val showDebugCategory = AppSettings.Debug.showDebugCategory
                 if (!showDebugCategory) return
 
-                SettingsController.put(
-                    SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-                    false
-                )
+                onSettingsItemChanged(key, false)
 
                 createSettings()
 
-                screenState.setValue { old ->
-                    old.copy(
-                        useHaptics = HapticType.REJECT,
-                        showDebugOptions = false
-                    )
-                }
+                hapticType.update { HapticType.REJECT }
+                screenState.setValue { old -> old.copy(showDebugOptions = false) }
             }
         }
     }
@@ -129,18 +120,14 @@ class SettingsViewModelImpl(
     override fun onSettingsItemLongClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
-                if (isDebugSettingsShown()) return
+                if (AppSettings.Debug.showDebugCategory) return
 
-                SettingsController.put(SettingsKeys.KEY_SHOW_DEBUG_CATEGORY, true)
+                onSettingsItemChanged(key, true)
 
                 createSettings()
 
-                screenState.setValue { old ->
-                    old.copy(
-                        useHaptics = HapticType.LONG_PRESS,
-                        showDebugOptions = true
-                    )
-                }
+                hapticType.update { HapticType.LONG_PRESS }
+                screenState.setValue { old -> old.copy(showDebugOptions = true) }
             }
         }
     }
@@ -160,70 +147,98 @@ class SettingsViewModelImpl(
         }
 
         when (key) {
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
-                val isEnabled = (newValue as? Boolean) == true
-                userSettings.setLongPollStateToApply(
-                    userSettings.longPollStateToApply.value.let { state ->
-                        if (state.isLaunched()) {
-                            if (isEnabled) LongPollState.Background
-                            else LongPollState.InApp
-                        } else state
-                    }
-                )
-
-                if (isEnabled) {
-                    // TODO: 26/11/2023, Danil Nikolaev: implement
-                    val isNotificationsPermissionGranted = false
-
-                    if (!isNotificationsPermissionGranted) {
-                        // TODO: 26/11/2023, Danil Nikolaev: implement restart
-                    }
-                }
-            }
-
-            SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useMultiline(isUsing)
-            }
-
-            SettingsKeys.KEY_APPEARANCE_AMOLED_THEME -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useAmoledThemeChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_USE_DYNAMIC_COLORS -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useDynamicColorsChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_APPEARANCE_BLUR -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.useBlurChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
-                val isUsing = newValue as? Boolean ?: false
-                userSettings.setOnline(isUsing)
-            }
-
             SettingsKeys.KEY_USE_CONTACT_NAMES -> {
-                val isUsing = newValue as? Boolean ?: false
+                val isUsing = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
                 userSettings.onUseContactNamesChanged(isUsing)
             }
 
             SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH -> {
-                val enable = newValue as? Boolean ?: false
+                val enable =
+                    newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH
                 userSettings.onEnablePullToRefreshChanged(enable)
+            }
+
+
+            SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
+                val isUsing = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_MULTILINE
+                userSettings.onEnableMultilineChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_APPEARANCE_DARK_MODE -> {
+                val newMode = newValue as? Int ?: SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_MODE
+                AppCompatDelegate.setDefaultNightMode(newMode)
+                userSettings.onDarkModeChanged(DarkMode.parse(newMode))
+            }
+
+            SettingsKeys.KEY_APPEARANCE_AMOLED_THEME -> {
+                val isUsing =
+                    newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME
+                userSettings.onEnableAmoledDarkChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_USE_DYNAMIC_COLORS -> {
+                val isUsing = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
+                userSettings.onEnableDynamicColorsChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
+                val newLanguage = newValue as? String ?: SettingsKeys.DEFAULT_APPEARANCE_LANGUAGE
+                userSettings.onAppLanguageChanged(newLanguage)
+            }
+
+
+            SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT -> {
+                val newText = newValue as? String ?: SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT
+                userSettings.onFastTextChanged(newText)
+            }
+
+
+            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
+                val isUsing = newValue as? Boolean
+                    ?: SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS
+                userSettings.onSendOnlineStatusChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_DEBUG_SHOW_CRASH_ALERT -> {
+                val show = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
+                userSettings.onShowAlertAfterCrashChanged(show)
+            }
+
+            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
+                val inBackground = newValue as? Boolean
+                    ?: SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+                userSettings.onLongPollInBackgroundChanged(inBackground)
+
+                longPollController.setStateToApply(
+                    longPollController.stateToApply.value.let { state ->
+                        if (state.isLaunched()) {
+                            if (inBackground) LongPollState.Background
+                            else LongPollState.InApp
+                        } else state
+                    }
+                )
+            }
+
+            SettingsKeys.KEY_APPEARANCE_USE_BLUR -> {
+                val isUsing =
+                    newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR
+                userSettings.onUseBlurChanged(isUsing)
+            }
+
+            SettingsKeys.KEY_SHOW_EMOJI_BUTTON -> {
+                val show = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
+                userSettings.onShowEmojiButtonChanged(show)
+            }
+
+            SettingsKeys.KEY_SHOW_DEBUG_CATEGORY -> {
+                val show = newValue as? Boolean ?: false
+                userSettings.onShowDebugCategoryChanged(show)
             }
         }
     }
 
     override fun onHapticPerformed() {
-        screenState.setValue { old -> old.copy(useHaptics = null) }
-    }
-
-    override fun onNotificationsPermissionRequested() {
-        screenState.setValue { old -> old.copy(isNeedToRequestNotificationPermission = false) }
+        hapticType.update { null }
     }
 
     private fun emitShowOptions(function: (SettingsShowOptions) -> SettingsShowOptions) {
@@ -273,22 +288,22 @@ class SettingsViewModelImpl(
         )
 
         val darkThemeValues = listOf(
-            AppCompatDelegate.MODE_NIGHT_YES to UiText.Resource(UiR.string.settings_dark_theme_value_enabled),
-            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM to UiText.Resource(UiR.string.settings_dark_theme_value_follow_system),
-            AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY to UiText.Resource(UiR.string.settings_dark_theme_value_battery_saver),
-            AppCompatDelegate.MODE_NIGHT_NO to UiText.Resource(UiR.string.settings_dark_theme_value_disabled)
+            DarkMode.ENABLED to UiText.Resource(UiR.string.settings_dark_theme_value_enabled),
+            DarkMode.FOLLOW_SYSTEM to UiText.Resource(UiR.string.settings_dark_theme_value_follow_system),
+            DarkMode.AUTO_BATTERY to UiText.Resource(UiR.string.settings_dark_theme_value_battery_saver),
+            DarkMode.DISABLED to UiText.Resource(UiR.string.settings_dark_theme_value_disabled)
         ).toMap()
 
         val appearanceDarkTheme = SettingsItem.ListItem(
-            key = SettingsKeys.KEY_APPEARANCE_DARK_THEME,
+            key = SettingsKeys.KEY_APPEARANCE_DARK_MODE,
             title = UiText.Resource(UiR.string.settings_dark_theme),
             valueClass = Int::class,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_THEME,
+            defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_MODE,
             titles = darkThemeValues.values.toList(),
-            values = darkThemeValues.keys.toList()
+            values = darkThemeValues.keys.toList().map(DarkMode::value)
         ).apply {
             textProvider = TextProvider { item ->
-                val darkThemeValue = darkThemeValues[item.value]
+                val darkThemeValue = darkThemeValues[DarkMode.parse(item.value)]
 
                 UiText.ResourceParams(
                     value = UiR.string.settings_dark_theme_current_value,
@@ -368,8 +383,8 @@ class SettingsViewModelImpl(
             text = UiText.Simple("Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually)")
         )
         val debugUseBlur = SettingsItem.Switch(
-            key = SettingsKeys.KEY_APPEARANCE_BLUR,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_BLUR,
+            key = SettingsKeys.KEY_APPEARANCE_USE_BLUR,
+            defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR,
             title = UiText.Simple("[WIP] Use blur"),
             text = UiText.Simple("Adds blur wherever possible\nOn android 11 and older will have transparency instead of blurring"),
         )
@@ -432,7 +447,7 @@ class SettingsViewModelImpl(
             debugList,
         ).forEach(settingsList::addAll)
 
-        if (!isDebugSettingsShown()) {
+        if (!AppSettings.Debug.showDebugCategory) {
             settingsList.removeAll(debugList)
         }
 

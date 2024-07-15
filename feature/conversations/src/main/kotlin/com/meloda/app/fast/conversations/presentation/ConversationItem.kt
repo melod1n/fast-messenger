@@ -52,7 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.meloda.app.fast.common.UiImage
+import com.meloda.app.fast.common.model.UiImage
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.UiConversation
 import com.meloda.app.fast.ui.basic.ContentAlpha

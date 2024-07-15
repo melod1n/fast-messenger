@@ -5,7 +5,7 @@ import androidx.preference.PreferenceManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.meloda.app.fast.common.di.applicationModule
-import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.datastore.AppSettings
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -17,7 +17,7 @@ class AppGlobal : Application(), ImageLoaderFactory {
         super.onCreate()
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        SettingsController.init(preferences)
+        AppSettings.init(preferences)
         UserConfig.init(preferences)
 
         initKoin()

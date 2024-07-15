@@ -1,7 +1,5 @@
 package com.meloda.app.fast.settings.presentation
 
-import android.os.PowerManager
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -27,17 +25,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.isUsingDarkMode
+import com.meloda.app.fast.settings.HapticType
 import com.meloda.app.fast.settings.SettingsViewModel
 import com.meloda.app.fast.settings.SettingsViewModelImpl
 import com.meloda.app.fast.settings.model.SettingsScreenState
@@ -49,14 +44,13 @@ import com.meloda.app.fast.settings.presentation.item.TitleItem
 import com.meloda.app.fast.settings.presentation.item.TitleTextItem
 import com.meloda.app.fast.ui.components.ActionInvokeDismiss
 import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import com.meloda.app.fast.ui.R as UiR
 
 @Composable
@@ -66,16 +60,12 @@ fun SettingsRoute(
     onLanguageItemClicked: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
 ) {
-    val context = LocalContext.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val hapticType by viewModel.hapticType.collectAsStateWithLifecycle()
 
-    val userSettings: UserSettings = koinInject()
-
-    LaunchedEffect(true) {
-        userSettings.enableDebugSettings(screenState.showDebugOptions)
-    }
-
-    SettingsScreen(screenState = screenState,
+    SettingsScreen(
+        screenState = screenState,
+        hapticType = hapticType,
         onBack = onBack,
         onHapticPerformed = viewModel::onHapticPerformed,
         onSettingsItemClicked = { key ->
@@ -88,25 +78,7 @@ fun SettingsRoute(
             }
         },
         onSettingsItemLongClicked = viewModel::onSettingsItemLongClicked,
-        onSettingsItemValueChanged = { key, newValue ->
-            viewModel.onSettingsItemChanged(key, newValue)
-
-            when (key) {
-                SettingsKeys.KEY_APPEARANCE_DARK_THEME -> {
-                    val newMode = newValue as? Int ?: 0
-                    AppCompatDelegate.setDefaultNightMode(newMode)
-
-                    val isUsing = context.getSystemService<PowerManager>()?.let { manager ->
-                        isUsingDarkMode(
-                            context.resources,
-                            manager
-                        )
-                    } ?: false
-
-                    userSettings.useDarkThemeChanged(isUsing)
-                }
-            }
-        }
+        onSettingsItemValueChanged = viewModel::onSettingsItemChanged
     )
 
     HandlePopups(
@@ -128,6 +100,7 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     screenState: SettingsScreenState = SettingsScreenState.EMPTY,
+    hapticType: HapticType? = null,
     onBack: () -> Unit = {},
     onHapticPerformed: () -> Unit = {},
     onSettingsItemClicked: (key: String) -> Unit = {},
@@ -135,7 +108,6 @@ fun SettingsScreen(
     onSettingsItemValueChanged: (key: String, newValue: Any?) -> Unit = { _, _ -> }
 ) {
     val view = LocalView.current
-    val hapticType = screenState.useHaptics
 
     LaunchedEffect(hapticType) {
         if (hapticType != null) {
@@ -144,7 +116,7 @@ fun SettingsScreen(
         }
     }
 
-    val currentTheme = LocalTheme.current
+    val themeConfig = LocalThemeConfig.current
 
     val hazeState = remember { HazeState() }
 
@@ -164,12 +136,12 @@ fun SettingsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(
-                        alpha = if (currentTheme.usingBlur) 0f else 1f
+                        alpha = if (themeConfig.enableBlur) 0f else 1f
                     )
                 ),
                 modifier = Modifier
                     .then(
-                        if (currentTheme.usingBlur) {
+                        if (themeConfig.enableBlur) {
                             Modifier.hazeChild(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
@@ -185,7 +157,7 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .then(
-                    if (currentTheme.usingBlur) {
+                    if (themeConfig.enableBlur) {
                         Modifier.haze(
                             state = hazeState,
                             style = HazeMaterials.thick()

@@ -1,3 +1,3 @@
-package com.meloda.app.fast.common
+package com.meloda.app.fast.common.model
 
 data class ApiLanguage(val value: String)

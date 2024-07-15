@@ -33,15 +33,17 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.meloda.app.fast.MainViewModel
 import com.meloda.app.fast.MainViewModelImpl
 import com.meloda.app.fast.common.AppConstants
+import com.meloda.app.fast.common.LongPollController
 import com.meloda.app.fast.common.extensions.isSdkAtLeast
-import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.common.model.LongPollState
+import com.meloda.app.fast.datastore.AppSettings
 import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.service.OnlineService
 import com.meloda.app.fast.service.longpolling.LongPollingService
 import com.meloda.app.fast.ui.model.ThemeConfig
 import com.meloda.app.fast.ui.theme.AppTheme
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import com.meloda.app.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
@@ -53,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        SettingsController.deviceId = Settings.Secure.getString(
+        AppSettings.deviceId = Settings.Secure.getString(
             contentResolver,
             Settings.Secure.ANDROID_ID
         )
@@ -78,10 +80,12 @@ class MainActivity : AppCompatActivity() {
         setContent {
             KoinContext {
                 val context = LocalContext.current
-                val userSettings: UserSettings = koinInject()
 
-                val longPollCurrentState by userSettings.longPollCurrentState.collectAsStateWithLifecycle()
-                val longPollStateToApply by userSettings.longPollStateToApply.collectAsStateWithLifecycle()
+                val userSettings: UserSettings = koinInject()
+                val longPollController: LongPollController = koinInject()
+
+                val longPollCurrentState by longPollController.currentState.collectAsStateWithLifecycle()
+                val longPollStateToApply by longPollController.stateToApply.collectAsStateWithLifecycle()
 
                 val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
 
@@ -136,9 +140,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                val isOnline by userSettings.online.collectAsStateWithLifecycle()
-                LifecycleResumeEffect(isOnline) {
-                    toggleOnlineService(isOnline)
+                val sendOnline by userSettings.sendOnlineStatus.collectAsStateWithLifecycle()
+                LifecycleResumeEffect(sendOnline) {
+                    toggleOnlineService(sendOnline)
 
                     onPauseOrDispose {
                         toggleOnlineService(false)
@@ -151,25 +155,22 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                val theme by userSettings.theme.collectAsStateWithLifecycle()
-                CompositionLocalProvider(
-                    LocalTheme provides ThemeConfig(
-                        usingDarkStyle = theme.usingDarkStyle,
-                        usingDynamicColors = theme.usingDynamicColors,
-                        selectedColorScheme = theme.selectedColorScheme,
-                        usingAmoledBackground = theme.usingAmoledBackground,
-                        usingBlur = theme.usingBlur,
-                        isMultiline = theme.isMultiline,
-                        isDeviceCompact = isDeviceCompact
-                    )
-                ) {
-                    val currentTheme = LocalTheme.current
+                val themeConfig = ThemeConfig(
+                    darkMode = isNeedToEnableDarkMode(userSettings.darkMode.value),
+                    dynamicColors = userSettings.enableDynamicColors.value,
+                    selectedColorScheme = 0,
+                    amoledDark = userSettings.enableAmoledDark.value,
+                    enableBlur = userSettings.useBlur.value,
+                    enableMultiline = userSettings.enableMultiline.value,
+                    isDeviceCompact = isDeviceCompact
+                )
 
+                CompositionLocalProvider(LocalThemeConfig provides themeConfig) {
                     AppTheme(
-                        useDarkTheme = currentTheme.usingDarkStyle,
-                        useDynamicColors = currentTheme.usingDynamicColors,
-                        selectedColorScheme = currentTheme.selectedColorScheme,
-                        useAmoledBackground = currentTheme.usingAmoledBackground,
+                        useDarkTheme = themeConfig.darkMode,
+                        useDynamicColors = themeConfig.dynamicColors,
+                        selectedColorScheme = themeConfig.selectedColorScheme,
+                        useAmoledBackground = themeConfig.amoledDark,
                     ) {
                         RootScreen(viewModel = viewModel)
                     }
@@ -220,7 +221,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleLongPollService(
         enable: Boolean,
-        inBackground: Boolean = SettingsController.isLongPollInBackgroundEnabled
+        inBackground: Boolean = AppSettings.Debug.longPollInBackground
     ) {
         if (enable) {
             val longPollIntent = Intent(this, LongPollingService::class.java)
@@ -246,7 +247,7 @@ class MainActivity : AppCompatActivity() {
     private fun stopServices() {
         toggleOnlineService(enable = false)
 
-        val asForeground = SettingsController.isLongPollInBackgroundEnabled
+        val asForeground = AppSettings.Debug.longPollInBackground
 
         if (!asForeground) {
             toggleLongPollService(enable = false)

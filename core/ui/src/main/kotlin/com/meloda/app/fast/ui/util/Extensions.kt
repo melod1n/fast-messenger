@@ -1,5 +1,7 @@
 package com.meloda.app.fast.ui.util
 
+import android.content.res.Configuration
+import android.os.PowerManager
 import android.view.KeyEvent
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -10,9 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import com.meloda.app.fast.common.UiText
+import androidx.core.content.getSystemService
+import com.meloda.app.fast.common.model.DarkMode
+import com.meloda.app.fast.common.model.UiText
 
 @Composable
 fun UiText?.getString(): String? {
@@ -74,4 +79,20 @@ fun LazyListState.isScrollingUp(): Boolean {
             }
         }
     }.value
+}
+
+@Composable
+fun isNeedToEnableDarkMode(darkMode: DarkMode): Boolean {
+    val context = LocalContext.current
+
+    val appForceDarkMode = darkMode == DarkMode.ENABLED
+    val appBatterySaver = darkMode == DarkMode.AUTO_BATTERY
+
+    val systemUiNightMode = context.resources.configuration.uiMode
+
+    val isSystemBatterySaver = context.getSystemService<PowerManager>()?.isPowerSaveMode == true
+    val isSystemUsingDarkTheme =
+        systemUiNightMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+
+    return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && darkMode == DarkMode.FOLLOW_SYSTEM)
 }

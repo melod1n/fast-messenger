@@ -38,7 +38,7 @@ import com.meloda.app.fast.ui.basic.ContentAlpha
 import com.meloda.app.fast.ui.basic.LocalContentAlpha
 import com.meloda.app.fast.ui.components.ActionInvokeDismiss
 import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -51,7 +51,7 @@ fun TextFieldItem(
 ) {
     if (!item.isVisible) return
 
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     var showDialog by rememberSaveable {
         mutableStateOf(false)
@@ -93,7 +93,7 @@ fun TextFieldItem(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall,
-                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -106,7 +106,7 @@ fun TextFieldItem(
                     Text(
                         text = text,
                         style = MaterialTheme.typography.bodyMedium,
-                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

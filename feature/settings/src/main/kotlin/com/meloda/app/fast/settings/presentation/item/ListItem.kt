@@ -32,7 +32,7 @@ import com.meloda.app.fast.ui.basic.LocalContentAlpha
 import com.meloda.app.fast.ui.components.ActionInvokeDismiss
 import com.meloda.app.fast.ui.components.MaterialDialog
 import com.meloda.app.fast.ui.components.SelectionType
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.ImmutableList
 import com.meloda.app.fast.ui.util.ImmutableList.Companion.toImmutableList
 
@@ -51,7 +51,7 @@ fun ListItem(
         mutableStateOf(false)
     }
 
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     Row(
         modifier = modifier
@@ -81,7 +81,7 @@ fun ListItem(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall,
-                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -94,7 +94,7 @@ fun ListItem(
                     Text(
                         text = text,
                         style = MaterialTheme.typography.bodyMedium,
-                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

@@ -28,7 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.meloda.app.fast.conversations.navigation.conversationsScreen
 import com.meloda.app.fast.ui.theme.LocalBottomPadding
 import com.meloda.app.fast.ui.theme.LocalHazeState
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.friends.navigation.friendsScreen
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.model.BottomNavigationItem
@@ -47,7 +47,7 @@ fun MainScreen(
     onSettingsButtonClicked: () -> Unit = {},
     onConversationItemClicked: (conversationId: Int) -> Unit = {}
 ) {
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
     val hazeState = remember { HazeState() }
     val navController = rememberNavController()
 
@@ -60,7 +60,7 @@ fun MainScreen(
             NavigationBar(
                 modifier = Modifier
                     .then(
-                        if (currentTheme.usingBlur) {
+                        if (currentTheme.enableBlur) {
                             Modifier.hazeChild(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
@@ -69,7 +69,7 @@ fun MainScreen(
                     )
                     .fillMaxWidth(),
                 containerColor = NavigationBarDefaults.containerColor.copy(
-                    alpha = if (currentTheme.usingBlur) 0f else 1f
+                    alpha = if (currentTheme.enableBlur) 0f else 1f
                 )
             ) {
                 navigationItems.forEachIndexed { index, item ->
@@ -105,11 +105,11 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = if (currentTheme.usingBlur) 0.dp else padding.calculateBottomPadding())
+                .padding(bottom = if (currentTheme.enableBlur) 0.dp else padding.calculateBottomPadding())
         ) {
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
-                LocalBottomPadding provides if (currentTheme.usingBlur) padding.calculateBottomPadding() else 0.dp
+                LocalBottomPadding provides if (currentTheme.enableBlur) padding.calculateBottomPadding() else 0.dp
             ) {
                 NavHost(
                     navController = navController,

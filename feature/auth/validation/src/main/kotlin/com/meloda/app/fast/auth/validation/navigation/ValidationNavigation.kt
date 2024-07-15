@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.meloda.app.fast.auth.validation.model.ValidationArguments
 import com.meloda.app.fast.auth.validation.presentation.ValidationRoute
-import com.meloda.app.fast.common.customNavType
+import com.meloda.app.fast.common.extensions.customNavType
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 

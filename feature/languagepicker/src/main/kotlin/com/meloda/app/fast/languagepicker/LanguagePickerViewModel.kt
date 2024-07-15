@@ -4,9 +4,9 @@ import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.model.UiText
 import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.parseString
+import com.meloda.app.fast.common.model.parseString
 import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
 import com.meloda.app.fast.languagepicker.model.SelectableLanguage
 import kotlinx.coroutines.flow.MutableStateFlow

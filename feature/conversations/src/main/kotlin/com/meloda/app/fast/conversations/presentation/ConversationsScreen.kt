@@ -78,7 +78,7 @@ import com.meloda.app.fast.ui.components.FullScreenLoader
 import com.meloda.app.fast.ui.components.MaterialDialog
 import com.meloda.app.fast.ui.theme.LocalBottomPadding
 import com.meloda.app.fast.ui.theme.LocalHazeState
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.isScrollingUp
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -159,10 +159,10 @@ fun ConversationsScreen(
     onRefresh: () -> Unit = {}
 ) {
     val view = LocalView.current
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     val maxLines by remember(currentTheme) {
-        mutableIntStateOf(if (currentTheme.isMultiline) 2 else 1)
+        mutableIntStateOf(if (currentTheme.enableMultiline) 2 else 1)
     }
 
     val listState = rememberLazyListState()
@@ -195,7 +195,7 @@ fun ConversationsScreen(
 
     val toolbarContainerColor by animateColorAsState(
         targetValue =
-        if (currentTheme.usingBlur || !listState.canScrollBackward)
+        if (currentTheme.enableBlur || !listState.canScrollBackward)
             MaterialTheme.colorScheme.surface
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
@@ -258,12 +258,12 @@ fun ConversationsScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = toolbarContainerColor.copy(
-                            alpha = if (currentTheme.usingBlur) toolbarColorAlpha else 1f
+                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
                         )
                     ),
                     modifier = Modifier
                         .then(
-                            if (currentTheme.usingBlur) {
+                            if (currentTheme.enableBlur) {
                                 Modifier.hazeChild(
                                     state = hazeState,
                                     style = HazeMaterials.thick()
@@ -355,7 +355,7 @@ fun ConversationsScreen(
                         screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
-                        modifier = if (currentTheme.usingBlur) {
+                        modifier = if (currentTheme.enableBlur) {
                             Modifier.haze(
                                 state = hazeState,
                                 style = HazeMaterials.thick()

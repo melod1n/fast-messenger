@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.meloda.app.fast.common.UiImage
+import com.meloda.app.fast.common.model.UiImage
 import com.meloda.app.fast.photoviewer.PhotoViewViewModel
 import com.meloda.app.fast.photoviewer.model.PhotoViewState
 

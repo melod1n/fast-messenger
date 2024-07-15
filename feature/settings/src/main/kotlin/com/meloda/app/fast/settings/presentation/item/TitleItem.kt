@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.settings.model.UiItem
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 
 @Composable
 fun TitleItem(
@@ -18,7 +18,7 @@ fun TitleItem(
 ) {
     if (!item.isVisible) return
 
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     Text(
         text = item.title,
@@ -32,7 +32,7 @@ fun TitleItem(
                 bottom = 4.dp
             )
             .animateContentSize(),
-        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
         overflow = TextOverflow.Ellipsis,
     )
 }

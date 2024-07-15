@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.settings.model.UiItem
 import com.meloda.app.fast.ui.basic.ContentAlpha
 import com.meloda.app.fast.ui.basic.LocalContentAlpha
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -35,7 +35,7 @@ fun SwitchItem(
 ) {
     if (!item.isVisible) return
 
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     Row(
         modifier = modifier
@@ -65,7 +65,7 @@ fun SwitchItem(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall,
-                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -78,7 +78,7 @@ fun SwitchItem(
                     Text(
                         text = text,
                         style = MaterialTheme.typography.bodyMedium,
-                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.enableMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

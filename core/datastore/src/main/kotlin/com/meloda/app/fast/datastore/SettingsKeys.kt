@@ -17,8 +17,8 @@ object SettingsKeys {
     const val KEY_APPEARANCE = "appearance"
     const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"
     const val DEFAULT_VALUE_MULTILINE = true
-    const val KEY_APPEARANCE_DARK_THEME = "appearance_appearance_dark_theme"
-    const val DEFAULT_VALUE_APPEARANCE_DARK_THEME = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+    const val KEY_APPEARANCE_DARK_MODE = "appearance_appearance_dark_mode"
+    const val DEFAULT_VALUE_APPEARANCE_DARK_MODE = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
     const val KEY_APPEARANCE_AMOLED_THEME = "appearance_amoled_theme"
     const val DEFAULT_VALUE_APPEARANCE_AMOLED_THEME = false
     const val KEY_USE_DYNAMIC_COLORS = "appearance_use_dynamic_colors"
@@ -26,8 +26,9 @@ object SettingsKeys {
     const val KEY_APPEARANCE_COLOR_SCHEME = "appearance_color_scheme"
     const val DEFAULT_VALUE_APPEARANCE_COLOR_SCHEME = 0
     const val KEY_APPEARANCE_LANGUAGE = "appearance_language"
-    const val KEY_APPEARANCE_BLUR = "appearance_blur"
-    const val DEFAULT_VALUE_KEY_APPEARANCE_BLUR = false
+    const val DEFAULT_APPEARANCE_LANGUAGE = ""
+    const val KEY_APPEARANCE_USE_BLUR = "appearance_use_blur"
+    const val DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR = false
 
     const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
     const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"

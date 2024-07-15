@@ -50,13 +50,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.model.UiText
 import com.meloda.app.fast.ui.basic.autoFillRequestHandler
 import com.meloda.app.fast.ui.basic.connectNode
 import com.meloda.app.fast.ui.basic.defaultFocusChangeAutoFill
 import com.meloda.app.fast.ui.components.MaterialDialog
 import com.meloda.app.fast.ui.components.TextFieldErrorText
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.handleEnterKey
 import com.meloda.app.fast.ui.util.handleTabKey
 import com.meloda.fast.auth.login.LoginViewModel
@@ -157,7 +157,7 @@ fun LoginScreen(
     onPasswordFieldGoAction: () -> Unit = {},
     onSignInButtonClicked: () -> Unit = {}
 ) {
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
     val focusManager = LocalFocusManager.current
     val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
 

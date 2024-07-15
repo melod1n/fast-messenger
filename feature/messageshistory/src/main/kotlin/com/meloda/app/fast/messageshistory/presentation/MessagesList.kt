@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.messageshistory.model.UiMessage
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
@@ -35,13 +35,13 @@ fun MessagesList(
     enableAnimations: Boolean
 ) {
     val messages = immutableMessages.toList()
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (currentTheme.usingBlur) {
+                if (currentTheme.enableBlur) {
                     Modifier.haze(
                         state = hazeState,
                         style = HazeMaterials.regular()

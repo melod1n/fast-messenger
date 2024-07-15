@@ -1,11 +1,11 @@
 package com.meloda.app.fast.messageshistory.util
 
 import android.content.res.Resources
-import com.meloda.app.fast.common.UiImage
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.model.UiImage
+import com.meloda.app.fast.common.model.UiText
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.orDots
-import com.meloda.app.fast.common.parseString
+import com.meloda.app.fast.common.model.parseString
 import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.messageshistory.model.UiMessage

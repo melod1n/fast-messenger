@@ -1,6 +1,6 @@
 package com.meloda.app.fast.messageshistory.model
 
-import com.meloda.app.fast.common.UiImage
+import com.meloda.app.fast.common.model.UiImage
 
 data class UiMessage(
     val id: Int,

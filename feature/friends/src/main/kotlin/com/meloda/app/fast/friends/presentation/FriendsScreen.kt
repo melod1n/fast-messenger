@@ -59,7 +59,7 @@ import com.meloda.app.fast.ui.components.FullScreenLoader
 import com.meloda.app.fast.ui.components.NoItemsView
 import com.meloda.app.fast.ui.model.TabItem
 import com.meloda.app.fast.ui.theme.LocalHazeState
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -122,11 +122,11 @@ fun FriendsScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onRefresh: () -> Unit = {}
 ) {
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     val maxLines by remember {
         derivedStateOf {
-            if (currentTheme.isMultiline) 2 else 1
+            if (currentTheme.enableMultiline) 2 else 1
         }
     }
 
@@ -149,7 +149,7 @@ fun FriendsScreen(
     val hazeState = LocalHazeState.current
 
     val topBarContainerColorAlpha by animateFloatAsState(
-        targetValue = if (!currentTheme.usingBlur || !listState.canScrollBackward) 1f else 0f,
+        targetValue = if (!currentTheme.enableBlur || !listState.canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
         animationSpec = tween(
             durationMillis = 200,
@@ -159,7 +159,7 @@ fun FriendsScreen(
 
     val topBarContainerColor by animateColorAsState(
         targetValue =
-        if (currentTheme.usingBlur || !listState.canScrollBackward)
+        if (currentTheme.enableBlur || !listState.canScrollBackward)
             MaterialTheme.colorScheme.surface
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
@@ -196,7 +196,7 @@ fun FriendsScreen(
             Column(
                 modifier = Modifier
                     .then(
-                        if (currentTheme.usingBlur) {
+                        if (currentTheme.enableBlur) {
                             Modifier.hazeChild(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
@@ -295,7 +295,7 @@ fun FriendsScreen(
                             val friendsToDisplay = screenState.friends
 
                             FriendsList(
-                                modifier = if (currentTheme.usingBlur) {
+                                modifier = if (currentTheme.enableBlur) {
                                     Modifier.haze(
                                         state = hazeState,
                                         style = HazeMaterials.thick()

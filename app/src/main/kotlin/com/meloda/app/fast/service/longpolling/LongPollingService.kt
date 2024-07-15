@@ -3,7 +3,6 @@ package com.meloda.app.fast.service.longpolling
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.IBinder
@@ -13,19 +12,18 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.conena.nanokt.android.app.stopForegroundCompat
 import com.meloda.app.fast.common.AppConstants
+import com.meloda.app.fast.common.LongPollController
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
+import com.meloda.app.fast.common.model.LongPollState
 import com.meloda.app.fast.data.LongPollUpdatesParser
 import com.meloda.app.fast.data.LongPollUseCase
 import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.datastore.SettingsController
-import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.model.LongPollState
-import com.meloda.app.fast.ui.R
+import com.meloda.app.fast.datastore.AppSettings
 import com.meloda.app.fast.model.api.data.LongPollUpdates
 import com.meloda.app.fast.model.api.data.VkLongPollData
+import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.util.NotificationsUtils
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +38,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class LongPollingService : Service() {
 
-    private val userSettings: UserSettings by inject()
+    private val longPollController: LongPollController by inject()
 
     private val job = SupervisorJob()
 
@@ -51,8 +49,8 @@ class LongPollingService : Service() {
             throwable.printStackTrace()
         }
 
-        userSettings.updateLongPollCurrentState(LongPollState.Exception)
-        userSettings.setLongPollStateToApply(LongPollState.Exception)
+        longPollController.updateCurrentState(LongPollState.Exception)
+        longPollController.setStateToApply(LongPollState.Exception)
     }
 
     private val coroutineContext: CoroutineContext
@@ -62,7 +60,6 @@ class LongPollingService : Service() {
 
     private val longPollUseCase: LongPollUseCase by inject()
     private val updatesParser: LongPollUpdatesParser by inject()
-    private val preferences: SharedPreferences by inject()
 
     private var currentJob: Job? = null
 
@@ -79,10 +76,7 @@ class LongPollingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        val inBackground = preferences.getBoolean(
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-            SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-        )
+        val inBackground = AppSettings.Debug.longPollInBackground
 
         Log.d(
             STATE_TAG,
@@ -114,7 +108,7 @@ class LongPollingService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        userSettings.updateLongPollCurrentState(
+        longPollController.updateCurrentState(
             if (inBackground) LongPollState.Background
             else LongPollState.InApp
         )
@@ -254,11 +248,9 @@ class LongPollingService : Service() {
 
     override fun onDestroy() {
         Log.d(STATE_TAG, "onDestroy")
-        userSettings.updateLongPollCurrentState(LongPollState.Stopped)
+        longPollController.updateCurrentState(LongPollState.Stopped)
         try {
-            SettingsController.edit {
-                putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true)
-            }
+            AppSettings.edit { putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true) }
             job.cancel()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -268,6 +260,7 @@ class LongPollingService : Service() {
 
     override fun onLowMemory() {
         Log.d(STATE_TAG, "onLowMemory")
+        longPollController.updateCurrentState(LongPollState.Stopped)
         super.onLowMemory()
     }
 

@@ -4,18 +4,19 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meloda.app.fast.auth.login.BuildConfig
+import com.meloda.app.fast.common.LongPollController
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.VkConstants
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
+import com.meloda.app.fast.common.model.LongPollState
 import com.meloda.app.fast.data.State
 import com.meloda.app.fast.data.api.users.UsersUseCase
 import com.meloda.app.fast.data.db.AccountsRepository
 import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.datastore.AppSettings
 import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.model.database.AccountEntity
 import com.meloda.app.fast.network.OAuthErrorDomain
 import com.meloda.fast.auth.login.model.CaptchaArguments
@@ -71,7 +72,8 @@ class LoginViewModelImpl(
     private val usersUseCase: UsersUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
-    private val userSettings: UserSettings
+    private val userSettings: UserSettings,
+    private val longPollController: LongPollController
 ) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
@@ -347,8 +349,8 @@ class LoginViewModelImpl(
     }
 
     private fun startLongPoll() {
-        userSettings.setLongPollStateToApply(
-            if (SettingsController.isLongPollInBackgroundEnabled) {
+        longPollController.setStateToApply(
+            if (AppSettings.Debug.longPollInBackground) {
                 LongPollState.Background
             } else {
                 LongPollState.InApp

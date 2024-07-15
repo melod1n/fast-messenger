@@ -9,11 +9,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.conena.nanokt.jvm.util.dayOfMonth
 import com.conena.nanokt.jvm.util.month
-import com.meloda.app.fast.common.UiImage
-import com.meloda.app.fast.common.UiText
+import com.meloda.app.fast.common.model.UiImage
+import com.meloda.app.fast.common.model.UiText
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.orDots
-import com.meloda.app.fast.common.parseString
+import com.meloda.app.fast.common.model.parseString
 import com.meloda.app.fast.common.util.TimeUtils
 import com.meloda.app.fast.conversations.model.ActionState
 import com.meloda.app.fast.conversations.model.UiConversation

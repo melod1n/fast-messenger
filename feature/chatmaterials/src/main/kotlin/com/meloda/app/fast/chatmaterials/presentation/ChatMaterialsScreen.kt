@@ -66,7 +66,7 @@ import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
 import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
 import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.ui.R
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -110,7 +110,7 @@ fun ChatMaterialsScreen(
     onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {}
 ) {
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     val attachments = screenState.materials
 
@@ -154,7 +154,7 @@ fun ChatMaterialsScreen(
     Log.d("ChatMaterialsScreen", "ChatMaterialsScreen: canScrollBackward: $canScrollBackward")
 
     val topBarContainerColorAlpha by animateFloatAsState(
-        targetValue = if (!currentTheme.usingBlur || !canScrollBackward) 1f else 0f,
+        targetValue = if (!currentTheme.enableBlur || !canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
         animationSpec = tween(
             durationMillis = 200,
@@ -164,7 +164,7 @@ fun ChatMaterialsScreen(
 
     val topBarContainerColor by animateColorAsState(
         targetValue =
-        if (currentTheme.usingBlur || !canScrollBackward)
+        if (currentTheme.enableBlur || !canScrollBackward)
             MaterialTheme.colorScheme.surface
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
@@ -182,7 +182,7 @@ fun ChatMaterialsScreen(
             Column(
                 modifier = Modifier
                     .then(
-                        if (currentTheme.usingBlur) {
+                        if (currentTheme.enableBlur) {
                             Modifier.hazeChild(
                                 state = hazeState,
                                 style = hazeStyle
@@ -244,7 +244,7 @@ fun ChatMaterialsScreen(
                                 }
                             )
 
-                            if (currentTheme.usingBlur) {
+                            if (currentTheme.enableBlur) {
                                 DropdownMenuItem(
                                     text = {
                                         Text(text = if (moreClearBlur) "Default blur" else "Clearer blur")
@@ -300,7 +300,7 @@ fun ChatMaterialsScreen(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier
                         .then(
-                            if (currentTheme.usingBlur) {
+                            if (currentTheme.enableBlur) {
                                 Modifier.haze(
                                     state = hazeState,
                                     style = hazeStyle
@@ -331,7 +331,7 @@ fun ChatMaterialsScreen(
                     state = listState,
                     modifier = Modifier
                         .then(
-                            if (currentTheme.usingBlur) {
+                            if (currentTheme.enableBlur) {
                                 Modifier.haze(
                                     state = hazeState,
                                     style = hazeStyle

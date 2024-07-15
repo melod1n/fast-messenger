@@ -1,144 +1,124 @@
 package com.meloda.app.fast.datastore
 
-import android.content.res.Resources
-import android.os.PowerManager
-import android.util.Log
-import com.meloda.app.fast.datastore.model.LongPollState
-import com.meloda.app.fast.ui.model.ThemeConfig
+import com.meloda.app.fast.common.model.DarkMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 
 interface UserSettings {
-    val theme: StateFlow<ThemeConfig>
-    val longPollStateToApply: StateFlow<LongPollState>
-    val longPollCurrentState: StateFlow<LongPollState>
-    val online: StateFlow<Boolean>
-    val debugSettingsEnabled: StateFlow<Boolean>
+
     val useContactNames: StateFlow<Boolean>
-    val language: StateFlow<String>
     val enablePullToRefresh: StateFlow<Boolean>
 
-    fun updateUsingDarkTheme()
-    fun useDarkThemeChanged(use: Boolean)
-    fun useAmoledThemeChanged(use: Boolean)
-    fun useDynamicColorsChanged(use: Boolean)
-    fun useBlurChanged(use: Boolean)
-    fun useMultiline(use: Boolean)
-    fun setLongPollStateToApply(newState: LongPollState)
-    fun updateLongPollCurrentState(currentState: LongPollState)
-    fun setOnline(use: Boolean)
-    fun enableDebugSettings(enable: Boolean)
+    val enableMultiline: StateFlow<Boolean>
+    val darkMode: StateFlow<DarkMode>
+    val enableAmoledDark: StateFlow<Boolean>
+    val enableDynamicColors: StateFlow<Boolean>
+    val appLanguage: StateFlow<String>
+
+    val fastText: StateFlow<String>
+
+    val sendOnlineStatus: StateFlow<Boolean>
+
+    val showAlertAfterCrash: StateFlow<Boolean>
+    val longPollInBackground: StateFlow<Boolean>
+    val useBlur: StateFlow<Boolean>
+    val showEmojiButton: StateFlow<Boolean>
+    val showDebugCategory: StateFlow<Boolean>
+
     fun onUseContactNamesChanged(use: Boolean)
-    fun onLanguageChanged(newLanguage: String)
     fun onEnablePullToRefreshChanged(enable: Boolean)
+
+    fun onEnableMultilineChanged(enable: Boolean)
+    fun onDarkModeChanged(mode: DarkMode)
+    fun onEnableAmoledDarkChanged(enable: Boolean)
+    fun onEnableDynamicColorsChanged(enable: Boolean)
+    fun onAppLanguageChanged(language: String)
+
+    fun onFastTextChanged(text: String)
+
+    fun onSendOnlineStatusChanged(send: Boolean)
+
+    fun onShowAlertAfterCrashChanged(show: Boolean)
+    fun onLongPollInBackgroundChanged(inBackground: Boolean)
+    fun onUseBlurChanged(use: Boolean)
+    fun onShowEmojiButtonChanged(show: Boolean)
+    fun onShowDebugCategoryChanged(show: Boolean)
 }
 
-class UserSettingsImpl(
-    private val resources: Resources,
-    private val powerManager: PowerManager
-) : UserSettings {
+class UserSettingsImpl : UserSettings {
 
-    override val theme = MutableStateFlow(
-        ThemeConfig(
-            usingDarkStyle = isUsingDarkMode(resources, powerManager),
-            usingDynamicColors = isUsingDynamicColors(),
-            selectedColorScheme = selectedColorScheme(),
-            usingAmoledBackground = isUsingAmoledBackground(),
-            usingBlur = isUsingBlur(),
-            isMultiline = isMultiline(),
-            isDeviceCompact = false
-        )
-    )
+    override val useContactNames = MutableStateFlow(AppSettings.General.useContactNames)
+    override val enablePullToRefresh = MutableStateFlow(AppSettings.General.enablePullToRefresh)
 
-    override val longPollStateToApply = MutableStateFlow<LongPollState>(LongPollState.Stopped)
-    override val longPollCurrentState = MutableStateFlow<LongPollState>(LongPollState.Stopped)
+    override val enableMultiline = MutableStateFlow(AppSettings.Appearance.enableMultiline)
+    override val darkMode = MutableStateFlow(AppSettings.Appearance.darkMode)
+    override val enableAmoledDark = MutableStateFlow(AppSettings.Appearance.enableAmoledDark)
+    override val enableDynamicColors = MutableStateFlow(AppSettings.Appearance.enableDynamicColors)
+    override val appLanguage = MutableStateFlow(AppSettings.Appearance.appLanguage)
 
-    override val online = MutableStateFlow(
-        SettingsController.getBoolean(
-            SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS,
-            SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS
-        )
-    )
+    override val fastText = MutableStateFlow(AppSettings.Features.fastText)
 
-    override val debugSettingsEnabled = MutableStateFlow(
-        SettingsController.getBoolean(
-            SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-            false
-        )
-    )
+    override val sendOnlineStatus = MutableStateFlow(AppSettings.Activity.sendOnlineStatus)
 
-    override val useContactNames = MutableStateFlow(
-        SettingsController.getBoolean(
-            SettingsKeys.KEY_USE_CONTACT_NAMES,
-            SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
-        )
-    )
-
-    override val language = MutableStateFlow("")
-
-    override val enablePullToRefresh = MutableStateFlow(SettingsController.enablePullToRefresh)
-
-    override fun updateUsingDarkTheme() {
-        useDarkThemeChanged(
-            isUsingDarkMode(
-                resources = resources,
-                powerManager = powerManager,
-            )
-        )
-    }
-
-    override fun useDarkThemeChanged(use: Boolean) {
-        theme.value = theme.value.copy(
-            usingDarkStyle = use
-        )
-    }
-
-    override fun useAmoledThemeChanged(use: Boolean) {
-        theme.value = theme.value.copy(
-            usingAmoledBackground = use
-        )
-    }
-
-    override fun useDynamicColorsChanged(use: Boolean) {
-        theme.value = theme.value.copy(usingDynamicColors = use)
-    }
-
-    override fun useBlurChanged(use: Boolean) {
-        theme.value = theme.value.copy(usingBlur = use)
-    }
-
-    override fun useMultiline(use: Boolean) {
-        theme.value = theme.value.copy(isMultiline = use)
-    }
-
-    override fun setLongPollStateToApply(newState: LongPollState) {
-        longPollStateToApply.update { newState }
-        Log.d("UserSettings", "setLongPollState: $newState")
-    }
-
-    override fun updateLongPollCurrentState(currentState: LongPollState) {
-        longPollCurrentState.update { currentState }
-        Log.d("UserSettings", "updateLongPollCurrentState: $currentState")
-    }
-
-    override fun setOnline(use: Boolean) {
-        online.value = use
-    }
-
-    override fun enableDebugSettings(enable: Boolean) {
-        debugSettingsEnabled.update { enable }
-    }
+    override val showAlertAfterCrash = MutableStateFlow(AppSettings.Debug.showAlertAfterCrash)
+    override val longPollInBackground = MutableStateFlow(AppSettings.Debug.longPollInBackground)
+    override val useBlur = MutableStateFlow(AppSettings.Debug.useBlur)
+    override val showEmojiButton = MutableStateFlow(AppSettings.Debug.showEmojiButton)
+    override val showDebugCategory = MutableStateFlow(AppSettings.Debug.showDebugCategory)
 
     override fun onUseContactNamesChanged(use: Boolean) {
-        useContactNames.update { use }
-    }
-
-    override fun onLanguageChanged(newLanguage: String) {
-        language.update { newLanguage }
+        useContactNames.value = use
     }
 
     override fun onEnablePullToRefreshChanged(enable: Boolean) {
-        enablePullToRefresh.update { enable }
+        enablePullToRefresh.value = enable
+    }
+
+    override fun onEnableMultilineChanged(enable: Boolean) {
+        enableMultiline.value = enable
+    }
+
+    override fun onDarkModeChanged(mode: DarkMode) {
+        darkMode.value = mode
+    }
+
+    override fun onEnableAmoledDarkChanged(enable: Boolean) {
+        enableAmoledDark.value = enable
+    }
+
+    override fun onEnableDynamicColorsChanged(enable: Boolean) {
+        enableDynamicColors.value = enable
+    }
+
+    override fun onAppLanguageChanged(language: String) {
+        appLanguage.value = language
+    }
+
+    override fun onFastTextChanged(text: String) {
+        fastText.value = text
+    }
+
+    override fun onSendOnlineStatusChanged(send: Boolean) {
+        sendOnlineStatus.value = send
+    }
+
+    override fun onShowAlertAfterCrashChanged(show: Boolean) {
+        showAlertAfterCrash.value = show
+    }
+
+    override fun onLongPollInBackgroundChanged(inBackground: Boolean) {
+        longPollInBackground.value = inBackground
+    }
+
+    override fun onUseBlurChanged(use: Boolean) {
+        useBlur.value = use
+    }
+
+    override fun onShowEmojiButtonChanged(show: Boolean) {
+        showEmojiButton.value = show
+    }
+
+    override fun onShowDebugCategoryChanged(show: Boolean) {
+        showDebugCategory.value = show
     }
 }

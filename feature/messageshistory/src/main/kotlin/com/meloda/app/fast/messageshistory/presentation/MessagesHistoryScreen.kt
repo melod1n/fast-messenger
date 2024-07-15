@@ -72,7 +72,7 @@ import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
 import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
@@ -131,7 +131,7 @@ fun MessagesHistoryScreen(
     val view = LocalView.current
 
     val preferences: SharedPreferences = koinInject()
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     val listState = rememberLazyListState()
 
@@ -178,7 +178,7 @@ fun MessagesHistoryScreen(
                 TopAppBar(
                     modifier = Modifier
                         .then(
-                            if (currentTheme.usingBlur) {
+                            if (currentTheme.enableBlur) {
                                 Modifier.hazeChild(
                                     state = hazeSate,
                                     style = HazeMaterials.thick()
@@ -203,7 +203,7 @@ fun MessagesHistoryScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface.copy(
-                            alpha = if (currentTheme.usingBlur) toolbarColorAlpha else 1f
+                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
                         )
                     ),
                     actions = {

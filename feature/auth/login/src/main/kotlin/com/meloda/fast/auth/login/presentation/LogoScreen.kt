@@ -31,7 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.ui.theme.LocalTheme
+import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import org.koin.androidx.compose.koinViewModel
@@ -64,7 +64,7 @@ fun LogoScreen(
     onLogoLongClicked: () -> Unit = {},
     onGoNextButtonClicked: () -> Unit = {}
 ) {
-    val currentTheme = LocalTheme.current
+    val currentTheme = LocalThemeConfig.current
 
     Scaffold { padding ->
         val topPadding by animateDpAsState(

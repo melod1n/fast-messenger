@@ -1,5 +1,4 @@
-package com.meloda.app.fast.datastore.model
-
+package com.meloda.app.fast.common.model
 sealed class LongPollState {
     data object Stopped : LongPollState()
 

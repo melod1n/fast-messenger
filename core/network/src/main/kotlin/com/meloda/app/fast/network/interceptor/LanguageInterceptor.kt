@@ -1,7 +1,7 @@
 package com.meloda.app.fast.network.interceptor
 
 import androidx.core.net.toUri
-import com.meloda.app.fast.common.ApiLanguage
+import com.meloda.app.fast.common.model.ApiLanguage
 import com.meloda.app.fast.common.provider.Provider
 import okhttp3.Interceptor
 import okhttp3.Response

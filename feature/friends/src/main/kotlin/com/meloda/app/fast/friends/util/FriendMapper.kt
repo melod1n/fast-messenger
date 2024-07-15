@@ -1,6 +1,6 @@
 package com.meloda.app.fast.friends.util
 
-import com.meloda.app.fast.common.UiImage
+import com.meloda.app.fast.common.model.UiImage
 import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.friends.model.UiFriend
 import com.meloda.app.fast.model.api.domain.VkUser

@@ -2,9 +2,9 @@ package com.meloda.app.fast.settings.model
 
 import android.content.res.Resources
 import androidx.compose.runtime.Immutable
-import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.parseString
-import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.common.model.UiText
+import com.meloda.app.fast.common.model.parseString
+import com.meloda.app.fast.datastore.AppSettings
 import kotlin.reflect.KClass
 
 @Immutable
@@ -37,7 +37,7 @@ sealed class SettingsItem<T>(
         protected set(newValue) {
             field = newValue
 
-            SettingsController.put(key, newValue)
+            AppSettings.put(key, newValue)
         }
 
     var title: UiText? = null
@@ -165,7 +165,7 @@ sealed class SettingsItem<T>(
         val values: List<T>
     ) : SettingsItem<T>(
         key = key,
-        value = selectedValue ?: SettingsController.get(valueClass, key, defaultValue),
+        value = selectedValue ?: AppSettings.get(valueClass, key, defaultValue),
         defaultValue = defaultValue
     ) {
 
@@ -245,6 +245,6 @@ private inline fun <reified T> getCurrentValue(key: String, defaultValue: T): T 
     if (T::class == Nothing::class) {
         throw IllegalStateException("Items with Nothing does not have a value")
     } else {
-        return SettingsController.get(key, defaultValue)
+        return AppSettings.get(key, defaultValue)
     }
 }

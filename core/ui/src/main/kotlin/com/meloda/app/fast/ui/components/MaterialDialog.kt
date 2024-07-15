@@ -33,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.meloda.app.fast.common.UiText
-import com.meloda.app.fast.common.parseString
+import com.meloda.app.fast.common.model.UiText
+import com.meloda.app.fast.common.model.parseString
 import com.meloda.app.fast.ui.util.ImmutableList
 import com.meloda.app.fast.ui.util.ImmutableList.Companion.toImmutableList
 import com.meloda.app.fast.ui.util.getString

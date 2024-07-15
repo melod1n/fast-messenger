@@ -5,7 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.common.customNavType
+import com.meloda.app.fast.common.extensions.customNavType
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
 import com.meloda.app.fast.messageshistory.presentation.MessagesHistoryRoute
 import com.meloda.app.fast.model.BaseError

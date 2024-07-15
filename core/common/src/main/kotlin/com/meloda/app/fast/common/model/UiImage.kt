@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common
+package com.meloda.app.fast.common.model
 
 import android.graphics.drawable.Drawable
 import androidx.annotation.ColorInt

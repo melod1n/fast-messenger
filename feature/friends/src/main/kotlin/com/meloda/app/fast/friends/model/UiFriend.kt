@@ -1,6 +1,6 @@
 package com.meloda.app.fast.friends.model
 
-import com.meloda.app.fast.common.UiImage
+import com.meloda.app.fast.common.model.UiImage
 import com.meloda.app.fast.model.api.domain.OnlineStatus
 
 data class UiFriend(

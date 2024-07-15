@@ -9,14 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.meloda.app.fast.auth.AuthGraph
+import com.meloda.app.fast.common.LongPollController
 import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.ifEmpty
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
+import com.meloda.app.fast.common.model.LongPollState
 import com.meloda.app.fast.data.db.GetCurrentAccountUseCase
-import com.meloda.app.fast.datastore.SettingsController
+import com.meloda.app.fast.datastore.AppSettings
 import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.model.LongPollState
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.navigation.Main
 import kotlinx.coroutines.Dispatchers
@@ -54,7 +55,8 @@ interface MainViewModel {
 
 class MainViewModelImpl(
     private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
-    private val userSettings: UserSettings
+    private val userSettings: UserSettings,
+    private val longPollController: LongPollController
 ) : MainViewModel, ViewModel() {
 
     init {
@@ -83,22 +85,21 @@ class MainViewModelImpl(
 
     override fun onAppResumed() {
         if (isNeedToShowNotificationsRationaleDialog.value) {
+            isNeedToShowNotificationsRationaleDialog.update { false }
             isNeedToCheckNotificationsPermission.update { true }
         }
 
-        userSettings.onLanguageChanged(
-            AppCompatDelegate.getApplicationLocales()
+        val newLanguage = AppCompatDelegate.getApplicationLocales()
+            .toLanguageTags()
+            .ifEmpty { null }
+            ?: LocaleListCompat.getDefault()
                 .toLanguageTags()
-                .ifEmpty { null }
-                ?: LocaleListCompat.getDefault()
-                    .toLanguageTags()
-                    .split(",")
-                    .firstOrNull()
-                    .orEmpty()
-                    .take(5)
-        )
+                .split(",")
+                .firstOrNull()
+                .orEmpty()
+                .take(5)
 
-        userSettings.updateUsingDarkTheme()
+        userSettings.onAppLanguageChanged(newLanguage)
     }
 
     @ExperimentalPermissionsApi
@@ -151,7 +152,7 @@ class MainViewModelImpl(
     }
 
     private fun listenLongPollState() {
-        userSettings.longPollStateToApply.listenValue { newState ->
+        longPollController.stateToApply.listenValue { newState ->
             if (newState == LongPollState.Background) {
                 isNeedToCheckNotificationsPermission.update { true }
             }
@@ -174,8 +175,8 @@ class MainViewModelImpl(
                     this.trustedHash = currentAccount.trustedHash
                 }
 
-                userSettings.setLongPollStateToApply(
-                    if (SettingsController.isLongPollInBackgroundEnabled) {
+                longPollController.setStateToApply(
+                    if (AppSettings.Debug.longPollInBackground) {
                         LongPollState.Background
                     } else {
                         LongPollState.InApp
@@ -191,7 +192,7 @@ class MainViewModelImpl(
     }
 
     private fun disableBackgroundLongPoll() {
-        SettingsController.isLongPollInBackgroundEnabled = false
-        userSettings.setLongPollStateToApply(LongPollState.InApp)
+        AppSettings.Debug.longPollInBackground = false
+        longPollController.setStateToApply(LongPollState.InApp)
     }
 }

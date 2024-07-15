@@ -1,7 +1,7 @@
 package com.meloda.app.fast.messageshistory.model
 
 import androidx.compose.runtime.Immutable
-import com.meloda.app.fast.common.UiImage
+import com.meloda.app.fast.common.model.UiImage
 import com.meloda.app.fast.model.api.domain.VkAttachment
 
 @Immutable
