@@ -159,7 +159,7 @@ class MainActivity : AppCompatActivity() {
                         selectedColorScheme = theme.selectedColorScheme,
                         usingAmoledBackground = theme.usingAmoledBackground,
                         usingBlur = theme.usingBlur,
-                        multiline = theme.multiline,
+                        isMultiline = theme.isMultiline,
                         isDeviceCompact = isDeviceCompact
                     )
                 ) {

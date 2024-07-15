@@ -17,6 +17,7 @@ interface UserSettings {
     val debugSettingsEnabled: StateFlow<Boolean>
     val useContactNames: StateFlow<Boolean>
     val language: StateFlow<String>
+    val enablePullToRefresh: StateFlow<Boolean>
 
     fun updateUsingDarkTheme()
     fun useDarkThemeChanged(use: Boolean)
@@ -30,6 +31,7 @@ interface UserSettings {
     fun enableDebugSettings(enable: Boolean)
     fun onUseContactNamesChanged(use: Boolean)
     fun onLanguageChanged(newLanguage: String)
+    fun onEnablePullToRefreshChanged(enable: Boolean)
 }
 
 class UserSettingsImpl(
@@ -44,7 +46,7 @@ class UserSettingsImpl(
             selectedColorScheme = selectedColorScheme(),
             usingAmoledBackground = isUsingAmoledBackground(),
             usingBlur = isUsingBlur(),
-            multiline = isMultiline(),
+            isMultiline = isMultiline(),
             isDeviceCompact = false
         )
     )
@@ -74,6 +76,8 @@ class UserSettingsImpl(
     )
 
     override val language = MutableStateFlow("")
+
+    override val enablePullToRefresh = MutableStateFlow(SettingsController.enablePullToRefresh)
 
     override fun updateUsingDarkTheme() {
         useDarkThemeChanged(
@@ -105,7 +109,7 @@ class UserSettingsImpl(
     }
 
     override fun useMultiline(use: Boolean) {
-        theme.value = theme.value.copy(multiline = use)
+        theme.value = theme.value.copy(isMultiline = use)
     }
 
     override fun setLongPollStateToApply(newState: LongPollState) {
@@ -132,5 +136,9 @@ class UserSettingsImpl(
 
     override fun onLanguageChanged(newLanguage: String) {
         language.update { newLanguage }
+    }
+
+    override fun onEnablePullToRefreshChanged(enable: Boolean) {
+        enablePullToRefresh.update { enable }
     }
 }

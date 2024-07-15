@@ -210,6 +210,11 @@ class SettingsViewModelImpl(
                 val isUsing = newValue as? Boolean ?: false
                 userSettings.onUseContactNamesChanged(isUsing)
             }
+
+            SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH -> {
+                val enable = newValue as? Boolean ?: false
+                userSettings.onEnablePullToRefreshChanged(enable)
+            }
         }
     }
 
@@ -249,6 +254,11 @@ class SettingsViewModelImpl(
             title = UiText.Resource(UiR.string.settings_general_contact_names_title),
             text = UiText.Resource(UiR.string.settings_general_contact_names_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
+        )
+        val generalEnablePullToRefresh = SettingsItem.Switch(
+            key = SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH,
+            defaultValue = SettingsKeys.DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH,
+            title = UiText.Resource(UiR.string.settings_general_enable_pull_to_refresh_title)
         )
 
         val appearanceTitle = SettingsItem.Title(
@@ -381,7 +391,8 @@ class SettingsViewModelImpl(
         )
         val generalList = listOf(
             generalTitle,
-            generalUseContactNames
+            generalUseContactNames,
+            generalEnablePullToRefresh
         )
         val appearanceList = listOf(
             appearanceTitle,

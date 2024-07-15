@@ -54,7 +54,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -65,6 +64,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModel
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
 import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.ui.R
 import com.meloda.app.fast.ui.theme.LocalTheme
 import dev.chrisbanes.haze.HazeState
@@ -73,16 +73,22 @@ import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun ChatMaterialsRoute(
     onBack: () -> Unit,
     viewModel: ChatMaterialsViewModel = koinViewModel<ChatMaterialsViewModelImpl>()
 ) {
+    val userSettings: UserSettings = koinInject()
+
+    val enablePullToRefresh by userSettings.enablePullToRefresh.collectAsStateWithLifecycle()
+
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
     ChatMaterialsScreen(
         screenState = screenState,
+        enablePullToRefresh = enablePullToRefresh,
         onBack = onBack,
         onTypeChanged = viewModel::onTypeChanged,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
@@ -97,7 +103,8 @@ fun ChatMaterialsRoute(
 )
 @Composable
 fun ChatMaterialsScreen(
-    screenState: ChatMaterialsScreenState,
+    screenState: ChatMaterialsScreenState = ChatMaterialsScreenState.EMPTY,
+    enablePullToRefresh: Boolean = false,
     onBack: () -> Unit = {},
     onTypeChanged: (String) -> Unit = {},
     onRefreshDropdownItemClicked: () -> Unit = {},
@@ -166,12 +173,6 @@ fun ChatMaterialsScreen(
             durationMillis = 200,
             easing = FastOutLinearInEasing
         )
-    )
-
-    val pullToRefreshAlpha by animateFloatAsState(
-        targetValue = if (!canScrollBackward) 1f else 0f,
-        label = "pullToRefreshAlpha",
-        animationSpec = tween(durationMillis = 50)
     )
 
     val pullToRefreshState = rememberPullToRefreshState()
@@ -286,7 +287,11 @@ fun ChatMaterialsScreen(
                 .fillMaxSize()
                 .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                 .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                .then(
+                    if (enablePullToRefresh) {
+                        Modifier.nestedScroll(pullToRefreshState.nestedScrollConnection)
+                    } else Modifier
+                )
         ) {
             if (checkedTypeIndex in listOf(0, 1)) {
                 LazyVerticalGrid(
@@ -350,26 +355,27 @@ fun ChatMaterialsScreen(
                 }
             }
 
-            if (pullToRefreshState.isRefreshing) {
-                LaunchedEffect(true) {
-                    onRefresh()
+            if (enablePullToRefresh) {
+                if (pullToRefreshState.isRefreshing) {
+                    LaunchedEffect(true) {
+                        onRefresh()
+                    }
                 }
-            }
 
-            LaunchedEffect(screenState.isLoading) {
-                if (!screenState.isLoading) {
-                    pullToRefreshState.endRefresh()
+                LaunchedEffect(screenState.isLoading) {
+                    if (!screenState.isLoading) {
+                        pullToRefreshState.endRefresh()
+                    }
                 }
-            }
 
-            PullToRefreshContainer(
-                state = pullToRefreshState,
-                modifier = Modifier
-                    .alpha(pullToRefreshAlpha)
-                    .align(Alignment.TopCenter)
-                    .padding(top = padding.calculateTopPadding()),
-                contentColor = MaterialTheme.colorScheme.primary
-            )
+                PullToRefreshContainer(
+                    state = pullToRefreshState,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = padding.calculateTopPadding()),
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

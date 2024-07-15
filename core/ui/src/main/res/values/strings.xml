@@ -262,4 +262,5 @@
     <string name="warning_confirmation">Confirmation</string>
     <string name="captcha_exit_warning">Are you sure? Captcha process will be cancelled</string>
     <string name="validation_exit_warning">Are you sure? Validation process will be cancelled</string>
+    <string name="settings_general_enable_pull_to_refresh_title">Enable pull to refresh</string>
 </resources>

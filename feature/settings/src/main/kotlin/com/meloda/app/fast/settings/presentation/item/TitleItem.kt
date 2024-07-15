@@ -32,7 +32,7 @@ fun TitleItem(
                 bottom = 4.dp
             )
             .animateContentSize(),
-        maxLines = if (currentTheme.multiline) Int.MAX_VALUE else 1,
+        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
         overflow = TextOverflow.Ellipsis,
     )
 }

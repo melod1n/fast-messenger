@@ -51,7 +51,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -72,6 +71,7 @@ import com.meloda.app.fast.conversations.ConversationsViewModelImpl
 import com.meloda.app.fast.conversations.model.ConversationOption
 import com.meloda.app.fast.conversations.model.ConversationsScreenState
 import com.meloda.app.fast.conversations.model.UiConversation
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.components.ErrorView
 import com.meloda.app.fast.ui.components.FullScreenLoader
@@ -86,6 +86,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import com.meloda.app.fast.ui.R as UiR
 
 @Composable
@@ -95,6 +96,10 @@ fun ConversationsRoute(
     viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
 ) {
     val context = LocalContext.current
+
+    val userSettings: UserSettings = koinInject()
+
+    val enablePullToRefresh by userSettings.enablePullToRefresh.collectAsStateWithLifecycle()
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
@@ -115,6 +120,7 @@ fun ConversationsRoute(
         screenState = screenState,
         baseError = baseError,
         canPaginate = canPaginate,
+        enablePullToRefresh = enablePullToRefresh,
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onConversationItemClicked = { id ->
             onConversationItemClicked(id)
@@ -143,6 +149,7 @@ fun ConversationsScreen(
     screenState: ConversationsScreenState = ConversationsScreenState.EMPTY,
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
+    enablePullToRefresh: Boolean = false,
     onSessionExpiredLogOutButtonClicked: () -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit = {},
     onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
@@ -155,7 +162,7 @@ fun ConversationsScreen(
     val currentTheme = LocalTheme.current
 
     val maxLines by remember(currentTheme) {
-        mutableIntStateOf(if (currentTheme.multiline) 2 else 1)
+        mutableIntStateOf(if (currentTheme.isMultiline) 2 else 1)
     }
 
     val listState = rememberLazyListState()
@@ -193,12 +200,6 @@ fun ConversationsScreen(
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
-    )
-
-    val pullToRefreshAlpha by animateFloatAsState(
-        targetValue = if (!listState.canScrollBackward) 1f else 0f,
-        label = "pullToRefreshAlpha",
         animationSpec = tween(durationMillis = 50)
     )
 
@@ -342,7 +343,11 @@ fun ConversationsScreen(
                         .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                         .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
                         .padding(bottom = padding.calculateBottomPadding())
-                        .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                        .then(
+                            if (enablePullToRefresh) {
+                                Modifier.nestedScroll(pullToRefreshState.nestedScrollConnection)
+                            } else Modifier
+                        )
                 ) {
                     ConversationsListComposable(
                         onConversationsClick = onConversationItemClicked,
@@ -362,26 +367,27 @@ fun ConversationsScreen(
                         padding = padding
                     )
 
-                    if (pullToRefreshState.isRefreshing) {
-                        LaunchedEffect(true) {
-                            onRefresh()
+                    if (enablePullToRefresh) {
+                        if (pullToRefreshState.isRefreshing) {
+                            LaunchedEffect(true) {
+                                onRefresh()
+                            }
                         }
-                    }
 
-                    LaunchedEffect(screenState.isLoading) {
-                        if (!screenState.isLoading) {
-                            pullToRefreshState.endRefresh()
+                        LaunchedEffect(screenState.isLoading) {
+                            if (!screenState.isLoading) {
+                                pullToRefreshState.endRefresh()
+                            }
                         }
-                    }
 
-                    PullToRefreshContainer(
-                        state = pullToRefreshState,
-                        modifier = Modifier
-                            .alpha(pullToRefreshAlpha)
-                            .align(Alignment.TopCenter)
-                            .padding(top = padding.calculateTopPadding()),
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
+                        PullToRefreshContainer(
+                            state = pullToRefreshState,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = padding.calculateTopPadding()),
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }

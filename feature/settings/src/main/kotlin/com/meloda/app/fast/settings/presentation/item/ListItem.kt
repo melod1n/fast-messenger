@@ -81,7 +81,7 @@ fun ListItem(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall,
-                        maxLines = if (currentTheme.multiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -94,7 +94,7 @@ fun ListItem(
                     Text(
                         text = text,
                         style = MaterialTheme.typography.bodyMedium,
-                        maxLines = if (currentTheme.multiline) Int.MAX_VALUE else 1,
+                        maxLines = if (currentTheme.isMultiline) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

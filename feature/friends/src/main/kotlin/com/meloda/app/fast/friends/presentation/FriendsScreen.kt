@@ -39,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.friends.FriendsViewModel
 import com.meloda.app.fast.friends.FriendsViewModelImpl
 import com.meloda.app.fast.friends.model.FriendsScreenState
@@ -66,6 +66,7 @@ import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import com.meloda.app.fast.ui.R as UiR
 
 @Composable
@@ -75,8 +76,12 @@ fun FriendsRoute(
 ) {
     val context = LocalContext.current
 
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+    val userSettings: UserSettings = koinInject()
+
+    val enablePullToRefresh by userSettings.enablePullToRefresh.collectAsStateWithLifecycle()
+
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
     val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
@@ -93,6 +98,7 @@ fun FriendsRoute(
     FriendsScreen(
         screenState = screenState,
         baseError = baseError,
+        enablePullToRefresh = enablePullToRefresh,
         canPaginate = canPaginate,
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
@@ -110,6 +116,7 @@ fun FriendsRoute(
 fun FriendsScreen(
     screenState: FriendsScreenState = FriendsScreenState.EMPTY,
     baseError: BaseError? = null,
+    enablePullToRefresh: Boolean = false,
     canPaginate: Boolean = false,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
@@ -119,7 +126,7 @@ fun FriendsScreen(
 
     val maxLines by remember {
         derivedStateOf {
-            if (currentTheme.multiline) 2 else 1
+            if (currentTheme.isMultiline) 2 else 1
         }
     }
 
@@ -140,12 +147,6 @@ fun FriendsScreen(
     }
 
     val hazeState = LocalHazeState.current
-
-    val pullToRefreshAlpha by animateFloatAsState(
-        targetValue = if (!listState.canScrollBackward) 1f else 0f,
-        label = "pullToRefreshAlpha",
-        animationSpec = tween(durationMillis = 50)
-    )
 
     val topBarContainerColorAlpha by animateFloatAsState(
         targetValue = if (!currentTheme.usingBlur || !listState.canScrollBackward) 1f else 0f,
@@ -173,18 +174,20 @@ fun FriendsScreen(
         mutableIntStateOf(0)
     }
 
-    val tabItems = listOf(
-        TabItem(
-            titleResId = UiR.string.title_friends_all,
-            unselectedIconResId = null,
-            selectedIconResId = null
-        ),
-        TabItem(
-            titleResId = UiR.string.title_friends_online,
-            unselectedIconResId = null,
-            selectedIconResId = null
+    val tabItems = remember {
+        listOf(
+            TabItem(
+                titleResId = UiR.string.title_friends_all,
+                unselectedIconResId = null,
+                selectedIconResId = null
+            ),
+            TabItem(
+                titleResId = UiR.string.title_friends_online,
+                unselectedIconResId = null,
+                selectedIconResId = null
+            )
         )
-    )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -254,8 +257,6 @@ fun FriendsScreen(
             screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
 
             else -> {
-                val pullToRefreshState = rememberPullToRefreshState()
-
                 val pagerState = rememberPagerState { tabItems.size }
 
                 LaunchedEffect(selectedTabIndex) {
@@ -270,6 +271,8 @@ fun FriendsScreen(
                     }
                 }
 
+                val pullToRefreshState = rememberPullToRefreshState()
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     HorizontalPager(
                         state = pagerState,
@@ -281,7 +284,13 @@ fun FriendsScreen(
                                 .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                                 .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
                                 .padding(bottom = padding.calculateBottomPadding())
-                                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                                .then(
+                                    if (enablePullToRefresh) {
+                                        Modifier.nestedScroll(
+                                            pullToRefreshState.nestedScrollConnection
+                                        )
+                                    } else Modifier
+                                )
                         ) {
                             val friendsToDisplay = screenState.friends
 
@@ -310,26 +319,27 @@ fun FriendsScreen(
                                 )
                             }
 
-                            if (pullToRefreshState.isRefreshing) {
-                                LaunchedEffect(true) {
-                                    onRefresh()
+                            if (enablePullToRefresh) {
+                                if (pullToRefreshState.isRefreshing) {
+                                    LaunchedEffect(true) {
+                                        onRefresh()
+                                    }
                                 }
-                            }
 
-                            LaunchedEffect(screenState.isLoading) {
-                                if (!screenState.isLoading) {
-                                    pullToRefreshState.endRefresh()
+                                LaunchedEffect(screenState.isLoading) {
+                                    if (!screenState.isLoading) {
+                                        pullToRefreshState.endRefresh()
+                                    }
                                 }
-                            }
 
-                            PullToRefreshContainer(
-                                state = pullToRefreshState,
-                                modifier = Modifier
-                                    .padding(top = padding.calculateTopPadding())
-                                    .alpha(pullToRefreshAlpha)
-                                    .align(Alignment.TopCenter),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
+                                PullToRefreshContainer(
+                                    state = pullToRefreshState,
+                                    modifier = Modifier
+                                        .padding(top = padding.calculateTopPadding())
+                                        .align(Alignment.TopCenter),
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }

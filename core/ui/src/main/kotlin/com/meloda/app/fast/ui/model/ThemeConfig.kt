@@ -6,6 +6,6 @@ data class ThemeConfig(
     val selectedColorScheme: Int,
     val usingAmoledBackground: Boolean,
     val usingBlur: Boolean,
-    val multiline: Boolean,
+    val isMultiline: Boolean,
     val isDeviceCompact: Boolean
 )

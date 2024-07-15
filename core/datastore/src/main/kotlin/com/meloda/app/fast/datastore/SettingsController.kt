@@ -85,4 +85,11 @@ object SettingsController {
     var deviceId: String
         get() = get("device_id", "")
         set(value) = put("device_id", value)
+
+    var enablePullToRefresh: Boolean
+        get() = get(
+            SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH,
+            SettingsKeys.DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH
+        )
+        set(value) = put(SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH, value)
 }

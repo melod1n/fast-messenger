@@ -9,6 +9,8 @@ object SettingsKeys {
     const val KEY_GENERAL = "general"
     const val KEY_USE_CONTACT_NAMES = "general_use_contact_names"
     const val DEFAULT_VALUE_USE_CONTACT_NAMES = false
+    const val KEY_ENABLE_PULL_TO_REFRESH = "general_pull_to_refresh"
+    const val DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH = false
     const val KEY_SHOW_EMOJI_BUTTON = "general_show_emoji_button"
     const val DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON = false
 
