@@ -51,14 +51,14 @@ object SettingsController {
         }
     }
 
-    var isLongPollInBackgroundEnabled: Boolean =
-        SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+    var isLongPollInBackgroundEnabled: Boolean
         get() = getBoolean(
             SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
             SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
         )
-        set(value) {
-            field = value
-            put(SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND, value)
-        }
+        set(value) = put(SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND, value)
+
+    var deviceId: String
+        get() = getString("device_id", "").orEmpty()
+        set(value) = put("device_id", value)
 }

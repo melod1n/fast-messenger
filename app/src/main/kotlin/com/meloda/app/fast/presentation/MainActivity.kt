@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,7 +45,6 @@ import com.meloda.app.fast.service.longpolling.LongPollingService
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
-
 import com.meloda.app.fast.designsystem.R as UiR
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +52,11 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        SettingsController.deviceId = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
 
         val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         val systemBarStyle = when (currentNightMode) {
@@ -175,25 +181,40 @@ class MainActivity : AppCompatActivity() {
     private fun createNotificationChannels() {
         isSdkAtLeast(Build.VERSION_CODES.O) {
             val noCategoryName = getString(UiR.string.notification_channel_no_category_name)
-            val noCategoryDescriptionText = getString(UiR.string.notification_channel_no_category_description)
-            val noCategoryImportance = NotificationManager.IMPORTANCE_HIGH
+            val noCategoryDescriptionText =
+                getString(UiR.string.notification_channel_no_category_description)
+            val noCategoryImportance = NotificationManagerCompat.IMPORTANCE_HIGH
             val noCategoryChannel =
-                NotificationChannel(AppConstants.NOTIFICATION_CHANNEL_UNCATEGORIZED, noCategoryName, noCategoryImportance).apply {
+                NotificationChannel(
+                    AppConstants.NOTIFICATION_CHANNEL_UNCATEGORIZED,
+                    noCategoryName,
+                    noCategoryImportance
+                ).apply {
                     description = noCategoryDescriptionText
                 }
 
             val longPollName = getString(UiR.string.notification_channel_long_polling_service_name)
-            val longPollDescriptionText = getString(UiR.string.notification_channel_long_polling_service_description)
-            val longPollImportance = NotificationManager.IMPORTANCE_NONE
+            val longPollDescriptionText =
+                getString(UiR.string.notification_channel_long_polling_service_description)
+            val longPollImportance = NotificationManagerCompat.IMPORTANCE_NONE
             val longPollChannel =
-                NotificationChannel(AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING, longPollName, longPollImportance).apply {
+                NotificationChannel(
+                    AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING,
+                    longPollName,
+                    longPollImportance
+                ).apply {
                     description = longPollDescriptionText
                 }
 
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            notificationManager.createNotificationChannels(listOf(noCategoryChannel, longPollChannel))
+            notificationManager.createNotificationChannels(
+                listOf(
+                    noCategoryChannel,
+                    longPollChannel
+                )
+            )
         }
     }
 

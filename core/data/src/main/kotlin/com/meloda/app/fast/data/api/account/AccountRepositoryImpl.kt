@@ -1,19 +1,54 @@
 package com.meloda.app.fast.data.api.account
 
-import com.meloda.app.fast.model.api.requests.AccountSetOfflineRequest
-import com.meloda.app.fast.model.api.requests.AccountSetOnlineRequest
+import android.os.Build
+import com.meloda.app.fast.model.api.asInt
+import com.meloda.app.fast.network.RestApiErrorDomain
+import com.meloda.app.fast.network.mapApiDefault
 import com.meloda.app.fast.network.service.account.AccountService
+import com.slack.eithernet.ApiResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-// TODO: 05/05/2024, Danil Nikolaev: implement
 class AccountRepositoryImpl(
-    private val accountService: AccountService
-) : com.meloda.app.fast.data.api.account.AccountRepository {
+    private val service: AccountService
+) : AccountRepository {
 
-    override suspend fun setOnline(params: AccountSetOnlineRequest): Boolean {
-        return false
+    override suspend fun setOnline(
+        accessToken: String?,
+        voip: Boolean
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        service.setOnline(
+            mutableMapOf(
+                "voip" to voip.asInt().toString()
+            ).apply {
+                accessToken?.let { this["access_token"] = it }
+            }
+        ).mapApiDefault()
     }
 
-    override suspend fun setOffline(params: AccountSetOfflineRequest): Boolean {
-        return false
+    override suspend fun setOffline(
+        accessToken: String?
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        service.setOffline(
+            accessToken?.let { mapOf("access_token" to it) } ?: emptyMap()
+        ).mapApiDefault()
+    }
+
+    override suspend fun registerDevice(
+        token: String,
+        deviceId: String
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        service.registerDevice(
+            mapOf(
+                "token" to token,
+                "pushes_granted" to "1",
+                "app_version" to "15271",
+                "push_provider" to "fcm",
+                "companion_apps" to "vk_client",
+                "type" to "4",
+                "device_id" to deviceId,
+                "system_version" to Build.VERSION.RELEASE
+            )
+        ).mapApiDefault()
     }
 }

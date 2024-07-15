@@ -1,15 +1,21 @@
 package com.meloda.app.fast.data.api.account
 
-import com.meloda.app.fast.model.api.requests.AccountSetOfflineRequest
-import com.meloda.app.fast.model.api.requests.AccountSetOnlineRequest
+import com.meloda.app.fast.network.RestApiErrorDomain
+import com.slack.eithernet.ApiResult
 
 interface AccountRepository {
 
     suspend fun setOnline(
-        params: AccountSetOnlineRequest
-    ): Boolean
+        accessToken: String? = null,
+        voip: Boolean = false
+    ): ApiResult<Int, RestApiErrorDomain>
 
     suspend fun setOffline(
-        params: AccountSetOfflineRequest
-    ): Boolean
+        accessToken: String? = null
+    ): ApiResult<Int, RestApiErrorDomain>
+
+    suspend fun registerDevice(
+        token: String,
+        deviceId: String
+    ): ApiResult<Int, RestApiErrorDomain>
 }
