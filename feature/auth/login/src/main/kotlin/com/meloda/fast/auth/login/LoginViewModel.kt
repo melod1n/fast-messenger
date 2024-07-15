@@ -223,7 +223,7 @@ class LoginViewModelImpl(
                     val accessToken = response.accessToken
 
                     if (userId == null || accessToken == null) {
-                        // TODO: 11/04/2024, Danil Nikolaev: send unknown error event
+                        loginError.update { LoginError.Unknown }
                         return@processState
                     }
 

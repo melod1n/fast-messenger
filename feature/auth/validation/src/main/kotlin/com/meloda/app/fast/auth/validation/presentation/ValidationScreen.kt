@@ -204,7 +204,7 @@ fun ValidationScreen(
                         if (newText.text.length > 6) return@TextField
 
                         code = newText
-                        onCodeInputChanged((newText.text))
+                        onCodeInputChanged(newText.text)
                     },
                     label = { Text(text = "Code") },
                     placeholder = { Text(text = "Code") },

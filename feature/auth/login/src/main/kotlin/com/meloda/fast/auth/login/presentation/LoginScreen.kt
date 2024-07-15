@@ -161,15 +161,13 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
 
-    // TODO: 13/07/2024, Danil Nikolaev: remove
     var loginText by remember { mutableStateOf(TextFieldValue(screenState.login)) }
     val showLoginError = screenState.loginError
 
     val autoFillEmailHandler = autoFillRequestHandler(
         autofillTypes = listOf(AutofillType.EmailAddress),
         onFill = { value ->
-            loginText =
-                TextFieldValue(text = value, selection = TextRange(value.length))
+            loginText = TextFieldValue(text = value, selection = TextRange(value.length))
             onLoginAutoFilled(value)
         }
     )
@@ -180,8 +178,7 @@ fun LoginScreen(
     val autoFillPasswordHandler = autoFillRequestHandler(
         autofillTypes = listOf(AutofillType.Password),
         onFill = { value ->
-            passwordText =
-                TextFieldValue(text = value, selection = TextRange(value.length))
+            passwordText = TextFieldValue(text = value, selection = TextRange(value.length))
             onPasswordAutoFilled(value)
         }
     )

@@ -1,10 +1,12 @@
 package com.meloda.app.fast.messageshistory.presentation
 
 import android.content.SharedPreferences
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -57,9 +60,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
@@ -67,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.ActionMode
@@ -94,10 +101,14 @@ fun MessagesHistoryRoute(
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
+    val userSettings: UserSettings = koinInject()
+    val showEmojiButton by userSettings.showEmojiButton.collectAsStateWithLifecycle()
+
     MessagesHistoryScreen(
         screenState = screenState,
         baseError = baseError,
         canPaginate = canPaginate,
+        showEmojiButton = showEmojiButton,
         onBack = onBack,
         onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
@@ -119,6 +130,7 @@ fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
+    showEmojiButton: Boolean = false,
     onBack: () -> Unit = {},
     onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
     onRefreshDropdownItemClicked: () -> Unit = {},
@@ -169,6 +181,12 @@ fun MessagesHistoryScreen(
         label = "toolbarColorAlpha",
         animationSpec = tween(durationMillis = 50)
     )
+
+    var messageBarHeight by remember {
+        mutableStateOf(0.dp)
+    }
+
+    val density = LocalDensity.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -294,7 +312,8 @@ fun MessagesHistoryScreen(
                 listState = listState,
                 immutableMessages = ImmutableList.copyOf(screenState.messages),
                 isPaginating = screenState.isPaginating,
-                enableAnimations = animationsEnabled
+                enableAnimations = animationsEnabled,
+                messageBarHeight = messageBarHeight
             )
 
             Column(
@@ -302,6 +321,7 @@ fun MessagesHistoryScreen(
                     .fillMaxWidth()
                     .align(Alignment.BottomStart)
                     .background(Color.Transparent)
+                    .padding(bottom = 8.dp)
                     .navigationBarsPadding()
                     .imePadding()
             ) {
@@ -316,55 +336,65 @@ fun MessagesHistoryScreen(
 
                     Row(
                         modifier = Modifier
+                            .animateContentSize()
                             .weight(1f)
-                            .clip(RoundedCornerShape(percent = 50))
-                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)),
-                        verticalAlignment = Alignment.CenterVertically
+                            .clip(RoundedCornerShape(36.dp))
+                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
+                            .onGloballyPositioned {
+                                messageBarHeight = with(density) {
+                                    it.size.height.toDp()
+                                }
+                            },
+                        verticalAlignment = Alignment.Bottom
                     ) {
                         Spacer(modifier = Modifier.width(6.dp))
 
-                        if (
-                            preferences.getBoolean(
-                                SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
-                                SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
-                            )
-                        ) {
+                        if (showEmojiButton) {
                             val scope = rememberCoroutineScope()
                             val rotation = remember { Animatable(0f) }
 
-                            IconButton(
-                                onClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                            Column(verticalArrangement = Arrangement.Bottom) {
+                                IconButton(
+                                    onClick = {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
 
-                                    scope.launch {
-                                        for (i in 20 downTo 0 step 4) {
-                                            rotation.animateTo(
-                                                targetValue = i.toFloat(),
-                                                animationSpec = tween(50)
-                                            )
-                                            if (i > 0) {
+                                        scope.launch {
+                                            for (i in 20 downTo 0 step 4) {
                                                 rotation.animateTo(
-                                                    targetValue = -i.toFloat(),
+                                                    targetValue = i.toFloat(),
                                                     animationSpec = tween(50)
                                                 )
+                                                if (i > 0) {
+                                                    rotation.animateTo(
+                                                        targetValue = -i.toFloat(),
+                                                        animationSpec = tween(50)
+                                                    )
+                                                }
                                             }
                                         }
-                                    }
-                                },
-                                modifier = Modifier.rotate(rotation.value)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = UiR.drawable.ic_outline_emoji_emotions_24),
-                                    contentDescription = "Emoji button",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                                    },
+                                    modifier = Modifier.rotate(rotation.value)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = UiR.drawable.ic_outline_emoji_emotions_24),
+                                        contentDescription = "Emoji button",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
                             }
                         }
 
+                        var message by remember { mutableStateOf(TextFieldValue(screenState.message)) }
+
                         TextField(
                             modifier = Modifier.weight(1f),
-                            value = screenState.message,
-                            onValueChange = onMessageInputChanged,
+                            value = message,
+                            onValueChange = { newText ->
+                                message = newText
+                                onMessageInputChanged(newText.text)
+                            },
                             colors = TextFieldDefaults.colors(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedContainerColor = Color.Transparent,
@@ -380,60 +410,68 @@ fun MessagesHistoryScreen(
                             }
                         )
 
-                        IconButton(onClick = onAttachmentButtonClicked) {
-                            Icon(
-                                painter = painterResource(id = UiR.drawable.round_attach_file_24),
-                                contentDescription = "Add attachment button",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.rotate(30f)
-                            )
+                        Column(verticalArrangement = Arrangement.Bottom) {
+                            IconButton(onClick = onAttachmentButtonClicked) {
+                                Icon(
+                                    painter = painterResource(id = UiR.drawable.round_attach_file_24),
+                                    contentDescription = "Add attachment button",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.rotate(30f)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
                         }
 
                         val scope = rememberCoroutineScope()
                         val rotation = remember { Animatable(0f) }
 
-                        IconButton(
-                            onClick = {
-                                if (screenState.actionMode == ActionMode.Record) {
-                                    view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                        Column(verticalArrangement = Arrangement.Bottom) {
+                            IconButton(
+                                onClick = {
+                                    if (screenState.actionMode == ActionMode.Record) {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
 
-                                    scope.launch {
-                                        for (i in 20 downTo 0 step 4) {
-                                            rotation.animateTo(
-                                                targetValue = i.toFloat(),
-                                                animationSpec = tween(50)
-                                            )
-                                            if (i > 0) {
+                                        scope.launch {
+                                            for (i in 20 downTo 0 step 4) {
                                                 rotation.animateTo(
-                                                    targetValue = -i.toFloat(),
+                                                    targetValue = i.toFloat(),
                                                     animationSpec = tween(50)
                                                 )
+                                                if (i > 0) {
+                                                    rotation.animateTo(
+                                                        targetValue = -i.toFloat(),
+                                                        animationSpec = tween(50)
+                                                    )
+                                                }
                                             }
                                         }
+                                    } else {
+                                        onActionButtonClicked()
                                     }
-                                } else {
-                                    onActionButtonClicked()
-                                }
-                            },
-                            modifier = Modifier.rotate(rotation.value)
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    id = when (screenState.actionMode) {
-                                        ActionMode.Delete -> UiR.drawable.round_delete_outline_24
-                                        ActionMode.Edit -> UiR.drawable.ic_round_done_24
-                                        ActionMode.Record -> UiR.drawable.ic_round_mic_none_24
-                                        ActionMode.Send -> UiR.drawable.round_send_24
-                                    }
-                                ),
-                                contentDescription = when (screenState.actionMode) {
-                                    ActionMode.Delete -> "Delete message button"
-                                    ActionMode.Edit -> "Edit message button"
-                                    ActionMode.Record -> "Record audio message button"
-                                    ActionMode.Send -> "Send message button"
                                 },
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                                modifier = Modifier.rotate(rotation.value)
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        id = when (screenState.actionMode) {
+                                            ActionMode.Delete -> UiR.drawable.round_delete_outline_24
+                                            ActionMode.Edit -> UiR.drawable.ic_round_done_24
+                                            ActionMode.Record -> UiR.drawable.ic_round_mic_none_24
+                                            ActionMode.Send -> UiR.drawable.round_send_24
+                                        }
+                                    ),
+                                    contentDescription = when (screenState.actionMode) {
+                                        ActionMode.Delete -> "Delete message button"
+                                        ActionMode.Edit -> "Edit message button"
+                                        ActionMode.Record -> "Record audio message button"
+                                        ActionMode.Send -> "Send message button"
+                                    },
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
                         }
 
                         Spacer(modifier = Modifier.width(6.dp))
