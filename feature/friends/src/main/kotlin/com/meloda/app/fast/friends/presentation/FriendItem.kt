@@ -23,7 +23,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.meloda.app.fast.designsystem.R
 import com.meloda.app.fast.friends.model.UiFriend
 
@@ -55,10 +54,7 @@ fun FriendItem(
                 )
             } else {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(friendAvatar)
-                        .crossfade(true)
-                        .build(),
+                    model = friendAvatar,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()

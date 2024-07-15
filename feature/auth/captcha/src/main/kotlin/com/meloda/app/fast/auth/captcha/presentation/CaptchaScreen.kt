@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -47,7 +46,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.meloda.app.fast.auth.captcha.CaptchaViewModel
 import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
 import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
@@ -188,10 +186,7 @@ fun CaptchaScreen(
                         )
                     } else {
                         AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(screenState.captchaImageUrl)
-                                .crossfade(true)
-                                .build(),
+                            model = screenState.captchaImageUrl,
                             contentDescription = "Captcha image",
                             contentScale = ContentScale.FillBounds,
                             modifier = imageModifier

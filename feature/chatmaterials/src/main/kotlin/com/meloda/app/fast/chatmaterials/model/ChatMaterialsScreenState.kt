@@ -1,5 +1,8 @@
 package com.meloda.app.fast.chatmaterials.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class ChatMaterialsScreenState(
     val isLoading: Boolean,
     val materials: List<UiChatMaterial>,

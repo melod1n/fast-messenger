@@ -52,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.meloda.app.fast.common.UiImage
 import com.meloda.app.fast.conversations.DotsFlashing
 import com.meloda.app.fast.conversations.model.ConversationOption
@@ -171,8 +170,7 @@ fun ConversationItem(
                             )
                         } else {
                             AsyncImage(
-                                model = ImageRequest.Builder(context).data(avatarImage)
-                                    .crossfade(true).build(),
+                                model = avatarImage,
                                 contentDescription = "Avatar",
                                 modifier = Modifier
                                     .fillMaxSize()

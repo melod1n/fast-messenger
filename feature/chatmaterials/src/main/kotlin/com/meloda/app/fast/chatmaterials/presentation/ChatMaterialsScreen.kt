@@ -57,13 +57,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.imageLoader
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModel
 import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
 import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
@@ -108,8 +106,6 @@ fun ChatMaterialsScreen(
     val currentTheme = LocalTheme.current
 
     val attachments = screenState.materials
-
-    val imageLoader = LocalContext.current.imageLoader
 
     var moreClearBlur by rememberSaveable {
         mutableStateOf(false)
@@ -317,10 +313,7 @@ fun ChatMaterialsScreen(
                         }
                     }
                     items(attachments) { item ->
-                        ChatMaterialItem(
-                            item = item,
-                            imageLoader = imageLoader
-                        )
+                        ChatMaterialItem(item = item)
                     }
                     repeat(3) {
                         item {
@@ -349,10 +342,7 @@ fun ChatMaterialsScreen(
                         Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
                     }
                     items(attachments) { item ->
-                        ChatMaterialItem(
-                            item = item,
-                            imageLoader = imageLoader
-                        )
+                        ChatMaterialItem(item = item)
                     }
                     item {
                         Spacer(modifier = Modifier.height(padding.calculateBottomPadding()))

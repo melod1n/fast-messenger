@@ -10,21 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import com.meloda.app.fast.chatmaterials.model.UiChatMaterial
 
 @Composable
-fun ChatMaterialItem(
-    item: UiChatMaterial,
-    imageLoader: ImageLoader
-) {
+fun ChatMaterialItem(item: UiChatMaterial) {
     when (item) {
         is UiChatMaterial.Photo -> {
             AsyncImage(
                 model = item.previewUrl,
                 contentDescription = null,
-                imageLoader = imageLoader,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -36,7 +31,6 @@ fun ChatMaterialItem(
             AsyncImage(
                 model = item.previewUrl,
                 contentDescription = null,
-                imageLoader = imageLoader,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
