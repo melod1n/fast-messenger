@@ -50,7 +50,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.common.model.UiText
 import com.meloda.app.fast.ui.basic.autoFillRequestHandler
 import com.meloda.app.fast.ui.basic.connectNode
 import com.meloda.app.fast.ui.basic.defaultFocusChangeAutoFill
@@ -391,47 +390,47 @@ fun HandleError(
 
         LoginError.Unknown -> {
             MaterialDialog(
-                onDismissAction = onDismiss,
-                title = UiText.Simple("Error"),
-                text = UiText.Simple("Unknown error."),
-                confirmText = UiText.Resource(UiR.string.ok)
+                onDismissRequest = onDismiss,
+                title = "Error",
+                text = "Unknown error",
+                confirmText = stringResource(id = UiR.string.ok)
             )
         }
 
         LoginError.WrongCredentials -> {
             MaterialDialog(
-                onDismissAction = onDismiss,
-                title = UiText.Simple("Error"),
-                text = UiText.Simple("Wrong login or password."),
-                confirmText = UiText.Resource(UiR.string.ok)
+                onDismissRequest = onDismiss,
+                title = "Error",
+                text = "Wrong login or password.",
+                confirmText = stringResource(id = UiR.string.ok)
             )
         }
 
         LoginError.TooManyTries -> {
             MaterialDialog(
-                onDismissAction = onDismiss,
-                title = UiText.Simple("Error"),
-                text = UiText.Simple("Too many tries. Try in another hour or later."),
-                confirmText = UiText.Resource(UiR.string.ok)
+                onDismissRequest = onDismiss,
+                title = "Error",
+                text = "Too many tries. Try in another hour or later.",
+                confirmText = stringResource(id = UiR.string.ok)
             )
         }
 
 
         LoginError.WrongValidationCode -> {
             MaterialDialog(
-                onDismissAction = onDismiss,
-                title = UiText.Simple("Error"),
-                text = UiText.Simple("Wrong validation code."),
-                confirmText = UiText.Resource(UiR.string.ok)
+                onDismissRequest = onDismiss,
+                title = "Error",
+                text = "Wrong validation code.",
+                confirmText = stringResource(id = UiR.string.ok)
             )
         }
 
         LoginError.WrongValidationCodeFormat -> {
             MaterialDialog(
-                onDismissAction = onDismiss,
-                title = UiText.Simple("Error"),
-                text = UiText.Simple("Wrong validation code format."),
-                confirmText = UiText.Resource(UiR.string.ok)
+                onDismissRequest = onDismiss,
+                title = "Error",
+                text = "Wrong validation code format.",
+                confirmText = stringResource(id = UiR.string.ok)
             )
         }
     }
