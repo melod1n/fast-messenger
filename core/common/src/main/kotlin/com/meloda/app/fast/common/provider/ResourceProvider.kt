@@ -4,10 +4,12 @@ import android.content.res.Resources
 
 interface ResourceProvider {
 
+    val resources: Resources
+
     fun getString(resId: Int): String
 }
 
-class ResourceProviderImpl(private val resources: Resources) : ResourceProvider {
+class ResourceProviderImpl(override val resources: Resources) : ResourceProvider {
 
     override fun getString(resId: Int): String {
         return resources.getString(resId)

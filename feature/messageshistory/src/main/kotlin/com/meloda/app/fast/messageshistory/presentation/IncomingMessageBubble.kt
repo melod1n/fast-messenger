@@ -25,12 +25,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
-import com.meloda.app.fast.messageshistory.model.UiMessage
+import com.meloda.app.fast.messageshistory.model.UiItem
 
 @Composable
 fun IncomingMessageBubble(
     modifier: Modifier = Modifier,
-    message: UiMessage,
+    message: UiItem.Message,
 ) {
     val context = LocalContext.current
 

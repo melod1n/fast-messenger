@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.messageshistory.model.UiMessage
+import com.meloda.app.fast.messageshistory.model.UiItem
 import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.HazeState
@@ -31,10 +31,11 @@ fun MessagesList(
     modifier: Modifier = Modifier,
     hazeState: HazeState,
     listState: LazyListState,
-    immutableMessages: ImmutableList<UiMessage>,
+    immutableMessages: ImmutableList<UiItem>,
     isPaginating: Boolean,
     enableAnimations: Boolean,
-    messageBarHeight: Dp
+    messageBarHeight: Dp,
+    onRequestScrollToCmId: (cmId: Int) -> Unit = {}
 ) {
     val messages = immutableMessages.toList()
     val currentTheme = LocalThemeConfig.current
@@ -65,32 +66,53 @@ fun MessagesList(
 
         items(
             items = messages,
-            key = UiMessage::id,
-        ) { message ->
-            if (message.isOut) {
-                OutgoingMessageBubble(
-                    modifier =
-                    Modifier.then(
-                        if (enableAnimations) Modifier.animateItem(
-                            fadeInSpec = null,
-                            fadeOutSpec = null
+            key = UiItem::id,
+            contentType = { item ->
+                when (item) {
+                    is UiItem.ActionMessage -> "action_message"
+                    is UiItem.Message -> "message"
+                }
+            }
+        ) { item ->
+            when (item) {
+                is UiItem.ActionMessage -> {
+                    ActionMessageItem(
+                        item = item,
+                        onClick = {
+                            if (item.actionCmId != null) {
+                                onRequestScrollToCmId(item.actionCmId)
+                            }
+                        }
+                    )
+                }
+
+                is UiItem.Message -> {
+                    if (item.isOut) {
+                        OutgoingMessageBubble(
+                            modifier =
+                            Modifier.then(
+                                if (enableAnimations) Modifier.animateItem(
+                                    fadeInSpec = null,
+                                    fadeOutSpec = null
+                                )
+                                else Modifier
+                            ),
+                            message = item,
                         )
-                        else Modifier
-                    ),
-                    message = message,
-                )
-            } else {
-                IncomingMessageBubble(
-                    modifier =
-                    Modifier.then(
-                        if (enableAnimations) Modifier.animateItem(
-                            fadeInSpec = null,
-                            fadeOutSpec = null
+                    } else {
+                        IncomingMessageBubble(
+                            modifier =
+                            Modifier.then(
+                                if (enableAnimations) Modifier.animateItem(
+                                    fadeInSpec = null,
+                                    fadeOutSpec = null
+                                )
+                                else Modifier
+                            ),
+                            message = item,
                         )
-                        else Modifier
-                    ),
-                    message = message,
-                )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

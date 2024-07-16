@@ -23,6 +23,7 @@ interface UserSettings {
     val longPollInBackground: StateFlow<Boolean>
     val useBlur: StateFlow<Boolean>
     val showEmojiButton: StateFlow<Boolean>
+    val showTimeInActionMessages: StateFlow<Boolean>
     val showDebugCategory: StateFlow<Boolean>
 
     fun onUseContactNamesChanged(use: Boolean)
@@ -42,6 +43,7 @@ interface UserSettings {
     fun onLongPollInBackgroundChanged(inBackground: Boolean)
     fun onUseBlurChanged(use: Boolean)
     fun onShowEmojiButtonChanged(show: Boolean)
+    fun onShowTimeInActionMessagesChanged(show: Boolean)
     fun onShowDebugCategoryChanged(show: Boolean)
 }
 
@@ -64,6 +66,8 @@ class UserSettingsImpl : UserSettings {
     override val longPollInBackground = MutableStateFlow(AppSettings.Debug.longPollInBackground)
     override val useBlur = MutableStateFlow(AppSettings.Debug.useBlur)
     override val showEmojiButton = MutableStateFlow(AppSettings.Debug.showEmojiButton)
+    override val showTimeInActionMessages =
+        MutableStateFlow(AppSettings.Debug.showTimeInActionMessages)
     override val showDebugCategory = MutableStateFlow(AppSettings.Debug.showDebugCategory)
 
     override fun onUseContactNamesChanged(use: Boolean) {
@@ -116,6 +120,10 @@ class UserSettingsImpl : UserSettings {
 
     override fun onShowEmojiButtonChanged(show: Boolean) {
         showEmojiButton.value = show
+    }
+
+    override fun onShowTimeInActionMessagesChanged(show: Boolean) {
+        showTimeInActionMessages.value = show
     }
 
     override fun onShowDebugCategoryChanged(show: Boolean) {
