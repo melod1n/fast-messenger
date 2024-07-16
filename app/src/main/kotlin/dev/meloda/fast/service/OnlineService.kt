@@ -7,13 +7,16 @@ import android.util.Log
 import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.data.api.account.AccountUseCase
+import dev.meloda.fast.data.processState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
@@ -48,14 +51,7 @@ class OnlineService : Service() {
 
         Log.d(STATE_TAG, "onStartCommand: flags: $flags; startId: $startId\ninstance: $this")
 
-        // TODO: 05/05/2024, Danil Nikolaev: implement
-//        if (AppGlobal.preferences.getBoolean(
-//                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-//                SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
-//            )
-//        ) {
-//            createTimer()
-//        }
+        createTimer()
 
         return START_STICKY
     }
@@ -72,14 +68,6 @@ class OnlineService : Service() {
     private fun setOnline() {
         if (onlineJob != null) return
 
-
-        // TODO: 05/05/2024, Danil Nikolaev: implement
-//        if (!AppGlobal.preferences.getBoolean(
-//                SettingsKeys.KEY_VISIBILITY_SEND_ONLINE_STATUS,
-//                SettingsKeys.DEFAULT_VALUE_KEY_VISIBILITY_SEND_ONLINE_STATUS
-//            )
-//        ) return
-
         Log.d(TAG, "setOnline()")
 
         onlineJob = coroutineScope.launch {
@@ -90,22 +78,21 @@ class OnlineService : Service() {
                 return@launch
             }
 
-            val response = useCase.setOnline(
+            useCase.setOnline(
                 voip = false,
                 accessToken = token
-            )
-            Log.d(TAG, "setOnline: response: $response")
+            ).onEach { state ->
+                state.processState(
+                    error = { error ->
+                        Log.w(TAG, "setOnline(): error: $error")
+                    },
+                    success = { response ->
+                        Log.d(TAG, "setOnline(): success: $response")
+                    }
+                )
+            }.collect()
+
         }.also { coroutine -> coroutine.invokeOnCompletion { onlineJob = null } }
-    }
-
-    private suspend fun setOffline() {
-        Log.d(TAG, "setOffline()")
-
-        val response = useCase.setOffline(
-            accessToken = UserConfig.accessToken
-        )
-
-        Log.d(TAG, "setOffline: response: $response")
     }
 
     override fun onLowMemory() {
