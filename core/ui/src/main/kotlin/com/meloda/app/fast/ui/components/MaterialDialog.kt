@@ -1,5 +1,6 @@
 package com.meloda.app.fast.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.meloda.app.fast.ui.util.ImmutableList
@@ -71,6 +73,7 @@ fun MaterialDialog(
         modifier = modifier,
         properties = properties
     ) {
+        var isPlaced by remember { mutableStateOf(false) }
         val scrollState = rememberScrollState()
         val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
         val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
@@ -96,8 +99,8 @@ fun MaterialDialog(
                     }
                 }
 
-                if (canScrollBackward) {
-                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                AnimatedVisibility(isPlaced && canScrollBackward) {
+                    HorizontalDivider()
                 }
 
                 Column(
@@ -105,6 +108,7 @@ fun MaterialDialog(
                         .fillMaxWidth()
                         .weight(1f, fill = false)
                         .verticalScroll(scrollState)
+                        .onPlaced { isPlaced = true }
                 ) {
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -165,8 +169,8 @@ fun MaterialDialog(
                     }
                 }
 
-                if (canScrollForward) {
-                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                AnimatedVisibility(isPlaced && canScrollForward) {
+                    HorizontalDivider()
                 }
 
                 Row {
@@ -257,7 +261,6 @@ fun AlertItems(
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // TODO: 29/12/2023, Danil Nikolaev: check onClick & onCheckedChange actions
             when (selectionType) {
                 SelectionType.Multi -> {
                     Spacer(modifier = Modifier.width(10.dp))
