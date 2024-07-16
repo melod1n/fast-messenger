@@ -29,7 +29,12 @@ fun ActionMessageItem(
         modifier = modifier
             .padding(horizontal = 32.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .then(
+                if (item.actionCmId != null) {
+                    Modifier.clickable(onClick = onClick)
+                }
+                else Modifier
+            )
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
             .fillMaxWidth()
             .padding(

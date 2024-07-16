@@ -189,7 +189,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -197,7 +197,7 @@ fun VkMessage.extractActionText(
                 val textStartIndex = string.indexOf(text)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = textStartIndex,
                     end = textStartIndex + text.length
                 )
@@ -217,7 +217,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -225,7 +225,7 @@ fun VkMessage.extractActionText(
                 val textStartIndex = string.indexOf(text)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = textStartIndex,
                     end = textStartIndex + text.length
                 )
@@ -245,7 +245,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -265,7 +265,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -286,7 +286,7 @@ fun VkMessage.extractActionText(
                         }.also(::append)
 
                     addStyle(
-                        style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                        style = SpanStyle(fontWeight = FontWeight.Medium),
                         start = 0,
                         end = memberPrefix.length
                     )
@@ -308,7 +308,7 @@ fun VkMessage.extractActionText(
                         }.also(::append)
 
                     addStyle(
-                        style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                        style = SpanStyle(fontWeight = FontWeight.Medium),
                         start = 0,
                         end = prefix.length
                     )
@@ -316,7 +316,7 @@ fun VkMessage.extractActionText(
                     val postfixStartIndex = string.indexOf(postfix)
 
                     addStyle(
-                        style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                        style = SpanStyle(fontWeight = FontWeight.Medium),
                         start = postfixStartIndex,
                         end = postfixStartIndex + postfix.length
                     )
@@ -338,7 +338,7 @@ fun VkMessage.extractActionText(
                         }.also(::append)
 
                     addStyle(
-                        style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                        style = SpanStyle(fontWeight = FontWeight.Medium),
                         start = 0,
                         end = memberPrefix.length
                     )
@@ -362,7 +362,7 @@ fun VkMessage.extractActionText(
                     val postfixStartIndex = string.indexOf(postfix)
 
                     addStyle(
-                        style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                        style = SpanStyle(fontWeight = FontWeight.Medium),
                         start = postfixStartIndex,
                         end = postfixStartIndex + postfix.length
                     )
@@ -383,7 +383,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -403,7 +403,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -423,7 +423,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -484,7 +484,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -504,7 +504,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
@@ -524,7 +524,7 @@ fun VkMessage.extractActionText(
                     }.also(::append)
 
                 addStyle(
-                    style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    style = SpanStyle(fontWeight = FontWeight.Medium),
                     start = 0,
                     end = prefix.length
                 )
