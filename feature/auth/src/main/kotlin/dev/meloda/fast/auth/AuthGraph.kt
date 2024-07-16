@@ -13,9 +13,9 @@ import dev.meloda.fast.auth.validation.navigation.validationScreen
 import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
 import dev.meloda.fast.auth.userbanned.navigation.navigateToUserBanned
 import dev.meloda.fast.auth.userbanned.navigation.userBannedRoute
-import com.meloda.fast.auth.login.navigation.Logo
-import com.meloda.fast.auth.login.navigation.loginScreen
-import com.meloda.fast.auth.login.navigation.navigateToLogin
+import dev.meloda.fast.auth.login.navigation.Logo
+import dev.meloda.fast.auth.login.navigation.loginScreen
+import dev.meloda.fast.auth.login.navigation.navigateToLogin
 import kotlinx.serialization.Serializable
 import java.net.URLEncoder
 

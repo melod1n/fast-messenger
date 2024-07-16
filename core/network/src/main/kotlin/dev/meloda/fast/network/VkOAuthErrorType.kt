@@ -1,4 +1,4 @@
-package dev.meloda.fast.network;
+package dev.meloda.fast.network
 
 enum class VkOAuthErrorType(val value: String) {
     WRONG_OTP_FORMAT("otp_format_is_incorrect"),

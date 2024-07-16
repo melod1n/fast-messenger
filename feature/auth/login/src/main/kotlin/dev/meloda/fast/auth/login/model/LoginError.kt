@@ -1,4 +1,4 @@
-package com.meloda.fast.auth.login.model
+package dev.meloda.fast.auth.login.model
 
 import androidx.compose.runtime.Immutable
 

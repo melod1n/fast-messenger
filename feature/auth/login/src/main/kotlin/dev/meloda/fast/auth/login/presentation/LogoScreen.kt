@@ -1,4 +1,4 @@
-package com.meloda.fast.auth.login.presentation
+package dev.meloda.fast.auth.login.presentation
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import com.meloda.fast.auth.login.LoginViewModel
-import com.meloda.fast.auth.login.LoginViewModelImpl
+import dev.meloda.fast.auth.login.LoginViewModel
+import dev.meloda.fast.auth.login.LoginViewModelImpl
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 

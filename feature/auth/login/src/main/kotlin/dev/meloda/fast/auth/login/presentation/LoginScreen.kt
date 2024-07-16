@@ -1,4 +1,4 @@
-package com.meloda.fast.auth.login.presentation
+package dev.meloda.fast.auth.login.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -58,13 +58,13 @@ import dev.meloda.fast.ui.components.TextFieldErrorText
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.handleEnterKey
 import dev.meloda.fast.ui.util.handleTabKey
-import com.meloda.fast.auth.login.LoginViewModel
-import com.meloda.fast.auth.login.LoginViewModelImpl
-import com.meloda.fast.auth.login.model.CaptchaArguments
-import com.meloda.fast.auth.login.model.LoginError
-import com.meloda.fast.auth.login.model.LoginScreenState
-import com.meloda.fast.auth.login.model.LoginUserBannedArguments
-import com.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.auth.login.LoginViewModel
+import dev.meloda.fast.auth.login.LoginViewModelImpl
+import dev.meloda.fast.auth.login.model.CaptchaArguments
+import dev.meloda.fast.auth.login.model.LoginError
+import dev.meloda.fast.auth.login.model.LoginScreenState
+import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
+import dev.meloda.fast.auth.login.model.LoginValidationArguments
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 

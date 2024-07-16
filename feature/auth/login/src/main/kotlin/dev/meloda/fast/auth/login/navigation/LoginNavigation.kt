@@ -1,17 +1,17 @@
-package com.meloda.fast.auth.login.navigation
+package dev.meloda.fast.auth.login.navigation
 
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.common.extensions.navigation.sharedViewModel
-import com.meloda.fast.auth.login.LoginViewModel
-import com.meloda.fast.auth.login.LoginViewModelImpl
-import com.meloda.fast.auth.login.model.CaptchaArguments
-import com.meloda.fast.auth.login.model.LoginValidationArguments
-import com.meloda.fast.auth.login.model.LoginUserBannedArguments
-import com.meloda.fast.auth.login.presentation.LoginRoute
-import com.meloda.fast.auth.login.presentation.LogoRoute
+import dev.meloda.fast.auth.login.LoginViewModel
+import dev.meloda.fast.auth.login.LoginViewModelImpl
+import dev.meloda.fast.auth.login.model.CaptchaArguments
+import dev.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
+import dev.meloda.fast.auth.login.presentation.LoginRoute
+import dev.meloda.fast.auth.login.presentation.LogoRoute
 import kotlinx.serialization.Serializable
 
 @Serializable

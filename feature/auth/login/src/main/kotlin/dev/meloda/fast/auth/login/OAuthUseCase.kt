@@ -1,7 +1,7 @@
-package com.meloda.fast.auth.login
+package dev.meloda.fast.auth.login
 
 import dev.meloda.fast.data.State
-import com.meloda.fast.auth.login.model.AuthInfo
+import dev.meloda.fast.auth.login.model.AuthInfo
 import kotlinx.coroutines.flow.Flow
 
 interface OAuthUseCase {

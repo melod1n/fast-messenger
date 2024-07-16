@@ -8,9 +8,9 @@ interface AccountUseCase {
     suspend fun setOnline(
         voip: Boolean,
         accessToken: String
-    ): Flow<State<Unit>>
+    ): Flow<State<Int>>
 
     suspend fun setOffline(
         accessToken: String
-    ): Flow<State<Unit>>
+    ): Flow<State<Int>>
 }

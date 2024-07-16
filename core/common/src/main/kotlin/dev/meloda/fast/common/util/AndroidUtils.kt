@@ -13,11 +13,6 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 
-private object BuildConfig {
-    const val DEBUG = true
-    const val APPLICATION_ID = "dev.meloda.fast"
-}
-
 object AndroidUtils {
 
     fun copyText(
@@ -95,7 +90,7 @@ object AndroidUtils {
             action = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                 Settings.ACTION_SECURITY_SETTINGS
             } else {
-                data = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+                data = Uri.parse("package:dev.meloda.fast")
                 Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
             }
         })
@@ -113,7 +108,7 @@ object AndroidUtils {
         intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
         intent.data = FileProvider.getUriForFile(
             context,
-            BuildConfig.APPLICATION_ID + providerPath,
+            "dev.meloda.fast$providerPath",
             fileToRead
         )
 
@@ -132,7 +127,7 @@ object AndroidUtils {
             }
 
             val file = existingFile.copyTo(copyToFile)
-            FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", file)
+            FileProvider.getUriForFile(context, "dev.meloda.fast.provider", file)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -150,7 +145,7 @@ object AndroidUtils {
             bitmap.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
             outputStream.flush()
             outputStream.close()
-            FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
+            FileProvider.getUriForFile(context, "dev.meloda.fast.fileprovider", file)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -187,7 +182,6 @@ object AndroidUtils {
             is ShareContent.TextWithImage -> "Text with image"
         }
         val chooserIntent = Intent.createChooser(intent, "Share $contentType")
-
 
         context.startActivity(chooserIntent)
     }

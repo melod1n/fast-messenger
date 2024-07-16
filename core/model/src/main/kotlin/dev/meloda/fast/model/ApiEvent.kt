@@ -1,4 +1,4 @@
-package dev.meloda.fast.model;
+package dev.meloda.fast.model
 
 enum class ApiEvent(val value: Int) {
     MESSAGE_SET_FLAGS(2),

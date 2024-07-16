@@ -104,10 +104,10 @@ class SettingsViewModelImpl(
             }
 
             SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
-                val showDebugCategory = AppSettings.Debug.showDebugCategory
-                if (!showDebugCategory) return
+                if (!AppSettings.Debug.showDebugCategory) return
 
-                onSettingsItemChanged(key, false)
+                AppSettings.Debug.showDebugCategory = false
+                userSettings.onShowDebugCategoryChanged(false)
 
                 createSettings()
 
@@ -122,7 +122,8 @@ class SettingsViewModelImpl(
             SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
                 if (AppSettings.Debug.showDebugCategory) return
 
-                onSettingsItemChanged(key, true)
+                AppSettings.Debug.showDebugCategory = true
+                userSettings.onShowDebugCategoryChanged(true)
 
                 createSettings()
 

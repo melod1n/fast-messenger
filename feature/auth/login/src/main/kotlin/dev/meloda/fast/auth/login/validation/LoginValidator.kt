@@ -1,8 +1,8 @@
-package com.meloda.fast.auth.login.validation
+package dev.meloda.fast.auth.login.validation
 
 import dev.meloda.fast.common.extensions.addIf
-import com.meloda.fast.auth.login.model.LoginScreenState
-import com.meloda.fast.auth.login.model.LoginValidationResult
+import dev.meloda.fast.auth.login.model.LoginScreenState
+import dev.meloda.fast.auth.login.model.LoginValidationResult
 
 class LoginValidator {
 

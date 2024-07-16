@@ -1,6 +1,7 @@
 package dev.meloda.fast.presentation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -18,6 +19,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -51,6 +53,7 @@ import dev.meloda.fast.ui.R as UiR
 
 class MainActivity : AppCompatActivity() {
 
+    @SuppressLint("HardwareIds", "InlinedApi")
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,15 +158,34 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                val themeConfig = ThemeConfig(
-                    darkMode = isNeedToEnableDarkMode(userSettings.darkMode.value),
-                    dynamicColors = userSettings.enableDynamicColors.value,
-                    selectedColorScheme = 0,
-                    amoledDark = userSettings.enableAmoledDark.value,
-                    enableBlur = userSettings.useBlur.value,
-                    enableMultiline = userSettings.enableMultiline.value,
-                    isDeviceCompact = isDeviceCompact
-                )
+                val darkMode by userSettings.darkMode.collectAsStateWithLifecycle()
+                val dynamicColors by userSettings.enableDynamicColors.collectAsStateWithLifecycle()
+                val amoledDark by userSettings.enableAmoledDark.collectAsStateWithLifecycle()
+                val enableBlur by userSettings.useBlur.collectAsStateWithLifecycle()
+                val enableMultiline by userSettings.enableMultiline.collectAsStateWithLifecycle()
+
+                val setDarkMode = isNeedToEnableDarkMode(darkMode = darkMode)
+
+                val themeConfig by remember(
+                    darkMode,
+                    dynamicColors,
+                    amoledDark,
+                    enableBlur,
+                    enableMultiline,
+                    setDarkMode
+                ) {
+                    mutableStateOf(
+                        ThemeConfig(
+                            darkMode = setDarkMode,
+                            dynamicColors = dynamicColors,
+                            selectedColorScheme = 0,
+                            amoledDark = amoledDark,
+                            enableBlur = enableBlur,
+                            enableMultiline = enableMultiline,
+                            isDeviceCompact = isDeviceCompact
+                        )
+                    )
+                }
 
                 CompositionLocalProvider(LocalThemeConfig provides themeConfig) {
                     AppTheme(

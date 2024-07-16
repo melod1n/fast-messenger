@@ -1,4 +1,4 @@
-package dev.meloda.fast.network;
+package dev.meloda.fast.network
 
 enum class ValidationType(val value: String) {
     APP("2fa_app"),

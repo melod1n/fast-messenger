@@ -48,9 +48,6 @@ import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.photoviewer.PhotoViewViewModel
 import dev.meloda.fast.photoviewer.model.PhotoViewState
 
-@OptIn(
-    ExperimentalFoundationApi::class,
-)
 @Composable
 fun PhotoViewScreenContent(
     onBackClick: () -> Unit,

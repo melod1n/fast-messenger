@@ -8,11 +8,9 @@ import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
@@ -20,10 +18,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -97,26 +91,6 @@ fun createTimerFlow(
             delay(interval)
         }
     }
-
-context(ViewModel)
-fun <T> MutableSharedFlow<T>.emitOnMainScope(value: T) = emitOnScope(Dispatchers.Main) { value }
-
-context(ViewModel)
-fun <T> MutableSharedFlow<T>.emitOnScope(
-    coroutineContext: CoroutineContext = EmptyCoroutineContext,
-    value: () -> T,
-) {
-    viewModelScope.launch(coroutineContext) {
-        emit(value())
-    }
-}
-
-context(CoroutineScope)
-suspend fun <T> MutableSharedFlow<T>.emitWithMain(value: T) {
-    withContext(Dispatchers.Main) {
-        emit(value)
-    }
-}
 
 context(ViewModel)
 fun <T> MutableStateFlow<T>.updateValue(newValue: T) = this.update { newValue }

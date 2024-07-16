@@ -1,9 +1,8 @@
-package com.meloda.fast.auth.login
+package dev.meloda.fast.auth.login
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.meloda.fast.auth.login.BuildConfig
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.VkConstants
@@ -16,16 +15,15 @@ import dev.meloda.fast.data.api.users.UsersUseCase
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
-import com.meloda.fast.auth.login.model.CaptchaArguments
-import com.meloda.fast.auth.login.model.LoginError
-import com.meloda.fast.auth.login.model.LoginScreenState
-import com.meloda.fast.auth.login.model.LoginUserBannedArguments
-import com.meloda.fast.auth.login.model.LoginValidationArguments
-import com.meloda.fast.auth.login.model.LoginValidationResult
-import com.meloda.fast.auth.login.validation.LoginValidator
+import dev.meloda.fast.auth.login.model.CaptchaArguments
+import dev.meloda.fast.auth.login.model.LoginError
+import dev.meloda.fast.auth.login.model.LoginScreenState
+import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
+import dev.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.auth.login.model.LoginValidationResult
+import dev.meloda.fast.auth.login.validation.LoginValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,7 +70,6 @@ class LoginViewModelImpl(
     private val usersUseCase: UsersUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
-    private val userSettings: UserSettings,
     private val longPollController: LongPollController
 ) : ViewModel(), LoginViewModel {
 
