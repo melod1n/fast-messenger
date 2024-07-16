@@ -37,7 +37,9 @@ dependencies {
 
     implementation(libs.moshi.kotlin)
     implementation(libs.koin.android)
-    implementation(libs.chucker)
+
+    debugImplementation(libs.chucker)
+    releaseImplementation(libs.chucker.noop)
 
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
