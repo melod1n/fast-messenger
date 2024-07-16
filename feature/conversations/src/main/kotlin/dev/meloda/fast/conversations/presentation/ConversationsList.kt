@@ -32,7 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun ConversationsListComposable(
+fun ConversationsList(
     onConversationsClick: (Int) -> Unit,
     onConversationsLongClick: (UiConversation) -> Unit,
     screenState: ConversationsScreenState,
@@ -40,7 +40,8 @@ fun ConversationsListComposable(
     maxLines: Int,
     modifier: Modifier,
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
-    padding: PaddingValues
+    padding: PaddingValues,
+    onPhotoClicked: (url: String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -72,7 +73,8 @@ fun ConversationsListComposable(
                 maxLines = maxLines,
                 isUserAccount = isUserAccount,
                 conversation = conversation,
-                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
+                onPhotoClicked = onPhotoClicked
             )
 
             Spacer(modifier = Modifier.height(8.dp))

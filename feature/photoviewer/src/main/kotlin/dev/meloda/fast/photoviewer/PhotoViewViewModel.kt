@@ -1,22 +1,34 @@
 package dev.meloda.fast.photoviewer
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.photoviewer.model.PhotoViewArguments
-import dev.meloda.fast.photoviewer.model.PhotoViewState
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
+import dev.meloda.fast.photoviewer.navigation.PhotoView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.net.URLDecoder
 
 interface PhotoViewViewModel {
-    val state: StateFlow<PhotoViewState>
-
-    fun setArguments(arguments: PhotoViewArguments)
+    val screenState: StateFlow<PhotoViewScreenState>
 }
 
-class PhotoViewViewModelImpl : PhotoViewViewModel, ViewModel() {
-    override val state = MutableStateFlow(PhotoViewState.EMPTY)
+class PhotoViewViewModelImpl(
+    savedStateHandle: SavedStateHandle
+) : PhotoViewViewModel, ViewModel() {
 
-    override fun setArguments(arguments: PhotoViewArguments) {
-        state.setValue { old -> old.copy(images = arguments.images) }
+    override val screenState = MutableStateFlow(PhotoViewScreenState.EMPTY)
+
+    init {
+        val arguments = PhotoView.from(savedStateHandle).arguments
+
+        screenState.setValue { old ->
+            old.copy(
+                images = arguments.images
+                    .map { URLDecoder.decode(it, "utf-8") }
+                    .map(UiImage::Url)
+            )
+        }
     }
 }

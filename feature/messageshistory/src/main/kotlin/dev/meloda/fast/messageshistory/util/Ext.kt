@@ -2,7 +2,7 @@ package dev.meloda.fast.messageshistory.util
 
 import dev.meloda.fast.messageshistory.model.UiItem
 
-fun List<UiItem>.firstMessage(): UiItem.Message = first() as UiItem.Message
+fun List<UiItem>.firstMessage(): UiItem.Message = filterIsInstance<UiItem.Message>().first()
 
 fun List<UiItem>.indexOfMessageById(messageId: Int): Int =
     indexOfFirst { it.id == messageId }

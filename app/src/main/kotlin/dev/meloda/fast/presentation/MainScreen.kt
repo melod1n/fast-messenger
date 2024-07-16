@@ -25,19 +25,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.navigation.conversationsScreen
-import dev.meloda.fast.ui.theme.LocalBottomPadding
-import dev.meloda.fast.ui.theme.LocalHazeState
-import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.friends.navigation.friendsScreen
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
 import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeChild
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -45,7 +45,8 @@ fun MainScreen(
     navigationItems: List<BottomNavigationItem>,
     onError: (BaseError) -> Unit = {},
     onSettingsButtonClicked: () -> Unit = {},
-    onConversationItemClicked: (conversationId: Int) -> Unit = {}
+    onConversationItemClicked: (conversationId: Int) -> Unit = {},
+    onPhotoClicked: (url: String) -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
     val hazeState = remember { HazeState() }
@@ -120,16 +121,19 @@ fun MainScreen(
                     navigation<MainGraph>(startDestination = navigationItems[selectedItemIndex].route) {
                         friendsScreen(
                             onError = onError,
-                            navController = navController
+                            navController = navController,
+                            onPhotoClicked = onPhotoClicked
                         )
                         conversationsScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
-                            navController = navController
+                            navController = navController,
+                            onPhotoClicked = onPhotoClicked
                         )
                         profileScreen(
                             onError = onError,
                             onSettingsButtonClicked = onSettingsButtonClicked,
+                            onPhotoClicked = onPhotoClicked,
                             navController = navController
                         )
                     }

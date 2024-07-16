@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "dev.meloda.fast.photoviewer"
@@ -52,4 +54,12 @@ dependencies {
     implementation(libs.bundles.compose)
 
     implementation(libs.coil.compose)
+
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
+
+    debugImplementation(libs.compose.ui.tooling)
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization)
 }

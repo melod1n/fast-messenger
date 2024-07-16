@@ -1,6 +1,5 @@
 package dev.meloda.fast.conversations.presentation
 
-import android.graphics.drawable.ColorDrawable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
@@ -8,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -41,46 +41,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.DotsFlashing
+import dev.meloda.fast.ui.util.getImage
+import dev.meloda.fast.ui.util.getResourcePainter
 import dev.meloda.fast.ui.util.getString
 import dev.meloda.fast.ui.R as UiR
 
 val BirthdayColor = Color(0xffb00b69)
-
-@Composable
-fun UiImage.getResourcePainter(): Painter? {
-    return when (this) {
-        is UiImage.Resource -> painterResource(id = resId)
-        else -> null
-    }
-}
-
-@Composable
-fun UiImage.getImage(): Any {
-    return when (this) {
-        is UiImage.Color -> ColorDrawable(color)
-        is UiImage.ColorResource -> ColorDrawable(colorResource(id = resId).toArgb())
-        is UiImage.Resource -> painterResource(id = resId)
-        is UiImage.Simple -> drawable
-        is UiImage.Url -> url
-    }
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -92,6 +72,7 @@ fun ConversationItem(
     isUserAccount: Boolean,
     conversation: UiConversation,
     modifier: Modifier = Modifier,
+    onPhotoClicked: (url: String) -> Unit
 ) {
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
@@ -174,7 +155,12 @@ fun ConversationItem(
                                 contentDescription = "Avatar",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape),
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        if (avatarImage is String) {
+                                            onPhotoClicked(avatarImage)
+                                        }
+                                    },
                                 placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
                             )
                         }

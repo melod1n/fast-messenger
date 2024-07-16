@@ -20,10 +20,14 @@ data class ChatMaterials(
 }
 
 fun NavGraphBuilder.chatMaterialsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onPhotoClicked: (url: String) -> Unit
 ) {
     composable<ChatMaterials> {
-        ChatMaterialsRoute(onBack = onBack)
+        ChatMaterialsRoute(
+            onBack = onBack,
+            onPhotoClicked = onPhotoClicked
+        )
     }
 }
 

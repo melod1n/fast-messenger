@@ -49,6 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.friends.FriendsViewModelImpl
@@ -61,10 +65,6 @@ import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
@@ -72,6 +72,7 @@ import dev.meloda.fast.ui.R as UiR
 @Composable
 fun FriendsRoute(
     onError: (BaseError) -> Unit,
+    onPhotoClicked: (url: String) -> Unit,
     viewModel: FriendsViewModel = koinViewModel<FriendsViewModelImpl>()
 ) {
     val context = LocalContext.current
@@ -102,7 +103,8 @@ fun FriendsRoute(
         canPaginate = canPaginate,
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-        onRefresh = viewModel::onRefresh
+        onRefresh = viewModel::onRefresh,
+        onPhotoClicked = onPhotoClicked
     )
 }
 
@@ -120,7 +122,8 @@ fun FriendsScreen(
     canPaginate: Boolean = false,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onPhotoClicked: (url: String) -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -307,7 +310,8 @@ fun FriendsScreen(
                                 uiFriends = ImmutableList.copyOf(friendsToDisplay),
                                 listState = listState,
                                 maxLines = maxLines,
-                                padding = padding
+                                padding = padding,
+                                onPhotoClicked = onPhotoClicked
                             )
 
                             if (friendsToDisplay.isEmpty()) {

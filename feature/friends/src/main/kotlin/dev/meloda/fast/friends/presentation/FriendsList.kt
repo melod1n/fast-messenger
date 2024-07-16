@@ -34,7 +34,8 @@ fun FriendsList(
     uiFriends: ImmutableList<UiFriend>,
     listState: LazyListState,
     maxLines: Int,
-    padding: PaddingValues
+    padding: PaddingValues,
+    onPhotoClicked: (url: String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -58,7 +59,8 @@ fun FriendsList(
 
             FriendItem(
                 friend = friend,
-                maxLines = maxLines
+                maxLines = maxLines,
+                onPhotoClicked = onPhotoClicked
             )
 
             Spacer(modifier = Modifier.height(16.dp))

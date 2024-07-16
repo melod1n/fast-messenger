@@ -1,5 +1,6 @@
 package dev.meloda.fast.profile.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -46,6 +47,7 @@ import dev.meloda.fast.ui.R as UiR
 fun ProfileRoute(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
+    onPhotoClicked: (url: String) -> Unit,
     viewModel: ProfileViewModel = koinViewModel<ProfileViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -54,8 +56,8 @@ fun ProfileRoute(
     ProfileScreen(
         screenState = screenState,
         baseError = baseError,
-        onSettingsButtonClicked = onSettingsButtonClicked
-
+        onSettingsButtonClicked = onSettingsButtonClicked,
+        onPhotoClicked = onPhotoClicked
     )
 }
 
@@ -66,6 +68,7 @@ fun ProfileScreen(
     screenState: ProfileScreenState = ProfileScreenState.EMPTY,
     baseError: BaseError? = null,
     onSettingsButtonClicked: () -> Unit = {},
+    onPhotoClicked: (url: String) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -105,7 +108,10 @@ fun ProfileScreen(
                 AsyncImage(
                     modifier = Modifier
                         .size(120.dp)
-                        .clip(CircleShape),
+                        .clip(CircleShape)
+                        .clickable {
+                            onPhotoClicked(screenState.avatarUrl.orEmpty())
+                        },
                     model = screenState.avatarUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,

@@ -66,6 +66,10 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.ConversationsViewModelImpl
 import dev.meloda.fast.conversations.model.ConversationOption
@@ -80,10 +84,6 @@ import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -93,6 +93,7 @@ import dev.meloda.fast.ui.R as UiR
 fun ConversationsRoute(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit,
+    onPhotoClicked: (url: String) -> Unit,
     viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
 ) {
     val context = LocalContext.current
@@ -130,7 +131,8 @@ fun ConversationsRoute(
         onOptionClicked = viewModel::onOptionClicked,
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
-        onRefresh = viewModel::onRefresh
+        onRefresh = viewModel::onRefresh,
+        onPhotoClicked = onPhotoClicked
     )
 
 
@@ -156,7 +158,8 @@ fun ConversationsScreen(
     onOptionClicked: (UiConversation, ConversationOption) -> Unit = { _, _ -> },
     onPaginationConditionsMet: () -> Unit = {},
     onRefreshDropdownItemClicked: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onPhotoClicked: (url: String) -> Unit = {}
 ) {
     val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
@@ -349,7 +352,7 @@ fun ConversationsScreen(
                             } else Modifier
                         )
                 ) {
-                    ConversationsListComposable(
+                    ConversationsList(
                         onConversationsClick = onConversationItemClicked,
                         onConversationsLongClick = onConversationItemLongClicked,
                         screenState = screenState,
@@ -364,7 +367,8 @@ fun ConversationsScreen(
                             Modifier
                         }.fillMaxSize(),
                         onOptionClicked = onOptionClicked,
-                        padding = padding
+                        padding = padding,
+                        onPhotoClicked = onPhotoClicked
                     )
 
                     if (enablePullToRefresh) {

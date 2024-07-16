@@ -21,6 +21,7 @@ fun NavGraphBuilder.mainScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
     onConversationClicked: (conversationId: Int) -> Unit,
+    onPhotoClicked: (url: String) -> Unit
 ) {
     val navigationItems = listOf(
         BottomNavigationItem(
@@ -49,6 +50,7 @@ fun NavGraphBuilder.mainScreen(
             onError = onError,
             onSettingsButtonClicked = onSettingsButtonClicked,
             onConversationItemClicked = onConversationClicked,
+            onPhotoClicked = onPhotoClicked
         )
     }
 }

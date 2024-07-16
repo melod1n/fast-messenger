@@ -1,6 +1,7 @@
 package dev.meloda.fast.ui.util
 
 import android.content.res.Configuration
+import android.graphics.drawable.ColorDrawable
 import android.os.PowerManager
 import android.view.KeyEvent
 import androidx.compose.foundation.lazy.LazyListState
@@ -11,12 +12,17 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.getSystemService
 import dev.meloda.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.common.model.UiText
 
 @Composable
@@ -44,6 +50,25 @@ fun UiText?.getString(): String? {
         is UiText.Simple -> text
 
         else -> null
+    }
+}
+
+@Composable
+fun UiImage.getResourcePainter(): Painter? {
+    return when (this) {
+        is UiImage.Resource -> painterResource(id = resId)
+        else -> null
+    }
+}
+
+@Composable
+fun UiImage.getImage(): Any {
+    return when (this) {
+        is UiImage.Color -> ColorDrawable(color)
+        is UiImage.ColorResource -> ColorDrawable(colorResource(id = resId).toArgb())
+        is UiImage.Resource -> painterResource(id = resId)
+        is UiImage.Simple -> drawable
+        is UiImage.Url -> url
     }
 }
 

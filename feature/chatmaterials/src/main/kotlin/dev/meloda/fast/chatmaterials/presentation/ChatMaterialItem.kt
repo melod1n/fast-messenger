@@ -14,7 +14,10 @@ import coil.compose.AsyncImage
 import dev.meloda.fast.chatmaterials.model.UiChatMaterial
 
 @Composable
-fun ChatMaterialItem(item: UiChatMaterial) {
+fun ChatMaterialItem(
+    item: UiChatMaterial,
+    onClick: () -> Unit
+) {
     when (item) {
         is UiChatMaterial.Photo -> {
             AsyncImage(

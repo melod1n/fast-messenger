@@ -169,7 +169,7 @@ fun MessagesHistoryScreen(
         mutableStateOf(false)
     }
 
-    val hazeSate = remember { HazeState() }
+    val hazeState = remember { HazeState() }
 
     var animationsEnabled by remember {
         mutableStateOf(
@@ -202,7 +202,7 @@ fun MessagesHistoryScreen(
                         .then(
                             if (currentTheme.enableBlur) {
                                 Modifier.hazeChild(
-                                    state = hazeSate,
+                                    state = hazeState,
                                     style = HazeMaterials.thick()
                                 )
                             } else Modifier
@@ -312,7 +312,7 @@ fun MessagesHistoryScreen(
                 .padding(bottom = padding.calculateBottomPadding()),
         ) {
             MessagesList(
-                hazeState = hazeSate,
+                hazeState = hazeState,
                 listState = listState,
                 immutableMessages = ImmutableList.copyOf(screenState.messages),
                 isPaginating = screenState.isPaginating,

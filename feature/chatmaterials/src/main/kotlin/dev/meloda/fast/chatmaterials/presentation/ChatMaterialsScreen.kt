@@ -61,23 +61,25 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.chatmaterials.ChatMaterialsViewModel
-import dev.meloda.fast.chatmaterials.ChatMaterialsViewModelImpl
-import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
-import dev.meloda.fast.datastore.UserSettings
-import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.chatmaterials.ChatMaterialsViewModel
+import dev.meloda.fast.chatmaterials.ChatMaterialsViewModelImpl
+import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
+import dev.meloda.fast.chatmaterials.model.UiChatMaterial
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
 fun ChatMaterialsRoute(
     onBack: () -> Unit,
+    onPhotoClicked: (url: String) -> Unit,
     viewModel: ChatMaterialsViewModel = koinViewModel<ChatMaterialsViewModelImpl>()
 ) {
     val userSettings: UserSettings = koinInject()
@@ -92,7 +94,8 @@ fun ChatMaterialsRoute(
         onBack = onBack,
         onTypeChanged = viewModel::onTypeChanged,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
-        onRefresh = viewModel::onRefresh
+        onRefresh = viewModel::onRefresh,
+        onPhotoClicked = onPhotoClicked
     )
 }
 
@@ -108,7 +111,8 @@ fun ChatMaterialsScreen(
     onBack: () -> Unit = {},
     onTypeChanged: (String) -> Unit = {},
     onRefreshDropdownItemClicked: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onPhotoClicked: (url: String) -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -318,7 +322,14 @@ fun ChatMaterialsScreen(
                         }
                     }
                     items(attachments) { item ->
-                        ChatMaterialItem(item = item)
+                        ChatMaterialItem(
+                            item = item,
+                            onClick = {
+                                if (item is UiChatMaterial.Photo) {
+                                    onPhotoClicked(item.previewUrl)
+                                }
+                            }
+                        )
                     }
                     repeat(3) {
                         item {
@@ -347,7 +358,10 @@ fun ChatMaterialsScreen(
                         Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
                     }
                     items(attachments) { item ->
-                        ChatMaterialItem(item = item)
+                        ChatMaterialItem(
+                            item = item,
+                            onClick = {}
+                        )
                     }
                     item {
                         Spacer(modifier = Modifier.height(padding.calculateBottomPadding()))

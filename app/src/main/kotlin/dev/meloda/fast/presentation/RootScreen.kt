@@ -26,15 +26,17 @@ import dev.meloda.fast.auth.authNavGraph
 import dev.meloda.fast.auth.navigateToAuth
 import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
 import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
-import dev.meloda.fast.ui.R
 import dev.meloda.fast.languagepicker.navigation.languagePickerScreen
 import dev.meloda.fast.languagepicker.navigation.navigateToLanguagePicker
 import dev.meloda.fast.messageshistory.navigation.messagesHistoryScreen
 import dev.meloda.fast.messageshistory.navigation.navigateToMessagesHistory
 import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.navigation.mainScreen
+import dev.meloda.fast.photoviewer.navigation.navigateToPhotoView
+import dev.meloda.fast.photoviewer.navigation.photoViewScreen
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
+import dev.meloda.fast.ui.R
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -122,7 +124,8 @@ fun RootScreen(
             mainScreen(
                 onError = viewModel::onError,
                 onSettingsButtonClicked = navController::navigateToSettings,
-                onConversationClicked = navController::navigateToMessagesHistory
+                onConversationClicked = navController::navigateToMessagesHistory,
+                onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
             )
 
             messagesHistoryScreen(
@@ -131,7 +134,8 @@ fun RootScreen(
                 onChatMaterialsDropdownItemClicked = navController::navigateToChatMaterials
             )
             chatMaterialsScreen(
-                onBack = navController::navigateUp
+                onBack = navController::navigateUp,
+                onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
             )
 
             settingsScreen(
@@ -140,6 +144,8 @@ fun RootScreen(
                 onLanguageItemClicked = navController::navigateToLanguagePicker
             )
             languagePickerScreen(onBack = navController::navigateUp)
+
+            photoViewScreen(onBack = navController::navigateUp)
         }
     }
 }

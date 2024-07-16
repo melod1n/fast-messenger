@@ -15,7 +15,8 @@ object Friends
 
 fun NavGraphBuilder.friendsScreen(
     onError: (BaseError) -> Unit,
-    navController: NavController
+    navController: NavController,
+    onPhotoClicked: (url: String) -> Unit
 ) {
     composable<Friends> {
         val viewModel: FriendsViewModel =
@@ -23,7 +24,8 @@ fun NavGraphBuilder.friendsScreen(
 
         FriendsRoute(
             onError = onError,
-            viewModel = viewModel
+            viewModel = viewModel,
+            onPhotoClicked = onPhotoClicked
         )
     }
 }

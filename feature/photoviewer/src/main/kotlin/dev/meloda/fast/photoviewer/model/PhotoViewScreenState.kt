@@ -4,12 +4,12 @@ import androidx.compose.runtime.Immutable
 import dev.meloda.fast.common.model.UiImage
 
 @Immutable
-data class PhotoViewState(
+data class PhotoViewScreenState(
     val images: List<UiImage>
 ) {
 
     companion object {
-        val EMPTY: PhotoViewState = PhotoViewState(
+        val EMPTY: PhotoViewScreenState = PhotoViewScreenState(
             images = emptyList()
         )
     }

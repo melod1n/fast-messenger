@@ -16,6 +16,7 @@ object Profile
 fun NavGraphBuilder.profileScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
+    onPhotoClicked: (url: String) -> Unit,
     navController: NavController
 ) {
     composable<Profile> {
@@ -25,6 +26,7 @@ fun NavGraphBuilder.profileScreen(
         ProfileRoute(
             onError = onError,
             onSettingsButtonClicked = onSettingsButtonClicked,
+            onPhotoClicked = onPhotoClicked,
             viewModel = viewModel
         )
     }

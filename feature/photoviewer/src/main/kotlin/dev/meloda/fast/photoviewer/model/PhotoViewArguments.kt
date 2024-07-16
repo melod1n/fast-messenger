@@ -1,9 +1,11 @@
 package dev.meloda.fast.photoviewer.model
 
-import androidx.compose.runtime.Immutable
-import dev.meloda.fast.common.model.UiImage
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
-@Immutable
+@Parcelize
+@Serializable
 data class PhotoViewArguments(
-    val images: List<UiImage>
-)
+    val images: List<String>
+) : Parcelable

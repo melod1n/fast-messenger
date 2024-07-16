@@ -2,6 +2,7 @@ package dev.meloda.fast.friends.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,22 +19,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import dev.meloda.fast.ui.R
 import dev.meloda.fast.friends.model.UiFriend
+import dev.meloda.fast.ui.R
 
 @Composable
 fun FriendItem(
     modifier: Modifier = Modifier,
     friend: UiFriend,
-    maxLines: Int
+    maxLines: Int,
+    onPhotoClicked: (url: String) -> Unit
 ) {
-    val context = LocalContext.current
-
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -58,7 +57,8 @@ fun FriendItem(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(CircleShape),
+                        .clip(CircleShape)
+                        .clickable { onPhotoClicked(friendAvatar) },
                     placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
                 )
             }

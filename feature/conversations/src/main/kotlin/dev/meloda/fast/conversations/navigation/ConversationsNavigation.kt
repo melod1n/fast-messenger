@@ -16,6 +16,7 @@ object Conversations
 fun NavGraphBuilder.conversationsScreen(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (id: Int) -> Unit,
+    onPhotoClicked: (url: String) -> Unit,
     navController: NavController,
 ) {
     composable<Conversations> {
@@ -25,6 +26,7 @@ fun NavGraphBuilder.conversationsScreen(
         ConversationsRoute(
             onError = onError,
             onConversationItemClicked = onConversationItemClicked,
+            onPhotoClicked = onPhotoClicked,
             viewModel = viewModel
         )
     }
