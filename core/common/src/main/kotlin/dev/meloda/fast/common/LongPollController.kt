@@ -22,6 +22,6 @@ class LongPollControllerImpl : LongPollController {
     }
 
     override fun setStateToApply(newState: LongPollState) {
-        currentState.value = newState
+        stateToApply.value = newState
     }
 }
