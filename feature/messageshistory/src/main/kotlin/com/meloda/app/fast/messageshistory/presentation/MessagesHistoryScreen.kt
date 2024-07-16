@@ -78,6 +78,8 @@ import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
 import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
+import com.meloda.app.fast.messageshistory.util.firstMessage
+import com.meloda.app.fast.messageshistory.util.indexOfMessageByCmId
 import com.meloda.app.fast.model.BaseError
 import com.meloda.app.fast.ui.theme.LocalThemeConfig
 import com.meloda.app.fast.ui.util.ImmutableList
@@ -141,6 +143,8 @@ fun MessagesHistoryScreen(
     onActionButtonClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
+
+    val coroutineScope = rememberCoroutineScope()
 
     val preferences: SharedPreferences = koinInject()
     val currentTheme = LocalThemeConfig.current
@@ -250,7 +254,7 @@ fun MessagesHistoryScreen(
 
                                     onChatMaterialsDropdownItemClicked(
                                         screenState.conversationId,
-                                        screenState.messages.first().conversationMessageId
+                                        screenState.messages.firstMessage().conversationMessageId
                                     )
                                 },
                                 text = {
@@ -313,7 +317,14 @@ fun MessagesHistoryScreen(
                 immutableMessages = ImmutableList.copyOf(screenState.messages),
                 isPaginating = screenState.isPaginating,
                 enableAnimations = animationsEnabled,
-                messageBarHeight = messageBarHeight
+                messageBarHeight = messageBarHeight,
+                onRequestScrollToCmId = { cmId ->
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(
+                            index = screenState.messages.indexOfMessageByCmId(cmId)
+                        )
+                    }
+                }
             )
 
             Column(

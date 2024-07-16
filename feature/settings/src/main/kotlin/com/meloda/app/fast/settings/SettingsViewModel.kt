@@ -230,6 +230,12 @@ class SettingsViewModelImpl(
                 userSettings.onShowEmojiButtonChanged(show)
             }
 
+            SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES -> {
+                val show = newValue as? Boolean
+                    ?: SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES
+                userSettings.onShowTimeInActionMessagesChanged(show)
+            }
+
             SettingsKeys.KEY_SHOW_DEBUG_CATEGORY -> {
                 val show = newValue as? Boolean ?: false
                 userSettings.onShowDebugCategoryChanged(show)
@@ -349,12 +355,6 @@ class SettingsViewModelImpl(
                 )
             }
         }
-        val debugLongPollBackground = SettingsItem.Switch(
-            key = SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
-            title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
-            text = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
-        )
 
         val activityTitle = SettingsItem.Title(
             key = "activity",
@@ -382,6 +382,12 @@ class SettingsViewModelImpl(
             title = UiText.Simple("Show alert after crash"),
             text = UiText.Simple("Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually)")
         )
+        val debugLongPollBackground = SettingsItem.Switch(
+            key = SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
+            defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
+            title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
+            text = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
+        )
         val debugUseBlur = SettingsItem.Switch(
             key = SettingsKeys.KEY_APPEARANCE_USE_BLUR,
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR,
@@ -393,6 +399,11 @@ class SettingsViewModelImpl(
             title = UiText.Simple("Show emoji button"),
             text = UiText.Simple("Show emoji button in chat panel"),
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
+        )
+        val debugShowTimeInActionMessages = SettingsItem.Switch(
+            key = SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
+            defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
+            title = UiText.Simple("Show time in action messages")
         )
 
         val debugHideDebugList = SettingsItem.TitleText(
@@ -432,7 +443,8 @@ class SettingsViewModelImpl(
             debugShowCrashAlert,
             debugLongPollBackground,
             debugUseBlur,
-            debugShowEmojiButton
+            debugShowEmojiButton,
+            debugShowTimeInActionMessages
         ).forEach(debugList::add)
 
         debugList += debugHideDebugList

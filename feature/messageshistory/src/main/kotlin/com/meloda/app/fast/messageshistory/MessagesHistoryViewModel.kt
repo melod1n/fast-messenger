@@ -1,7 +1,6 @@
 package com.meloda.app.fast.messageshistory
 
 import android.content.SharedPreferences
-import android.content.res.Resources
 import android.util.Log
 import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
@@ -14,14 +13,18 @@ import com.meloda.app.fast.common.UserConfig
 import com.meloda.app.fast.common.extensions.listenValue
 import com.meloda.app.fast.common.extensions.setValue
 import com.meloda.app.fast.common.extensions.updateValue
+import com.meloda.app.fast.common.provider.ResourceProvider
 import com.meloda.app.fast.data.LongPollUpdatesParser
 import com.meloda.app.fast.data.VkMemoryCache
 import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
 import com.meloda.app.fast.data.api.messages.MessagesUseCase
 import com.meloda.app.fast.data.processState
+import com.meloda.app.fast.datastore.AppSettings
 import com.meloda.app.fast.datastore.SettingsKeys
+import com.meloda.app.fast.datastore.UserSettings
 import com.meloda.app.fast.messageshistory.model.ActionMode
 import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
+import com.meloda.app.fast.messageshistory.model.UiItem
 import com.meloda.app.fast.messageshistory.navigation.MessagesHistory
 import com.meloda.app.fast.messageshistory.util.asPresentation
 import com.meloda.app.fast.messageshistory.util.extractAvatar
@@ -62,7 +65,8 @@ class MessagesHistoryViewModelImpl(
     private val messagesUseCase: MessagesUseCase,
     private val conversationsUseCase: ConversationsUseCase,
     private val preferences: SharedPreferences,
-    private val resources: Resources,
+    private val resourceProvider: ResourceProvider,
+    private val userSettings: UserSettings,
     updatesParser: LongPollUpdatesParser,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
@@ -92,6 +96,8 @@ class MessagesHistoryViewModelImpl(
         updatesParser.onMessageEdited(::handleEditedMessage)
         updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
+
+        userSettings.showTimeInActionMessages.listenValue(::toggleShowTimeInActionMessages)
     }
 
     override fun onRefresh() {
@@ -169,19 +175,23 @@ class MessagesHistoryViewModelImpl(
         }
 
         val newMessage = message.asPresentation(
+            resourceProvider = resourceProvider,
             showDate = false,
             showName = false,
             prevMessage = prevMessage,
-            nextMessage = null
+            nextMessage = null,
+            showTimeInActionMessages = userSettings.showTimeInActionMessages.value
         )
         newMessages.add(0, newMessage)
 
         prevMessage?.let { prev ->
             newMessages[1] = prev.asPresentation(
+                resourceProvider = resourceProvider,
                 showDate = false,
                 showName = false,
                 prevMessage = prevMessage,
-                nextMessage = messages.value.first()
+                nextMessage = messages.value.first(),
+                showTimeInActionMessages = userSettings.showTimeInActionMessages.value
             )
         }
 
@@ -196,10 +206,12 @@ class MessagesHistoryViewModelImpl(
             .indexOfFirstOrNull { it.id == message.id }
             ?.let { index ->
                 val newMessage = message.asPresentation(
+                    resourceProvider = resourceProvider,
                     showDate = false,
                     showName = false,
                     prevMessage = messages.value.getOrNull(index + 1),
-                    nextMessage = messages.value.getOrNull(index - 1)
+                    nextMessage = messages.value.getOrNull(index - 1),
+                    showTimeInActionMessages = userSettings.showTimeInActionMessages.value
                 )
 
                 val newMessages = screenState.value.messages.toMutableList()
@@ -248,10 +260,12 @@ class MessagesHistoryViewModelImpl(
 
                     val loadedMessages = fullMessages.mapIndexed { index, message ->
                         message.asPresentation(
+                            resourceProvider = resourceProvider,
                             showDate = false,
                             showName = false,
                             prevMessage = messages.getOrNull(index + 1),
                             nextMessage = messages.getOrNull(index - 1),
+                            showTimeInActionMessages = userSettings.showTimeInActionMessages.value
                         )
                     }
 
@@ -268,11 +282,8 @@ class MessagesHistoryViewModelImpl(
                         ?.let { conversation ->
                             newState = newState.copy(
                                 title = conversation.extractTitle(
-                                    useContactName = preferences.getBoolean(
-                                        SettingsKeys.KEY_USE_CONTACT_NAMES,
-                                        SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
-                                    ),
-                                    resources = resources
+                                    useContactName = AppSettings.General.useContactNames,
+                                    resources = resourceProvider.resources
                                 ),
                                 avatar = conversation.extractAvatar()
                             )
@@ -337,10 +348,12 @@ class MessagesHistoryViewModelImpl(
 
         val newMessages = screenState.value.messages.toMutableList()
         val newUiMessage = newMessage.asPresentation(
+            resourceProvider = resourceProvider,
             showDate = false,
             showName = false,
             prevMessage = messages.value.firstOrNull(),
-            nextMessage = null
+            nextMessage = null,
+            showTimeInActionMessages = userSettings.showTimeInActionMessages.value
         )
         newMessages.add(0, newUiMessage)
 
@@ -373,7 +386,9 @@ class MessagesHistoryViewModelImpl(
                     val messages = screenState.value.messages.toMutableList()
 
                     messages.indexOfOrNull(newUiMessage)?.let { index ->
-                        messages[index] = messages[index].copy(id = messageId)
+                        (messages[index] as? UiItem.Message)?.let { message ->
+                            messages[index] = message.copy(id = messageId)
+                        }
                     }
 
                     screenState.setValue { old -> old.copy(messages = messages) }
@@ -487,6 +502,24 @@ class MessagesHistoryViewModelImpl(
 //            } ?: return@launch
 
             // TODO: 25.08.2023, Danil Nikolaev: update messages
+        }
+    }
+
+    private fun toggleShowTimeInActionMessages(show: Boolean) {
+        val messages = messages.value
+        val uiMessages = messages.mapIndexed { index, item ->
+            item.asPresentation(
+                resourceProvider = resourceProvider,
+                showDate = false,
+                showName = false,
+                prevMessage = messages.getOrNull(index + 1),
+                nextMessage = messages.getOrNull(index - 1),
+                showTimeInActionMessages = show
+            )
+        }
+
+        screenState.setValue { old ->
+            old.copy(messages = uiMessages)
         }
     }
 

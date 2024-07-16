@@ -29,6 +29,9 @@ object SettingsKeys {
     const val DEFAULT_APPEARANCE_LANGUAGE = ""
     const val KEY_APPEARANCE_USE_BLUR = "appearance_use_blur"
     const val DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR = false
+    const val KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES =
+        "appearance_show_time_in_action_messages"
+    const val DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES = false
 
     const val KEY_FEATURES_FAST_TEXT = "features_fast_text"
     const val DEFAULT_VALUE_FEATURES_FAST_TEXT = "¯\\_(ツ)_/¯"

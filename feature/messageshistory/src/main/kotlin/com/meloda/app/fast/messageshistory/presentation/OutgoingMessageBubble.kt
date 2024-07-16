@@ -14,12 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meloda.app.fast.common.extensions.orDots
-import com.meloda.app.fast.messageshistory.model.UiMessage
+import com.meloda.app.fast.messageshistory.model.UiItem
 
 @Composable
 fun OutgoingMessageBubble(
     modifier: Modifier = Modifier,
-    message: UiMessage,
+    message: UiItem.Message,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),

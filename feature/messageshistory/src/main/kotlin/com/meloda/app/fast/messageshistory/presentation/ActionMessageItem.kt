@@ -1,6 +1,7 @@
 package com.meloda.app.fast.messageshistory.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,18 +16,20 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.messageshistory.model.ActionMessage
+import com.meloda.app.fast.messageshistory.model.UiItem
 
 @Composable
 fun ActionMessageItem(
-    item: ActionMessage,
-    modifier: Modifier = Modifier
+    item: UiItem.ActionMessage,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Text(
         text = item.text,
         modifier = modifier
             .padding(horizontal = 32.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
             .fillMaxWidth()
             .padding(
@@ -46,10 +49,13 @@ fun ActionMessageItemPreview() {
             .padding(10.dp)
     ) {
         ActionMessageItem(
-            item = ActionMessage(
-                buildAnnotatedString {
+            item = UiItem.ActionMessage(
+                id = 0,
+                text = buildAnnotatedString {
                     append("You pinned message \"wow hello there\"")
-                }
+                },
+                actionCmId = null,
+                conversationMessageId = 2135
             )
         )
     }

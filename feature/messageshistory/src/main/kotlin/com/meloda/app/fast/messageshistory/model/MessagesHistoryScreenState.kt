@@ -10,7 +10,7 @@ data class MessagesHistoryScreenState(
     val title: String,
     val status: String?,
     val avatar: UiImage,
-    val messages: List<UiMessage>,
+    val messages: List<UiItem>,
     val message: String,
     val attachments: List<VkAttachment>,
     val isLoading: Boolean,

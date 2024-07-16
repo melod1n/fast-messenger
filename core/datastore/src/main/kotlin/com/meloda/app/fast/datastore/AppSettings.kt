@@ -180,6 +180,13 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_SHOW_EMOJI_BUTTON, value)
 
+        var showTimeInActionMessages: Boolean
+            get() = get(
+                SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
+                SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES
+            )
+            set(value) = put(SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES, value)
+
         var showDebugCategory: Boolean
             get() = get(
                 SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
