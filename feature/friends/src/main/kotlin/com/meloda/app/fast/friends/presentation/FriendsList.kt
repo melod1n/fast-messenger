@@ -1,4 +1,4 @@
-package com.meloda.app.fast.friends.presentation
+package dev.meloda.fast.friends.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,10 +20,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.friends.model.FriendsScreenState
-import com.meloda.app.fast.friends.model.UiFriend
-import com.meloda.app.fast.ui.theme.LocalBottomPadding
-import com.meloda.app.fast.ui.util.ImmutableList
+import dev.meloda.fast.friends.model.FriendsScreenState
+import dev.meloda.fast.friends.model.UiFriend
+import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

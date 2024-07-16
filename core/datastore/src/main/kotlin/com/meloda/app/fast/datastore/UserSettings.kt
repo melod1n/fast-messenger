@@ -1,6 +1,6 @@
-package com.meloda.app.fast.datastore
+package dev.meloda.fast.datastore
 
-import com.meloda.app.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.DarkMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

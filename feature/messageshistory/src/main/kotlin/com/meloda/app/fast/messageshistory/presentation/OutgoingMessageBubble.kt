@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.presentation
+package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,8 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.common.extensions.orDots
-import com.meloda.app.fast.messageshistory.model.UiItem
+import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.messageshistory.model.UiItem
 
 @Composable
 fun OutgoingMessageBubble(

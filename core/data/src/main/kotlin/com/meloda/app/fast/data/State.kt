@@ -1,8 +1,8 @@
-package com.meloda.app.fast.data
+package dev.meloda.fast.data
 
-import com.meloda.app.fast.network.OAuthErrorDomain
-import com.meloda.app.fast.network.RestApiErrorDomain
-import com.meloda.app.fast.network.VkErrorCode
+import dev.meloda.fast.network.OAuthErrorDomain
+import dev.meloda.fast.network.RestApiErrorDomain
+import dev.meloda.fast.network.VkErrorCode
 import com.slack.eithernet.ApiResult
 
 sealed class State<out T> {

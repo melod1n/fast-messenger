@@ -1,7 +1,7 @@
-package com.meloda.app.fast.auth
+package dev.meloda.fast.auth
 
-import com.meloda.app.fast.auth.captcha.di.captchaModule
-import com.meloda.app.fast.auth.validation.di.validationModule
+import dev.meloda.fast.auth.captcha.di.captchaModule
+import dev.meloda.fast.auth.validation.di.validationModule
 import com.meloda.fast.auth.login.di.loginModule
 import org.koin.dsl.module
 

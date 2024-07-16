@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.users
+package dev.meloda.fast.network.service.users
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object UsersUrls {
 

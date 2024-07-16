@@ -1,4 +1,4 @@
-package com.meloda.app.fast.model.api;
+package dev.meloda.fast.model.api;
 
 enum class PeerType(val value: String) {
     USER("user"),

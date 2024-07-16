@@ -1,9 +1,9 @@
-package com.meloda.app.fast.data.api.oauth
+package dev.meloda.fast.data.api.oauth
 
-import com.meloda.app.fast.common.VkConstants
-import com.meloda.app.fast.model.api.requests.AuthDirectRequest
-import com.meloda.app.fast.model.api.responses.AuthDirectResponse
-import com.meloda.app.fast.network.service.oauth.OAuthService
+import dev.meloda.fast.common.VkConstants
+import dev.meloda.fast.model.api.requests.AuthDirectRequest
+import dev.meloda.fast.model.api.responses.AuthDirectResponse
+import dev.meloda.fast.network.service.oauth.OAuthService
 import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -1,14 +1,14 @@
-package com.meloda.app.fast.data.api.longpoll
+package dev.meloda.fast.data.api.longpoll
 
-import com.meloda.app.fast.model.api.data.LongPollUpdates
-import com.meloda.app.fast.model.api.data.VkLongPollData
-import com.meloda.app.fast.model.api.requests.LongPollGetUpdatesRequest
-import com.meloda.app.fast.model.api.requests.MessagesGetLongPollServerRequest
-import com.meloda.app.fast.network.RestApiErrorDomain
-import com.meloda.app.fast.network.mapApiResult
-import com.meloda.app.fast.network.mapDefault
-import com.meloda.app.fast.network.service.longpoll.LongPollService
-import com.meloda.app.fast.network.service.messages.MessagesService
+import dev.meloda.fast.model.api.data.LongPollUpdates
+import dev.meloda.fast.model.api.data.VkLongPollData
+import dev.meloda.fast.model.api.requests.LongPollGetUpdatesRequest
+import dev.meloda.fast.model.api.requests.MessagesGetLongPollServerRequest
+import dev.meloda.fast.network.RestApiErrorDomain
+import dev.meloda.fast.network.mapApiResult
+import dev.meloda.fast.network.mapDefault
+import dev.meloda.fast.network.service.longpoll.LongPollService
+import dev.meloda.fast.network.service.messages.MessagesService
 import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

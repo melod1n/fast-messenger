@@ -1,4 +1,4 @@
-package com.meloda.app.fast
+package dev.meloda.fast
 
 import android.os.Build
 import android.util.Log
@@ -8,18 +8,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
-import com.meloda.app.fast.auth.AuthGraph
-import com.meloda.app.fast.common.LongPollController
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.extensions.ifEmpty
-import com.meloda.app.fast.common.extensions.listenValue
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.model.LongPollState
-import com.meloda.app.fast.data.db.GetCurrentAccountUseCase
-import com.meloda.app.fast.datastore.AppSettings
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.navigation.Main
+import dev.meloda.fast.auth.AuthGraph
+import dev.meloda.fast.common.LongPollController
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.extensions.ifEmpty
+import dev.meloda.fast.common.extensions.listenValue
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.model.LongPollState
+import dev.meloda.fast.data.db.GetCurrentAccountUseCase
+import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.navigation.Main
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

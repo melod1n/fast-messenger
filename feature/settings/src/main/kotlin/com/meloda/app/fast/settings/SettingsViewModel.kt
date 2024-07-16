@@ -1,4 +1,4 @@
-package com.meloda.app.fast.settings
+package dev.meloda.fast.settings
 
 import android.content.res.Resources
 import android.os.Build
@@ -6,29 +6,29 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.app.fast.common.LongPollController
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.extensions.findWithIndex
-import com.meloda.app.fast.common.extensions.isSdkAtLeast
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.model.DarkMode
-import com.meloda.app.fast.common.model.LongPollState
-import com.meloda.app.fast.common.model.UiText
-import com.meloda.app.fast.data.db.AccountsRepository
-import com.meloda.app.fast.datastore.AppSettings
-import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.model.database.AccountEntity
-import com.meloda.app.fast.settings.model.SettingsItem
-import com.meloda.app.fast.settings.model.SettingsScreenState
-import com.meloda.app.fast.settings.model.SettingsShowOptions
-import com.meloda.app.fast.settings.model.TextProvider
+import dev.meloda.fast.common.LongPollController
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.extensions.findWithIndex
+import dev.meloda.fast.common.extensions.isSdkAtLeast
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.LongPollState
+import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.data.db.AccountsRepository
+import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.datastore.SettingsKeys
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.model.database.AccountEntity
+import dev.meloda.fast.settings.model.SettingsItem
+import dev.meloda.fast.settings.model.SettingsScreenState
+import dev.meloda.fast.settings.model.SettingsShowOptions
+import dev.meloda.fast.settings.model.TextProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 interface SettingsViewModel {
 

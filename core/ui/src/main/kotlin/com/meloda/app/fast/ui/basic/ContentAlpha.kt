@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.basic
+package dev.meloda.fast.ui.basic
 
 /*
  * Copyright 2020 The Android Open Source Project
@@ -22,7 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.luminance
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 /**
  * Default alpha levels used by Material components.

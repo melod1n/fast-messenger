@@ -1,9 +1,9 @@
-package com.meloda.app.fast.friends.util
+package dev.meloda.fast.friends.util
 
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.data.VkMemoryCache
-import com.meloda.app.fast.friends.model.UiFriend
-import com.meloda.app.fast.model.api.domain.VkUser
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.data.VkMemoryCache
+import dev.meloda.fast.friends.model.UiFriend
+import dev.meloda.fast.model.api.domain.VkUser
 
 fun VkUser.asPresentation(
     useContactNames: Boolean = false

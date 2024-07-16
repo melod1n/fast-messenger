@@ -1,4 +1,4 @@
-package com.meloda.app.fast.photoviewer.presentation
+package dev.meloda.fast.photoviewer.presentation
 
 import android.graphics.drawable.ColorDrawable
 import android.widget.Toast
@@ -44,9 +44,9 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.photoviewer.PhotoViewViewModel
-import com.meloda.app.fast.photoviewer.model.PhotoViewState
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.photoviewer.PhotoViewViewModel
+import dev.meloda.fast.photoviewer.model.PhotoViewState
 
 @OptIn(
     ExperimentalFoundationApi::class,

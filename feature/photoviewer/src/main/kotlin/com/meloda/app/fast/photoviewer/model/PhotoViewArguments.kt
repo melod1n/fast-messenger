@@ -1,7 +1,7 @@
-package com.meloda.app.fast.photoviewer.model
+package dev.meloda.fast.photoviewer.model
 
 import androidx.compose.runtime.Immutable
-import com.meloda.app.fast.common.model.UiImage
+import dev.meloda.fast.common.model.UiImage
 
 @Immutable
 data class PhotoViewArguments(

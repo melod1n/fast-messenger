@@ -1,8 +1,8 @@
-package com.meloda.app.fast.messageshistory.validation
+package dev.meloda.fast.messageshistory.validation
 
-import com.meloda.app.fast.common.extensions.addIf
-import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
-import com.meloda.app.fast.messageshistory.model.MessagesHistoryValidationResult
+import dev.meloda.fast.common.extensions.addIf
+import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.model.MessagesHistoryValidationResult
 
 class MessagesHistoryValidator {
 

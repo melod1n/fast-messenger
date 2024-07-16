@@ -1,7 +1,7 @@
-package com.meloda.app.fast.settings.model
+package dev.meloda.fast.settings.model
 
 import androidx.compose.runtime.Immutable
-import com.meloda.app.fast.datastore.AppSettings
+import dev.meloda.fast.datastore.AppSettings
 
 @Immutable
 data class SettingsScreenState(

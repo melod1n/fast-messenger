@@ -1,13 +1,13 @@
-package com.meloda.app.fast.chatmaterials.util
+package dev.meloda.fast.chatmaterials.util
 
-import com.meloda.app.fast.chatmaterials.model.UiChatMaterial
-import com.meloda.app.fast.model.api.data.AttachmentType
-import com.meloda.app.fast.model.api.domain.VkAttachmentHistoryMessage
-import com.meloda.app.fast.model.api.domain.VkAudioDomain
-import com.meloda.app.fast.model.api.domain.VkFileDomain
-import com.meloda.app.fast.model.api.domain.VkLinkDomain
-import com.meloda.app.fast.model.api.domain.VkPhotoDomain
-import com.meloda.app.fast.model.api.domain.VkVideoDomain
+import dev.meloda.fast.chatmaterials.model.UiChatMaterial
+import dev.meloda.fast.model.api.data.AttachmentType
+import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.model.api.domain.VkAudioDomain
+import dev.meloda.fast.model.api.domain.VkFileDomain
+import dev.meloda.fast.model.api.domain.VkLinkDomain
+import dev.meloda.fast.model.api.domain.VkPhotoDomain
+import dev.meloda.fast.model.api.domain.VkVideoDomain
 import java.text.SimpleDateFormat
 import java.util.Locale
 

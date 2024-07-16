@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common
+package dev.meloda.fast.common
 
 import android.content.SharedPreferences
 import androidx.core.content.edit

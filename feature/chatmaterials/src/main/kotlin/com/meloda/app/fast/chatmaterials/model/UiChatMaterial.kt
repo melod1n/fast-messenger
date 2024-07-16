@@ -1,4 +1,4 @@
-package com.meloda.app.fast.chatmaterials.model
+package dev.meloda.fast.chatmaterials.model
 
 sealed class UiChatMaterial {
 

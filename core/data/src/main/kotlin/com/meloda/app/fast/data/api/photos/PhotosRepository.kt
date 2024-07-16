@@ -1,7 +1,7 @@
-package com.meloda.app.fast.data.api.photos
+package dev.meloda.fast.data.api.photos
 
-import com.meloda.app.fast.model.api.requests.PhotosSaveMessagePhotoRequest
-import com.meloda.app.fast.network.service.photos.PhotosService
+import dev.meloda.fast.model.api.requests.PhotosSaveMessagePhotoRequest
+import dev.meloda.fast.network.service.photos.PhotosService
 import okhttp3.MultipartBody
 
 class PhotosRepository(

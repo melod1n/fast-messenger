@@ -1,4 +1,4 @@
-package com.meloda.app.fast.languagepicker.presentation
+package dev.meloda.fast.languagepicker.presentation
 
 import android.content.Intent
 import android.net.Uri
@@ -54,12 +54,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.languagepicker.LanguagePickerViewModel
-import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
-import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
-import com.meloda.app.fast.languagepicker.model.SelectableLanguage
+import dev.meloda.fast.languagepicker.LanguagePickerViewModel
+import dev.meloda.fast.languagepicker.LanguagePickerViewModelImpl
+import dev.meloda.fast.languagepicker.model.LanguagePickerScreenState
+import dev.meloda.fast.languagepicker.model.SelectableLanguage
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun LanguagePickerRoute(

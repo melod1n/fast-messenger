@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.provider
+package dev.meloda.fast.common.provider
 
 import android.content.res.Resources
 

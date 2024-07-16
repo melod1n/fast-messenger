@@ -1,7 +1,7 @@
-package com.meloda.app.fast.messageshistory.model
+package dev.meloda.fast.messageshistory.model
 
 import androidx.compose.ui.text.AnnotatedString
-import com.meloda.app.fast.common.model.UiImage
+import dev.meloda.fast.common.model.UiImage
 
 sealed class UiItem(
     open val id: Int,

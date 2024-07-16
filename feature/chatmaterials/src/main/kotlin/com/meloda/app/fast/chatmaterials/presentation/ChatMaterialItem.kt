@@ -1,4 +1,4 @@
-package com.meloda.app.fast.chatmaterials.presentation
+package dev.meloda.fast.chatmaterials.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
-import com.meloda.app.fast.chatmaterials.model.UiChatMaterial
+import dev.meloda.fast.chatmaterials.model.UiChatMaterial
 
 @Composable
 fun ChatMaterialItem(item: UiChatMaterial) {

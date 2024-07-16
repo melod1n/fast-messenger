@@ -1,4 +1,4 @@
-package com.meloda.app.fast.network
+package dev.meloda.fast.network
 
 import android.util.Log
 import com.slack.eithernet.ApiException

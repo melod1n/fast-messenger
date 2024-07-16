@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.messages
+package dev.meloda.fast.network.service.messages
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object MessagesUrls {
 

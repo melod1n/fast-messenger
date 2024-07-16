@@ -1,6 +1,6 @@
-package com.meloda.app.fast.languagepicker.di
+package dev.meloda.fast.languagepicker.di
 
-import com.meloda.app.fast.languagepicker.LanguagePickerViewModelImpl
+import dev.meloda.fast.languagepicker.LanguagePickerViewModelImpl
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 

@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations.presentation
+package dev.meloda.fast.conversations.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,11 +23,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.conversations.model.ConversationOption
-import com.meloda.app.fast.conversations.model.ConversationsScreenState
-import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.conversations.model.ConversationOption
+import dev.meloda.fast.conversations.model.ConversationsScreenState
+import dev.meloda.fast.conversations.model.UiConversation
+import dev.meloda.fast.ui.theme.LocalBottomPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

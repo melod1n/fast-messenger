@@ -4,10 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.compose.compiler)
 }
 
-group = "com.meloda.app.fast.photoviewer"
+group = "dev.meloda.fast.photoviewer"
 
 android {
-    namespace = "com.meloda.app.fast.photoviewer"
+    namespace = "dev.meloda.fast.photoviewer"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

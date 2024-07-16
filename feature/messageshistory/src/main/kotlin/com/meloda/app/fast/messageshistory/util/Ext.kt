@@ -1,6 +1,6 @@
-package com.meloda.app.fast.messageshistory.util
+package dev.meloda.fast.messageshistory.util
 
-import com.meloda.app.fast.messageshistory.model.UiItem
+import dev.meloda.fast.messageshistory.model.UiItem
 
 fun List<UiItem>.firstMessage(): UiItem.Message = first() as UiItem.Message
 

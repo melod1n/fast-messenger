@@ -6,10 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.compose.compiler)
 }
 
-group = "com.meloda.app.fast.common"
+group = "dev.meloda.fast.common"
 
 android {
-    namespace = "com.meloda.app.fast.common"
+    namespace = "dev.meloda.fast.common"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

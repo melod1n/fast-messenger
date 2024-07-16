@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.audios
+package dev.meloda.fast.network.service.audios
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object AudiosUrls {
 

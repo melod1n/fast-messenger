@@ -1,7 +1,7 @@
-package com.meloda.app.fast.friends.model
+package dev.meloda.fast.friends.model
 
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.model.api.domain.OnlineStatus
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.model.api.domain.OnlineStatus
 
 data class UiFriend(
     val userId: Int,

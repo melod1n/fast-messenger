@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.captcha.presentation
+package dev.meloda.fast.auth.captcha.presentation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -47,14 +47,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.meloda.app.fast.auth.captcha.CaptchaViewModel
-import com.meloda.app.fast.auth.captcha.CaptchaViewModelImpl
-import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
-import com.meloda.app.fast.ui.components.ActionInvokeDismiss
-import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.components.TextFieldErrorText
+import dev.meloda.fast.auth.captcha.CaptchaViewModel
+import dev.meloda.fast.auth.captcha.CaptchaViewModelImpl
+import dev.meloda.fast.auth.captcha.model.CaptchaScreenState
+import dev.meloda.fast.ui.components.ActionInvokeDismiss
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun CaptchaRoute(

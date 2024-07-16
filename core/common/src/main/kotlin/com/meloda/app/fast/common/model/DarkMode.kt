@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.model
+package dev.meloda.fast.common.model
 
 private const val MODE_NIGHT_NO = 1
 private const val MODE_NIGHT_YES = 2

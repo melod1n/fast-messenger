@@ -6,10 +6,10 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
 }
 
-group = "com.meloda.app.fast.messageshistory"
+group = "dev.meloda.fast.messageshistory"
 
 android {
-    namespace = "com.meloda.app.fast.messageshistory"
+    namespace = "dev.meloda.fast.messageshistory"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

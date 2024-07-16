@@ -1,6 +1,6 @@
-package com.meloda.app.fast.data.api.files
+package dev.meloda.fast.data.api.files
 
-import com.meloda.app.fast.network.service.files.FilesService
+import dev.meloda.fast.network.service.files.FilesService
 import okhttp3.MultipartBody
 
 class FilesRepository(

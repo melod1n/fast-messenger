@@ -1,13 +1,13 @@
-package com.meloda.app.fast.messageshistory.domain
+package dev.meloda.fast.messageshistory.domain
 
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.messages.MessagesHistoryInfo
-import com.meloda.app.fast.data.api.messages.MessagesRepository
-import com.meloda.app.fast.data.api.messages.MessagesUseCase
-import com.meloda.app.fast.data.mapToState
-import com.meloda.app.fast.model.api.domain.VkAttachment
-import com.meloda.app.fast.model.api.domain.VkAttachmentHistoryMessage
-import com.meloda.app.fast.model.api.domain.VkMessage
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.api.messages.MessagesHistoryInfo
+import dev.meloda.fast.data.api.messages.MessagesRepository
+import dev.meloda.fast.data.api.messages.MessagesUseCase
+import dev.meloda.fast.data.mapToState
+import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

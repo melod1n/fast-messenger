@@ -1,16 +1,16 @@
-package com.meloda.app.fast.profile
+package dev.meloda.fast.profile
 
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.VkConstants
-import com.meloda.app.fast.common.extensions.listenValue
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.users.UsersUseCase
-import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.network.VkErrorCode
-import com.meloda.app.fast.profile.model.ProfileScreenState
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.VkConstants
+import dev.meloda.fast.common.extensions.listenValue
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.api.users.UsersUseCase
+import dev.meloda.fast.data.processState
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.network.VkErrorCode
+import dev.meloda.fast.profile.model.ProfileScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

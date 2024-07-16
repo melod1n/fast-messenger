@@ -1,10 +1,10 @@
-package com.meloda.app.fast.auth.validation.di
+package dev.meloda.fast.auth.validation.di
 
-import com.meloda.app.fast.auth.validation.AuthUseCase
-import com.meloda.app.fast.auth.validation.AuthUseCaseImpl
-import com.meloda.app.fast.auth.validation.ValidationViewModel
-import com.meloda.app.fast.auth.validation.ValidationViewModelImpl
-import com.meloda.app.fast.auth.validation.validation.ValidationValidator
+import dev.meloda.fast.auth.validation.AuthUseCase
+import dev.meloda.fast.auth.validation.AuthUseCaseImpl
+import dev.meloda.fast.auth.validation.ValidationViewModel
+import dev.meloda.fast.auth.validation.ValidationViewModelImpl
+import dev.meloda.fast.auth.validation.validation.ValidationValidator
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind

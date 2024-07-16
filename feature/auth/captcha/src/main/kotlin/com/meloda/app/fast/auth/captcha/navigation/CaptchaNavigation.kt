@@ -1,11 +1,11 @@
-package com.meloda.app.fast.auth.captcha.navigation
+package dev.meloda.fast.auth.captcha.navigation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.auth.captcha.presentation.CaptchaRoute
+import dev.meloda.fast.auth.captcha.presentation.CaptchaRoute
 import kotlinx.serialization.Serializable
 
 @Serializable

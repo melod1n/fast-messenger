@@ -1,4 +1,4 @@
-package com.meloda.app.fast.model.api.requests
+package dev.meloda.fast.model.api.requests
 
 data class LongPollGetUpdatesRequest(
     val act: String = "a_check",

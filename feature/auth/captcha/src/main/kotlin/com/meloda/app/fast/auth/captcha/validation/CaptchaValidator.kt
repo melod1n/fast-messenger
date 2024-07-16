@@ -1,7 +1,7 @@
-package com.meloda.app.fast.auth.captcha.validation
+package dev.meloda.fast.auth.captcha.validation
 
-import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
-import com.meloda.app.fast.auth.captcha.model.CaptchaValidationResult
+import dev.meloda.fast.auth.captcha.model.CaptchaScreenState
+import dev.meloda.fast.auth.captcha.model.CaptchaValidationResult
 
 class CaptchaValidator {
 

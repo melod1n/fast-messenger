@@ -1,9 +1,9 @@
-package com.meloda.app.fast.network.service.videos
+package dev.meloda.fast.network.service.videos
 
-import com.meloda.app.fast.model.api.responses.VideosSaveResponse
-import com.meloda.app.fast.model.api.responses.VideosUploadResponse
-import com.meloda.app.fast.network.ApiResponse
-import com.meloda.app.fast.network.RestApiError
+import dev.meloda.fast.model.api.responses.VideosSaveResponse
+import dev.meloda.fast.model.api.responses.VideosUploadResponse
+import dev.meloda.fast.network.ApiResponse
+import dev.meloda.fast.network.RestApiError
 import com.slack.eithernet.ApiResult
 import okhttp3.MultipartBody
 import retrofit2.http.Multipart

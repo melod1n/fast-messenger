@@ -4,7 +4,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.meloda.app.fast.common.extensions.navigation.sharedViewModel
+import dev.meloda.fast.common.extensions.navigation.sharedViewModel
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import com.meloda.fast.auth.login.model.CaptchaArguments

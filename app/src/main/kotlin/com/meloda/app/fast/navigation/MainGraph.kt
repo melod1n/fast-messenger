@@ -1,15 +1,15 @@
-package com.meloda.app.fast.navigation
+package dev.meloda.fast.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.meloda.app.fast.conversations.navigation.Conversations
-import com.meloda.app.fast.friends.navigation.Friends
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.model.BottomNavigationItem
-import com.meloda.app.fast.presentation.MainScreen
-import com.meloda.app.fast.profile.navigation.Profile
+import dev.meloda.fast.conversations.navigation.Conversations
+import dev.meloda.fast.friends.navigation.Friends
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.BottomNavigationItem
+import dev.meloda.fast.presentation.MainScreen
+import dev.meloda.fast.profile.navigation.Profile
 import kotlinx.serialization.Serializable
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Serializable
 object MainGraph

@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common
+package dev.meloda.fast.common
 
 object AppConstants {
 

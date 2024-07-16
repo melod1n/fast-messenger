@@ -1,11 +1,11 @@
-package com.meloda.app.fast.chatmaterials.navigation
+package dev.meloda.fast.chatmaterials.navigation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.chatmaterials.presentation.ChatMaterialsRoute
+import dev.meloda.fast.chatmaterials.presentation.ChatMaterialsRoute
 import kotlinx.serialization.Serializable
 
 @Serializable

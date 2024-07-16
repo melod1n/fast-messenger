@@ -1,6 +1,6 @@
-package com.meloda.app.fast.model.api.domain
+package dev.meloda.fast.model.api.domain
 
-import com.meloda.app.fast.model.api.data.AttachmentType
+import dev.meloda.fast.model.api.data.AttachmentType
 
 data class VkAudioMessageDomain(
     val id: Int,

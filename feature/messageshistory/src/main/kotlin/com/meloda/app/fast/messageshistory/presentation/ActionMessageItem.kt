@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.presentation
+package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.messageshistory.model.UiItem
+import dev.meloda.fast.messageshistory.model.UiItem
 
 @Composable
 fun ActionMessageItem(

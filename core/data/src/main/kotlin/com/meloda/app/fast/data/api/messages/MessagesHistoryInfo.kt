@@ -1,7 +1,7 @@
-package com.meloda.app.fast.data.api.messages
+package dev.meloda.fast.data.api.messages
 
-import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkMessage
 
 data class MessagesHistoryInfo(
     val messages: List<VkMessage>,

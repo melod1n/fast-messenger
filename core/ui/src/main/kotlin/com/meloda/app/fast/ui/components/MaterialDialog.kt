@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.components
+package dev.meloda.fast.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -33,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.meloda.app.fast.ui.util.ImmutableList
-import com.meloda.app.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

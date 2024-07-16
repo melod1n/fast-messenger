@@ -1,4 +1,4 @@
-package com.meloda.app.fast.userbanned.model
+package dev.meloda.fast.userbanned.model
 
 data class UserBannedScreenState(
     val userName: String,

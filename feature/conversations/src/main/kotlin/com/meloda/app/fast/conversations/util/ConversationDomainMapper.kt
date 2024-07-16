@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations.util
+package dev.meloda.fast.conversations.util
 
 import android.content.res.Resources
 import androidx.compose.ui.graphics.Color
@@ -9,27 +9,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.conena.nanokt.jvm.util.dayOfMonth
 import com.conena.nanokt.jvm.util.month
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.common.model.UiText
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.extensions.orDots
-import com.meloda.app.fast.common.model.parseString
-import com.meloda.app.fast.common.util.TimeUtils
-import com.meloda.app.fast.conversations.model.ActionState
-import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.data.VkMemoryCache
-import com.meloda.app.fast.model.InteractionType
-import com.meloda.app.fast.model.api.PeerType
-import com.meloda.app.fast.model.api.data.AttachmentType
-import com.meloda.app.fast.model.api.domain.VkAttachment
-import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.model.api.domain.VkMessage
-import com.meloda.app.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.common.model.parseString
+import dev.meloda.fast.common.util.TimeUtils
+import dev.meloda.fast.conversations.model.ActionState
+import dev.meloda.fast.conversations.model.UiConversation
+import dev.meloda.fast.data.VkMemoryCache
+import dev.meloda.fast.model.InteractionType
+import dev.meloda.fast.model.api.PeerType
+import dev.meloda.fast.model.api.data.AttachmentType
+import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.util.ImmutableList
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.ln
 import kotlin.math.pow
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 fun VkConversation.asPresentation(
     resources: Resources,

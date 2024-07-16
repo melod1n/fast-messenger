@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.meloda.app.fast.captcha"
+    namespace = "dev.meloda.fast.captcha"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

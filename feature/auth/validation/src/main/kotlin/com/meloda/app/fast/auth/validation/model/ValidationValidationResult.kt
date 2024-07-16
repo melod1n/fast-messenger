@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.validation.model
+package dev.meloda.fast.auth.validation.model
 
 sealed class ValidationValidationResult {
     data object Empty : ValidationValidationResult()

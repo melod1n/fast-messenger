@@ -1,7 +1,7 @@
-package com.meloda.app.fast.data.db
+package dev.meloda.fast.data.db
 
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.model.database.AccountEntity
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.model.database.AccountEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

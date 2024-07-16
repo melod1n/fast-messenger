@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations.model
+package dev.meloda.fast.conversations.model
 
 enum class ActionState {
     PHANTOM, CALL_IN_PROGRESS, NONE;

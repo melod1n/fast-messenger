@@ -1,7 +1,7 @@
-package com.meloda.app.fast.model.api.domain
+package dev.meloda.fast.model.api.domain
 
-import com.meloda.app.fast.model.api.PeerType
-import com.meloda.app.fast.model.database.VkConversationEntity
+import dev.meloda.fast.model.api.PeerType
+import dev.meloda.fast.model.database.VkConversationEntity
 
 data class VkConversation(
     val id: Int,

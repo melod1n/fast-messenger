@@ -1,8 +1,8 @@
-package com.meloda.app.fast.database.dao
+package dev.meloda.fast.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.meloda.app.fast.model.database.AccountEntity
+import dev.meloda.fast.model.database.AccountEntity
 
 @Dao
 abstract class AccountDao : EntityDao<AccountEntity> {

@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.photos
+package dev.meloda.fast.network.service.photos
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object PhotoUrls {
 

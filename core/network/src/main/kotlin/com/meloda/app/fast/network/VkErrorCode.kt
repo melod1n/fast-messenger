@@ -1,4 +1,4 @@
-package com.meloda.app.fast.network
+package dev.meloda.fast.network
 
 enum class VkErrorCode(val code: Int) {
     UNKNOWN_ERROR(1),

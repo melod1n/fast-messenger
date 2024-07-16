@@ -1,8 +1,8 @@
-package com.meloda.app.fast.database.dao
+package dev.meloda.fast.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.meloda.app.fast.model.database.VkMessageEntity
+import dev.meloda.fast.model.database.VkMessageEntity
 
 @Dao
 abstract class MessageDao : EntityDao<VkMessageEntity> {

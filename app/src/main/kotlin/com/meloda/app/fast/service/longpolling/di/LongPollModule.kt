@@ -1,8 +1,8 @@
-package com.meloda.app.fast.service.longpolling.di
+package dev.meloda.fast.service.longpolling.di
 
-import com.meloda.app.fast.data.LongPollUpdatesParser
-import com.meloda.app.fast.data.LongPollUseCase
-import com.meloda.app.fast.data.LongPollUseCaseImpl
+import dev.meloda.fast.data.LongPollUpdatesParser
+import dev.meloda.fast.data.LongPollUseCase
+import dev.meloda.fast.data.LongPollUseCaseImpl
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module

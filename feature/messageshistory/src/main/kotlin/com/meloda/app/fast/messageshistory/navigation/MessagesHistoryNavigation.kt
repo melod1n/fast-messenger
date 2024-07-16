@@ -1,14 +1,14 @@
-package com.meloda.app.fast.messageshistory.navigation
+package dev.meloda.fast.messageshistory.navigation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.common.extensions.customNavType
-import com.meloda.app.fast.messageshistory.model.MessagesHistoryArguments
-import com.meloda.app.fast.messageshistory.presentation.MessagesHistoryRoute
-import com.meloda.app.fast.model.BaseError
+import dev.meloda.fast.common.extensions.customNavType
+import dev.meloda.fast.messageshistory.model.MessagesHistoryArguments
+import dev.meloda.fast.messageshistory.presentation.MessagesHistoryRoute
+import dev.meloda.fast.model.BaseError
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 

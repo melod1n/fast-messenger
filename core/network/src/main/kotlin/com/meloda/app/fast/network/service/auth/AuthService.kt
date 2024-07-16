@@ -1,9 +1,9 @@
-package com.meloda.app.fast.network.service.auth
+package dev.meloda.fast.network.service.auth
 
-import com.meloda.app.fast.model.api.responses.ValidateLoginResponse
-import com.meloda.app.fast.model.api.responses.ValidatePhoneResponse
-import com.meloda.app.fast.network.ApiResponse
-import com.meloda.app.fast.network.RestApiError
+import dev.meloda.fast.model.api.responses.ValidateLoginResponse
+import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
+import dev.meloda.fast.network.ApiResponse
+import dev.meloda.fast.network.RestApiError
 import com.slack.eithernet.ApiResult
 import retrofit2.http.GET
 import retrofit2.http.Query

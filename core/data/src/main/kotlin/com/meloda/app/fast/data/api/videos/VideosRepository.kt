@@ -1,6 +1,6 @@
-package com.meloda.app.fast.data.api.videos
+package dev.meloda.fast.data.api.videos
 
-import com.meloda.app.fast.network.service.videos.VideosService
+import dev.meloda.fast.network.service.videos.VideosService
 import okhttp3.MultipartBody
 
 class VideosRepository(

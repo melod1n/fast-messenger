@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.validation.presentation
+package dev.meloda.fast.auth.validation.presentation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -45,15 +45,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.auth.validation.ValidationViewModel
-import com.meloda.app.fast.auth.validation.ValidationViewModelImpl
-import com.meloda.app.fast.auth.validation.model.ValidationScreenState
-import com.meloda.app.fast.auth.validation.model.ValidationType
-import com.meloda.app.fast.ui.components.ActionInvokeDismiss
-import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.components.TextFieldErrorText
+import dev.meloda.fast.auth.validation.ValidationViewModel
+import dev.meloda.fast.auth.validation.ValidationViewModelImpl
+import dev.meloda.fast.auth.validation.model.ValidationScreenState
+import dev.meloda.fast.auth.validation.model.ValidationType
+import dev.meloda.fast.ui.components.ActionInvokeDismiss
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun ValidationRoute(

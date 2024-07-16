@@ -1,4 +1,4 @@
-package com.meloda.app.fast.model.api.responses
+package dev.meloda.fast.model.api.responses
 
 import com.squareup.moshi.Json
 

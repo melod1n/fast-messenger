@@ -1,7 +1,7 @@
-package com.meloda.app.fast.model.api.domain
+package dev.meloda.fast.model.api.domain
 
-import com.meloda.app.fast.model.api.data.AttachmentType
-import com.meloda.app.fast.model.api.data.VkVideoData
+import dev.meloda.fast.model.api.data.AttachmentType
+import dev.meloda.fast.model.api.data.VkVideoData
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)

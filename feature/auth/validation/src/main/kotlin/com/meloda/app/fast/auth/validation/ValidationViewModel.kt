@@ -1,17 +1,17 @@
-package com.meloda.app.fast.auth.validation
+package dev.meloda.fast.auth.validation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meloda.app.fast.auth.validation.model.ValidationScreenState
-import com.meloda.app.fast.auth.validation.model.ValidationType
-import com.meloda.app.fast.auth.validation.navigation.Validation
-import com.meloda.app.fast.auth.validation.validation.ValidationValidator
-import com.meloda.app.fast.common.extensions.createTimerFlow
-import com.meloda.app.fast.common.extensions.listenValue
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.extensions.updateValue
-import com.meloda.app.fast.data.processState
+import dev.meloda.fast.auth.validation.model.ValidationScreenState
+import dev.meloda.fast.auth.validation.model.ValidationType
+import dev.meloda.fast.auth.validation.navigation.Validation
+import dev.meloda.fast.auth.validation.validation.ValidationValidator
+import dev.meloda.fast.common.extensions.createTimerFlow
+import dev.meloda.fast.common.extensions.listenValue
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.extensions.updateValue
+import dev.meloda.fast.data.processState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

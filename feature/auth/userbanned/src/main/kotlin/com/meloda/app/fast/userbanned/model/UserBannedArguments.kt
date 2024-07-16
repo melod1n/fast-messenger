@@ -1,4 +1,4 @@
-package com.meloda.app.fast.userbanned.model
+package dev.meloda.fast.userbanned.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

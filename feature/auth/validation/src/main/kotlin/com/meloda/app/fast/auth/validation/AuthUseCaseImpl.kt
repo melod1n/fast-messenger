@@ -1,9 +1,9 @@
-package com.meloda.app.fast.auth.validation
+package dev.meloda.fast.auth.validation
 
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.auth.AuthRepository
-import com.meloda.app.fast.data.mapToState
-import com.meloda.app.fast.model.api.responses.ValidatePhoneResponse
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.api.auth.AuthRepository
+import dev.meloda.fast.data.mapToState
+import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

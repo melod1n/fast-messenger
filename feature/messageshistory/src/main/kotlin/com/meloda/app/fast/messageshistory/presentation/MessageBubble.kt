@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.presentation
+package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background

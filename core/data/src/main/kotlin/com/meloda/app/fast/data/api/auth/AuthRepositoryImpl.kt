@@ -1,9 +1,9 @@
-package com.meloda.app.fast.data.api.auth
+package dev.meloda.fast.data.api.auth
 
-import com.meloda.app.fast.model.api.responses.ValidatePhoneResponse
-import com.meloda.app.fast.network.RestApiErrorDomain
-import com.meloda.app.fast.network.mapApiDefault
-import com.meloda.app.fast.network.service.auth.AuthService
+import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
+import dev.meloda.fast.network.RestApiErrorDomain
+import dev.meloda.fast.network.mapApiDefault
+import dev.meloda.fast.network.service.auth.AuthService
 import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

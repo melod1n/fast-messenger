@@ -1,11 +1,11 @@
-package com.meloda.app.fast.conversations.model
+package dev.meloda.fast.conversations.model
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.model.api.PeerType
-import com.meloda.app.fast.model.api.domain.VkMessage
-import com.meloda.app.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.model.api.PeerType
+import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.util.ImmutableList
 
 @Immutable
 data class UiConversation(

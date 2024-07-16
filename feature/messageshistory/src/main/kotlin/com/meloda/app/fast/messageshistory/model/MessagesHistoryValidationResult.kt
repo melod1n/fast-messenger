@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.model
+package dev.meloda.fast.messageshistory.model
 
 sealed interface MessagesHistoryValidationResult {
 

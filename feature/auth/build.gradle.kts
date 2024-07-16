@@ -17,7 +17,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.meloda.app.fast.auth"
+group = "dev.meloda.fast.auth"
 
 androidComponents {
     onVariants { variant ->
@@ -43,7 +43,7 @@ androidComponents {
 }
 
 android {
-    namespace = "com.meloda.app.fast.auth"
+    namespace = "dev.meloda.fast.auth"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

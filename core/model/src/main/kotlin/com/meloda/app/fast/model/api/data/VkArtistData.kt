@@ -1,6 +1,6 @@
-package com.meloda.app.fast.model.api.data
+package dev.meloda.fast.model.api.data
 
-import com.meloda.app.fast.model.api.domain.VkArtistDomain
+import dev.meloda.fast.model.api.domain.VkArtistDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 

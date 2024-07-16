@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.validation.model
+package dev.meloda.fast.auth.validation.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

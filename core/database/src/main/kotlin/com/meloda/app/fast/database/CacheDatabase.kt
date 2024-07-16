@@ -1,17 +1,17 @@
-package com.meloda.app.fast.database
+package dev.meloda.fast.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.meloda.app.fast.database.dao.ConversationDao
-import com.meloda.app.fast.database.dao.GroupDao
-import com.meloda.app.fast.database.dao.MessageDao
-import com.meloda.app.fast.database.dao.UsersDao
-import com.meloda.app.fast.database.typeconverters.Converters
-import com.meloda.app.fast.model.database.VkConversationEntity
-import com.meloda.app.fast.model.database.VkGroupEntity
-import com.meloda.app.fast.model.database.VkMessageEntity
-import com.meloda.app.fast.model.database.VkUserEntity
+import dev.meloda.fast.database.dao.ConversationDao
+import dev.meloda.fast.database.dao.GroupDao
+import dev.meloda.fast.database.dao.MessageDao
+import dev.meloda.fast.database.dao.UsersDao
+import dev.meloda.fast.database.typeconverters.Converters
+import dev.meloda.fast.model.database.VkConversationEntity
+import dev.meloda.fast.model.database.VkGroupEntity
+import dev.meloda.fast.model.database.VkMessageEntity
+import dev.meloda.fast.model.database.VkUserEntity
 
 @Database(
     entities = [

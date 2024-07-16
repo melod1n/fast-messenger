@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.basic
+package dev.meloda.fast.ui.basic
 
 import android.os.Build
 import android.view.autofill.AutofillManager

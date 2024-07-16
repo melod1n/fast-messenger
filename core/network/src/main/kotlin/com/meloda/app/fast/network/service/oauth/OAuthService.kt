@@ -1,7 +1,7 @@
-package com.meloda.app.fast.network.service.oauth
+package dev.meloda.fast.network.service.oauth
 
-import com.meloda.app.fast.model.api.responses.AuthDirectResponse
-import com.meloda.app.fast.model.api.responses.GetAnonymousTokenResponse
+import dev.meloda.fast.model.api.responses.AuthDirectResponse
+import dev.meloda.fast.model.api.responses.GetAnonymousTokenResponse
 import com.slack.eithernet.ApiResult
 import com.slack.eithernet.DecodeErrorBody
 import retrofit2.http.GET

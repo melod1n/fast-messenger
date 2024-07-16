@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.extensions
+package dev.meloda.fast.common.extensions
 
 inline fun String?.ifEmpty(defaultValue: () -> String?): String? =
     if (this?.isEmpty() == true) defaultValue() else this

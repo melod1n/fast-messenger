@@ -3,10 +3,10 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.android)
 }
 
-group = "com.meloda.app.fast.data"
+group = "dev.meloda.fast.data"
 
 android {
-    namespace = "com.meloda.app.fast.data"
+    namespace = "dev.meloda.fast.data"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

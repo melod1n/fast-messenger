@@ -1,4 +1,4 @@
-package com.meloda.app.fast.presentation
+package dev.meloda.fast.presentation
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -30,24 +30,24 @@ import com.conena.nanokt.android.content.pxToDp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.meloda.app.fast.MainViewModel
-import com.meloda.app.fast.MainViewModelImpl
-import com.meloda.app.fast.common.AppConstants
-import com.meloda.app.fast.common.LongPollController
-import com.meloda.app.fast.common.extensions.isSdkAtLeast
-import com.meloda.app.fast.common.model.LongPollState
-import com.meloda.app.fast.datastore.AppSettings
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.service.OnlineService
-import com.meloda.app.fast.service.longpolling.LongPollingService
-import com.meloda.app.fast.ui.model.ThemeConfig
-import com.meloda.app.fast.ui.theme.AppTheme
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
-import com.meloda.app.fast.ui.util.isNeedToEnableDarkMode
+import dev.meloda.fast.MainViewModel
+import dev.meloda.fast.MainViewModelImpl
+import dev.meloda.fast.common.AppConstants
+import dev.meloda.fast.common.LongPollController
+import dev.meloda.fast.common.extensions.isSdkAtLeast
+import dev.meloda.fast.common.model.LongPollState
+import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.service.OnlineService
+import dev.meloda.fast.service.longpolling.LongPollingService
+import dev.meloda.fast.ui.model.ThemeConfig
+import dev.meloda.fast.ui.theme.AppTheme
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 class MainActivity : AppCompatActivity() {
 

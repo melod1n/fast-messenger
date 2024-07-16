@@ -1,4 +1,4 @@
-package com.meloda.app.fast.profile.presentation
+package dev.meloda.fast.profile.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,13 +34,13 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.profile.ProfileViewModel
-import com.meloda.app.fast.profile.ProfileViewModelImpl
-import com.meloda.app.fast.profile.model.ProfileScreenState
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.profile.ProfileViewModel
+import dev.meloda.fast.profile.ProfileViewModelImpl
+import dev.meloda.fast.profile.model.ProfileScreenState
 import org.koin.androidx.compose.koinViewModel
 
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun ProfileRoute(

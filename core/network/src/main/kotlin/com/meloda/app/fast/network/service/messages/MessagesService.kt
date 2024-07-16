@@ -1,11 +1,11 @@
-package com.meloda.app.fast.network.service.messages
+package dev.meloda.fast.network.service.messages
 
-import com.meloda.app.fast.model.api.data.VkLongPollData
-import com.meloda.app.fast.model.api.responses.MessagesGetByIdResponse
-import com.meloda.app.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
-import com.meloda.app.fast.model.api.responses.MessagesGetHistoryResponse
-import com.meloda.app.fast.network.ApiResponse
-import com.meloda.app.fast.network.RestApiError
+import dev.meloda.fast.model.api.data.VkLongPollData
+import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
+import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
+import dev.meloda.fast.model.api.responses.MessagesGetHistoryResponse
+import dev.meloda.fast.network.ApiResponse
+import dev.meloda.fast.network.RestApiError
 import com.slack.eithernet.ApiResult
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded

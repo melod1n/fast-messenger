@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.meloda.app.fast.validation"
+    namespace = "dev.meloda.fast.validation"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

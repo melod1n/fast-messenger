@@ -1,4 +1,4 @@
-package com.meloda.app.fast.datastore
+package dev.meloda.fast.datastore
 
 import androidx.appcompat.app.AppCompatDelegate
 

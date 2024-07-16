@@ -1,18 +1,18 @@
-package com.meloda.app.fast.languagepicker
+package dev.meloda.fast.languagepicker
 
 import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.common.model.UiText
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.model.parseString
-import com.meloda.app.fast.languagepicker.model.LanguagePickerScreenState
-import com.meloda.app.fast.languagepicker.model.SelectableLanguage
+import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.model.parseString
+import dev.meloda.fast.languagepicker.model.LanguagePickerScreenState
+import dev.meloda.fast.languagepicker.model.SelectableLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 interface LanguagePickerViewModel {
     val screenState: StateFlow<LanguagePickerScreenState>

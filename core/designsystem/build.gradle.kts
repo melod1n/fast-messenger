@@ -4,10 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.compose.compiler)
 }
 
-group = "com.meloda.app.fast.designsystem"
+group = "dev.meloda.fast.designsystem"
 
 android {
-    namespace = "com.meloda.app.fast.designsystem"
+    namespace = "dev.meloda.fast.designsystem"
 
     compileSdk = Configs.compileSdk
 

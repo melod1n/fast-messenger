@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.basic
+package dev.meloda.fast.ui.basic
 
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme

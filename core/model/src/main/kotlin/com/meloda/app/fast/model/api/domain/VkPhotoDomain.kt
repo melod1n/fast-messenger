@@ -1,7 +1,7 @@
-package com.meloda.app.fast.model.api.domain
+package dev.meloda.fast.model.api.domain
 
-import com.meloda.app.fast.model.api.data.AttachmentType
-import com.meloda.app.fast.model.api.data.VkPhotoData
+import dev.meloda.fast.model.api.data.AttachmentType
+import dev.meloda.fast.model.api.data.VkPhotoData
 import java.util.Stack
 
 

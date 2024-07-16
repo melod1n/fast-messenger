@@ -1,6 +1,6 @@
-package com.meloda.app.fast.chatmaterials.di
+package dev.meloda.fast.chatmaterials.di
 
-import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
+import dev.meloda.fast.chatmaterials.ChatMaterialsViewModelImpl
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 

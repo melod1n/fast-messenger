@@ -1,10 +1,10 @@
-package com.meloda.app.fast.settings.model
+package dev.meloda.fast.settings.model
 
 import android.content.res.Resources
 import androidx.compose.runtime.Immutable
-import com.meloda.app.fast.common.model.UiText
-import com.meloda.app.fast.common.model.parseString
-import com.meloda.app.fast.datastore.AppSettings
+import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.common.model.parseString
+import dev.meloda.fast.datastore.AppSettings
 import kotlin.reflect.KClass
 
 @Immutable

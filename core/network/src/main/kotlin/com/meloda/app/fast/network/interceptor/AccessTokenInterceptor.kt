@@ -1,7 +1,7 @@
-package com.meloda.app.fast.network.interceptor
+package dev.meloda.fast.network.interceptor
 
 import androidx.core.net.toUri
-import com.meloda.app.fast.common.UserConfig
+import dev.meloda.fast.common.UserConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.net.URLEncoder

@@ -1,7 +1,7 @@
-package com.meloda.app.fast.datastore.di
+package dev.meloda.fast.datastore.di
 
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.datastore.UserSettingsImpl
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.datastore.UserSettingsImpl
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module

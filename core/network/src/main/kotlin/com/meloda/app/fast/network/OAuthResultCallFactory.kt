@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network
+package dev.meloda.fast.network
 
-import com.meloda.app.fast.model.api.responses.AuthDirectErrorOnlyResponse
+import dev.meloda.fast.model.api.responses.AuthDirectErrorOnlyResponse
 import com.squareup.moshi.Moshi
 import okhttp3.Request
 import okio.Timeout

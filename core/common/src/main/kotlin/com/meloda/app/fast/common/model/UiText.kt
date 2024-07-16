@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.model
+package dev.meloda.fast.common.model
 
 import android.content.res.Resources
 import androidx.annotation.PluralsRes

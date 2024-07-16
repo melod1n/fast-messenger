@@ -1,4 +1,4 @@
-package com.meloda.app.fast.model.database
+package dev.meloda.fast.model.database
 
 import androidx.room.Embedded
 import androidx.room.Relation

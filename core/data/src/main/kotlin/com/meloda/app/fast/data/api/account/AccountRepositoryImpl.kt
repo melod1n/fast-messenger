@@ -1,10 +1,10 @@
-package com.meloda.app.fast.data.api.account
+package dev.meloda.fast.data.api.account
 
 import android.os.Build
-import com.meloda.app.fast.model.api.asInt
-import com.meloda.app.fast.network.RestApiErrorDomain
-import com.meloda.app.fast.network.mapApiDefault
-import com.meloda.app.fast.network.service.account.AccountService
+import dev.meloda.fast.model.api.asInt
+import dev.meloda.fast.network.RestApiErrorDomain
+import dev.meloda.fast.network.mapApiDefault
+import dev.meloda.fast.network.service.account.AccountService
 import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

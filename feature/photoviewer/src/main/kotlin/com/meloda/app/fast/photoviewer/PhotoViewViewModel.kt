@@ -1,9 +1,9 @@
-package com.meloda.app.fast.photoviewer
+package dev.meloda.fast.photoviewer
 
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.photoviewer.model.PhotoViewArguments
-import com.meloda.app.fast.photoviewer.model.PhotoViewState
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.photoviewer.model.PhotoViewArguments
+import dev.meloda.fast.photoviewer.model.PhotoViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

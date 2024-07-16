@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.auth
+package dev.meloda.fast.network.service.auth
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object AuthUrls {
     private const val URL = AppConstants.URL_API

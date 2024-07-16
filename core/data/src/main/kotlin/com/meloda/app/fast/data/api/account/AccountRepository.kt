@@ -1,6 +1,6 @@
-package com.meloda.app.fast.data.api.account
+package dev.meloda.fast.data.api.account
 
-import com.meloda.app.fast.network.RestApiErrorDomain
+import dev.meloda.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
 
 interface AccountRepository {

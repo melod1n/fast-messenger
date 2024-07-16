@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.presentation
+package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -17,9 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.messageshistory.model.UiItem
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
-import com.meloda.app.fast.ui.util.ImmutableList
+import dev.meloda.fast.messageshistory.model.UiItem
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi

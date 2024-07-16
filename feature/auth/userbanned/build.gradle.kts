@@ -7,10 +7,10 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
 }
 
-group = "com.meloda.app.fast.userbanned"
+group = "dev.meloda.fast.userbanned"
 
 android {
-    namespace = "com.meloda.app.fast.userbanned"
+    namespace = "dev.meloda.fast.userbanned"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

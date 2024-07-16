@@ -1,8 +1,8 @@
-package com.meloda.app.fast.data.api.users
+package dev.meloda.fast.data.api.users
 
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.mapToState
-import com.meloda.app.fast.model.api.domain.VkUser
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.mapToState
+import dev.meloda.fast.model.api.domain.VkUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

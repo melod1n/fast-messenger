@@ -1,4 +1,4 @@
-package com.meloda.app.fast.chatmaterials.presentation
+package dev.meloda.fast.chatmaterials.presentation
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -61,12 +61,12 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModel
-import com.meloda.app.fast.chatmaterials.ChatMaterialsViewModelImpl
-import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.ui.R
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.chatmaterials.ChatMaterialsViewModel
+import dev.meloda.fast.chatmaterials.ChatMaterialsViewModelImpl
+import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild

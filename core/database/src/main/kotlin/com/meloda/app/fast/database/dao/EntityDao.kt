@@ -1,4 +1,4 @@
-package com.meloda.app.fast.database.dao
+package dev.meloda.fast.database.dao
 
 import androidx.room.Delete
 import androidx.room.Insert

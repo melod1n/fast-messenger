@@ -1,4 +1,4 @@
-package com.meloda.app.fast.network
+package dev.meloda.fast.network
 
 import com.squareup.moshi.Moshi
 import java.lang.reflect.Type

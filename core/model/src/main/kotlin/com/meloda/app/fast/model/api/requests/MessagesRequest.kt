@@ -1,7 +1,7 @@
-package com.meloda.app.fast.model.api.requests
+package dev.meloda.fast.model.api.requests
 
-import com.meloda.app.fast.model.api.asInt
-import com.meloda.app.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.asInt
+import dev.meloda.fast.model.api.domain.VkAttachment
 
 data class MessagesGetHistoryRequest(
     val count: Int? = null,

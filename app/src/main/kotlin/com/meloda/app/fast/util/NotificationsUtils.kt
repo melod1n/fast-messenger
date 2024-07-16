@@ -1,12 +1,12 @@
-package com.meloda.app.fast.util
+package dev.meloda.fast.util
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.meloda.app.fast.common.AppConstants
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.common.AppConstants
+import dev.meloda.fast.ui.R as UiR
 
 object NotificationsUtils {
 

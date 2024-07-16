@@ -1,11 +1,11 @@
 package com.meloda.fast.auth.login
 
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.oauth.OAuthRepository
-import com.meloda.app.fast.network.OAuthErrorDomain
-import com.meloda.app.fast.network.ValidationType
-import com.meloda.app.fast.network.VkOAuthError
-import com.meloda.app.fast.network.VkOAuthErrorType
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.api.oauth.OAuthRepository
+import dev.meloda.fast.network.OAuthErrorDomain
+import dev.meloda.fast.network.ValidationType
+import dev.meloda.fast.network.VkOAuthError
+import dev.meloda.fast.network.VkOAuthErrorType
 import com.meloda.fast.auth.login.model.AuthInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

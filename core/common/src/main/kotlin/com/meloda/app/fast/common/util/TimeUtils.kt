@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.util
+package dev.meloda.fast.common.util
 
 import android.content.res.Resources
 import com.conena.nanokt.jvm.util.dayOfMonth
@@ -9,7 +9,7 @@ import com.conena.nanokt.jvm.util.minute
 import com.conena.nanokt.jvm.util.month
 import com.conena.nanokt.jvm.util.second
 import com.conena.nanokt.jvm.util.year
-import com.meloda.app.fast.common.R
+import dev.meloda.fast.common.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

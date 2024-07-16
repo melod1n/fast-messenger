@@ -1,4 +1,4 @@
-package com.meloda.app.fast.settings.presentation.item
+package dev.meloda.fast.settings.presentation.item
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -19,10 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.settings.model.UiItem
-import com.meloda.app.fast.ui.basic.ContentAlpha
-import com.meloda.app.fast.ui.basic.LocalContentAlpha
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.settings.model.UiItem
+import dev.meloda.fast.ui.basic.ContentAlpha
+import dev.meloda.fast.ui.basic.LocalContentAlpha
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

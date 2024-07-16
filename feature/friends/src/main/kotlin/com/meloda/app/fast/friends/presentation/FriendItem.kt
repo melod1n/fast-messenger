@@ -1,4 +1,4 @@
-package com.meloda.app.fast.friends.presentation
+package dev.meloda.fast.friends.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,8 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.meloda.app.fast.ui.R
-import com.meloda.app.fast.friends.model.UiFriend
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.friends.model.UiFriend
 
 @Composable
 fun FriendItem(

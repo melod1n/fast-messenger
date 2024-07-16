@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.meloda.app.fast.**
+-keep class dev.meloda.fast.**

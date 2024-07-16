@@ -1,13 +1,13 @@
-package com.meloda.app.fast.conversations.navigation
+package dev.meloda.fast.conversations.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.meloda.app.fast.common.extensions.navigation.sharedViewModel
-import com.meloda.app.fast.conversations.ConversationsViewModel
-import com.meloda.app.fast.conversations.ConversationsViewModelImpl
-import com.meloda.app.fast.conversations.presentation.ConversationsRoute
-import com.meloda.app.fast.model.BaseError
+import dev.meloda.fast.common.extensions.navigation.sharedViewModel
+import dev.meloda.fast.conversations.ConversationsViewModel
+import dev.meloda.fast.conversations.ConversationsViewModelImpl
+import dev.meloda.fast.conversations.presentation.ConversationsRoute
+import dev.meloda.fast.model.BaseError
 import kotlinx.serialization.Serializable
 
 @Serializable

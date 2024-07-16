@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.extensions
+package dev.meloda.fast.common.extensions
 
 import android.app.Activity
 import android.content.Context
@@ -33,7 +33,7 @@ fun Context.restartApp() {
         activity.startActivity(
             Intent(
                 this,
-                Class.forName("com.meloda.app.fast.MainActivity")
+                Class.forName("dev.meloda.fast.MainActivity")
             )
         )
     }

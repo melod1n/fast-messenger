@@ -1,4 +1,4 @@
-package com.meloda.app.fast.database.typeconverters
+package dev.meloda.fast.database.typeconverters
 
 import androidx.room.TypeConverter
 

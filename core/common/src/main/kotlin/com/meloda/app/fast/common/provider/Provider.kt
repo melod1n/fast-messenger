@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.provider
+package dev.meloda.fast.common.provider
 
 interface Provider<T> {
     fun provide(): T?

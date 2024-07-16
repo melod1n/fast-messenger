@@ -1,7 +1,7 @@
-package com.meloda.app.fast.model.api.responses
+package dev.meloda.fast.model.api.responses
 
-import com.meloda.app.fast.model.api.data.VkAudioMessageData
-import com.meloda.app.fast.model.api.data.VkFileData
+import dev.meloda.fast.model.api.data.VkAudioMessageData
+import dev.meloda.fast.model.api.data.VkFileData
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 

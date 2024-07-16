@@ -1,7 +1,7 @@
-package com.meloda.app.fast.network.service.longpoll
+package dev.meloda.fast.network.service.longpoll
 
-import com.meloda.app.fast.model.api.data.LongPollUpdates
-import com.meloda.app.fast.network.RestApiError
+import dev.meloda.fast.model.api.data.LongPollUpdates
+import dev.meloda.fast.network.RestApiError
 import com.slack.eithernet.ApiResult
 import retrofit2.http.GET
 import retrofit2.http.QueryMap

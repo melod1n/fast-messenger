@@ -6,10 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.meloda.app.fast.friends"
+group = "dev.meloda.fast.friends"
 
 android {
-    namespace = "com.meloda.app.fast.friends"
+    namespace = "dev.meloda.fast.friends"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

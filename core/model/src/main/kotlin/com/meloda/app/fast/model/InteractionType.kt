@@ -1,4 +1,4 @@
-package com.meloda.app.fast.model
+package dev.meloda.fast.model
 
 sealed class InteractionType(val value: Int) {
     data object Typing : InteractionType(1)

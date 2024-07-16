@@ -1,6 +1,6 @@
-package com.meloda.app.fast.model.api.responses
+package dev.meloda.fast.model.api.responses
 
-import com.meloda.app.fast.model.api.data.VkUserData
+import dev.meloda.fast.model.api.data.VkUserData
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 

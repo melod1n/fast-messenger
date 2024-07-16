@@ -1,7 +1,7 @@
-package com.meloda.app.fast.data.api.auth
+package dev.meloda.fast.data.api.auth
 
-import com.meloda.app.fast.model.api.responses.ValidatePhoneResponse
-import com.meloda.app.fast.network.RestApiErrorDomain
+import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
+import dev.meloda.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
 
 interface AuthRepository {

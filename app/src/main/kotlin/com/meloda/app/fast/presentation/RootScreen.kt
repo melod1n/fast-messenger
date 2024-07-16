@@ -1,4 +1,4 @@
-package com.meloda.app.fast.presentation
+package dev.meloda.fast.presentation
 
 import android.content.Intent
 import android.net.Uri
@@ -20,21 +20,21 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.meloda.app.fast.MainViewModel
-import com.meloda.app.fast.MainViewModelImpl
-import com.meloda.app.fast.auth.authNavGraph
-import com.meloda.app.fast.auth.navigateToAuth
-import com.meloda.app.fast.chatmaterials.navigation.chatMaterialsScreen
-import com.meloda.app.fast.chatmaterials.navigation.navigateToChatMaterials
-import com.meloda.app.fast.ui.R
-import com.meloda.app.fast.languagepicker.navigation.languagePickerScreen
-import com.meloda.app.fast.languagepicker.navigation.navigateToLanguagePicker
-import com.meloda.app.fast.messageshistory.navigation.messagesHistoryScreen
-import com.meloda.app.fast.messageshistory.navigation.navigateToMessagesHistory
-import com.meloda.app.fast.navigation.Main
-import com.meloda.app.fast.navigation.mainScreen
-import com.meloda.app.fast.settings.navigation.navigateToSettings
-import com.meloda.app.fast.settings.navigation.settingsScreen
+import dev.meloda.fast.MainViewModel
+import dev.meloda.fast.MainViewModelImpl
+import dev.meloda.fast.auth.authNavGraph
+import dev.meloda.fast.auth.navigateToAuth
+import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
+import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.languagepicker.navigation.languagePickerScreen
+import dev.meloda.fast.languagepicker.navigation.navigateToLanguagePicker
+import dev.meloda.fast.messageshistory.navigation.messagesHistoryScreen
+import dev.meloda.fast.messageshistory.navigation.navigateToMessagesHistory
+import dev.meloda.fast.navigation.Main
+import dev.meloda.fast.navigation.mainScreen
+import dev.meloda.fast.settings.navigation.navigateToSettings
+import dev.meloda.fast.settings.navigation.settingsScreen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

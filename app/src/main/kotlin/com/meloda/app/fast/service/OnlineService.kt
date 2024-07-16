@@ -1,12 +1,12 @@
-package com.meloda.app.fast.service
+package dev.meloda.fast.service
 
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.extensions.createTimerFlow
-import com.meloda.app.fast.data.api.account.AccountUseCase
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.extensions.createTimerFlow
+import dev.meloda.fast.data.api.account.AccountUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

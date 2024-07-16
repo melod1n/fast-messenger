@@ -1,7 +1,7 @@
-package com.meloda.app.fast.settings.di
+package dev.meloda.fast.settings.di
 
-import com.meloda.app.fast.settings.SettingsViewModel
-import com.meloda.app.fast.settings.SettingsViewModelImpl
+import dev.meloda.fast.settings.SettingsViewModel
+import dev.meloda.fast.settings.SettingsViewModelImpl
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module

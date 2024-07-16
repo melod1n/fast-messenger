@@ -40,7 +40,7 @@ androidComponents {
 }
 
 android {
-    namespace = "com.meloda.app.fast.auth.login"
+    namespace = "dev.meloda.fast.auth.login"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

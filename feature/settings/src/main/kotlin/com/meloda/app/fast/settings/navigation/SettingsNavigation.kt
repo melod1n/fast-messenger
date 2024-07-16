@@ -1,9 +1,9 @@
-package com.meloda.app.fast.settings.navigation
+package dev.meloda.fast.settings.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.meloda.app.fast.settings.presentation.SettingsRoute
+import dev.meloda.fast.settings.presentation.SettingsRoute
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -3,10 +3,10 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.android)
 }
 
-group = "com.meloda.app.fast.datastore"
+group = "dev.meloda.fast.datastore"
 
 android {
-    namespace = "com.meloda.app.fast.datastore"
+    namespace = "dev.meloda.fast.datastore"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

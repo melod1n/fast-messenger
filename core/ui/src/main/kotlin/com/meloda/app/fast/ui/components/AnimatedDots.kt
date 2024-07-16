@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.components
+package dev.meloda.fast.ui.components
 
 // TODO: 26.08.2023, Danil Nikolaev: rewrite
 

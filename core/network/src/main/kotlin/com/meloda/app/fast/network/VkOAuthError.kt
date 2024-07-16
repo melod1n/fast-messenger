@@ -1,4 +1,4 @@
-package com.meloda.app.fast.network
+package dev.meloda.fast.network
 
 enum class VkOAuthError(val value: String) {
     UNKNOWN("unknown_error"),

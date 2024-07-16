@@ -1,6 +1,6 @@
-package com.meloda.app.fast.model
+package dev.meloda.fast.model
 
-import com.meloda.app.fast.model.api.domain.VkUser
+import dev.meloda.fast.model.api.domain.VkUser
 
 data class FriendsInfo(
     val friends: List<VkUser>,

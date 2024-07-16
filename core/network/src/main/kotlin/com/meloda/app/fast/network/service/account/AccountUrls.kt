@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.account
+package dev.meloda.fast.network.service.account
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object AccountUrls {
     private const val URL = AppConstants.URL_API

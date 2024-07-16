@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "com.meloda.app.fast"
+    namespace = "dev.meloda.fast"
     compileSdk = Configs.compileSdk
 
     defaultConfig {
-        applicationId = "com.meloda.app.fast"
+        applicationId = "dev.meloda.fast"
         minSdk = Configs.minSdk
         targetSdk = Configs.targetSdk
         versionCode = Configs.appCode

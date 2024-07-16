@@ -1,8 +1,8 @@
-package com.meloda.app.fast.conversations.model
+package dev.meloda.fast.conversations.model
 
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.common.model.UiText
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.ui.R as UiR
 
 sealed class ConversationOption(
     val title: UiText,

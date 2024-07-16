@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.util
+package dev.meloda.fast.ui.util
 
 import android.content.res.Configuration
 import android.os.PowerManager
@@ -16,8 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.getSystemService
-import com.meloda.app.fast.common.model.DarkMode
-import com.meloda.app.fast.common.model.UiText
+import dev.meloda.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.UiText
 
 @Composable
 fun UiText?.getString(): String? {

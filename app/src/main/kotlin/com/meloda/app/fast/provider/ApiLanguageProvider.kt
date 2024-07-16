@@ -1,8 +1,8 @@
-package com.meloda.app.fast.provider
+package dev.meloda.fast.provider
 
-import com.meloda.app.fast.common.model.ApiLanguage
-import com.meloda.app.fast.common.provider.Provider
-import com.meloda.app.fast.datastore.UserSettings
+import dev.meloda.fast.common.model.ApiLanguage
+import dev.meloda.fast.common.provider.Provider
+import dev.meloda.fast.datastore.UserSettings
 
 class ApiLanguageProvider(private val userSettings: UserSettings) : Provider<ApiLanguage> {
 

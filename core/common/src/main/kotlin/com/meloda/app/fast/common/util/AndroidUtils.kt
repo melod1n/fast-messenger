@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.util
+package dev.meloda.fast.common.util
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -15,7 +15,7 @@ import java.io.FileOutputStream
 
 private object BuildConfig {
     const val DEBUG = true
-    const val APPLICATION_ID = "com.meloda.app.fast"
+    const val APPLICATION_ID = "dev.meloda.fast"
 }
 
 object AndroidUtils {

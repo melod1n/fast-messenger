@@ -1,4 +1,4 @@
-package com.meloda.app.fast.settings.presentation
+package dev.meloda.fast.settings.presentation
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,28 +30,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.settings.HapticType
-import com.meloda.app.fast.settings.SettingsViewModel
-import com.meloda.app.fast.settings.SettingsViewModelImpl
-import com.meloda.app.fast.settings.model.SettingsScreenState
-import com.meloda.app.fast.settings.model.UiItem
-import com.meloda.app.fast.settings.presentation.item.ListItem
-import com.meloda.app.fast.settings.presentation.item.SwitchItem
-import com.meloda.app.fast.settings.presentation.item.TextFieldItem
-import com.meloda.app.fast.settings.presentation.item.TitleItem
-import com.meloda.app.fast.settings.presentation.item.TitleTextItem
-import com.meloda.app.fast.ui.components.ActionInvokeDismiss
-import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.datastore.SettingsKeys
+import dev.meloda.fast.settings.HapticType
+import dev.meloda.fast.settings.SettingsViewModel
+import dev.meloda.fast.settings.SettingsViewModelImpl
+import dev.meloda.fast.settings.model.SettingsScreenState
+import dev.meloda.fast.settings.model.UiItem
+import dev.meloda.fast.settings.presentation.item.ListItem
+import dev.meloda.fast.settings.presentation.item.SwitchItem
+import dev.meloda.fast.settings.presentation.item.TextFieldItem
+import dev.meloda.fast.settings.presentation.item.TitleItem
+import dev.meloda.fast.settings.presentation.item.TitleTextItem
+import dev.meloda.fast.ui.components.ActionInvokeDismiss
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun SettingsRoute(

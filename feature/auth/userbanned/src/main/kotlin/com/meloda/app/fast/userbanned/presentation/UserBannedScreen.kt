@@ -1,4 +1,4 @@
-package com.meloda.app.fast.userbanned.presentation
+package dev.meloda.fast.userbanned.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.userbanned.model.UserBannedScreenState
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.userbanned.model.UserBannedScreenState
+import dev.meloda.fast.ui.R as UiR
 
 @Preview
 @Composable

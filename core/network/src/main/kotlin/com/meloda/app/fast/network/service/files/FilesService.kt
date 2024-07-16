@@ -1,10 +1,10 @@
-package com.meloda.app.fast.network.service.files
+package dev.meloda.fast.network.service.files
 
-import com.meloda.app.fast.model.api.responses.FilesGetMessagesUploadServerResponse
-import com.meloda.app.fast.model.api.responses.FilesSaveFileResponse
-import com.meloda.app.fast.model.api.responses.FilesUploadFileResponse
-import com.meloda.app.fast.network.ApiResponse
-import com.meloda.app.fast.network.RestApiError
+import dev.meloda.fast.model.api.responses.FilesGetMessagesUploadServerResponse
+import dev.meloda.fast.model.api.responses.FilesSaveFileResponse
+import dev.meloda.fast.model.api.responses.FilesUploadFileResponse
+import dev.meloda.fast.network.ApiResponse
+import dev.meloda.fast.network.RestApiError
 import com.slack.eithernet.ApiResult
 import okhttp3.MultipartBody
 import retrofit2.http.FieldMap

@@ -1,9 +1,9 @@
-package com.meloda.app.fast.data.api.messages
+package dev.meloda.fast.data.api.messages
 
-import com.meloda.app.fast.model.api.domain.VkAttachment
-import com.meloda.app.fast.model.api.domain.VkAttachmentHistoryMessage
-import com.meloda.app.fast.model.api.domain.VkMessage
-import com.meloda.app.fast.network.RestApiErrorDomain
+import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
 
 interface MessagesRepository {

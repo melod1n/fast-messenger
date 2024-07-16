@@ -1,4 +1,4 @@
-package com.meloda.app.fast.languagepicker.model
+package dev.meloda.fast.languagepicker.model
 
 data class SelectableLanguage(
     val local: String,

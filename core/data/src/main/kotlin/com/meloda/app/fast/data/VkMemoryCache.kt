@@ -1,10 +1,10 @@
-package com.meloda.app.fast.data
+package dev.meloda.fast.data
 
-import com.meloda.app.fast.model.api.domain.VkContactDomain
-import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.model.api.domain.VkGroupDomain
-import com.meloda.app.fast.model.api.domain.VkMessage
-import com.meloda.app.fast.model.api.domain.VkUser
+import dev.meloda.fast.model.api.domain.VkContactDomain
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkGroupDomain
+import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkUser
 import kotlin.math.abs
 
 object VkMemoryCache {

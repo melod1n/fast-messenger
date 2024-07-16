@@ -1,8 +1,8 @@
-package com.meloda.app.fast.datastore
+package dev.meloda.fast.datastore
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import com.meloda.app.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.DarkMode
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
 

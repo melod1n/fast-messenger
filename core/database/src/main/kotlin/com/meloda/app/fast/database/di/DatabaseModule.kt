@@ -1,7 +1,7 @@
-package com.meloda.app.fast.database.di
+package dev.meloda.fast.database.di
 
 import androidx.room.Room
-import com.meloda.app.fast.database.AccountsDatabase
+import dev.meloda.fast.database.AccountsDatabase
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
@@ -12,7 +12,7 @@ val databaseModule = module {
     single { get<AccountsDatabase>().accountDao() }
 
     single {
-        Room.databaseBuilder(get(), com.meloda.app.fast.database.CacheDatabase::class.java, "cache")
+        Room.databaseBuilder(get(), dev.meloda.fast.database.CacheDatabase::class.java, "cache")
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -22,4 +22,4 @@ val databaseModule = module {
     single { cacheDB().conversationDao() }
 }
 
-private fun Scope.cacheDB(): com.meloda.app.fast.database.CacheDatabase = get()
+private fun Scope.cacheDB(): dev.meloda.fast.database.CacheDatabase = get()

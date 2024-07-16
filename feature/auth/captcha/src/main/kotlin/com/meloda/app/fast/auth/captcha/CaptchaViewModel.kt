@@ -1,12 +1,12 @@
-package com.meloda.app.fast.auth.captcha
+package dev.meloda.fast.auth.captcha
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.auth.captcha.model.CaptchaScreenState
-import com.meloda.app.fast.auth.captcha.navigation.Captcha
-import com.meloda.app.fast.auth.captcha.validation.CaptchaValidator
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.common.extensions.updateValue
+import dev.meloda.fast.auth.captcha.model.CaptchaScreenState
+import dev.meloda.fast.auth.captcha.navigation.Captcha
+import dev.meloda.fast.auth.captcha.validation.CaptchaValidator
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.extensions.updateValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

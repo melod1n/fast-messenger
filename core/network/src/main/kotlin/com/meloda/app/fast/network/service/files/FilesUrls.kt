@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.files
+package dev.meloda.fast.network.service.files
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object FilesUrls {
 

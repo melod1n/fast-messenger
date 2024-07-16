@@ -6,10 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.meloda.app.fast.conversations"
+group = "dev.meloda.fast.conversations"
 
 android {
-    namespace = "com.meloda.app.fast.conversations"
+    namespace = "dev.meloda.fast.conversations"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

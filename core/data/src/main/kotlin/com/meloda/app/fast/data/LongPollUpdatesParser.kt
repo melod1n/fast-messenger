@@ -1,15 +1,15 @@
-package com.meloda.app.fast.data
+package dev.meloda.fast.data
 
 import android.util.Log
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.VkConstants
-import com.meloda.app.fast.common.extensions.asInt
-import com.meloda.app.fast.common.extensions.listenValue
-import com.meloda.app.fast.common.extensions.toList
-import com.meloda.app.fast.data.api.messages.MessagesUseCase
-import com.meloda.app.fast.model.ApiEvent
-import com.meloda.app.fast.model.InteractionType
-import com.meloda.app.fast.model.LongPollEvent
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.VkConstants
+import dev.meloda.fast.common.extensions.asInt
+import dev.meloda.fast.common.extensions.listenValue
+import dev.meloda.fast.common.extensions.toList
+import dev.meloda.fast.data.api.messages.MessagesUseCase
+import dev.meloda.fast.model.ApiEvent
+import dev.meloda.fast.model.InteractionType
+import dev.meloda.fast.model.LongPollEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

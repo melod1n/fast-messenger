@@ -1,4 +1,4 @@
-package com.meloda.app.fast.settings.presentation.item
+package dev.meloda.fast.settings.presentation.item
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.padding
@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meloda.app.fast.settings.model.UiItem
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.settings.model.UiItem
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 @Composable
 fun TitleItem(

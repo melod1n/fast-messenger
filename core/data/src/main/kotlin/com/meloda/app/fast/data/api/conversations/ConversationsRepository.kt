@@ -1,7 +1,7 @@
-package com.meloda.app.fast.data.api.conversations
+package dev.meloda.fast.data.api.conversations
 
-import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.network.RestApiErrorDomain
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
 
 interface ConversationsRepository {

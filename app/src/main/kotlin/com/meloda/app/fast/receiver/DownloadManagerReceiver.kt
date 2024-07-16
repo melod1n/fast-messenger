@@ -1,4 +1,4 @@
-package com.meloda.app.fast.receiver
+package dev.meloda.fast.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context

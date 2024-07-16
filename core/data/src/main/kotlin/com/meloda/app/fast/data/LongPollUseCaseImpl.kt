@@ -1,8 +1,8 @@
-package com.meloda.app.fast.data
+package dev.meloda.fast.data
 
-import com.meloda.app.fast.data.api.longpoll.LongPollRepository
-import com.meloda.app.fast.model.api.data.LongPollUpdates
-import com.meloda.app.fast.model.api.data.VkLongPollData
+import dev.meloda.fast.data.api.longpoll.LongPollRepository
+import dev.meloda.fast.model.api.data.LongPollUpdates
+import dev.meloda.fast.model.api.data.VkLongPollData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

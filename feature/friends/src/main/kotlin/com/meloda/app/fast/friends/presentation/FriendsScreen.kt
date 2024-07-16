@@ -1,4 +1,4 @@
-package com.meloda.app.fast.friends.presentation
+package dev.meloda.fast.friends.presentation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -49,25 +49,25 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.friends.FriendsViewModel
-import com.meloda.app.fast.friends.FriendsViewModelImpl
-import com.meloda.app.fast.friends.model.FriendsScreenState
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.ui.components.ErrorView
-import com.meloda.app.fast.ui.components.FullScreenLoader
-import com.meloda.app.fast.ui.components.NoItemsView
-import com.meloda.app.fast.ui.model.TabItem
-import com.meloda.app.fast.ui.theme.LocalHazeState
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
-import com.meloda.app.fast.ui.util.ImmutableList
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.friends.FriendsViewModel
+import dev.meloda.fast.friends.FriendsViewModelImpl
+import dev.meloda.fast.friends.model.FriendsScreenState
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.components.ErrorView
+import dev.meloda.fast.ui.components.FullScreenLoader
+import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.model.TabItem
+import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun FriendsRoute(

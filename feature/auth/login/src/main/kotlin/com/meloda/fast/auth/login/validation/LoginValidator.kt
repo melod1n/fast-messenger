@@ -1,6 +1,6 @@
 package com.meloda.fast.auth.login.validation
 
-import com.meloda.app.fast.common.extensions.addIf
+import dev.meloda.fast.common.extensions.addIf
 import com.meloda.fast.auth.login.model.LoginScreenState
 import com.meloda.fast.auth.login.model.LoginValidationResult
 

@@ -1,6 +1,6 @@
-package com.meloda.app.fast.common
+package dev.meloda.fast.common
 
-import com.meloda.app.fast.common.model.LongPollState
+import dev.meloda.fast.common.model.LongPollState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

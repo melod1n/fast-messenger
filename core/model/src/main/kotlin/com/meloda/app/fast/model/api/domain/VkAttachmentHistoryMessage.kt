@@ -1,4 +1,4 @@
-package com.meloda.app.fast.model.api.domain
+package dev.meloda.fast.model.api.domain
 
 data class VkAttachmentHistoryMessage(
     val messageId: Int,

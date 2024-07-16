@@ -1,4 +1,4 @@
-package com.meloda.app.fast.settings.model
+package dev.meloda.fast.settings.model
 
 data class SettingsShowOptions(
     val showLogOut: Boolean,

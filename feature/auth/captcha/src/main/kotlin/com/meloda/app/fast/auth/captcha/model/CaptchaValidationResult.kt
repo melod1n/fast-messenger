@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.captcha.model
+package dev.meloda.fast.auth.captcha.model
 
 sealed class CaptchaValidationResult {
     data object Empty : CaptchaValidationResult()

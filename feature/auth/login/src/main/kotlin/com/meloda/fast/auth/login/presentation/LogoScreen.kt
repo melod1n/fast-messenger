@@ -31,11 +31,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import com.meloda.fast.auth.login.LoginViewModel
 import com.meloda.fast.auth.login.LoginViewModelImpl
 import org.koin.androidx.compose.koinViewModel
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun LogoRoute(

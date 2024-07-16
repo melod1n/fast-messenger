@@ -4,10 +4,10 @@ plugins {
     alias(libs.plugins.com.google.devtools.ksp)
 }
 
-group = "com.meloda.app.fast.model"
+group = "dev.meloda.fast.model"
 
 android {
-    namespace = "com.meloda.app.fast.model"
+    namespace = "dev.meloda.fast.model"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

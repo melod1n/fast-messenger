@@ -1,10 +1,10 @@
-package com.meloda.app.fast.database.dao
+package dev.meloda.fast.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.meloda.app.fast.model.database.ConversationWithMessage
-import com.meloda.app.fast.model.database.VkConversationEntity
+import dev.meloda.fast.model.database.ConversationWithMessage
+import dev.meloda.fast.model.database.VkConversationEntity
 
 @Dao
 abstract class ConversationDao : EntityDao<VkConversationEntity> {

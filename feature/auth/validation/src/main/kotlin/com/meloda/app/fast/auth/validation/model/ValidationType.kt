@@ -1,4 +1,4 @@
-package com.meloda.app.fast.auth.validation.model
+package dev.meloda.fast.auth.validation.model
 
 enum class ValidationType(val value: String) {
     SMS("sms"), APP("2fa_app");

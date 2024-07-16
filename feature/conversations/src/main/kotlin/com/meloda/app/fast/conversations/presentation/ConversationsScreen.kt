@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations.presentation
+package dev.meloda.fast.conversations.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -66,20 +66,20 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
-import com.meloda.app.fast.conversations.ConversationsViewModel
-import com.meloda.app.fast.conversations.ConversationsViewModelImpl
-import com.meloda.app.fast.conversations.model.ConversationOption
-import com.meloda.app.fast.conversations.model.ConversationsScreenState
-import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.ui.components.ErrorView
-import com.meloda.app.fast.ui.components.FullScreenLoader
-import com.meloda.app.fast.ui.components.MaterialDialog
-import com.meloda.app.fast.ui.theme.LocalBottomPadding
-import com.meloda.app.fast.ui.theme.LocalHazeState
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
-import com.meloda.app.fast.ui.util.isScrollingUp
+import dev.meloda.fast.conversations.ConversationsViewModel
+import dev.meloda.fast.conversations.ConversationsViewModelImpl
+import dev.meloda.fast.conversations.model.ConversationOption
+import dev.meloda.fast.conversations.model.ConversationsScreenState
+import dev.meloda.fast.conversations.model.UiConversation
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.components.ErrorView
+import dev.meloda.fast.ui.components.FullScreenLoader
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.isScrollingUp
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -87,7 +87,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun ConversationsRoute(

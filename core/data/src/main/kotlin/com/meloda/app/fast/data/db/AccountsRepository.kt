@@ -1,6 +1,6 @@
-package com.meloda.app.fast.data.db
+package dev.meloda.fast.data.db
 
-import com.meloda.app.fast.model.database.AccountEntity
+import dev.meloda.fast.model.database.AccountEntity
 
 interface AccountsRepository {
 

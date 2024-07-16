@@ -1,4 +1,4 @@
-package com.meloda.app.fast.userbanned.navigation
+package dev.meloda.fast.userbanned.navigation
 
 import android.os.Bundle
 import androidx.core.os.BundleCompat
@@ -7,8 +7,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.userbanned.model.UserBannedArguments
-import com.meloda.app.fast.userbanned.presentation.UserBannedRoute
+import dev.meloda.fast.userbanned.model.UserBannedArguments
+import dev.meloda.fast.userbanned.presentation.UserBannedRoute
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

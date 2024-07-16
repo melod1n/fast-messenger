@@ -1,9 +1,9 @@
-package com.meloda.app.fast.model.database
+package dev.meloda.fast.model.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.meloda.app.fast.model.api.PeerType
-import com.meloda.app.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.PeerType
+import dev.meloda.fast.model.api.domain.VkConversation
 
 @Entity(tableName = "conversations")
 data class VkConversationEntity(

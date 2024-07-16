@@ -1,3 +1,3 @@
-package com.meloda.app.fast.model.api.data
+package dev.meloda.fast.model.api.data
 
 interface VkAttachmentData

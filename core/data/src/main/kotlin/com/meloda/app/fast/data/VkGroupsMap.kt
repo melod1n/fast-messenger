@@ -1,9 +1,9 @@
-package com.meloda.app.fast.data
+package dev.meloda.fast.data
 
-import com.meloda.app.fast.model.api.data.VkMessageData
-import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.model.api.domain.VkGroupDomain
-import com.meloda.app.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.data.VkMessageData
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkGroupDomain
+import dev.meloda.fast.model.api.domain.VkMessage
 import kotlin.math.abs
 
 class VkGroupsMap(

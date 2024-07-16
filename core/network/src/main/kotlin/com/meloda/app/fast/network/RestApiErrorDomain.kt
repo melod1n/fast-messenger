@@ -1,4 +1,4 @@
-package com.meloda.app.fast.network
+package dev.meloda.fast.network
 
 data class RestApiErrorDomain(
     val code: Int,

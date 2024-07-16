@@ -1,4 +1,4 @@
-package com.meloda.app.fast.common.extensions.navigation
+package dev.meloda.fast.common.extensions.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

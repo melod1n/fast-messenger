@@ -1,10 +1,10 @@
-package com.meloda.app.fast.common.di
+package dev.meloda.fast.common.di
 
 import coil.ImageLoader
-import com.meloda.app.fast.common.LongPollController
-import com.meloda.app.fast.common.LongPollControllerImpl
-import com.meloda.app.fast.common.provider.ResourceProvider
-import com.meloda.app.fast.common.provider.ResourceProviderImpl
+import dev.meloda.fast.common.LongPollController
+import dev.meloda.fast.common.LongPollControllerImpl
+import dev.meloda.fast.common.provider.ResourceProvider
+import dev.meloda.fast.common.provider.ResourceProviderImpl
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module

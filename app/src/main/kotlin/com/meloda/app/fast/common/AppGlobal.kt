@@ -1,11 +1,11 @@
-package com.meloda.app.fast.common
+package dev.meloda.fast.common
 
 import android.app.Application
 import androidx.preference.PreferenceManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
-import com.meloda.app.fast.common.di.applicationModule
-import com.meloda.app.fast.datastore.AppSettings
+import dev.meloda.fast.common.di.applicationModule
+import dev.meloda.fast.datastore.AppSettings
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger

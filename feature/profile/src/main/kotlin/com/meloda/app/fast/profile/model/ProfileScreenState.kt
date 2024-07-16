@@ -1,4 +1,4 @@
-package com.meloda.app.fast.profile.model
+package dev.meloda.fast.profile.model
 
 data class ProfileScreenState(
     val isLoading: Boolean,

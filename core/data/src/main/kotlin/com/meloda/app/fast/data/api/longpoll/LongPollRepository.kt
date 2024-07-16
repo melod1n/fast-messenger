@@ -1,8 +1,8 @@
-package com.meloda.app.fast.data.api.longpoll
+package dev.meloda.fast.data.api.longpoll
 
-import com.meloda.app.fast.model.api.data.LongPollUpdates
-import com.meloda.app.fast.model.api.data.VkLongPollData
-import com.meloda.app.fast.network.RestApiErrorDomain
+import dev.meloda.fast.model.api.data.LongPollUpdates
+import dev.meloda.fast.model.api.data.VkLongPollData
+import dev.meloda.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
 
 interface LongPollRepository {

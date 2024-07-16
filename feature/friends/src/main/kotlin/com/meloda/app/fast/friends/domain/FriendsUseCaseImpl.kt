@@ -1,11 +1,11 @@
-package com.meloda.app.fast.friends.domain
+package dev.meloda.fast.friends.domain
 
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.friends.FriendsRepository
-import com.meloda.app.fast.data.api.friends.FriendsUseCase
-import com.meloda.app.fast.data.mapToState
-import com.meloda.app.fast.model.FriendsInfo
-import com.meloda.app.fast.model.api.domain.VkUser
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.api.friends.FriendsRepository
+import dev.meloda.fast.data.api.friends.FriendsUseCase
+import dev.meloda.fast.data.mapToState
+import dev.meloda.fast.model.FriendsInfo
+import dev.meloda.fast.model.api.domain.VkUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

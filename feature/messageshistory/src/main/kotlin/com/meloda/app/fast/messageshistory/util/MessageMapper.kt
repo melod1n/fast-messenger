@@ -1,25 +1,25 @@
-package com.meloda.app.fast.messageshistory.util
+package dev.meloda.fast.messageshistory.util
 
 import android.content.res.Resources
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import com.meloda.app.fast.common.UserConfig
-import com.meloda.app.fast.common.extensions.orDots
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.common.model.UiText
-import com.meloda.app.fast.common.model.parseString
-import com.meloda.app.fast.common.provider.ResourceProvider
-import com.meloda.app.fast.data.VkMemoryCache
-import com.meloda.app.fast.messageshistory.model.UiItem
-import com.meloda.app.fast.model.api.PeerType
-import com.meloda.app.fast.model.api.domain.VkConversation
-import com.meloda.app.fast.model.api.domain.VkMessage
-import com.meloda.app.fast.ui.R
+import dev.meloda.fast.common.UserConfig
+import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.common.model.parseString
+import dev.meloda.fast.common.provider.ResourceProvider
+import dev.meloda.fast.data.VkMemoryCache
+import dev.meloda.fast.messageshistory.model.UiItem
+import dev.meloda.fast.model.api.PeerType
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.R
 import java.text.SimpleDateFormat
 import java.util.Locale
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 private fun isAccount(fromId: Int) = fromId == UserConfig.userId
 

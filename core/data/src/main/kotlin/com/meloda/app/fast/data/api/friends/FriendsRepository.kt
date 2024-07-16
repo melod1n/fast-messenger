@@ -1,8 +1,8 @@
-package com.meloda.app.fast.data.api.friends
+package dev.meloda.fast.data.api.friends
 
-import com.meloda.app.fast.model.FriendsInfo
-import com.meloda.app.fast.model.api.domain.VkUser
-import com.meloda.app.fast.network.RestApiErrorDomain
+import dev.meloda.fast.model.FriendsInfo
+import dev.meloda.fast.model.api.domain.VkUser
+import dev.meloda.fast.network.RestApiErrorDomain
 import com.slack.eithernet.ApiResult
 
 interface FriendsRepository {

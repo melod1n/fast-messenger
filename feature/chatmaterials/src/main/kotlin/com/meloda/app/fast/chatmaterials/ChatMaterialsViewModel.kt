@@ -1,16 +1,16 @@
-package com.meloda.app.fast.chatmaterials
+package dev.meloda.fast.chatmaterials
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.meloda.app.fast.chatmaterials.model.ChatMaterialsScreenState
-import com.meloda.app.fast.chatmaterials.navigation.ChatMaterials
-import com.meloda.app.fast.chatmaterials.util.asPresentation
-import com.meloda.app.fast.common.extensions.listenValue
-import com.meloda.app.fast.common.extensions.setValue
-import com.meloda.app.fast.data.api.messages.MessagesUseCase
-import com.meloda.app.fast.data.processState
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
+import dev.meloda.fast.chatmaterials.navigation.ChatMaterials
+import dev.meloda.fast.chatmaterials.util.asPresentation
+import dev.meloda.fast.common.extensions.listenValue
+import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.data.api.messages.MessagesUseCase
+import dev.meloda.fast.data.processState
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

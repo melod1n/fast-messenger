@@ -1,7 +1,7 @@
-package com.meloda.app.fast.network.service.account
+package dev.meloda.fast.network.service.account
 
-import com.meloda.app.fast.network.ApiResponse
-import com.meloda.app.fast.network.RestApiError
+import dev.meloda.fast.network.ApiResponse
+import dev.meloda.fast.network.RestApiError
 import com.slack.eithernet.ApiResult
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded

@@ -1,6 +1,6 @@
-package com.meloda.app.fast.data.api.oauth
+package dev.meloda.fast.data.api.oauth
 
-import com.meloda.app.fast.model.api.responses.AuthDirectResponse
+import dev.meloda.fast.model.api.responses.AuthDirectResponse
 
 interface OAuthRepository {
 

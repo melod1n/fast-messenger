@@ -1,6 +1,6 @@
-package com.meloda.app.fast.data.api.account
+package dev.meloda.fast.data.api.account
 
-import com.meloda.app.fast.data.State
+import dev.meloda.fast.data.State
 import kotlinx.coroutines.flow.Flow
 
 interface AccountUseCase {

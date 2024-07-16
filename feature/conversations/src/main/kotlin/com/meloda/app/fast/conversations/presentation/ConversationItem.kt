@@ -1,4 +1,4 @@
-package com.meloda.app.fast.conversations.presentation
+package dev.meloda.fast.conversations.presentation
 
 import android.graphics.drawable.ColorDrawable
 import androidx.compose.animation.AnimatedVisibility
@@ -52,14 +52,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.meloda.app.fast.common.model.UiImage
-import com.meloda.app.fast.conversations.model.ConversationOption
-import com.meloda.app.fast.conversations.model.UiConversation
-import com.meloda.app.fast.ui.basic.ContentAlpha
-import com.meloda.app.fast.ui.basic.LocalContentAlpha
-import com.meloda.app.fast.ui.components.DotsFlashing
-import com.meloda.app.fast.ui.util.getString
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.conversations.model.ConversationOption
+import dev.meloda.fast.conversations.model.UiConversation
+import dev.meloda.fast.ui.basic.ContentAlpha
+import dev.meloda.fast.ui.basic.LocalContentAlpha
+import dev.meloda.fast.ui.components.DotsFlashing
+import dev.meloda.fast.ui.util.getString
+import dev.meloda.fast.ui.R as UiR
 
 val BirthdayColor = Color(0xffb00b69)
 

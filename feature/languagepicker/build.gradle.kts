@@ -6,10 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.meloda.app.fast.languagepicker"
+group = "dev.meloda.fast.languagepicker"
 
 android {
-    namespace = "com.meloda.app.fast.languagepicker"
+    namespace = "dev.meloda.fast.languagepicker"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

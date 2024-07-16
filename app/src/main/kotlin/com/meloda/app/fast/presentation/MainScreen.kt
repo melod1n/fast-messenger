@@ -1,4 +1,4 @@
-package com.meloda.app.fast.presentation
+package dev.meloda.fast.presentation
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -25,15 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.meloda.app.fast.conversations.navigation.conversationsScreen
-import com.meloda.app.fast.ui.theme.LocalBottomPadding
-import com.meloda.app.fast.ui.theme.LocalHazeState
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
-import com.meloda.app.fast.friends.navigation.friendsScreen
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.model.BottomNavigationItem
-import com.meloda.app.fast.navigation.MainGraph
-import com.meloda.app.fast.profile.navigation.profileScreen
+import dev.meloda.fast.conversations.navigation.conversationsScreen
+import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.friends.navigation.friendsScreen
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.BottomNavigationItem
+import dev.meloda.fast.navigation.MainGraph
+import dev.meloda.fast.profile.navigation.profileScreen
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi

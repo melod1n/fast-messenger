@@ -6,10 +6,10 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
 }
 
-group = "com.meloda.app.fast.chatmaterials"
+group = "dev.meloda.fast.chatmaterials"
 
 android {
-    namespace = "com.meloda.app.fast.chatmaterials"
+    namespace = "dev.meloda.fast.chatmaterials"
     compileSdk = Configs.compileSdk
 
     defaultConfig {

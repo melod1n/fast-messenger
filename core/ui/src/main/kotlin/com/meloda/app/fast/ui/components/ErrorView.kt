@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.components
+package dev.meloda.fast.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.components
+package dev.meloda.fast.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

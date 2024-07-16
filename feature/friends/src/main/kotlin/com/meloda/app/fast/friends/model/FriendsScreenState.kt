@@ -1,4 +1,4 @@
-package com.meloda.app.fast.friends.model
+package dev.meloda.fast.friends.model
 
 import androidx.compose.runtime.Immutable
 

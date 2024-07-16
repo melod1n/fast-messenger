@@ -1,6 +1,6 @@
-package com.meloda.app.fast.network.service.conversations
+package dev.meloda.fast.network.service.conversations
 
-import com.meloda.app.fast.common.AppConstants
+import dev.meloda.fast.common.AppConstants
 
 object ConversationsUrls {
 

@@ -1,4 +1,4 @@
-package com.meloda.app.fast.ui.theme
+package dev.meloda.fast.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.meloda.app.fast.ui.R
-import com.meloda.app.fast.ui.model.ThemeConfig
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.model.ThemeConfig
 import dev.chrisbanes.haze.HazeState
 
 private val googleSansFonts = FontFamily(

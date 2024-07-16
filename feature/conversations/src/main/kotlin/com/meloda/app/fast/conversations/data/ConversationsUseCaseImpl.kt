@@ -1,10 +1,10 @@
-package com.meloda.app.fast.conversations.data
+package dev.meloda.fast.conversations.data
 
-import com.meloda.app.fast.data.State
-import com.meloda.app.fast.data.api.conversations.ConversationsRepository
-import com.meloda.app.fast.data.api.conversations.ConversationsUseCase
-import com.meloda.app.fast.data.mapToState
-import com.meloda.app.fast.model.api.domain.VkConversation
+import dev.meloda.fast.data.State
+import dev.meloda.fast.data.api.conversations.ConversationsRepository
+import dev.meloda.fast.data.api.conversations.ConversationsUseCase
+import dev.meloda.fast.data.mapToState
+import dev.meloda.fast.model.api.domain.VkConversation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,8 +21,8 @@ class ConversationsUseCaseImpl(
 //        filter: String,
 //        extended: Boolean?,
 //        startMessageId: Int?
-//    ): Flow<com.meloda.app.fast.network.State<ConversationsResponseDomain>> = flow {
-//        emit(com.meloda.app.fast.network.State.Loading)
+//    ): Flow<dev.meloda.fast.network.State<ConversationsResponseDomain>> = flow {
+//        emit(dev.meloda.fast.network.State.Loading)
 //
 //        val newState = conversationsRepository.getConversations(
 //            params = ConversationsGetRequest(
@@ -34,9 +34,9 @@ class ConversationsUseCaseImpl(
 //                startMessageId = startMessageId
 //            )
 //        ).fold(
-//            onSuccess = { response -> com.meloda.app.fast.network.State.Success(response.toDomain()) },
-//            onNetworkFailure = { com.meloda.app.fast.network.State.Error.ConnectionError },
-//            onUnknownFailure = { com.meloda.app.fast.network.State.UNKNOWN_ERROR },
+//            onSuccess = { response -> dev.meloda.fast.network.State.Success(response.toDomain()) },
+//            onNetworkFailure = { dev.meloda.fast.network.State.Error.ConnectionError },
+//            onUnknownFailure = { dev.meloda.fast.network.State.UNKNOWN_ERROR },
 //            onHttpFailure = { result -> result.error.toStateApiError() },
 //            onApiFailure = { result -> result.error.toStateApiError() }
 //        )
@@ -45,30 +45,30 @@ class ConversationsUseCaseImpl(
 //
 
     //
-//    override fun pin(peerId: Int): Flow<com.meloda.app.fast.network.State<Unit>> = flow {
-//        emit(com.meloda.app.fast.network.State.Loading)
+//    override fun pin(peerId: Int): Flow<dev.meloda.fast.network.State<Unit>> = flow {
+//        emit(dev.meloda.fast.network.State.Loading)
 //
 //        val newState = conversationsRepository.pin(
 //            ConversationsPinRequest(peerId = peerId)
 //        ).fold(
-//            onSuccess = { com.meloda.app.fast.network.State.Success(Unit) },
-//            onNetworkFailure = { com.meloda.app.fast.network.State.Error.ConnectionError },
-//            onUnknownFailure = { com.meloda.app.fast.network.State.UNKNOWN_ERROR },
+//            onSuccess = { dev.meloda.fast.network.State.Success(Unit) },
+//            onNetworkFailure = { dev.meloda.fast.network.State.Error.ConnectionError },
+//            onUnknownFailure = { dev.meloda.fast.network.State.UNKNOWN_ERROR },
 //            onHttpFailure = { result -> result.error.toStateApiError() },
 //            onApiFailure = { result -> result.error.toStateApiError() }
 //        )
 //        emit(newState)
 //    }
 //
-//    override fun unpin(peerId: Int): Flow<com.meloda.app.fast.network.State<Unit>> = flow {
-//        emit(com.meloda.app.fast.network.State.Loading)
+//    override fun unpin(peerId: Int): Flow<dev.meloda.fast.network.State<Unit>> = flow {
+//        emit(dev.meloda.fast.network.State.Loading)
 //
 //        val newState = conversationsRepository.unpin(
 //            ConversationsUnpinRequest(peerId = peerId)
 //        ).fold(
-//            onSuccess = { com.meloda.app.fast.network.State.Success(Unit) },
-//            onNetworkFailure = { com.meloda.app.fast.network.State.Error.ConnectionError },
-//            onUnknownFailure = { com.meloda.app.fast.network.State.UNKNOWN_ERROR },
+//            onSuccess = { dev.meloda.fast.network.State.Success(Unit) },
+//            onNetworkFailure = { dev.meloda.fast.network.State.Error.ConnectionError },
+//            onUnknownFailure = { dev.meloda.fast.network.State.UNKNOWN_ERROR },
 //            onHttpFailure = { result -> result.error.toStateApiError() },
 //            onApiFailure = { result -> result.error.toStateApiError() }
 //        )

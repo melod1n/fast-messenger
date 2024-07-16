@@ -1,13 +1,13 @@
-package com.meloda.app.fast.auth.validation.navigation
+package dev.meloda.fast.auth.validation.navigation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.meloda.app.fast.auth.validation.model.ValidationArguments
-import com.meloda.app.fast.auth.validation.presentation.ValidationRoute
-import com.meloda.app.fast.common.extensions.customNavType
+import dev.meloda.fast.auth.validation.model.ValidationArguments
+import dev.meloda.fast.auth.validation.presentation.ValidationRoute
+import dev.meloda.fast.common.extensions.customNavType
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 

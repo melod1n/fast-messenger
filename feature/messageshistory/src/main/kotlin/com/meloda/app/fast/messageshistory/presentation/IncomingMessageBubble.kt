@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.presentation
+package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
-import com.meloda.app.fast.messageshistory.model.UiItem
+import dev.meloda.fast.messageshistory.model.UiItem
 
 @Composable
 fun IncomingMessageBubble(

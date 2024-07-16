@@ -1,7 +1,7 @@
-package com.meloda.app.fast.auth.validation.validation
+package dev.meloda.fast.auth.validation.validation
 
-import com.meloda.app.fast.auth.validation.model.ValidationScreenState
-import com.meloda.app.fast.auth.validation.model.ValidationValidationResult
+import dev.meloda.fast.auth.validation.model.ValidationScreenState
+import dev.meloda.fast.auth.validation.model.ValidationValidationResult
 
 class ValidationValidator {
 

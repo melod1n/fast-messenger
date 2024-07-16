@@ -1,6 +1,6 @@
-package com.meloda.app.fast.model.api.domain
+package dev.meloda.fast.model.api.domain
 
-import com.meloda.app.fast.model.database.VkGroupEntity
+import dev.meloda.fast.model.database.VkGroupEntity
 
 data class VkGroupDomain(
     val id: Int,

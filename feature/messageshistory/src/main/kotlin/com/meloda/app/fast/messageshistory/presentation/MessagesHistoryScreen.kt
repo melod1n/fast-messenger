@@ -1,4 +1,4 @@
-package com.meloda.app.fast.messageshistory.presentation
+package dev.meloda.fast.messageshistory.presentation
 
 import android.content.SharedPreferences
 import androidx.compose.animation.animateContentSize
@@ -72,17 +72,17 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meloda.app.fast.datastore.SettingsKeys
-import com.meloda.app.fast.datastore.UserSettings
-import com.meloda.app.fast.messageshistory.MessagesHistoryViewModel
-import com.meloda.app.fast.messageshistory.MessagesHistoryViewModelImpl
-import com.meloda.app.fast.messageshistory.model.ActionMode
-import com.meloda.app.fast.messageshistory.model.MessagesHistoryScreenState
-import com.meloda.app.fast.messageshistory.util.firstMessage
-import com.meloda.app.fast.messageshistory.util.indexOfMessageByCmId
-import com.meloda.app.fast.model.BaseError
-import com.meloda.app.fast.ui.theme.LocalThemeConfig
-import com.meloda.app.fast.ui.util.ImmutableList
+import dev.meloda.fast.datastore.SettingsKeys
+import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
+import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
+import dev.meloda.fast.messageshistory.model.ActionMode
+import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.util.firstMessage
+import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -90,7 +90,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import com.meloda.app.fast.ui.R as UiR
+import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun MessagesHistoryRoute(
