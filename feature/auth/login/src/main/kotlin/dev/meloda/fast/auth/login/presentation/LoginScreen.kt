@@ -50,14 +50,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.ui.basic.autoFillRequestHandler
-import dev.meloda.fast.ui.basic.connectNode
-import dev.meloda.fast.ui.basic.defaultFocusChangeAutoFill
-import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.components.TextFieldErrorText
-import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.handleEnterKey
-import dev.meloda.fast.ui.util.handleTabKey
 import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.LoginViewModelImpl
 import dev.meloda.fast.auth.login.model.CaptchaArguments
@@ -65,6 +57,14 @@ import dev.meloda.fast.auth.login.model.LoginError
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.ui.basic.autoFillRequestHandler
+import dev.meloda.fast.ui.basic.connectNode
+import dev.meloda.fast.ui.basic.defaultFocusChangeAutoFill
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.TextFieldErrorText
+import dev.meloda.fast.ui.theme.LocalSizeConfig
+import dev.meloda.fast.ui.util.handleEnterKey
+import dev.meloda.fast.ui.util.handleTabKey
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 
@@ -156,7 +156,7 @@ fun LoginScreen(
     onPasswordFieldGoAction: () -> Unit = {},
     onSignInButtonClicked: () -> Unit = {}
 ) {
-    val currentTheme = LocalThemeConfig.current
+    val currentSize = LocalSizeConfig.current
     val focusManager = LocalFocusManager.current
     val (loginFocusable, passwordFocusable) = FocusRequester.createRefs()
 
@@ -182,19 +182,19 @@ fun LoginScreen(
         }
     )
 
-    val titleStyle = if (currentTheme.isDeviceCompact) {
-        MaterialTheme.typography.displaySmall
+    val titleStyle = if (currentSize.isWidthSmall) {
+        MaterialTheme.typography.displayMedium
     } else {
         MaterialTheme.typography.displayMedium
     }
 
-    val titleSpacerSize = if (currentTheme.isDeviceCompact) {
+    val titleSpacerSize = if (currentSize.isHeightSmall) {
         24.dp
     } else {
         58.dp
     }
 
-    val bottomPadding = if (currentTheme.isDeviceCompact) {
+    val bottomPadding = if (currentSize.isHeightSmall) {
         10.dp
     } else {
         30.dp
@@ -354,19 +354,27 @@ fun LoginScreen(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 contentAlignment = Alignment.Center
             ) {
-                FloatingActionButton(
-                    onClick = {
-                        focusManager.clearFocus()
-                        onSignInButtonClicked()
-                    },
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.testTag("sing_in_fab")
+                AnimatedVisibility(
+                    visible = !screenState.isLoading,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    Icon(
-                        painter = painterResource(id = UiR.drawable.ic_arrow_end),
-                        contentDescription = "Sign in icon",
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                    FloatingActionButton(
+                        onClick = {
+                            if (!screenState.isLoading) {
+                                focusManager.clearFocus()
+                                onSignInButtonClicked()
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.testTag("sing_in_fab")
+                    ) {
+                        Icon(
+                            painter = painterResource(id = UiR.drawable.ic_arrow_end),
+                            contentDescription = "Sign in icon",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
                 AnimatedVisibility(
                     visible = screenState.isLoading,

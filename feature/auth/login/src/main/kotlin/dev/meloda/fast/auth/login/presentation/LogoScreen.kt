@@ -1,6 +1,9 @@
 package dev.meloda.fast.auth.login.presentation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,13 +38,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.auth.login.BuildConfig
 import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.LoginViewModelImpl
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.theme.LocalSizeConfig
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 
@@ -50,6 +55,7 @@ fun LogoRoute(
     onGoNextButtonClicked: () -> Unit,
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
     val isNeedToShowSignInAlert by viewModel.isNeedToShowFastSignInAlert.collectAsStateWithLifecycle()
 
@@ -61,6 +67,7 @@ fun LogoRoute(
     }
 
     LogoScreen(
+        isLoading = screenState.isLoading,
         onLogoLongClicked = viewModel::onLogoLongClicked,
         onGoNextButtonClicked = onGoNextButtonClicked
     )
@@ -76,10 +83,11 @@ fun LogoRoute(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LogoScreen(
+    isLoading: Boolean,
     onLogoLongClicked: () -> Unit = {},
     onGoNextButtonClicked: () -> Unit = {}
 ) {
-    val currentTheme = LocalThemeConfig.current
+    val currentSize = LocalSizeConfig.current
 
     Scaffold { padding ->
         val topPadding by animateDpAsState(
@@ -100,19 +108,19 @@ fun LogoScreen(
             label = "startPaddingAnimation"
         )
 
-        val iconWidth = if (currentTheme.isDeviceCompact) {
-            100.dp
+        val iconWidth = if (currentSize.isWidthSmall) {
+            110.dp
         } else {
             134.dp
         }
 
-        val appNameTextStyle = if (currentTheme.isDeviceCompact) {
-            MaterialTheme.typography.displaySmall
+        val appNameTextStyle = if (currentSize.isWidthSmall) {
+            MaterialTheme.typography.displayMedium.copy(fontSize = 40.sp)
         } else {
             MaterialTheme.typography.displayMedium
         }
 
-        val bottomAdditionalPadding = if (currentTheme.isDeviceCompact) {
+        val bottomAdditionalPadding = if (currentSize.isHeightSmall) {
             10.dp
         } else {
             30.dp
@@ -158,18 +166,34 @@ fun LogoScreen(
                 )
             }
 
-            FloatingActionButton(
-                onClick = onGoNextButtonClicked,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .testTag("go_next_fab")
+            AnimatedVisibility(
+                visible = !isLoading,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                Icon(
-                    painter = painterResource(id = UiR.drawable.ic_arrow_end),
-                    contentDescription = "Go button",
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                FloatingActionButton(
+                    onClick = {
+                        if (!isLoading) {
+                            onGoNextButtonClicked()
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.testTag("go_next_fab")
+                ) {
+                    Icon(
+                        painter = painterResource(id = UiR.drawable.ic_arrow_end),
+                        contentDescription = "Go button",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = isLoading,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                CircularProgressIndicator()
             }
         }
     }

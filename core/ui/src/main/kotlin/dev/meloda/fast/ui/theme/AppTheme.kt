@@ -20,9 +20,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.model.ThemeConfig
 import dev.chrisbanes.haze.HazeState
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.model.DeviceSize
+import dev.meloda.fast.ui.model.SizeConfig
+import dev.meloda.fast.ui.model.ThemeConfig
 
 private val googleSansFonts = FontFamily(
     Font(resId = R.font.google_sans_regular),
@@ -110,8 +112,14 @@ val LocalThemeConfig = compositionLocalOf {
         selectedColorScheme = 0,
         amoledDark = false,
         enableBlur = false,
-        enableMultiline = false,
-        isDeviceCompact = false
+        enableMultiline = false
+    )
+}
+
+val LocalSizeConfig = compositionLocalOf {
+    SizeConfig(
+        widthSize = DeviceSize.Compact,
+        heightSize = DeviceSize.Compact
     )
 }
 

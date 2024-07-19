@@ -42,8 +42,11 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.service.OnlineService
 import dev.meloda.fast.service.longpolling.LongPollingService
+import dev.meloda.fast.ui.model.DeviceSize
+import dev.meloda.fast.ui.model.SizeConfig
 import dev.meloda.fast.ui.model.ThemeConfig
 import dev.meloda.fast.ui.theme.AppTheme
+import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
@@ -152,10 +155,42 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                val isDeviceCompact by remember(true) {
+                val deviceWidthDp = remember(true) {
+                    context.resources.displayMetrics.widthPixels.pxToDp()
+                }
+                val deviceHeightDp = remember(true) {
+                    context.resources.displayMetrics.heightPixels.pxToDp()
+                }
+
+                val deviceWidthSize by remember(deviceWidthDp) {
                     derivedStateOf {
-                        context.resources.displayMetrics.widthPixels.pxToDp() <= 360
+                        when {
+                            deviceWidthDp <= 360 -> DeviceSize.Small
+                            deviceWidthDp <= 600 -> DeviceSize.Compact
+                            deviceWidthDp <= 840 -> DeviceSize.Medium
+                            else -> DeviceSize.Expanded
+                        }
                     }
+                }
+
+                val deviceHeightSize by remember(deviceHeightDp) {
+                    derivedStateOf {
+                        when {
+                            deviceHeightDp <= 480 -> DeviceSize.Small
+                            deviceHeightDp <= 700 -> DeviceSize.Compact
+                            deviceHeightDp <= 900 -> DeviceSize.Medium
+                            else -> DeviceSize.Expanded
+                        }
+                    }
+                }
+
+                val sizeConfig by remember(deviceWidthSize, deviceHeightSize) {
+                    mutableStateOf(
+                        SizeConfig(
+                            widthSize = deviceWidthSize,
+                            heightSize = deviceHeightSize
+                        )
+                    )
                 }
 
                 val darkMode by userSettings.darkMode.collectAsStateWithLifecycle()
@@ -181,13 +216,15 @@ class MainActivity : AppCompatActivity() {
                             selectedColorScheme = 0,
                             amoledDark = amoledDark,
                             enableBlur = enableBlur,
-                            enableMultiline = enableMultiline,
-                            isDeviceCompact = isDeviceCompact
+                            enableMultiline = enableMultiline
                         )
                     )
                 }
 
-                CompositionLocalProvider(LocalThemeConfig provides themeConfig) {
+                CompositionLocalProvider(
+                    LocalThemeConfig provides themeConfig,
+                    LocalSizeConfig provides sizeConfig
+                ) {
                     AppTheme(
                         useDarkTheme = themeConfig.darkMode,
                         useDynamicColors = themeConfig.dynamicColors,

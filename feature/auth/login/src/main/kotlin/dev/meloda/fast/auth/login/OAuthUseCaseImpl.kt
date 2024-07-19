@@ -1,12 +1,12 @@
 package dev.meloda.fast.auth.login
 
+import dev.meloda.fast.auth.login.model.AuthInfo
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.api.oauth.OAuthRepository
 import dev.meloda.fast.network.OAuthErrorDomain
 import dev.meloda.fast.network.ValidationType
 import dev.meloda.fast.network.VkOAuthError
 import dev.meloda.fast.network.VkOAuthErrorType
-import dev.meloda.fast.auth.login.model.AuthInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -94,6 +94,8 @@ class OAuthUseCaseImpl(
 
             VkOAuthError.INVALID_REQUEST -> {
                 when (errorType) {
+                    null -> State.Error.OAuthError(OAuthErrorDomain.UnknownError)
+
                     VkOAuthErrorType.WRONG_OTP -> {
                         State.Error.OAuthError(OAuthErrorDomain.WrongValidationCode)
                     }
@@ -106,7 +108,9 @@ class OAuthUseCaseImpl(
                         State.Error.OAuthError(OAuthErrorDomain.TooManyTriesError)
                     }
 
-                    null -> State.Error.OAuthError(OAuthErrorDomain.UnknownError)
+                    VkOAuthErrorType.USERNAME_OR_PASSWORD_IS_INCORRECT -> {
+                        State.Error.OAuthError(OAuthErrorDomain.InvalidCredentialsError)
+                    }
                 }
             }
 
