@@ -17,12 +17,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -31,9 +35,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.auth.login.BuildConfig
 import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.LoginViewModelImpl
+import dev.meloda.fast.ui.components.ActionInvokeDismiss
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 
@@ -44,6 +51,7 @@ fun LogoRoute(
     viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
 ) {
     val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
+    val isNeedToShowSignInAlert by viewModel.isNeedToShowFastSignInAlert.collectAsStateWithLifecycle()
 
     LaunchedEffect(isNeedToOpenMain) {
         if (isNeedToOpenMain) {
@@ -56,6 +64,13 @@ fun LogoRoute(
         onLogoLongClicked = viewModel::onLogoLongClicked,
         onGoNextButtonClicked = onGoNextButtonClicked
     )
+
+    if (isNeedToShowSignInAlert) {
+        SignInAlert(
+            onDismissRequest = viewModel::onFastLogInAlertDismissed,
+            onConfirmClick = viewModel::onFastLogInAlertConfirmClicked,
+        )
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -156,6 +171,37 @@ fun LogoScreen(
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun SignInAlert(
+    onDismissRequest: () -> Unit,
+    onConfirmClick: (token: String) -> Unit
+) {
+    var tokenText by rememberSaveable {
+        mutableStateOf(BuildConfig.debugAccessToken)
+    }
+
+    val maxWidthModifier = Modifier.fillMaxWidth()
+
+    MaterialDialog(
+        onDismissRequest = onDismissRequest,
+        title = "Fast authorization",
+        confirmText = stringResource(id = UiR.string.action_authorize),
+        confirmAction = { onConfirmClick(tokenText) },
+        cancelText = stringResource(id = UiR.string.cancel),
+        actionInvokeDismiss = ActionInvokeDismiss.Always
+    ) {
+        Column(modifier = maxWidthModifier) {
+            OutlinedTextField(
+                modifier = maxWidthModifier.padding(horizontal = 16.dp),
+                value = tokenText,
+                onValueChange = { tokenText = it },
+                placeholder = { Text(text = "Access token") },
+                label = { Text(text = "Access token") }
+            )
         }
     }
 }

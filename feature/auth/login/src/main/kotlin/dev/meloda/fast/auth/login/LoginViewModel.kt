@@ -3,6 +3,13 @@ package dev.meloda.fast.auth.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.meloda.fast.auth.login.model.CaptchaArguments
+import dev.meloda.fast.auth.login.model.LoginError
+import dev.meloda.fast.auth.login.model.LoginScreenState
+import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
+import dev.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.auth.login.model.LoginValidationResult
+import dev.meloda.fast.auth.login.validation.LoginValidator
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.VkConstants
@@ -17,13 +24,6 @@ import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
-import dev.meloda.fast.auth.login.model.CaptchaArguments
-import dev.meloda.fast.auth.login.model.LoginError
-import dev.meloda.fast.auth.login.model.LoginScreenState
-import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
-import dev.meloda.fast.auth.login.model.LoginValidationArguments
-import dev.meloda.fast.auth.login.model.LoginValidationResult
-import dev.meloda.fast.auth.login.validation.LoginValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +44,7 @@ interface LoginViewModel {
     val captchaArguments: StateFlow<CaptchaArguments?>
     val userBannedArguments: StateFlow<LoginUserBannedArguments?>
     val isNeedToOpenMain: StateFlow<Boolean>
+    val isNeedToShowFastSignInAlert: StateFlow<Boolean>
 
     fun onPasswordVisibilityButtonClicked()
 
@@ -63,6 +64,9 @@ interface LoginViewModel {
     fun onCaptchaCodeReceived(code: String)
 
     fun onLogoLongClicked()
+
+    fun onFastLogInAlertDismissed()
+    fun onFastLogInAlertConfirmClicked(token: String)
 }
 
 class LoginViewModelImpl(
@@ -82,6 +86,7 @@ class LoginViewModelImpl(
     override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
     override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     override val isNeedToOpenMain = MutableStateFlow(false)
+    override val isNeedToShowFastSignInAlert = MutableStateFlow(false)
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
@@ -145,9 +150,17 @@ class LoginViewModelImpl(
     }
 
     override fun onLogoLongClicked() {
-        val currentAccount = AccountEntity(
-            userId = BuildConfig.debugUserId.toInt(),
-            accessToken = BuildConfig.debugAccessToken,
+        isNeedToShowFastSignInAlert.update { true }
+    }
+
+    override fun onFastLogInAlertDismissed() {
+        isNeedToShowFastSignInAlert.update { false }
+    }
+
+    override fun onFastLogInAlertConfirmClicked(token: String) {
+        var currentAccount = AccountEntity(
+            userId = -1,
+            accessToken = token,
             fastToken = null,
             trustedHash = null
         ).also { account ->
@@ -158,8 +171,6 @@ class LoginViewModelImpl(
             UserConfig.trustedHash = account.trustedHash
         }
 
-        startLongPoll()
-
         usersUseCase.get(
             userIds = null,
             fields = VkConstants.USER_FIELDS,
@@ -167,19 +178,29 @@ class LoginViewModelImpl(
         ).listenValue { state ->
             state.processState(
                 error = { error ->
+                    UserConfig.currentUserId = -1
+                    UserConfig.userId = -1
+                    UserConfig.accessToken = ""
 
+                    // TODO: 19/07/2024, Danil Nikolaev: show error?
                 },
                 success = { response ->
+                    val actualUserId = response.first().id
+
+                    currentAccount = currentAccount.copy(userId = actualUserId)
+
+                    UserConfig.userId = actualUserId
+                    UserConfig.currentUserId = actualUserId
+
+                    startLongPoll()
+
                     viewModelScope.launch(Dispatchers.IO) {
                         accountsRepository.storeAccounts(listOf(currentAccount))
-
                         delay(350)
-
                         isNeedToOpenMain.update { true }
                     }
                 }
             )
-
             screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
         }
     }
