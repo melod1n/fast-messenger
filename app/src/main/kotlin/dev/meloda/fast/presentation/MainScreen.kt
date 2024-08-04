@@ -38,11 +38,12 @@ import dev.meloda.fast.profile.navigation.profileScreen
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun MainScreen(
-    navigationItems: List<BottomNavigationItem>,
+    navigationItems: ImmutableList<BottomNavigationItem>,
     onError: (BaseError) -> Unit = {},
     onSettingsButtonClicked: () -> Unit = {},
     onConversationItemClicked: (conversationId: Int) -> Unit = {},

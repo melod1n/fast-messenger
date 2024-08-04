@@ -71,7 +71,6 @@ import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.ConversationsViewModel
-import dev.meloda.fast.conversations.ConversationsViewModelImpl
 import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.model.UiConversation
@@ -85,7 +84,6 @@ import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
 
@@ -94,7 +92,7 @@ fun ConversationsRoute(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
-    viewModel: ConversationsViewModel = koinViewModel<ConversationsViewModelImpl>()
+    viewModel: ConversationsViewModel
 ) {
     val context = LocalContext.current
 

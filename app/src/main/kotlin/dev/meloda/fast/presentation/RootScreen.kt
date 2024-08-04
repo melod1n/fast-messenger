@@ -21,7 +21,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import dev.meloda.fast.MainViewModel
-import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.auth.authNavGraph
 import dev.meloda.fast.auth.navigateToAuth
 import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
@@ -37,12 +36,11 @@ import dev.meloda.fast.photoviewer.navigation.photoViewScreen
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
 import dev.meloda.fast.ui.R
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun RootScreen(
     navController: NavHostController = rememberNavController(),
-    viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+    viewModel: MainViewModel
 ) {
     val context = LocalContext.current
     val startDestination by viewModel.startDestination.collectAsStateWithLifecycle()

@@ -7,10 +7,7 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
 
     constructor(size: Int, init: (index: Int) -> T) : this(MutableList(size, init))
 
-    operator fun get(index: Int): T? {
-        values.singleOrNull()
-        return values[index]
-    }
+    operator fun get(index: Int): T = values[index]
 
     inline fun forEach(action: (T) -> Unit) {
         for (element in values) action(element)

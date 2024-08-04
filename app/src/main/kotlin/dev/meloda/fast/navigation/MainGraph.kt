@@ -8,6 +8,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
 import dev.meloda.fast.presentation.MainScreen
 import dev.meloda.fast.profile.navigation.Profile
+import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.serialization.Serializable
 import dev.meloda.fast.ui.R as UiR
 
@@ -23,7 +24,7 @@ fun NavGraphBuilder.mainScreen(
     onConversationClicked: (conversationId: Int) -> Unit,
     onPhotoClicked: (url: String) -> Unit
 ) {
-    val navigationItems = listOf(
+    val navigationItems = ImmutableList.of(
         BottomNavigationItem(
             titleResId = UiR.string.title_friends,
             selectedIconResId = UiR.drawable.baseline_people_alt_24,

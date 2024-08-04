@@ -10,6 +10,5 @@ import org.koin.dsl.module
 
 val conversationsModule = module {
     singleOf(::ConversationsUseCaseImpl) bind ConversationsUseCase::class
-
     viewModelOf(::ConversationsViewModelImpl)
 }
