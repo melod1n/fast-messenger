@@ -16,7 +16,7 @@
     <string name="confirm_delete_message">Удалить сообщение?</string>
     <string name="message_delete_for_all">Для всех</string>
     <string name="message_mark_as_spam">Пометить как спам</string>
-    <string name="action_mark_as_read">Пометить как прочитанное</string>
+    <string name="action_mark_as_read">Прочитать</string>
     <string name="action_delete">Удалить</string>
     <string name="conversation_context_action_delete">Удалить</string>
     <string name="confirm_delete_conversation">Удалить чат?</string>
