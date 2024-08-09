@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.android.library) apply false
 
-    id("dev.iurysouza.modulegraph") version "0.8.1"
+    id("dev.iurysouza.modulegraph") version "0.10.0"
 }
 
 moduleGraphConfig {
