@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.haze.materials)
 
     // TODO: 03/07/2024, Danil Nikolaev: remove when stable release (lazy column fixes)
-    implementation("androidx.compose.foundation:foundation:1.7.0-beta04")
+    implementation("androidx.compose.foundation:foundation:1.7.0-beta07")
 
     implementation(libs.eithernet)
 
