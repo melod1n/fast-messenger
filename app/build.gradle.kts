@@ -23,19 +23,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // TODO: 06/05/2024, Danil Nikolaev: придумать, как совместить с github actions
-//    applicationVariants.all {
-//        val variant = this
-//        variant.outputs
-//            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-//            .forEach { output ->
-//                if (variant.buildType.name == "release") {
-//                    val outputFileName = "fastvk-v${variant.versionName}-${variant.flavorName}.apk"
-//                    output.outputFileName = outputFileName
-//                }
-//            }
-//    }
-
     signingConfigs {
         create("release") {
             val keystoreProperties = Properties()
