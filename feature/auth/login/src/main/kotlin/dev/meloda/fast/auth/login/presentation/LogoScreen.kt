@@ -83,7 +83,7 @@ fun LogoRoute(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LogoScreen(
-    isLoading: Boolean,
+    isLoading: Boolean = false,
     onLogoLongClicked: () -> Unit = {},
     onGoNextButtonClicked: () -> Unit = {}
 ) {
