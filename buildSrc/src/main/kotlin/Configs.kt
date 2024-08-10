@@ -2,8 +2,8 @@ import org.gradle.api.JavaVersion
 
 object Configs {
 
-    const val appCode = 3
-    const val appName = "1.8.1"
+    const val appCode = 4
+    const val appName = "0.1.1"
 
     const val compileSdk = 35
     const val minSdk = 24
