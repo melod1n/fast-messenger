@@ -7,13 +7,12 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.common.LongPollController
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.extensions.findWithIndex
-import dev.meloda.fast.common.extensions.isSdkAtLeast
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.DarkMode
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.SettingsKeys
@@ -330,7 +329,7 @@ class SettingsViewModelImpl(
         val appearanceUseDynamicColors = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_DYNAMIC_COLORS,
             title = UiText.Resource(UiR.string.settings_dynamic_colors),
-            isVisible = isSdkAtLeast(Build.VERSION_CODES.S),
+            isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
             text = UiText.Resource(UiR.string.settings_dynamic_colors_description),
             defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
         )

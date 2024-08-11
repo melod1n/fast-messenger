@@ -23,10 +23,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.model.UiConversation
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

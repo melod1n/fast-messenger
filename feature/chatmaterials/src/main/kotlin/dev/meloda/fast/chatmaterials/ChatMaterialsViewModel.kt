@@ -7,8 +7,8 @@ import dev.meloda.fast.chatmaterials.navigation.ChatMaterials
 import dev.meloda.fast.chatmaterials.util.asPresentation
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.data.api.messages.MessagesUseCase
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import kotlinx.coroutines.flow.MutableStateFlow

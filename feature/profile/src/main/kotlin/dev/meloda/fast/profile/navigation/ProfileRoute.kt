@@ -3,11 +3,11 @@ package dev.meloda.fast.profile.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.meloda.fast.common.extensions.navigation.sharedViewModel
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.profile.ProfileViewModel
 import dev.meloda.fast.profile.ProfileViewModelImpl
 import dev.meloda.fast.profile.presentation.ProfileRoute
+import dev.meloda.fast.ui.extensions.sharedViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable

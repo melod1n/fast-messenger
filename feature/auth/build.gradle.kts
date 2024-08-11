@@ -64,7 +64,7 @@ android {
 }
 
 dependencies {
-    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.core.ui)
 
     implementation(platform(libs.compose.bom))

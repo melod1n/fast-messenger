@@ -18,7 +18,6 @@ class AppGlobal : Application(), ImageLoaderFactory {
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         AppSettings.init(preferences)
-        UserConfig.init(preferences)
 
         initKoin()
     }

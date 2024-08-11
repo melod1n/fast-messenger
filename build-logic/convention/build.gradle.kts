@@ -58,6 +58,10 @@ gradlePlugin {
             id = "fast.android.test"
             implementationClass = "AndroidTestConventionPlugin"
         }
+        register("koin") {
+            id = "fast.koin"
+            implementationClass = "KoinConventionPlugin"
+        }
         register("androidRoom") {
             id = "fast.android.room"
             implementationClass = "AndroidRoomConventionPlugin"

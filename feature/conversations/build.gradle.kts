@@ -9,13 +9,11 @@ android {
 
 dependencies {
     implementation(projects.core.common)
-    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.core.model)
     implementation(projects.core.ui)
 
-    implementation(libs.nanokt.android)
-    implementation(libs.nanokt.jvm)
-    implementation(libs.nanokt)
+    implementation(libs.bundles.nanokt)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)

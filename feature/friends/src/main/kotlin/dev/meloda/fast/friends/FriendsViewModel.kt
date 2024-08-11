@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.data.State
-import dev.meloda.fast.data.api.friends.FriendsUseCase
+import dev.meloda.fast.domain.FriendsUseCase
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.friends.model.FriendsScreenState

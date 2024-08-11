@@ -30,7 +30,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.common.UserConfig
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.settings.HapticType
 import dev.meloda.fast.settings.SettingsViewModel
@@ -45,11 +50,6 @@ import dev.meloda.fast.settings.presentation.item.TitleTextItem
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 

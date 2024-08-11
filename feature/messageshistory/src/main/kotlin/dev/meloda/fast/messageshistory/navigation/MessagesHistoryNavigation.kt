@@ -5,10 +5,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import dev.meloda.fast.common.extensions.customNavType
 import dev.meloda.fast.messageshistory.model.MessagesHistoryArguments
 import dev.meloda.fast.messageshistory.presentation.MessagesHistoryRoute
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.extensions.customNavType
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 

@@ -14,12 +14,12 @@ import dev.meloda.fast.conversations.model.ConversationsShowOptions
 import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.conversations.util.asPresentation
 import dev.meloda.fast.conversations.util.extractAvatar
-import dev.meloda.fast.data.LongPollUpdatesParser
 import dev.meloda.fast.data.State
-import dev.meloda.fast.data.api.conversations.ConversationsUseCase
-import dev.meloda.fast.data.api.messages.MessagesUseCase
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.domain.ConversationsUseCase
+import dev.meloda.fast.domain.LongPollUpdatesParser
+import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollEvent

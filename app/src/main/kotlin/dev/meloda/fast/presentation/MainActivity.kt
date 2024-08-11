@@ -36,7 +36,6 @@ import dev.meloda.fast.MainViewModel
 import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.common.LongPollController
-import dev.meloda.fast.common.extensions.isSdkAtLeast
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
@@ -239,7 +238,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createNotificationChannels() {
-        isSdkAtLeast(Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val noCategoryName = getString(UiR.string.notification_channel_no_category_name)
             val noCategoryDescriptionText =
                 getString(UiR.string.notification_channel_no_category_description)

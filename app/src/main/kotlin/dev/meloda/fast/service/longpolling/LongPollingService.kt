@@ -13,12 +13,12 @@ import androidx.core.app.ServiceCompat
 import com.conena.nanokt.android.app.stopForegroundCompat
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.common.LongPollController
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.model.LongPollState
-import dev.meloda.fast.data.LongPollUpdatesParser
-import dev.meloda.fast.data.LongPollUseCase
+import dev.meloda.fast.domain.LongPollUpdatesParser
+import dev.meloda.fast.domain.LongPollUseCase
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.model.api.data.LongPollUpdates

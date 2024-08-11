@@ -10,12 +10,12 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import dev.meloda.fast.auth.AuthGraph
 import dev.meloda.fast.common.LongPollController
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.extensions.ifEmpty
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.LongPollState
-import dev.meloda.fast.data.db.GetCurrentAccountUseCase
+import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.domain.GetCurrentAccountUseCase
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.model.BaseError

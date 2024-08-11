@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.fast.android.library)
+//    alias(libs.plugins.fast.koin)
 }
 
 android {
@@ -13,9 +14,8 @@ dependencies {
     api(projects.core.network)
     api(projects.core.database)
 
-    implementation(libs.koin.android)
-
-    // TODO: 05/05/2024, Danil Nikolaev: research, maybe remove
+    // TODO: 11/08/2024, Danil Nikolaev: remove?
     implementation(libs.retrofit)
     implementation(libs.eithernet)
+    implementation(libs.koin.android)
 }

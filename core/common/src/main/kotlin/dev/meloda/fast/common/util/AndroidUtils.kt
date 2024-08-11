@@ -4,14 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
-import androidx.core.content.FileProvider
-import java.io.File
-import java.io.FileOutputStream
 
 object AndroidUtils {
 
@@ -96,61 +92,61 @@ object AndroidUtils {
         })
     }
 
-    fun getInstallPackageIntent(
-        context: Context,
-        providerPath: String,
-        fileToRead: File,
-    ): Intent {
-        val intent = Intent(Intent.ACTION_VIEW)
+//    fun getInstallPackageIntent(
+//        context: Context,
+//        providerPath: String,
+//        fileToRead: File,
+//    ): Intent {
+//        val intent = Intent(Intent.ACTION_VIEW)
+//
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+//        intent.data = FileProvider.getUriForFile(
+//            context,
+//            "dev.meloda.fast$providerPath",
+//            fileToRead
+//        )
+//
+//        return intent
+//    }
 
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-        intent.data = FileProvider.getUriForFile(
-            context,
-            "dev.meloda.fast$providerPath",
-            fileToRead
-        )
+//    fun getImageToShare(context: Context, existingFile: File): Uri? {
+//        val imageFolder = File(context.cacheDir, "images")
+//
+//        return try {
+//            imageFolder.mkdirs()
+//
+//            val copyToFile = File(imageFolder, "shared_image.png")
+//            if (copyToFile.exists()) {
+//                copyToFile.delete()
+//            }
+//
+//            val file = existingFile.copyTo(copyToFile)
+//            FileProvider.getUriForFile(context, "dev.meloda.fast.provider", file)
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            null
+//        }
+//    }
 
-        return intent
-    }
-
-    fun getImageToShare(context: Context, existingFile: File): Uri? {
-        val imageFolder = File(context.cacheDir, "images")
-
-        return try {
-            imageFolder.mkdirs()
-
-            val copyToFile = File(imageFolder, "shared_image.png")
-            if (copyToFile.exists()) {
-                copyToFile.delete()
-            }
-
-            val file = existingFile.copyTo(copyToFile)
-            FileProvider.getUriForFile(context, "dev.meloda.fast.provider", file)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    fun getImageToShare(context: Context, bitmap: Bitmap): Uri? {
-        val imageFolder = File(context.cacheDir, "images")
-
-        return try {
-            imageFolder.mkdirs()
-
-            val file = File(imageFolder, "shared_image.png")
-            val outputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
-            outputStream.flush()
-            outputStream.close()
-            FileProvider.getUriForFile(context, "dev.meloda.fast.fileprovider", file)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
+//    fun getImageToShare(context: Context, bitmap: Bitmap): Uri? {
+//        val imageFolder = File(context.cacheDir, "images")
+//
+//        return try {
+//            imageFolder.mkdirs()
+//
+//            val file = File(imageFolder, "shared_image.png")
+//            val outputStream = FileOutputStream(file)
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
+//            outputStream.flush()
+//            outputStream.close()
+//            FileProvider.getUriForFile(context, "dev.meloda.fast.fileprovider", file)
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            null
+//        }
+//    }
 
     fun showShareSheet(context: Context, content: ShareContent) {
         val intent = Intent(Intent.ACTION_SEND).apply {

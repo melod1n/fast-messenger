@@ -1,10 +1,8 @@
 package dev.meloda.fast.data.di
 
-import dev.meloda.fast.common.di.commonModule
+import dev.meloda.fast.data.AccessTokenInterceptor
 import dev.meloda.fast.data.api.account.AccountRepository
 import dev.meloda.fast.data.api.account.AccountRepositoryImpl
-import dev.meloda.fast.data.api.account.AccountUseCase
-import dev.meloda.fast.data.api.account.AccountUseCaseImpl
 import dev.meloda.fast.data.api.audios.AudiosRepository
 import dev.meloda.fast.data.api.auth.AuthRepository
 import dev.meloda.fast.data.api.auth.AuthRepositoryImpl
@@ -22,29 +20,26 @@ import dev.meloda.fast.data.api.oauth.OAuthRepositoryImpl
 import dev.meloda.fast.data.api.photos.PhotosRepository
 import dev.meloda.fast.data.api.users.UsersRepository
 import dev.meloda.fast.data.api.users.UsersRepositoryImpl
-import dev.meloda.fast.data.api.users.UsersUseCase
-import dev.meloda.fast.data.api.users.UsersUseCaseImpl
 import dev.meloda.fast.data.api.videos.VideosRepository
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.db.AccountsRepositoryImpl
-import dev.meloda.fast.data.db.GetCurrentAccountUseCase
 import dev.meloda.fast.database.di.databaseModule
 import dev.meloda.fast.datastore.di.dataStoreModule
 import dev.meloda.fast.network.di.networkModule
+import okhttp3.Interceptor
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val dataModule = module {
     includes(
-        commonModule,
         databaseModule,
         dataStoreModule,
         networkModule,
     )
 
     singleOf(::AccountRepositoryImpl) bind AccountRepository::class
-    singleOf(::AccountUseCaseImpl) bind AccountUseCase::class
 
     singleOf(::AudiosRepository)
 
@@ -63,12 +58,15 @@ val dataModule = module {
     singleOf(::PhotosRepository)
 
     singleOf(::UsersRepositoryImpl) bind UsersRepository::class
-    singleOf(::UsersUseCaseImpl) bind UsersUseCase::class
 
     singleOf(::VideosRepository)
 
     singleOf(::AccountsRepositoryImpl) bind AccountsRepository::class
-    singleOf(::GetCurrentAccountUseCase)
 
     singleOf(::FriendsRepositoryImpl) bind FriendsRepository::class
+
+    // TODO: 11/08/2024, Danil Nikolaev: find a better solution
+    single<Interceptor>(named("token_interceptor")) {
+        AccessTokenInterceptor()
+    }
 }

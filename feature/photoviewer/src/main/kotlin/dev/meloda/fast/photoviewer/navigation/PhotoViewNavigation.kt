@@ -5,9 +5,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import dev.meloda.fast.common.extensions.customNavType
 import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.presentation.PhotoViewRoute
+import dev.meloda.fast.ui.extensions.customNavType
 import kotlinx.serialization.Serializable
 import java.net.URLEncoder
 import kotlin.reflect.typeOf

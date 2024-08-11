@@ -2,12 +2,14 @@ package dev.meloda.fast.network.di
 
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
+import com.slack.eithernet.ApiResultCallAdapterFactory
+import com.slack.eithernet.ApiResultConverterFactory
+import com.squareup.moshi.Moshi
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.network.JsonConverter
 import dev.meloda.fast.network.MoshiConverter
 import dev.meloda.fast.network.OAuthResultCallFactory
 import dev.meloda.fast.network.ResponseConverterFactory
-import dev.meloda.fast.network.interceptor.AccessTokenInterceptor
 import dev.meloda.fast.network.interceptor.LanguageInterceptor
 import dev.meloda.fast.network.interceptor.VersionInterceptor
 import dev.meloda.fast.network.service.account.AccountService
@@ -22,9 +24,7 @@ import dev.meloda.fast.network.service.oauth.OAuthService
 import dev.meloda.fast.network.service.photos.PhotosService
 import dev.meloda.fast.network.service.users.UsersService
 import dev.meloda.fast.network.service.videos.VideosService
-import com.slack.eithernet.ApiResultCallAdapterFactory
-import com.slack.eithernet.ApiResultConverterFactory
-import com.squareup.moshi.Moshi
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.singleOf
@@ -41,14 +41,13 @@ val networkModule = module {
     singleOf(::MoshiConverter) bind JsonConverter::class
     single { ChuckerCollector(get()) }
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }
-    singleOf(::AccessTokenInterceptor)
     singleOf(::VersionInterceptor)
     singleOf(::LanguageInterceptor)
     single {
         OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(get<AccessTokenInterceptor>())
+            .addInterceptor(get(named("token_interceptor")) as Interceptor)
             .addInterceptor(get<VersionInterceptor>())
             .addInterceptor(get<LanguageInterceptor>())
             .addInterceptor(get<ChuckerInterceptor>())

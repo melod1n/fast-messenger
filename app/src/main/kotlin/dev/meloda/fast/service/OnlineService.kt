@@ -4,9 +4,9 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.extensions.createTimerFlow
-import dev.meloda.fast.data.api.account.AccountUseCase
+import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.domain.AccountUseCase
 import dev.meloda.fast.data.processState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope

@@ -1,13 +1,13 @@
 package dev.meloda.fast.profile
 
 import androidx.lifecycle.ViewModel
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.data.State
-import dev.meloda.fast.data.api.users.UsersUseCase
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.domain.UsersUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.network.VkErrorCode
 import dev.meloda.fast.profile.model.ProfileScreenState

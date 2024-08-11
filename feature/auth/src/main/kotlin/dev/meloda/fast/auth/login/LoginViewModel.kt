@@ -11,17 +11,18 @@ import dev.meloda.fast.auth.login.model.LoginValidationArguments
 import dev.meloda.fast.auth.login.model.LoginValidationResult
 import dev.meloda.fast.auth.login.validation.LoginValidator
 import dev.meloda.fast.common.LongPollController
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.data.State
-import dev.meloda.fast.data.api.users.UsersUseCase
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.OAuthUseCase
+import dev.meloda.fast.domain.UsersUseCase
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
 import kotlinx.coroutines.Dispatchers
@@ -70,12 +71,12 @@ interface LoginViewModel {
 }
 
 class LoginViewModelImpl(
-    private val oAuthUseCase: dev.meloda.fast.auth.login.OAuthUseCase,
+    private val oAuthUseCase: OAuthUseCase,
     private val usersUseCase: UsersUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
     private val longPollController: LongPollController
-) : ViewModel(), dev.meloda.fast.auth.login.LoginViewModel {
+) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
     override val loginError = MutableStateFlow<LoginError?>(null)

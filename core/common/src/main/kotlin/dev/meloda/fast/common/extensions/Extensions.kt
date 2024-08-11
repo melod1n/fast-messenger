@@ -1,10 +1,5 @@
 package dev.meloda.fast.common.extensions
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.os.Build
-import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
@@ -20,18 +15,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-
-fun Context.restartApp() {
-    (this as? Activity)?.let { activity ->
-        activity.finishAffinity()
-        activity.startActivity(
-            Intent(
-                this,
-                Class.forName("dev.meloda.fast.MainActivity")
-            )
-        )
-    }
-}
 
 inline fun <T> Iterable<T>.findWithIndex(predicate: (T) -> Boolean): Pair<Int, T>? {
     val value = firstOrNull(predicate) ?: return null
@@ -113,15 +96,5 @@ fun <T> Any.toList(mapper: (old: Any) -> T): List<T> {
         is List<*> -> this.mapNotNull { it?.run(mapper) }
 
         else -> emptyList()
-    }
-}
-
-@ChecksSdkIntAtLeast(parameter = 0, lambda = 1)
-fun isSdkAtLeast(sdkInt: Int, action: (() -> Unit)? = null): Boolean {
-    return if (Build.VERSION.SDK_INT >= sdkInt) {
-        action?.invoke()
-        true
-    } else {
-        false
     }
 }

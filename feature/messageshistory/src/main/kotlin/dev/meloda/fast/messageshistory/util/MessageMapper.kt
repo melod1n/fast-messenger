@@ -5,12 +5,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import dev.meloda.fast.common.UserConfig
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.common.model.UiText
 import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.common.provider.ResourceProvider
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.PeerType

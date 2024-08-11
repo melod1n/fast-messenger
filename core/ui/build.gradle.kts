@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.fast.android.library)
     alias(libs.plugins.fast.android.library.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -8,7 +9,7 @@ android {
 }
 
 dependencies {
-    implementation(projects.core.common)
+    api(projects.core.common)
     api(projects.core.model)
 
     implementation(libs.haze)
@@ -16,6 +17,10 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlin.serialization)
+    implementation(libs.koin.androidx.compose.navigation)
 
     debugImplementation(libs.compose.ui.tooling)
 }
