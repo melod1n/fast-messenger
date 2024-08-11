@@ -6,16 +6,16 @@ import androidx.navigation.navigation
 import dev.meloda.fast.auth.captcha.navigation.captchaScreen
 import dev.meloda.fast.auth.captcha.navigation.navigateToCaptcha
 import dev.meloda.fast.auth.captcha.navigation.setCaptchaResult
+import dev.meloda.fast.auth.login.navigation.Logo
+import dev.meloda.fast.auth.login.navigation.loginScreen
+import dev.meloda.fast.auth.login.navigation.navigateToLogin
+import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
+import dev.meloda.fast.auth.userbanned.navigation.navigateToUserBanned
+import dev.meloda.fast.auth.userbanned.navigation.userBannedRoute
 import dev.meloda.fast.auth.validation.model.ValidationArguments
 import dev.meloda.fast.auth.validation.navigation.navigateToValidation
 import dev.meloda.fast.auth.validation.navigation.setValidationResult
 import dev.meloda.fast.auth.validation.navigation.validationScreen
-import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
-import dev.meloda.fast.auth.userbanned.navigation.navigateToUserBanned
-import dev.meloda.fast.auth.userbanned.navigation.userBannedRoute
-import dev.meloda.fast.auth.login.navigation.Logo
-import dev.meloda.fast.auth.login.navigation.loginScreen
-import dev.meloda.fast.auth.login.navigation.navigateToLogin
 import kotlinx.serialization.Serializable
 import java.net.URLEncoder
 

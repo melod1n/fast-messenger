@@ -1,4 +1,10 @@
 [versions]
+minSdk = "24"
+targetSdk = "35"
+compileSdk = "35"
+versionCode = "4"
+versionName = "0.1.1"
+
 agp = "8.5.2"
 converterMoshi = "2.11.0"
 eithernet = "1.9.0"
@@ -91,6 +97,13 @@ koin-android-test = { module = "io.insert-koin:koin-android-test", version.ref =
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 koin-androidx-compose-navigation = { module = "io.insert-koin:koin-androidx-compose-navigation", version.ref = "koin" }
 
+# build-logic dependencies
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
+
 [bundles]
 compose = [
     "compose-material3",
@@ -103,12 +116,29 @@ compose = [
     "compose-runtime-saveable"
 ]
 compose-ui-test = ["compose-ui-test-junit4", "compose-ui-test-manifest"]
+nanokt = [
+    "nanokt",
+    "nanokt-android",
+    "nanokt-jvm"
+]
 
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp" }
-org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-com-google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-org-jetbrains-kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+room = { id = "androidx.room", version.ref = "room" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
+#project plugins
+fast-android-application = { id = "fast.android.application", version = "unspecified" }
+fast-android-application-compose = { id = "fast.android.application.compose", version = "unspecified" }
+fast-android-feature = { id = "fast.android.feature", version = "unspecified" }
+fast-android-library = { id = "fast.android.library", version = "unspecified" }
+fast-android-library-compose = { id = "fast.android.library.compose", version = "unspecified" }
+fast-android-room = { id = "fast.android.room", version = "unspecified" }
+fast-android-test = { id = "fast.android.test", version = "unspecified" }
+fast-jvm-library = { id = "fast.jvm.library", version = "unspecified" }

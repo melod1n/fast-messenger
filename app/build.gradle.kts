@@ -1,26 +1,19 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.com.android.application)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
-    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
-    alias(libs.plugins.com.google.devtools.ksp)
-    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.fast.android.application)
+    alias(libs.plugins.fast.android.application.compose)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "dev.meloda.fast"
-    compileSdk = Configs.compileSdk
 
     defaultConfig {
         applicationId = "dev.meloda.fast"
-        minSdk = Configs.minSdk
-        targetSdk = Configs.targetSdk
-        versionCode = Configs.appCode
-        versionName = Configs.appName
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 4
+        versionName = "0.1.1"
     }
 
     signingConfigs {
@@ -63,40 +56,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-
-        // TODO: 15/05/2024, Danil Nikolaev: add to other modules with build convention
-        register("staging") {
-            initWith(getByName("release"))
-            applicationIdSuffix = ".staging"
-        }
-    }
-
-    val flavorDimension = "variant"
-    flavorDimensions += flavorDimension
-
-    productFlavors {
-        register("amethyst") {
-            dimension = flavorDimension
-            isDefault = true
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = Configs.java
-        targetCompatibility = Configs.java
-    }
-
-    kotlinOptions {
-        jvmTarget = Configs.java.toString()
-        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        useLiveLiterals = true
     }
 
     packaging {
@@ -108,6 +67,7 @@ android {
 
 dependencies {
     implementation(projects.feature.auth)
+
     implementation(projects.feature.chatmaterials)
     implementation(projects.feature.conversations)
     implementation(projects.feature.languagepicker)
@@ -120,7 +80,6 @@ dependencies {
 
     implementation(projects.core.common)
     implementation(projects.core.ui)
-    implementation(projects.core.designsystem)
     implementation(projects.core.data)
     implementation(projects.core.model)
     implementation(projects.core.datastore)

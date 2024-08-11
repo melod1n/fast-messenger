@@ -1,34 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
-    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.fast.android.library)
+    alias(libs.plugins.fast.android.library.compose)
 }
-
-group = "dev.meloda.fast.ui"
 
 android {
     namespace = "dev.meloda.fast.ui"
-    compileSdk = Configs.compileSdk
-
-    defaultConfig {
-        minSdk = Configs.minSdk
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = Configs.java
-        targetCompatibility = Configs.java
-    }
-    kotlinOptions {
-        jvmTarget = Configs.java.toString()
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {

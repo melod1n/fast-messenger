@@ -1,31 +1,11 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
-    alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.fast.android.library)
+    alias(libs.plugins.ksp)
 }
-
-group = "dev.meloda.fast.network"
 
 android {
     namespace = "dev.meloda.fast.network"
-    compileSdk = Configs.compileSdk
 
-    defaultConfig {
-        minSdk = Configs.minSdk
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = Configs.java
-        targetCompatibility = Configs.java
-    }
-    kotlinOptions {
-        jvmTarget = Configs.java.toString()
-    }
     buildFeatures {
         buildConfig = true
     }

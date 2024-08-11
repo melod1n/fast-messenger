@@ -1,40 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
-    alias(libs.plugins.com.google.devtools.ksp)
-    alias(libs.plugins.kotlin.compose.compiler)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.fast.android.feature)
+    alias(libs.plugins.fast.android.library.compose)
 }
-
-group = "dev.meloda.fast.friends"
 
 android {
     namespace = "dev.meloda.fast.friends"
-    compileSdk = Configs.compileSdk
-
-    defaultConfig {
-        minSdk = Configs.minSdk
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = Configs.java
-        targetCompatibility = Configs.java
-    }
-    kotlinOptions {
-        jvmTarget = Configs.java.toString()
-        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
-    }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        useLiveLiterals = true
-    }
 }
 
 dependencies {

@@ -1,30 +1,9 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
+    alias(libs.plugins.fast.android.library)
 }
-
-group = "dev.meloda.fast.data"
 
 android {
     namespace = "dev.meloda.fast.data"
-    compileSdk = Configs.compileSdk
-
-    defaultConfig {
-        minSdk = Configs.minSdk
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = Configs.java
-        targetCompatibility = Configs.java
-    }
-    kotlinOptions {
-        jvmTarget = Configs.java.toString()
-    }
 }
 
 dependencies {

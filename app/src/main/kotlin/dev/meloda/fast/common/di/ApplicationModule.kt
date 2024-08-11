@@ -5,7 +5,9 @@ import android.content.res.Resources
 import android.os.PowerManager
 import androidx.preference.PreferenceManager
 import dev.meloda.fast.MainViewModelImpl
-import dev.meloda.fast.auth.authModule
+import dev.meloda.fast.auth.captcha.di.captchaModule
+import dev.meloda.fast.auth.login.di.loginModule
+import dev.meloda.fast.auth.validation.di.validationModule
 import dev.meloda.fast.chatmaterials.di.chatMaterialsModule
 import dev.meloda.fast.common.provider.Provider
 import dev.meloda.fast.conversations.di.conversationsModule
@@ -28,7 +30,9 @@ import org.koin.dsl.module
 val applicationModule = module {
     includes(dataModule)
     includes(
-        authModule,
+        loginModule,
+        validationModule,
+        captchaModule,
         conversationsModule,
         settingsModule,
         messagesHistoryModule,

@@ -1,37 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
-    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.fast.android.library)
+    alias(libs.plugins.fast.android.library.compose)
 }
-
-group = "dev.meloda.fast.common"
 
 android {
     namespace = "dev.meloda.fast.common"
-    compileSdk = Configs.compileSdk
-
-    defaultConfig {
-        minSdk = Configs.minSdk
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = Configs.java
-        targetCompatibility = Configs.java
-    }
-    kotlinOptions {
-        jvmTarget = Configs.java.toString()
-        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn", "-Xcontext-receivers")
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
