@@ -14,7 +14,6 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.UserConfig
@@ -102,7 +101,7 @@ class LoginViewModelImpl(
             login = newLogin.trim(),
             loginError = false
         )
-        screenState.updateValue(newState)
+        screenState.setValue { newState }
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
@@ -110,7 +109,7 @@ class LoginViewModelImpl(
             password = newPassword.trim(),
             passwordError = false
         )
-        screenState.updateValue(newState)
+        screenState.setValue { newState }
     }
 
     override fun onSignInButtonClicked() {
@@ -176,7 +175,7 @@ class LoginViewModelImpl(
             userIds = null,
             fields = VkConstants.USER_FIELDS,
             nomCase = null
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     UserConfig.currentUserId = -1
@@ -227,7 +226,7 @@ class LoginViewModelImpl(
             validationCode = validationCode.value,
             captchaSid = captchaArguments.value?.captchaSid,
             captchaKey = captchaCode.value
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     Log.d("LoginViewModelImpl", "login: error: $error")
@@ -354,11 +353,11 @@ class LoginViewModelImpl(
         validationState.value.forEach { result ->
             when (result) {
                 LoginValidationResult.LoginEmpty -> {
-                    screenState.updateValue(screenState.value.copy(loginError = true))
+                    screenState.setValue { old -> old.copy(loginError = true) }
                 }
 
                 LoginValidationResult.PasswordEmpty -> {
-                    screenState.updateValue(screenState.value.copy(passwordError = true))
+                    screenState.setValue { old -> old.copy(passwordError = true) }
                 }
 
                 LoginValidationResult.Empty -> Unit

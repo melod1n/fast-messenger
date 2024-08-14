@@ -1,6 +1,7 @@
 package dev.meloda.fast.profile
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
@@ -32,7 +33,7 @@ class ProfileViewModelImpl(
 
     private fun getLocalAccountInfo() {
         usersUseCase.getLocalUser(UserConfig.userId)
-            .listenValue { state ->
+            .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
                         if (error is State.Error.ApiError) {
@@ -70,7 +71,7 @@ class ProfileViewModelImpl(
             userIds = null,
             fields = VkConstants.USER_FIELDS,
             nomCase = null
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     // TODO: 12/07/2024, Danil Nikolaev: if local info is null then show error view

@@ -10,7 +10,6 @@ import dev.meloda.fast.auth.validation.validation.ValidationValidator
 import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.domain.AuthUseCase
 import kotlinx.coroutines.Job
@@ -77,12 +76,12 @@ class ValidationViewModelImpl(
     }
 
     override fun onCodeInputChanged(newCode: String) {
-        screenState.updateValue(
-            screenState.value.copy(
+        screenState.setValue { old ->
+            old.copy(
                 code = newCode.trim(),
                 codeError = false
             )
-        )
+        }
 
         if (newCode.length == 6) {
             viewModelScope.launch {
@@ -116,7 +115,7 @@ class ValidationViewModelImpl(
     }
 
     override fun onNavigatedToLogin() {
-        screenState.updateValue(ValidationScreenState.EMPTY)
+        screenState.update { ValidationScreenState.EMPTY }
         isNeedToOpenLogin.update { false }
     }
 
@@ -132,7 +131,7 @@ class ValidationViewModelImpl(
         val sid = validationSid ?: return
 
         authUseCase.validatePhone(sid)
-            .listenValue { state ->
+            .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
 
@@ -164,21 +163,13 @@ class ValidationViewModelImpl(
         delayJob = createTimerFlow(
             time = delay,
             onStartAction = {
-                screenState.updateValue(
-                    screenState.value.copy(isSmsButtonVisible = false)
-                )
+                screenState.setValue { old -> old.copy(isSmsButtonVisible = false) }
             },
             onTickAction = { remainedTime ->
-                screenState.updateValue(
-                    screenState.value.copy(delayTime = remainedTime)
-                )
+                screenState.setValue { old -> old.copy(delayTime = remainedTime) }
             },
             onTimeoutAction = {
-                screenState.updateValue(
-                    screenState.value.copy(
-                        isSmsButtonVisible = true
-                    )
-                )
+                screenState.setValue { old -> old.copy(isSmsButtonVisible = true) }
             },
         ).launchIn(viewModelScope)
     }

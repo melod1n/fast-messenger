@@ -2,6 +2,7 @@ package dev.meloda.fast.chatmaterials
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
 import dev.meloda.fast.chatmaterials.navigation.ChatMaterials
 import dev.meloda.fast.chatmaterials.util.asPresentation
@@ -83,7 +84,7 @@ class ChatMaterialsViewModelImpl(
             offset = offset,
             attachmentTypes = listOf(screenState.value.attachmentType),
             conversationMessageId = screenState.value.conversationMessageId
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
 

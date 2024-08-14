@@ -152,7 +152,7 @@ class MainViewModelImpl(
     }
 
     private fun listenLongPollState() {
-        longPollController.stateToApply.listenValue { newState ->
+        longPollController.stateToApply.listenValue(viewModelScope) { newState ->
             if (newState == LongPollState.Background) {
                 isNeedToCheckNotificationsPermission.update { true }
             }

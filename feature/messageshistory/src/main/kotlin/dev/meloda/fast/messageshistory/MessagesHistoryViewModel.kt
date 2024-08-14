@@ -11,7 +11,6 @@ import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
@@ -97,7 +96,10 @@ class MessagesHistoryViewModelImpl(
         updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
 
-        userSettings.showTimeInActionMessages.listenValue(::toggleShowTimeInActionMessages)
+        userSettings.showTimeInActionMessages.listenValue(
+            viewModelScope,
+            ::toggleShowTimeInActionMessages
+        )
     }
 
     override fun onRefresh() {
@@ -117,9 +119,7 @@ class MessagesHistoryViewModelImpl(
             )
         }
 
-        screenState.value.copy(message = newText).let { newValue ->
-            screenState.updateValue(newValue)
-        }
+        screenState.setValue { old -> old.copy(message = newText) }
     }
 
     override fun onEmojiButtonClicked() {
@@ -236,7 +236,7 @@ class MessagesHistoryViewModelImpl(
             conversationId = screenState.value.conversationId,
             count = MESSAGES_LOAD_COUNT,
             offset = offset,
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
 
@@ -375,7 +375,7 @@ class MessagesHistoryViewModelImpl(
             message = newMessage.text,
             replyTo = null,
             attachments = null
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     sendingMessages -= newMessage

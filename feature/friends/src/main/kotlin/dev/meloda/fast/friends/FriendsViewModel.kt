@@ -1,12 +1,13 @@
 package dev.meloda.fast.friends
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.data.State
-import dev.meloda.fast.domain.FriendsUseCase
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.domain.FriendsUseCase
 import dev.meloda.fast.friends.model.FriendsScreenState
 import dev.meloda.fast.friends.util.asPresentation
 import dev.meloda.fast.model.BaseError
@@ -47,7 +48,7 @@ class FriendsViewModelImpl(
     private val friends = MutableStateFlow<List<VkUser>>(emptyList())
 
     init {
-        userSettings.useContactNames.listenValue(::updateFriendsNames)
+        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
 
         loadFriends()
     }
@@ -66,71 +67,72 @@ class FriendsViewModelImpl(
     }
 
     private fun loadFriends(offset: Int = currentOffset.value) {
-        friendsUseCase.getAllFriends(count = LOAD_COUNT, offset = offset).listenValue { state ->
-            state.processState(
-                error = { error ->
-                    if (error is State.Error.ApiError) {
-                        when (error.errorCode) {
-                            VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                                baseError.setValue { BaseError.SessionExpired }
+        friendsUseCase.getAllFriends(count = LOAD_COUNT, offset = offset)
+            .listenValue(viewModelScope) { state ->
+                state.processState(
+                    error = { error ->
+                        if (error is State.Error.ApiError) {
+                            when (error.errorCode) {
+                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                                    baseError.setValue { BaseError.SessionExpired }
+                                }
+
+                                else -> Unit
                             }
+                        }
+                    },
+                    success = { info ->
+                        val response = info.friends
+                        val itemsCountSufficient = response.size == LOAD_COUNT
+                        canPaginate.setValue { itemsCountSufficient }
 
-                            else -> Unit
+                        val paginationExhausted = !itemsCountSufficient &&
+                                screenState.value.friends.size >= LOAD_COUNT
+
+                        imagesToPreload.setValue {
+                            response.mapNotNull(VkUser::photo100)
+                        }
+
+                        friendsUseCase.storeUsers(response)
+
+                        val loadedFriends = response.map {
+                            it.asPresentation(userSettings.useContactNames.value)
+                        }
+                        val loadedOnlineFriends = info.onlineFriends.map {
+                            it.asPresentation(userSettings.useContactNames.value)
+                        }
+
+                        val newState = screenState.value.copy(
+                            isPaginationExhausted = paginationExhausted
+                        )
+
+                        if (offset == 0) {
+                            friends.emit(response)
+                            screenState.setValue {
+                                newState.copy(
+                                    friends = loadedFriends,
+                                    onlineFriends = loadedOnlineFriends
+                                )
+                            }
+                        } else {
+                            friends.emit(friends.value.plus(response))
+                            screenState.setValue {
+                                newState.copy(
+                                    friends = newState.friends.plus(loadedFriends),
+                                    onlineFriends = newState.onlineFriends.plus(loadedOnlineFriends)
+                                )
+                            }
                         }
                     }
-                },
-                success = { info ->
-                    val response = info.friends
-                    val itemsCountSufficient = response.size == LOAD_COUNT
-                    canPaginate.setValue { itemsCountSufficient }
-
-                    val paginationExhausted = !itemsCountSufficient &&
-                            screenState.value.friends.size >= LOAD_COUNT
-
-                    imagesToPreload.setValue {
-                        response.mapNotNull(VkUser::photo100)
-                    }
-
-                    friendsUseCase.storeUsers(response)
-
-                    val loadedFriends = response.map {
-                        it.asPresentation(userSettings.useContactNames.value)
-                    }
-                    val loadedOnlineFriends = info.onlineFriends.map {
-                        it.asPresentation(userSettings.useContactNames.value)
-                    }
-
-                    val newState = screenState.value.copy(
-                        isPaginationExhausted = paginationExhausted
-                    )
-
-                    if (offset == 0) {
-                        friends.emit(response)
-                        screenState.setValue {
-                            newState.copy(
-                                friends = loadedFriends,
-                                onlineFriends = loadedOnlineFriends
-                            )
-                        }
-                    } else {
-                        friends.emit(friends.value.plus(response))
-                        screenState.setValue {
-                            newState.copy(
-                                friends = newState.friends.plus(loadedFriends),
-                                onlineFriends = newState.onlineFriends.plus(loadedOnlineFriends)
-                            )
-                        }
-                    }
-                }
-            )
-
-            screenState.setValue { old ->
-                old.copy(
-                    isLoading = offset == 0 && state.isLoading(),
-                    isPaginating = offset > 0 && state.isLoading()
                 )
+
+                screenState.setValue { old ->
+                    old.copy(
+                        isLoading = offset == 0 && state.isLoading(),
+                        isPaginating = offset > 0 && state.isLoading()
+                    )
+                }
             }
-        }
     }
 
     private fun updateFriendsNames(useContactNames: Boolean) {

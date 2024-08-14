@@ -88,7 +88,7 @@ class ConversationsViewModelImpl(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
-        userSettings.useContactNames.listenValue(::updateConversationsNames)
+        userSettings.useContactNames.listenValue(viewModelScope, ::updateConversationsNames)
 
         updatesParser.onNewMessage(::handleNewMessage)
         updatesParser.onMessageEdited(::handleEditedMessage)
@@ -227,7 +227,7 @@ class ConversationsViewModelImpl(
         offset: Int = currentOffset.value
     ) {
         conversationsUseCase.getConversations(count = LOAD_COUNT, offset = offset)
-            .listenValue { state ->
+            .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
                         if (error is State.Error.ApiError) {
@@ -288,7 +288,7 @@ class ConversationsViewModelImpl(
     }
 
     private fun deleteConversation(peerId: Int) {
-        conversationsUseCase.delete(peerId).listenValue { state ->
+        conversationsUseCase.delete(peerId).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
 
@@ -314,7 +314,7 @@ class ConversationsViewModelImpl(
 
     private fun pinConversation(peerId: Int, pin: Boolean) {
         conversationsUseCase.changePinState(peerId, pin)
-            .listenValue { state ->
+            .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
 
@@ -578,7 +578,7 @@ class ConversationsViewModelImpl(
         messagesUseCase.markAsRead(
             peerId = peerId,
             startMessageId = startMessageId
-        ).listenValue { state ->
+        ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
 

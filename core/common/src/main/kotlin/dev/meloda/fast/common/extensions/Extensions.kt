@@ -25,9 +25,6 @@ fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
     if (condition.invoke()) add(element)
 }
 
-context(ViewModel)
-fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit) = listenValue(viewModelScope, action)
-
 fun <T> Flow<T>.listenValue(
     coroutineScope: CoroutineScope,
     action: suspend (T) -> Unit
@@ -74,9 +71,6 @@ fun createTimerFlow(
             delay(interval)
         }
     }
-
-context(ViewModel)
-fun <T> MutableStateFlow<T>.updateValue(newValue: T) = this.update { newValue }
 
 fun <T> MutableStateFlow<T>.setValue(function: (T) -> T) {
     val newValue = function(value)

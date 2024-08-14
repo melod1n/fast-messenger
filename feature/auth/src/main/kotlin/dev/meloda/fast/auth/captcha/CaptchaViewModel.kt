@@ -6,7 +6,6 @@ import dev.meloda.fast.auth.captcha.model.CaptchaScreenState
 import dev.meloda.fast.auth.captcha.navigation.Captcha
 import dev.meloda.fast.auth.captcha.validation.CaptchaValidator
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.common.extensions.updateValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -58,13 +57,13 @@ class CaptchaViewModelImpl(
     }
 
     override fun onNavigatedToLogin() {
-        screenState.updateValue(CaptchaScreenState.EMPTY)
+        screenState.update { CaptchaScreenState.EMPTY }
         isNeedToOpenLogin.update { false }
     }
 
     private fun processValidation(): Boolean {
         val isValid = validator.validate(screenState.value).isValid()
-        screenState.updateValue(screenState.value.copy(codeError = !isValid))
+        screenState.setValue { old -> old.copy(codeError = !isValid) }
         return isValid
     }
 }
