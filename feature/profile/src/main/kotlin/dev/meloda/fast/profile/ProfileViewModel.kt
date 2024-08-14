@@ -8,7 +8,8 @@ import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
-import dev.meloda.fast.domain.UsersUseCase
+import dev.meloda.fast.domain.GetLocalUserByIdUseCase
+import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.network.VkErrorCode
 import dev.meloda.fast.profile.model.ProfileScreenState
@@ -21,7 +22,8 @@ interface ProfileViewModel {
 }
 
 class ProfileViewModelImpl(
-    private val usersUseCase: UsersUseCase
+    private val getLocalUserByIdUseCase: GetLocalUserByIdUseCase,
+    private val loadUserByIdUseCase: LoadUserByIdUseCase
 ) : ViewModel(), ProfileViewModel {
 
     override val screenState = MutableStateFlow(ProfileScreenState.EMPTY)
@@ -32,7 +34,7 @@ class ProfileViewModelImpl(
     }
 
     private fun getLocalAccountInfo() {
-        usersUseCase.getLocalUser(UserConfig.userId)
+        getLocalUserByIdUseCase(UserConfig.userId)
             .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
@@ -67,8 +69,8 @@ class ProfileViewModelImpl(
     }
 
     private fun loadAccountInfo() {
-        usersUseCase.get(
-            userIds = null,
+        loadUserByIdUseCase(
+            userId = null,
             fields = VkConstants.USER_FIELDS,
             nomCase = null
         ).listenValue(viewModelScope) { state ->
@@ -77,7 +79,7 @@ class ProfileViewModelImpl(
                     // TODO: 12/07/2024, Danil Nikolaev: if local info is null then show error view
                 },
                 success = { response ->
-                    val user = response.single()
+                    val user = requireNotNull(response)
 
                     screenState.setValue { old ->
                         old.copy(

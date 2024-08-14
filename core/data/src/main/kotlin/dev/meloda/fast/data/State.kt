@@ -1,9 +1,9 @@
 package dev.meloda.fast.data
 
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.network.OAuthErrorDomain
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.VkErrorCode
-import com.slack.eithernet.ApiResult
 
 sealed class State<out T> {
 
@@ -66,6 +66,15 @@ fun RestApiErrorDomain?.toStateApiError(): State.Error = when (this) {
 
 fun <T : Any> ApiResult<T, RestApiErrorDomain>.mapToState() = when (this) {
     is ApiResult.Success -> State.Success(this.value)
+
+    is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
+    is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
+    is ApiResult.Failure.HttpFailure -> this.error.toStateApiError()
+    is ApiResult.Failure.ApiFailure -> this.error.toStateApiError()
+}
+
+fun <T : Any, N> ApiResult<T, RestApiErrorDomain>.mapToState(successMapper: (T) -> N) = when (this) {
+    is ApiResult.Success -> State.Success(successMapper(this.value))
 
     is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
     is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR

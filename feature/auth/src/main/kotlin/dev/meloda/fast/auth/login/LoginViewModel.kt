@@ -20,8 +20,8 @@ import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
-import dev.meloda.fast.domain.UsersUseCase
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +71,7 @@ interface LoginViewModel {
 
 class LoginViewModelImpl(
     private val oAuthUseCase: OAuthUseCase,
-    private val usersUseCase: UsersUseCase,
+    private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
     private val longPollController: LongPollController
@@ -171,8 +171,8 @@ class LoginViewModelImpl(
             UserConfig.trustedHash = account.trustedHash
         }
 
-        usersUseCase.get(
-            userIds = null,
+        loadUserByIdUseCase(
+            userId = null,
             fields = VkConstants.USER_FIELDS,
             nomCase = null
         ).listenValue(viewModelScope) { state ->
@@ -185,7 +185,7 @@ class LoginViewModelImpl(
                     // TODO: 19/07/2024, Danil Nikolaev: show error?
                 },
                 success = { response ->
-                    val actualUserId = response.first().id
+                    val actualUserId = requireNotNull(response).id
 
                     currentAccount = currentAccount.copy(userId = actualUserId)
 
@@ -245,8 +245,8 @@ class LoginViewModelImpl(
                         return@processState
                     }
 
-                    usersUseCase.get(
-                        userIds = listOf(userId),
+                    loadUserByIdUseCase(
+                        userId = userId,
                         fields = VkConstants.USER_FIELDS,
                         nomCase = null
                     )

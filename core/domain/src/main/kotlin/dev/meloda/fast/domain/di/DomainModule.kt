@@ -4,8 +4,11 @@ import dev.meloda.fast.data.di.dataModule
 import dev.meloda.fast.domain.AccountUseCase
 import dev.meloda.fast.domain.AccountUseCaseImpl
 import dev.meloda.fast.domain.GetCurrentAccountUseCase
-import dev.meloda.fast.domain.UsersUseCase
-import dev.meloda.fast.domain.UsersUseCaseImpl
+import dev.meloda.fast.domain.GetLocalUserByIdUseCase
+import dev.meloda.fast.domain.GetLocalUsersByIdsUseCase
+import dev.meloda.fast.domain.LoadUserByIdUseCase
+import dev.meloda.fast.domain.LoadUsersByIdsUseCase
+import dev.meloda.fast.domain.StoreUsersUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -13,7 +16,12 @@ import org.koin.dsl.module
 val domainModule = module {
     includes(dataModule)
 
-    singleOf(::UsersUseCaseImpl) bind UsersUseCase::class
+    singleOf(::GetLocalUserByIdUseCase)
+    singleOf(::GetLocalUsersByIdsUseCase)
+    singleOf(::LoadUserByIdUseCase)
+    singleOf(::LoadUsersByIdsUseCase)
+    singleOf(::StoreUsersUseCase)
+
     singleOf(::AccountUseCaseImpl) bind AccountUseCase::class
     singleOf(::GetCurrentAccountUseCase)
 }
