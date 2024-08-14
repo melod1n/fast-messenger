@@ -203,7 +203,7 @@ fun SignInAlert(
     onConfirmClick: (token: String) -> Unit
 ) {
     var tokenText by rememberSaveable {
-        mutableStateOf(BuildConfig.debugAccessToken)
+        mutableStateOf("")
     }
 
     val maxWidthModifier = Modifier.fillMaxWidth()
