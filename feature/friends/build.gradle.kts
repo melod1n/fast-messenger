@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.haze.materials)
 
     // TODO: 03/07/2024, Danil Nikolaev: remove when stable release
-    implementation("androidx.compose.foundation:foundation:1.7.0-beta07")
+    implementation("androidx.compose.foundation:foundation:1.7.0-rc01")
 
     implementation(libs.eithernet)
 
