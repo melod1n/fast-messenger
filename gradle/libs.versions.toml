@@ -36,7 +36,7 @@ appcompat = "1.7.0"
 androidx-navigation = "2.8.0-rc01"
 serialization = "1.7.1"
 rebugger = "1.0.0-rc03"
-moduleGraph = "2.6.0"
+moduleGraph = "2.7.1"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
