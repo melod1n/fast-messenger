@@ -25,7 +25,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -40,7 +41,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -281,19 +281,24 @@ fun FriendsScreen(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize(),
                     ) { index ->
-                        Box(
+                        PullToRefreshBox(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                                 .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
-                                .padding(bottom = padding.calculateBottomPadding())
-                                .then(
-                                    if (enablePullToRefresh) {
-                                        Modifier.nestedScroll(
-                                            pullToRefreshState.nestedScrollConnection
-                                        )
-                                    } else Modifier
+                                .padding(bottom = padding.calculateBottomPadding()),
+                            state = pullToRefreshState,
+                            isRefreshing = screenState.isLoading,
+                            onRefresh = onRefresh,
+                            indicator = {
+                                PullToRefreshDefaults.Indicator(
+                                    state = pullToRefreshState,
+                                    isRefreshing = screenState.isLoading,
+                                    modifier = Modifier
+                                        .align(Alignment.TopCenter)
+                                        .padding(top = padding.calculateTopPadding()),
                                 )
+                            }
                         ) {
                             val friendsToDisplay = screenState.friends
 
@@ -320,28 +325,6 @@ fun FriendsScreen(
                                         .padding(padding.calculateTopPadding())
                                         .padding(top = 16.dp),
                                     customText = "No${if (index == 1) " online" else ""} friends :("
-                                )
-                            }
-
-                            if (enablePullToRefresh) {
-                                if (pullToRefreshState.isRefreshing) {
-                                    LaunchedEffect(true) {
-                                        onRefresh()
-                                    }
-                                }
-
-                                LaunchedEffect(screenState.isLoading) {
-                                    if (!screenState.isLoading) {
-                                        pullToRefreshState.endRefresh()
-                                    }
-                                }
-
-                                PullToRefreshContainer(
-                                    state = pullToRefreshState,
-                                    modifier = Modifier
-                                        .padding(top = padding.calculateTopPadding())
-                                        .align(Alignment.TopCenter),
-                                    contentColor = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
