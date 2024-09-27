@@ -29,9 +29,6 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
 
-    // TODO: 03/07/2024, Danil Nikolaev: remove when stable release
-    implementation("androidx.compose.foundation:foundation:1.8.0-alpha02")
-
     implementation(libs.eithernet)
 
     implementation(libs.kotlin.serialization)

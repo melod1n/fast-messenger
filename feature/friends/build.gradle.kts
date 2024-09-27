@@ -28,9 +28,6 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.haze.materials)
 
-    // TODO: 03/07/2024, Danil Nikolaev: remove when stable release
-    implementation("androidx.compose.foundation:foundation:1.8.0-alpha02")
-
     implementation(libs.eithernet)
 
     implementation(libs.androidx.navigation.compose)
