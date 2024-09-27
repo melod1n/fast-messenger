@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -37,7 +36,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -52,7 +52,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -338,17 +337,24 @@ fun ConversationsScreen(
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()
 
-                Box(
+                PullToRefreshBox(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                         .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
-                        .padding(bottom = padding.calculateBottomPadding())
-                        .then(
-                            if (enablePullToRefresh) {
-                                Modifier.nestedScroll(pullToRefreshState.nestedScrollConnection)
-                            } else Modifier
+                        .padding(bottom = padding.calculateBottomPadding()),
+                    state = pullToRefreshState,
+                    isRefreshing = screenState.isLoading,
+                    onRefresh = onRefresh,
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            state = pullToRefreshState,
+                            isRefreshing = screenState.isLoading,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = padding.calculateTopPadding()),
                         )
+                    }
                 ) {
                     ConversationsList(
                         onConversationsClick = onConversationItemClicked,
@@ -368,28 +374,6 @@ fun ConversationsScreen(
                         padding = padding,
                         onPhotoClicked = onPhotoClicked
                     )
-
-                    if (enablePullToRefresh) {
-                        if (pullToRefreshState.isRefreshing) {
-                            LaunchedEffect(true) {
-                                onRefresh()
-                            }
-                        }
-
-                        LaunchedEffect(screenState.isLoading) {
-                            if (!screenState.isLoading) {
-                                pullToRefreshState.endRefresh()
-                            }
-                        }
-
-                        PullToRefreshContainer(
-                            state = pullToRefreshState,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = padding.calculateTopPadding()),
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    }
                 }
             }
         }
