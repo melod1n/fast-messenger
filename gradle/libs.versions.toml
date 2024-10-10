@@ -9,7 +9,7 @@ agp = "8.6.1"
 converterMoshi = "2.11.0"
 eithernet = "1.9.0"
 haze = "0.7.3"
-kotlin = "2.0.20"
+kotlin = "2.0.21"
 ksp = "2.0.20-1.0.25"
 
 compose-bom = "2024.09.03"
