@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,17 +20,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,6 +52,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -63,6 +65,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.ImageRequest
 import dev.chrisbanes.haze.haze
@@ -73,6 +76,7 @@ import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.model.UiConversation
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.ErrorView
@@ -90,7 +94,7 @@ import dev.meloda.fast.ui.R as UiR
 fun ConversationsRoute(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit,
-    onPhotoClicked: (url: String) -> Unit,
+    onConversationPhotoClicked: (url: String) -> Unit,
     viewModel: ConversationsViewModel
 ) {
     val context = LocalContext.current
@@ -129,7 +133,7 @@ fun ConversationsRoute(
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
         onRefresh = viewModel::onRefresh,
-        onPhotoClicked = onPhotoClicked
+        onConversationPhotoClicked = onConversationPhotoClicked
     )
 
 
@@ -156,7 +160,7 @@ fun ConversationsScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
-    onPhotoClicked: (url: String) -> Unit = {}
+    onConversationPhotoClicked: (url: String) -> Unit = {}
 ) {
     val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
@@ -220,23 +224,32 @@ fun ConversationsScreen(
                         )
                     },
                     actions = {
-                        IconButton(
-                            onClick = {
-                                dropDownMenuExpanded = true
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.MoreVert,
-                                contentDescription = "Options button"
-                            )
-                        }
+                        AsyncImage(
+                            model = screenState.profileImageUrl,
+                            contentDescription = "Profile Image",
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable { dropDownMenuExpanded = true },
+                            placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
+                        )
+
+//                        IconButton(
+//                            onClick = {
+//                                dropDownMenuExpanded = true
+//                            }
+//                        ) {
+//                            Icon(
+//                                imageVector = Icons.Outlined.MoreVert,
+//                                contentDescription = "Options button"
+//                            )
+//                        }
 
                         DropdownMenu(
                             modifier = Modifier.defaultMinSize(minWidth = 140.dp),
                             expanded = dropDownMenuExpanded,
-                            onDismissRequest = {
-                                dropDownMenuExpanded = false
-                            },
+                            onDismissRequest = { dropDownMenuExpanded = false },
                             offset = DpOffset(x = (-4).dp, y = (-60).dp)
                         ) {
                             DropdownMenuItem(
@@ -293,8 +306,9 @@ fun ConversationsScreen(
                 ) {
                     FloatingActionButton(
                         onClick = {
-                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
-
+                            if (AppSettings.Debug.enableHaptic) {
+                                view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                            }
                             scope.launch {
                                 for (i in 20 downTo 0 step 4) {
                                     rotation.animateTo(
@@ -372,7 +386,7 @@ fun ConversationsScreen(
                         }.fillMaxSize(),
                         onOptionClicked = onOptionClicked,
                         padding = padding,
-                        onPhotoClicked = onPhotoClicked
+                        onPhotoClicked = onConversationPhotoClicked
                     )
                 }
             }

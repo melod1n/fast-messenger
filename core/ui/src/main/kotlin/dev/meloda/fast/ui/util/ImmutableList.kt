@@ -47,6 +47,8 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
         return single
     }
 
+    val size: Int get() = values.size
+
     companion object {
         fun <T> copyOf(collection: Collection<T>): ImmutableList<T> =
             ImmutableList(collection.toList())

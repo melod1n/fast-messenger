@@ -4,6 +4,8 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 val sdkPackage: String = getLocalProperty("sdkPackage", "\"\"")
 val sdkFingerprint: String = getLocalProperty("sdkFingerprint", "\"\"")
 
+val debugToken: String = getLocalProperty("debugToken", "\"\"")
+
 fun getLocalProperty(key: String, defValue: String): String {
     return gradleLocalProperties(rootDir, providers).getProperty(key, defValue)
 }
@@ -30,6 +32,14 @@ androidComponents {
                     type = "String",
                     value = sdkFingerprint,
                     comment = "sdkFingerprint for VK"
+                )
+            )
+            put(
+                "debugToken",
+                BuildConfigField(
+                    type = "String",
+                    value = debugToken,
+                    comment = "debug token for authorization"
                 )
             )
         }

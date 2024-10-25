@@ -6,6 +6,8 @@ import com.slack.eithernet.ApiResultCallAdapterFactory
 import com.slack.eithernet.ApiResultConverterFactory
 import com.squareup.moshi.Moshi
 import dev.meloda.fast.common.AppConstants
+import dev.meloda.fast.common.model.LogLevel
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.network.JsonConverter
 import dev.meloda.fast.network.MoshiConverter
 import dev.meloda.fast.network.OAuthResultCallFactory
@@ -55,7 +57,12 @@ val networkModule = module {
             .followSslRedirects(true)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
+                    level = when (AppSettings.Debug.networkLogLevel) {
+                        LogLevel.NONE -> HttpLoggingInterceptor.Level.NONE
+                        LogLevel.BASIC -> HttpLoggingInterceptor.Level.BASIC
+                        LogLevel.HEADERS -> HttpLoggingInterceptor.Level.HEADERS
+                        LogLevel.BODY -> HttpLoggingInterceptor.Level.BODY
+                    }
                 }
             )
             .build()

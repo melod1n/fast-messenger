@@ -3,6 +3,7 @@ package dev.meloda.fast.datastore
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import dev.meloda.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.LogLevel
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
 
@@ -186,6 +187,20 @@ object AppSettings {
                 SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES
             )
             set(value) = put(SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES, value)
+
+        var enableHaptic: Boolean
+            get() = get(
+                SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC,
+                true
+            )
+            set(value) = put(SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC, value)
+
+        var networkLogLevel: LogLevel
+            get() = get(
+                SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL,
+                SettingsKeys.DEFAULT_NETWORK_LOG_LEVEL
+            ).let(LogLevel::parse)
+            set(level) = put(SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL, level.value)
 
         var showDebugCategory: Boolean
             get() = get(

@@ -36,6 +36,7 @@ import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.settings.HapticType
 import dev.meloda.fast.settings.SettingsViewModel
@@ -111,7 +112,9 @@ fun SettingsScreen(
 
     LaunchedEffect(hapticType) {
         if (hapticType != null) {
-            view.performHapticFeedback(hapticType.getHaptic())
+            if (AppSettings.Debug.enableHaptic) {
+                view.performHapticFeedback(hapticType.getHaptic())
+            }
             onHapticPerformed()
         }
     }

@@ -10,8 +10,10 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.DarkMode
+import dev.meloda.fast.common.model.LogLevel
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.common.model.UiText
+import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.datastore.AppSettings
@@ -405,6 +407,33 @@ class SettingsViewModelImpl(
             defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
             title = UiText.Simple("Show time in action messages")
         )
+        val debugEnableHaptic = SettingsItem.Switch(
+            key = SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC,
+            defaultValue = true,
+            title = UiText.Simple("Enable haptic")
+        )
+
+        val logLevelValues = listOf(
+            LogLevel.NONE to UiText.Simple("None"),
+            LogLevel.BASIC to UiText.Simple("Basic"),
+            LogLevel.HEADERS to UiText.Simple("Headers"),
+            LogLevel.BODY to UiText.Simple("Body")
+        ).toMap()
+
+        val debugNetworkLogLevel = SettingsItem.ListItem(
+            key = SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL,
+            title = UiText.Simple("Network log level"),
+            valueClass = Int::class,
+            defaultValue = SettingsKeys.DEFAULT_NETWORK_LOG_LEVEL,
+            titles = logLevelValues.values.toList(),
+            values = logLevelValues.keys.toList().map(LogLevel::value)
+        ).apply {
+            textProvider = TextProvider { item ->
+                val textValue = logLevelValues[LogLevel.parse(item.value)].parseString(resources)
+
+                UiText.Simple("Current value: $textValue")
+            }
+        }
 
         val debugHideDebugList = SettingsItem.TitleText(
             key = SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST,
@@ -444,7 +473,9 @@ class SettingsViewModelImpl(
             debugLongPollBackground,
             debugUseBlur,
             debugShowEmojiButton,
-            debugShowTimeInActionMessages
+            debugShowTimeInActionMessages,
+            debugEnableHaptic,
+            debugNetworkLogLevel
         ).forEach(debugList::add)
 
         debugList += debugHideDebugList

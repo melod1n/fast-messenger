@@ -26,7 +26,7 @@ fun NavGraphBuilder.conversationsScreen(
         ConversationsRoute(
             onError = onError,
             onConversationItemClicked = onConversationItemClicked,
-            onPhotoClicked = onPhotoClicked,
+            onConversationPhotoClicked = onPhotoClicked,
             viewModel = viewModel
         )
     }

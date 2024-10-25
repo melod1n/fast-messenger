@@ -2,6 +2,7 @@ package dev.meloda.fast.messageshistory
 
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -52,7 +53,7 @@ interface MessagesHistoryViewModel {
 
     fun onRefresh()
     fun onAttachmentButtonClicked()
-    fun onMessageInputChanged(newText: String)
+    fun onMessageInputChanged(newText: TextFieldValue)
     fun onEmojiButtonClicked()
     fun onActionButtonClicked()
 
@@ -110,11 +111,11 @@ class MessagesHistoryViewModelImpl(
 
     }
 
-    override fun onMessageInputChanged(newText: String) {
+    override fun onMessageInputChanged(newText: TextFieldValue) {
         screenState.setValue { old ->
             old.copy(
                 message = newText,
-                actionMode = if (newText.isEmptyOrBlank()) ActionMode.Record
+                actionMode = if (newText.text.isEmptyOrBlank()) ActionMode.Record
                 else ActionMode.Send
             )
         }
@@ -317,7 +318,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun sendMessage() {
-        lastMessageText = screenState.value.message
+        lastMessageText = screenState.value.message.text
 
         val newMessage = VkMessage(
             id = -1 - sendingMessages.size,
@@ -363,7 +364,7 @@ class MessagesHistoryViewModelImpl(
 
         screenState.setValue { old ->
             old.copy(
-                message = "",
+                message = TextFieldValue(),
                 actionMode = ActionMode.Record,
                 messages = listOf(newUiMessage).plus(old.messages)
             )

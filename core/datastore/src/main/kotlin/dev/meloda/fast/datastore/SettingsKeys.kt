@@ -45,6 +45,9 @@ object SettingsKeys {
     const val KEY_DEBUG_SHOW_CRASH_ALERT = "debug_show_crash_alert"
     const val KEY_DEBUG_HIDE_DEBUG_LIST = "debug_hide_debug_list"
     const val KEY_ENABLE_ANIMATIONS_IN_MESSAGES = "debug_enable_animations_in_messages"
+    const val KEY_DEBUG_ENABLE_HAPTIC = "debug_enable_haptic"
+    const val KEY_DEBUG_NETWORK_LOG_LEVEL = "debug_network_log_level"
+    const val DEFAULT_NETWORK_LOG_LEVEL = 0
 
     const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
 

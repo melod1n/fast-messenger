@@ -10,7 +10,7 @@ class MessagesHistoryValidator {
         val results = mutableListOf<MessagesHistoryValidationResult>()
 
         results.addIf(MessagesHistoryValidationResult.MessageEmpty) {
-            screenState.message.isBlank()
+            screenState.message.text.isBlank()
         }
 
         results.addIf(MessagesHistoryValidationResult.AttachmentsEmpty) {

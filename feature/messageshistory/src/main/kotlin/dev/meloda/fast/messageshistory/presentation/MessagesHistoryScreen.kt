@@ -72,6 +72,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
@@ -83,10 +88,6 @@ import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeChild
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -138,7 +139,7 @@ fun MessagesHistoryScreen(
     onRefreshDropdownItemClicked: () -> Unit = {},
     onToggleAnimationsDropdownItemClicked: (Boolean) -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
-    onMessageInputChanged: (String) -> Unit = {},
+    onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {}
 ) {
@@ -367,8 +368,9 @@ fun MessagesHistoryScreen(
                             Column(verticalArrangement = Arrangement.Bottom) {
                                 IconButton(
                                     onClick = {
-                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
-
+                                        if (AppSettings.Debug.enableHaptic) {
+                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                        }
                                         scope.launch {
                                             for (i in 20 downTo 0 step 4) {
                                                 rotation.animateTo(
@@ -397,15 +399,10 @@ fun MessagesHistoryScreen(
                             }
                         }
 
-                        var message by remember { mutableStateOf(TextFieldValue(screenState.message)) }
-
                         TextField(
                             modifier = Modifier.weight(1f),
-                            value = message,
-                            onValueChange = { newText ->
-                                message = newText
-                                onMessageInputChanged(newText.text)
-                            },
+                            value = screenState.message,
+                            onValueChange = onMessageInputChanged,
                             colors = TextFieldDefaults.colors(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedContainerColor = Color.Transparent,
@@ -421,36 +418,59 @@ fun MessagesHistoryScreen(
                             }
                         )
 
+                        val scope = rememberCoroutineScope()
+                        val attachmentRotation = remember { Animatable(0f) }
+
                         Column(verticalArrangement = Arrangement.Bottom) {
-                            IconButton(onClick = onAttachmentButtonClicked) {
+                            IconButton(
+                                onClick = {
+                                    if (AppSettings.Debug.enableHaptic) {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                    }
+                                    scope.launch {
+                                        for (i in 20 downTo 0 step 4) {
+                                            attachmentRotation.animateTo(
+                                                targetValue = i.toFloat(),
+                                                animationSpec = tween(50)
+                                            )
+                                            if (i > 0) {
+                                                attachmentRotation.animateTo(
+                                                    targetValue = -i.toFloat(),
+                                                    animationSpec = tween(50)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            ) {
                                 Icon(
                                     painter = painterResource(id = UiR.drawable.round_attach_file_24),
                                     contentDescription = "Add attachment button",
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.rotate(30f)
+                                    modifier = Modifier.rotate(30f + attachmentRotation.value)
                                 )
                             }
 
                             Spacer(modifier = Modifier.height(4.dp))
                         }
 
-                        val scope = rememberCoroutineScope()
-                        val rotation = remember { Animatable(0f) }
+                        val micRotation = remember { Animatable(0f) }
 
                         Column(verticalArrangement = Arrangement.Bottom) {
                             IconButton(
                                 onClick = {
                                     if (screenState.actionMode == ActionMode.Record) {
-                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
-
+                                        if (AppSettings.Debug.enableHaptic) {
+                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                        }
                                         scope.launch {
                                             for (i in 20 downTo 0 step 4) {
-                                                rotation.animateTo(
+                                                micRotation.animateTo(
                                                     targetValue = i.toFloat(),
                                                     animationSpec = tween(50)
                                                 )
                                                 if (i > 0) {
-                                                    rotation.animateTo(
+                                                    micRotation.animateTo(
                                                         targetValue = -i.toFloat(),
                                                         animationSpec = tween(50)
                                                     )
@@ -461,7 +481,7 @@ fun MessagesHistoryScreen(
                                         onActionButtonClicked()
                                     }
                                 },
-                                modifier = Modifier.rotate(rotation.value)
+                                modifier = Modifier.rotate(micRotation.value)
                             ) {
                                 Icon(
                                     painter = painterResource(

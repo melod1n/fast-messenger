@@ -8,7 +8,8 @@ data class ConversationsScreenState(
     val conversations: List<UiConversation>,
     val isLoading: Boolean,
     val isPaginating: Boolean,
-    val isPaginationExhausted: Boolean
+    val isPaginationExhausted: Boolean,
+    val profileImageUrl: String?
 ) {
 
     companion object {
@@ -17,7 +18,8 @@ data class ConversationsScreenState(
             conversations = emptyList(),
             isLoading = true,
             isPaginating = false,
-            isPaginationExhausted = false
+            isPaginationExhausted = false,
+            profileImageUrl = null
         )
     }
 }
