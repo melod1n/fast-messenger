@@ -235,17 +235,6 @@ fun ConversationsScreen(
                             placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
                         )
 
-//                        IconButton(
-//                            onClick = {
-//                                dropDownMenuExpanded = true
-//                            }
-//                        ) {
-//                            Icon(
-//                                imageVector = Icons.Outlined.MoreVert,
-//                                contentDescription = "Options button"
-//                            )
-//                        }
-
                         DropdownMenu(
                             modifier = Modifier.defaultMinSize(minWidth = 140.dp),
                             expanded = dropDownMenuExpanded,
