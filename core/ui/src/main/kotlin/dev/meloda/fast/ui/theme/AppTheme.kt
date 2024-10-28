@@ -112,7 +112,8 @@ val LocalThemeConfig = compositionLocalOf {
         selectedColorScheme = 0,
         amoledDark = false,
         enableBlur = false,
-        enableMultiline = false
+        enableMultiline = false,
+        useSystemFont = false
     )
 }
 
@@ -137,6 +138,7 @@ fun AppTheme(
     useDarkTheme: Boolean = false,
     useDynamicColors: Boolean = false,
     useAmoledBackground: Boolean = false,
+    useSystemFont: Boolean = false,
     selectedColorScheme: Int = 0,
     content: @Composable () -> Unit
 ) {
@@ -165,17 +167,21 @@ fun AppTheme(
         }
     }
 
-    val typography = MaterialTheme.typography.copy(
-        displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = googleSansFonts),
-        displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = googleSansFonts),
-        displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = googleSansFonts),
-        headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = googleSansFonts),
-        headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = googleSansFonts),
-        headlineSmall = MaterialTheme.typography.headlineSmall.copy(fontFamily = googleSansFonts),
-        bodyLarge = MaterialTheme.typography.bodyLarge.copy(fontFamily = robotoFonts),
-        bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontFamily = robotoFonts),
-        bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts)
-    )
+    val typography = if (useSystemFont) {
+        MaterialTheme.typography
+    } else {
+        MaterialTheme.typography.copy(
+            displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = googleSansFonts),
+            displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = googleSansFonts),
+            displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = googleSansFonts),
+            headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = googleSansFonts),
+            headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = googleSansFonts),
+            headlineSmall = MaterialTheme.typography.headlineSmall.copy(fontFamily = googleSansFonts),
+            bodyLarge = MaterialTheme.typography.bodyLarge.copy(fontFamily = robotoFonts),
+            bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontFamily = robotoFonts),
+            bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts),
+        )
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {

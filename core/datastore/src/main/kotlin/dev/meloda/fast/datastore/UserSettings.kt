@@ -24,6 +24,7 @@ interface UserSettings {
     val useBlur: StateFlow<Boolean>
     val showEmojiButton: StateFlow<Boolean>
     val showTimeInActionMessages: StateFlow<Boolean>
+    val useSystemFont: StateFlow<Boolean>
     val showDebugCategory: StateFlow<Boolean>
 
     fun onUseContactNamesChanged(use: Boolean)
@@ -44,6 +45,7 @@ interface UserSettings {
     fun onUseBlurChanged(use: Boolean)
     fun onShowEmojiButtonChanged(show: Boolean)
     fun onShowTimeInActionMessagesChanged(show: Boolean)
+    fun onUseSystemFontChanged(use: Boolean)
     fun onShowDebugCategoryChanged(show: Boolean)
 }
 
@@ -68,6 +70,7 @@ class UserSettingsImpl : UserSettings {
     override val showEmojiButton = MutableStateFlow(AppSettings.Debug.showEmojiButton)
     override val showTimeInActionMessages =
         MutableStateFlow(AppSettings.Debug.showTimeInActionMessages)
+    override val useSystemFont = MutableStateFlow(AppSettings.Debug.useSystemFont)
     override val showDebugCategory = MutableStateFlow(AppSettings.Debug.showDebugCategory)
 
     override fun onUseContactNamesChanged(use: Boolean) {
@@ -124,6 +127,10 @@ class UserSettingsImpl : UserSettings {
 
     override fun onShowTimeInActionMessagesChanged(show: Boolean) {
         showTimeInActionMessages.value = show
+    }
+
+    override fun onUseSystemFontChanged(use: Boolean) {
+        useSystemFont.value = use
     }
 
     override fun onShowDebugCategoryChanged(show: Boolean) {

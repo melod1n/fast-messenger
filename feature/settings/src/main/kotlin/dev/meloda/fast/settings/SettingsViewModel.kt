@@ -238,6 +238,11 @@ class SettingsViewModelImpl(
                 userSettings.onShowTimeInActionMessagesChanged(show)
             }
 
+            SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT -> {
+                val use = newValue as? Boolean ?: SettingsKeys.DEFAULT_DEBUG_USE_SYSTEM_FONT
+                userSettings.onUseSystemFontChanged(use)
+            }
+
             SettingsKeys.KEY_SHOW_DEBUG_CATEGORY -> {
                 val show = newValue as? Boolean ?: false
                 userSettings.onShowDebugCategoryChanged(show)
@@ -409,7 +414,7 @@ class SettingsViewModelImpl(
         )
         val debugEnableHaptic = SettingsItem.Switch(
             key = SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC,
-            defaultValue = true,
+            defaultValue = SettingsKeys.DEFAULT_DEBUG_ENABLE_HAPTIC,
             title = UiText.Simple("Enable haptic")
         )
 
@@ -434,6 +439,12 @@ class SettingsViewModelImpl(
                 UiText.Simple("Current value: $textValue")
             }
         }
+
+        val debugUseSystemFont = SettingsItem.Switch(
+            key = SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT,
+            defaultValue = SettingsKeys.DEFAULT_DEBUG_USE_SYSTEM_FONT,
+            title = UiText.Simple("Use system font")
+        )
 
         val debugHideDebugList = SettingsItem.TitleText(
             key = SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST,
@@ -475,7 +486,8 @@ class SettingsViewModelImpl(
             debugShowEmojiButton,
             debugShowTimeInActionMessages,
             debugEnableHaptic,
-            debugNetworkLogLevel
+            debugNetworkLogLevel,
+            debugUseSystemFont
         ).forEach(debugList::add)
 
         debugList += debugHideDebugList

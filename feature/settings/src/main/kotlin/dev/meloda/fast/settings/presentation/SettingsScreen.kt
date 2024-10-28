@@ -161,10 +161,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .then(
                     if (themeConfig.enableBlur) {
-                        Modifier.haze(
-                            state = hazeState,
-                            style = HazeMaterials.thick()
-                        )
+                        Modifier.haze(state = hazeState)
                     } else Modifier
                 )
                 .fillMaxWidth()

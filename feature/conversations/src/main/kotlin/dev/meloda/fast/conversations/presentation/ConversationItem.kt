@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -39,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -130,24 +128,25 @@ fun ConversationItem(
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
                         ) {
-                            Image(
+                            Icon(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(32.dp),
                                 painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
-                                contentDescription = "Favorites icon"
+                                contentDescription = "Favorites icon",
+                                tint = Color.White
                             )
                         }
                     } else {
                         val avatarImage = conversation.avatar?.getImage()
                         if (avatarImage is Painter) {
-                            Image(
+                            Icon(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape),
                                 painter = avatarImage,
                                 contentDescription = "Avatar",
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         } else {
                             AsyncImage(
@@ -173,12 +172,13 @@ fun ConversationItem(
                                 .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
                                 .background(MaterialTheme.colorScheme.outline)
                         ) {
-                            Image(
+                            Icon(
                                 modifier = Modifier
                                     .height(14.dp)
                                     .align(Alignment.Center),
                                 painter = painterResource(id = UiR.drawable.ic_round_push_pin_24),
-                                contentDescription = "Pin icon"
+                                contentDescription = "Pin icon",
+                                tint = Color.White
                             )
                         }
                     }
@@ -228,12 +228,13 @@ fun ConversationItem(
                                     .matchParentSize()
                                     .background(BirthdayColor)
                             ) {
-                                Image(
+                                Icon(
                                     modifier = Modifier
                                         .align(Alignment.Center)
                                         .size(10.dp),
                                     painter = painterResource(id = UiR.drawable.round_cake_24),
-                                    contentDescription = "Birthday icon"
+                                    contentDescription = "Birthday icon",
+                                    tint = Color.White
                                 )
                             }
                         }
@@ -270,11 +271,11 @@ fun ConversationItem(
                             conversation.attachmentImage?.getResourcePainter()?.let { painter ->
                                 Column {
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Image(
+                                    Icon(
                                         modifier = Modifier.size(14.dp),
                                         painter = painter,
                                         contentDescription = "attachment image",
-                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
 

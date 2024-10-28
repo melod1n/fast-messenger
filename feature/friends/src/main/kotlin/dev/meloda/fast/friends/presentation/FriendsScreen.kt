@@ -304,10 +304,7 @@ fun FriendsScreen(
 
                             FriendsList(
                                 modifier = if (currentTheme.enableBlur) {
-                                    Modifier.haze(
-                                        state = hazeState,
-                                        style = HazeMaterials.thick()
-                                    )
+                                    Modifier.haze(state = hazeState)
                                 } else {
                                     Modifier
                                 }.fillMaxSize(),

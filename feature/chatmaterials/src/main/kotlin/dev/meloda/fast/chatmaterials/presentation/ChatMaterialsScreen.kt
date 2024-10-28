@@ -311,10 +311,7 @@ fun ChatMaterialsScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.haze(
-                                    state = hazeState,
-                                    style = hazeStyle
-                                )
+                                Modifier.haze(state = hazeState)
                             } else {
                                 Modifier
                             }
@@ -349,10 +346,7 @@ fun ChatMaterialsScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.haze(
-                                    state = hazeState,
-                                    style = hazeStyle
-                                )
+                                Modifier.haze(state = hazeState)
                             } else {
                                 Modifier
                             }

@@ -191,7 +191,7 @@ object AppSettings {
         var enableHaptic: Boolean
             get() = get(
                 SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC,
-                true
+                SettingsKeys.DEFAULT_DEBUG_ENABLE_HAPTIC
             )
             set(value) = put(SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC, value)
 
@@ -201,6 +201,13 @@ object AppSettings {
                 SettingsKeys.DEFAULT_NETWORK_LOG_LEVEL
             ).let(LogLevel::parse)
             set(level) = put(SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL, level.value)
+
+        var useSystemFont: Boolean
+            get() = get(
+                SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT,
+                SettingsKeys.DEFAULT_DEBUG_USE_SYSTEM_FONT
+            )
+            set(value) = put(SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT, value)
 
         var showDebugCategory: Boolean
             get() = get(

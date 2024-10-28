@@ -69,7 +69,10 @@ class MainActivity : AppCompatActivity() {
         val systemBarStyle = when (currentNightMode) {
             Configuration.UI_MODE_NIGHT_NO -> SystemBarStyle.light(
                 Color.Transparent.toArgb(),
-                Color.Transparent.toArgb()
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M)
+                    0
+//                    MaterialTheme.colorScheme.background.toArgb()
+                else Color.Transparent.toArgb()
             )
 
             Configuration.UI_MODE_NIGHT_YES -> SystemBarStyle.dark(Color.Transparent.toArgb())
@@ -197,6 +200,7 @@ class MainActivity : AppCompatActivity() {
                 val amoledDark by userSettings.enableAmoledDark.collectAsStateWithLifecycle()
                 val enableBlur by userSettings.useBlur.collectAsStateWithLifecycle()
                 val enableMultiline by userSettings.enableMultiline.collectAsStateWithLifecycle()
+                val useSystemFont by userSettings.useSystemFont.collectAsStateWithLifecycle()
 
                 val setDarkMode = isNeedToEnableDarkMode(darkMode = darkMode)
 
@@ -206,7 +210,8 @@ class MainActivity : AppCompatActivity() {
                     amoledDark,
                     enableBlur,
                     enableMultiline,
-                    setDarkMode
+                    setDarkMode,
+                    useSystemFont
                 ) {
                     mutableStateOf(
                         ThemeConfig(
@@ -215,7 +220,8 @@ class MainActivity : AppCompatActivity() {
                             selectedColorScheme = 0,
                             amoledDark = amoledDark,
                             enableBlur = enableBlur,
-                            enableMultiline = enableMultiline
+                            enableMultiline = enableMultiline,
+                            useSystemFont = useSystemFont
                         )
                     )
                 }
@@ -229,6 +235,7 @@ class MainActivity : AppCompatActivity() {
                         useDynamicColors = themeConfig.dynamicColors,
                         selectedColorScheme = themeConfig.selectedColorScheme,
                         useAmoledBackground = themeConfig.amoledDark,
+                        useSystemFont = themeConfig.useSystemFont
                     ) {
                         RootScreen(viewModel = viewModel)
                     }

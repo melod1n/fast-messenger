@@ -17,15 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun MessagesList(
     modifier: Modifier = Modifier,
@@ -45,10 +42,7 @@ fun MessagesList(
             .fillMaxWidth()
             .then(
                 if (currentTheme.enableBlur) {
-                    Modifier.haze(
-                        state = hazeState,
-                        style = HazeMaterials.regular()
-                    )
+                    Modifier.haze(state = hazeState)
                 } else Modifier
             ),
         state = listState,
