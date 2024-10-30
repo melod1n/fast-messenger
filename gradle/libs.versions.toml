@@ -12,7 +12,7 @@ haze = "0.7.3"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.26"
 
-compose-bom = "2024.10.00"
+compose-bom = "2024.10.01"
 koin = "4.0.0"
 
 accompanist = "0.36.0"
