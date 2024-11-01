@@ -1,7 +1,5 @@
 package dev.meloda.fast.photoviewer.presentation
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.Orientation
@@ -9,7 +7,6 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -17,15 +14,11 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,15 +29,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.conena.nanokt.android.content.pxToDp
@@ -54,10 +44,7 @@ import dev.meloda.fast.photoviewer.PhotoViewViewModelImpl
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
 import dev.meloda.fast.ui.util.getImage
 import org.koin.androidx.compose.koinViewModel
-import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -136,29 +123,29 @@ fun TopBar(
             }
         },
         actions = {
-            IconButton(
-                onClick = { dropdownMenuShown = true }
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = "Options"
-                )
-            }
+//            IconButton(
+//                onClick = { dropdownMenuShown = true }
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Rounded.MoreVert,
+//                    contentDescription = "Options"
+//                )
+//            }
 
-            DropdownMenu(
-                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-                expanded = dropdownMenuShown,
-                onDismissRequest = { dropdownMenuShown = false },
-                offset = DpOffset(x = (10).dp, y = (-60).dp)
-            ) {
-                DropdownMenuItem(
-                    onClick = {
-                        Toast.makeText(context, "Save clicked", Toast.LENGTH_SHORT).show()
-                        dropdownMenuShown = false
-                    },
-                    text = { Text(text = "Save") },
-                )
-            }
+//            DropdownMenu(
+//                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+//                expanded = dropdownMenuShown,
+//                onDismissRequest = { dropdownMenuShown = false },
+//                offset = DpOffset(x = (10).dp, y = (-60).dp)
+//            ) {
+//                DropdownMenuItem(
+//                    onClick = {
+//                        Toast.makeText(context, "Save clicked", Toast.LENGTH_SHORT).show()
+//                        dropdownMenuShown = false
+//                    },
+//                    text = { Text(text = "Save") },
+//                )
+//            }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
     )

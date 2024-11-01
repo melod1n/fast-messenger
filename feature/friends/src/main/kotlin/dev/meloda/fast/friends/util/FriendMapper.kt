@@ -15,5 +15,6 @@ fun VkUser.asPresentation(
     } else {
         fullName
     },
-    onlineStatus = onlineStatus
+    onlineStatus = onlineStatus,
+    photo400Orig = photo400Orig?.let(UiImage::Url)
 )

@@ -399,7 +399,7 @@ class SettingsViewModelImpl(
             key = SettingsKeys.KEY_APPEARANCE_USE_BLUR,
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR,
             title = UiText.Simple("[WIP] Use blur"),
-            text = UiText.Simple("Adds blur wherever possible\nOn android 11 and older will have transparency instead of blurring"),
+            text = UiText.Simple("Adds blur wherever possible\nWorks on android 12 and newer"),
         )
         val debugShowEmojiButton = SettingsItem.Switch(
             key = SettingsKeys.KEY_SHOW_EMOJI_BUTTON,

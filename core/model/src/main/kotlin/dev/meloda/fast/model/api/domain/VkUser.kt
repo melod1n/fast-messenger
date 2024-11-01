@@ -10,6 +10,7 @@ data class VkUser(
     val photo50: String?,
     val photo100: String?,
     val photo200: String?,
+    val photo400Orig: String?,
     val lastSeen: Int?,
     val lastSeenStatus: String?,
     val birthday: String?,
@@ -40,5 +41,6 @@ fun VkUser.asEntity(): VkUserEntity = VkUserEntity(
     birthday = birthday,
     photo50 = photo50,
     photo100 = photo100,
-    photo200 = photo200
+    photo200 = photo200,
+    photo400Orig = photo400Orig
 )

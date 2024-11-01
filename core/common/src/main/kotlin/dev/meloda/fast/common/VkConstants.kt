@@ -5,7 +5,7 @@ object VkConstants {
     const val GROUP_FIELDS = "description,members_count,counters,status,verified"
 
     const val USER_FIELDS =
-        "photo_50,photo_100,photo_200,status,screen_name,online,online_mobile,last_seen,verified,sex,online_info,bdate"
+        "photo_50,photo_100,photo_200,photo_400_orig,status,screen_name,online,online_mobile,last_seen,verified,sex,online_info,bdate"
 
     const val ALL_FIELDS =
         "$USER_FIELDS,$GROUP_FIELDS"

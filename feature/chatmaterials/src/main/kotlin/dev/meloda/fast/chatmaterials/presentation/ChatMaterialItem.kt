@@ -1,5 +1,6 @@
 package dev.meloda.fast.chatmaterials.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -27,6 +28,7 @@ fun ChatMaterialItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
+                    .clickable(onClick = onClick)
             )
         }
 

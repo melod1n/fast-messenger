@@ -177,9 +177,15 @@ fun AppTheme(
             headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = googleSansFonts),
             headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = googleSansFonts),
             headlineSmall = MaterialTheme.typography.headlineSmall.copy(fontFamily = googleSansFonts),
+            titleLarge = MaterialTheme.typography.titleLarge.copy(fontFamily = robotoFonts),
+            titleMedium = MaterialTheme.typography.titleMedium.copy(fontFamily = robotoFonts),
+            titleSmall = MaterialTheme.typography.titleSmall.copy(fontFamily = robotoFonts),
             bodyLarge = MaterialTheme.typography.bodyLarge.copy(fontFamily = robotoFonts),
             bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontFamily = robotoFonts),
             bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts),
+            labelLarge = MaterialTheme.typography.labelLarge.copy(fontFamily = robotoFonts),
+            labelMedium = MaterialTheme.typography.labelMedium.copy(fontFamily = robotoFonts),
+            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = robotoFonts)
         )
     }
 

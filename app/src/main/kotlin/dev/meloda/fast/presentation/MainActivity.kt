@@ -69,10 +69,11 @@ class MainActivity : AppCompatActivity() {
         val systemBarStyle = when (currentNightMode) {
             Configuration.UI_MODE_NIGHT_NO -> SystemBarStyle.light(
                 Color.Transparent.toArgb(),
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M)
-                    0
-//                    MaterialTheme.colorScheme.background.toArgb()
-                else Color.Transparent.toArgb()
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                    Color.Gray.copy(alpha = 0.85f).toArgb()
+                } else {
+                    Color.Transparent.toArgb()
+                }
             )
 
             Configuration.UI_MODE_NIGHT_YES -> SystemBarStyle.dark(Color.Transparent.toArgb())

@@ -58,7 +58,11 @@ fun FriendItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .clickable { onPhotoClicked(friendAvatar) },
+                        .clickable {
+                            friend.photo400Orig
+                                ?.extractUrl()
+                                ?.let(onPhotoClicked)
+                        },
                     placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
                 )
             }
