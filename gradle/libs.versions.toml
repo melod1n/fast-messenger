@@ -8,7 +8,7 @@ versionName = "0.1.2"
 agp = "8.6.1"
 converterMoshi = "2.11.0"
 eithernet = "1.9.0"
-haze = "1.0.0"
+haze = "1.0.1"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.27"
 
