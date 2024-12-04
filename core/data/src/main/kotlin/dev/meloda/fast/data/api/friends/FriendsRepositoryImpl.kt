@@ -36,7 +36,7 @@ class FriendsRepositoryImpl(
         val onlineFriends = async { getOnlineFriends(count, offset) }.await()
             .successOrElse { failure ->
                 return@withContext failure
-            }.mapNotNull { userId -> friends.find { it.id == userId } }
+            }
 
         ApiResult.success(FriendsInfo(friends, onlineFriends))
     }

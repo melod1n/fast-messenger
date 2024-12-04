@@ -67,7 +67,7 @@ class FriendsViewModelImpl(
     }
 
     private fun loadFriends(offset: Int = currentOffset.value) {
-        friendsUseCase.getAllFriends(count = LOAD_COUNT, offset = offset)
+        friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
             .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
@@ -81,8 +81,7 @@ class FriendsViewModelImpl(
                             }
                         }
                     },
-                    success = { info ->
-                        val response = info.friends
+                    success = { response ->
                         val itemsCountSufficient = response.size == LOAD_COUNT
                         canPaginate.setValue { itemsCountSufficient }
 
@@ -98,8 +97,9 @@ class FriendsViewModelImpl(
                         val loadedFriends = response.map {
                             it.asPresentation(userSettings.useContactNames.value)
                         }
-                        val loadedOnlineFriends = info.onlineFriends.map {
-                            it.asPresentation(userSettings.useContactNames.value)
+
+                        val loadedOnlineFriends = loadedFriends.filter {
+                            it.onlineStatus.isOnline()
                         }
 
                         val newState = screenState.value.copy(
@@ -156,6 +156,6 @@ class FriendsViewModelImpl(
     }
 
     companion object {
-        const val LOAD_COUNT = 60
+        const val LOAD_COUNT = 15
     }
 }

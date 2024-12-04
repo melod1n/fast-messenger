@@ -135,7 +135,7 @@ fun FriendsScreen(
 
     val listState = rememberLazyListState()
 
-    val paginationConditionMet by remember {
+    val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
             canPaginate &&
                     (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
@@ -300,7 +300,11 @@ fun FriendsScreen(
                                 )
                             }
                         ) {
-                            val friendsToDisplay = screenState.friends
+                            val friendsToDisplay = if (index == 0) {
+                                screenState.friends
+                            } else {
+                                screenState.onlineFriends
+                            }
 
                             FriendsList(
                                 modifier = if (currentTheme.enableBlur) {
