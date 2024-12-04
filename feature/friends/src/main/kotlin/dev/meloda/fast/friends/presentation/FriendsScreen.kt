@@ -1,5 +1,6 @@
 package dev.meloda.fast.friends.presentation
 
+import android.content.SharedPreferences
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -46,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
@@ -53,7 +55,6 @@ import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.friends.FriendsViewModelImpl
 import dev.meloda.fast.friends.model.FriendsScreenState
@@ -65,6 +66,8 @@ import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
@@ -77,9 +80,7 @@ fun FriendsRoute(
 ) {
     val context = LocalContext.current
 
-    val userSettings: UserSettings = koinInject()
-
-    val enablePullToRefresh by userSettings.enablePullToRefresh.collectAsStateWithLifecycle()
+    val prefs: SharedPreferences = koinInject()
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
@@ -99,12 +100,19 @@ fun FriendsRoute(
     FriendsScreen(
         screenState = screenState,
         baseError = baseError,
-        enablePullToRefresh = enablePullToRefresh,
         canPaginate = canPaginate,
+        firstVisibleItemIndex = prefs.getInt("friends_all_scroll_position", 0),
+        firstVisibleItemScrollOffset = prefs.getInt("friends_all_scroll_offset", 0),
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefresh = viewModel::onRefresh,
-        onPhotoClicked = onPhotoClicked
+        onPhotoClicked = onPhotoClicked,
+        onSaveScrollPosition = { index ->
+            prefs.edit { putInt("friends_all_scroll_position", index) }
+        },
+        onSaveScrollOffsetPosition = { offset ->
+            prefs.edit { putInt("friends_all_scroll_offset", offset) }
+        }
     )
 }
 
@@ -118,12 +126,15 @@ fun FriendsRoute(
 fun FriendsScreen(
     screenState: FriendsScreenState = FriendsScreenState.EMPTY,
     baseError: BaseError? = null,
-    enablePullToRefresh: Boolean = false,
     canPaginate: Boolean = false,
+    firstVisibleItemIndex: Int = 0,
+    firstVisibleItemScrollOffset: Int = 0,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onRefresh: () -> Unit = {},
-    onPhotoClicked: (url: String) -> Unit = {}
+    onPhotoClicked: (url: String) -> Unit = {},
+    onSaveScrollPosition: (Int) -> Unit = {},
+    onSaveScrollOffsetPosition: (Int) -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -133,7 +144,22 @@ fun FriendsScreen(
         }
     }
 
-    val listState = rememberLazyListState()
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = firstVisibleItemIndex,
+        initialFirstVisibleItemScrollOffset = firstVisibleItemScrollOffset
+    )
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .debounce(500L)
+            .collectLatest(onSaveScrollPosition)
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemScrollOffset }
+            .debounce(500L)
+            .collectLatest(onSaveScrollOffsetPosition)
+    }
 
     val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
