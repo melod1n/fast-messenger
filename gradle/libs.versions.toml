@@ -7,7 +7,7 @@ versionName = "0.1.2"
 
 agp = "8.7.3"
 converterMoshi = "2.11.0"
-eithernet = "1.9.0"
+eithernet = "2.0.0"
 haze = "1.1.1"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
@@ -44,6 +44,7 @@ coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 eithernet = { module = "com.slack.eithernet:eithernet", version.ref = "eithernet" }
+eithernet-integration-retrofit = { module = "com.slack.eithernet:eithernet-integration-retrofit", version.ref = "eithernet" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 junit = { module = "junit:junit", version.ref = "junit" }

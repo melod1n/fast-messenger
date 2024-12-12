@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.logging.interceptor)
     implementation(libs.eithernet)
+    implementation(libs.eithernet.integration.retrofit)
 
     implementation(libs.converter.moshi)
 

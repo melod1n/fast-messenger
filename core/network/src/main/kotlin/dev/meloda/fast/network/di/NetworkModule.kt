@@ -2,8 +2,8 @@ package dev.meloda.fast.network.di
 
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
-import com.slack.eithernet.ApiResultCallAdapterFactory
-import com.slack.eithernet.ApiResultConverterFactory
+import com.slack.eithernet.integration.retrofit.ApiResultCallAdapterFactory
+import com.slack.eithernet.integration.retrofit.ApiResultConverterFactory
 import com.squareup.moshi.Moshi
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.common.model.LogLevel
