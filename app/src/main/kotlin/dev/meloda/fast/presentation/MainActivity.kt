@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                 val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
 
                 LifecycleResumeEffect(true) {
-                    viewModel.onAppResumed()
+                    viewModel.onAppResumed(intent)
                     onPauseOrDispose {}
                 }
 

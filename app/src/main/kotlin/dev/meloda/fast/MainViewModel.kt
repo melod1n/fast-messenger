@@ -1,11 +1,14 @@
 package dev.meloda.fast
 
+import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.NotificationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.conena.nanokt.android.os.isMinSdk
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import dev.meloda.fast.auth.AuthGraph
@@ -15,11 +18,14 @@ import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.data.UserConfig
-import dev.meloda.fast.domain.GetCurrentAccountUseCase
+import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.domain.GetCurrentAccountUseCase
+import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.navigation.Main
+import dev.meloda.fast.settings.navigation.Settings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,11 +42,13 @@ interface MainViewModel {
     val isNeedToCheckNotificationsPermission: StateFlow<Boolean>
     val isNeedToRequestNotifications: StateFlow<Boolean>
 
+    val profileImageUrl: StateFlow<String?>
+
     fun onError(error: BaseError)
 
     fun onNavigatedToAuth()
 
-    fun onAppResumed()
+    fun onAppResumed(intent: Intent)
 
     @OptIn(ExperimentalPermissionsApi::class)
     fun onPermissionCheckStatus(status: PermissionStatus)
@@ -55,13 +63,10 @@ interface MainViewModel {
 
 class MainViewModelImpl(
     private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
+    private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val userSettings: UserSettings,
     private val longPollController: LongPollController
 ) : MainViewModel, ViewModel() {
-
-    init {
-        loadAccounts()
-    }
 
     override val startDestination = MutableStateFlow<Any?>(null)
     override val isNeedToReplaceWithAuth = MutableStateFlow(false)
@@ -70,6 +75,11 @@ class MainViewModelImpl(
     override val isNeedToShowNotificationsRationaleDialog = MutableStateFlow(false)
     override val isNeedToCheckNotificationsPermission = MutableStateFlow(false)
     override val isNeedToRequestNotifications = MutableStateFlow(false)
+
+    override val profileImageUrl = MutableStateFlow<String?>(null)
+
+    private var openNotificationsSettings = false
+    private var openAppSettings = false
 
     override fun onError(error: BaseError) {
         when (error) {
@@ -83,7 +93,12 @@ class MainViewModelImpl(
         isNeedToReplaceWithAuth.update { false }
     }
 
-    override fun onAppResumed() {
+    override fun onAppResumed(intent: Intent) {
+        openNotificationsSettings =
+            intent.hasCategory(NotificationCompat.INTENT_CATEGORY_NOTIFICATION_PREFERENCES)
+        openAppSettings =
+            isMinSdk(Build.VERSION_CODES.N) && intent.action == Intent.ACTION_APPLICATION_PREFERENCES
+
         if (isNeedToShowNotificationsRationaleDialog.value) {
             isNeedToShowNotificationsRationaleDialog.update { false }
             isNeedToCheckNotificationsPermission.update { true }
@@ -100,6 +115,8 @@ class MainViewModelImpl(
                 .take(5)
 
         userSettings.onAppLanguageChanged(newLanguage)
+
+        loadAccounts()
     }
 
     @ExperimentalPermissionsApi
@@ -151,6 +168,22 @@ class MainViewModelImpl(
         disableBackgroundLongPoll()
     }
 
+    private fun loadProfile() {
+        loadUserByIdUseCase(userId = null)
+            .listenValue(viewModelScope) { state ->
+                state.processState(
+                    error = { error ->
+                        profileImageUrl.emit(null)
+                    },
+                    success = { response ->
+                        val user = response ?: return@listenValue
+
+                        profileImageUrl.emit(user.photo100)
+                    }
+                )
+            }
+    }
+
     private fun listenLongPollState() {
         longPollController.stateToApply.listenValue(viewModelScope) { newState ->
             if (newState == LongPollState.Background) {
@@ -184,9 +217,17 @@ class MainViewModelImpl(
                 )
             }
 
+            if (currentAccount != null) {
+                loadProfile()
+            }
+
             startDestination.setValue {
-                if (currentAccount == null) AuthGraph
-                else Main
+                when {
+                    openAppSettings -> Settings
+                    openNotificationsSettings -> Settings
+                    currentAccount == null -> AuthGraph
+                    else -> Main
+                }
             }
         }
     }

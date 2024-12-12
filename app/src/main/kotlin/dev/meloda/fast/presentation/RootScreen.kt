@@ -123,7 +123,8 @@ fun RootScreen(
                 onError = viewModel::onError,
                 onSettingsButtonClicked = navController::navigateToSettings,
                 onConversationClicked = navController::navigateToMessagesHistory,
-                onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
+                onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
+                viewModel = viewModel
             )
 
             messagesHistoryScreen(

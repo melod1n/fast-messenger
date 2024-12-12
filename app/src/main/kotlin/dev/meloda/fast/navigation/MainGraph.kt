@@ -2,6 +2,7 @@ package dev.meloda.fast.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import dev.meloda.fast.MainViewModel
 import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.model.BaseError
@@ -22,7 +23,8 @@ fun NavGraphBuilder.mainScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
     onConversationClicked: (conversationId: Int) -> Unit,
-    onPhotoClicked: (url: String) -> Unit
+    onPhotoClicked: (url: String) -> Unit,
+    viewModel: MainViewModel
 ) {
     val navigationItems = ImmutableList.of(
         BottomNavigationItem(
@@ -51,7 +53,8 @@ fun NavGraphBuilder.mainScreen(
             onError = onError,
             onSettingsButtonClicked = onSettingsButtonClicked,
             onConversationItemClicked = onConversationClicked,
-            onPhotoClicked = onPhotoClicked
+            onPhotoClicked = onPhotoClicked,
+            viewModel = viewModel
         )
     }
 }

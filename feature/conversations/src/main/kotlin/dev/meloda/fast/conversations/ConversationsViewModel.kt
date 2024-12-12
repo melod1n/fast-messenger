@@ -18,7 +18,6 @@ import dev.meloda.fast.data.State
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConversationsUseCase
-import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
@@ -66,7 +65,6 @@ interface ConversationsViewModel {
 class ConversationsViewModelImpl(
     updatesParser: LongPollUpdatesParser,
     private val conversationsUseCase: ConversationsUseCase,
-    private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val resources: Resources,
     private val userSettings: UserSettings
@@ -98,8 +96,6 @@ class ConversationsViewModelImpl(
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
         updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
         updatesParser.onInteractions(::handleInteraction)
-
-        loadProfile()
 
         loadConversations()
     }
@@ -225,24 +221,6 @@ class ConversationsViewModelImpl(
     private fun emitShowOptions(function: (ConversationsShowOptions) -> ConversationsShowOptions) {
         val newShowOptions = function.invoke(screenState.value.showOptions)
         screenState.setValue { old -> old.copy(showOptions = newShowOptions) }
-    }
-
-    private fun loadProfile() {
-        loadUserByIdUseCase(userId = null)
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = { error ->
-
-                    },
-                    success = { response ->
-                        val user = response ?: return@listenValue
-
-                        screenState.setValue { old ->
-                            old.copy(profileImageUrl = user.photo100)
-                        }
-                    }
-                )
-            }
     }
 
     private fun loadConversations(
