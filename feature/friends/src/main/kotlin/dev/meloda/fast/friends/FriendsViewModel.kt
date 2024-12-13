@@ -32,6 +32,8 @@ interface FriendsViewModel {
 
     fun onErrorConsumed()
 
+    fun onTabSelected(tabIndex: Int)
+
     fun setScrollIndex(index: Int)
     fun setScrollOffset(offset: Int)
     fun setScrollIndexOnline(index: Int)
@@ -69,6 +71,10 @@ class FriendsViewModelImpl(
 
     override fun onErrorConsumed() {
         baseError.setValue { null }
+    }
+
+    override fun onTabSelected(tabIndex: Int) {
+        screenState.setValue { old -> old.copy(selectedTabIndex = tabIndex) }
     }
 
     override fun setScrollIndex(index: Int) {

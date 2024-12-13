@@ -33,10 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -101,6 +99,7 @@ fun FriendsRoute(
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefresh = viewModel::onRefresh,
         onPhotoClicked = onPhotoClicked,
+        setSelectedTabIndex = viewModel::onTabSelected,
         setScrollIndex = viewModel::setScrollIndex,
         setScrollOffset = viewModel::setScrollOffset,
         setScrollIndexOnline = viewModel::setScrollIndexOnline,
@@ -121,10 +120,11 @@ fun FriendsScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
-    setScrollIndex: (Int) -> Unit,
-    setScrollOffset: (Int) -> Unit,
-    setScrollIndexOnline: (Int) -> Unit,
-    setScrollOffsetOnline: (Int) -> Unit,
+    setSelectedTabIndex: (Int) -> Unit = {},
+    setScrollIndex: (Int) -> Unit = {},
+    setScrollOffset: (Int) -> Unit = {},
+    setScrollIndexOnline: (Int) -> Unit = {},
+    setScrollOffsetOnline: (Int) -> Unit = {},
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -208,10 +208,6 @@ fun FriendsScreen(
         )
     )
 
-    var selectedTabIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-
     val tabItems = remember {
         listOf(
             TabItem(
@@ -261,16 +257,16 @@ fun FriendsScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 PrimaryTabRow(
-                    selectedTabIndex = selectedTabIndex,
+                    selectedTabIndex = screenState.selectedTabIndex,
                     modifier = Modifier,
                     containerColor = Color.Transparent
                 ) {
                     tabItems.forEachIndexed { index, item ->
                         Tab(
-                            selected = index == selectedTabIndex,
+                            selected = index == screenState.selectedTabIndex,
                             onClick = {
-                                if (selectedTabIndex != index) {
-                                    selectedTabIndex = index
+                                if (screenState.selectedTabIndex != index) {
+                                    setSelectedTabIndex(index)
                                 }
                             },
                             text = {
@@ -296,18 +292,19 @@ fun FriendsScreen(
             screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
 
             else -> {
-                val pagerState = rememberPagerState { tabItems.size }
+                val pagerState = rememberPagerState(
+                    initialPage = screenState.selectedTabIndex
+                ) {
+                    tabItems.size
+                }
 
-                LaunchedEffect(selectedTabIndex) {
-                    pagerState.animateScrollToPage(selectedTabIndex)
+                LaunchedEffect(screenState.selectedTabIndex) {
+                    pagerState.animateScrollToPage(screenState.selectedTabIndex)
                 }
 
                 LaunchedEffect(pagerState) {
-                    snapshotFlow {
-                        pagerState.currentPage
-                    }.collect { page ->
-                        selectedTabIndex = page
-                    }
+                    snapshotFlow { pagerState.currentPage }
+                        .collect(setSelectedTabIndex)
                 }
 
                 val pullToRefreshState = rememberPullToRefreshState()
