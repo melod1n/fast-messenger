@@ -23,17 +23,23 @@ fun MessageBubble(
     date: String?,
     edited: Boolean,
 ) {
+    val backgroundColor = if (!isOut) {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    } else {
+        MaterialTheme.colorScheme.primaryContainer
+    }
+
+    val textColor = if (!isOut) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    }
+
     Box(
         modifier = modifier
             .widthIn(min = 56.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(
-                if (isOut) {
-                    MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-                } else {
-                    MaterialTheme.colorScheme.primaryContainer
-                }
-            )
+            .background(backgroundColor)
             .padding(
                 horizontal = 8.dp,
                 vertical = 6.dp
@@ -45,7 +51,8 @@ fun MessageBubble(
                 modifier = Modifier
                     .padding(2.dp)
                     .align(Alignment.Center)
-                    .animateContentSize()
+                    .animateContentSize(),
+                color = textColor
             )
         }
 

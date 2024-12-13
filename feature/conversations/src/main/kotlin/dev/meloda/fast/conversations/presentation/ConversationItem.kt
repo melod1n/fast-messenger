@@ -134,7 +134,7 @@ fun ConversationItem(
                                     .size(32.dp),
                                 painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
                                 contentDescription = "Favorites icon",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     } else {
