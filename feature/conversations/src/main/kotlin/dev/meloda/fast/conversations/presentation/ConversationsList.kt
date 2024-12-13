@@ -45,8 +45,6 @@ fun ConversationsList(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val conversations = screenState.conversations
-
     val bottomPadding = LocalBottomPadding.current
 
     LazyColumn(
@@ -55,9 +53,10 @@ fun ConversationsList(
     ) {
         item {
             Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         items(
-            items = conversations,
+            items = screenState.conversations,
             key = UiConversation::id,
         ) { conversation ->
             val isUserAccount by remember(conversation) {

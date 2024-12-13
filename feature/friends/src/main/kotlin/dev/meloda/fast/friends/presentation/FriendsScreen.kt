@@ -1,6 +1,5 @@
 package dev.meloda.fast.friends.presentation
 
-import android.content.SharedPreferences
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -35,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -47,7 +47,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
@@ -69,7 +68,6 @@ import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -79,8 +77,6 @@ fun FriendsRoute(
     viewModel: FriendsViewModel = koinViewModel<FriendsViewModelImpl>()
 ) {
     val context = LocalContext.current
-
-    val prefs: SharedPreferences = koinInject()
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
@@ -101,23 +97,17 @@ fun FriendsRoute(
         screenState = screenState,
         baseError = baseError,
         canPaginate = canPaginate,
-        firstVisibleItemIndex = prefs.getInt("friends_all_scroll_position", 0),
-        firstVisibleItemScrollOffset = prefs.getInt("friends_all_scroll_offset", 0),
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefresh = viewModel::onRefresh,
         onPhotoClicked = onPhotoClicked,
-        onSaveScrollPosition = { index ->
-            prefs.edit { putInt("friends_all_scroll_position", index) }
-        },
-        onSaveScrollOffsetPosition = { offset ->
-            prefs.edit { putInt("friends_all_scroll_offset", offset) }
-        }
+        setScrollIndex = viewModel::setScrollIndex,
+        setScrollOffset = viewModel::setScrollOffset,
+        setScrollIndexOnline = viewModel::setScrollIndexOnline,
+        setScrollOffsetOnline = viewModel::setScrollOffsetOnline,
     )
 }
 
-
-// TODO: 13/07/2024, Danil Nikolaev: support for online
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class
@@ -127,14 +117,14 @@ fun FriendsScreen(
     screenState: FriendsScreenState = FriendsScreenState.EMPTY,
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
-    firstVisibleItemIndex: Int = 0,
-    firstVisibleItemScrollOffset: Int = 0,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
-    onSaveScrollPosition: (Int) -> Unit = {},
-    onSaveScrollOffsetPosition: (Int) -> Unit = {}
+    setScrollIndex: (Int) -> Unit,
+    setScrollOffset: (Int) -> Unit,
+    setScrollIndexOnline: (Int) -> Unit,
+    setScrollOffsetOnline: (Int) -> Unit,
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -145,20 +135,36 @@ fun FriendsScreen(
     }
 
     val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = firstVisibleItemScrollOffset
+        initialFirstVisibleItemIndex = screenState.scrollIndex,
+        initialFirstVisibleItemScrollOffset = screenState.scrollOffset
+    )
+    val listStateOnline = rememberLazyListState(
+        initialFirstVisibleItemIndex = screenState.scrollIndexOnline,
+        initialFirstVisibleItemScrollOffset = screenState.scrollOffsetOnline
     )
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .debounce(500L)
-            .collectLatest(onSaveScrollPosition)
+            .collectLatest(setScrollIndex)
     }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .debounce(500L)
-            .collectLatest(onSaveScrollOffsetPosition)
+            .collectLatest(setScrollOffset)
+    }
+
+    LaunchedEffect(listStateOnline) {
+        snapshotFlow { listStateOnline.firstVisibleItemIndex }
+            .debounce(500L)
+            .collectLatest(setScrollIndexOnline)
+    }
+
+    LaunchedEffect(listStateOnline) {
+        snapshotFlow { listStateOnline.firstVisibleItemScrollOffset }
+            .debounce(500L)
+            .collectLatest(setScrollOffsetOnline)
     }
 
     val paginationConditionMet by remember(canPaginate, listState) {
@@ -177,8 +183,12 @@ fun FriendsScreen(
 
     val hazeState = LocalHazeState.current
 
+    var canScrollBackward by remember {
+        mutableStateOf(false)
+    }
+
     val topBarContainerColorAlpha by animateFloatAsState(
-        targetValue = if (!currentTheme.enableBlur || !listState.canScrollBackward) 1f else 0f,
+        targetValue = if (!currentTheme.enableBlur || !canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
         animationSpec = tween(
             durationMillis = 200,
@@ -187,8 +197,7 @@ fun FriendsScreen(
     )
 
     val topBarContainerColor by animateColorAsState(
-        targetValue =
-        if (currentTheme.enableBlur || !listState.canScrollBackward)
+        targetValue = if (currentTheme.enableBlur || !canScrollBackward)
             MaterialTheme.colorScheme.surface
         else
             MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
@@ -341,10 +350,13 @@ fun FriendsScreen(
                                 }.fillMaxSize(),
                                 screenState = screenState,
                                 uiFriends = ImmutableList.copyOf(friendsToDisplay),
-                                listState = listState,
+                                listState = if (index == 0) listState else listStateOnline,
                                 maxLines = maxLines,
                                 padding = padding,
-                                onPhotoClicked = onPhotoClicked
+                                onPhotoClicked = onPhotoClicked,
+                                setCanScrollBackward = { can ->
+                                    canScrollBackward = can
+                                }
                             )
 
                             if (friendsToDisplay.isEmpty()) {

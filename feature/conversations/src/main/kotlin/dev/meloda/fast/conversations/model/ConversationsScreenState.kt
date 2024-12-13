@@ -9,7 +9,9 @@ data class ConversationsScreenState(
     val isLoading: Boolean,
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean,
-    val profileImageUrl: String?
+    val profileImageUrl: String?,
+    val scrollIndex: Int,
+    val scrollOffset: Int
 ) {
 
     companion object {
@@ -19,7 +21,9 @@ data class ConversationsScreenState(
             isLoading = true,
             isPaginating = false,
             isPaginationExhausted = false,
-            profileImageUrl = null
+            profileImageUrl = null,
+            scrollIndex = 0,
+            scrollOffset = 0,
         )
     }
 }

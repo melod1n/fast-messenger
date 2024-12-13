@@ -1,6 +1,5 @@
 package dev.meloda.fast.conversations.presentation
 
-import android.content.SharedPreferences
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -29,6 +28,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -63,7 +63,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
@@ -88,7 +87,6 @@ import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -99,8 +97,6 @@ fun ConversationsRoute(
     viewModel: ConversationsViewModel
 ) {
     val context = LocalContext.current
-
-    val prefs: SharedPreferences = koinInject()
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
@@ -121,8 +117,6 @@ fun ConversationsRoute(
         screenState = screenState,
         baseError = baseError,
         canPaginate = canPaginate,
-        firstVisibleItemIndex = prefs.getInt("conversations_all_scroll_position", 0),
-        firstVisibleItemScrollOffset = prefs.getInt("conversations_all_scroll_offset", 0),
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onConversationItemClicked = { id ->
             onConversationItemClicked(id)
@@ -134,14 +128,9 @@ fun ConversationsRoute(
         onRefreshDropdownItemClicked = viewModel::onRefresh,
         onRefresh = viewModel::onRefresh,
         onConversationPhotoClicked = onConversationPhotoClicked,
-        onSaveScrollPosition = { index ->
-            prefs.edit { putInt("conversations_all_scroll_position", index) }
-        },
-        onSaveScrollOffsetPosition = { offset ->
-            prefs.edit { putInt("conversations_all_scroll_offset", offset) }
-        }
+        setScrollIndex = viewModel::setScrollIndex,
+        setScrollOffset = viewModel::setScrollOffset
     )
-
 
     HandleDialogs(
         screenState = screenState,
@@ -158,8 +147,6 @@ fun ConversationsScreen(
     screenState: ConversationsScreenState = ConversationsScreenState.EMPTY,
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
-    firstVisibleItemIndex: Int = 0,
-    firstVisibleItemScrollOffset: Int = 0,
     onSessionExpiredLogOutButtonClicked: () -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit = {},
     onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
@@ -168,8 +155,8 @@ fun ConversationsScreen(
     onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onConversationPhotoClicked: (url: String) -> Unit = {},
-    onSaveScrollPosition: (Int) -> Unit = {},
-    onSaveScrollOffsetPosition: (Int) -> Unit = {}
+    setScrollIndex: (Int) -> Unit = {},
+    setScrollOffset: (Int) -> Unit = {}
 ) {
     val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
@@ -179,20 +166,20 @@ fun ConversationsScreen(
     }
 
     val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = firstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset = firstVisibleItemScrollOffset
+        initialFirstVisibleItemIndex = screenState.scrollIndex,
+        initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .debounce(500L)
-            .collectLatest(onSaveScrollPosition)
+            .collectLatest(setScrollIndex)
     }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .debounce(500L)
-            .collectLatest(onSaveScrollOffsetPosition)
+            .collectLatest(setScrollOffset)
     }
 
     val paginationConditionMet by remember(canPaginate, listState) {
@@ -305,6 +292,9 @@ fun ConversationsScreen(
                 }
                 AnimatedVisibility(showHorizontalProgressBar) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                AnimatedVisibility(!showHorizontalProgressBar) {
+                    HorizontalDivider()
                 }
             }
         },

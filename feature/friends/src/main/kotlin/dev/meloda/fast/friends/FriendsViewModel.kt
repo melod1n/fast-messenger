@@ -31,6 +31,11 @@ interface FriendsViewModel {
     fun onRefresh()
 
     fun onErrorConsumed()
+
+    fun setScrollIndex(index: Int)
+    fun setScrollOffset(offset: Int)
+    fun setScrollIndexOnline(index: Int)
+    fun setScrollOffsetOnline(offset: Int)
 }
 
 class FriendsViewModelImpl(
@@ -64,6 +69,22 @@ class FriendsViewModelImpl(
 
     override fun onErrorConsumed() {
         baseError.setValue { null }
+    }
+
+    override fun setScrollIndex(index: Int) {
+        screenState.setValue { old -> old.copy(scrollIndex = index) }
+    }
+
+    override fun setScrollOffset(offset: Int) {
+        screenState.setValue { old -> old.copy(scrollOffset = offset) }
+    }
+
+    override fun setScrollIndexOnline(index: Int) {
+        screenState.setValue { old -> old.copy(scrollIndexOnline = index) }
+    }
+
+    override fun setScrollOffsetOnline(offset: Int) {
+        screenState.setValue { old -> old.copy(scrollOffsetOnline = offset) }
     }
 
     private fun loadFriends(offset: Int = currentOffset.value) {

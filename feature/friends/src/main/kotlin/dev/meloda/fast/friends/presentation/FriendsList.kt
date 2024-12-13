@@ -16,7 +16,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,8 +37,14 @@ fun FriendsList(
     listState: LazyListState,
     maxLines: Int,
     padding: PaddingValues,
-    onPhotoClicked: (url: String) -> Unit
+    onPhotoClicked: (url: String) -> Unit,
+    setCanScrollBackward: (Boolean) -> Unit
 ) {
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.canScrollBackward }
+            .collect(setCanScrollBackward)
+    }
+
     val coroutineScope = rememberCoroutineScope()
 
     val friends = uiFriends.toList()
@@ -56,7 +64,6 @@ fun FriendsList(
             items = friends,
             key = UiFriend::userId,
         ) { friend ->
-
             FriendItem(
                 friend = friend,
                 maxLines = maxLines,

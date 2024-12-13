@@ -60,6 +60,9 @@ interface ConversationsViewModel {
     fun onOptionClicked(conversation: UiConversation, option: ConversationOption)
 
     fun onErrorConsumed()
+
+    fun setScrollIndex(index: Int)
+    fun setScrollOffset(offset: Int)
 }
 
 class ConversationsViewModelImpl(
@@ -204,6 +207,14 @@ class ConversationsViewModelImpl(
 
     override fun onErrorConsumed() {
         baseError.setValue { null }
+    }
+
+    override fun setScrollIndex(index: Int) {
+        screenState.setValue { old -> old.copy(scrollIndex = index) }
+    }
+
+    override fun setScrollOffset(offset: Int) {
+        screenState.setValue { old -> old.copy(scrollOffset = offset) }
     }
 
     private fun hideOptions(conversationId: Int) {
