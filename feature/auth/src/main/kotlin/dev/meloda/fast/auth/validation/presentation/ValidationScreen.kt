@@ -159,14 +159,14 @@ fun ValidationScreen(
                 text = {
                     Text(
                         text = "Cancel",
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
                 icon = {
                     Icon(
                         imageVector = Icons.Rounded.Close,
                         contentDescription = "Close icon",
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             )
