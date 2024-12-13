@@ -266,7 +266,9 @@ fun AlertItems(
                     Spacer(modifier = Modifier.width(10.dp))
                     Checkbox(
                         checked = item.isSelected,
-                        onCheckedChange = {}
+                        onCheckedChange = {
+                            onItemCheckedChanged?.invoke(index)
+                        }
                     )
                 }
 
@@ -274,7 +276,9 @@ fun AlertItems(
                     Spacer(modifier = Modifier.width(10.dp))
                     RadioButton(
                         selected = item.isSelected,
-                        onClick = {}
+                        onClick = {
+                            onItemClick?.invoke(index)
+                        }
                     )
                 }
 

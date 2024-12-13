@@ -275,7 +275,7 @@ fun ConversationItem(
                                         modifier = Modifier.size(14.dp),
                                         painter = painter,
                                         contentDescription = "attachment image",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
 
