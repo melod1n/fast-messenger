@@ -108,7 +108,12 @@ fun LanguagePickerScreen(
             }
 
             LargeTopAppBar(
-                title = { Text(text = stringResource(id = UiR.string.title_application_language)) },
+                title = {
+                    Text(
+                        text = stringResource(id = UiR.string.title_application_language),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

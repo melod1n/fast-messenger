@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
@@ -128,7 +129,14 @@ fun SettingsScreen(
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = UiR.string.title_settings)) },
+                title = {
+                    Text(
+                        text = stringResource(id = UiR.string.title_settings),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

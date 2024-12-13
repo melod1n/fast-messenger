@@ -213,7 +213,10 @@ fun MessagesHistoryScreen(
                         Text(
                             text =
                             if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
-                            else screenState.title
+                            else screenState.title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.headlineSmall
                         )
                     },
                     navigationIcon = {

@@ -244,7 +244,8 @@ fun ConversationsScreen(
                                 else UiR.string.title_conversations
                             ),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.headlineSmall
                         )
                     },
                     actions = {

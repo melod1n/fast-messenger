@@ -242,13 +242,14 @@ fun FriendsScreen(
                         Text(
                             text = stringResource(id = UiR.string.title_friends),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.headlineSmall
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
                 PrimaryTabRow(
                     selectedTabIndex = selectedTabIndex,
