@@ -3,8 +3,6 @@ name: Android CI Release
 on:
   pull_request:
     branches: [ "master" ]
-  push:
-    branches: [ "release/*" ]
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -13,7 +11,7 @@ env:
 
 jobs:
   create_release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Build artifacts
     steps:
       - name: Checkout
@@ -28,30 +26,6 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
-      - name: Check if the PR is a hotfix
-        run: |
-          if [[ "${{ github.event.pull_request.head.ref }}" == "hotfix/"* ]]; then
-            HOTFIX_FLAG="hotfix"
-          else
-            HOTFIX_FLAG=""
-          fi
-
-      - name: Extract branch name
-        id: branch-name
-        run: echo "::set-output name=branch_name::${{ github.event.pull_request.head.ref }}"
-
-      #      - name: Generate release description
-      #        if: $HOTFIX_FLAG == 'hotfix'
-      #        run: |
-      #          if [[ "${{ github.event.pull_request.head.ref }}" == "hotfix/"* ]]; then
-      #            TAG_NAME="${{ github.event.pull_request.head.ref | replace('hotfix/', '') }}-hotfix"
-      #          else
-      #            TAG_NAME="${{ github.event.pull_request.head.ref }}"
-      #          fi
-      #          RELEASE_DESCRIPTION=$(git log --no-merges --format="%s" "${{ github.event.pull_request.base.sha }}"..HEAD)
-      #          echo "TAG_NAME: $TAG_NAME"
-      #          echo "RELEASE_DESCRIPTION: $RELEASE_DESCRIPTION"
 
       - name: Build and sign debug APK
         run: ./gradlew assembleDebug
@@ -88,16 +62,3 @@ jobs:
         with:
           name: app-release.aab
           path: app/build/outputs/bundle/release/app-release.aab
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/release/app-release.apk
-            app/build/outputs/bundle/debug/app-debug.aab
-            app/build/outputs/bundle/release/app-release.aab
-          name: ${{ github.ref_name }}
-          tag_name: ${{ github.event.pull_request.head.ref }}
-          body: ""
-#          body: "$(cat description.txt)"
