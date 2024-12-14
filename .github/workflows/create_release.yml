@@ -31,7 +31,7 @@ jobs:
 
       - name: Check if the PR is a hotfix
         run: |
-          if [[ ${{ github.event.pull_request.head.ref }} == hotfix/* ]]; then
+          if [[ "${{ github.event.pull_request.head.ref }}" == "hotfix/"* ]]; then
             HOTFIX_FLAG="hotfix"
           else
             HOTFIX_FLAG=""
