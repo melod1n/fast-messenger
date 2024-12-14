@@ -41,17 +41,17 @@ jobs:
         id: branch-name
         run: echo "::set-output name=branch_name::${{ github.event.pull_request.head.ref }}"
 
-      - name: Generate release description
-        if: $HOTFIX_FLAG == 'hotfix'
-        run: |
-          if [[ "${{ github.event.pull_request.head.ref }}" == "hotfix/"* ]]; then
-            TAG_NAME="${{ github.event.pull_request.head.ref | replace('hotfix/', '') }}-hotfix"
-          else
-            TAG_NAME="${{ github.event.pull_request.head.ref }}"
-          fi
-          RELEASE_DESCRIPTION=$(git log --no-merges --format="%s" "${{ github.event.pull_request.base.sha }}"..HEAD)
-          echo "TAG_NAME: $TAG_NAME"
-          echo "RELEASE_DESCRIPTION: $RELEASE_DESCRIPTION"
+      #      - name: Generate release description
+      #        if: $HOTFIX_FLAG == 'hotfix'
+      #        run: |
+      #          if [[ "${{ github.event.pull_request.head.ref }}" == "hotfix/"* ]]; then
+      #            TAG_NAME="${{ github.event.pull_request.head.ref | replace('hotfix/', '') }}-hotfix"
+      #          else
+      #            TAG_NAME="${{ github.event.pull_request.head.ref }}"
+      #          fi
+      #          RELEASE_DESCRIPTION=$(git log --no-merges --format="%s" "${{ github.event.pull_request.base.sha }}"..HEAD)
+      #          echo "TAG_NAME: $TAG_NAME"
+      #          echo "RELEASE_DESCRIPTION: $RELEASE_DESCRIPTION"
 
       - name: Build and sign debug APK
         run: ./gradlew assembleDebug
@@ -99,4 +99,5 @@ jobs:
             app/build/outputs/bundle/release/app-release.aab
           name: ${{ github.ref_name }}
           tag_name: ${{ github.event.pull_request.head.ref }}
-          body: "$(cat description.txt)"
+          body: ""
+#          body: "$(cat description.txt)"
