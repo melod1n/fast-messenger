@@ -1,8 +1,6 @@
-name: Android CI
+name: Android CI Release
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -12,8 +10,8 @@ env:
   RELEASE_SIGN_KEY_PASSWORD: ${{ secrets.RELEASE_SIGN_KEY_PASSWORD }}
 
 jobs:
-  build_apk_aab:
-    runs-on: ubuntu-latest
+  create_release:
+    runs-on: ubuntu-24.04
     name: Build artifacts
     steps:
       - name: Checkout
@@ -29,7 +27,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and sign debug APKs
+      - name: Build and sign debug APK
         run: ./gradlew assembleDebug
 
       - name: Upload debug APK
@@ -38,7 +36,7 @@ jobs:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Build and sign release APKs
+      - name: Build and sign release APK
         run: ./gradlew assembleRelease
 
       - name: Upload release APK
@@ -46,3 +44,21 @@ jobs:
         with:
           name: app-release.apk
           path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Build and sign debug Bundle
+        run: ./gradlew bundleDebug
+
+      - name: Upload debug Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.aab
+          path: app/build/outputs/bundle/debug/app-debug.aab
+
+      - name: Build and sign release Bundle
+        run: ./gradlew bundleRelease
+
+      - name: Upload release Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.aab
+          path: app/build/outputs/bundle/release/app-release.aab
