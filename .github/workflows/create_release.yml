@@ -42,13 +42,12 @@ jobs:
         run: echo "::set-output name=branch_name::${{ github.event.pull_request.head.ref }}"
 
       - name: Generate release description
+        if: $HOTFIX_FLAG == 'hotfix'
         run: |
-          if [[ $HOTFIX_FLAG == "hotfix" ]]; then
-          DESCRIPTION="Hotfix for PR #${{ github.event.pull_request.number }}: $(git log ${{ github.event.pull_request.head.sha }}..${{ github.event.pull_request.base.sha }} --oneline)"
-          else
-          DESCRIPTION="Release for PR #${{ github.event.pull_request.number }}: $(git log ${{ github.event.pull_request.head.sha }}..${{ github.event.pull_request.base.sha }} --oneline)"
-          fi
-          echo "${DESCRIPTION}" > description.txt
+          TAG_NAME="${{ github.event.pull_request.head.ref | replace('hotfix/', '') }}-hotfix"
+          RELEASE_DESCRIPTION=$(git log --no-merges --format="%s" "${{ github.event.pull_request.base.sha }}"..HEAD)
+          echo "TAG_NAME: $TAG_NAME"
+          echo "RELEASE_DESCRIPTION: $RELEASE_DESCRIPTION"
 
       - name: Build and sign debug APK
         run: ./gradlew assembleDebug
