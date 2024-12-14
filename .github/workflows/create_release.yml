@@ -44,7 +44,11 @@ jobs:
       - name: Generate release description
         if: $HOTFIX_FLAG == 'hotfix'
         run: |
-          TAG_NAME="${{ github.event.pull_request.head.ref | replace('hotfix/', '') }}-hotfix"
+          if [[ "${{ github.event.pull_request.head.ref }}" == "hotfix/"* ]]; then
+            TAG_NAME="${{ github.event.pull_request.head.ref | replace('hotfix/', '') }}-hotfix"
+          else
+            TAG_NAME="${{ github.event.pull_request.head.ref }}"
+          fi
           RELEASE_DESCRIPTION=$(git log --no-merges --format="%s" "${{ github.event.pull_request.base.sha }}"..HEAD)
           echo "TAG_NAME: $TAG_NAME"
           echo "RELEASE_DESCRIPTION: $RELEASE_DESCRIPTION"
