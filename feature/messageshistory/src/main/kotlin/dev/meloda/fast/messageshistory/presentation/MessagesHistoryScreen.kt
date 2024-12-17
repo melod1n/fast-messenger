@@ -37,7 +37,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -86,6 +85,7 @@ import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.util.firstMessage
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.launch
@@ -119,7 +119,8 @@ fun MessagesHistoryRoute(
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onMessageInputChanged = viewModel::onMessageInputChanged,
         onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
-        onActionButtonClicked = viewModel::onActionButtonClicked
+        onActionButtonClicked = viewModel::onActionButtonClicked,
+        onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked
     )
 }
 
@@ -141,7 +142,8 @@ fun MessagesHistoryScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
-    onActionButtonClicked: () -> Unit = {}
+    onActionButtonClicked: () -> Unit = {},
+    onEmojiButtonLongClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
 
@@ -371,7 +373,7 @@ fun MessagesHistoryScreen(
                             Column(verticalArrangement = Arrangement.Bottom) {
                                 IconButton(
                                     onClick = {
-                                        if (AppSettings.Debug.enableHaptic) {
+                                        if (AppSettings.General.enableHaptic) {
                                             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                         }
                                         scope.launch {
@@ -388,6 +390,12 @@ fun MessagesHistoryScreen(
                                                 }
                                             }
                                         }
+                                    },
+                                    onLongClick = {
+                                        if (AppSettings.General.enableHaptic) {
+                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
+                                        }
+                                        onEmojiButtonLongClicked()
                                     },
                                     modifier = Modifier.rotate(rotation.value)
                                 ) {
@@ -427,7 +435,7 @@ fun MessagesHistoryScreen(
                         Column(verticalArrangement = Arrangement.Bottom) {
                             IconButton(
                                 onClick = {
-                                    if (AppSettings.Debug.enableHaptic) {
+                                    if (AppSettings.General.enableHaptic) {
                                         view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                     }
                                     scope.launch {
@@ -463,7 +471,7 @@ fun MessagesHistoryScreen(
                             IconButton(
                                 onClick = {
                                     if (screenState.actionMode == ActionMode.Record) {
-                                        if (AppSettings.Debug.enableHaptic) {
+                                        if (AppSettings.General.enableHaptic) {
                                             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                         }
                                         scope.launch {

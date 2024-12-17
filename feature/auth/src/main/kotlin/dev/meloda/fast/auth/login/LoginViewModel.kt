@@ -368,7 +368,7 @@ class LoginViewModelImpl(
 
     private fun startLongPoll() {
         longPollController.setStateToApply(
-            if (AppSettings.Debug.longPollInBackground) {
+            if (AppSettings.Experimental.longPollInBackground) {
                 LongPollState.Background
             } else {
                 LongPollState.InApp

@@ -70,11 +70,9 @@ import dev.meloda.fast.chatmaterials.ChatMaterialsViewModel
 import dev.meloda.fast.chatmaterials.ChatMaterialsViewModelImpl
 import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
 import dev.meloda.fast.chatmaterials.model.UiChatMaterial
-import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 @Composable
 fun ChatMaterialsRoute(
@@ -82,15 +80,10 @@ fun ChatMaterialsRoute(
     onPhotoClicked: (url: String) -> Unit,
     viewModel: ChatMaterialsViewModel = koinViewModel<ChatMaterialsViewModelImpl>()
 ) {
-    val userSettings: UserSettings = koinInject()
-
-    val enablePullToRefresh by userSettings.enablePullToRefresh.collectAsStateWithLifecycle()
-
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
     ChatMaterialsScreen(
         screenState = screenState,
-        enablePullToRefresh = enablePullToRefresh,
         onBack = onBack,
         onTypeChanged = viewModel::onTypeChanged,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
@@ -107,7 +100,6 @@ fun ChatMaterialsRoute(
 @Composable
 fun ChatMaterialsScreen(
     screenState: ChatMaterialsScreenState = ChatMaterialsScreenState.EMPTY,
-    enablePullToRefresh: Boolean = false,
     onBack: () -> Unit = {},
     onTypeChanged: (String) -> Unit = {},
     onRefreshDropdownItemClicked: () -> Unit = {},

@@ -89,12 +89,20 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_USE_CONTACT_NAMES, value)
 
-        var enablePullToRefresh: Boolean
+        var showEmojiButton: Boolean
             get() = get(
-                SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH,
-                SettingsKeys.DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH
+                SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
+                SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
             )
-            set(value) = put(SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH, value)
+            set(value) = put(SettingsKeys.KEY_SHOW_EMOJI_BUTTON, value)
+
+        var enableHaptic: Boolean
+            get() = get(
+                SettingsKeys.KEY_ENABLE_HAPTIC,
+                SettingsKeys.DEFAULT_ENABLE_HAPTIC
+            )
+            set(value) = put(SettingsKeys.KEY_ENABLE_HAPTIC, value)
+
     }
 
     object Appearance {
@@ -126,6 +134,13 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_USE_DYNAMIC_COLORS, value)
 
+        var useSystemFont: Boolean
+            get() = get(
+                SettingsKeys.KEY_USE_SYSTEM_FONT,
+                SettingsKeys.DEFAULT_USE_SYSTEM_FONT
+            )
+            set(value) = put(SettingsKeys.KEY_USE_SYSTEM_FONT, value)
+
         var appLanguage: String
             get() = get(
                 SettingsKeys.KEY_APPEARANCE_LANGUAGE,
@@ -152,6 +167,29 @@ object AppSettings {
             set(value) = put(SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS, value)
     }
 
+    object Experimental {
+        var longPollInBackground: Boolean
+            get() = get(
+                SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND,
+                SettingsKeys.DEFAULT_LONG_POLL_IN_BACKGROUND
+            )
+            set(value) = put(SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND, value)
+
+        var showTimeInActionMessages: Boolean
+            get() = get(
+                SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES,
+                SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES
+            )
+            set(value) = put(SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES, value)
+
+        var useBlur: Boolean
+            get() = get(
+                SettingsKeys.KEY_USE_BLUR,
+                SettingsKeys.DEFAULT_USE_BLUR
+            )
+            set(value) = put(SettingsKeys.KEY_USE_BLUR, value)
+    }
+
     object Debug {
         var showAlertAfterCrash: Boolean
             get() = get(
@@ -160,54 +198,12 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_DEBUG_SHOW_CRASH_ALERT, value)
 
-        var longPollInBackground: Boolean
-            get() = get(
-                SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-                SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
-            )
-            set(value) = put(SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND, value)
-
-        var useBlur: Boolean
-            get() = get(
-                SettingsKeys.KEY_APPEARANCE_USE_BLUR,
-                SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR
-            )
-            set(value) = put(SettingsKeys.KEY_APPEARANCE_USE_BLUR, value)
-
-        var showEmojiButton: Boolean
-            get() = get(
-                SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
-                SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
-            )
-            set(value) = put(SettingsKeys.KEY_SHOW_EMOJI_BUTTON, value)
-
-        var showTimeInActionMessages: Boolean
-            get() = get(
-                SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
-                SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES
-            )
-            set(value) = put(SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES, value)
-
-        var enableHaptic: Boolean
-            get() = get(
-                SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC,
-                SettingsKeys.DEFAULT_DEBUG_ENABLE_HAPTIC
-            )
-            set(value) = put(SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC, value)
-
         var networkLogLevel: LogLevel
             get() = get(
                 SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL,
                 SettingsKeys.DEFAULT_NETWORK_LOG_LEVEL
             ).let(LogLevel::parse)
             set(level) = put(SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL, level.value)
-
-        var useSystemFont: Boolean
-            get() = get(
-                SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT,
-                SettingsKeys.DEFAULT_DEBUG_USE_SYSTEM_FONT
-            )
-            set(value) = put(SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT, value)
 
         var showDebugCategory: Boolean
             get() = get(

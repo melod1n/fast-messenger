@@ -2,6 +2,7 @@ package dev.meloda.fast.messageshistory
 
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfFirstOrNull
 import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
+import com.conena.nanokt.text.isNotEmptyOrBlank
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.provider.ResourceProvider
@@ -54,7 +56,7 @@ interface MessagesHistoryViewModel {
     fun onRefresh()
     fun onAttachmentButtonClicked()
     fun onMessageInputChanged(newText: TextFieldValue)
-    fun onEmojiButtonClicked()
+    fun onEmojiButtonLongClicked()
     fun onActionButtonClicked()
 
     fun onPaginationConditionsMet()
@@ -123,8 +125,15 @@ class MessagesHistoryViewModelImpl(
         screenState.setValue { old -> old.copy(message = newText) }
     }
 
-    override fun onEmojiButtonClicked() {
-
+    override fun onEmojiButtonLongClicked() {
+        AppSettings.Features.fastText.takeIf { it.isNotEmptyOrBlank() }?.let { text ->
+            screenState.setValue { old ->
+                val newText = "${old.message.text}$text"
+                old.copy(
+                    message = TextFieldValue(text = newText, selection = TextRange(newText.length))
+                )
+            }
+        }
     }
 
     override fun onActionButtonClicked() {

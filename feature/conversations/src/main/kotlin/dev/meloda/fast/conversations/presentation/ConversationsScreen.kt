@@ -310,7 +310,7 @@ fun ConversationsScreen(
                 ) {
                     FloatingActionButton(
                         onClick = {
-                            if (AppSettings.Debug.enableHaptic) {
+                            if (AppSettings.General.enableHaptic) {
                                 view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                             }
                             scope.launch {
