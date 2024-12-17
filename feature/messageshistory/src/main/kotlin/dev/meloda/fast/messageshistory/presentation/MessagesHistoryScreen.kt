@@ -1,10 +1,12 @@
 package dev.meloda.fast.messageshistory.presentation
 
 import android.content.SharedPreferences
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,9 +25,11 @@ import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -37,7 +41,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -60,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -72,12 +76,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
@@ -86,8 +90,10 @@ import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.util.firstMessage
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -115,11 +121,11 @@ fun MessagesHistoryRoute(
         onBack = onBack,
         onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
-        onToggleAnimationsDropdownItemClicked = viewModel::onToggleAnimationsDropdownItemClicked,
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onMessageInputChanged = viewModel::onMessageInputChanged,
         onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
-        onActionButtonClicked = viewModel::onActionButtonClicked
+        onActionButtonClicked = viewModel::onActionButtonClicked,
+        onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked
     )
 }
 
@@ -141,7 +147,8 @@ fun MessagesHistoryScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
-    onActionButtonClicked: () -> Unit = {}
+    onActionButtonClicked: () -> Unit = {},
+    onEmojiButtonLongClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
 
@@ -172,15 +179,6 @@ fun MessagesHistoryScreen(
 
     val hazeState = remember { HazeState() }
 
-    var animationsEnabled by remember {
-        mutableStateOf(
-            preferences.getBoolean(
-                SettingsKeys.KEY_ENABLE_ANIMATIONS_IN_MESSAGES,
-                false
-            )
-        )
-    }
-
     val toolbarColorAlpha by animateFloatAsState(
         targetValue = if (!listState.canScrollForward) 1f else 0f,
         label = "toolbarColorAlpha",
@@ -210,14 +208,42 @@ fun MessagesHistoryScreen(
                         )
                         .fillMaxWidth(),
                     title = {
-                        Text(
-                            text =
-                            if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
-                            else screenState.title,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                        Row(
+                            modifier = Modifier
+                                .weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val avatar = screenState.avatar.getImage()
+                            if (avatar is Painter) {
+                                Image(
+                                    painter = avatar,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                AsyncImage(
+                                    model = screenState.avatar.getImage(),
+                                    contentDescription = "Profile Image",
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape),
+                                    placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Text(
+                                text =
+                                if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
+                                else screenState.title,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
@@ -280,30 +306,18 @@ fun MessagesHistoryScreen(
                                     )
                                 }
                             )
-
-                            if (preferences.getBoolean(
-                                    SettingsKeys.KEY_SHOW_DEBUG_CATEGORY,
-                                    false
-                                )
-                            ) {
-                                HorizontalDivider()
-
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(text = if (animationsEnabled) "Disable animations" else "Enable animations")
-                                    },
-                                    onClick = {
-                                        dropDownMenuExpanded = false
-                                        animationsEnabled = !animationsEnabled
-                                        onToggleAnimationsDropdownItemClicked(animationsEnabled)
-                                    }
-                                )
-                            }
                         }
                     }
                 )
-                if (screenState.isLoading && screenState.messages.isNotEmpty()) {
+
+                val showHorizontalProgressBar by remember(screenState) {
+                    derivedStateOf { screenState.isLoading && screenState.messages.isNotEmpty() }
+                }
+                if (showHorizontalProgressBar) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                AnimatedVisibility(!showHorizontalProgressBar) {
+                    HorizontalDivider()
                 }
             }
         }
@@ -320,7 +334,6 @@ fun MessagesHistoryScreen(
                 listState = listState,
                 immutableMessages = ImmutableList.copyOf(screenState.messages),
                 isPaginating = screenState.isPaginating,
-                enableAnimations = animationsEnabled,
                 messageBarHeight = messageBarHeight,
                 onRequestScrollToCmId = { cmId ->
                     coroutineScope.launch {
@@ -371,7 +384,7 @@ fun MessagesHistoryScreen(
                             Column(verticalArrangement = Arrangement.Bottom) {
                                 IconButton(
                                     onClick = {
-                                        if (AppSettings.Debug.enableHaptic) {
+                                        if (AppSettings.General.enableHaptic) {
                                             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                         }
                                         scope.launch {
@@ -388,6 +401,12 @@ fun MessagesHistoryScreen(
                                                 }
                                             }
                                         }
+                                    },
+                                    onLongClick = {
+                                        if (AppSettings.General.enableHaptic) {
+                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
+                                        }
+                                        onEmojiButtonLongClicked()
                                     },
                                     modifier = Modifier.rotate(rotation.value)
                                 ) {
@@ -427,7 +446,7 @@ fun MessagesHistoryScreen(
                         Column(verticalArrangement = Arrangement.Bottom) {
                             IconButton(
                                 onClick = {
-                                    if (AppSettings.Debug.enableHaptic) {
+                                    if (AppSettings.General.enableHaptic) {
                                         view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                     }
                                     scope.launch {
@@ -463,7 +482,7 @@ fun MessagesHistoryScreen(
                             IconButton(
                                 onClick = {
                                     if (screenState.actionMode == ActionMode.Record) {
-                                        if (AppSettings.Debug.enableHaptic) {
+                                        if (AppSettings.General.enableHaptic) {
                                             view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
                                         }
                                         scope.launch {

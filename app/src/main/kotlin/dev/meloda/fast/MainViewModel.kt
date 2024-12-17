@@ -209,7 +209,7 @@ class MainViewModelImpl(
                 }
 
                 longPollController.setStateToApply(
-                    if (AppSettings.Debug.longPollInBackground) {
+                    if (AppSettings.Experimental.longPollInBackground) {
                         LongPollState.Background
                     } else {
                         LongPollState.InApp
@@ -233,7 +233,7 @@ class MainViewModelImpl(
     }
 
     private fun disableBackgroundLongPoll() {
-        AppSettings.Debug.longPollInBackground = false
+        AppSettings.Experimental.longPollInBackground = false
         longPollController.setStateToApply(LongPollState.InApp)
     }
 }

@@ -47,6 +47,8 @@ import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -66,6 +68,14 @@ fun MainScreen(
 
     var selectedItemIndex by rememberSaveable {
         mutableIntStateOf(1)
+    }
+
+    val sharedFlow = remember {
+        MutableSharedFlow<Int>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
     }
 
     Scaffold(
@@ -98,6 +108,8 @@ fun MainScreen(
                                         inclusive = true
                                     }
                                 }
+                            } else {
+                                sharedFlow.tryEmit(index)
                             }
                         },
                         icon = {
@@ -156,7 +168,11 @@ fun MainScreen(
                     enterTransition = { fadeIn(animationSpec = tween(200)) },
                     exitTransition = { fadeOut(animationSpec = tween(200)) }
                 ) {
-                    navigation<MainGraph>(startDestination = navigationItems[selectedItemIndex].route) {
+                    navigation<MainGraph>(
+                        startDestination = navigationItems[selectedItemIndex].route,
+                        enterTransition = { fadeIn(animationSpec = tween(200)) },
+                        exitTransition = { fadeOut(animationSpec = tween(200)) }
+                    ) {
                         friendsScreen(
                             onError = onError,
                             navController = navController,
@@ -165,8 +181,9 @@ fun MainScreen(
                         conversationsScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
+                            onPhotoClicked = onPhotoClicked,
+                            scrollToTopFlow = sharedFlow,
                             navController = navController,
-                            onPhotoClicked = onPhotoClicked
                         )
                         profileScreen(
                             onError = onError,

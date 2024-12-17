@@ -8,6 +8,7 @@ import dev.meloda.fast.data.State
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.FriendsUseCase
+import dev.meloda.fast.domain.LoadUsersByIdsUseCase
 import dev.meloda.fast.friends.model.FriendsScreenState
 import dev.meloda.fast.friends.util.asPresentation
 import dev.meloda.fast.model.BaseError
@@ -42,7 +43,8 @@ interface FriendsViewModel {
 
 class FriendsViewModelImpl(
     private val friendsUseCase: FriendsUseCase,
-    private val userSettings: UserSettings
+    private val userSettings: UserSettings,
+    private val loadUsersByIdsUseCase: LoadUsersByIdsUseCase
 ) : ViewModel(), FriendsViewModel {
 
     override val screenState = MutableStateFlow(FriendsScreenState.EMPTY)
@@ -94,6 +96,49 @@ class FriendsViewModelImpl(
     }
 
     private fun loadFriends(offset: Int = currentOffset.value) {
+        friendsUseCase.getOnlineFriends(null, null)
+            .listenValue(viewModelScope) { state ->
+                state.processState(
+                    error = { error ->
+                        if (error is State.Error.ApiError) {
+                            when (error.errorCode) {
+                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                                    baseError.setValue { BaseError.SessionExpired }
+                                }
+
+                                else -> Unit
+                            }
+                        }
+                    },
+                    success = { userIds ->
+                        loadUsersByIdsUseCase(userIds = userIds)
+                            .listenValue(viewModelScope) { state ->
+                                state.processState(
+                                    error = { error ->
+                                        if (error is State.Error.ApiError) {
+                                            when (error.errorCode) {
+                                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                                                    baseError.setValue { BaseError.SessionExpired }
+                                                }
+
+                                                else -> Unit
+                                            }
+                                        }
+                                    },
+                                    success = { onlineFriends ->
+                                        screenState.setValue { old ->
+                                            old.copy(
+                                                onlineFriends = onlineFriends.map {
+                                                    it.asPresentation(userSettings.useContactNames.value)
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                    }
+                )
+            }
         friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
             .listenValue(viewModelScope) { state ->
                 state.processState(
@@ -125,10 +170,6 @@ class FriendsViewModelImpl(
                             it.asPresentation(userSettings.useContactNames.value)
                         }
 
-                        val loadedOnlineFriends = loadedFriends.filter {
-                            it.onlineStatus.isOnline()
-                        }
-
                         val newState = screenState.value.copy(
                             isPaginationExhausted = paginationExhausted
                         )
@@ -136,18 +177,12 @@ class FriendsViewModelImpl(
                         if (offset == 0) {
                             friends.emit(response)
                             screenState.setValue {
-                                newState.copy(
-                                    friends = loadedFriends,
-                                    onlineFriends = loadedOnlineFriends
-                                )
+                                newState.copy(friends = loadedFriends)
                             }
                         } else {
                             friends.emit(friends.value.plus(response))
                             screenState.setValue {
-                                newState.copy(
-                                    friends = newState.friends.plus(loadedFriends),
-                                    onlineFriends = newState.onlineFriends.plus(loadedOnlineFriends)
-                                )
+                                newState.copy(friends = newState.friends.plus(loadedFriends))
                             }
                         }
                     }

@@ -240,8 +240,8 @@
     <string name="settings_appearance_multiline_summary">The title of the conversation and the text of the message can take up multiple lines</string>
     <string name="settings_features_title">Features</string>
     <string name="settings_features_fast_text_title">Fast text</string>
-    <string name="settings_features_long_poll_in_background_title">[WIP] LongPoll in background</string>
-    <string name="settings_features_long_poll_in_background_summary">Your messages will be updates even when app is not on the screen</string>
+    <string name="settings_features_long_poll_in_background_title">LongPoll in background</string>
+    <string name="settings_features_long_poll_in_background_summary">Your messages will be updating even when app is not on the screen</string>
     <string name="settings_activity_title">Activity</string>
     <string name="settings_activity_send_online_title">Send online status</string>
     <string name="settings_activity_send_online_summary">Online status will be sent every five minutes</string>

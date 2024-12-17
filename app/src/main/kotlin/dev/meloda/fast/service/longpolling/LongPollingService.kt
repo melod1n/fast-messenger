@@ -76,7 +76,7 @@ class LongPollingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        val inBackground = AppSettings.Debug.longPollInBackground
+        val inBackground = AppSettings.Experimental.longPollInBackground
 
         Log.d(
             STATE_TAG,
@@ -258,10 +258,10 @@ class LongPollingService : Service() {
         super.onDestroy()
     }
 
-    override fun onLowMemory() {
-        Log.d(STATE_TAG, "onLowMemory")
+    override fun onTrimMemory(level: Int) {
+        Log.d(STATE_TAG, "onTrimMemory")
         longPollController.updateCurrentState(LongPollState.Stopped)
-        super.onLowMemory()
+        super.onTrimMemory(level)
     }
 
     companion object {

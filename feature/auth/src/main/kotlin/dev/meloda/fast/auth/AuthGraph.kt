@@ -87,6 +87,7 @@ fun NavGraphBuilder.authNavGraph(
     }
 }
 
+// TODO: 17.12.2024, Danil Nikolaev: check clearing backstack from main screen
 fun NavController.navigateToAuth(clearBackStack: Boolean = false) {
     val navController = this
 

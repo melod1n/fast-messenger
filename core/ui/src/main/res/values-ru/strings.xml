@@ -182,7 +182,7 @@
     <string name="settings_appearance_multiline_summary">Заголовок чата и текст сообщения смогут занимать несколько строчек</string>
     <string name="settings_features_title">Фичи</string>
     <string name="settings_features_fast_text_title">Fast текст</string>
-    <string name="settings_features_long_poll_in_background_title">[WIP] LongPoll в фоне</string>
+    <string name="settings_features_long_poll_in_background_title">LongPoll в фоне</string>
     <string name="settings_features_long_poll_in_background_summary">Ваши сообщения будут обновляться, даже если приложение находится в фоне</string>
     <string name="settings_activity_title">Активность</string>
     <string name="settings_activity_send_online_title">Быть «в сети»</string>

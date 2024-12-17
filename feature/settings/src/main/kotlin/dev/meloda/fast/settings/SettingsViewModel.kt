@@ -154,13 +154,6 @@ class SettingsViewModelImpl(
                 userSettings.onUseContactNamesChanged(isUsing)
             }
 
-            SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH -> {
-                val enable =
-                    newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH
-                userSettings.onEnablePullToRefreshChanged(enable)
-            }
-
-
             SettingsKeys.KEY_APPEARANCE_MULTILINE -> {
                 val isUsing = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_MULTILINE
                 userSettings.onEnableMultilineChanged(isUsing)
@@ -206,9 +199,9 @@ class SettingsViewModelImpl(
                 userSettings.onShowAlertAfterCrashChanged(show)
             }
 
-            SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND -> {
+            SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND -> {
                 val inBackground = newValue as? Boolean
-                    ?: SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND
+                    ?: SettingsKeys.DEFAULT_LONG_POLL_IN_BACKGROUND
                 userSettings.onLongPollInBackgroundChanged(inBackground)
 
                 longPollController.setStateToApply(
@@ -221,9 +214,9 @@ class SettingsViewModelImpl(
                 )
             }
 
-            SettingsKeys.KEY_APPEARANCE_USE_BLUR -> {
+            SettingsKeys.KEY_USE_BLUR -> {
                 val isUsing =
-                    newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR
+                    newValue as? Boolean ?: SettingsKeys.DEFAULT_USE_BLUR
                 userSettings.onUseBlurChanged(isUsing)
             }
 
@@ -232,14 +225,14 @@ class SettingsViewModelImpl(
                 userSettings.onShowEmojiButtonChanged(show)
             }
 
-            SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES -> {
+            SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES -> {
                 val show = newValue as? Boolean
-                    ?: SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES
+                    ?: SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES
                 userSettings.onShowTimeInActionMessagesChanged(show)
             }
 
-            SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT -> {
-                val use = newValue as? Boolean ?: SettingsKeys.DEFAULT_DEBUG_USE_SYSTEM_FONT
+            SettingsKeys.KEY_USE_SYSTEM_FONT -> {
+                val use = newValue as? Boolean ?: SettingsKeys.DEFAULT_USE_SYSTEM_FONT
                 userSettings.onUseSystemFontChanged(use)
             }
 
@@ -283,10 +276,16 @@ class SettingsViewModelImpl(
             text = UiText.Resource(UiR.string.settings_general_contact_names_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
         )
-        val generalEnablePullToRefresh = SettingsItem.Switch(
-            key = SettingsKeys.KEY_ENABLE_PULL_TO_REFRESH,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_ENABLE_PULL_TO_REFRESH,
-            title = UiText.Resource(UiR.string.settings_general_enable_pull_to_refresh_title)
+        val generalShowEmojiButton = SettingsItem.Switch(
+            key = SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
+            title = UiText.Simple("Show emoji button"),
+            text = UiText.Simple("Show emoji button in chat panel"),
+            defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
+        )
+        val generalEnableHaptic = SettingsItem.Switch(
+            key = SettingsKeys.KEY_ENABLE_HAPTIC,
+            defaultValue = SettingsKeys.DEFAULT_ENABLE_HAPTIC,
+            title = UiText.Simple("Enable haptic")
         )
 
         val appearanceTitle = SettingsItem.Title(
@@ -340,7 +339,11 @@ class SettingsViewModelImpl(
             text = UiText.Resource(UiR.string.settings_dynamic_colors_description),
             defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
         )
-
+        val appearanceUseSystemFont = SettingsItem.Switch(
+            key = SettingsKeys.KEY_USE_SYSTEM_FONT,
+            defaultValue = SettingsKeys.DEFAULT_USE_SYSTEM_FONT,
+            title = UiText.Simple("Use system font")
+        )
         val appearanceLanguage = SettingsItem.TitleText(
             key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
             title = UiText.Resource(UiR.string.settings_application_language),
@@ -374,6 +377,34 @@ class SettingsViewModelImpl(
             text = UiText.Resource(UiR.string.settings_activity_send_online_summary)
         )
 
+        val experimentalTitle = SettingsItem.Title(
+            key = "experimental",
+            title = UiText.Simple("Experimental - VERY unstable")
+        )
+        val experimentalLongPollBackground = SettingsItem.Switch(
+            key = SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND,
+            defaultValue = SettingsKeys.DEFAULT_LONG_POLL_IN_BACKGROUND,
+            title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
+            text = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
+        )
+        val experimentalShowTimeInActionMessages = SettingsItem.Switch(
+            key = SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES,
+            defaultValue = SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES,
+            title = UiText.Simple("Show time in action messages")
+        )
+        val experimentalUseBlur = SettingsItem.Switch(
+            key = SettingsKeys.KEY_USE_BLUR,
+            defaultValue = SettingsKeys.DEFAULT_USE_BLUR,
+            title = UiText.Simple("Use blur"),
+            text = UiText.Simple("Adds blur wherever possible\nWorks on android 12 and newer"),
+        )
+        val enableAnimations = SettingsItem.Switch(
+            key = SettingsKeys.KEY_MORE_ANIMATIONS,
+            defaultValue = SettingsKeys.DEFAULT_MORE_ANIMATIONS,
+            title = UiText.Simple("More animations"),
+            text = UiText.Simple("Use animations wherever possible")
+        )
+
         val debugTitle = SettingsItem.Title(
             key = "debug",
             title = UiText.Resource(UiR.string.settings_debug_title)
@@ -388,34 +419,6 @@ class SettingsViewModelImpl(
             defaultValue = true,
             title = UiText.Simple("Show alert after crash"),
             text = UiText.Simple("Shows alert dialog with stacktrace after app crashed\n(it will be not shown if you perform crash manually)")
-        )
-        val debugLongPollBackground = SettingsItem.Switch(
-            key = SettingsKeys.KEY_FEATURES_LONG_POLL_IN_BACKGROUND,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_LONG_POLL_IN_BACKGROUND,
-            title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
-            text = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
-        )
-        val debugUseBlur = SettingsItem.Switch(
-            key = SettingsKeys.KEY_APPEARANCE_USE_BLUR,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_APPEARANCE_USE_BLUR,
-            title = UiText.Simple("[WIP] Use blur"),
-            text = UiText.Simple("Adds blur wherever possible\nWorks on android 12 and newer"),
-        )
-        val debugShowEmojiButton = SettingsItem.Switch(
-            key = SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
-            title = UiText.Simple("Show emoji button"),
-            text = UiText.Simple("Show emoji button in chat panel"),
-            defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
-        )
-        val debugShowTimeInActionMessages = SettingsItem.Switch(
-            key = SettingsKeys.KEY_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
-            defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_SHOW_TIME_IN_ACTION_MESSAGES,
-            title = UiText.Simple("Show time in action messages")
-        )
-        val debugEnableHaptic = SettingsItem.Switch(
-            key = SettingsKeys.KEY_DEBUG_ENABLE_HAPTIC,
-            defaultValue = SettingsKeys.DEFAULT_DEBUG_ENABLE_HAPTIC,
-            title = UiText.Simple("Enable haptic")
         )
 
         val logLevelValues = listOf(
@@ -440,12 +443,6 @@ class SettingsViewModelImpl(
             }
         }
 
-        val debugUseSystemFont = SettingsItem.Switch(
-            key = SettingsKeys.KEY_DEBUG_USE_SYSTEM_FONT,
-            defaultValue = SettingsKeys.DEFAULT_DEBUG_USE_SYSTEM_FONT,
-            title = UiText.Simple("Use system font")
-        )
-
         val debugHideDebugList = SettingsItem.TitleText(
             key = SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST,
             title = UiText.Simple("Hide debug list")
@@ -458,7 +455,8 @@ class SettingsViewModelImpl(
         val generalList = listOf(
             generalTitle,
             generalUseContactNames,
-            generalEnablePullToRefresh
+            generalShowEmojiButton,
+            generalEnableHaptic
         )
         val appearanceList = listOf(
             appearanceTitle,
@@ -466,6 +464,7 @@ class SettingsViewModelImpl(
             appearanceDarkTheme,
             appearanceUseAmoledDarkTheme,
             appearanceUseDynamicColors,
+            appearanceUseSystemFont,
             appearanceLanguage
         )
         val featuresList = listOf(
@@ -476,18 +475,19 @@ class SettingsViewModelImpl(
             activityTitle,
             visibilitySendOnlineStatus,
         )
+        val experimentalList = listOf(
+            experimentalTitle,
+            experimentalLongPollBackground,
+            experimentalShowTimeInActionMessages,
+            experimentalUseBlur,
+            enableAnimations
+        )
         val debugList = mutableListOf<SettingsItem<*>>()
         listOf(
             debugTitle,
             debugPerformCrash,
             debugShowCrashAlert,
-            debugLongPollBackground,
-            debugUseBlur,
-            debugShowEmojiButton,
-            debugShowTimeInActionMessages,
-            debugEnableHaptic,
             debugNetworkLogLevel,
-            debugUseSystemFont
         ).forEach(debugList::add)
 
         debugList += debugHideDebugList
@@ -499,6 +499,7 @@ class SettingsViewModelImpl(
             appearanceList,
             featuresList,
             visibilityList,
+            experimentalList,
             debugList,
         ).forEach(settingsList::addAll)
 

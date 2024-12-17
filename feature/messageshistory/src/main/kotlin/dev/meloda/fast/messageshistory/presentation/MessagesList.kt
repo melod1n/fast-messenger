@@ -13,12 +13,14 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
@@ -30,11 +32,15 @@ fun MessagesList(
     listState: LazyListState,
     immutableMessages: ImmutableList<UiItem>,
     isPaginating: Boolean,
-    enableAnimations: Boolean,
     messageBarHeight: Dp,
     onRequestScrollToCmId: (cmId: Int) -> Unit = {}
 ) {
-    val messages = immutableMessages.toList()
+    val enableAnimations = remember {
+        AppSettings.Experimental.moreAnimations
+    }
+    val messages = remember(immutableMessages) {
+        immutableMessages.toList()
+    }
     val currentTheme = LocalThemeConfig.current
 
     LazyColumn(

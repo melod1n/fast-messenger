@@ -1,5 +1,6 @@
 package dev.meloda.fast.data.api.conversations
 
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkGroupsMap
 import dev.meloda.fast.data.VkMemoryCache
@@ -19,7 +20,6 @@ import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
 import dev.meloda.fast.network.service.conversations.ConversationsService
-import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -66,6 +66,45 @@ class ConversationsRepositoryImpl(
                         ).also { VkMemoryCache[message.id] = it }
                     }
                     item.conversation.asDomain(lastMessage).let { conversation ->
+                        conversation.copy(
+                            user = usersMap.conversationUser(conversation),
+                            group = groupsMap.conversationGroup(conversation)
+                        ).also { VkMemoryCache[conversation.id] = it }
+                    }
+                }
+            },
+            errorMapper = { error ->
+                error?.toDomain()
+            }
+        )
+    }
+
+    override suspend fun getConversationsById(
+        peerIds: List<Int>
+    ): ApiResult<List<VkConversation>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestParams = mapOf(
+            "peer_ids" to peerIds.joinToString(separator = ","),
+            "extended" to "1",
+            "fields" to VkConstants.ALL_FIELDS
+        )
+
+        conversationsService.getConversationsById(requestParams).mapApiResult(
+            successMapper = { apiResponse ->
+                val response = apiResponse.requireResponse()
+
+                val profilesList = response.profiles.orEmpty().map(VkUserData::mapToDomain)
+                val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
+                val contactsList = response.contacts.orEmpty().map(VkContactData::mapToDomain)
+
+                val usersMap = VkUsersMap.forUsers(profilesList)
+                val groupsMap = VkGroupsMap.forGroups(groupsList)
+
+                VkMemoryCache.appendUsers(profilesList)
+                VkMemoryCache.appendGroups(groupsList)
+                VkMemoryCache.appendContacts(contactsList)
+
+                response.items.map { item ->
+                    item.asDomain().let { conversation ->
                         conversation.copy(
                             user = usersMap.conversationUser(conversation),
                             group = groupsMap.conversationGroup(conversation)

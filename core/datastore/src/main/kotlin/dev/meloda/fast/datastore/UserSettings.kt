@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 interface UserSettings {
 
     val useContactNames: StateFlow<Boolean>
-    val enablePullToRefresh: StateFlow<Boolean>
 
     val enableMultiline: StateFlow<Boolean>
     val darkMode: StateFlow<DarkMode>
@@ -28,7 +27,6 @@ interface UserSettings {
     val showDebugCategory: StateFlow<Boolean>
 
     fun onUseContactNamesChanged(use: Boolean)
-    fun onEnablePullToRefreshChanged(enable: Boolean)
 
     fun onEnableMultilineChanged(enable: Boolean)
     fun onDarkModeChanged(mode: DarkMode)
@@ -52,7 +50,6 @@ interface UserSettings {
 class UserSettingsImpl : UserSettings {
 
     override val useContactNames = MutableStateFlow(AppSettings.General.useContactNames)
-    override val enablePullToRefresh = MutableStateFlow(AppSettings.General.enablePullToRefresh)
 
     override val enableMultiline = MutableStateFlow(AppSettings.Appearance.enableMultiline)
     override val darkMode = MutableStateFlow(AppSettings.Appearance.darkMode)
@@ -65,20 +62,16 @@ class UserSettingsImpl : UserSettings {
     override val sendOnlineStatus = MutableStateFlow(AppSettings.Activity.sendOnlineStatus)
 
     override val showAlertAfterCrash = MutableStateFlow(AppSettings.Debug.showAlertAfterCrash)
-    override val longPollInBackground = MutableStateFlow(AppSettings.Debug.longPollInBackground)
-    override val useBlur = MutableStateFlow(AppSettings.Debug.useBlur)
-    override val showEmojiButton = MutableStateFlow(AppSettings.Debug.showEmojiButton)
+    override val longPollInBackground = MutableStateFlow(AppSettings.Experimental.longPollInBackground)
+    override val useBlur = MutableStateFlow(AppSettings.Experimental.useBlur)
+    override val showEmojiButton = MutableStateFlow(AppSettings.General.showEmojiButton)
     override val showTimeInActionMessages =
-        MutableStateFlow(AppSettings.Debug.showTimeInActionMessages)
-    override val useSystemFont = MutableStateFlow(AppSettings.Debug.useSystemFont)
+        MutableStateFlow(AppSettings.Experimental.showTimeInActionMessages)
+    override val useSystemFont = MutableStateFlow(AppSettings.Appearance.useSystemFont)
     override val showDebugCategory = MutableStateFlow(AppSettings.Debug.showDebugCategory)
 
     override fun onUseContactNamesChanged(use: Boolean) {
         useContactNames.value = use
-    }
-
-    override fun onEnablePullToRefreshChanged(enable: Boolean) {
-        enablePullToRefresh.value = enable
     }
 
     override fun onEnableMultilineChanged(enable: Boolean) {

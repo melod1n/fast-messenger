@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -85,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         createNotificationChannels()
+        requestNotificationPermissions()
 
         setContent {
             KoinContext {
@@ -250,12 +250,11 @@ class MainActivity : AppCompatActivity() {
             val noCategoryName = getString(UiR.string.notification_channel_no_category_name)
             val noCategoryDescriptionText =
                 getString(UiR.string.notification_channel_no_category_description)
-            val noCategoryImportance = NotificationManagerCompat.IMPORTANCE_HIGH
             val noCategoryChannel =
                 NotificationChannel(
                     AppConstants.NOTIFICATION_CHANNEL_UNCATEGORIZED,
                     noCategoryName,
-                    noCategoryImportance
+                    NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = noCategoryDescriptionText
                 }
@@ -263,12 +262,11 @@ class MainActivity : AppCompatActivity() {
             val longPollName = getString(UiR.string.notification_channel_long_polling_service_name)
             val longPollDescriptionText =
                 getString(UiR.string.notification_channel_long_polling_service_description)
-            val longPollImportance = NotificationManagerCompat.IMPORTANCE_NONE
             val longPollChannel =
                 NotificationChannel(
                     AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING,
                     longPollName,
-                    longPollImportance
+                    NotificationManager.IMPORTANCE_NONE
                 ).apply {
                     description = longPollDescriptionText
                 }
@@ -285,9 +283,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun requestNotificationPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_NOTIFICATION_PERMISSION_CODE
+            )
+        }
+    }
+
     private fun toggleLongPollService(
         enable: Boolean,
-        inBackground: Boolean = AppSettings.Debug.longPollInBackground
+        inBackground: Boolean = AppSettings.Experimental.longPollInBackground
     ) {
         if (enable) {
             val longPollIntent = Intent(this, LongPollingService::class.java)
@@ -313,7 +320,7 @@ class MainActivity : AppCompatActivity() {
     private fun stopServices() {
         toggleOnlineService(enable = false)
 
-        val asForeground = AppSettings.Debug.longPollInBackground
+        val asForeground = AppSettings.Experimental.longPollInBackground
 
         if (!asForeground) {
             toggleLongPollService(enable = false)
@@ -323,5 +330,9 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopServices()
+    }
+
+    companion object {
+        private const val REQUEST_NOTIFICATION_PERMISSION_CODE = 1
     }
 }

@@ -113,7 +113,7 @@ fun SettingsScreen(
 
     LaunchedEffect(hapticType) {
         if (hapticType != null) {
-            if (AppSettings.Debug.enableHaptic) {
+            if (AppSettings.General.enableHaptic) {
                 view.performHapticFeedback(hapticType.getHaptic())
             }
             onHapticPerformed()
