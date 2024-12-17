@@ -1,10 +1,8 @@
 package dev.meloda.fast.messageshistory
 
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,9 +17,9 @@ import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConversationsUseCase
+import dev.meloda.fast.domain.LoadConversationsByIdUseCase
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.messageshistory.model.ActionMode
@@ -60,15 +58,14 @@ interface MessagesHistoryViewModel {
     fun onActionButtonClicked()
 
     fun onPaginationConditionsMet()
-    fun onToggleAnimationsDropdownItemClicked(enableAnimations: Boolean)
 }
 
 class MessagesHistoryViewModelImpl(
     private val messagesUseCase: MessagesUseCase,
     private val conversationsUseCase: ConversationsUseCase,
-    private val preferences: SharedPreferences,
     private val resourceProvider: ResourceProvider,
     private val userSettings: UserSettings,
+    private val loadConversationsByIdUseCase: LoadConversationsByIdUseCase,
     updatesParser: LongPollUpdatesParser,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
@@ -157,15 +154,6 @@ class MessagesHistoryViewModelImpl(
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.messages.size }
         loadMessagesHistory()
-    }
-
-    override fun onToggleAnimationsDropdownItemClicked(enableAnimations: Boolean) {
-        preferences.edit {
-            putBoolean(
-                SettingsKeys.KEY_ENABLE_ANIMATIONS_IN_MESSAGES,
-                enableAnimations
-            )
-        }
     }
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {

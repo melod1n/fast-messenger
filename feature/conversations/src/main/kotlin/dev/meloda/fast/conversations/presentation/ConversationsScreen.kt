@@ -101,6 +101,7 @@ fun ConversationsRoute(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+    val isNeedToScrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
     val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
     LaunchedEffect(imagesToPreload) {
@@ -129,7 +130,9 @@ fun ConversationsRoute(
         onRefresh = viewModel::onRefresh,
         onConversationPhotoClicked = onConversationPhotoClicked,
         setScrollIndex = viewModel::setScrollIndex,
-        setScrollOffset = viewModel::setScrollOffset
+        setScrollOffset = viewModel::setScrollOffset,
+        isNeedToScrollToTop = isNeedToScrollToTop,
+        onScrolledToTop = viewModel::onScrolledToTop
     )
 
     HandleDialogs(
@@ -156,7 +159,9 @@ fun ConversationsScreen(
     onRefresh: () -> Unit = {},
     onConversationPhotoClicked: (url: String) -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
-    setScrollOffset: (Int) -> Unit = {}
+    setScrollOffset: (Int) -> Unit = {},
+    isNeedToScrollToTop: Boolean = false,
+    onScrolledToTop: () -> Unit = {}
 ) {
     val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
@@ -169,6 +174,14 @@ fun ConversationsScreen(
         initialFirstVisibleItemIndex = screenState.scrollIndex,
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
+
+    LaunchedEffect(isNeedToScrollToTop) {
+        if (isNeedToScrollToTop) {
+            listState.scrollToItem(0)
+            onScrolledToTop()
+
+        }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }

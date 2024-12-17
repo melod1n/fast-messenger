@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         createNotificationChannels()
+        requestNotificationPermissions()
 
         setContent {
             KoinContext {
@@ -282,6 +283,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun requestNotificationPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_NOTIFICATION_PERMISSION_CODE
+            )
+        }
+    }
+
     private fun toggleLongPollService(
         enable: Boolean,
         inBackground: Boolean = AppSettings.Experimental.longPollInBackground
@@ -320,5 +330,9 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopServices()
+    }
+
+    companion object {
+        private const val REQUEST_NOTIFICATION_PERMISSION_CODE = 1
     }
 }

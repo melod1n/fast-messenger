@@ -188,6 +188,13 @@ object AppSettings {
                 SettingsKeys.DEFAULT_USE_BLUR
             )
             set(value) = put(SettingsKeys.KEY_USE_BLUR, value)
+
+        var moreAnimations: Boolean
+            get() = get(
+                SettingsKeys.KEY_MORE_ANIMATIONS,
+                SettingsKeys.DEFAULT_MORE_ANIMATIONS
+            )
+            set(value) = put(SettingsKeys.KEY_MORE_ANIMATIONS, value)
     }
 
     object Debug {

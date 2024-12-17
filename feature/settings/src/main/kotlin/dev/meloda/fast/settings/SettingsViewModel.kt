@@ -387,16 +387,22 @@ class SettingsViewModelImpl(
             title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
             text = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
         )
+        val experimentalShowTimeInActionMessages = SettingsItem.Switch(
+            key = SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES,
+            defaultValue = SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES,
+            title = UiText.Simple("Show time in action messages")
+        )
         val experimentalUseBlur = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_BLUR,
             defaultValue = SettingsKeys.DEFAULT_USE_BLUR,
             title = UiText.Simple("Use blur"),
             text = UiText.Simple("Adds blur wherever possible\nWorks on android 12 and newer"),
         )
-        val experimentalShowTimeInActionMessages = SettingsItem.Switch(
-            key = SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES,
-            defaultValue = SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES,
-            title = UiText.Simple("Show time in action messages")
+        val enableAnimations = SettingsItem.Switch(
+            key = SettingsKeys.KEY_MORE_ANIMATIONS,
+            defaultValue = SettingsKeys.DEFAULT_MORE_ANIMATIONS,
+            title = UiText.Simple("More animations"),
+            text = UiText.Simple("Use animations wherever possible")
         )
 
         val debugTitle = SettingsItem.Title(
@@ -473,7 +479,8 @@ class SettingsViewModelImpl(
             experimentalTitle,
             experimentalLongPollBackground,
             experimentalShowTimeInActionMessages,
-            experimentalUseBlur
+            experimentalUseBlur,
+            enableAnimations
         )
         val debugList = mutableListOf<SettingsItem<*>>()
         listOf(
