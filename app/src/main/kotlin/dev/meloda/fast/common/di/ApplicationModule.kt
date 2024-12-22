@@ -26,8 +26,8 @@ import dev.meloda.fast.provider.ApiLanguageProvider
 import dev.meloda.fast.service.longpolling.di.longPollModule
 import dev.meloda.fast.settings.di.settingsModule
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -61,7 +61,7 @@ val applicationModule = module {
         qualifier = qualifier("main")
     }
 
-    single {
+    single<ImageLoader> {
         ImageLoader.Builder(get())
             .crossfade(true)
             .build()
