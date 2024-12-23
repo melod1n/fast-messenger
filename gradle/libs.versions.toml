@@ -13,7 +13,7 @@ kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 
 compose-bom = "2024.12.01"
-koin = "4.0.0"
+koin = "4.0.1"
 
 accompanist = "0.37.0"
 coil = "2.7.0"
