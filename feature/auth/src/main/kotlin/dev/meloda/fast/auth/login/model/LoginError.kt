@@ -9,4 +9,5 @@ sealed class LoginError {
     data object TooManyTries : LoginError()
     data object WrongValidationCode : LoginError()
     data object WrongValidationCodeFormat : LoginError()
+    data class SimpleError(val message: String): LoginError()
 }

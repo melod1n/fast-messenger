@@ -50,8 +50,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.auth.login.LoginViewModel
-import dev.meloda.fast.auth.login.LoginViewModelImpl
 import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginError
 import dev.meloda.fast.auth.login.model.LoginScreenState
@@ -438,6 +436,15 @@ fun HandleError(
                 onDismissRequest = onDismiss,
                 title = "Error",
                 text = "Wrong validation code format.",
+                confirmText = stringResource(id = UiR.string.ok)
+            )
+        }
+
+        is LoginError.SimpleError -> {
+            MaterialDialog(
+                onDismissRequest = onDismiss,
+                title = "Error",
+                text = error.message,
                 confirmText = stringResource(id = UiR.string.ok)
             )
         }

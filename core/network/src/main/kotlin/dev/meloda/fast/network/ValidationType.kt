@@ -5,6 +5,8 @@ enum class ValidationType(val value: String) {
     SMS("2fa_sms");
 
     companion object {
-        fun parse(value: String): ValidationType = entries.first { it.value == value }
+        fun parse(value: String): ValidationType =
+            entries.firstOrNull { it.value == value }
+                ?: throw IllegalArgumentException("Unknown validation type $value")
     }
 }
