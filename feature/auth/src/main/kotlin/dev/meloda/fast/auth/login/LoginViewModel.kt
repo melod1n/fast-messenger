@@ -345,6 +345,13 @@ class LoginViewModelImpl(
                 true
             }
 
+            is State.Error.TestError -> {
+                val message = stateError.message
+                val error = LoginError.SimpleError(message = message)
+                loginError.update { error }
+                true
+            }
+
             else -> false
         }
     }

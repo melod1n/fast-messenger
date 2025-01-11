@@ -54,7 +54,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,8 +64,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.imageLoader
-import coil.request.ImageRequest
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -96,23 +93,10 @@ fun ConversationsRoute(
     onConversationPhotoClicked: (url: String) -> Unit,
     viewModel: ConversationsViewModel
 ) {
-    val context = LocalContext.current
-
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
     val isNeedToScrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
-
-    val imagesToPreload by viewModel.imagesToPreload.collectAsStateWithLifecycle()
-    LaunchedEffect(imagesToPreload) {
-        imagesToPreload.forEach { url ->
-            context.imageLoader.enqueue(
-                ImageRequest.Builder(context)
-                    .data(url)
-                    .build()
-            )
-        }
-    }
 
     ConversationsScreen(
         screenState = screenState,

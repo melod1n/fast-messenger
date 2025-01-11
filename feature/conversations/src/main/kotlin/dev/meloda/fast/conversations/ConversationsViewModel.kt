@@ -1,8 +1,11 @@
 package dev.meloda.fast.conversations
 
+import android.content.Context
 import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.conena.nanokt.collections.indexOfFirstOrNull
 import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.common.extensions.findWithIndex
@@ -18,6 +21,7 @@ import dev.meloda.fast.data.State
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConversationsUseCase
+import dev.meloda.fast.domain.LoadConversationsByIdUseCase
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
@@ -43,7 +47,6 @@ interface ConversationsViewModel {
 
     val screenState: StateFlow<ConversationsScreenState>
     val baseError: StateFlow<BaseError?>
-    val imagesToPreload: StateFlow<List<String>>
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
     val scrollToTop: StateFlow<Boolean>
@@ -78,15 +81,22 @@ class ConversationsViewModelImpl(
     private val conversationsUseCase: ConversationsUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val resources: Resources,
-    private val userSettings: UserSettings
+    private val userSettings: UserSettings,
+    private val imageLoader: ImageLoader,
+    private val applicationContext: Context,
+    private val loadConversationsByIdUseCase: LoadConversationsByIdUseCase
 ) : ConversationsViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
     override val baseError = MutableStateFlow<BaseError?>(null)
-    override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
     override val scrollToTop = MutableStateFlow(false)
+
+    // TODO: 22-Dec-24, Danil Nikolaev: rewrite
+    private val useContactNames = {
+        userSettings.useContactNames.value
+    }
 
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.conversations.size }
@@ -281,9 +291,17 @@ class ConversationsViewModelImpl(
                         val paginationExhausted = !itemsCountSufficient &&
                                 screenState.value.conversations.isNotEmpty()
 
-                        imagesToPreload.setValue {
+                        val imagesToPreload =
                             response.mapNotNull { it.extractAvatar().extractUrl() }
+
+                        imagesToPreload.forEach { url ->
+                            imageLoader.enqueue(
+                                ImageRequest.Builder(applicationContext)
+                                    .data(url)
+                                    .build()
+                            )
                         }
+
                         conversationsUseCase.storeConversations(response)
 
                         val loadedConversations = response.map {
@@ -337,7 +355,12 @@ class ConversationsViewModelImpl(
                     conversations.update { newConversations }
                     screenState.setValue { old ->
                         old.copy(
-                            conversations = newConversations.map { it.asPresentation(resources) }
+                            conversations = newConversations.map {
+                                it.asPresentation(
+                                    resources = resources,
+                                    useContactName = useContactNames()
+                                )
+                            }
                         )
                     }
                 }
@@ -373,13 +396,40 @@ class ConversationsViewModelImpl(
 
     private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
         val message = event.message
+
         val newConversations = conversations.value.toMutableList()
         val conversationIndex =
             newConversations.indexOfFirstOrNull { it.id == message.peerId }
 
-        if (conversationIndex == null) { // диалога нет в списке
-            // pizdets
-            // TODO: 04/07/2024, Danil Nikolaev: load conversation and store info
+        if (conversationIndex == null) {
+            loadConversationsByIdUseCase(peerIds = listOf(message.peerId))
+                .listenValue(viewModelScope) { state ->
+                    state.processState(
+                        error = { error ->
+
+                        },
+                        success = { response ->
+                            val conversation = (response.firstOrNull() ?: return@listenValue)
+                                .copy(lastMessage = message)
+
+                            // TODO: 22-Dec-24, Danil Nikolaev: handle interactions and pinned state
+
+                            newConversations.add(pinnedConversationsCount.value, conversation)
+                            conversations.update { newConversations }
+
+                            screenState.setValue { old ->
+                                old.copy(
+                                    conversations = newConversations.map {
+                                        it.asPresentation(
+                                            resources = resources,
+                                            useContactName = useContactNames()
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
         } else {
             val conversation = newConversations[conversationIndex]
             var newConversation = conversation.copy(
@@ -420,7 +470,12 @@ class ConversationsViewModelImpl(
 
             screenState.setValue { old ->
                 old.copy(
-                    conversations = newConversations.map { it.asPresentation(resources) }
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames()
+                        )
+                    }
                 )
             }
         }
@@ -444,7 +499,12 @@ class ConversationsViewModelImpl(
 
             screenState.setValue { old ->
                 old.copy(
-                    conversations = newConversations.map { it.asPresentation(resources) }
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames()
+                        )
+                    }
                 )
             }
         }
@@ -454,20 +514,29 @@ class ConversationsViewModelImpl(
         val newConversations = conversations.value.toMutableList()
 
         val conversationIndex =
-            newConversations.indexOfFirstOrNull { it.id == event.peerId } ?: return
+            newConversations.indexOfFirstOrNull { it.id == event.peerId }
 
-        newConversations[conversationIndex] =
-            newConversations[conversationIndex].copy(
-                inRead = event.messageId,
-                unreadCount = event.unreadCount
-            )
+        if (conversationIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            newConversations[conversationIndex] =
+                newConversations[conversationIndex].copy(
+                    inRead = event.messageId,
+                    unreadCount = event.unreadCount
+                )
 
-        conversations.update { newConversations }
+            conversations.update { newConversations }
 
-        screenState.setValue { old ->
-            old.copy(
-                conversations = newConversations.map { it.asPresentation(resources) }
-            )
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames()
+                        )
+                    }
+                )
+            }
         }
     }
 
@@ -475,19 +544,28 @@ class ConversationsViewModelImpl(
         val newConversations = conversations.value.toMutableList()
 
         val conversationIndex =
-            newConversations.indexOfFirstOrNull { it.id == event.peerId } ?: return
+            newConversations.indexOfFirstOrNull { it.id == event.peerId }
 
-        newConversations[conversationIndex] =
-            newConversations[conversationIndex].copy(
-                outRead = event.messageId,
-                unreadCount = event.unreadCount
-            )
+        if (conversationIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            newConversations[conversationIndex] =
+                newConversations[conversationIndex].copy(
+                    outRead = event.messageId,
+                    unreadCount = event.unreadCount
+                )
 
-        conversations.update { newConversations }
-        screenState.setValue { old ->
-            old.copy(
-                conversations = newConversations.map { it.asPresentation(resources) }
-            )
+            conversations.update { newConversations }
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames()
+                        )
+                    }
+                )
+            }
         }
     }
 
@@ -496,34 +574,43 @@ class ConversationsViewModelImpl(
         val newConversations = conversations.value.toMutableList()
 
         val conversationIndex =
-            newConversations.indexOfFirstOrNull { it.id == event.peerId } ?: return
+            newConversations.indexOfFirstOrNull { it.id == event.peerId }
 
-        val pin = event.majorId > 0
-
-        val conversation = newConversations[conversationIndex].copy(majorId = event.majorId)
-
-        newConversations.removeAt(conversationIndex)
-
-        if (pin) {
-            newConversations.add(0, conversation)
+        if (conversationIndex == null) { // диалога нет в списке
+            // pizdets
         } else {
-            pinnedCount -= 1
+            val pin = event.majorId > 0
 
-            newConversations.add(conversation)
+            val conversation = newConversations[conversationIndex].copy(majorId = event.majorId)
 
-            val pinnedSubList = newConversations.filter(VkConversation::isPinned)
-            val unpinnedSubList = newConversations
-                .filterNot(VkConversation::isPinned)
-                .sortedByDescending { it.lastMessage?.date }
+            newConversations.removeAt(conversationIndex)
 
-            newConversations.clear()
-            newConversations += pinnedSubList + unpinnedSubList
-        }
+            if (pin) {
+                newConversations.add(0, conversation)
+            } else {
+                pinnedCount -= 1
 
-        conversations.update { newConversations }
+                newConversations.add(conversation)
 
-        screenState.setValue { old ->
-            old.copy(conversations = newConversations.map { it.asPresentation(resources) })
+                val pinnedSubList = newConversations.filter(VkConversation::isPinned)
+                val unpinnedSubList = newConversations
+                    .filterNot(VkConversation::isPinned)
+                    .sortedByDescending { it.lastMessage?.date }
+
+                newConversations.clear()
+                newConversations += pinnedSubList + unpinnedSubList
+            }
+
+            conversations.update { newConversations }
+
+            screenState.setValue { old ->
+                old.copy(conversations = newConversations.map {
+                    it.asPresentation(
+                        resources = resources,
+                        useContactName = useContactNames()
+                    )
+                })
+            }
         }
     }
 
@@ -543,44 +630,53 @@ class ConversationsViewModelImpl(
 
         val newConversations = conversations.value.toMutableList()
         val conversationAndIndex =
-            newConversations.findWithIndex { it.id == peerId } ?: return
+            newConversations.findWithIndex { it.id == peerId }
 
-        newConversations[conversationAndIndex.first] =
-            conversationAndIndex.second.copy(
-                interactionType = interactionType.value,
-                interactionIds = userIds
-            )
+        if (conversationAndIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            newConversations[conversationAndIndex.first] =
+                conversationAndIndex.second.copy(
+                    interactionType = interactionType.value,
+                    interactionIds = userIds
+                )
 
-        conversations.update { newConversations }
+            conversations.update { newConversations }
 
-        screenState.setValue { old ->
-            old.copy(
-                conversations = newConversations.map { it.asPresentation(resources) }
-            )
-        }
-
-        interactionsTimers[peerId]?.let { interactionJob ->
-            if (interactionJob.interactionType == interactionType) {
-                interactionJob.timerJob.cancel(NewInteractionException)
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames()
+                        )
+                    }
+                )
             }
-        }
 
-        var timeoutAction: (() -> Unit)? = null
+            interactionsTimers[peerId]?.let { interactionJob ->
+                if (interactionJob.interactionType == interactionType) {
+                    interactionJob.timerJob.cancel(NewInteractionException)
+                }
+            }
 
-        val timerJob = createTimerFlow(
-            time = 5,
-            onTimeoutAction = { timeoutAction?.invoke() }
-        ).launchIn(viewModelScope)
+            var timeoutAction: (() -> Unit)? = null
 
-        val newInteractionJob = InteractionJob(
-            interactionType = interactionType,
-            timerJob = timerJob
-        )
+            val timerJob = createTimerFlow(
+                time = 5,
+                onTimeoutAction = { timeoutAction?.invoke() }
+            ).launchIn(viewModelScope)
 
-        interactionsTimers[peerId] = newInteractionJob
+            val newInteractionJob = InteractionJob(
+                interactionType = interactionType,
+                timerJob = timerJob
+            )
 
-        timeoutAction = {
-            stopInteraction(peerId, newInteractionJob)
+            interactionsTimers[peerId] = newInteractionJob
+
+            timeoutAction = {
+                stopInteraction(peerId, newInteractionJob)
+            }
         }
     }
 
@@ -600,7 +696,12 @@ class ConversationsViewModelImpl(
         conversations.update { newConversations }
         screenState.setValue { old ->
             old.copy(
-                conversations = newConversations.map { it.asPresentation(resources) }
+                conversations = newConversations.map {
+                    it.asPresentation(
+                        resources = resources,
+                        useContactName = useContactNames()
+                    )
+                }
             )
         }
 
@@ -629,7 +730,12 @@ class ConversationsViewModelImpl(
                     conversations.update { newConversations }
                     screenState.setValue { old ->
                         old.copy(
-                            conversations = newConversations.map { it.asPresentation(resources) }
+                            conversations = newConversations.map {
+                                it.asPresentation(
+                                    resources = resources,
+                                    useContactName = useContactNames()
+                                )
+                            }
                         )
                     }
                 }

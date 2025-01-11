@@ -20,18 +20,20 @@ sealed class State<out T> {
 
         data object ConnectionError : Error()
 
-        data object Unknown : Error()
+        data object UnknownError : Error()
 
         data object InternalError : Error()
 
         data class OAuthError(val error: OAuthErrorDomain) : Error()
+
+        data class TestError(val message: String) : Error()
     }
 
     fun isLoading(): Boolean = this is Loading
 
     companion object {
 
-        val UNKNOWN_ERROR = Error.Unknown
+        val UNKNOWN_ERROR = Error.UnknownError
     }
 }
 
@@ -73,11 +75,12 @@ fun <T : Any> ApiResult<T, RestApiErrorDomain>.mapToState() = when (this) {
     is ApiResult.Failure.ApiFailure -> this.error.toStateApiError()
 }
 
-fun <T : Any, N> ApiResult<T, RestApiErrorDomain>.mapToState(successMapper: (T) -> N) = when (this) {
-    is ApiResult.Success -> State.Success(successMapper(this.value))
+fun <T : Any, N> ApiResult<T, RestApiErrorDomain>.mapToState(successMapper: (T) -> N) =
+    when (this) {
+        is ApiResult.Success -> State.Success(successMapper(this.value))
 
-    is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
-    is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
-    is ApiResult.Failure.HttpFailure -> this.error.toStateApiError()
-    is ApiResult.Failure.ApiFailure -> this.error.toStateApiError()
-}
+        is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
+        is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
+        is ApiResult.Failure.HttpFailure -> this.error.toStateApiError()
+        is ApiResult.Failure.ApiFailure -> this.error.toStateApiError()
+    }

@@ -33,7 +33,7 @@ import dev.meloda.fast.ui.R as UiR
 
 fun VkConversation.asPresentation(
     resources: Resources,
-    useContactName: Boolean = false
+    useContactName: Boolean
 ): UiConversation = UiConversation(
     id = id,
     lastMessageId = lastMessageId,
