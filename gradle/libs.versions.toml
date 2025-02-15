@@ -12,7 +12,7 @@ haze = "1.2.2"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 
-compose-bom = "2024.12.01"
+compose-bom = "2025.02.00"
 koin = "4.0.2"
 
 accompanist = "0.37.0"
