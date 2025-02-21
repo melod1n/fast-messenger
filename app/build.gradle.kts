@@ -7,10 +7,10 @@ plugins {
 }
 
 android {
-    namespace = "dev.meloda.fast"
+    namespace = "dev.meloda.fastvk"
 
     defaultConfig {
-        applicationId = "dev.meloda.fast"
+        applicationId = "dev.meloda.fastvk"
 
         versionCode = libs.versions.versionCode.get().toInt()
         versionName = libs.versions.versionName.get()
