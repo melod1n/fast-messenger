@@ -133,6 +133,7 @@
     <string name="message_attachment_story_your_story">Ваша история</string>
     <string name="settings_dynamic_colors">Динамические цвета</string>
     <string name="settings_dynamic_colors_description">Цвета для приложения будут извлечены из ваших обоев на главном экране</string>
+    <string name="settings_appearance_use_system_font_title">Использовать системный шрифт</string>
     <string name="settings_application_language">Язык приложения</string>
     <string name="settings_application_language_value">Текущий: %1$s</string>
     <string name="language_system">Системный</string>
@@ -177,6 +178,7 @@
     <string name="settings_general_title">Основное</string>
     <string name="settings_general_contact_names_title">Использовать имена контактов</string>
     <string name="settings_general_contact_names_summary">Приложение будет использовать доступные имена контактов для пользователей</string>
+    <string name="settings_general_enable_haptic_title">Включить тактильную отдачу</string>
     <string name="settings_appearance_title">Внешний вид</string>
     <string name="settings_appearance_multiline_title">Многострочные заголовки и сообщения</string>
     <string name="settings_appearance_multiline_summary">Заголовок чата и текст сообщения смогут занимать несколько строчек</string>
@@ -184,9 +186,11 @@
     <string name="settings_features_fast_text_title">Fast текст</string>
     <string name="settings_features_long_poll_in_background_title">LongPoll в фоне</string>
     <string name="settings_features_long_poll_in_background_summary">Ваши сообщения будут обновляться, даже если приложение находится в фоне</string>
+    <string name="settings_experimental_more_animations_summary">Использовать анимации везде, где возможно</string>
     <string name="settings_activity_title">Активность</string>
     <string name="settings_activity_send_online_title">Быть «в сети»</string>
     <string name="settings_activity_send_online_summary">Статус «в сети» будет отправляться каждые 5 минут</string>
+    <string name="settings_experimental_title">Экспериментальные - ОЧЕНЬ нестабильные</string>
     <string name="settings_debug_title">Отладка</string>
     <string name="action_disable">Отключить</string>
     <string name="background_long_poll_rationale_text">Приложение не сможет обновлять сообщения в фоне без доступа к уведомлениям</string>
@@ -198,4 +202,14 @@
     <string name="notification_channel_no_category_description">Уведомления без категории</string>
     <string name="notification_channel_long_polling_service_name">Сервис обновления сообщений</string>
     <string name="notification_channel_long_polling_service_description">Уведомления сервиса обновлений сообщений</string>
+    <string name="settings_general_show_emoji_button_title">Показывать кнопку эмоджи</string>
+    <string name="settings_general_show_emoji_button_summary">Показывать кнопку эмоджи на панели чата</string>
+    <string name="settings_features_show_time_in_action_messages_title">Показывать время в сервисных сообщениях</string>
+    <string name="settings_experimental_use_blur_title">Использовать размытие</string>
+    <string name="settings_experimental_use_blur_summary">Добавлять размытие везде, где возможно.\\nРаботает только с 12 версии Android</string>
+    <string name="settings_experimental_more_animations_title">Больше анимаций</string>
+    <string name="warning_confirmation">Подтверждение</string>
+    <string name="captcha_exit_warning">Вы уверены? Процесс ввода капчи будет отменён</string>
+    <string name="validation_exit_warning">Вы уверены? Процесс ввода кода-подтверждения будет отменён</string>
+    <string name="action_authorize">Авторизоваться</string>
 </resources>
