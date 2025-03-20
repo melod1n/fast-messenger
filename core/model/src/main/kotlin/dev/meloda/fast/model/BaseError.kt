@@ -6,4 +6,6 @@ import androidx.compose.runtime.Immutable
 sealed class BaseError {
 
     data object SessionExpired : BaseError()
+
+    data class SimpleError(val message: String) : BaseError()
 }

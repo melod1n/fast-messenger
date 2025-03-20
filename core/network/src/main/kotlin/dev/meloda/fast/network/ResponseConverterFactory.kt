@@ -46,8 +46,13 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
                     return successModel
                 },
                 onFailure = { failure ->
-                    if(failure is JsonDataException) {
-                        throw failure
+                    if (failure is JsonDataException) {
+                        throw ApiException(
+                            RestApiError(
+                                errorCode = -1,
+                                errorMsg = failure.message.orEmpty()
+                            )
+                        )
                     }
 
                     val isUnit = successType == Unit::class.java

@@ -62,8 +62,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.chatmaterials.ChatMaterialsViewModel
@@ -137,7 +137,7 @@ fun ChatMaterialsScreen(
         )
     }
 
-    val titles = listOf("Photos", "Videos", "Audios", "Files", "Links")
+    val titles = listOf("Photos", "Videos", "Audios")//, "Files", "Links")
 
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
@@ -179,7 +179,7 @@ fun ChatMaterialsScreen(
                 modifier = Modifier
                     .then(
                         if (currentTheme.enableBlur) {
-                            Modifier.hazeChild(
+                            Modifier.hazeEffect(
                                 state = hazeState,
                                 style = hazeStyle
                             )
@@ -311,7 +311,7 @@ fun ChatMaterialsScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.haze(state = hazeState)
+                                Modifier.hazeSource(state = hazeState)
                             } else {
                                 Modifier
                             }
@@ -346,7 +346,7 @@ fun ChatMaterialsScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.haze(state = hazeState)
+                                Modifier.hazeSource(state = hazeState)
                             } else {
                                 Modifier
                             }
