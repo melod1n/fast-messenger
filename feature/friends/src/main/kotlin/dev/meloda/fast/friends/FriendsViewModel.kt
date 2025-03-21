@@ -68,6 +68,7 @@ class FriendsViewModelImpl(
     }
 
     override fun onRefresh() {
+        onErrorConsumed()
         loadFriends(offset = 0)
     }
 
@@ -99,32 +100,12 @@ class FriendsViewModelImpl(
         friendsUseCase.getOnlineFriends(null, null)
             .listenValue(viewModelScope) { state ->
                 state.processState(
-                    error = { error ->
-                        if (error is State.Error.ApiError) {
-                            when (error.errorCode) {
-                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                                    baseError.setValue { BaseError.SessionExpired }
-                                }
-
-                                else -> Unit
-                            }
-                        }
-                    },
+                    error = ::handleError,
                     success = { userIds ->
                         loadUsersByIdsUseCase(userIds = userIds)
                             .listenValue(viewModelScope) { state ->
                                 state.processState(
-                                    error = { error ->
-                                        if (error is State.Error.ApiError) {
-                                            when (error.errorCode) {
-                                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                                                    baseError.setValue { BaseError.SessionExpired }
-                                                }
-
-                                                else -> Unit
-                                            }
-                                        }
-                                    },
+                                    error = ::handleError,
                                     success = { onlineFriends ->
                                         screenState.setValue { old ->
                                             old.copy(
@@ -142,17 +123,7 @@ class FriendsViewModelImpl(
         friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
             .listenValue(viewModelScope) { state ->
                 state.processState(
-                    error = { error ->
-                        if (error is State.Error.ApiError) {
-                            when (error.errorCode) {
-                                VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                                    baseError.setValue { BaseError.SessionExpired }
-                                }
-
-                                else -> Unit
-                            }
-                        }
-                    },
+                    error = ::handleError,
                     success = { response ->
                         val itemsCountSufficient = response.size == LOAD_COUNT
                         canPaginate.setValue { itemsCountSufficient }
@@ -195,6 +166,40 @@ class FriendsViewModelImpl(
                     )
                 }
             }
+    }
+
+    private fun handleError(error: State.Error) {
+        when (error) {
+            is State.Error.ApiError -> {
+                when (error.errorCode) {
+                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                        baseError.setValue { BaseError.SessionExpired }
+                    }
+
+                    else -> {
+                        baseError.setValue {
+                            BaseError.SimpleError(message = error.errorMessage)
+                        }
+                    }
+                }
+            }
+            State.Error.ConnectionError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Connection error")
+                }
+            }
+            State.Error.InternalError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Internal error")
+                }
+            }
+            State.Error.UnknownError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Unknown error")
+                }
+            }
+            else -> Unit
+        }
     }
 
     private fun updateFriendsNames(useContactNames: Boolean) {

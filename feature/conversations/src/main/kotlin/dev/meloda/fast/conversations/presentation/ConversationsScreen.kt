@@ -77,6 +77,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
@@ -96,7 +97,6 @@ fun ConversationsRoute(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-    val isNeedToScrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
     ConversationsScreen(
         screenState = screenState,
@@ -114,9 +114,7 @@ fun ConversationsRoute(
         onRefresh = viewModel::onRefresh,
         onConversationPhotoClicked = onConversationPhotoClicked,
         setScrollIndex = viewModel::setScrollIndex,
-        setScrollOffset = viewModel::setScrollOffset,
-        isNeedToScrollToTop = isNeedToScrollToTop,
-        onScrolledToTop = viewModel::onScrolledToTop
+        setScrollOffset = viewModel::setScrollOffset
     )
 
     HandleDialogs(
@@ -143,9 +141,7 @@ fun ConversationsScreen(
     onRefresh: () -> Unit = {},
     onConversationPhotoClicked: (url: String) -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
-    setScrollOffset: (Int) -> Unit = {},
-    isNeedToScrollToTop: Boolean = false,
-    onScrolledToTop: () -> Unit = {}
+    setScrollOffset: (Int) -> Unit = {}
 ) {
     val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
@@ -158,14 +154,6 @@ fun ConversationsScreen(
         initialFirstVisibleItemIndex = screenState.scrollIndex,
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
-
-    LaunchedEffect(isNeedToScrollToTop) {
-        if (isNeedToScrollToTop) {
-            listState.scrollToItem(0)
-            onScrolledToTop()
-
-        }
-    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -207,10 +195,10 @@ fun ConversationsScreen(
 
     val toolbarContainerColor by animateColorAsState(
         targetValue =
-        if (currentTheme.enableBlur || !listState.canScrollBackward)
-            MaterialTheme.colorScheme.surface
-        else
-            MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+            if (currentTheme.enableBlur || !listState.canScrollBackward)
+                MaterialTheme.colorScheme.surface
+            else
+                MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
         animationSpec = tween(durationMillis = 50)
     )
@@ -343,8 +331,8 @@ fun ConversationsScreen(
                 when (baseError) {
                     is BaseError.SessionExpired -> {
                         ErrorView(
-                            text = "Session expired",
-                            buttonText = "Log out",
+                            text = stringResource(UiR.string.session_expired),
+                            buttonText = stringResource(UiR.string.action_log_out),
                             onButtonClick = onSessionExpiredLogOutButtonClicked
                         )
                     }
@@ -352,7 +340,7 @@ fun ConversationsScreen(
                     is BaseError.SimpleError -> {
                         ErrorView(
                             text = baseError.message,
-                            buttonText = "Try again",
+                            buttonText = stringResource(UiR.string.try_again),
                             onButtonClick = onRefresh
                         )
                     }
@@ -398,6 +386,13 @@ fun ConversationsScreen(
                         padding = padding,
                         onPhotoClicked = onConversationPhotoClicked
                     )
+
+                    if (screenState.conversations.isEmpty()) {
+                        NoItemsView(
+                            buttonText = stringResource(UiR.string.action_refresh),
+                            onButtonClick = onRefresh
+                        )
+                    }
                 }
             }
         }

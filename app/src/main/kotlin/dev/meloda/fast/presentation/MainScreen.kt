@@ -47,8 +47,6 @@ import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -58,6 +56,7 @@ fun MainScreen(
     onSettingsButtonClicked: () -> Unit = {},
     onConversationItemClicked: (conversationId: Int) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
+    onMessageClicked: (userId: Int) -> Unit = {},
     viewModel: MainViewModel
 ) {
     val currentTheme = LocalThemeConfig.current
@@ -68,14 +67,6 @@ fun MainScreen(
 
     var selectedItemIndex by rememberSaveable {
         mutableIntStateOf(1)
-    }
-
-    val sharedFlow = remember {
-        MutableSharedFlow<Int>(
-            replay = 0,
-            extraBufferCapacity = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
     }
 
     Scaffold(
@@ -108,8 +99,6 @@ fun MainScreen(
                                         inclusive = true
                                     }
                                 }
-                            } else {
-                                sharedFlow.tryEmit(index)
                             }
                         },
                         icon = {
@@ -176,13 +165,13 @@ fun MainScreen(
                         friendsScreen(
                             onError = onError,
                             navController = navController,
-                            onPhotoClicked = onPhotoClicked
+                            onPhotoClicked = onPhotoClicked,
+                            onMessageClicked = onMessageClicked
                         )
                         conversationsScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
                             onPhotoClicked = onPhotoClicked,
-                            scrollToTopFlow = sharedFlow,
                             navController = navController,
                         )
                         profileScreen(

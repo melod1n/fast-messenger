@@ -124,6 +124,7 @@ fun RootScreen(
                 onSettingsButtonClicked = navController::navigateToSettings,
                 onConversationClicked = navController::navigateToMessagesHistory,
                 onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
+                onMessageClicked = navController::navigateToMessagesHistory,
                 viewModel = viewModel
             )
 

@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.imageLoader
 import coil.request.ImageRequest
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.friends.FriendsViewModel
@@ -72,6 +72,7 @@ import dev.meloda.fast.ui.R as UiR
 fun FriendsRoute(
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
+    onMessageClicked: (userId: Int) -> Unit,
     viewModel: FriendsViewModel = koinViewModel<FriendsViewModelImpl>()
 ) {
     val context = LocalContext.current
@@ -99,11 +100,12 @@ fun FriendsRoute(
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefresh = viewModel::onRefresh,
         onPhotoClicked = onPhotoClicked,
+        onMessageClicked = onMessageClicked,
         setSelectedTabIndex = viewModel::onTabSelected,
         setScrollIndex = viewModel::setScrollIndex,
         setScrollOffset = viewModel::setScrollOffset,
         setScrollIndexOnline = viewModel::setScrollIndexOnline,
-        setScrollOffsetOnline = viewModel::setScrollOffsetOnline,
+        setScrollOffsetOnline = viewModel::setScrollOffsetOnline
     )
 }
 
@@ -120,11 +122,12 @@ fun FriendsScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
+    onMessageClicked: (userId: Int) -> Unit = {},
     setSelectedTabIndex: (Int) -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
     setScrollOffset: (Int) -> Unit = {},
     setScrollIndexOnline: (Int) -> Unit = {},
-    setScrollOffsetOnline: (Int) -> Unit = {},
+    setScrollOffsetOnline: (Int) -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -231,7 +234,7 @@ fun FriendsScreen(
                 modifier = Modifier
                     .then(
                         if (currentTheme.enableBlur) {
-                            Modifier.hazeChild(
+                            Modifier.hazeEffect(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
                             )
@@ -281,12 +284,24 @@ fun FriendsScreen(
         }
     ) { padding ->
         when {
-            baseError is BaseError.SessionExpired -> {
-                ErrorView(
-                    text = "Session expired",
-                    buttonText = "Log out",
-                    onButtonClick = onSessionExpiredLogOutButtonClicked
-                )
+            baseError != null -> {
+                when (baseError) {
+                    is BaseError.SessionExpired -> {
+                        ErrorView(
+                            text = stringResource(UiR.string.session_expired),
+                            buttonText = stringResource(UiR.string.action_log_out),
+                            onButtonClick = onSessionExpiredLogOutButtonClicked
+                        )
+                    }
+
+                    is BaseError.SimpleError -> {
+                        ErrorView(
+                            text = baseError.message,
+                            buttonText = stringResource(UiR.string.try_again),
+                            onButtonClick = onRefresh
+                        )
+                    }
+                }
             }
 
             screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
@@ -333,15 +348,17 @@ fun FriendsScreen(
                                 )
                             }
                         ) {
-                            val friendsToDisplay = if (index == 0) {
-                                screenState.friends
-                            } else {
-                                screenState.onlineFriends
+                            val friendsToDisplay = remember(index) {
+                                if (index == 0) {
+                                    screenState.friends
+                                } else {
+                                    screenState.onlineFriends
+                                }
                             }
 
                             FriendsList(
                                 modifier = if (currentTheme.enableBlur) {
-                                    Modifier.haze(state = hazeState)
+                                    Modifier.hazeSource(state = hazeState)
                                 } else {
                                     Modifier
                                 }.fillMaxSize(),
@@ -351,6 +368,7 @@ fun FriendsScreen(
                                 maxLines = maxLines,
                                 padding = padding,
                                 onPhotoClicked = onPhotoClicked,
+                                onMessageClicked = onMessageClicked,
                                 setCanScrollBackward = { can ->
                                     canScrollBackward = can
                                 }
@@ -358,10 +376,9 @@ fun FriendsScreen(
 
                             if (friendsToDisplay.isEmpty()) {
                                 NoItemsView(
-                                    modifier = Modifier
-                                        .padding(padding.calculateTopPadding())
-                                        .padding(top = 16.dp),
-                                    customText = "No${if (index == 1) " online" else ""} friends :("
+                                    customText = if (index == 1) stringResource(UiR.string.no_online_friends) else null,
+                                    buttonText = stringResource(UiR.string.action_refresh),
+                                    onButtonClick = onRefresh
                                 )
                             }
                         }
