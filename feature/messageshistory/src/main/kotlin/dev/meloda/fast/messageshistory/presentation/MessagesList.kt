@@ -90,25 +90,25 @@ fun MessagesList(
                     if (item.isOut) {
                         OutgoingMessageBubble(
                             modifier =
-                            Modifier.then(
-                                if (enableAnimations) Modifier.animateItem(
-                                    fadeInSpec = null,
-                                    fadeOutSpec = null
-                                )
-                                else Modifier
-                            ),
+                                Modifier.then(
+                                    if (enableAnimations) Modifier.animateItem(
+                                        fadeInSpec = null,
+                                        fadeOutSpec = null
+                                    )
+                                    else Modifier
+                                ),
                             message = item,
                         )
                     } else {
                         IncomingMessageBubble(
                             modifier =
-                            Modifier.then(
-                                if (enableAnimations) Modifier.animateItem(
-                                    fadeInSpec = null,
-                                    fadeOutSpec = null
-                                )
-                                else Modifier
-                            ),
+                                Modifier.then(
+                                    if (enableAnimations) Modifier.animateItem(
+                                        fadeInSpec = null,
+                                        fadeOutSpec = null
+                                    )
+                                    else Modifier
+                                ),
                             message = item,
                         )
                     }
@@ -128,15 +128,16 @@ fun MessagesList(
                 }
             }
 
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-            )
+            Spacer(Modifier.height(8.dp))
             Spacer(
                 modifier = Modifier
                     .height(64.dp)
                     .fillMaxWidth()
+            )
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
             )
         }
     }
