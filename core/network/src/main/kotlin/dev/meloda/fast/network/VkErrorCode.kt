@@ -1,6 +1,7 @@
 package dev.meloda.fast.network
 
 enum class VkErrorCode(val code: Int) {
+    WTF(-1),
     UNKNOWN_ERROR(1),
     APP_DISABLED(2),
     UNKNOWN_METHOD(3),

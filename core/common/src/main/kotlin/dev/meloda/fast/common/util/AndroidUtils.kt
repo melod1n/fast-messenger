@@ -86,7 +86,7 @@ object AndroidUtils {
             action = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                 Settings.ACTION_SECURITY_SETTINGS
             } else {
-                data = Uri.parse("package:dev.meloda.fast")
+                data = Uri.parse("package:dev.meloda.fastvk")
                 Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
             }
         })

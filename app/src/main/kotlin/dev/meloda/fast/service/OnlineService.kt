@@ -95,11 +95,6 @@ class OnlineService : Service() {
         }.also { coroutine -> coroutine.invokeOnCompletion { onlineJob = null } }
     }
 
-    override fun onLowMemory() {
-        Log.d(STATE_TAG, "onLowMemory")
-        super.onLowMemory()
-    }
-
     override fun onDestroy() {
         Log.d(STATE_TAG, "onDestroy")
 
