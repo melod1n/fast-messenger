@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -83,8 +82,7 @@ fun ConversationsList(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    .navigationBarsPadding(),
+                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (screenState.isPaginating) {
@@ -107,11 +105,9 @@ fun ConversationsList(
                         )
                     }
                 }
-            }
-        }
 
-        item {
-            Spacer(modifier = Modifier.height(bottomPadding))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }

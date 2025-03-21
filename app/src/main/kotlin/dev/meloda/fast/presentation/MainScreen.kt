@@ -33,7 +33,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.MainViewModel
@@ -84,7 +84,7 @@ fun MainScreen(
                 modifier = Modifier
                     .then(
                         if (currentTheme.enableBlur) {
-                            Modifier.hazeChild(
+                            Modifier.hazeEffect(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
                             )

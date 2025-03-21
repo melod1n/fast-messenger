@@ -64,8 +64,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.ConversationsViewModel
@@ -275,7 +275,7 @@ fun ConversationsScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.hazeChild(
+                                Modifier.hazeEffect(
                                     state = hazeState,
                                     style = HazeMaterials.thick()
                                 )
@@ -390,7 +390,7 @@ fun ConversationsScreen(
                         state = listState,
                         maxLines = maxLines,
                         modifier = if (currentTheme.enableBlur) {
-                            Modifier.haze(state = hazeState)
+                            Modifier.hazeSource(state = hazeState)
                         } else {
                             Modifier
                         }.fillMaxSize(),

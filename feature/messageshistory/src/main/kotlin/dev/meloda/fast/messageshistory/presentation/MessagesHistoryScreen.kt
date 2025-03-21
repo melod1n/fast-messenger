@@ -159,7 +159,7 @@ fun MessagesHistoryScreen(
 
     val listState = rememberLazyListState()
 
-    val paginationConditionMet by remember {
+    val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
             canPaginate &&
                     (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
