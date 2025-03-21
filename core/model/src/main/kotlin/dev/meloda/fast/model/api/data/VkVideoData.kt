@@ -1,7 +1,7 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkVideoDomain
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkVideoDomain
 
 @JsonClass(generateAdapter = true)
 data class VkVideoData(
@@ -12,7 +12,7 @@ data class VkVideoData(
     val duration: Int,
     val date: Int,
     val comments: Int?,
-    val description: String,
+    val description: String?,
     val player: String?,
     val added: Int?,
     val type: String,
@@ -20,9 +20,9 @@ data class VkVideoData(
     val access_key: String?,
     val owner_id: Int,
     val is_favorite: Boolean?,
-    val image: List<Image>,
+    val image: List<Image>?,
     val first_frame: List<FirstFrame>?,
-    val files: File?,
+    val files: File?
 ) : VkAttachmentData {
 
     @JsonClass(generateAdapter = true)
@@ -67,7 +67,7 @@ data class VkVideoData(
     fun toDomain() = VkVideoDomain(
         id = id,
         ownerId = owner_id,
-        images = image.map { it.asVideoImage() },
+        images = image.orEmpty().map { it.asVideoImage() },
         firstFrames = first_frame,
         accessKey = access_key,
         title = title

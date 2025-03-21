@@ -339,12 +339,24 @@ fun ConversationsScreen(
         }
     ) { padding ->
         when {
-            baseError is BaseError.SessionExpired -> {
-                ErrorView(
-                    text = "Session expired",
-                    buttonText = "Log out",
-                    onButtonClick = onSessionExpiredLogOutButtonClicked
-                )
+            baseError != null -> {
+                when (baseError) {
+                    is BaseError.SessionExpired -> {
+                        ErrorView(
+                            text = "Session expired",
+                            buttonText = "Log out",
+                            onButtonClick = onSessionExpiredLogOutButtonClicked
+                        )
+                    }
+
+                    is BaseError.SimpleError -> {
+                        ErrorView(
+                            text = baseError.message,
+                            buttonText = "Try again",
+                            onButtonClick = onRefresh
+                        )
+                    }
+                }
             }
 
             screenState.isLoading && screenState.conversations.isEmpty() -> FullScreenLoader()

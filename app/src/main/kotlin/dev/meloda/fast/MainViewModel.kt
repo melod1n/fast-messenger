@@ -86,6 +86,8 @@ class MainViewModelImpl(
             BaseError.SessionExpired -> {
                 isNeedToReplaceWithAuth.update { true }
             }
+
+            is BaseError.SimpleError -> Unit // TODO: 21-Mar-25, Danil Nikolaev: show error in ui
         }
     }
 

@@ -278,14 +278,14 @@ class SettingsViewModelImpl(
         )
         val generalShowEmojiButton = SettingsItem.Switch(
             key = SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
-            title = UiText.Simple("Show emoji button"),
-            text = UiText.Simple("Show emoji button in chat panel"),
+            title = UiText.Resource(UiR.string.settings_general_show_emoji_button_title),
+            text = UiText.Resource(UiR.string.settings_general_show_emoji_button_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
         )
         val generalEnableHaptic = SettingsItem.Switch(
             key = SettingsKeys.KEY_ENABLE_HAPTIC,
             defaultValue = SettingsKeys.DEFAULT_ENABLE_HAPTIC,
-            title = UiText.Simple("Enable haptic")
+            title = UiText.Resource(UiR.string.settings_general_enable_haptic_title)
         )
 
         val appearanceTitle = SettingsItem.Title(
@@ -342,7 +342,7 @@ class SettingsViewModelImpl(
         val appearanceUseSystemFont = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_SYSTEM_FONT,
             defaultValue = SettingsKeys.DEFAULT_USE_SYSTEM_FONT,
-            title = UiText.Simple("Use system font")
+            title = UiText.Resource(UiR.string.settings_appearance_use_system_font_title)
         )
         val appearanceLanguage = SettingsItem.TitleText(
             key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
@@ -379,7 +379,7 @@ class SettingsViewModelImpl(
 
         val experimentalTitle = SettingsItem.Title(
             key = "experimental",
-            title = UiText.Simple("Experimental - VERY unstable")
+            title = UiText.Resource(UiR.string.settings_experimental_title)
         )
         val experimentalLongPollBackground = SettingsItem.Switch(
             key = SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND,
@@ -390,19 +390,20 @@ class SettingsViewModelImpl(
         val experimentalShowTimeInActionMessages = SettingsItem.Switch(
             key = SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES,
             defaultValue = SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES,
-            title = UiText.Simple("Show time in action messages")
+            title = UiText.Resource(UiR.string.settings_features_show_time_in_action_messages_title)
         )
         val experimentalUseBlur = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_BLUR,
             defaultValue = SettingsKeys.DEFAULT_USE_BLUR,
-            title = UiText.Simple("Use blur"),
-            text = UiText.Simple("Adds blur wherever possible\nWorks on android 12 and newer"),
+            title = UiText.Resource(UiR.string.settings_experimental_use_blur_title),
+            text = UiText.Resource(UiR.string.settings_experimental_use_blur_summary),
+            isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         )
         val enableAnimations = SettingsItem.Switch(
             key = SettingsKeys.KEY_MORE_ANIMATIONS,
             defaultValue = SettingsKeys.DEFAULT_MORE_ANIMATIONS,
-            title = UiText.Simple("More animations"),
-            text = UiText.Simple("Use animations wherever possible")
+            title = UiText.Resource(UiR.string.settings_experimental_more_animations_title),
+            text = UiText.Resource(UiR.string.settings_experimental_more_animations_summary)
         )
 
         val debugTitle = SettingsItem.Title(
