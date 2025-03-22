@@ -29,6 +29,7 @@ import dev.meloda.fast.messageshistory.navigation.MessagesHistory
 import dev.meloda.fast.messageshistory.util.asPresentation
 import dev.meloda.fast.messageshistory.util.extractAvatar
 import dev.meloda.fast.messageshistory.util.extractTitle
+import dev.meloda.fast.messageshistory.util.findMessageById
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.LongPollEvent
 import dev.meloda.fast.model.api.domain.VkAttachment
@@ -160,7 +161,9 @@ class MessagesHistoryViewModelImpl(
         val message = event.message
 
         Log.d("MessagesHistoryViewModel", "handleNewMessage: $message")
+
         if (message.peerId != screenState.value.conversationId) return
+        if (screenState.value.messages.findMessageById(message.id) != null) return
 
         val randomIds = messages.value.map(VkMessage::randomId)
         if (message.randomId != 0 && message.randomId in randomIds) return

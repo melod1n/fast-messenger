@@ -9,8 +9,8 @@ fun List<UiItem>.firstMessageOrNull(): UiItem.Message? = filterIsInstance<UiItem
 fun List<UiItem>.indexOfMessageById(messageId: Int): Int =
     indexOfFirst { it.id == messageId }
 
-fun List<UiItem>.findMessageById(messageId: Int): UiItem.Message =
-    first { it.id == messageId } as UiItem.Message
+fun List<UiItem>.findMessageById(messageId: Int): UiItem.Message? =
+    firstOrNull { it.id == messageId } as UiItem.Message?
 
 fun List<UiItem>.indexOfMessageByCmId(cmId: Int): Int =
     indexOfFirst { it.cmId == cmId }

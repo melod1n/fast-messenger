@@ -1,8 +1,11 @@
 package dev.meloda.fast.conversations.presentation
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,6 +14,8 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -25,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -36,12 +42,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -58,7 +67,6 @@ import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.components.NoItemsView
-import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
@@ -94,7 +102,8 @@ fun CreateChatRoute(
         onBack = onBack,
         onRefresh = viewModel::onRefresh,
         onCreateChatButtonClicked = viewModel::onCreateChatButtonClicked,
-        onItemClicked = viewModel::toggleFriendSelection
+        onItemClicked = viewModel::toggleFriendSelection,
+        onTitleTextInputChanged = viewModel::onTitleTextInputChanged
     )
 }
 
@@ -159,7 +168,23 @@ fun CreateChatScreen(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        toolbarContainerColor.copy(
+                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
+                        )
+                    )
+                    .then(
+                        if (currentTheme.enableBlur) {
+                            Modifier.hazeEffect(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else Modifier
+                    )
+            ) {
                 TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
@@ -182,25 +207,54 @@ fun CreateChatScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = toolbarContainerColor.copy(
-                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
+                            alpha = 0f
                         )
                     ),
-                    modifier = Modifier
-                        .then(
-                            if (currentTheme.enableBlur) {
-                                Modifier.hazeEffect(
-                                    state = hazeState,
-                                    style = HazeMaterials.thick()
-                                )
-                            } else Modifier
-                        )
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                 )
+
+                var isTextFieldFocused by remember {
+                    mutableStateOf(false)
+                }
+
+                val borderWidth by animateDpAsState(if (isTextFieldFocused) 1.5.dp else 0.dp)
+                val borderColor by animateColorAsState(
+                    if (isTextFieldFocused) MaterialTheme.colorScheme.primary
+                    else Color.Transparent
+                )
+
+                TextField(
+                    modifier = Modifier
+                        .height(58.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .border(
+                            borderWidth,
+                            borderColor,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clip(RoundedCornerShape(16.dp))
+                        .onFocusChanged { isTextFieldFocused = it.hasFocus },
+                    value = screenState.chatTitle,
+                    onValueChange = onTitleTextInputChanged,
+                    label = { Text(text = stringResource(UiR.string.create_chat_title)) },
+                    placeholder = { Text(text = stringResource(UiR.string.create_chat_title)) },
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                    )
+                )
+                Spacer(Modifier.height(16.dp))
             }
         },
         floatingActionButton = {
             if (baseError == null) {
-                Column {
+                Column(
+                    modifier = Modifier
+                        .imePadding()
+                        .navigationBarsPadding()
+                ) {
                     ExtendedFloatingActionButton(
                         onClick = onCreateChatButtonClicked,
                         expanded = listState.isScrollingUp(),
@@ -212,8 +266,6 @@ fun CreateChatScreen(
                             )
                         }
                     )
-
-                    Spacer(modifier = Modifier.height(LocalBottomPadding.current))
                 }
             }
         }
@@ -242,68 +294,46 @@ fun CreateChatScreen(
             screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
 
             else -> {
-                Column(
+                val pullToRefreshState = rememberPullToRefreshState()
+
+                PullToRefreshBox(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(start = padding.calculateStartPadding(LayoutDirection.Ltr))
                         .padding(end = padding.calculateEndPadding(LayoutDirection.Ltr))
-                        .padding(bottom = padding.calculateBottomPadding())
+                        .padding(bottom = padding.calculateBottomPadding()),
+                    state = pullToRefreshState,
+                    isRefreshing = screenState.isLoading,
+                    onRefresh = onRefresh,
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            state = pullToRefreshState,
+                            isRefreshing = screenState.isLoading,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = padding.calculateTopPadding()),
+                        )
+                    }
                 ) {
-                    TextField(
-                        modifier = Modifier
-                            .height(58.dp)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp)),
-                        value = screenState.chatTitle,
-                        onValueChange = onTitleTextInputChanged,
-                        label = { Text(text = "Chat's title") },
-                        placeholder = { Text(text = "Chat's title") },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(id = UiR.drawable.outline_people_alt_24),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        singleLine = true
+                    CreateChatList(
+                        screenState = screenState,
+                        state = listState,
+                        maxLines = maxLines,
+                        modifier = if (currentTheme.enableBlur) {
+                            Modifier.hazeSource(state = hazeState)
+                        } else {
+                            Modifier
+                        }.fillMaxSize(),
+                        padding = padding,
+                        onItemClicked = onItemClicked,
+                        onTitleTextInputChanged = onTitleTextInputChanged
                     )
 
-                    val pullToRefreshState = rememberPullToRefreshState()
-
-                    PullToRefreshBox(
-                        modifier = Modifier.fillMaxSize(),
-                        state = pullToRefreshState,
-                        isRefreshing = screenState.isLoading,
-                        onRefresh = onRefresh,
-                        indicator = {
-                            PullToRefreshDefaults.Indicator(
-                                state = pullToRefreshState,
-                                isRefreshing = screenState.isLoading,
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .padding(top = padding.calculateTopPadding()),
-                            )
-                        }
-                    ) {
-                        CreateChatList(
-                            screenState = screenState,
-                            state = listState,
-                            maxLines = maxLines,
-                            modifier = if (currentTheme.enableBlur) {
-                                Modifier.hazeSource(state = hazeState)
-                            } else {
-                                Modifier
-                            }.fillMaxSize(),
-                            padding = padding,
-                            onItemClicked = onItemClicked
+                    if (screenState.friends.isEmpty()) {
+                        NoItemsView(
+                            buttonText = stringResource(UiR.string.action_refresh),
+                            onButtonClick = onRefresh
                         )
-
-                        if (screenState.friends.isEmpty()) {
-                            NoItemsView(
-                                buttonText = stringResource(UiR.string.action_refresh),
-                                onButtonClick = onRefresh
-                            )
-                        }
                     }
                 }
             }

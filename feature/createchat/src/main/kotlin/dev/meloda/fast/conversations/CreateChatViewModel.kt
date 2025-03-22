@@ -41,6 +41,8 @@ interface CreateChatViewModel {
 
     fun toggleFriendSelection(userId: Int)
 
+    fun onTitleTextInputChanged(newTitle: String)
+
     fun onCreateChatButtonClicked()
 
     fun onNavigatedBack()
@@ -94,6 +96,10 @@ class CreateChatViewModelImpl(
         screenState.setValue { old ->
             old.copy(selectedFriendsIds = newSelectionList)
         }
+    }
+
+    override fun onTitleTextInputChanged(newTitle: String) {
+        screenState.setValue { old -> old.copy(chatTitle = newTitle) }
     }
 
     override fun onCreateChatButtonClicked() {
@@ -165,6 +171,8 @@ class CreateChatViewModelImpl(
 
     private fun createChat() {
         viewModelScope.launch {
+            val title = screenState.value.chatTitle.takeUnless(String::isBlank)
+
             val accountAsFriend =
                 getLocalUserByIdUseCase.proceed(UserConfig.userId)?.asPresentation(useContactNames)
 
@@ -176,7 +184,8 @@ class CreateChatViewModelImpl(
 
             messagesUseCase.createChat(
                 userIds = selectedFriends?.map { it.userId },
-                title = (accountList + selectedFriends.orEmpty()).joinToString(transform = UiFriend::firstName)
+                title = title
+                    ?: (accountList + selectedFriends.orEmpty()).joinToString(transform = UiFriend::firstName)
             ).listenValue(viewModelScope) { state ->
                 state.processState(
                     error = ::handleError,
@@ -232,4 +241,3 @@ class CreateChatViewModelImpl(
         const val LOAD_COUNT = 30
     }
 }
-

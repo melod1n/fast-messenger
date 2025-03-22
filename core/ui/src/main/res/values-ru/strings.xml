@@ -217,4 +217,5 @@
     <string name="session_expired">Срок действия сессии истёк</string>
     <string name="title_create_chat">Создать чат</string>
     <string name="action_create">Создать</string>
+    <string name="create_chat_title">Название</string>
 </resources>
