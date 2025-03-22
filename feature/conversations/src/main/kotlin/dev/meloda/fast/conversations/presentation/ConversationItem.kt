@@ -48,11 +48,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import dev.meloda.fast.conversations.model.ConversationOption
-import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.DotsFlashing
+import dev.meloda.fast.ui.model.api.ConversationOption
+import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.getImage
 import dev.meloda.fast.ui.util.getResourcePainter
 import dev.meloda.fast.ui.util.getString
@@ -256,7 +256,7 @@ fun ConversationItem(
                     Row {
                         if (conversation.interactionText != null) {
                             Text(
-                                text = conversation.interactionText,
+                                text = conversation.interactionText.orEmpty(),
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(4.dp))

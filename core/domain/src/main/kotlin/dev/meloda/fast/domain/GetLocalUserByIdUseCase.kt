@@ -20,4 +20,8 @@ class GetLocalUserByIdUseCase(private val repository: UsersRepository) {
 
         emit(newState)
     }
+
+    suspend fun proceed(userId: Int): VkUser? {
+        return repository.getLocalUsers(userIds = listOf(userId)).singleOrNull()
+    }
 }

@@ -280,4 +280,6 @@
     <string name="no_online_friends">No one is online</string>
     <string name="try_again">Try again</string>
     <string name="session_expired">Session expired</string>
+    <string name="title_create_chat">Create chat</string>
+    <string name="action_create">Create</string>
 </resources>

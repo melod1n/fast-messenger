@@ -1,5 +1,6 @@
 package dev.meloda.fast.data.api.messages
 
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkGroupsMap
 import dev.meloda.fast.data.VkMemoryCache
@@ -14,6 +15,7 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.asEntity
+import dev.meloda.fast.model.api.requests.MessagesCreateChatRequest
 import dev.meloda.fast.model.api.requests.MessagesGetByIdRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryAttachmentsRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryRequest
@@ -23,7 +25,6 @@ import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
 import dev.meloda.fast.network.service.messages.MessagesService
-import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -197,6 +198,23 @@ class MessagesRepositoryImpl(
                 }
             )
         }
+
+    override suspend fun createChat(
+        userIds: List<Int>?,
+        title: String?
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesCreateChatRequest(
+            userIds = userIds,
+            title = title
+        )
+
+        messagesService.createChat(requestModel.map).mapApiResult(
+            successMapper = { apiResponse ->
+                apiResponse.requireResponse().chatId
+            },
+            errorMapper = { error -> error?.toDomain() }
+        )
+    }
 
     override suspend fun storeMessages(messages: List<VkMessage>) {
         messageDao.insertAll(messages.map(VkMessage::asEntity))

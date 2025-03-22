@@ -1,4 +1,4 @@
-package dev.meloda.fast.friends.presentation
+package dev.meloda.fast.conversations.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,10 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.MailOutline
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,16 +27,20 @@ import coil.compose.AsyncImage
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.api.UiFriend
 
+
 @Composable
-fun FriendItem(
+fun CreateChatItem(
     modifier: Modifier = Modifier,
     friend: UiFriend,
     maxLines: Int,
-    onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit
+    isSelected: Boolean,
+    onItemClicked: (Int) -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClicked(friend.userId) }
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Spacer(modifier = Modifier.width(16.dp))
@@ -62,12 +63,7 @@ fun FriendItem(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(CircleShape)
-                        .clickable {
-                            friend.photo400Orig
-                                ?.extractUrl()
-                                ?.let(onPhotoClicked)
-                        },
+                        .clip(CircleShape),
                     placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
                 )
             }
@@ -103,18 +99,12 @@ fun FriendItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        IconButton(
-            onClick = {
-                onMessageClicked(friend.userId)
-            }
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.MailOutline,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onItemClicked(friend.userId) },
+        )
 
         Spacer(modifier = Modifier.width(16.dp))
     }
 }
+

@@ -100,6 +100,14 @@ class MessagesUseCaseImpl(
         emit(newState)
     }
 
+    override fun createChat(userIds: List<Int>?, title: String?): Flow<State<Int>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.createChat(userIds, title).mapToState()
+
+        emit(newState)
+    }
+
     override suspend fun storeMessage(message: VkMessage) {
         repository.storeMessages(listOf(message))
     }

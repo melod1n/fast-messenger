@@ -4,6 +4,8 @@ import dev.meloda.fast.messageshistory.model.UiItem
 
 fun List<UiItem>.firstMessage(): UiItem.Message = filterIsInstance<UiItem.Message>().first()
 
+fun List<UiItem>.firstMessageOrNull(): UiItem.Message? = filterIsInstance<UiItem.Message>().firstOrNull()
+
 fun List<UiItem>.indexOfMessageById(messageId: Int): Int =
     indexOfFirst { it.id == messageId }
 

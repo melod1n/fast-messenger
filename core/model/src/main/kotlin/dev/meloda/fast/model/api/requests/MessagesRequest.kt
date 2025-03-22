@@ -267,3 +267,14 @@ data class MessagesGetHistoryAttachmentsRequest(
         fields?.let { this["fields"] = it }
     }
 }
+
+data class MessagesCreateChatRequest(
+    val userIds: List<Int>?,
+    val title: String?
+) {
+
+    val map = mutableMapOf<String, String>().apply {
+        userIds?.let { this["user_ids"] = it.joinToString(",") }
+        title?.let { this["title"] = it }
+    }
+}

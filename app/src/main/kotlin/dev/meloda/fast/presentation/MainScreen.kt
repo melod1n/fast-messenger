@@ -57,6 +57,7 @@ fun MainScreen(
     onConversationItemClicked: (conversationId: Int) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
     onMessageClicked: (userId: Int) -> Unit = {},
+    onCreateChatClicked: () -> Unit = {},
     viewModel: MainViewModel
 ) {
     val currentTheme = LocalThemeConfig.current
@@ -172,6 +173,7 @@ fun MainScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
                             onPhotoClicked = onPhotoClicked,
+                            onCreateChatClicked = onCreateChatClicked,
                             navController = navController,
                         )
                         profileScreen(

@@ -1,6 +1,8 @@
 package dev.meloda.fast.conversations.model
 
 import androidx.compose.runtime.Immutable
+import dev.meloda.fast.ui.model.api.ConversationsShowOptions
+import dev.meloda.fast.ui.model.api.UiConversation
 
 @Immutable
 data class ConversationsScreenState(

@@ -42,6 +42,11 @@ interface MessagesUseCase {
         conversationMessageId: Int
     ): Flow<State<List<VkAttachmentHistoryMessage>>>
 
+    fun createChat(
+        userIds: List<Int>?,
+        title: String?
+    ): Flow<State<Int>>
+
     suspend fun storeMessage(message: VkMessage)
     suspend fun storeMessages(messages: List<VkMessage>)
 }

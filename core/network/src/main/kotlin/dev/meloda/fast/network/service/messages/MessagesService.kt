@@ -1,12 +1,13 @@
 package dev.meloda.fast.network.service.messages
 
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.model.api.data.VkLongPollData
+import dev.meloda.fast.model.api.responses.MessagesCreateChatResponse
 import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryResponse
 import dev.meloda.fast.network.ApiResponse
 import dev.meloda.fast.network.RestApiError
-import com.slack.eithernet.ApiResult
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
@@ -48,6 +49,12 @@ interface MessagesService {
     suspend fun getHistoryAttachments(
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<MessagesGetHistoryAttachmentsResponse>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.CREATE_CHAT)
+    suspend fun createChat(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<MessagesCreateChatResponse>, RestApiError>
 
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.MarkAsImportant)

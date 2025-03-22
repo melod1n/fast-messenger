@@ -1,4 +1,4 @@
-package dev.meloda.fast.conversations.model
+package dev.meloda.fast.ui.model.api
 
 data class ConversationsShowOptions(
     val showDeleteDialog: Int?,
