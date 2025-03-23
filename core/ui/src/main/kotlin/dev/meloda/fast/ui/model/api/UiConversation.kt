@@ -1,4 +1,4 @@
-package dev.meloda.fast.conversations.model
+package dev.meloda.fast.ui.model.api
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString

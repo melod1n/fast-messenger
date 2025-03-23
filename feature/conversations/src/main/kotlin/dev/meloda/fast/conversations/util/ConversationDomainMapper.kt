@@ -14,8 +14,6 @@ import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.common.model.UiText
 import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.common.util.TimeUtils
-import dev.meloda.fast.conversations.model.ActionState
-import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.model.InteractionType
@@ -24,6 +22,8 @@ import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.model.api.ActionState
+import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.ImmutableList
 import java.util.Calendar
 import java.util.Locale

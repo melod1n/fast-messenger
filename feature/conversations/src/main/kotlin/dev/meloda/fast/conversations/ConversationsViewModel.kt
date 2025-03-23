@@ -11,10 +11,7 @@ import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
-import dev.meloda.fast.conversations.model.ConversationsShowOptions
-import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.conversations.util.asPresentation
 import dev.meloda.fast.conversations.util.extractAvatar
 import dev.meloda.fast.data.State
@@ -29,6 +26,9 @@ import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollEvent
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.network.VkErrorCode
+import dev.meloda.fast.ui.model.api.ConversationOption
+import dev.meloda.fast.ui.model.api.ConversationsShowOptions
+import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,10 +84,7 @@ class ConversationsViewModelImpl(
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
 
-    // TODO: 22-Dec-24, Danil Nikolaev: rewrite
-    private val useContactNames = {
-        userSettings.useContactNames.value
-    }
+    private val useContactNames: Boolean get() = userSettings.useContactNames.value
 
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.conversations.size }
@@ -168,11 +165,11 @@ class ConversationsViewModelImpl(
                 conversations = old.conversations.map { item ->
                     item.copy(
                         isExpanded =
-                        if (item.id == conversation.id) {
-                            !item.isExpanded
-                        } else {
-                            false
-                        },
+                            if (item.id == conversation.id) {
+                                !item.isExpanded
+                            } else {
+                                false
+                            },
                         options = ImmutableList.copyOf(options)
                     )
                 }
@@ -191,7 +188,10 @@ class ConversationsViewModelImpl(
         onPinDialogDismissed()
     }
 
-    override fun onOptionClicked(conversation: UiConversation, option: ConversationOption) {
+    override fun onOptionClicked(
+        conversation: UiConversation,
+        option: ConversationOption
+    ) {
         when (option) {
             ConversationOption.Delete -> {
                 emitShowOptions { old ->
@@ -322,21 +322,25 @@ class ConversationsViewModelImpl(
                     }
                 }
             }
+
             State.Error.ConnectionError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Connection error")
                 }
             }
+
             State.Error.InternalError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Internal error")
                 }
             }
+
             State.Error.UnknownError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Unknown error")
                 }
             }
+
             else -> Unit
         }
     }
@@ -360,7 +364,7 @@ class ConversationsViewModelImpl(
                             conversations = newConversations.map {
                                 it.asPresentation(
                                     resources = resources,
-                                    useContactName = useContactNames()
+                                    useContactName = useContactNames
                                 )
                             }
                         )
@@ -424,7 +428,7 @@ class ConversationsViewModelImpl(
                                     conversations = newConversations.map {
                                         it.asPresentation(
                                             resources = resources,
-                                            useContactName = useContactNames()
+                                            useContactName = useContactNames
                                         )
                                     }
                                 )
@@ -475,7 +479,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -504,7 +508,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -534,7 +538,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -563,7 +567,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -609,7 +613,7 @@ class ConversationsViewModelImpl(
                 old.copy(conversations = newConversations.map {
                     it.asPresentation(
                         resources = resources,
-                        useContactName = useContactNames()
+                        useContactName = useContactNames
                     )
                 })
             }
@@ -650,7 +654,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -701,7 +705,7 @@ class ConversationsViewModelImpl(
                 conversations = newConversations.map {
                     it.asPresentation(
                         resources = resources,
-                        useContactName = useContactNames()
+                        useContactName = useContactNames
                     )
                 }
             )
@@ -735,7 +739,7 @@ class ConversationsViewModelImpl(
                             conversations = newConversations.map {
                                 it.asPresentation(
                                     resources = resources,
-                                    useContactName = useContactNames()
+                                    useContactName = useContactNames
                                 )
                             }
                         )

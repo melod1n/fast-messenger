@@ -9,8 +9,8 @@ import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.FriendsUseCase
 import dev.meloda.fast.domain.LoadUsersByIdsUseCase
+import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.friends.model.FriendsScreenState
-import dev.meloda.fast.friends.util.asPresentation
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.network.VkErrorCode

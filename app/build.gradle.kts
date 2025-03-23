@@ -77,6 +77,7 @@ dependencies {
     implementation(projects.feature.friends)
     implementation(projects.feature.profile)
     implementation(projects.feature.photoviewer)
+    implementation(projects.feature.createchat)
 
     implementation(projects.core.common)
     implementation(projects.core.ui)
