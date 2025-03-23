@@ -82,7 +82,8 @@ fun IncomingMessageBubble(
                 date = message.date,
                 edited = message.isEdited,
                 animate = animate,
-                isRead = message.isRead
+                isRead = message.isRead,
+                sendingStatus = message.sendingStatus
             )
         }
     }

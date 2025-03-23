@@ -24,6 +24,7 @@ import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.messageshistory.navigation.MessagesHistory
 import dev.meloda.fast.messageshistory.util.asPresentation
@@ -407,6 +408,16 @@ class MessagesHistoryViewModelImpl(
             state.processState(
                 error = { error ->
                     sendingMessages -= newMessage
+
+                    val uiMessages = screenState.value.messages.toMutableList()
+
+                    uiMessages.indexOfOrNull(newUiMessage)?.let { index ->
+                        (uiMessages[index] as? UiItem.Message)?.let { message ->
+                            uiMessages[index] = message.copy(sendingStatus = SendingStatus.FAILED)
+                        }
+                    }
+
+                    screenState.setValue { old -> old.copy(messages = uiMessages) }
                 },
                 success = { messageId ->
                     sendingMessages -= newMessage
@@ -419,7 +430,10 @@ class MessagesHistoryViewModelImpl(
                     uiMessages.indexOfOrNull(newUiMessage)?.let { index ->
                         (uiMessages[index] as? UiItem.Message)?.let { message ->
                             uiMessages[index] = message
-                                .copy(id = messageId)
+                                .copy(
+                                    id = messageId,
+                                    sendingStatus = SendingStatus.SENT
+                                )
                                 .copy(isRead = newMessage.isRead(screenState.value.conversation))
                         }
                     }

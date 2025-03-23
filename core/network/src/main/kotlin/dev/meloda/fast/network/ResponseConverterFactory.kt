@@ -43,6 +43,12 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
                 converter.fromJson(successType, string)
             }.fold(
                 onSuccess = { successModel ->
+                    if (successModel is ApiResponse<*>) {
+                        if (successModel.error != null) {
+                            throw ApiException(successModel.error)
+                        }
+                    }
+
                     return successModel
                 },
                 onFailure = { failure ->

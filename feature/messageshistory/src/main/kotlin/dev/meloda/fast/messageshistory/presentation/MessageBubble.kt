@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -24,8 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -36,7 +39,8 @@ fun MessageBubble(
     date: String?,
     edited: Boolean,
     animate: Boolean,
-    isRead: Boolean
+    isRead: Boolean,
+    sendingStatus: SendingStatus
 ) {
     val backgroundColor = if (!isOut) {
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
@@ -109,9 +113,18 @@ fun MessageBubble(
                 Icon(
                     modifier = Modifier.size(14.dp),
                     painter = painterResource(
-                        if (isRead) UiR.drawable.round_done_all_24
-                        else UiR.drawable.ic_round_done_24
+                        when (sendingStatus) {
+                            SendingStatus.SENDING -> UiR.drawable.round_access_time_24
+                            SendingStatus.SENT -> {
+                                if (isRead) UiR.drawable.round_done_all_24
+                                else UiR.drawable.ic_round_done_24
+                            }
+
+                            SendingStatus.FAILED -> UiR.drawable.round_error_outline_24
+                        }
                     ),
+                    tint = if (sendingStatus == SendingStatus.FAILED) Color.Red
+                    else LocalContentColor.current,
                     contentDescription = null
                 )
             }

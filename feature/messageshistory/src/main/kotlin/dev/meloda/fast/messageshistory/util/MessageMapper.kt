@@ -12,6 +12,7 @@ import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
+import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.PeerType
 import dev.meloda.fast.model.api.domain.VkConversation
@@ -123,10 +124,13 @@ fun VkMessage.asPresentation(
         showName = showName && extractShowName(prevMessage),
         avatar = extractAvatar(),
         isEdited = updateTime != null,
-        isRead = isRead(conversation)
+        isRead = isRead(conversation),
+        sendingStatus = when {
+            id <= 0 -> SendingStatus.SENDING
+            else -> SendingStatus.SENT
+        }
     )
 }
-
 
 fun VkMessage.extractShowAvatar(nextMessage: VkMessage?): Boolean {
     if (isOut) return false

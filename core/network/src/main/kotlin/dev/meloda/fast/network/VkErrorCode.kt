@@ -42,6 +42,8 @@ enum class VkErrorCode(val code: Int) {
     ACCESS_TO_DOC_DENIED(1153),
 
     SOME_AUTH_ERROR(104),
+
+    CANNOT_SEND_MESSAGE_DUE_TO_PRIVACY_SETTINGS(902),
     ACCESS_TOKEN_EXPIRED(1117);
 
     companion object {

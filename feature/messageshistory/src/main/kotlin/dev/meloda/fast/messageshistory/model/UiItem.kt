@@ -23,7 +23,8 @@ sealed class UiItem(
         val showName: Boolean,
         val avatar: UiImage,
         val isEdited: Boolean,
-        val isRead: Boolean
+        val isRead: Boolean,
+        val sendingStatus: SendingStatus = SendingStatus.SENT
     ) : UiItem(id, conversationMessageId)
 
     data class ActionMessage(
