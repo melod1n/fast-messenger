@@ -128,7 +128,7 @@
     <string name="post_type_community">Запись сообщества</string>
     <string name="post_type_user">Запись пользователя</string>
     <string name="post_type_unknown">Запись на стене</string>
-    <string name="log_out">Выйти</string>
+    <string name="action_log_out">Выйти</string>
     <string name="confirm">Подтверждение</string>
     <string name="message_attachment_story_your_story">Ваша история</string>
     <string name="settings_dynamic_colors">Динамические цвета</string>
@@ -212,4 +212,10 @@
     <string name="captcha_exit_warning">Вы уверены? Процесс ввода капчи будет отменён</string>
     <string name="validation_exit_warning">Вы уверены? Процесс ввода кода-подтверждения будет отменён</string>
     <string name="action_authorize">Авторизоваться</string>
+    <string name="no_online_friends">Никого в сети</string>
+    <string name="try_again">Попробовать ещё раз</string>
+    <string name="session_expired">Срок действия сессии истёк</string>
+    <string name="title_create_chat">Создать чат</string>
+    <string name="action_create">Создать</string>
+    <string name="create_chat_title">Название</string>
 </resources>

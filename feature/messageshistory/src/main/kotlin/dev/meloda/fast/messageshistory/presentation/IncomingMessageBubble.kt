@@ -31,6 +31,7 @@ import dev.meloda.fast.messageshistory.model.UiItem
 fun IncomingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiItem.Message,
+    animate: Boolean
 ) {
     val context = LocalContext.current
 
@@ -44,12 +45,12 @@ fun IncomingMessageBubble(
         if (message.isInChat) {
             Image(
                 painter =
-                message.avatar.extractUrl()?.let { url ->
-                    rememberAsyncImagePainter(
-                        model = url,
-                        imageLoader = context.imageLoader
-                    )
-                } ?: painterResource(id = message.avatar.extractResId()),
+                    message.avatar.extractUrl()?.let { url ->
+                        rememberAsyncImagePainter(
+                            model = url,
+                            imageLoader = context.imageLoader
+                        )
+                    } ?: painterResource(id = message.avatar.extractResId()),
                 contentDescription = null,
                 modifier = Modifier
                     .padding(bottom = 6.dp)
@@ -80,6 +81,9 @@ fun IncomingMessageBubble(
                 isOut = false,
                 date = message.date,
                 edited = message.isEdited,
+                animate = animate,
+                isRead = message.isRead,
+                sendingStatus = message.sendingStatus
             )
         }
     }

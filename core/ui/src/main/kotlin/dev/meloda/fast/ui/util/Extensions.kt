@@ -1,7 +1,6 @@
 package dev.meloda.fast.ui.util
 
 import android.content.res.Configuration
-import android.graphics.drawable.ColorDrawable
 import android.os.PowerManager
 import android.view.KeyEvent
 import androidx.compose.foundation.lazy.LazyListState
@@ -21,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.getSystemService
+import androidx.core.graphics.drawable.toDrawable
 import dev.meloda.fast.common.model.DarkMode
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.common.model.UiText
@@ -64,8 +64,8 @@ fun UiImage.getResourcePainter(): Painter? {
 @Composable
 fun UiImage.getImage(): Any {
     return when (this) {
-        is UiImage.Color -> ColorDrawable(color)
-        is UiImage.ColorResource -> ColorDrawable(colorResource(id = resId).toArgb())
+        is UiImage.Color -> color.toDrawable()
+        is UiImage.ColorResource -> colorResource(id = resId).toArgb().toDrawable()
         is UiImage.Resource -> painterResource(id = resId)
         is UiImage.Simple -> drawable
         is UiImage.Url -> url

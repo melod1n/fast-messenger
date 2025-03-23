@@ -24,6 +24,8 @@ fun NavGraphBuilder.mainScreen(
     onSettingsButtonClicked: () -> Unit,
     onConversationClicked: (conversationId: Int) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
+    onMessageClicked: (userId: Int) -> Unit,
+    onCreateChatClicked: () -> Unit,
     viewModel: MainViewModel
 ) {
     val navigationItems = ImmutableList.of(
@@ -54,6 +56,8 @@ fun NavGraphBuilder.mainScreen(
             onSettingsButtonClicked = onSettingsButtonClicked,
             onConversationItemClicked = onConversationClicked,
             onPhotoClicked = onPhotoClicked,
+            onMessageClicked = onMessageClicked,
+            onCreateChatClicked = onCreateChatClicked,
             viewModel = viewModel
         )
     }

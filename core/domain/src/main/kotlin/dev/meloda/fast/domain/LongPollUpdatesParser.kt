@@ -41,15 +41,9 @@ class LongPollUpdatesParser(
     fun parseNextUpdate(event: List<Any>) {
         val eventId = event.first().asInt()
 
-        val eventType: ApiEvent = try {
-            ApiEvent.parse(eventId)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
-            return
-        }
+        when (val eventType =  ApiEvent.parseOrNull(eventId)) {
+            null -> Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
 
-        when (eventType) {
             ApiEvent.MESSAGE_SET_FLAGS -> parseMessageSetFlags(eventType, event)
             ApiEvent.MESSAGE_CLEAR_FLAGS -> parseMessageClearFlags(eventType, event)
             ApiEvent.MESSAGE_NEW -> parseMessageNew(eventType, event)

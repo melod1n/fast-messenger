@@ -1,10 +1,10 @@
 package dev.meloda.fast.data.api.messages
 
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.network.RestApiErrorDomain
-import com.slack.eithernet.ApiResult
 
 interface MessagesRepository {
 
@@ -40,6 +40,11 @@ interface MessagesRepository {
         attachmentTypes: List<String>,
         conversationMessageId: Int
     ): ApiResult<List<VkAttachmentHistoryMessage>, RestApiErrorDomain>
+
+    suspend fun createChat(
+        userIds: List<Int>?,
+        title: String?
+    ): ApiResult<Int, RestApiErrorDomain>
 
     suspend fun storeMessages(messages: List<VkMessage>)
 

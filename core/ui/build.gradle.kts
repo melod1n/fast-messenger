@@ -11,6 +11,7 @@ android {
 dependencies {
     api(projects.core.common)
     api(projects.core.model)
+    implementation(projects.core.presentation)
 
     implementation(libs.haze)
     implementation(libs.haze.materials)

@@ -38,6 +38,41 @@ data class VkConversation(
     fun isPinned(): Boolean = majorId > 0
     fun isInUnread() = inRead - (lastMessageId ?: 0) < 0
     fun isOutUnread() = outRead - (lastMessageId ?: 0) < 0
+
+    companion object {
+        val EMPTY: VkConversation = VkConversation(
+            id = -1,
+            localId = -1,
+            ownerId = null,
+            title = "...",
+            photo50 = null,
+            photo100 = null,
+            photo200 = null,
+            isCallInProgress = false,
+            isPhantom = false,
+            lastConversationMessageId = -1,
+            inReadCmId = -1,
+            outReadCmId = -1,
+            inRead = -1,
+            outRead = -1,
+            lastMessageId = null,
+            unreadCount = -1,
+            membersCount = null,
+            canChangePin = false,
+            canChangeInfo = false,
+            majorId = -1,
+            minorId = -1,
+            pinnedMessageId = null,
+            interactionType = -1,
+            interactionIds = emptyList(),
+            peerType = PeerType.USER,
+            lastMessage = null,
+            pinnedMessage = null,
+            user = null,
+            group = null
+
+        )
+    }
 }
 
 fun VkConversation.asEntity(): VkConversationEntity = VkConversationEntity(

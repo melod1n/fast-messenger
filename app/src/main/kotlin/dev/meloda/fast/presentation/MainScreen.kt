@@ -33,7 +33,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.MainViewModel
@@ -47,8 +47,6 @@ import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -58,6 +56,8 @@ fun MainScreen(
     onSettingsButtonClicked: () -> Unit = {},
     onConversationItemClicked: (conversationId: Int) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
+    onMessageClicked: (userId: Int) -> Unit = {},
+    onCreateChatClicked: () -> Unit = {},
     viewModel: MainViewModel
 ) {
     val currentTheme = LocalThemeConfig.current
@@ -70,21 +70,13 @@ fun MainScreen(
         mutableIntStateOf(1)
     }
 
-    val sharedFlow = remember {
-        MutableSharedFlow<Int>(
-            replay = 0,
-            extraBufferCapacity = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
-    }
-
     Scaffold(
         bottomBar = {
             NavigationBar(
                 modifier = Modifier
                     .then(
                         if (currentTheme.enableBlur) {
-                            Modifier.hazeChild(
+                            Modifier.hazeEffect(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
                             )
@@ -108,8 +100,6 @@ fun MainScreen(
                                         inclusive = true
                                     }
                                 }
-                            } else {
-                                sharedFlow.tryEmit(index)
                             }
                         },
                         icon = {
@@ -176,13 +166,14 @@ fun MainScreen(
                         friendsScreen(
                             onError = onError,
                             navController = navController,
-                            onPhotoClicked = onPhotoClicked
+                            onPhotoClicked = onPhotoClicked,
+                            onMessageClicked = onMessageClicked
                         )
                         conversationsScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
                             onPhotoClicked = onPhotoClicked,
-                            scrollToTopFlow = sharedFlow,
+                            onCreateChatClicked = onCreateChatClicked,
                             navController = navController,
                         )
                         profileScreen(

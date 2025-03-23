@@ -25,6 +25,8 @@ import dev.meloda.fast.auth.authNavGraph
 import dev.meloda.fast.auth.navigateToAuth
 import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
 import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
+import dev.meloda.fast.conversations.navigation.createChatScreen
+import dev.meloda.fast.conversations.navigation.navigateToCreateChat
 import dev.meloda.fast.languagepicker.navigation.languagePickerScreen
 import dev.meloda.fast.languagepicker.navigation.navigateToLanguagePicker
 import dev.meloda.fast.messageshistory.navigation.messagesHistoryScreen
@@ -124,6 +126,8 @@ fun RootScreen(
                 onSettingsButtonClicked = navController::navigateToSettings,
                 onConversationClicked = navController::navigateToMessagesHistory,
                 onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
+                onMessageClicked = navController::navigateToMessagesHistory,
+                onCreateChatClicked = navController::navigateToCreateChat,
                 viewModel = viewModel
             )
 
@@ -135,6 +139,13 @@ fun RootScreen(
             chatMaterialsScreen(
                 onBack = navController::navigateUp,
                 onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
+            )
+            createChatScreen(
+                onChatCreated = { conversationId ->
+                    navController.popBackStack()
+                    navController.navigateToMessagesHistory(conversationId)
+                },
+                navController = navController
             )
 
             settingsScreen(

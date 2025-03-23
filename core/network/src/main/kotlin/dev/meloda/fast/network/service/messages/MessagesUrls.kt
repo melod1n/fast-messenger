@@ -19,4 +19,5 @@ object MessagesUrls {
     const val GET_CONVERSATIONS_MEMBERS = "${AppConstants.URL_API}/messages.getConversationMembers"
     const val REMOVE_CHAT_USER = "${AppConstants.URL_API}/messages.removeChatUser"
     const val GET_HISTORY_ATTACHMENTS = "${AppConstants.URL_API}/messages.getHistoryAttachments"
+    const val CREATE_CHAT = "${AppConstants.URL_API}/messages.createChat"
 }

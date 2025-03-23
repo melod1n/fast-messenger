@@ -119,7 +119,7 @@
     <string name="post_type_community">Community post</string>
     <string name="post_type_user">User post</string>
     <string name="post_type_unknown">Post</string>
-    <string name="log_out">Log out</string>
+    <string name="action_log_out">Log out</string>
     <string name="confirm">Confirmation</string>
     <string name="sign_out_confirm">Signing out will delete all data related to this account from this device. Continue?</string>
     <string name="yes">Yes</string>
@@ -276,6 +276,11 @@
     <string name="warning_confirmation">Confirmation</string>
     <string name="captcha_exit_warning">Are you sure? Captcha process will be cancelled</string>
     <string name="validation_exit_warning">Are you sure? Validation process will be cancelled</string>
-    <string name="settings_general_enable_pull_to_refresh_title">Enable pull to refresh</string>
     <string name="action_authorize">Authorize</string>
+    <string name="no_online_friends">No one is online</string>
+    <string name="try_again">Try again</string>
+    <string name="session_expired">Session expired</string>
+    <string name="title_create_chat">Create chat</string>
+    <string name="action_create">Create</string>
+    <string name="create_chat_title">Title</string>
 </resources>

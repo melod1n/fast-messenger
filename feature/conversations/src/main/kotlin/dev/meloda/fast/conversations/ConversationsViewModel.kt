@@ -11,10 +11,7 @@ import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
-import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
-import dev.meloda.fast.conversations.model.ConversationsShowOptions
-import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.conversations.util.asPresentation
 import dev.meloda.fast.conversations.util.extractAvatar
 import dev.meloda.fast.data.State
@@ -29,10 +26,11 @@ import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollEvent
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.network.VkErrorCode
+import dev.meloda.fast.ui.model.api.ConversationOption
+import dev.meloda.fast.ui.model.api.ConversationsShowOptions
+import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.ImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +38,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 interface ConversationsViewModel {
@@ -49,7 +46,6 @@ interface ConversationsViewModel {
     val baseError: StateFlow<BaseError?>
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
-    val scrollToTop: StateFlow<Boolean>
 
     fun onPaginationConditionsMet()
 
@@ -70,10 +66,6 @@ interface ConversationsViewModel {
 
     fun setScrollIndex(index: Int)
     fun setScrollOffset(offset: Int)
-
-
-    fun setScrollToTopFlow(scrollToTopFlow: Flow<Int>)
-    fun onScrolledToTop()
 }
 
 class ConversationsViewModelImpl(
@@ -91,12 +83,8 @@ class ConversationsViewModelImpl(
     override val baseError = MutableStateFlow<BaseError?>(null)
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
-    override val scrollToTop = MutableStateFlow(false)
 
-    // TODO: 22-Dec-24, Danil Nikolaev: rewrite
-    private val useContactNames = {
-        userSettings.useContactNames.value
-    }
+    private val useContactNames: Boolean get() = userSettings.useContactNames.value
 
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.conversations.size }
@@ -134,7 +122,7 @@ class ConversationsViewModelImpl(
     }
 
     override fun onRefresh() {
-        baseError.setValue { null }
+        onErrorConsumed()
         loadConversations(offset = 0)
     }
 
@@ -177,11 +165,11 @@ class ConversationsViewModelImpl(
                 conversations = old.conversations.map { item ->
                     item.copy(
                         isExpanded =
-                        if (item.id == conversation.id) {
-                            !item.isExpanded
-                        } else {
-                            false
-                        },
+                            if (item.id == conversation.id) {
+                                !item.isExpanded
+                            } else {
+                                false
+                            },
                         options = ImmutableList.copyOf(options)
                     )
                 }
@@ -200,7 +188,10 @@ class ConversationsViewModelImpl(
         onPinDialogDismissed()
     }
 
-    override fun onOptionClicked(conversation: UiConversation, option: ConversationOption) {
+    override fun onOptionClicked(
+        conversation: UiConversation,
+        option: ConversationOption
+    ) {
         when (option) {
             ConversationOption.Delete -> {
                 emitShowOptions { old ->
@@ -235,20 +226,6 @@ class ConversationsViewModelImpl(
 
     override fun setScrollOffset(offset: Int) {
         screenState.setValue { old -> old.copy(scrollOffset = offset) }
-    }
-
-    override fun setScrollToTopFlow(scrollToTopFlow: Flow<Int>) {
-        scrollToTopFlow.listenValue(viewModelScope) { index ->
-            if (index == 1) {
-                scrollToTop.emit(true)
-            }
-        }
-    }
-
-    override fun onScrolledToTop() {
-        viewModelScope.launch(Dispatchers.Main) {
-            scrollToTop.emit(false)
-        }
     }
 
     private fun hideOptions(conversationId: Int) {
@@ -345,21 +322,25 @@ class ConversationsViewModelImpl(
                     }
                 }
             }
+
             State.Error.ConnectionError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Connection error")
                 }
             }
+
             State.Error.InternalError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Internal error")
                 }
             }
+
             State.Error.UnknownError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Unknown error")
                 }
             }
+
             else -> Unit
         }
     }
@@ -383,7 +364,7 @@ class ConversationsViewModelImpl(
                             conversations = newConversations.map {
                                 it.asPresentation(
                                     resources = resources,
-                                    useContactName = useContactNames()
+                                    useContactName = useContactNames
                                 )
                             }
                         )
@@ -447,7 +428,7 @@ class ConversationsViewModelImpl(
                                     conversations = newConversations.map {
                                         it.asPresentation(
                                             resources = resources,
-                                            useContactName = useContactNames()
+                                            useContactName = useContactNames
                                         )
                                     }
                                 )
@@ -498,7 +479,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -527,7 +508,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -557,7 +538,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -586,7 +567,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -632,7 +613,7 @@ class ConversationsViewModelImpl(
                 old.copy(conversations = newConversations.map {
                     it.asPresentation(
                         resources = resources,
-                        useContactName = useContactNames()
+                        useContactName = useContactNames
                     )
                 })
             }
@@ -673,7 +654,7 @@ class ConversationsViewModelImpl(
                     conversations = newConversations.map {
                         it.asPresentation(
                             resources = resources,
-                            useContactName = useContactNames()
+                            useContactName = useContactNames
                         )
                     }
                 )
@@ -724,7 +705,7 @@ class ConversationsViewModelImpl(
                 conversations = newConversations.map {
                     it.asPresentation(
                         resources = resources,
-                        useContactName = useContactNames()
+                        useContactName = useContactNames
                     )
                 }
             )
@@ -758,7 +739,7 @@ class ConversationsViewModelImpl(
                             conversations = newConversations.map {
                                 it.asPresentation(
                                     resources = resources,
-                                    useContactName = useContactNames()
+                                    useContactName = useContactNames
                                 )
                             }
                         )

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkConversation
 
 @Immutable
 data class MessagesHistoryScreenState(
@@ -18,7 +19,8 @@ data class MessagesHistoryScreenState(
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean,
     val actionMode: ActionMode,
-    val chatImageUrl: String?
+    val chatImageUrl: String?,
+    val conversation: VkConversation
 ) {
 
     companion object {
@@ -34,7 +36,8 @@ data class MessagesHistoryScreenState(
             isPaginating = false,
             isPaginationExhausted = false,
             actionMode = ActionMode.Record,
-            chatImageUrl = null
+            chatImageUrl = null,
+            conversation = VkConversation.EMPTY
         )
     }
 }

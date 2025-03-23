@@ -2,7 +2,6 @@ package dev.meloda.fast.conversations.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -48,12 +47,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -62,28 +59,26 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.ConversationsViewModel
-import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
-import dev.meloda.fast.conversations.model.UiConversation
-import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.model.api.ConversationOption
+import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.launch
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -91,12 +86,12 @@ fun ConversationsRoute(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit,
     onConversationPhotoClicked: (url: String) -> Unit,
+    onCreateChatButtonClicked: () -> Unit,
     viewModel: ConversationsViewModel
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-    val isNeedToScrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
     ConversationsScreen(
         screenState = screenState,
@@ -113,10 +108,9 @@ fun ConversationsRoute(
         onRefreshDropdownItemClicked = viewModel::onRefresh,
         onRefresh = viewModel::onRefresh,
         onConversationPhotoClicked = onConversationPhotoClicked,
+        onCreateChatButtonClicked = onCreateChatButtonClicked,
         setScrollIndex = viewModel::setScrollIndex,
-        setScrollOffset = viewModel::setScrollOffset,
-        isNeedToScrollToTop = isNeedToScrollToTop,
-        onScrolledToTop = viewModel::onScrolledToTop
+        setScrollOffset = viewModel::setScrollOffset
     )
 
     HandleDialogs(
@@ -134,7 +128,7 @@ fun ConversationsScreen(
     screenState: ConversationsScreenState = ConversationsScreenState.EMPTY,
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
-    onSessionExpiredLogOutButtonClicked: () -> Unit,
+    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onConversationItemClicked: (conversationId: Int) -> Unit = {},
     onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
     onOptionClicked: (UiConversation, ConversationOption) -> Unit = { _, _ -> },
@@ -142,10 +136,9 @@ fun ConversationsScreen(
     onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onConversationPhotoClicked: (url: String) -> Unit = {},
+    onCreateChatButtonClicked: () -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
-    setScrollOffset: (Int) -> Unit = {},
-    isNeedToScrollToTop: Boolean = false,
-    onScrolledToTop: () -> Unit = {}
+    setScrollOffset: (Int) -> Unit = {}
 ) {
     val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
@@ -158,14 +151,6 @@ fun ConversationsScreen(
         initialFirstVisibleItemIndex = screenState.scrollIndex,
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
-
-    LaunchedEffect(isNeedToScrollToTop) {
-        if (isNeedToScrollToTop) {
-            listState.scrollToItem(0)
-            onScrolledToTop()
-
-        }
-    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -207,10 +192,10 @@ fun ConversationsScreen(
 
     val toolbarContainerColor by animateColorAsState(
         targetValue =
-        if (currentTheme.enableBlur || !listState.canScrollBackward)
-            MaterialTheme.colorScheme.surface
-        else
-            MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+            if (currentTheme.enableBlur || !listState.canScrollBackward)
+                MaterialTheme.colorScheme.surface
+            else
+                MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
         animationSpec = tween(durationMillis = 50)
     )
@@ -275,7 +260,7 @@ fun ConversationsScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.hazeChild(
+                                Modifier.hazeEffect(
                                     state = hazeState,
                                     style = HazeMaterials.thick()
                                 )
@@ -296,37 +281,13 @@ fun ConversationsScreen(
             }
         },
         floatingActionButton = {
-            val scope = rememberCoroutineScope()
-            val rotation = remember { Animatable(0f) }
-
             Column {
                 AnimatedVisibility(
                     visible = listState.isScrollingUp(),
                     enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
                     exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
                 ) {
-                    FloatingActionButton(
-                        onClick = {
-                            if (AppSettings.General.enableHaptic) {
-                                view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
-                            }
-                            scope.launch {
-                                for (i in 20 downTo 0 step 4) {
-                                    rotation.animateTo(
-                                        targetValue = i.toFloat(),
-                                        animationSpec = tween(50)
-                                    )
-                                    if (i > 0) {
-                                        rotation.animateTo(
-                                            targetValue = -i.toFloat(),
-                                            animationSpec = tween(50)
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier.rotate(rotation.value)
-                    ) {
+                    FloatingActionButton(onClick = onCreateChatButtonClicked) {
                         Icon(
                             painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
                             contentDescription = "Add chat button"
@@ -343,8 +304,8 @@ fun ConversationsScreen(
                 when (baseError) {
                     is BaseError.SessionExpired -> {
                         ErrorView(
-                            text = "Session expired",
-                            buttonText = "Log out",
+                            text = stringResource(UiR.string.session_expired),
+                            buttonText = stringResource(UiR.string.action_log_out),
                             onButtonClick = onSessionExpiredLogOutButtonClicked
                         )
                     }
@@ -352,7 +313,7 @@ fun ConversationsScreen(
                     is BaseError.SimpleError -> {
                         ErrorView(
                             text = baseError.message,
-                            buttonText = "Try again",
+                            buttonText = stringResource(UiR.string.try_again),
                             onButtonClick = onRefresh
                         )
                     }
@@ -390,7 +351,7 @@ fun ConversationsScreen(
                         state = listState,
                         maxLines = maxLines,
                         modifier = if (currentTheme.enableBlur) {
-                            Modifier.haze(state = hazeState)
+                            Modifier.hazeSource(state = hazeState)
                         } else {
                             Modifier
                         }.fillMaxSize(),
@@ -398,6 +359,13 @@ fun ConversationsScreen(
                         padding = padding,
                         onPhotoClicked = onConversationPhotoClicked
                     )
+
+                    if (screenState.conversations.isEmpty()) {
+                        NoItemsView(
+                            buttonText = stringResource(UiR.string.action_refresh),
+                            onButtonClick = onRefresh
+                        )
+                    }
                 }
             }
         }
@@ -422,9 +390,7 @@ fun HandleDialogs(
         )
     }
 
-    if (showOptions.showPinDialog != null) {
-        val conversation = showOptions.showPinDialog
-
+    showOptions.showPinDialog?.let { conversation ->
         MaterialDialog(
             onDismissRequest = viewModel::onPinDialogDismissed,
             title = stringResource(

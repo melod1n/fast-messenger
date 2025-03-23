@@ -19,13 +19,16 @@ dependencyResolutionManagement {
 rootProject.name = "fast-messenger"
 
 include(":app")
+
 include(":core:network")
 include(":core:data")
 include(":core:database")
 include(":core:datastore")
 include(":core:ui")
 include(":core:common")
+include(":core:domain")
 include(":core:model")
+
 include(":feature:messageshistory")
 include(":feature:conversations")
 include(":feature:auth")
@@ -35,4 +38,5 @@ include(":feature:photoviewer")
 include(":feature:settings")
 include(":feature:friends")
 include(":feature:profile")
-include(":core:domain")
+include(":feature:createchat")
+include(":core:presentation")

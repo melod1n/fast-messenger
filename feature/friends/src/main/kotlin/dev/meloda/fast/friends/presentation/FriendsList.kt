@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -23,8 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.friends.model.FriendsScreenState
-import dev.meloda.fast.friends.model.UiFriend
-import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.model.api.UiFriend
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +36,7 @@ fun FriendsList(
     maxLines: Int,
     padding: PaddingValues,
     onPhotoClicked: (url: String) -> Unit,
+    onMessageClicked: (userId: Int) -> Unit,
     setCanScrollBackward: (Boolean) -> Unit
 ) {
     LaunchedEffect(listState) {
@@ -48,8 +47,6 @@ fun FriendsList(
     val coroutineScope = rememberCoroutineScope()
 
     val friends = uiFriends.toList()
-
-    val bottomPadding = LocalBottomPadding.current
 
     LazyColumn(
         modifier = modifier,
@@ -67,7 +64,8 @@ fun FriendsList(
             FriendItem(
                 friend = friend,
                 maxLines = maxLines,
-                onPhotoClicked = onPhotoClicked
+                onPhotoClicked = onPhotoClicked,
+                onMessageClicked = onMessageClicked
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -77,8 +75,7 @@ fun FriendsList(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    .navigationBarsPadding(),
+                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (screenState.isPaginating) {
@@ -101,11 +98,9 @@ fun FriendsList(
                         )
                     }
                 }
-            }
-        }
 
-        item {
-            Spacer(modifier = Modifier.height(bottomPadding))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }

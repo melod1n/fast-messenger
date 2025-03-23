@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -23,10 +22,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.meloda.fast.conversations.model.ConversationOption
 import dev.meloda.fast.conversations.model.ConversationsScreenState
-import dev.meloda.fast.conversations.model.UiConversation
 import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.ui.model.api.ConversationOption
+import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,8 +82,7 @@ fun ConversationsList(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateItem(fadeInSpec = null, fadeOutSpec = null)
-                    .navigationBarsPadding(),
+                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (screenState.isPaginating) {
@@ -107,11 +105,9 @@ fun ConversationsList(
                         )
                     }
                 }
-            }
-        }
 
-        item {
-            Spacer(modifier = Modifier.height(bottomPadding))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }

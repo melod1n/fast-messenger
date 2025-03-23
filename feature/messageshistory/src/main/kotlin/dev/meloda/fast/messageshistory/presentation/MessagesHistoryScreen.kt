@@ -159,7 +159,7 @@ fun MessagesHistoryScreen(
 
     val listState = rememberLazyListState()
 
-    val paginationConditionMet by remember {
+    val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
             canPaginate &&
                     (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
@@ -282,6 +282,7 @@ fun MessagesHistoryScreen(
 
                                     // TODO: 11/07/2024, Danil Nikolaev: to VM
 
+                                    // TODO: 23-Mar-25, Danil Nikolaev: crash if not messages (ex. new chat)
                                     onChatMaterialsDropdownItemClicked(
                                         screenState.conversationId,
                                         screenState.messages.firstMessage().conversationMessageId
