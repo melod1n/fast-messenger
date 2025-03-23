@@ -32,7 +32,7 @@ import dev.meloda.fast.messageshistory.util.extractAvatar
 import dev.meloda.fast.messageshistory.util.extractTitle
 import dev.meloda.fast.messageshistory.util.findMessageById
 import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.model.LongPollEvent
+import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.Dispatchers
@@ -158,7 +158,7 @@ class MessagesHistoryViewModelImpl(
         loadMessagesHistory()
     }
 
-    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+    private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
         val message = event.message
 
         Log.d("MessagesHistoryViewModel", "handleNewMessage: $message")
@@ -200,7 +200,7 @@ class MessagesHistoryViewModelImpl(
         screenState.setValue { old -> old.copy(messages = newMessages) }
     }
 
-    private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+    private fun handleEditedMessage(event: LongPollParsedEvent.MessageEdited) {
         val message = event.message
         if (message.peerId != screenState.value.conversationId) return
 
@@ -223,7 +223,7 @@ class MessagesHistoryViewModelImpl(
             }
     }
 
-    private fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
+    private fun handleReadIncomingEvent(event: LongPollParsedEvent.IncomingMessageRead) {
         if (event.peerId != screenState.value.conversationId) return
 
         val messages = messages.value
@@ -257,7 +257,7 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
-    private fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+    private fun handleReadOutgoingEvent(event: LongPollParsedEvent.OutgoingMessageRead) {
         if (event.peerId != screenState.value.conversationId) return
 
         val messages = messages.value

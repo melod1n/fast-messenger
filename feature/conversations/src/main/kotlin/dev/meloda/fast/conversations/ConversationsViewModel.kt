@@ -23,7 +23,7 @@ import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.InteractionType
-import dev.meloda.fast.model.LongPollEvent
+import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.network.VkErrorCode
 import dev.meloda.fast.ui.model.api.ConversationOption
@@ -104,8 +104,10 @@ class ConversationsViewModelImpl(
         updatesParser.onMessageEdited(::handleEditedMessage)
         updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
         updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
-        updatesParser.onConversationPinStateChanged(::handlePinStateChanged)
         updatesParser.onInteractions(::handleInteraction)
+        updatesParser.onChatMajorChanged(::handleChatMajorChanged)
+        updatesParser.onChatMinorChanged(::handleChatMinorChanged)
+        updatesParser.onChatCleared(::handleChatClearing)
 
         loadConversations()
     }
@@ -383,11 +385,11 @@ class ConversationsViewModelImpl(
 
                     },
                     success = {
-                        handlePinStateChanged(
-                            LongPollEvent.VkConversationPinStateChangedEvent(
+                        handleChatMajorChanged(
+                            LongPollParsedEvent.ChatMajorChanged(
                                 peerId = peerId,
                                 majorId = if (pin) {
-                                    (pinnedConversationsCount.value + 1) * 16
+                                    pinnedConversationsCount.value.plus(1) * 16
                                 } else {
                                     0
                                 }
@@ -400,7 +402,7 @@ class ConversationsViewModelImpl(
             }
     }
 
-    private fun handleNewMessage(event: LongPollEvent.VkMessageNewEvent) {
+    private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
         val message = event.message
 
         val newConversations = conversations.value.toMutableList()
@@ -487,7 +489,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun handleEditedMessage(event: LongPollEvent.VkMessageEditEvent) {
+    private fun handleEditedMessage(event: LongPollParsedEvent.MessageEdited) {
         val message = event.message
         val newConversations = conversations.value.toMutableList()
 
@@ -516,7 +518,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun handleReadIncomingMessage(event: LongPollEvent.VkMessageReadIncomingEvent) {
+    private fun handleReadIncomingMessage(event: LongPollParsedEvent.IncomingMessageRead) {
         val newConversations = conversations.value.toMutableList()
 
         val conversationIndex =
@@ -546,7 +548,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun handleReadOutgoingMessage(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+    private fun handleReadOutgoingMessage(event: LongPollParsedEvent.OutgoingMessageRead) {
         val newConversations = conversations.value.toMutableList()
 
         val conversationIndex =
@@ -575,47 +577,113 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun handlePinStateChanged(event: LongPollEvent.VkConversationPinStateChangedEvent) {
-        var pinnedCount = pinnedConversationsCount.value
+    private fun handleChatMajorChanged(event: LongPollParsedEvent.ChatMajorChanged) {
         val newConversations = conversations.value.toMutableList()
-
         val conversationIndex =
             newConversations.indexOfFirstOrNull { it.id == event.peerId }
 
         if (conversationIndex == null) { // диалога нет в списке
             // pizdets
         } else {
-            val pin = event.majorId > 0
+            newConversations[conversationIndex] =
+                newConversations[conversationIndex].copy(majorId = event.majorId)
 
-            val conversation = newConversations[conversationIndex].copy(majorId = event.majorId)
+            conversations.setValue { newConversations }
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames
+                        )
+                    }
+                )
+            }
+            sortConversations()
+        }
+    }
 
-            newConversations.removeAt(conversationIndex)
+    private fun handleChatMinorChanged(event: LongPollParsedEvent.ChatMinorChanged) {
+        val newConversations = conversations.value.toMutableList()
+        val conversationIndex =
+            newConversations.indexOfFirstOrNull { it.id == event.peerId }
 
-            if (pin) {
-                newConversations.add(0, conversation)
-            } else {
-                pinnedCount -= 1
+        if (conversationIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            newConversations[conversationIndex] =
+                newConversations[conversationIndex].copy(minorId = event.minorId)
 
-                newConversations.add(conversation)
+            conversations.setValue { newConversations }
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames
+                        )
+                    }
+                )
+            }
+            sortConversations()
+        }
+    }
 
-                val pinnedSubList = newConversations.filter(VkConversation::isPinned)
-                val unpinnedSubList = newConversations
-                    .filterNot(VkConversation::isPinned)
-                    .sortedByDescending { it.lastMessage?.date }
+    private fun sortConversations() {
+        val newConversations = conversations.value.toMutableList()
+        val pinnedConversations = newConversations
+            .filter(VkConversation::isPinned)
+            .sortedWith { c1, c2 ->
+                val diff = c2.majorId - c1.majorId
 
-                newConversations.clear()
-                newConversations += pinnedSubList + unpinnedSubList
+                if (diff == 0) {
+                    c2.minorId - c1.minorId
+                } else {
+                    diff
+                }
             }
 
-            conversations.update { newConversations }
+        newConversations.removeAll(pinnedConversations)
+        newConversations.sortWith { c1, c2 ->
+            (c2.lastMessage?.date ?: 0) - (c1.lastMessage?.date ?: 0)
+        }
 
-            screenState.setValue { old ->
-                old.copy(conversations = newConversations.map {
+        newConversations.addAll(0, pinnedConversations)
+
+        conversations.update { newConversations }
+        screenState.setValue { old ->
+            old.copy(
+                conversations = newConversations.map {
                     it.asPresentation(
                         resources = resources,
                         useContactName = useContactNames
                     )
-                })
+                }
+            )
+        }
+    }
+
+    private fun handleChatClearing(event: LongPollParsedEvent.ChatCleared) {
+        val newConversations = conversations.value.toMutableList()
+
+        val conversationIndex = newConversations.indexOfFirstOrNull { it.id == event.peerId }
+
+        if (conversationIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            newConversations.removeAt(conversationIndex)
+
+            conversations.setValue { newConversations }
+
+            screenState.setValue { old ->
+                old.copy(
+                    conversations = newConversations.map {
+                        it.asPresentation(
+                            resources = resources,
+                            useContactName = useContactNames
+                        )
+                    }
+                )
             }
         }
     }
@@ -629,7 +697,7 @@ class ConversationsViewModelImpl(
 
     private object NewInteractionException : CancellationException()
 
-    private fun handleInteraction(event: LongPollEvent.Interaction) {
+    private fun handleInteraction(event: LongPollParsedEvent.Interaction) {
         val interactionType = event.interactionType
         val peerId = event.peerId
         val userIds = event.userIds

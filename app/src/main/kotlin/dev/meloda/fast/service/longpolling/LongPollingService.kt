@@ -16,11 +16,11 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.model.LongPollState
-import dev.meloda.fast.domain.LongPollUpdatesParser
-import dev.meloda.fast.domain.LongPollUseCase
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.LongPollUpdatesParser
+import dev.meloda.fast.domain.LongPollUseCase
 import dev.meloda.fast.model.api.data.LongPollUpdates
 import dev.meloda.fast.model.api.data.VkLongPollData
 import dev.meloda.fast.ui.R
@@ -249,6 +249,7 @@ class LongPollingService : Service() {
     override fun onDestroy() {
         Log.d(STATE_TAG, "onDestroy")
         longPollController.updateCurrentState(LongPollState.Stopped)
+        updatesParser.clearListeners()
         try {
             AppSettings.edit { putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true) }
             job.cancel()
@@ -259,8 +260,7 @@ class LongPollingService : Service() {
     }
 
     override fun onTrimMemory(level: Int) {
-        Log.d(STATE_TAG, "onTrimMemory")
-        longPollController.updateCurrentState(LongPollState.Stopped)
+        Log.d(STATE_TAG, "onTrimMemory. Level: $level")
         super.onTrimMemory(level)
     }
 
