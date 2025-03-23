@@ -18,15 +18,18 @@ Unofficial messenger for russian social network VKontakte
         - [ ] Archive & unarchive conversations
 - [x] Friends list
     - [ ] Sort alphabetically, by priority or random
-    - [ ] Separate tab with only friends who are online
+    - [x] Separate tab with only friends who are online
 - [x] Settings screen
     - [ ] TODO
 - [x] Chat screen
-    - [ ] Pagination
+    - [x] Pagination
     - [x] Manual refresh
     - [x] Message bubbles
         - [x] Text
-        - [ ] Date
+        - [x] Date
+        - [x] Read status
+        - [x] Edit status
+        - [x] Sending status
         - [ ] Message's attachments
             - [ ] Photo
             - [ ] Video
