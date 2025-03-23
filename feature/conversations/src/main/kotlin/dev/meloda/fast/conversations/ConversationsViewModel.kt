@@ -350,9 +350,7 @@ class ConversationsViewModelImpl(
     private fun deleteConversation(peerId: Int) {
         conversationsUseCase.delete(peerId).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
-
-                },
+                error = {},
                 success = {
                     val newConversations = conversations.value.toMutableList()
                     val conversationIndex =
@@ -361,16 +359,7 @@ class ConversationsViewModelImpl(
 
                     newConversations.removeAt(conversationIndex)
                     conversations.update { newConversations }
-                    screenState.setValue { old ->
-                        old.copy(
-                            conversations = newConversations.map {
-                                it.asPresentation(
-                                    resources = resources,
-                                    useContactName = useContactNames
-                                )
-                            }
-                        )
-                    }
+                    sortConversations()
                 }
             )
             screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
@@ -381,9 +370,7 @@ class ConversationsViewModelImpl(
         conversationsUseCase.changePinState(peerId, pin)
             .listenValue(viewModelScope) { state ->
                 state.processState(
-                    error = { error ->
-
-                    },
+                    error = {},
                     success = {
                         handleChatMajorChanged(
                             LongPollParsedEvent.ChatMajorChanged(
@@ -413,28 +400,14 @@ class ConversationsViewModelImpl(
             loadConversationsByIdUseCase(peerIds = listOf(message.peerId))
                 .listenValue(viewModelScope) { state ->
                     state.processState(
-                        error = { error ->
-
-                        },
+                        error = {},
                         success = { response ->
                             val conversation = (response.firstOrNull() ?: return@listenValue)
                                 .copy(lastMessage = message)
 
-                            // TODO: 22-Dec-24, Danil Nikolaev: handle interactions and pinned state
-
                             newConversations.add(pinnedConversationsCount.value, conversation)
                             conversations.update { newConversations }
-
-                            screenState.setValue { old ->
-                                old.copy(
-                                    conversations = newConversations.map {
-                                        it.asPresentation(
-                                            resources = resources,
-                                            useContactName = useContactNames
-                                        )
-                                    }
-                                )
-                            }
+                            sortConversations()
                         }
                     )
                 }
@@ -695,7 +668,7 @@ class ConversationsViewModelImpl(
         val timerJob: Job
     )
 
-    private object NewInteractionException : CancellationException()
+    private class NewInteractionException : CancellationException()
 
     private fun handleInteraction(event: LongPollParsedEvent.Interaction) {
         val interactionType = event.interactionType
@@ -706,9 +679,7 @@ class ConversationsViewModelImpl(
         val conversationAndIndex =
             newConversations.findWithIndex { it.id == peerId }
 
-        if (conversationAndIndex == null) { // диалога нет в списке
-            // pizdets
-        } else {
+        if (conversationAndIndex != null) {
             newConversations[conversationAndIndex.first] =
                 conversationAndIndex.second.copy(
                     interactionType = interactionType.value,
@@ -730,7 +701,7 @@ class ConversationsViewModelImpl(
 
             interactionsTimers[peerId]?.let { interactionJob ->
                 if (interactionJob.interactionType == interactionType) {
-                    interactionJob.timerJob.cancel(NewInteractionException)
+                    interactionJob.timerJob.cancel(NewInteractionException())
                 }
             }
 
@@ -789,9 +760,7 @@ class ConversationsViewModelImpl(
             startMessageId = startMessageId
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
-
-                },
+                error = {},
                 success = {
                     val newConversations = conversations.value.toMutableList()
                     val conversationIndex =
