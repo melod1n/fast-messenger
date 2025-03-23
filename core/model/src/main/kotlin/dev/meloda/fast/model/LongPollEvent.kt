@@ -32,4 +32,14 @@ sealed interface LongPollEvent {
         val totalCount: Int,
         val timestamp: Int
     ) : LongPollEvent
+
+    data class UnreadCounter(
+        val unread: Int,
+        val unreadUnmuted: Int,
+        val showOnlyMuted: Boolean,
+        val business: Int,
+        val archive: Int,
+        val archiveUnmuted: Int,
+        val archiveMentions: Int
+    ): LongPollEvent
 }
