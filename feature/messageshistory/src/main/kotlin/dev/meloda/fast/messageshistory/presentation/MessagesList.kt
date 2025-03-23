@@ -98,6 +98,7 @@ fun MessagesList(
                                     else Modifier
                                 ),
                             message = item,
+                            animate = enableAnimations
                         )
                     } else {
                         IncomingMessageBubble(
@@ -110,6 +111,7 @@ fun MessagesList(
                                     else Modifier
                                 ),
                             message = item,
+                            animate = enableAnimations
                         )
                     }
                 }

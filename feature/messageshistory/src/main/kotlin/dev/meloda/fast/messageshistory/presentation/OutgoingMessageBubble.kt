@@ -3,12 +3,8 @@ package dev.meloda.fast.messageshistory.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +16,7 @@ import dev.meloda.fast.messageshistory.model.UiItem
 fun OutgoingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiItem.Message,
+    animate: Boolean
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -37,18 +34,11 @@ fun OutgoingMessageBubble(
                 modifier = Modifier,
                 text = message.text.orDots(),
                 isOut = true,
-                date = null,
+                date = message.date,
                 edited = message.isEdited,
+                animate = animate,
+                isRead = message.isRead
             )
-
-            if (message.showDate) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    modifier = Modifier.padding(end = 12.dp),
-                    text = message.date,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
         }
     }
 }

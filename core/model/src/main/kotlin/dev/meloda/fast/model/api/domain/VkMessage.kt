@@ -38,12 +38,11 @@ data class VkMessage(
 
     fun isGroup() = fromId < 0
 
-    fun isRead(conversation: VkConversation) =
-        if (isOut) {
-            conversation.outRead - id >= 0
-        } else {
-            conversation.inRead - id >= 0
-        }
+    fun isRead(conversation: VkConversation): Boolean = when {
+        id <= 0 -> false
+        isOut -> conversation.outRead - id >= 0
+        else -> conversation.inRead - id >= 0
+    }
 
     fun hasAttachments(): Boolean = attachments.orEmpty().isNotEmpty()
 

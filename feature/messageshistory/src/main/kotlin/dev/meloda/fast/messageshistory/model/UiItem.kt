@@ -22,7 +22,8 @@ sealed class UiItem(
         val showAvatar: Boolean,
         val showName: Boolean,
         val avatar: UiImage,
-        val isEdited: Boolean
+        val isEdited: Boolean,
+        val isRead: Boolean
     ) : UiItem(id, conversationMessageId)
 
     data class ActionMessage(
@@ -32,4 +33,3 @@ sealed class UiItem(
         val actionCmId: Int?
     ) : UiItem(id, conversationMessageId)
 }
-

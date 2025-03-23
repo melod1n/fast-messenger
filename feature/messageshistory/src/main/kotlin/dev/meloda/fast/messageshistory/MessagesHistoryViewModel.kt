@@ -177,22 +177,22 @@ class MessagesHistoryViewModelImpl(
 
         val newMessage = message.asPresentation(
             resourceProvider = resourceProvider,
-            showDate = false,
             showName = false,
             prevMessage = prevMessage,
             nextMessage = null,
-            showTimeInActionMessages = userSettings.showTimeInActionMessages.value
+            showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+            conversation = screenState.value.conversation,
         )
         newMessages.add(0, newMessage)
 
         prevMessage?.let { prev ->
             newMessages[1] = prev.asPresentation(
                 resourceProvider = resourceProvider,
-                showDate = false,
                 showName = false,
                 prevMessage = prevMessage,
                 nextMessage = messages.value.first(),
-                showTimeInActionMessages = userSettings.showTimeInActionMessages.value
+                showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+                conversation = screenState.value.conversation
             )
         }
 
@@ -208,11 +208,11 @@ class MessagesHistoryViewModelImpl(
             ?.let { index ->
                 val newMessage = message.asPresentation(
                     resourceProvider = resourceProvider,
-                    showDate = false,
                     showName = false,
                     prevMessage = messages.value.getOrNull(index + 1),
                     nextMessage = messages.value.getOrNull(index - 1),
-                    showTimeInActionMessages = userSettings.showTimeInActionMessages.value
+                    showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+                    conversation = screenState.value.conversation
                 )
 
                 val newMessages = screenState.value.messages.toMutableList()
@@ -227,7 +227,37 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
+        if (event.peerId != screenState.value.conversationId) return
 
+        val messages = messages.value
+        val messageIndex =
+            messages.indexOfFirstOrNull { it.id == event.messageId }
+
+        if (messageIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            val newConversation = screenState.value.conversation.copy(
+                outRead = event.messageId
+            )
+
+            val uiMessages = messages.mapIndexed { index, item ->
+                item.asPresentation(
+                    resourceProvider = resourceProvider,
+                    showName = false,
+                    prevMessage = messages.getOrNull(index + 1),
+                    nextMessage = messages.getOrNull(index - 1),
+                    showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+                    conversation = newConversation
+                )
+            }
+
+            screenState.setValue { old ->
+                old.copy(
+                    conversation = newConversation,
+                    messages = uiMessages,
+                )
+            }
+        }
     }
 
     private fun loadMessagesHistory(offset: Int = currentOffset.value) {
@@ -239,9 +269,7 @@ class MessagesHistoryViewModelImpl(
             offset = offset,
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
-
-                },
+                error = { error -> },
                 success = { response ->
                     val messages = response.messages
                     val fullMessages = if (offset == 0) {
@@ -259,16 +287,6 @@ class MessagesHistoryViewModelImpl(
                     messagesUseCase.storeMessages(messages)
                     conversationsUseCase.storeConversations(conversations)
 
-                    val loadedMessages = fullMessages.mapIndexed { index, message ->
-                        message.asPresentation(
-                            resourceProvider = resourceProvider,
-                            showDate = false,
-                            showName = false,
-                            prevMessage = messages.getOrNull(index + 1),
-                            nextMessage = messages.getOrNull(index - 1),
-                            showTimeInActionMessages = userSettings.showTimeInActionMessages.value
-                        )
-                    }
 
                     val itemsCountSufficient = messages.size == MESSAGES_LOAD_COUNT
 
@@ -281,14 +299,27 @@ class MessagesHistoryViewModelImpl(
                     conversations
                         .firstOrNull { it.id == screenState.value.conversationId }
                         ?.let { conversation ->
+                            screenState.setValue { old -> old.copy(conversation = conversation) }
                             newState = newState.copy(
                                 title = conversation.extractTitle(
                                     useContactName = AppSettings.General.useContactNames,
                                     resources = resourceProvider.resources
                                 ),
-                                avatar = conversation.extractAvatar()
+                                avatar = conversation.extractAvatar(),
+                                conversation = conversation
                             )
                         }
+
+                    val loadedMessages = fullMessages.mapIndexed { index, message ->
+                        message.asPresentation(
+                            resourceProvider = resourceProvider,
+                            showName = false,
+                            prevMessage = messages.getOrNull(index + 1),
+                            nextMessage = messages.getOrNull(index - 1),
+                            showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+                            conversation = screenState.value.conversation
+                        )
+                    }
 
                     this.messages.emit(fullMessages)
                     screenState.setValue { newState.copy(messages = loadedMessages) }
@@ -350,17 +381,13 @@ class MessagesHistoryViewModelImpl(
         val newMessages = screenState.value.messages.toMutableList()
         val newUiMessage = newMessage.asPresentation(
             resourceProvider = resourceProvider,
-            showDate = false,
             showName = false,
             prevMessage = messages.value.firstOrNull(),
             nextMessage = null,
-            showTimeInActionMessages = userSettings.showTimeInActionMessages.value
+            showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+            conversation = screenState.value.conversation
         )
         newMessages.add(0, newUiMessage)
-
-        messages.setValue { old ->
-            listOf(newMessage).plus(old)
-        }
 
         screenState.setValue { old ->
             old.copy(
@@ -382,17 +409,22 @@ class MessagesHistoryViewModelImpl(
                     sendingMessages -= newMessage
                 },
                 success = { messageId ->
-                    sendingMessages += newMessage
+                    sendingMessages -= newMessage
 
-                    val messages = screenState.value.messages.toMutableList()
+                    val uiMessages = screenState.value.messages.toMutableList()
+                    messages.setValue { old ->
+                        listOf(newMessage.copy(id = messageId)).plus(old)
+                    }
 
-                    messages.indexOfOrNull(newUiMessage)?.let { index ->
-                        (messages[index] as? UiItem.Message)?.let { message ->
-                            messages[index] = message.copy(id = messageId)
+                    uiMessages.indexOfOrNull(newUiMessage)?.let { index ->
+                        (uiMessages[index] as? UiItem.Message)?.let { message ->
+                            uiMessages[index] = message
+                                .copy(id = messageId)
+                                .copy(isRead = newMessage.isRead(screenState.value.conversation))
                         }
                     }
 
-                    screenState.setValue { old -> old.copy(messages = messages) }
+                    screenState.setValue { old -> old.copy(messages = uiMessages) }
                 }
             )
         }
@@ -511,11 +543,11 @@ class MessagesHistoryViewModelImpl(
         val uiMessages = messages.mapIndexed { index, item ->
             item.asPresentation(
                 resourceProvider = resourceProvider,
-                showDate = false,
                 showName = false,
                 prevMessage = messages.getOrNull(index + 1),
                 nextMessage = messages.getOrNull(index - 1),
-                showTimeInActionMessages = show
+                showTimeInActionMessages = show,
+                conversation = screenState.value.conversation
             )
         }
 
