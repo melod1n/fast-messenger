@@ -35,13 +35,12 @@ class LongPollUpdatesParser(
 
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    private val listenersMap: MutableMap<ApiEvent, MutableCollection<VkEventCallback<*>>> =
-        mutableMapOf()
+    private val listenersMap: MutableMap<ApiEvent, MutableList<VkEventCallback<*>>> = mutableMapOf()
 
     fun parseNextUpdate(event: List<Any>) {
         val eventId = event.first().asInt()
 
-        when (val eventType =  ApiEvent.parseOrNull(eventId)) {
+        when (val eventType = ApiEvent.parseOrNull(eventId)) {
             null -> Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
 
             ApiEvent.MESSAGE_SET_FLAGS -> parseMessageSetFlags(eventType, event)
@@ -59,12 +58,8 @@ class LongPollUpdatesParser(
             ApiEvent.VIDEO_UPLOADING,
             ApiEvent.FILE_UPLOADING -> parseInteraction(eventType, event)
 
-            ApiEvent.UNREAD_COUNT_UPDATE -> onNewEvent(eventType, event)
+            ApiEvent.UNREAD_COUNT_UPDATE -> parseUnreadCounterUpdate(eventType, event)
         }
-    }
-
-    private fun onNewEvent(eventType: ApiEvent, event: List<Any>) {
-        Log.d("LongPollUpdatesParser", "newEvent: $eventType: $event")
     }
 
     private fun parseInteraction(eventType: ApiEvent, event: List<Any>) {
@@ -105,23 +100,50 @@ class LongPollUpdatesParser(
         }
     }
 
+    private fun parseUnreadCounterUpdate(eventType: ApiEvent, event: List<Any>) {
+        Log.d("LongPollUpdatesParser", "$eventType $event")
+
+        val unreadCount = event[1].asInt()
+        val unreadUnmutedCount = event[2].asInt()
+        val showOnlyMuted = event[3].asInt() == 1
+        val businessNotifyUnreadCount = event[4].asInt()
+        val archiveUnreadCount = event[7].asInt()
+        val archiveUnreadUnmutedCount = event[8].asInt()
+        val archiveMentionsCount = event[9].asInt()
+
+        listenersMap[ApiEvent.UNREAD_COUNT_UPDATE]?.let { listeners ->
+            listeners.forEach { vkEventCallback ->
+                (vkEventCallback as VkEventCallback<LongPollEvent.UnreadCounter>)
+                    .onEvent(
+                        LongPollEvent.UnreadCounter(
+                            unread = unreadCount,
+                            unreadUnmuted = unreadUnmutedCount,
+                            showOnlyMuted = showOnlyMuted,
+                            business = businessNotifyUnreadCount,
+                            archive = archiveUnreadCount,
+                            archiveUnmuted = archiveUnreadUnmutedCount,
+                            archiveMentions = archiveMentionsCount
+                        )
+                    )
+            }
+        }
+    }
+
     private fun parseConversationPinStateChanged(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val peerId = event[1].asInt()
         val majorId = event[2].asInt()
 
-        coroutineScope.launch {
-            listenersMap[ApiEvent.PIN_UNPIN_CONVERSATION]?.let { listeners ->
-                listeners.forEach { vkEventCallback ->
-                    (vkEventCallback as VkEventCallback<LongPollEvent.VkConversationPinStateChangedEvent>)
-                        .onEvent(
-                            LongPollEvent.VkConversationPinStateChangedEvent(
-                                peerId = peerId,
-                                majorId = majorId
-                            )
+        listenersMap[ApiEvent.PIN_UNPIN_CONVERSATION]?.let { listeners ->
+            listeners.forEach { vkEventCallback ->
+                (vkEventCallback as VkEventCallback<LongPollEvent.VkConversationPinStateChangedEvent>)
+                    .onEvent(
+                        LongPollEvent.VkConversationPinStateChangedEvent(
+                            peerId = peerId,
+                            majorId = majorId
                         )
-                }
+                    )
             }
         }
     }
@@ -184,18 +206,16 @@ class LongPollUpdatesParser(
         val messageId = event[2].asInt()
         val unreadCount = event[3].asInt()
 
-        coroutineScope.launch {
-            listenersMap[ApiEvent.MESSAGE_READ_INCOMING]?.let { listeners ->
-                listeners.map { vkEventCallback ->
-                    (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>)
-                        .onEvent(
-                            LongPollEvent.VkMessageReadIncomingEvent(
-                                peerId = peerId,
-                                messageId = messageId,
-                                unreadCount = unreadCount
-                            )
+        listenersMap[ApiEvent.MESSAGE_READ_INCOMING]?.let { listeners ->
+            listeners.map { vkEventCallback ->
+                (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadIncomingEvent>)
+                    .onEvent(
+                        LongPollEvent.VkMessageReadIncomingEvent(
+                            peerId = peerId,
+                            messageId = messageId,
+                            unreadCount = unreadCount
                         )
-                }
+                    )
             }
         }
     }
@@ -206,18 +226,16 @@ class LongPollUpdatesParser(
         val messageId = event[2].asInt()
         val unreadCount = event[3].asInt()
 
-        coroutineScope.launch {
-            listenersMap[ApiEvent.MESSAGE_READ_OUTGOING]?.let { listeners ->
-                listeners.map { vkEventCallback ->
-                    (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>)
-                        .onEvent(
-                            LongPollEvent.VkMessageReadOutgoingEvent(
-                                peerId = peerId,
-                                messageId = messageId,
-                                unreadCount = unreadCount
-                            )
+        listenersMap[ApiEvent.MESSAGE_READ_OUTGOING]?.let { listeners ->
+            listeners.map { vkEventCallback ->
+                (vkEventCallback as VkEventCallback<LongPollEvent.VkMessageReadOutgoingEvent>)
+                    .onEvent(
+                        LongPollEvent.VkMessageReadOutgoingEvent(
+                            peerId = peerId,
+                            messageId = messageId,
+                            unreadCount = unreadCount
                         )
-                }
+                    )
             }
         }
     }
@@ -266,7 +284,7 @@ class LongPollUpdatesParser(
         }
     }
 
-    private fun <T : Any> registerListener(
+    private fun <T : LongPollEvent> registerListener(
         eventType: ApiEvent,
         listener: VkEventCallback<T>
     ) {
@@ -275,7 +293,7 @@ class LongPollUpdatesParser(
         }
     }
 
-    private fun <T : Any> registerListeners(
+    private fun <T : LongPollEvent> registerListeners(
         eventTypes: List<ApiEvent>,
         listener: VkEventCallback<T>
     ) {
@@ -344,12 +362,12 @@ class LongPollUpdatesParser(
     }
 }
 
-internal inline fun <R : Any> assembleEventCallback(
+internal inline fun <R : LongPollEvent> assembleEventCallback(
     crossinline block: (R) -> Unit,
 ): VkEventCallback<R> {
     return VkEventCallback { event -> block.invoke(event) }
 }
 
-fun interface VkEventCallback<in T : Any> {
+fun interface VkEventCallback<in T : LongPollEvent> {
     fun onEvent(event: T)
 }

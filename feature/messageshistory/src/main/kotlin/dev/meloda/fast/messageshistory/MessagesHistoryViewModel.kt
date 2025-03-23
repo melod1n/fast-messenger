@@ -224,7 +224,37 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun handleReadIncomingEvent(event: LongPollEvent.VkMessageReadIncomingEvent) {
+        if (event.peerId != screenState.value.conversationId) return
 
+        val messages = messages.value
+        val messageIndex =
+            messages.indexOfFirstOrNull { it.id == event.messageId }
+
+        if (messageIndex == null) { // диалога нет в списке
+            // pizdets
+        } else {
+            val newConversation = screenState.value.conversation.copy(
+                inRead = event.messageId
+            )
+
+            val uiMessages = messages.mapIndexed { index, item ->
+                item.asPresentation(
+                    resourceProvider = resourceProvider,
+                    showName = false,
+                    prevMessage = messages.getOrNull(index + 1),
+                    nextMessage = messages.getOrNull(index - 1),
+                    showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+                    conversation = newConversation
+                )
+            }
+
+            screenState.setValue { old ->
+                old.copy(
+                    conversation = newConversation,
+                    messages = uiMessages,
+                )
+            }
+        }
     }
 
     private fun handleReadOutgoingEvent(event: LongPollEvent.VkMessageReadOutgoingEvent) {
