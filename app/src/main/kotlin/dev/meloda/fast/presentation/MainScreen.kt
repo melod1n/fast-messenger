@@ -43,7 +43,6 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
 import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
-import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
@@ -146,11 +145,11 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = if (currentTheme.enableBlur) 0.dp else padding.calculateBottomPadding())
+                .padding(bottom = padding.calculateBottomPadding())
         ) {
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
-                LocalBottomPadding provides if (currentTheme.enableBlur) padding.calculateBottomPadding() else 0.dp
+//                LocalBottomPadding provides if (currentTheme.enableBlur) padding.calculateBottomPadding() else 0.dp
             ) {
                 NavHost(
                     navController = navController,

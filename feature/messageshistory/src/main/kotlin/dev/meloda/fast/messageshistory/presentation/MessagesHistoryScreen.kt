@@ -1,6 +1,5 @@
 package dev.meloda.fast.messageshistory.presentation
 
-import android.content.SharedPreferences
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -78,7 +77,7 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.datastore.AppSettings
@@ -90,6 +89,7 @@ import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.util.firstMessage
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
@@ -119,8 +119,9 @@ fun MessagesHistoryRoute(
         canPaginate = canPaginate,
         showEmojiButton = showEmojiButton,
         onBack = onBack,
+        onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
-        onRefreshDropdownItemClicked = viewModel::onRefresh,
+        onRefresh = viewModel::onRefresh,
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onMessageInputChanged = viewModel::onMessageInputChanged,
         onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
@@ -141,9 +142,9 @@ fun MessagesHistoryScreen(
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
     onBack: () -> Unit = {},
+    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
-    onRefreshDropdownItemClicked: () -> Unit = {},
-    onToggleAnimationsDropdownItemClicked: (Boolean) -> Unit = {},
+    onRefresh: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
@@ -154,7 +155,6 @@ fun MessagesHistoryScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val preferences: SharedPreferences = koinInject()
     val currentTheme = LocalThemeConfig.current
 
     val listState = rememberLazyListState()
@@ -200,7 +200,7 @@ fun MessagesHistoryScreen(
                     modifier = Modifier
                         .then(
                             if (currentTheme.enableBlur) {
-                                Modifier.hazeChild(
+                                Modifier.hazeEffect(
                                     state = hazeState,
                                     style = HazeMaterials.thick()
                                 )
@@ -237,8 +237,8 @@ fun MessagesHistoryScreen(
 
                             Text(
                                 text =
-                                if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
-                                else screenState.title,
+                                    if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
+                                    else screenState.title,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.headlineSmall
@@ -282,7 +282,7 @@ fun MessagesHistoryScreen(
 
                                     // TODO: 11/07/2024, Danil Nikolaev: to VM
 
-                                    // TODO: 23-Mar-25, Danil Nikolaev: crash if not messages (ex. new chat)
+                                    // TODO: 23-Mar-25, Danil Nikolaev: crash if no messages (ex. new chat)
                                     onChatMaterialsDropdownItemClicked(
                                         screenState.conversationId,
                                         screenState.messages.firstMessage().conversationMessageId
@@ -294,7 +294,7 @@ fun MessagesHistoryScreen(
                             )
                             DropdownMenuItem(
                                 onClick = {
-                                    onRefreshDropdownItemClicked()
+                                    onRefresh()
                                     dropDownMenuExpanded = false
                                 },
                                 text = {
@@ -323,6 +323,7 @@ fun MessagesHistoryScreen(
             }
         }
     ) { padding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -386,7 +387,9 @@ fun MessagesHistoryScreen(
                                 IconButton(
                                     onClick = {
                                         if (AppSettings.General.enableHaptic) {
-                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                            view.performHapticFeedback(
+                                                HapticFeedbackConstantsCompat.REJECT
+                                            )
                                         }
                                         scope.launch {
                                             for (i in 20 downTo 0 step 4) {
@@ -405,7 +408,9 @@ fun MessagesHistoryScreen(
                                     },
                                     onLongClick = {
                                         if (AppSettings.General.enableHaptic) {
-                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
+                                            view.performHapticFeedback(
+                                                HapticFeedbackConstantsCompat.LONG_PRESS
+                                            )
                                         }
                                         onEmojiButtonLongClicked()
                                     },
@@ -447,8 +452,11 @@ fun MessagesHistoryScreen(
                         Column(verticalArrangement = Arrangement.Bottom) {
                             IconButton(
                                 onClick = {
+                                    onAttachmentButtonClicked()
                                     if (AppSettings.General.enableHaptic) {
-                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                        view.performHapticFeedback(
+                                            HapticFeedbackConstantsCompat.REJECT
+                                        )
                                     }
                                     scope.launch {
                                         for (i in 20 downTo 0 step 4) {
@@ -484,7 +492,9 @@ fun MessagesHistoryScreen(
                                 onClick = {
                                     if (screenState.actionMode == ActionMode.Record) {
                                         if (AppSettings.General.enableHaptic) {
-                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                            view.performHapticFeedback(
+                                                HapticFeedbackConstantsCompat.REJECT
+                                            )
                                         }
                                         scope.launch {
                                             for (i in 20 downTo 0 step 4) {
@@ -535,9 +545,32 @@ fun MessagesHistoryScreen(
                 }
             }
 
-            if (screenState.isLoading && screenState.messages.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            when {
+                screenState.isLoading && screenState.messages.isEmpty() -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                baseError != null -> {
+                    when (baseError) {
+                        is BaseError.SessionExpired -> {
+                            ErrorView(
+                                text = stringResource(UiR.string.session_expired),
+                                buttonText = stringResource(UiR.string.action_log_out),
+                                onButtonClick = onSessionExpiredLogOutButtonClicked
+                            )
+                        }
+
+                        is BaseError.SimpleError -> {
+                            ErrorView(
+                                text = baseError.message,
+                                buttonText = stringResource(UiR.string.try_again),
+                                onButtonClick = onRefresh
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
+

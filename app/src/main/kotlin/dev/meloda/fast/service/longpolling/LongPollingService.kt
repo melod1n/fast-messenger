@@ -49,6 +49,11 @@ class LongPollingService : Service() {
             throwable.printStackTrace()
         }
 
+        if (throwable is LongPollException) {
+            // TODO: 23-Mar-25, Danil Nikolaev: restart LongPoll
+            return@CoroutineExceptionHandler
+        }
+
         longPollController.updateCurrentState(LongPollState.Exception)
         longPollController.setStateToApply(LongPollState.Exception)
     }
@@ -142,7 +147,7 @@ class LongPollingService : Service() {
 
         Log.d(STATE_TAG, "job started")
 
-        return coroutineScope.launch {
+        return coroutineScope.launch(coroutineContext) {
             if (UserConfig.accessToken.isEmpty()) {
                 throw NoAccessTokenException
             }

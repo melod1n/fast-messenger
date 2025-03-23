@@ -46,8 +46,6 @@ fun FriendsList(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val friends = uiFriends.toList()
-
     LazyColumn(
         modifier = modifier,
         state = listState
@@ -58,7 +56,7 @@ fun FriendsList(
         }
 
         items(
-            items = friends,
+            items = uiFriends.toList(),
             key = UiFriend::userId,
         ) { friend ->
             FriendItem(
