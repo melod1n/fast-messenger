@@ -165,7 +165,6 @@ fun MainScreen(
                     ) {
                         friendsScreen(
                             onError = onError,
-                            navController = navController,
                             onPhotoClicked = onPhotoClicked,
                             onMessageClicked = onMessageClicked
                         )

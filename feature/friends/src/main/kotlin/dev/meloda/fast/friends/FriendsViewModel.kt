@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-// TODO: 13/07/2024, Danil Nikolaev: separate two lists and their pagination
 interface FriendsViewModel {
 
     val screenState: StateFlow<FriendsScreenState>
@@ -33,19 +32,11 @@ interface FriendsViewModel {
 
     fun onErrorConsumed()
 
-    fun onTabSelected(tabIndex: Int)
-
     fun setScrollIndex(index: Int)
     fun setScrollOffset(offset: Int)
-    fun setScrollIndexOnline(index: Int)
-    fun setScrollOffsetOnline(offset: Int)
 }
 
-class FriendsViewModelImpl(
-    private val friendsUseCase: FriendsUseCase,
-    private val userSettings: UserSettings,
-    private val loadUsersByIdsUseCase: LoadUsersByIdsUseCase
-) : ViewModel(), FriendsViewModel {
+abstract class BaseFriendsViewModelImpl : ViewModel(), FriendsViewModel {
 
     override val screenState = MutableStateFlow(FriendsScreenState.EMPTY)
 
@@ -54,13 +45,7 @@ class FriendsViewModelImpl(
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
 
-    private val friends = MutableStateFlow<List<VkUser>>(emptyList())
-
-    init {
-        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
-
-        loadFriends()
-    }
+    protected val friends = MutableStateFlow<List<VkUser>>(emptyList())
 
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.friends.size }
@@ -76,10 +61,6 @@ class FriendsViewModelImpl(
         baseError.setValue { null }
     }
 
-    override fun onTabSelected(tabIndex: Int) {
-        screenState.setValue { old -> old.copy(selectedTabIndex = tabIndex) }
-    }
-
     override fun setScrollIndex(index: Int) {
         screenState.setValue { old -> old.copy(scrollIndex = index) }
     }
@@ -88,38 +69,75 @@ class FriendsViewModelImpl(
         screenState.setValue { old -> old.copy(scrollOffset = offset) }
     }
 
-    override fun setScrollIndexOnline(index: Int) {
-        screenState.setValue { old -> old.copy(scrollIndexOnline = index) }
-    }
+    abstract fun loadFriends(offset: Int = currentOffset.value)
 
-    override fun setScrollOffsetOnline(offset: Int) {
-        screenState.setValue { old -> old.copy(scrollOffsetOnline = offset) }
-    }
-
-    private fun loadFriends(offset: Int = currentOffset.value) {
-        friendsUseCase.getOnlineFriends(null, null)
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = ::handleError,
-                    success = { userIds ->
-                        loadUsersByIdsUseCase(userIds = userIds)
-                            .listenValue(viewModelScope) { state ->
-                                state.processState(
-                                    error = ::handleError,
-                                    success = { onlineFriends ->
-                                        screenState.setValue { old ->
-                                            old.copy(
-                                                onlineFriends = onlineFriends.map {
-                                                    it.asPresentation(userSettings.useContactNames.value)
-                                                }
-                                            )
-                                        }
-                                    }
-                                )
-                            }
+    protected fun handleError(error: State.Error) {
+        when (error) {
+            is State.Error.ApiError -> {
+                when (error.errorCode) {
+                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                        baseError.setValue { BaseError.SessionExpired }
                     }
-                )
+
+                    else -> {
+                        baseError.setValue {
+                            BaseError.SimpleError(message = error.errorMessage)
+                        }
+                    }
+                }
             }
+
+            State.Error.ConnectionError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Connection error")
+                }
+            }
+
+            State.Error.InternalError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Internal error")
+                }
+            }
+
+            State.Error.UnknownError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Unknown error")
+                }
+            }
+
+            else -> Unit
+        }
+    }
+
+    protected fun updateFriendsNames(useContactNames: Boolean) {
+        val friends = friends.value
+        if (friends.isEmpty()) return
+
+        val uiFriends = friends.map { conversation ->
+            conversation.asPresentation(useContactNames)
+        }
+
+        screenState.setValue { old ->
+            old.copy(friends = uiFriends)
+        }
+    }
+
+    companion object {
+        const val LOAD_COUNT = 30
+    }
+}
+
+class FriendsViewModelImpl(
+    private val friendsUseCase: FriendsUseCase,
+    private val userSettings: UserSettings
+) : BaseFriendsViewModelImpl() {
+
+    init {
+        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
+        loadFriends()
+    }
+
+    override fun loadFriends(offset: Int) {
         friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
             .listenValue(viewModelScope) { state ->
                 state.processState(
@@ -167,62 +185,48 @@ class FriendsViewModelImpl(
                 }
             }
     }
+}
 
-    private fun handleError(error: State.Error) {
-        when (error) {
-            is State.Error.ApiError -> {
-                when (error.errorCode) {
-                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                        baseError.setValue { BaseError.SessionExpired }
-                    }
+class OnlineFriendsViewModelImpl(
+    private val friendsUseCase: FriendsUseCase,
+    private val userSettings: UserSettings,
+    private val loadUsersByIdsUseCase: LoadUsersByIdsUseCase
+) : BaseFriendsViewModelImpl() {
 
-                    else -> {
-                        baseError.setValue {
-                            BaseError.SimpleError(message = error.errorMessage)
+    init {
+        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
+        loadFriends()
+    }
+
+    override fun loadFriends(offset: Int) {
+        friendsUseCase.getOnlineFriends(null, null)
+            .listenValue(viewModelScope) { onlineState ->
+                onlineState.processState(
+                    error = ::handleError,
+                    success = { userIds ->
+                        loadUsersByIdsUseCase(userIds = userIds).listenValue(viewModelScope) { state ->
+                            state.processState(
+                                error = ::handleError,
+                                success = { onlineFriends ->
+                                    screenState.setValue { old ->
+                                        old.copy(
+                                            friends = onlineFriends.map {
+                                                it.asPresentation(userSettings.useContactNames.value)
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+
+                            screenState.setValue { old ->
+                                old.copy(
+                                    isLoading = offset == 0 && (onlineState.isLoading() || state.isLoading()),
+                                    isPaginating = offset > 0 && (onlineState.isLoading() || state.isLoading())
+                                )
+                            }
                         }
                     }
-                }
+                )
             }
-            State.Error.ConnectionError -> {
-                baseError.setValue {
-                    BaseError.SimpleError(message = "Connection error")
-                }
-            }
-            State.Error.InternalError -> {
-                baseError.setValue {
-                    BaseError.SimpleError(message = "Internal error")
-                }
-            }
-            State.Error.UnknownError -> {
-                baseError.setValue {
-                    BaseError.SimpleError(message = "Unknown error")
-                }
-            }
-            else -> Unit
-        }
-    }
-
-    private fun updateFriendsNames(useContactNames: Boolean) {
-        val friends = friends.value
-        if (friends.isEmpty()) return
-
-        val uiFriends = friends.map { conversation ->
-            conversation.asPresentation(useContactNames)
-        }
-
-        val onlineUiFriends = screenState.value.onlineFriends.mapNotNull { friend ->
-            uiFriends.find { it.userId == friend.userId }
-        }
-
-        screenState.setValue { old ->
-            old.copy(
-                friends = uiFriends,
-                onlineFriends = onlineUiFriends
-            )
-        }
-    }
-
-    companion object {
-        const val LOAD_COUNT = 15
     }
 }
