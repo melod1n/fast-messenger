@@ -17,7 +17,7 @@ Unofficial messenger for russian social network VKontakte
         - [ ] View archived conversations
         - [ ] Archive & unarchive conversations
 - [x] Friends list
-    - [ ] Sort alphabetically, by priority or random
+    - [x] Sort alphabetically, by priority or random
     - [x] Separate tab with only friends who are online
 - [x] Settings screen
     - [ ] TODO
