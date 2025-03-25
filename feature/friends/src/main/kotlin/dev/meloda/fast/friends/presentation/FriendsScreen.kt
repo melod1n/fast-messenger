@@ -45,6 +45,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun FriendsScreen(
     modifier: Modifier = Modifier,
+    orderType: String,
     padding: PaddingValues,
     tabIndex: Int,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
@@ -59,6 +60,10 @@ fun FriendsScreen(
         } else {
             koinViewModel<OnlineFriendsViewModelImpl>()
         }
+
+    LaunchedEffect(orderType) {
+        viewModel.onOrderTypeChanged(orderType)
+    }
 
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()

@@ -25,10 +25,11 @@ class FriendsRepositoryImpl(
 ) : FriendsRepository {
 
     override suspend fun getAllFriends(
+        order: String,
         count: Int?,
         offset: Int?
     ): ApiResult<FriendsInfo, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val friends = async { getFriends(count, offset) }.await()
+        val friends = async { getFriends(order, count, offset) }.await()
             .successOrElse { failure ->
                 return@withContext failure
             }
@@ -42,11 +43,12 @@ class FriendsRepositoryImpl(
     }
 
     override suspend fun getFriends(
+        order: String,
         count: Int?,
         offset: Int?
     ): ApiResult<List<VkUser>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = GetFriendsRequest(
-            order = "hints",
+            order = order,
             count = count,
             offset = offset,
             fields = VkConstants.USER_FIELDS

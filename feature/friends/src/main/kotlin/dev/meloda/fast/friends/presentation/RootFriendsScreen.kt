@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
@@ -32,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,9 +43,15 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.components.ActionInvokeDismiss
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.SelectionType
 import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
+
+import dev.meloda.fast.ui.R as UiR
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -98,6 +107,44 @@ fun FriendsRoute(
         )
     }
 
+    var orderType: String by remember { mutableStateOf("hints") }
+
+    var showOrderDialog by remember { mutableStateOf(false) }
+
+    val orderItems = remember {
+        mapOf(
+            "hints" to "Priority",
+            "name" to "Name",
+            "random" to "Random",
+            "mobile" to "Mobile",
+            "smart" to "Smart"
+        )
+    }
+
+    var selectedIndex by remember {
+        mutableIntStateOf(0)
+    }
+
+    if (showOrderDialog) {
+        MaterialDialog(
+            onDismissRequest = { showOrderDialog = false },
+            confirmText = stringResource(R.string.ok),
+            confirmAction = {
+                orderType =
+                    orderItems.keys.toCollection(mutableListOf())[selectedIndex]
+            },
+            cancelText = stringResource(R.string.cancel),
+            selectionType = SelectionType.Single,
+            items = ImmutableList.copyOf(orderItems.values),
+            preSelectedItems = ImmutableList.of(selectedIndex),
+            onItemClick = {
+                selectedIndex = it
+            },
+            title = "Order type",
+            actionInvokeDismiss = ActionInvokeDismiss.Always
+        )
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
@@ -129,7 +176,19 @@ fun FriendsRoute(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                showOrderDialog = true
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(UiR.drawable.round_filter_list_24),
+                                contentDescription = null
+                            )
+                        }
+                    }
                 )
                 PrimaryTabRow(
                     selectedTabIndex = selectedTabIndex,
@@ -175,6 +234,7 @@ fun FriendsRoute(
             modifier = Modifier.fillMaxSize(),
         ) { index ->
             FriendsScreen(
+                orderType = orderType,
                 padding = padding,
                 tabIndex = index,
                 onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },

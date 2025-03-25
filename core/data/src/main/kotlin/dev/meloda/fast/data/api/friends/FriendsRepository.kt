@@ -8,11 +8,13 @@ import com.slack.eithernet.ApiResult
 interface FriendsRepository {
 
     suspend fun getAllFriends(
+        order: String,
         count: Int?,
         offset: Int?
     ): ApiResult<FriendsInfo, RestApiErrorDomain>
 
     suspend fun getFriends(
+        order: String,
         count: Int?,
         offset: Int?
     ): ApiResult<List<VkUser>, RestApiErrorDomain>

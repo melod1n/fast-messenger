@@ -8,11 +8,13 @@ import kotlinx.coroutines.flow.Flow
 interface FriendsUseCase {
 
     fun getAllFriends(
+        order: String = "hints",
         count: Int?,
         offset: Int?
     ): Flow<State<FriendsInfo>>
 
     fun getFriends(
+        order: String = "hints",
         count: Int?,
         offset: Int?
     ): Flow<State<List<VkUser>>>

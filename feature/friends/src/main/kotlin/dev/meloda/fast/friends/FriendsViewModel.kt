@@ -34,6 +34,8 @@ interface FriendsViewModel {
 
     fun setScrollIndex(index: Int)
     fun setScrollOffset(offset: Int)
+
+    fun onOrderTypeChanged(newOrderType: String)
 }
 
 abstract class BaseFriendsViewModelImpl : ViewModel(), FriendsViewModel {
@@ -67,6 +69,12 @@ abstract class BaseFriendsViewModelImpl : ViewModel(), FriendsViewModel {
 
     override fun setScrollOffset(offset: Int) {
         screenState.setValue { old -> old.copy(scrollOffset = offset) }
+    }
+
+    override fun onOrderTypeChanged(newOrderType: String) {
+        if (screenState.value.orderType == newOrderType) return
+        screenState.setValue { old -> old.copy(orderType = newOrderType) }
+        loadFriends(offset = 0)
     }
 
     abstract fun loadFriends(offset: Int = currentOffset.value)
@@ -138,52 +146,55 @@ class FriendsViewModelImpl(
     }
 
     override fun loadFriends(offset: Int) {
-        friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = ::handleError,
-                    success = { response ->
-                        val itemsCountSufficient = response.size == LOAD_COUNT
-                        canPaginate.setValue { itemsCountSufficient }
+        friendsUseCase.getFriends(
+            order = screenState.value.orderType,
+            count = LOAD_COUNT,
+            offset = offset
+        ).listenValue(viewModelScope) { state ->
+            state.processState(
+                error = ::handleError,
+                success = { response ->
+                    val itemsCountSufficient = response.size == LOAD_COUNT
+                    canPaginate.setValue { itemsCountSufficient }
 
-                        val paginationExhausted = !itemsCountSufficient &&
-                                screenState.value.friends.size >= LOAD_COUNT
+                    val paginationExhausted = !itemsCountSufficient &&
+                            screenState.value.friends.size >= LOAD_COUNT
 
-                        imagesToPreload.setValue {
-                            response.mapNotNull(VkUser::photo100)
+                    imagesToPreload.setValue {
+                        response.mapNotNull(VkUser::photo100)
+                    }
+
+                    friendsUseCase.storeUsers(response)
+
+                    val loadedFriends = response.map {
+                        it.asPresentation(userSettings.useContactNames.value)
+                    }
+
+                    val newState = screenState.value.copy(
+                        isPaginationExhausted = paginationExhausted
+                    )
+
+                    if (offset == 0) {
+                        friends.emit(response)
+                        screenState.setValue {
+                            newState.copy(friends = loadedFriends)
                         }
-
-                        friendsUseCase.storeUsers(response)
-
-                        val loadedFriends = response.map {
-                            it.asPresentation(userSettings.useContactNames.value)
-                        }
-
-                        val newState = screenState.value.copy(
-                            isPaginationExhausted = paginationExhausted
-                        )
-
-                        if (offset == 0) {
-                            friends.emit(response)
-                            screenState.setValue {
-                                newState.copy(friends = loadedFriends)
-                            }
-                        } else {
-                            friends.emit(friends.value.plus(response))
-                            screenState.setValue {
-                                newState.copy(friends = newState.friends.plus(loadedFriends))
-                            }
+                    } else {
+                        friends.emit(friends.value.plus(response))
+                        screenState.setValue {
+                            newState.copy(friends = newState.friends.plus(loadedFriends))
                         }
                     }
-                )
-
-                screenState.setValue { old ->
-                    old.copy(
-                        isLoading = offset == 0 && state.isLoading(),
-                        isPaginating = offset > 0 && state.isLoading()
-                    )
                 }
+            )
+
+            screenState.setValue { old ->
+                old.copy(
+                    isLoading = offset == 0 && state.isLoading(),
+                    isPaginating = offset > 0 && state.isLoading()
+                )
             }
+        }
     }
 }
 

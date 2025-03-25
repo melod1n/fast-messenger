@@ -11,6 +11,7 @@ data class FriendsScreenState(
     val isPaginationExhausted: Boolean,
     val scrollIndex: Int,
     val scrollOffset: Int,
+    val orderType: String,
 ) {
 
     companion object {
@@ -20,7 +21,8 @@ data class FriendsScreenState(
             isPaginating = false,
             isPaginationExhausted = false,
             scrollIndex = 0,
-            scrollOffset = 0
+            scrollOffset = 0,
+            orderType = "hints"
         )
     }
 }

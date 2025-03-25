@@ -11,19 +11,26 @@ import kotlinx.coroutines.flow.flow
 class FriendsUseCaseImpl(private val repository: FriendsRepository) :
     FriendsUseCase {
 
-    override fun getAllFriends(count: Int?, offset: Int?): Flow<State<FriendsInfo>> = flow {
+    override fun getAllFriends(order: String, count: Int?, offset: Int?): Flow<State<FriendsInfo>> = flow {
         emit(State.Loading)
 
-        val newState = repository.getAllFriends(count, offset).mapToState()
+        val newState = repository.getAllFriends(order, count, offset).mapToState()
         emit(newState)
     }
 
     override fun getFriends(
-        count: Int?, offset: Int?
+        order: String,
+        count: Int?,
+        offset: Int?
     ): Flow<State<List<VkUser>>> = flow {
         emit(State.Loading)
 
-        val newState = repository.getFriends(count, offset).mapToState()
+        val newState = repository.getFriends(
+            order = order,
+            count = count,
+            offset = offset
+        ).mapToState()
+
         emit(newState)
     }
 
