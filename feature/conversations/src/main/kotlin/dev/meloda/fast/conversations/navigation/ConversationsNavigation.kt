@@ -16,7 +16,6 @@ object Conversations
 fun NavGraphBuilder.conversationsScreen(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (id: Int) -> Unit,
-    onPhotoClicked: (url: String) -> Unit,
     onCreateChatClicked: () -> Unit,
     navController: NavController,
 ) {
@@ -27,7 +26,6 @@ fun NavGraphBuilder.conversationsScreen(
         ConversationsRoute(
             onError = onError,
             onConversationItemClicked = onConversationItemClicked,
-            onConversationPhotoClicked = onPhotoClicked,
             onCreateChatButtonClicked = onCreateChatClicked,
             viewModel = viewModel
         )

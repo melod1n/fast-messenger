@@ -170,7 +170,6 @@ fun MainScreen(
                         conversationsScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
-                            onPhotoClicked = onPhotoClicked,
                             onCreateChatClicked = onCreateChatClicked,
                             navController = navController,
                         )

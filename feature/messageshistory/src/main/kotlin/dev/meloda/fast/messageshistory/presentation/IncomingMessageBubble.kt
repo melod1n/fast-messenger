@@ -31,60 +31,61 @@ import dev.meloda.fast.messageshistory.model.UiItem
 fun IncomingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiItem.Message,
-    animate: Boolean
+    animate: Boolean,
 ) {
-    val context = LocalContext.current
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth(0.75f)
-            .padding(start = 16.dp),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        if (message.isInChat) {
-            Image(
-                painter =
-                    message.avatar.extractUrl()?.let { url ->
-                        rememberAsyncImagePainter(
-                            model = url,
-                            imageLoader = context.imageLoader
-                        )
-                    } ?: painterResource(id = message.avatar.extractResId()),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(bottom = 6.dp)
-                    .size(28.dp)
-                    .alpha(if (message.showAvatar) 1f else 0f)
-                    .clip(CircleShape),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-
-        Column {
-            AnimatedVisibility(visible = message.showName) {
-                Text(
+    Row(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(0.75f)
+                .padding(start = 16.dp),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            if (message.isInChat) {
+                Image(
+                    painter =
+                        message.avatar.extractUrl()?.let { url ->
+                            rememberAsyncImagePainter(
+                                model = url,
+                                imageLoader = LocalContext.current.imageLoader
+                            )
+                        } ?: painterResource(id = message.avatar.extractResId()),
+                    contentDescription = null,
                     modifier = Modifier
-                        .padding(start = 12.dp)
-                        .widthIn(max = 140.dp),
-                    text = message.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                        .padding(bottom = 6.dp)
+                        .size(28.dp)
+                        .alpha(if (message.showAvatar) 1f else 0f)
+                        .clip(CircleShape),
                 )
+                Spacer(modifier = Modifier.width(8.dp))
             }
 
-            MessageBubble(
-                modifier = Modifier,
-                text = message.text,
-                isOut = false,
-                date = message.date,
-                edited = message.isEdited,
-                animate = animate,
-                isRead = message.isRead,
-                sendingStatus = message.sendingStatus
-            )
+            Column {
+                AnimatedVisibility(visible = message.showName) {
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .widthIn(max = 140.dp),
+                        text = message.name,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                MessageBubble(
+                    modifier = Modifier,
+                    text = message.text,
+                    isOut = false,
+                    date = message.date,
+                    edited = message.isEdited,
+                    animate = animate,
+                    isRead = message.isRead,
+                    sendingStatus = message.sendingStatus
+                )
+            }
         }
+        Spacer(modifier=Modifier.fillMaxWidth(0.25f))
     }
 }

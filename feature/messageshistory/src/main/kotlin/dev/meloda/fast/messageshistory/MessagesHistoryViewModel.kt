@@ -1,6 +1,8 @@
 package dev.meloda.fast.messageshistory
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
@@ -45,6 +47,7 @@ import kotlin.random.Random
 interface MessagesHistoryViewModel {
 
     val screenState: StateFlow<MessagesHistoryScreenState>
+    val selectedMessages: StateFlow<List<Int>>
 
     val baseError: StateFlow<BaseError?>
     val imagesToPreload: StateFlow<List<String>>
@@ -53,6 +56,7 @@ interface MessagesHistoryViewModel {
 
     val canPaginate: StateFlow<Boolean>
 
+    fun onCloseButtonClicked()
     fun onRefresh()
     fun onAttachmentButtonClicked()
     fun onMessageInputChanged(newText: TextFieldValue)
@@ -60,19 +64,23 @@ interface MessagesHistoryViewModel {
     fun onActionButtonClicked()
 
     fun onPaginationConditionsMet()
+
+    fun onMessageClicked(messageId: Int)
+    fun onMessageLongClicked(messageId: Int)
 }
 
 class MessagesHistoryViewModelImpl(
+    private val applicationContext: Context,
     private val messagesUseCase: MessagesUseCase,
     private val conversationsUseCase: ConversationsUseCase,
     private val resourceProvider: ResourceProvider,
     private val userSettings: UserSettings,
-    private val loadConversationsByIdUseCase: LoadConversationsByIdUseCase,
     updatesParser: LongPollUpdatesParser,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
+    override val selectedMessages = MutableStateFlow<List<Int>>(emptyList())
 
     override val baseError = MutableStateFlow<BaseError?>(null)
     override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
@@ -102,6 +110,18 @@ class MessagesHistoryViewModelImpl(
             viewModelScope,
             ::toggleShowTimeInActionMessages
         )
+    }
+
+    override fun onCloseButtonClicked() {
+        screenState.setValue { old ->
+            old.copy(
+                messages = old.messages.map {
+                    if (it is UiItem.Message) it.copy(isSelected = false)
+                    else it
+                }
+            )
+        }
+        selectedMessages.setValue { emptyList() }
     }
 
     override fun onRefresh() {
@@ -156,6 +176,60 @@ class MessagesHistoryViewModelImpl(
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.messages.size }
         loadMessagesHistory()
+    }
+
+    override fun onMessageClicked(messageId: Int) {
+        val messageIndex = screenState.value.messages.indexOfFirstOrNull {
+            it is UiItem.Message && it.id == messageId
+        } ?: return
+
+        val newMessages = screenState.value.messages.toMutableList()
+        val currentMessage: UiItem.Message = newMessages[messageIndex] as UiItem.Message
+
+        if (selectedMessages.value.isNotEmpty()) {
+            val isSelected = selectedMessages.value.contains(currentMessage.id)
+
+            newMessages[messageIndex] = currentMessage.copy(
+                isSelected = !isSelected
+            )
+            screenState.setValue { old -> old.copy(messages = newMessages) }
+            selectedMessages.setValue { old ->
+                old.toMutableList().also {
+                    if (isSelected) {
+                        it.remove(currentMessage.id)
+                    } else {
+                        it.add(currentMessage.id)
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(applicationContext, "Click", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onMessageLongClicked(messageId: Int) {
+        val messageIndex = screenState.value.messages.indexOfFirstOrNull {
+            it is UiItem.Message && it.id == messageId
+        } ?: return
+
+        val newMessages = screenState.value.messages.toMutableList()
+        val currentMessage: UiItem.Message = newMessages[messageIndex] as UiItem.Message
+
+        val isSelected = selectedMessages.value.contains(currentMessage.id)
+
+        newMessages[messageIndex] = currentMessage.copy(
+            isSelected = !isSelected
+        )
+        screenState.setValue { old -> old.copy(messages = newMessages) }
+        selectedMessages.setValue { old ->
+            old.toMutableList().also {
+                if (isSelected) {
+                    it.remove(currentMessage.id)
+                } else {
+                    it.add(currentMessage.id)
+                }
+            }
+        }
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {

@@ -1,5 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -33,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -107,6 +109,7 @@ fun MessagesHistoryRoute(
     viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
@@ -115,10 +118,12 @@ fun MessagesHistoryRoute(
 
     MessagesHistoryScreen(
         screenState = screenState,
+        selectedMessages = ImmutableList.copyOf(selectedMessages),
         baseError = baseError,
         canPaginate = canPaginate,
         showEmojiButton = showEmojiButton,
         onBack = onBack,
+        onClose = viewModel::onCloseButtonClicked,
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
         onRefresh = viewModel::onRefresh,
@@ -126,7 +131,9 @@ fun MessagesHistoryRoute(
         onMessageInputChanged = viewModel::onMessageInputChanged,
         onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
         onActionButtonClicked = viewModel::onActionButtonClicked,
-        onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked
+        onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked,
+        onMessageClicked = viewModel::onMessageClicked,
+        onMessageLongClicked = viewModel::onMessageLongClicked
     )
 }
 
@@ -138,10 +145,12 @@ fun MessagesHistoryRoute(
 @Composable
 fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
+    selectedMessages: ImmutableList<Int> = ImmutableList.empty(),
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
     onBack: () -> Unit = {},
+    onClose: () -> Unit = {},
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
     onRefresh: () -> Unit = {},
@@ -149,13 +158,20 @@ fun MessagesHistoryScreen(
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {},
-    onEmojiButtonLongClicked: () -> Unit = {}
+    onEmojiButtonLongClicked: () -> Unit = {},
+    onMessageClicked: (Int) -> Unit = {},
+    onMessageLongClicked: (Int) -> Unit = {}
 ) {
     val view = LocalView.current
 
     val coroutineScope = rememberCoroutineScope()
 
     val currentTheme = LocalThemeConfig.current
+
+    BackHandler(
+        enabled = selectedMessages.isNotEmpty(),
+        onBack = onClose
+    )
 
     val listState = rememberLazyListState()
 
@@ -191,6 +207,10 @@ fun MessagesHistoryScreen(
 
     val density = LocalDensity.current
 
+    val showReplyAction by remember(screenState) {
+        mutableStateOf(selectedMessages.size == 1)
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
@@ -213,32 +233,36 @@ fun MessagesHistoryScreen(
                                 .weight(1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val avatar = screenState.avatar.getImage()
-                            if (avatar is Painter) {
-                                Image(
-                                    painter = avatar,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                )
-                            } else {
-                                AsyncImage(
-                                    model = screenState.avatar.getImage(),
-                                    contentDescription = "Profile Image",
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape),
-                                    placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
-                                )
+                            if (selectedMessages.isEmpty()) {
+                                val avatar = screenState.avatar.getImage()
+                                if (avatar is Painter) {
+                                    Image(
+                                        painter = avatar,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                    )
+                                } else {
+                                    AsyncImage(
+                                        model = screenState.avatar.getImage(),
+                                        contentDescription = "Profile Image",
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape),
+                                        placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
                             }
 
-                            Spacer(modifier = Modifier.width(12.dp))
-
                             Text(
-                                text =
-                                    if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
-                                    else screenState.title,
+                                text = when {
+                                    screenState.isLoading -> stringResource(id = UiR.string.title_loading)
+                                    selectedMessages.size > 0 -> "(${selectedMessages.size})"
+                                    else -> screenState.title
+                                },
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.headlineSmall
@@ -246,9 +270,18 @@ fun MessagesHistoryScreen(
                         }
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(
+                            onClick = {
+                                if (selectedMessages.isEmpty()) onBack()
+                                else onClose()
+                            }
+                        ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                imageVector = if (selectedMessages.isEmpty()) {
+                                    Icons.AutoMirrored.Rounded.ArrowBack
+                                } else {
+                                    Icons.Rounded.Close
+                                },
                                 contentDescription = "Back button"
                             )
                         }
@@ -259,54 +292,95 @@ fun MessagesHistoryScreen(
                         )
                     ),
                     actions = {
-                        IconButton(
-                            onClick = { dropDownMenuExpanded = true }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.MoreVert,
-                                contentDescription = "Options"
-                            )
-                        }
-
-                        DropdownMenu(
-                            modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-                            expanded = dropDownMenuExpanded,
-                            onDismissRequest = {
-                                dropDownMenuExpanded = false
-                            },
-                            offset = DpOffset(x = (-4).dp, y = (-60).dp)
-                        ) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    dropDownMenuExpanded = false
-
-                                    // TODO: 11/07/2024, Danil Nikolaev: to VM
-
-                                    // TODO: 23-Mar-25, Danil Nikolaev: crash if no messages (ex. new chat)
-                                    onChatMaterialsDropdownItemClicked(
-                                        screenState.conversationId,
-                                        screenState.messages.firstMessage().conversationMessageId
-                                    )
-                                },
-                                text = {
-                                    Text(text = "Materials")
-                                }
-                            )
-                            DropdownMenuItem(
-                                onClick = {
-                                    onRefresh()
-                                    dropDownMenuExpanded = false
-                                },
-                                text = {
-                                    Text(text = "Refresh")
-                                },
-                                leadingIcon = {
+                        if (selectedMessages.isNotEmpty()) {
+                            AnimatedVisibility(showReplyAction) {
+                                IconButton(
+                                    onClick = {
+                                        if (AppSettings.General.enableHaptic) {
+                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                        }
+                                    }
+                                ) {
                                     Icon(
-                                        imageVector = Icons.Rounded.Refresh,
+                                        painter = painterResource(UiR.drawable.round_reply_24),
                                         contentDescription = null
                                     )
                                 }
-                            )
+                            }
+                            IconButton(
+                                onClick = {
+                                    if (AppSettings.General.enableHaptic) {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(UiR.drawable.round_reply_all_24),
+                                    contentDescription = null
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    if (AppSettings.General.enableHaptic) {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(UiR.drawable.round_delete_outline_24),
+                                    contentDescription = null
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = { dropDownMenuExpanded = true }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MoreVert,
+                                    contentDescription = "Options"
+                                )
+                            }
+
+                            DropdownMenu(
+                                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+                                expanded = dropDownMenuExpanded,
+                                onDismissRequest = {
+                                    dropDownMenuExpanded = false
+                                },
+                                offset = DpOffset(x = (-4).dp, y = (-60).dp)
+                            ) {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        dropDownMenuExpanded = false
+
+                                        // TODO: 11/07/2024, Danil Nikolaev: to VM
+
+                                        // TODO: 23-Mar-25, Danil Nikolaev: crash if no messages (ex. new chat)
+                                        onChatMaterialsDropdownItemClicked(
+                                            screenState.conversationId,
+                                            screenState.messages.firstMessage().conversationMessageId
+                                        )
+                                    },
+                                    text = {
+                                        Text(text = "Materials")
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    onClick = {
+                                        onRefresh()
+                                        dropDownMenuExpanded = false
+                                    },
+                                    text = {
+                                        Text(text = "Refresh")
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Refresh,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 )
@@ -323,7 +397,6 @@ fun MessagesHistoryScreen(
             }
         }
     ) { padding ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -343,7 +416,16 @@ fun MessagesHistoryScreen(
                             index = screenState.messages.indexOfMessageByCmId(cmId)
                         )
                     }
-                }
+                },
+                onMessageClicked = { id ->
+                    if (selectedMessages.isNotEmpty()) {
+                        if (AppSettings.General.enableHaptic) {
+                            view.performHapticFeedback(HapticFeedbackConstantsCompat.CONTEXT_CLICK)
+                        }
+                    }
+                    onMessageClicked(id)
+                },
+                onMessageLongClicked = onMessageLongClicked
             )
 
             Column(

@@ -85,7 +85,6 @@ import dev.meloda.fast.ui.R as UiR
 fun ConversationsRoute(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit,
-    onConversationPhotoClicked: (url: String) -> Unit,
     onCreateChatButtonClicked: () -> Unit,
     viewModel: ConversationsViewModel
 ) {
@@ -107,7 +106,6 @@ fun ConversationsRoute(
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
         onRefreshDropdownItemClicked = viewModel::onRefresh,
         onRefresh = viewModel::onRefresh,
-        onConversationPhotoClicked = onConversationPhotoClicked,
         onCreateChatButtonClicked = onCreateChatButtonClicked,
         setScrollIndex = viewModel::setScrollIndex,
         setScrollOffset = viewModel::setScrollOffset
@@ -135,7 +133,6 @@ fun ConversationsScreen(
     onPaginationConditionsMet: () -> Unit = {},
     onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
-    onConversationPhotoClicked: (url: String) -> Unit = {},
     onCreateChatButtonClicked: () -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
     setScrollOffset: (Int) -> Unit = {}
@@ -356,8 +353,7 @@ fun ConversationsScreen(
                             Modifier
                         }.fillMaxSize(),
                         onOptionClicked = onOptionClicked,
-                        padding = padding,
-                        onPhotoClicked = onConversationPhotoClicked
+                        padding = padding
                     )
 
                     if (screenState.conversations.isEmpty()) {

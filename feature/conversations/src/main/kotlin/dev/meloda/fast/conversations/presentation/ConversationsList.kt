@@ -39,12 +39,9 @@ fun ConversationsList(
     maxLines: Int,
     modifier: Modifier,
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
-    padding: PaddingValues,
-    onPhotoClicked: (url: String) -> Unit
+    padding: PaddingValues
 ) {
     val coroutineScope = rememberCoroutineScope()
-
-    val bottomPadding = LocalBottomPadding.current
 
     LazyColumn(
         modifier = modifier,
@@ -71,8 +68,7 @@ fun ConversationsList(
                 maxLines = maxLines,
                 isUserAccount = isUserAccount,
                 conversation = conversation,
-                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
-                onPhotoClicked = onPhotoClicked
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
             )
 
             Spacer(modifier = Modifier.height(8.dp))

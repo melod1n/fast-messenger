@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -69,10 +67,8 @@ fun ConversationItem(
     maxLines: Int,
     isUserAccount: Boolean,
     conversation: UiConversation,
-    modifier: Modifier = Modifier,
-    onPhotoClicked: (url: String) -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
     val bottomStartCornerRadius by animateDpAsState(
@@ -154,12 +150,7 @@ fun ConversationItem(
                                 contentDescription = "Avatar",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        if (avatarImage is String) {
-                                            onPhotoClicked(avatarImage)
-                                        }
-                                    },
+                                    .clip(CircleShape),
                                 placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
                             )
                         }
