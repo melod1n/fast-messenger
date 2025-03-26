@@ -51,7 +51,6 @@ val applicationModule = module {
         createChatModule
     )
 
-    // TODO: 14/05/2024, Danil Nikolaev: research on memory leaks and potentials errors
     // TODO: 14/05/2024, Danil Nikolaev: extract all operations with preferences to standalone class
     singleOf(PreferenceManager::getDefaultSharedPreferences)
     single<Resources> { androidContext().resources }
