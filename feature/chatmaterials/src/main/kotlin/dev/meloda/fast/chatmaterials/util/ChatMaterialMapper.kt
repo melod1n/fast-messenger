@@ -1,6 +1,7 @@
 package dev.meloda.fast.chatmaterials.util
 
 import dev.meloda.fast.chatmaterials.model.UiChatMaterial
+import dev.meloda.fast.common.util.AndroidUtils
 import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkAudioDomain
@@ -8,7 +9,6 @@ import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.model.api.domain.VkVideoDomain
-import java.text.SimpleDateFormat
 import java.util.Locale
 
 fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
@@ -22,36 +22,110 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
 
         AttachmentType.VIDEO -> {
             val attachment = this.attachment as VkVideoDomain
+
+            val duration = attachment.duration
+
+            val days = duration / (24 * 3600)
+            val hours = (duration % (24 * 3600)) / 3600
+            val minutes = (duration % 3600) / 60
+            val seconds = duration % 60
+
+            val args = mutableListOf<Int>()
+            if (days > 0) args.add(days)
+            if (hours > 0) args.add(hours)
+            args.add(minutes)
+            args.add(seconds)
+
+            val builder = StringBuilder()
+            if (days > 0) builder.append("%02d:")
+            if (hours > 0) builder.append("%02d:")
+            builder.append("%02d:%02d")
+
+            val formattedDuration =
+                builder.toString().format(Locale.getDefault(), *args.toTypedArray())
+
             UiChatMaterial.Video(
-                previewUrl = attachment.images.firstOrNull()?.url.orEmpty()
+                previewUrl = attachment.images.maxByOrNull(VkVideoDomain.VideoImage::width)?.url.orEmpty(),
+                title = attachment.title,
+                views = attachment.views,
+                duration = formattedDuration
             )
         }
 
         AttachmentType.AUDIO -> {
             val attachment = this.attachment as VkAudioDomain
+
+            val duration = attachment.duration
+
+            val days = duration / (24 * 3600)
+            val hours = (duration % (24 * 3600)) / 3600
+            val minutes = (duration % 3600) / 60
+            val seconds = duration % 60
+
+            val args = mutableListOf<Int>()
+            if (days > 0) args.add(days)
+            if (hours > 0) args.add(hours)
+            args.add(minutes)
+            args.add(seconds)
+
+            val builder = StringBuilder()
+            if (days > 0) builder.append("%02d:")
+            if (hours > 0) builder.append("%02d:")
+            builder.append("%d:%02d")
+
+            val formattedDuration =
+                builder.toString().format(Locale.getDefault(), *args.toTypedArray())
+
             UiChatMaterial.Audio(
                 previewUrl = null,
                 title = attachment.title,
                 artist = attachment.artist,
-                duration = SimpleDateFormat(
-                    "mm:ss",
-                    Locale.getDefault()
-                ).format(attachment.duration)
+                duration = formattedDuration
             )
         }
 
         AttachmentType.FILE -> {
             val attachment = this.attachment as VkFileDomain
+
+            val previewUrl: String? = when (val preview = attachment.preview) {
+                null -> null
+
+                else -> {
+                    when {
+                        preview.photo != null -> {
+                            val size = preview.photo?.sizes?.maxByOrNull { it.width }
+                            size?.src
+                        }
+
+                        preview.video != null -> {
+                            val size = preview.video?.src
+                            size
+                        }
+
+                        else -> null
+                    }
+                }
+            }
+
             UiChatMaterial.File(
-                title = attachment.title
+                title = attachment.title,
+                previewUrl = previewUrl,
+                size = AndroidUtils.bytesToHumanReadableSize(attachment.size.toDouble()),
+                extension = attachment.ext.take(4)
             )
         }
 
         AttachmentType.LINK -> {
             val attachment = this.attachment as VkLinkDomain
+
             UiChatMaterial.Link(
-                title = attachment.title ?: attachment.url,
-                previewUrl = attachment.photo?.getMaxSize()?.url
+                title = attachment.title,
+                previewUrl = attachment.photo?.getMaxSize()?.url,
+                url = attachment.url,
+                urlFirstChar = attachment.url.replaceFirst("http://", "")
+                    .replaceFirst("https://", "")
+                    .take(1)
+                    .uppercase()
             )
         }
 

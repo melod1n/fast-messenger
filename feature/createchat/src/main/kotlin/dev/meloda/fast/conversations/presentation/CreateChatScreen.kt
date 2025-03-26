@@ -1,6 +1,7 @@
 package dev.meloda.fast.conversations.presentation
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -79,8 +80,6 @@ fun CreateChatRoute(
     onChatCreated: (Int) -> Unit,
     viewModel: CreateChatViewModel
 ) {
-    val context = LocalContext.current
-
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
@@ -148,20 +147,24 @@ fun CreateChatScreen(
 
     val hazeState = LocalHazeState.current
 
-    val toolbarColorAlpha by animateFloatAsState(
-        targetValue = if (!listState.canScrollBackward) 1f else 0f,
+    val topBarContainerColorAlpha by animateFloatAsState(
+        targetValue = if (!currentTheme.enableBlur || !listState.canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
-    val toolbarContainerColor by animateColorAsState(
+    val topBarContainerColor by animateColorAsState(
         targetValue =
-            if (currentTheme.enableBlur || !listState.canScrollBackward)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+            if (currentTheme.enableBlur || !listState.canScrollBackward) MaterialTheme.colorScheme.surface
+            else MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
     Scaffold(
@@ -171,11 +174,7 @@ fun CreateChatScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        toolbarContainerColor.copy(
-                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
-                        )
-                    )
+                    .background(topBarContainerColor.copy(alpha = topBarContainerColorAlpha))
                     .then(
                         if (currentTheme.enableBlur) {
                             Modifier.hazeEffect(
@@ -205,11 +204,7 @@ fun CreateChatScreen(
                             style = MaterialTheme.typography.headlineSmall
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = toolbarContainerColor.copy(
-                            alpha = 0f
-                        )
-                    ),
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     modifier = Modifier.fillMaxWidth(),
                 )
 

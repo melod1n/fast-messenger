@@ -137,7 +137,6 @@ fun ConversationsScreen(
     setScrollIndex: (Int) -> Unit = {},
     setScrollOffset: (Int) -> Unit = {}
 ) {
-    val view = LocalView.current
     val currentTheme = LocalThemeConfig.current
 
     val maxLines by remember(currentTheme) {

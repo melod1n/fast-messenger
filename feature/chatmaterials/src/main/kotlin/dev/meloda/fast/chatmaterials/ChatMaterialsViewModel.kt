@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
+import dev.meloda.fast.chatmaterials.model.MaterialType
 import dev.meloda.fast.chatmaterials.navigation.ChatMaterials
 import dev.meloda.fast.chatmaterials.util.asPresentation
 import dev.meloda.fast.common.extensions.listenValue
@@ -23,7 +24,7 @@ interface ChatMaterialsViewModel {
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
 
-    fun onMetPaginationCondition()
+    fun onPaginationConditionsMet()
 
     fun onRefresh()
 
@@ -33,6 +34,7 @@ interface ChatMaterialsViewModel {
 }
 
 class ChatMaterialsViewModelImpl(
+    private val materialType: MaterialType,
     private val messagesUseCase: MessagesUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), ChatMaterialsViewModel {
@@ -57,7 +59,7 @@ class ChatMaterialsViewModelImpl(
         loadChatMaterials()
     }
 
-    override fun onMetPaginationCondition() {
+    override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.materials.size }
         loadChatMaterials()
     }
@@ -75,14 +77,12 @@ class ChatMaterialsViewModelImpl(
         loadChatMaterials(0)
     }
 
-    private fun loadChatMaterials(
-        offset: Int = currentOffset.value
-    ) {
+    private fun loadChatMaterials(offset: Int = currentOffset.value) {
         messagesUseCase.getHistoryAttachments(
             peerId = screenState.value.peerId,
             count = LOAD_COUNT,
             offset = offset,
-            attachmentTypes = listOf(screenState.value.attachmentType),
+            attachmentTypes = listOf(materialType.toString()),
             conversationMessageId = screenState.value.conversationMessageId
         ).listenValue(viewModelScope) { state ->
             state.processState(
@@ -126,6 +126,6 @@ class ChatMaterialsViewModelImpl(
     }
 
     companion object {
-        const val LOAD_COUNT = 100
+        const val LOAD_COUNT = 30
     }
 }

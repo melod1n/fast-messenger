@@ -283,4 +283,17 @@
     <string name="title_create_chat">Create chat</string>
     <string name="action_create">Create</string>
     <string name="create_chat_title">Title</string>
+    <string name="chat_materials_title">Chat materials</string>
+    <string name="chat_materials_action_title">Materials</string>
+    <string name="friends_order_priority">Priority</string>
+    <string name="friends_order_name">Name</string>
+    <string name="friends_order_random">Random</string>
+    <string name="friends_order_mobile" translatable="false">Mobile</string>
+    <string name="friends_order_smart" translatable="false">Smart</string>
+    <string name="friends_order_by_title">Order by</string>
+    <string name="chat_attachment_photos">Photos</string>
+    <string name="chat_attachment_videos">Videos</string>
+    <string name="chat_attachment_music">Music</string>
+    <string name="chat_attachment_files">Files</string>
+    <string name="chat_attachment_links">Links</string>
 </resources>

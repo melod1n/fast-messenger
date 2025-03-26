@@ -218,4 +218,15 @@
     <string name="title_create_chat">Создать чат</string>
     <string name="action_create">Создать</string>
     <string name="create_chat_title">Название</string>
+    <string name="chat_materials_title">Вложения чата</string>
+    <string name="chat_materials_action_title">Вложения</string>
+    <string name="friends_order_priority">Приоритет</string>
+    <string name="friends_order_name">Имя</string>
+    <string name="friends_order_random">Случайно</string>
+    <string name="friends_order_by_title">Упорядочить по</string>
+    <string name="chat_attachment_photos">Фото</string>
+    <string name="chat_attachment_videos">Видео</string>
+    <string name="chat_attachment_music">Музыка</string>
+    <string name="chat_attachment_files">Файлы</string>
+    <string name="chat_attachment_links">Ссылки</string>
 </resources>

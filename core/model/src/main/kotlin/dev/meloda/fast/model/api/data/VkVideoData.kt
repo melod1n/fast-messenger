@@ -1,75 +1,78 @@
 package dev.meloda.fast.model.api.data
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.domain.VkVideoDomain
 
 @JsonClass(generateAdapter = true)
 data class VkVideoData(
-    val id: Int,
-    val title: String,
-    val width: Int?,
-    val height: Int?,
-    val duration: Int,
-    val date: Int,
-    val comments: Int?,
-    val description: String?,
-    val player: String?,
-    val added: Int?,
-    val type: String,
-    val views: Int,
-    val access_key: String?,
-    val owner_id: Int,
-    val is_favorite: Boolean?,
-    val image: List<Image>?,
-    val first_frame: List<FirstFrame>?,
-    val files: File?
+    @Json(name = "id") val id: Int,
+    @Json(name = "title") val title: String,
+    @Json(name = "width") val width: Int?,
+    @Json(name = "height") val height: Int?,
+    @Json(name = "duration") val duration: Int,
+    @Json(name = "date") val date: Int,
+    @Json(name = "comments") val comments: Int?,
+    @Json(name = "description") val description: String?,
+    @Json(name = "player") val player: String?,
+    @Json(name = "added") val added: Int?,
+    @Json(name = "type") val type: String,
+    @Json(name = "views") val views: Int,
+    @Json(name = "access_key") val accessKey: String?,
+    @Json(name = "owner_id") val ownerId: Int,
+    @Json(name = "is_favorite") val isFavorite: Boolean?,
+    @Json(name = "image") val image: List<Image>?,
+    @Json(name = "first_frame") val firstFrame: List<FirstFrame>?,
+    @Json(name = "files") val files: File?
 ) : VkAttachmentData {
 
     @JsonClass(generateAdapter = true)
     data class Image(
-        val width: Int,
-        val height: Int,
-        val url: String,
-        val with_padding: Int?
+        @Json(name = "width") val width: Int,
+        @Json(name = "height") val height: Int,
+        @Json(name = "url") val url: String,
+        @Json(name = "with_padding") val withPadding: Int?
     ) {
 
         fun asVideoImage() = VkVideoDomain.VideoImage(
             width = width,
             height = height,
             url = url,
-            withPadding = with_padding == 1
+            withPadding = withPadding == 1
         )
     }
 
     @JsonClass(generateAdapter = true)
     data class FirstFrame(
-        val height: Int,
-        val width: Int,
-        val url: String
+        @Json(name = "height") val height: Int,
+        @Json(name = "width") val width: Int,
+        @Json(name = "url") val url: String
     )
 
     @JsonClass(generateAdapter = true)
     data class File(
-        val mp4_240: String?,
-        val mp4_360: String?,
-        val mp4_480: String?,
-        val mp4_720: String?,
-        val mp4_1080: String?,
-        val mp4_1440: String?,
-        val hls: String?,
-        val dash_uni: String?,
-        val dash_sep: String?,
-        val hls_ondemand: String?,
-        val dash_ondemand: String?,
-        val failover_host: String?
+        @Json(name = "mp4_240") val mp4240: String?,
+        @Json(name = "mp4_360") val mp4360: String?,
+        @Json(name = "mp4_480") val mp4480: String?,
+        @Json(name = "mp4_720") val mp4720: String?,
+        @Json(name = "mp4_1080") val mp41080: String?,
+        @Json(name = "mp4_1440") val mp41440: String?,
+        @Json(name = "hls") val hls: String?,
+        @Json(name = "dash_uni") val dashUni: String?,
+        @Json(name = "dash_sep") val dashSep: String?,
+        @Json(name = "hls_ondemand") val hlsOnDemand: String?,
+        @Json(name = "dash_ondemand") val dashOnDemand: String?,
+        @Json(name = "failover_host") val failOverHost: String?
     )
 
     fun toDomain() = VkVideoDomain(
         id = id,
-        ownerId = owner_id,
+        ownerId = ownerId,
         images = image.orEmpty().map { it.asVideoImage() },
-        firstFrames = first_frame,
-        accessKey = access_key,
-        title = title
+        firstFrames = firstFrame,
+        accessKey = accessKey,
+        title = title,
+        views = views,
+        duration = duration
     )
 }

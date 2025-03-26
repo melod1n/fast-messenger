@@ -7,7 +7,10 @@ sealed class UiChatMaterial {
     ) : UiChatMaterial()
 
     data class Video(
-        val previewUrl: String
+        val previewUrl: String?,
+        val title: String,
+        val views: Int,
+        val duration: String
     ) : UiChatMaterial()
 
     data class Audio(
@@ -18,11 +21,16 @@ sealed class UiChatMaterial {
     ) : UiChatMaterial()
 
     data class File(
-        val title: String
+        val previewUrl: String?,
+        val title: String,
+        val size: String,
+        val extension: String
     ) : UiChatMaterial()
 
     data class Link(
-        val title: String,
-        val previewUrl: String?
+        val previewUrl: String?,
+        val title: String?,
+        val url: String,
+        val urlFirstChar: String
     ) : UiChatMaterial()
 }

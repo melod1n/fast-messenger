@@ -229,8 +229,7 @@ fun MessagesHistoryScreen(
                         .fillMaxWidth(),
                     title = {
                         Row(
-                            modifier = Modifier
-                                .weight(1f),
+                            modifier = Modifier.weight(1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (selectedMessages.isEmpty()) {
@@ -332,6 +331,9 @@ fun MessagesHistoryScreen(
                                 )
                             }
                         } else {
+                            if (screenState.isLoading) {
+                                return@TopAppBar
+                            }
                             IconButton(
                                 onClick = { dropDownMenuExpanded = true }
                             ) {
@@ -362,7 +364,13 @@ fun MessagesHistoryScreen(
                                         )
                                     },
                                     text = {
-                                        Text(text = "Materials")
+                                        Text(text = stringResource(UiR.string.chat_materials_action_title))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(UiR.drawable.ic_multimedia),
+                                            contentDescription = null
+                                        )
                                     }
                                 )
                                 DropdownMenuItem(
@@ -371,7 +379,7 @@ fun MessagesHistoryScreen(
                                         dropDownMenuExpanded = false
                                     },
                                     text = {
-                                        Text(text = "Refresh")
+                                        Text(text = stringResource(UiR.string.action_refresh))
                                     },
                                     leadingIcon = {
                                         Icon(

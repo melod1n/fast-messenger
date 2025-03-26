@@ -24,14 +24,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -50,7 +49,7 @@ import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-
+import kotlinx.coroutines.launch
 import dev.meloda.fast.ui.R as UiR
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
@@ -60,10 +59,7 @@ fun FriendsRoute(
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userId: Int) -> Unit,
 ) {
-    var selectedTabIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-
+    val scope = rememberCoroutineScope()
     val currentTheme = LocalThemeConfig.current
     val hazeState = LocalHazeState.current
 
@@ -107,18 +103,34 @@ fun FriendsRoute(
         )
     }
 
+    val pagerState = rememberPagerState(pageCount = tabItems::size)
+
+    val selectedTabIndex by remember {
+        derivedStateOf { pagerState.currentPage }
+    }
+
     var orderType: String by remember { mutableStateOf("hints") }
 
     var showOrderDialog by remember { mutableStateOf(false) }
 
-    val orderItems = remember {
-        mapOf(
-            "hints" to "Priority",
-            "name" to "Name",
-            "random" to "Random",
-            "mobile" to "Mobile",
-            "smart" to "Smart"
+    val orderPriority = stringResource(UiR.string.friends_order_priority)
+    val orderName = stringResource(UiR.string.friends_order_name)
+    val orderRandom = stringResource(UiR.string.friends_order_random)
+    val orderMobile = stringResource(UiR.string.friends_order_mobile)
+    val orderSmart = stringResource(UiR.string.friends_order_smart)
+
+    val orderTitleItems = remember {
+        ImmutableList.of(
+            orderPriority,
+            orderName,
+            orderRandom,
+            orderMobile,
+            orderSmart
         )
+    }
+
+    val orderItems = remember {
+        listOf("hints", "name", "random", "mobile", "smart")
     }
 
     var selectedIndex by remember {
@@ -130,17 +142,16 @@ fun FriendsRoute(
             onDismissRequest = { showOrderDialog = false },
             confirmText = stringResource(R.string.ok),
             confirmAction = {
-                orderType =
-                    orderItems.keys.toCollection(mutableListOf())[selectedIndex]
+                orderType = orderItems[selectedIndex]
             },
             cancelText = stringResource(R.string.cancel),
             selectionType = SelectionType.Single,
-            items = ImmutableList.copyOf(orderItems.values),
+            items = orderTitleItems,
             preSelectedItems = ImmutableList.of(selectedIndex),
             onItemClick = {
                 selectedIndex = it
             },
-            title = "Order type",
+            title = stringResource(UiR.string.friends_order_by_title),
             actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
@@ -199,8 +210,8 @@ fun FriendsRoute(
                         Tab(
                             selected = index == selectedTabIndex,
                             onClick = {
-                                if (selectedTabIndex != index) {
-                                    selectedTabIndex = index
+                                scope.launch {
+                                    pagerState.animateScrollToPage(index)
                                 }
                             },
                             text = {
@@ -214,21 +225,6 @@ fun FriendsRoute(
             }
         }
     ) { padding ->
-        val pagerState = rememberPagerState(
-            initialPage = selectedTabIndex
-        ) {
-            tabItems.size
-        }
-
-        LaunchedEffect(selectedTabIndex) {
-            pagerState.animateScrollToPage(selectedTabIndex)
-        }
-
-        LaunchedEffect(pagerState) {
-            snapshotFlow { pagerState.currentPage }
-                .collect { selectedTabIndex = it }
-        }
-
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),

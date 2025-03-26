@@ -12,6 +12,8 @@ data class VkVideoDomain(
     val firstFrames: List<VkVideoData.FirstFrame>?,
     val accessKey: String?,
     val title: String,
+    val views: Int,
+    val duration: Int
 ) : VkAttachment {
 
     override val type: AttachmentType = AttachmentType.VIDEO
