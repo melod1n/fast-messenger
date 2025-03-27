@@ -170,6 +170,6 @@ class ChatMaterialsViewModelImpl(
     }
 
     companion object {
-        const val LOAD_COUNT = 200
+        const val LOAD_COUNT = 100
     }
 }

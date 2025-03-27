@@ -25,7 +25,9 @@ data class VkMessageEntity(
     val forwardIds: List<Int>?,
     val attachments: List<String>?, // TODO: 01/05/2024, Danil Nikolaev: how to store???
     val replyMessageId: Int?,
-    val geoType: String?
+    val geoType: String?,
+    val pinnedAt: Int?,
+    val isPinned: Boolean
 )
 
 fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
@@ -43,7 +45,7 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     actionConversationMessageId = actionConversationMessageId,
     actionMessage = actionMessage,
     updateTime = updateTime,
-    important = important,
+    isImportant = important,
     forwards = emptyList(),//forwards.orEmpty().map(VkMessageEntity::asExternalModel),
     // TODO: 05/05/2024, Danil Nikolaev: restore attachments
     attachments = attachments.orEmpty().map { VkUnknownAttachment },
@@ -53,4 +55,6 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     group = null,
     actionUser = null,
     actionGroup = null,
+    pinnedAt = pinnedAt,
+    isPinned = isPinned
 )

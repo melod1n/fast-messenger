@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,8 @@ fun MessageBubble(
     edited: Boolean,
     animate: Boolean,
     isRead: Boolean,
-    sendingStatus: SendingStatus
+    sendingStatus: SendingStatus,
+    pinned: Boolean
 ) {
     val backgroundColor = if (!isOut) {
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
@@ -63,12 +65,14 @@ fun MessageBubble(
                 horizontal = 8.dp,
                 vertical = 6.dp
             )
+            .then(if (animate) Modifier.animateContentSize() else Modifier),
     ) {
         val minDateContainerWidth = remember(edited, isOut) {
             val mainPart = if (edited) 50.dp else 30.dp
             val readIndicatorPart = if (isOut) 14.dp else 0.dp
+            val pinnedIndicatorPart = if (pinned) 14.dp else 0.dp
 
-            mainPart + readIndicatorPart
+            mainPart + readIndicatorPart + pinnedIndicatorPart
         }
 
         val dateContainerWidth by animateDpAsState(
@@ -94,7 +98,18 @@ fun MessageBubble(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .defaultMinSize(minWidth = dateContainerWidth)
+                .then(if (animate) Modifier.animateContentSize() else Modifier),
         ) {
+            if (pinned) {
+                Icon(
+                    painter = painterResource(UiR.drawable.ic_round_push_pin_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .rotate(45f)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
             if (edited) {
                 Icon(
                     imageVector = Icons.Rounded.Create,

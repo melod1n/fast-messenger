@@ -1,6 +1,7 @@
 package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,10 +34,10 @@ fun IncomingMessageBubble(
     message: UiItem.Message,
     animate: Boolean,
 ) {
-    Row(modifier = modifier.fillMaxWidth()) {
+    Row(modifier = modifier.fillMaxWidth().then(if (animate) Modifier.animateContentSize() else Modifier),) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(0.75f)
+                .fillMaxWidth(0.85f)
                 .padding(start = 16.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.Start
@@ -82,7 +83,8 @@ fun IncomingMessageBubble(
                     edited = message.isEdited,
                     animate = animate,
                     isRead = message.isRead,
-                    sendingStatus = message.sendingStatus
+                    sendingStatus = message.sendingStatus,
+                    pinned = message.isPinned
                 )
             }
         }

@@ -1,8 +1,8 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkMessage
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkMessage
 
 @JsonClass(generateAdapter = true)
 data class VkMessageData(
@@ -23,7 +23,9 @@ data class VkMessageData(
     @Json(name = "action") val action: Action?,
     @Json(name = "ttl") val ttl: Int?,
     @Json(name = "reply_message") val replyMessage: VkMessageData?,
-    @Json(name = "update_time") val updateTime: Int?
+    @Json(name = "update_time") val updateTime: Int?,
+    @Json(name = "is_pinned") val isPinned: Boolean?,
+    @Json(name = "pinned_at") val pinnedAt: Int?
 ) {
 
     @JsonClass(generateAdapter = true)
@@ -72,7 +74,7 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     actionConversationMessageId = action?.conversationMessageId,
     actionMessage = action?.message,
     geoType = geo?.type,
-    important = important,
+    isImportant = important,
     updateTime = updateTime,
     forwards = fwdMessages.orEmpty().map(VkMessageData::asDomain),
     attachments = attachments.map(VkAttachmentItemData::toDomain),
@@ -81,4 +83,6 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     group = null,
     actionUser = null,
     actionGroup = null,
+    pinnedAt = pinnedAt,
+    isPinned = isPinned == true
 )

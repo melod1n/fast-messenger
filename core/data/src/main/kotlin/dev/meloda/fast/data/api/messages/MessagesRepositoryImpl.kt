@@ -20,7 +20,9 @@ import dev.meloda.fast.model.api.requests.MessagesGetByIdRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryAttachmentsRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryRequest
 import dev.meloda.fast.model.api.requests.MessagesMarkAsReadRequest
+import dev.meloda.fast.model.api.requests.MessagesPinMessageRequest
 import dev.meloda.fast.model.api.requests.MessagesSendRequest
+import dev.meloda.fast.model.api.requests.MessagesUnPinMessageRequest
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
@@ -216,6 +218,32 @@ class MessagesRepositoryImpl(
         )
     }
 
+    override suspend fun pin(
+        peerId: Int,
+        messageId: Int?,
+        conversationMessageId: Int?
+    ): ApiResult<VkMessage, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesPinMessageRequest(
+            peerId = peerId,
+            messageId = messageId,
+            conversationMessageId = conversationMessageId
+        )
+
+        messagesService.pin(requestModel.map).mapApiResult(
+            successMapper = { apiResponse ->
+                apiResponse.requireResponse().asDomain()
+            },
+            errorMapper = { error -> error?.toDomain() }
+        )
+    }
+
+    override suspend fun unpin(
+        peerId: Int
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesUnPinMessageRequest(peerId = peerId)
+        messagesService.unpin(requestModel.map).mapApiDefault()
+    }
+
     override suspend fun storeMessages(messages: List<VkMessage>) {
         messageDao.insertAll(messages.map(VkMessage::asEntity))
     }
@@ -225,24 +253,6 @@ class MessagesRepositoryImpl(
 //    ): ApiResult<List<Int>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
 //        messagesService.markAsImportant(params.map).mapResult(
 //            successMapper = { response -> response.requireResponse() },
-//            errorMapper = { error -> error?.toDomain() }
-//        )
-//    }
-//
-//    override suspend fun pin(
-//        params: MessagesPinMessageRequest
-//    ): ApiResult<VkMessageData, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-//        messagesService.pin(params.map).mapResult(
-//            successMapper = { response -> response.requireResponse() },
-//            errorMapper = { error -> error?.toDomain() }
-//        )
-//    }
-//
-//    override suspend fun unpin(
-//        params: MessagesUnPinMessageRequest
-//    ): ApiResult<Unit, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-//        messagesService.unpin(params.map).mapResult(
-//            successMapper = {},
 //            errorMapper = { error -> error?.toDomain() }
 //        )
 //    }
@@ -293,4 +303,3 @@ class MessagesRepositoryImpl(
 //        )
 //    }
 }
-

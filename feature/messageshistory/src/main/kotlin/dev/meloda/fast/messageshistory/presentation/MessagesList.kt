@@ -92,6 +92,12 @@ fun MessagesList(
             when (item) {
                 is UiItem.ActionMessage -> {
                     ActionMessageItem(
+                        modifier = Modifier.then(
+                            if (enableAnimations) Modifier.animateItem(
+                                fadeInSpec = null,
+                                fadeOutSpec = null
+                            ) else Modifier
+                        ),
                         item = item,
                         onClick = {
                             if (item.actionCmId != null) {
@@ -112,6 +118,12 @@ fun MessagesList(
 
                     Surface(
                         modifier = Modifier
+                            .then(
+                                if (enableAnimations) Modifier.animateItem(
+                                    fadeInSpec = null,
+                                    fadeOutSpec = null
+                                ) else Modifier
+                            )
                             .combinedClickable(
                                 onLongClick = {
                                     if (AppSettings.General.enableHaptic) {

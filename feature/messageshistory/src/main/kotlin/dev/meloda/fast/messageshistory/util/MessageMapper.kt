@@ -128,7 +128,9 @@ fun VkMessage.asPresentation(
         sendingStatus = when {
             id <= 0 -> SendingStatus.SENDING
             else -> SendingStatus.SENT
-        }
+        },
+        isSelected = false,
+        isPinned = isPinned
     )
 }
 

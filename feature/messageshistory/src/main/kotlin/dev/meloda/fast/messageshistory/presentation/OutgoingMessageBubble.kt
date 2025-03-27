@@ -1,5 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,14 +20,14 @@ fun OutgoingMessageBubble(
     animate: Boolean
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().then(if (animate) Modifier.animateContentSize() else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
     ) {
         Column(
             modifier = Modifier
                 .padding(end = 16.dp)
-                .fillMaxWidth(0.75f),
+                .fillMaxWidth(0.85f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.End,
         ) {
@@ -38,7 +39,8 @@ fun OutgoingMessageBubble(
                 edited = message.isEdited,
                 animate = animate,
                 isRead = message.isRead,
-                sendingStatus = message.sendingStatus
+                sendingStatus = message.sendingStatus,
+                pinned = message.isPinned
             )
         }
     }

@@ -46,19 +46,21 @@ interface MessagesRepository {
         title: String?
     ): ApiResult<Int, RestApiErrorDomain>
 
+    suspend fun pin(
+        peerId: Int,
+        messageId: Int?,
+        conversationMessageId: Int?
+    ): ApiResult<VkMessage, RestApiErrorDomain>
+
+    suspend fun unpin(
+        peerId: Int
+    ): ApiResult<Int, RestApiErrorDomain>
+
     suspend fun storeMessages(messages: List<VkMessage>)
 
 //    suspend fun markAsImportant(
 //        params: MessagesMarkAsImportantRequest
 //    ): ApiResult<List<Int>, RestApiErrorDomain>
-//
-//    suspend fun pin(
-//        params: MessagesPinMessageRequest
-//    ): ApiResult<VkMessageData, RestApiErrorDomain>
-//
-//    suspend fun unpin(
-//        params: MessagesUnPinMessageRequest
-//    ): ApiResult<Unit, RestApiErrorDomain>
 //
 //    suspend fun delete(
 //        params: MessagesDeleteRequest

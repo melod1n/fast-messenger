@@ -47,6 +47,16 @@ interface MessagesUseCase {
         title: String?
     ): Flow<State<Int>>
 
+    fun pin(
+        peerId: Int,
+        messageId: Int?,
+        conversationMessageId: Int?
+    ): Flow<State<VkMessage>>
+
+    fun unpin(
+        peerId: Int
+    ): Flow<State<Int>>
+
     suspend fun storeMessage(message: VkMessage)
     suspend fun storeMessages(messages: List<VkMessage>)
 }

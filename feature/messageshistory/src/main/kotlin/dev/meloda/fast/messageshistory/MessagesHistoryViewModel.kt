@@ -1,8 +1,6 @@
 package dev.meloda.fast.messageshistory
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -54,12 +52,17 @@ interface MessagesHistoryViewModel {
     val screenState: StateFlow<MessagesHistoryScreenState>
     val selectedMessages: StateFlow<List<Int>>
 
+    val isNeedToScrollToIndex: StateFlow<Int?>
+
     val baseError: StateFlow<BaseError?>
     val imagesToPreload: StateFlow<List<String>>
 
-    val currentOffset: StateFlow<Int>
+    val showMessageOptions: StateFlow<VkMessage?>
 
+    val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
+
+    fun onScrolledToIndex()
 
     fun onCloseButtonClicked()
     fun onRefresh()
@@ -72,10 +75,12 @@ interface MessagesHistoryViewModel {
 
     fun onMessageClicked(messageId: Int)
     fun onMessageLongClicked(messageId: Int)
+    fun onMessageOptionsDialogDismissed()
+    fun onPinnedMessageClicked(messageId: Int)
+    fun onUnpinMessageClicked()
 }
 
 class MessagesHistoryViewModelImpl(
-    private val applicationContext: Context,
     private val messagesUseCase: MessagesUseCase,
     private val conversationsUseCase: ConversationsUseCase,
     private val resourceProvider: ResourceProvider,
@@ -88,8 +93,12 @@ class MessagesHistoryViewModelImpl(
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
     override val selectedMessages = MutableStateFlow<List<Int>>(emptyList())
 
+    override val isNeedToScrollToIndex = MutableStateFlow<Int?>(null)
+
     override val baseError = MutableStateFlow<BaseError?>(null)
     override val imagesToPreload = MutableStateFlow<List<String>>(emptyList())
+
+    override val showMessageOptions = MutableStateFlow<VkMessage?>(null)
 
     override val currentOffset = MutableStateFlow(0)
 
@@ -118,6 +127,10 @@ class MessagesHistoryViewModelImpl(
             viewModelScope,
             ::toggleShowTimeInActionMessages
         )
+    }
+
+    override fun onScrolledToIndex() {
+        isNeedToScrollToIndex.setValue { null }
     }
 
     override fun onCloseButtonClicked() {
@@ -211,7 +224,9 @@ class MessagesHistoryViewModelImpl(
                 }
             }
         } else {
-            Toast.makeText(applicationContext, "Click", Toast.LENGTH_SHORT).show()
+            messages.value.firstOrNull { it.id == currentMessage.id }?.let { message ->
+                showMessageOptions.setValue { message }
+            }
         }
     }
 
@@ -238,6 +253,62 @@ class MessagesHistoryViewModelImpl(
                 }
             }
         }
+    }
+
+    override fun onMessageOptionsDialogDismissed() {
+        showMessageOptions.setValue { null }
+    }
+
+    override fun onPinnedMessageClicked(messageId: Int) {
+        val messageIndex = screenState.value.messages.indexOfFirstOrNull {
+            it is UiItem.Message && it.id == messageId
+        }
+
+        if (messageIndex == null) { // сообщения нет в списке
+            // pizdets
+        } else {
+            isNeedToScrollToIndex.setValue { messageIndex }
+        }
+    }
+
+    override fun onUnpinMessageClicked() {
+        // TODO: 27.03.2025, Danil Nikolaev: confirmation alert
+        val pinnedMessageId = screenState.value.pinnedMessage?.id ?: return
+        unpinMessage(pinnedMessageId)
+    }
+
+    private fun unpinMessage(messageId: Int) {
+        val messageIndex = screenState.value.messages.indexOfFirstOrNull {
+            it is UiItem.Message && it.id == messageId
+        }
+
+        messagesUseCase.unpin(screenState.value.conversationId)
+            .listenValue(viewModelScope) { state ->
+                state.processState(
+                    error = ::handleError,
+                    success = {
+                        var newState = screenState.value.copy(
+                            pinnedMessage = null,
+                            conversation = screenState.value.conversation.copy(
+                                pinnedMessage = null,
+                                pinnedMessageId = null
+                            ),
+                            pinnedSummary = null,
+                            pinnedTitle = null
+                        )
+
+                        if (messageIndex != null) {
+                            val newMessages = screenState.value.messages.toMutableList()
+                            val currentMessage: UiItem.Message =
+                                newMessages[messageIndex] as UiItem.Message
+                            newMessages[messageIndex] = currentMessage.copy(isPinned = false)
+                            newState = newState.copy(messages = newMessages)
+                        }
+
+                        screenState.setValue { old -> newState }
+                    }
+                )
+            }
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
@@ -543,7 +614,7 @@ class MessagesHistoryViewModelImpl(
             actionConversationMessageId = null,
             actionMessage = null,
             updateTime = null,
-            important = false,
+            isImportant = false,
             forwards = null,
             attachments = null,
             replyMessage = null,
@@ -551,7 +622,9 @@ class MessagesHistoryViewModelImpl(
             user = VkMemoryCache.getUser(UserConfig.userId),
             group = null,
             actionUser = null,
-            actionGroup = null
+            actionGroup = null,
+            isPinned = false,
+            pinnedAt = null
         )
         sendingMessages += newMessage
 

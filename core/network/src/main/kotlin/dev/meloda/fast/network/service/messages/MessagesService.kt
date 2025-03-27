@@ -2,6 +2,7 @@ package dev.meloda.fast.network.service.messages
 
 import com.slack.eithernet.ApiResult
 import dev.meloda.fast.model.api.data.VkLongPollData
+import dev.meloda.fast.model.api.data.VkMessageData
 import dev.meloda.fast.model.api.responses.MessagesCreateChatResponse
 import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
@@ -56,23 +57,23 @@ interface MessagesService {
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<MessagesCreateChatResponse>, RestApiError>
 
+    @FormUrlEncoded
+    @POST(MessagesUrls.PIN)
+    suspend fun pin(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<VkMessageData>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.UNPIN)
+    suspend fun unpin(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
+
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.MarkAsImportant)
 //    suspend fun markAsImportant(
 //        @FieldMap params: Map<String, String>
 //    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.Pin)
-//    suspend fun pin(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<VkMessageData>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.Unpin)
-//    suspend fun unpin(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<Unit>, RestApiError>
 //
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.Delete)

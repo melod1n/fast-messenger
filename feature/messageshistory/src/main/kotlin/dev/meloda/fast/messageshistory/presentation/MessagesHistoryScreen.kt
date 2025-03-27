@@ -64,6 +64,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -100,6 +101,8 @@ import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.IconButton
+import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.SelectionType
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.getImage
@@ -119,18 +122,22 @@ fun MessagesHistoryRoute(
     val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+    val showMessageOptions by viewModel.showMessageOptions.collectAsStateWithLifecycle()
+    val scrollIndex by viewModel.isNeedToScrollToIndex.collectAsStateWithLifecycle()
 
     val userSettings: UserSettings = koinInject()
     val showEmojiButton by userSettings.showEmojiButton.collectAsStateWithLifecycle()
 
     MessagesHistoryScreen(
         screenState = screenState,
+        scrollIndex = scrollIndex,
         selectedMessages = ImmutableList.copyOf(selectedMessages),
         baseError = baseError,
         canPaginate = canPaginate,
         showEmojiButton = showEmojiButton,
         onBack = onBack,
         onClose = viewModel::onCloseButtonClicked,
+        onScrolledToIndex = viewModel::onScrolledToIndex,
         onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
         onRefresh = viewModel::onRefresh,
@@ -140,8 +147,45 @@ fun MessagesHistoryRoute(
         onActionButtonClicked = viewModel::onActionButtonClicked,
         onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked,
         onMessageClicked = viewModel::onMessageClicked,
-        onMessageLongClicked = viewModel::onMessageLongClicked
+        onMessageLongClicked = viewModel::onMessageLongClicked,
+        onPinnedMessageClicked = viewModel::onPinnedMessageClicked,
+        onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked
     )
+
+    if (showMessageOptions != null) {
+        val message = showMessageOptions!!
+
+        val messageOptions = mutableListOf(
+            stringResource(UiR.string.message_context_action_reply),
+            stringResource(UiR.string.message_context_action_forward)
+        )
+
+        if (message.isPeerChat() && screenState.conversation.canChangePin) {
+            messageOptions += stringResource(
+                if (message.isPinned) UiR.string.message_context_action_unpin
+                else UiR.string.message_context_action_pin
+            )
+        }
+
+        messageOptions += stringResource(UiR.string.message_context_action_copy)
+        messageOptions += stringResource(
+            if (message.isImportant) UiR.string.message_context_action_unmark_as_important
+            else UiR.string.message_context_action_mark_as_important
+        )
+
+//        if (!message.isOut) {
+//            messageOptions += "Mark as spam"
+//        }
+
+        messageOptions += stringResource(UiR.string.message_context_action_delete)
+
+        MaterialDialog(
+            onDismissRequest = viewModel::onMessageOptionsDialogDismissed,
+            selectionType = SelectionType.None,
+            items = ImmutableList.copyOf(messageOptions),
+            confirmText = stringResource(UiR.string.ok)
+        )
+    }
 }
 
 @OptIn(
@@ -152,12 +196,14 @@ fun MessagesHistoryRoute(
 @Composable
 fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
+    scrollIndex: Int? = null,
     selectedMessages: ImmutableList<Int> = ImmutableList.empty(),
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
+    onScrolledToIndex: () -> Unit = {},
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
     onRefresh: () -> Unit = {},
@@ -167,13 +213,24 @@ fun MessagesHistoryScreen(
     onActionButtonClicked: () -> Unit = {},
     onEmojiButtonLongClicked: () -> Unit = {},
     onMessageClicked: (Int) -> Unit = {},
-    onMessageLongClicked: (Int) -> Unit = {}
+    onMessageLongClicked: (Int) -> Unit = {},
+    onPinnedMessageClicked: (Int) -> Unit = {},
+    onUnpinMessageButtonClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
     val currentTheme = LocalThemeConfig.current
     val listState = rememberLazyListState()
     val hazeState = remember { HazeState() }
+
+    LaunchedEffect(scrollIndex) {
+        if (scrollIndex != null) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(scrollIndex)
+                onScrolledToIndex()
+            }
+        }
+    }
 
     BackHandler(
         enabled = selectedMessages.isNotEmpty(),
@@ -440,14 +497,14 @@ fun MessagesHistoryScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
-                            .clickable {
-
-                            }
+                            .clickable { onPinnedMessageClicked(pinnedMessage!!.id) }
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            modifier = Modifier.rotate(45f),
+                            modifier = Modifier
+                                .rotate(45f)
+                                .alpha(0.5f),
                             painter = painterResource(UiR.drawable.ic_round_push_pin_24),
                             contentDescription = null
                         )
@@ -466,6 +523,18 @@ fun MessagesHistoryScreen(
                                 LocalContentAlpha(alpha = ContentAlpha.medium) {
                                     Text(text = summary)
                                 }
+                            }
+                        }
+
+                        if (screenState.conversation.canChangePin) {
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            IconButton(onClick = onUnpinMessageButtonClicked) {
+                                Icon(
+                                    modifier = Modifier.alpha(0.5f),
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = null
+                                )
                             }
                         }
                     }

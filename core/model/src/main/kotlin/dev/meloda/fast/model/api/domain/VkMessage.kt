@@ -18,8 +18,9 @@ data class VkMessage(
     val actionMessage: String?,
 
     val updateTime: Int?,
-
-    val important: Boolean = false,
+    val pinnedAt: Int?,
+    val isPinned: Boolean,
+    val isImportant: Boolean = false,
 
     val forwards: List<VkMessage>?,
     val attachments: List<VkAttachment>?,
@@ -91,10 +92,12 @@ fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     actionConversationMessageId = actionConversationMessageId,
     actionMessage = actionMessage,
     updateTime = updateTime,
-    important = important,
+    important = isImportant,
     forwardIds = forwards.orEmpty().map(VkMessage::id),
     // TODO: 05/05/2024, Danil Nikolaev: save attachments
     attachments = emptyList(),
     replyMessageId = replyMessage?.id,
-    geoType = geoType
+    geoType = geoType,
+    pinnedAt = pinnedAt,
+    isPinned = isPinned,
 )

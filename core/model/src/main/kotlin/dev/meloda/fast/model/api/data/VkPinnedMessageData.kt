@@ -41,7 +41,7 @@ data class VkPinnedMessageData(
         actionConversationMessageId = action?.conversationMessageId,
         actionMessage = action?.message,
         geoType = geo?.type,
-        important = important,
+        isImportant = important,
         updateTime = updateTime,
         forwards = forwards.orEmpty().map(VkMessageData::asDomain),
 
@@ -52,6 +52,7 @@ data class VkPinnedMessageData(
         group = null,
         actionUser = null,
         actionGroup = null,
+        pinnedAt = null,
+        isPinned = true,
     )
 }
-

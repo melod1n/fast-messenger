@@ -124,14 +124,19 @@
     <string name="sign_out_confirm">Signing out will delete all data related to this account from this device. Continue?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="time_format">Time: %1$s</string>
+
     <string name="message_context_action_reply">Reply</string>
+    <string name="message_context_action_forward">Forward</string>
     <string name="message_context_action_mark_as_important">Mark as important</string>
     <string name="message_context_action_unmark_as_important">Unmark as important</string>
-    <string name="time_format">Time: %1$s</string>
+    <string name="message_context_action_mark_as_spam">Mark as spam</string>
+    <string name="message_context_action_unmark_as_spam">Unmark as spam</string>
     <string name="message_context_action_pin">Pin</string>
     <string name="message_context_action_unpin">Unpin</string>
     <string name="message_context_action_edit">Edit</string>
     <string name="message_context_action_delete">Delete</string>
+    <string name="message_context_action_copy">Copy</string>
 
     <string name="confirm_delete_message">Delete the message?</string>
 

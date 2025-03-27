@@ -108,6 +108,30 @@ class MessagesUseCaseImpl(
         emit(newState)
     }
 
+    override fun pin(
+        peerId: Int,
+        messageId: Int?,
+        conversationMessageId: Int?
+    ): Flow<State<VkMessage>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.pin(
+            peerId = peerId,
+            messageId = messageId,
+            conversationMessageId = conversationMessageId
+        ).mapToState()
+
+        emit(newState)
+    }
+
+    override fun unpin(peerId: Int): Flow<State<Int>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.unpin(peerId = peerId).mapToState()
+
+        emit(newState)
+    }
+
     override suspend fun storeMessage(message: VkMessage) {
         repository.storeMessages(listOf(message))
     }
