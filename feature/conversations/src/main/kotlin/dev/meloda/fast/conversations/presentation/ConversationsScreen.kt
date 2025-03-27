@@ -3,6 +3,7 @@ package dev.meloda.fast.conversations.presentation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -51,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -277,19 +278,28 @@ fun ConversationsScreen(
             }
         },
         floatingActionButton = {
+            val offsetY by animateIntAsState(
+                targetValue = if (listState.isScrollingUp()) 0 else 600
+            )
+
             Column {
-                AnimatedVisibility(
-                    visible = listState.isScrollingUp(),
-                    enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
-                    exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
-                ) {
-                    FloatingActionButton(onClick = onCreateChatButtonClicked) {
+//                AnimatedVisibility(
+//                    visible = listState.isScrollingUp(),
+//                    enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
+//                    exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
+//                ) {
+                    FloatingActionButton(
+                        onClick = onCreateChatButtonClicked,
+                        modifier = Modifier.offset {
+                            IntOffset(0, offsetY)
+                        }
+                    ) {
                         Icon(
                             painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
                             contentDescription = "Add chat button"
                         )
                     }
-                }
+//                }
 
                 Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }

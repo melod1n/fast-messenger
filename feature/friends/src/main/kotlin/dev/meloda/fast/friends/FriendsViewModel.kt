@@ -157,8 +157,8 @@ class FriendsViewModelImpl(
                     val itemsCountSufficient = response.size == LOAD_COUNT
                     canPaginate.setValue { itemsCountSufficient }
 
-                    val paginationExhausted = !itemsCountSufficient &&
-                            screenState.value.friends.size >= LOAD_COUNT
+                    val paginationExhausted = !itemsCountSufficient
+                            && screenState.value.friends.isNotEmpty()
 
                     imagesToPreload.setValue {
                         response.mapNotNull(VkUser::photo100)

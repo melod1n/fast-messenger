@@ -8,7 +8,7 @@ import java.util.Stack
 // TODO: 11/04/2024, Danil Nikolaev: review
 data class VkPhotoDomain(
     val albumId: Int,
-    val date: Int,
+    val date: Int?,
     val id: Int,
     val ownerId: Int,
     val hasTags: Boolean,

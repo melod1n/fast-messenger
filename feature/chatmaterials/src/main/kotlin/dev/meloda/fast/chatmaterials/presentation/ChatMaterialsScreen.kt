@@ -17,9 +17,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -171,10 +173,17 @@ fun ChatMaterialsScreen(
                         }
                     }
                 )
-                PrimaryTabRow(
+                ScrollableTabRow(
                     modifier = Modifier.fillMaxWidth(),
                     selectedTabIndex = selectedTabIndex,
-                    containerColor = Color.Transparent
+                    containerColor = Color.Transparent,
+                    edgePadding = 0.dp,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.PrimaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 ) {
                     tabItems.forEachIndexed { index, item ->
                         Tab(

@@ -27,7 +27,7 @@ data class VkAudioData(
         @Json(name = "title") val title: String,
         @Json(name = "owner_id") val ownerId: Int,
         @Json(name = "access_key") val accessKey: String,
-        @Json(name = "thumb") val thumb: Thumb
+        @Json(name = "thumb") val thumb: Thumb?
     ) {
 
         @JsonClass(generateAdapter = true)

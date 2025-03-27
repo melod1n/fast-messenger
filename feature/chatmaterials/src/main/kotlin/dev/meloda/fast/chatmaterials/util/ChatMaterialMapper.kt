@@ -1,5 +1,6 @@
 package dev.meloda.fast.chatmaterials.util
 
+import android.util.Log
 import dev.meloda.fast.chatmaterials.model.UiChatMaterial
 import dev.meloda.fast.common.util.AndroidUtils
 import dev.meloda.fast.model.api.data.AttachmentType
@@ -11,11 +12,12 @@ import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.model.api.domain.VkVideoDomain
 import java.util.Locale
 
-fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
+fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
     when (val type = this.attachment.type) {
         AttachmentType.PHOTO -> {
             val attachment = this.attachment as VkPhotoDomain
             UiChatMaterial.Photo(
+                conversationMessageId = this.conversationMessageId,
                 previewUrl = attachment.getSizeOrSmaller(VkPhotoDomain.SIZE_TYPE_1080_1024)?.url.orEmpty()
             )
         }
@@ -45,6 +47,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
                 builder.toString().format(Locale.getDefault(), *args.toTypedArray())
 
             UiChatMaterial.Video(
+                conversationMessageId = this.conversationMessageId,
                 previewUrl = attachment.images.maxByOrNull(VkVideoDomain.VideoImage::width)?.url.orEmpty(),
                 title = attachment.title,
                 views = attachment.views,
@@ -77,6 +80,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
                 builder.toString().format(Locale.getDefault(), *args.toTypedArray())
 
             UiChatMaterial.Audio(
+                conversationMessageId = this.conversationMessageId,
                 previewUrl = null,
                 title = attachment.title,
                 artist = attachment.artist,
@@ -108,6 +112,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
             }
 
             UiChatMaterial.File(
+                conversationMessageId = this.conversationMessageId,
                 title = attachment.title,
                 previewUrl = previewUrl,
                 size = AndroidUtils.bytesToHumanReadableSize(attachment.size.toDouble()),
@@ -119,6 +124,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
             val attachment = this.attachment as VkLinkDomain
 
             UiChatMaterial.Link(
+                conversationMessageId = this.conversationMessageId,
                 title = attachment.title,
                 previewUrl = attachment.photo?.getMaxSize()?.url,
                 url = attachment.url,
@@ -129,5 +135,8 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial =
             )
         }
 
-        else -> throw IllegalArgumentException("Unsupported type: $type")
+        else -> {
+            Log.w("ChatMaterialMapper", "Unsupported type: $type")
+            null
+        }
     }

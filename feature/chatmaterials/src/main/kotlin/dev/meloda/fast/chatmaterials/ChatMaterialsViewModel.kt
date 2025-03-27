@@ -9,10 +9,12 @@ import dev.meloda.fast.chatmaterials.navigation.ChatMaterials
 import dev.meloda.fast.chatmaterials.util.asPresentation
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.data.State
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.network.VkErrorCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -60,7 +62,7 @@ class ChatMaterialsViewModelImpl(
     }
 
     override fun onPaginationConditionsMet() {
-        currentOffset.update { screenState.value.materials.size }
+        currentOffset.setValue { old -> old + LOAD_COUNT }
         loadChatMaterials()
     }
 
@@ -86,20 +88,24 @@ class ChatMaterialsViewModelImpl(
             conversationMessageId = screenState.value.conversationMessageId
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
-
-                },
+                error = ::handleError,
                 success = { response ->
                     val itemsCountSufficient = response.size == LOAD_COUNT
                     canPaginate.setValue { itemsCountSufficient }
 
-                    val paginationExhausted = !itemsCountSufficient &&
-                            screenState.value.materials.size >= LOAD_COUNT
+                    val paginationExhausted = !itemsCountSufficient
+                            && screenState.value.materials.isNotEmpty()
 
-                    val loadedMaterials = response.map(VkAttachmentHistoryMessage::asPresentation)
+                    val loadedMaterials = response.mapNotNull(VkAttachmentHistoryMessage::asPresentation)
 
                     val newState = screenState.value.copy(
-                        isPaginationExhausted = paginationExhausted
+                        isPaginationExhausted = paginationExhausted,
+                        conversationMessageId = if (loadedMaterials.size + offset > 200) {
+                            currentOffset.setValue { 0 }
+                            loadedMaterials.lastOrNull()?.conversationMessageId ?: -1
+                        } else {
+                            screenState.value.conversationMessageId
+                        }
                     )
 
                     if (offset == 0) {
@@ -125,7 +131,45 @@ class ChatMaterialsViewModelImpl(
         }
     }
 
+    private fun handleError(error: State.Error) {
+        when (error) {
+            is State.Error.ApiError -> {
+                when (error.errorCode) {
+                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                        baseError.setValue { BaseError.SessionExpired }
+                    }
+
+                    else -> {
+                        baseError.setValue {
+                            BaseError.SimpleError(message = error.errorMessage)
+                        }
+                    }
+                }
+            }
+
+            State.Error.ConnectionError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Connection error")
+                }
+            }
+
+            State.Error.InternalError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Internal error")
+                }
+            }
+
+            State.Error.UnknownError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Unknown error")
+                }
+            }
+
+            else -> Unit
+        }
+    }
+
     companion object {
-        const val LOAD_COUNT = 30
+        const val LOAD_COUNT = 200
     }
 }
