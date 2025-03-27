@@ -1,10 +1,12 @@
 package dev.meloda.fast.messageshistory.model
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkMessage
 
 @Immutable
 data class MessagesHistoryScreenState(
@@ -20,7 +22,10 @@ data class MessagesHistoryScreenState(
     val isPaginationExhausted: Boolean,
     val actionMode: ActionMode,
     val chatImageUrl: String?,
-    val conversation: VkConversation
+    val conversation: VkConversation,
+    val pinnedMessage: VkMessage?,
+    val pinnedTitle: String?,
+    val pinnedSummary: AnnotatedString?
 ) {
 
     companion object {
@@ -37,7 +42,10 @@ data class MessagesHistoryScreenState(
             isPaginationExhausted = false,
             actionMode = ActionMode.Record,
             chatImageUrl = null,
-            conversation = VkConversation.EMPTY
+            conversation = VkConversation.EMPTY,
+            pinnedMessage = null,
+            pinnedTitle = null,
+            pinnedSummary = null
         )
     }
 }

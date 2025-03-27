@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import com.conena.nanokt.collections.indexOfOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
 import com.conena.nanokt.text.isNotEmptyOrBlank
 import dev.meloda.fast.common.extensions.listenValue
+import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.data.State
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.random.Random
 
 interface MessagesHistoryViewModel {
@@ -379,17 +382,30 @@ class MessagesHistoryViewModelImpl(
                     error = ::handleError,
                     success = { response ->
                         val conversation = response.firstOrNull() ?: return@listenValue
-                        screenState.setValue { old ->
-                            old.copy(conversation = conversation)
+                        val title = conversation.extractTitle(
+                            useContactName = AppSettings.General.useContactNames,
+                            resources = resourceProvider.resources
+                        )
+                        val avatar = conversation.extractAvatar()
+                        val pinnedMessage = conversation.pinnedMessage
+                        val pinnedUser = if (pinnedMessage == null) null else
+                            VkMemoryCache.getUser(pinnedMessage.fromId)
+                        val pinnedGroup = if (pinnedMessage == null) null else
+                            VkMemoryCache.getGroup(abs(pinnedMessage.fromId))
+                        val pinnedTitle = pinnedUser?.fullName ?: pinnedGroup?.name
+
+                        val pinnedSummary = buildAnnotatedString {
+                            pinnedMessage?.text?.let(::append) ?: append("...")
                         }
+
                         screenState.setValue { old ->
                             old.copy(
-                                title = conversation.extractTitle(
-                                    useContactName = AppSettings.General.useContactNames,
-                                    resources = resourceProvider.resources
-                                ),
-                                avatar = conversation.extractAvatar(),
-                                conversation = conversation
+                                conversation = conversation,
+                                title = title,
+                                avatar = avatar,
+                                pinnedMessage = pinnedMessage,
+                                pinnedTitle = pinnedTitle.orDots(),
+                                pinnedSummary = pinnedSummary
                             )
                         }
                     }

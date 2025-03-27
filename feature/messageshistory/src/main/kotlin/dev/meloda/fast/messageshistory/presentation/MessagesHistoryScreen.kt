@@ -86,6 +86,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
@@ -171,6 +172,8 @@ fun MessagesHistoryScreen(
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
     val currentTheme = LocalThemeConfig.current
+    val listState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
 
     BackHandler(
         enabled = selectedMessages.isNotEmpty(),
@@ -183,7 +186,6 @@ fun MessagesHistoryScreen(
         }
     }
 
-    val listState = rememberLazyListState()
 
     val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
@@ -202,8 +204,6 @@ fun MessagesHistoryScreen(
     var dropDownMenuExpanded by remember {
         mutableStateOf(false)
     }
-
-    val hazeState = remember { HazeState() }
 
     val topBarContainerColorAlpha by animateFloatAsState(
         targetValue = if (!currentTheme.enableBlur || !listState.canScrollBackward) 1f else 0f,
@@ -458,14 +458,14 @@ fun MessagesHistoryScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = pinnedMessage?.user?.toString()
-                                    ?: pinnedMessage?.group?.name
-                                    ?: "...",
+                                text = screenState.pinnedTitle.orDots(),
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            LocalContentAlpha(alpha = ContentAlpha.medium) {
-                                Text(text = pinnedMessage?.text.orEmpty())
+                            screenState.pinnedSummary?.let { summary ->
+                                LocalContentAlpha(alpha = ContentAlpha.medium) {
+                                    Text(text = summary)
+                                }
                             }
                         }
                     }
@@ -733,4 +733,3 @@ fun MessagesHistoryScreen(
         }
     }
 }
-
