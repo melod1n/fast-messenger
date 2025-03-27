@@ -15,6 +15,7 @@ import com.conena.nanokt.text.isNotEmptyOrBlank
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.provider.ResourceProvider
+import dev.meloda.fast.data.State
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.data.processState
@@ -37,6 +38,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.network.VkErrorCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -75,6 +77,7 @@ class MessagesHistoryViewModelImpl(
     private val conversationsUseCase: ConversationsUseCase,
     private val resourceProvider: ResourceProvider,
     private val userSettings: UserSettings,
+    private val loadConversationsByIdUseCase: LoadConversationsByIdUseCase,
     updatesParser: LongPollUpdatesParser,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
@@ -99,6 +102,8 @@ class MessagesHistoryViewModelImpl(
         val arguments = MessagesHistory.from(savedStateHandle).arguments
 
         screenState.setValue { old -> old.copy(conversationId = arguments.conversationId) }
+
+        loadConversation()
         loadMessagesHistory()
 
         updatesParser.onNewMessage(::handleNewMessage)
@@ -365,6 +370,33 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
+    private fun loadConversation() {
+        Log.d("MessagesHistoryViewModelImpl", "loadConversation()")
+
+        loadConversationsByIdUseCase(listOf(screenState.value.conversationId))
+            .listenValue(viewModelScope) { state ->
+                state.processState(
+                    error = ::handleError,
+                    success = { response ->
+                        val conversation = response.firstOrNull() ?: return@listenValue
+                        screenState.setValue { old ->
+                            old.copy(conversation = conversation)
+                        }
+                        screenState.setValue { old ->
+                            old.copy(
+                                title = conversation.extractTitle(
+                                    useContactName = AppSettings.General.useContactNames,
+                                    resources = resourceProvider.resources
+                                ),
+                                avatar = conversation.extractAvatar(),
+                                conversation = conversation
+                            )
+                        }
+                    }
+                )
+            }
+    }
+
     private fun loadMessagesHistory(offset: Int = currentOffset.value) {
         Log.d("MessagesHistoryViewModel", "loadMessagesHistory: $offset")
 
@@ -374,7 +406,7 @@ class MessagesHistoryViewModelImpl(
             offset = offset,
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error -> },
+                error = ::handleError,
                 success = { response ->
                     val messages = response.messages
                     val fullMessages = if (offset == 0) {
@@ -397,23 +429,9 @@ class MessagesHistoryViewModelImpl(
 
                     val paginationExhausted = !itemsCountSufficient &&
                             screenState.value.messages.isNotEmpty()
-                    var newState = screenState.value.copy(
+                    val newState = screenState.value.copy(
                         isPaginationExhausted = paginationExhausted,
                     )
-
-                    conversations
-                        .firstOrNull { it.id == screenState.value.conversationId }
-                        ?.let { conversation ->
-                            screenState.setValue { old -> old.copy(conversation = conversation) }
-                            newState = newState.copy(
-                                title = conversation.extractTitle(
-                                    useContactName = AppSettings.General.useContactNames,
-                                    resources = resourceProvider.resources
-                                ),
-                                avatar = conversation.extractAvatar(),
-                                conversation = conversation
-                            )
-                        }
 
                     val loadedMessages = fullMessages.mapIndexed { index, message ->
                         message.asPresentation(
@@ -438,6 +456,44 @@ class MessagesHistoryViewModelImpl(
                     isPaginating = offset > 0 && state.isLoading()
                 )
             }
+        }
+    }
+
+    private fun handleError(error: State.Error) {
+        when (error) {
+            is State.Error.ApiError -> {
+                when (error.errorCode) {
+                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                        baseError.setValue { BaseError.SessionExpired }
+                    }
+
+                    else -> {
+                        baseError.setValue {
+                            BaseError.SimpleError(message = error.errorMessage)
+                        }
+                    }
+                }
+            }
+
+            State.Error.ConnectionError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Connection error")
+                }
+            }
+
+            State.Error.InternalError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Internal error")
+                }
+            }
+
+            State.Error.UnknownError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Unknown error")
+                }
+            }
+
+            else -> Unit
         }
     }
 

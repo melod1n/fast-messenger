@@ -39,6 +39,7 @@ import dev.meloda.fast.ui.util.ImmutableList
 @Composable
 fun MessagesList(
     modifier: Modifier = Modifier,
+    hasPinnedMessage: Boolean,
     hazeState: HazeState,
     listState: LazyListState,
     immutableMessages: ImmutableList<UiItem>,
@@ -166,6 +167,10 @@ fun MessagesList(
                 ) {
                     CircularProgressIndicator()
                 }
+            }
+
+            if (hasPinnedMessage) {
+                Spacer(modifier = Modifier.height(56.dp))
             }
 
             Spacer(Modifier.height(8.dp))

@@ -2,12 +2,15 @@ package dev.meloda.fast.messageshistory.presentation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,6 +73,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
@@ -91,6 +95,8 @@ import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.util.firstMessage
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.basic.ContentAlpha
+import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
@@ -163,15 +169,19 @@ fun MessagesHistoryScreen(
     onMessageLongClicked: (Int) -> Unit = {}
 ) {
     val view = LocalView.current
-
     val coroutineScope = rememberCoroutineScope()
-
     val currentTheme = LocalThemeConfig.current
 
     BackHandler(
         enabled = selectedMessages.isNotEmpty(),
         onBack = onClose
     )
+
+    val pinnedMessage by remember(screenState) {
+        derivedStateOf {
+            screenState.conversation.pinnedMessage
+        }
+    }
 
     val listState = rememberLazyListState()
 
@@ -195,10 +205,24 @@ fun MessagesHistoryScreen(
 
     val hazeState = remember { HazeState() }
 
-    val toolbarColorAlpha by animateFloatAsState(
-        targetValue = if (!listState.canScrollForward) 1f else 0f,
+    val topBarContainerColorAlpha by animateFloatAsState(
+        targetValue = if (!currentTheme.enableBlur || !listState.canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
+    )
+
+    val topBarContainerColor by animateColorAsState(
+        targetValue =
+            if (currentTheme.enableBlur || !listState.canScrollBackward) MaterialTheme.colorScheme.surface
+            else MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+        label = "toolbarColorAlpha",
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
     var messageBarHeight by remember {
@@ -215,7 +239,19 @@ fun MessagesHistoryScreen(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(topBarContainerColor.copy(alpha = topBarContainerColorAlpha))
+                    .then(
+                        if (currentTheme.enableBlur) {
+                            Modifier.hazeEffect(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else Modifier
+                    )
+            ) {
                 TopAppBar(
                     modifier = Modifier
                         .then(
@@ -285,11 +321,7 @@ fun MessagesHistoryScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(
-                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
-                        )
-                    ),
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     actions = {
                         if (selectedMessages.isNotEmpty()) {
                             AnimatedVisibility(showReplyAction) {
@@ -402,6 +434,43 @@ fun MessagesHistoryScreen(
                 AnimatedVisibility(!showHorizontalProgressBar) {
                     HorizontalDivider()
                 }
+
+                if (!screenState.isLoading && pinnedMessage != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clickable {
+
+                            }
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier.rotate(45f),
+                            painter = painterResource(UiR.drawable.ic_round_push_pin_24),
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = pinnedMessage?.user?.toString()
+                                    ?: pinnedMessage?.group?.name
+                                    ?: "...",
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            LocalContentAlpha(alpha = ContentAlpha.medium) {
+                                Text(text = pinnedMessage?.text.orEmpty())
+                            }
+                        }
+                    }
+                    HorizontalDivider()
+                }
             }
         }
     ) { padding ->
@@ -415,6 +484,7 @@ fun MessagesHistoryScreen(
             MessagesList(
                 hazeState = hazeState,
                 listState = listState,
+                hasPinnedMessage = pinnedMessage != null,
                 immutableMessages = ImmutableList.copyOf(screenState.messages),
                 isPaginating = screenState.isPaginating,
                 messageBarHeight = messageBarHeight,
