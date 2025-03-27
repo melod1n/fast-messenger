@@ -42,7 +42,7 @@ Unofficial messenger for russian social network VKontakte
     - [ ] Pin & unpin messages
     - [ ] Reply to message
     - [ ] Delete message
-    - [ ] Select multiple messages
+    - [x] Select multiple messages
         - [ ] Delete
         - [ ] Forward
         - [ ] Forward in current chat
@@ -50,7 +50,7 @@ Unofficial messenger for russian social network VKontakte
         - [ ] TODO
 - [x] Chat materials (attachments)
     - [x] Separate tabs for each attachment type
-        - [ ] Pagination
+        - [x] Pagination
         - [x] Manual refresh
     - [x] View attachments
         - [x] Open photo
