@@ -44,7 +44,9 @@ fun OutgoingMessageBubble(
                 edited = message.isEdited,
                 isRead = message.isRead,
                 sendingStatus = message.sendingStatus,
-                pinned = message.isPinned
+                pinned = message.isPinned,
+                important = message.isImportant,
+                isSelected = message.isSelected
             )
         }
     }

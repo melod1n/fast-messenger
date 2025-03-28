@@ -96,7 +96,8 @@ fun VkMessage.asPresentation(
     showName: Boolean,
     prevMessage: VkMessage?,
     nextMessage: VkMessage?,
-    showTimeInActionMessages: Boolean
+    showTimeInActionMessages: Boolean,
+    isSelected: Boolean
 ): UiItem = when {
     action != null -> UiItem.ActionMessage(
         id = id,
@@ -126,11 +127,13 @@ fun VkMessage.asPresentation(
         isEdited = updateTime != null,
         isRead = isRead(conversation),
         sendingStatus = when {
+            isFailed() -> SendingStatus.FAILED
             id <= 0 -> SendingStatus.SENDING
             else -> SendingStatus.SENT
         },
-        isSelected = false,
-        isPinned = isPinned
+        isSelected = isSelected,
+        isPinned = isPinned,
+        isImportant = isImportant
     )
 }
 

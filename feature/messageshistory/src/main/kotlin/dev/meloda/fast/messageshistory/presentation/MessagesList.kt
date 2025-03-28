@@ -42,15 +42,15 @@ fun MessagesList(
     hasPinnedMessage: Boolean,
     hazeState: HazeState,
     listState: LazyListState,
-    immutableMessages: ImmutableList<UiItem>,
+    uiMessages: ImmutableList<UiItem>,
     isPaginating: Boolean,
     messageBarHeight: Dp,
     onRequestScrollToCmId: (cmId: Int) -> Unit = {},
     onMessageClicked: (Int) -> Unit = {},
     onMessageLongClicked: (Int) -> Unit = {}
 ) {
-    val messages = remember(immutableMessages) {
-        immutableMessages.toList()
+    val messages = remember(uiMessages) {
+        uiMessages.toList()
     }
     val theme = LocalThemeConfig.current
     val view = LocalView.current

@@ -69,17 +69,17 @@ interface MessagesService {
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<Int>, RestApiError>
 
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.MarkAsImportant)
-//    suspend fun markAsImportant(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.Delete)
-//    suspend fun delete(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<Unit>, RestApiError>
+    @FormUrlEncoded
+    @POST(MessagesUrls.MARK_AS_IMPORTANT)
+    suspend fun markAsImportant(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.DELETE)
+    suspend fun delete(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<List<Any>>, RestApiError>
 //
 //    @FormUrlEncoded
 //    @POST(MessagesUrls.Edit)

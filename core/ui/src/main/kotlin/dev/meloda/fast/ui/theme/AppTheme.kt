@@ -183,7 +183,7 @@ fun AppTheme(
             bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts),
             labelLarge = MaterialTheme.typography.labelLarge.copy(fontFamily = robotoFonts),
             labelMedium = MaterialTheme.typography.labelMedium.copy(fontFamily = robotoFonts),
-            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = robotoFonts)
+            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = robotoFonts),
         )
     }
 

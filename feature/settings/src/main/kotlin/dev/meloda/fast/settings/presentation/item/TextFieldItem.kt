@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -139,8 +140,11 @@ fun EditTextAlert(
         cancelText = stringResource(id = R.string.cancel),
         actionInvokeDismiss = ActionInvokeDismiss.Always
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Spacer(modifier = Modifier.width(20.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        ) {
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -155,8 +159,8 @@ fun EditTextAlert(
                 placeholder = { Text(text = "Value") },
                 shape = RoundedCornerShape(10.dp),
             )
-            Spacer(modifier = Modifier.width(20.dp))
         }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 
     LaunchedEffect(Unit) {

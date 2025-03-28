@@ -102,9 +102,7 @@ class MessagesUseCaseImpl(
 
     override fun createChat(userIds: List<Int>?, title: String?): Flow<State<Int>> = flow {
         emit(State.Loading)
-
         val newState = repository.createChat(userIds, title).mapToState()
-
         emit(newState)
     }
 
@@ -126,8 +124,42 @@ class MessagesUseCaseImpl(
 
     override fun unpin(peerId: Int): Flow<State<Int>> = flow {
         emit(State.Loading)
-
         val newState = repository.unpin(peerId = peerId).mapToState()
+        emit(newState)
+    }
+
+    override fun markAsImportant(
+        peerId: Int,
+        messageIds: List<Int>,
+        important: Boolean
+    ): Flow<State<List<Int>>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.markAsImportant(
+            peerId = peerId,
+            messageIds = messageIds,
+            conversationMessageIds = null,
+            important = important
+        ).mapToState()
+
+        emit(newState)
+    }
+
+    override fun delete(
+        peerId: Int,
+        messageIds: List<Int>,
+        spam: Boolean,
+        deleteForAll: Boolean
+    ): Flow<State<List<Any>>> = flow {
+        emit(State.Loading)
+
+        val newState = repository.delete(
+            peerId = peerId,
+            messageIds = messageIds,
+            conversationMessageIds = null,
+            spam = spam,
+            deleteForAll = deleteForAll
+        ).mapToState()
 
         emit(newState)
     }

@@ -46,8 +46,8 @@ inline fun <T> State<T>.processState(
 ) {
     when (this) {
         is State.Error -> {
-            error(this)
             any()
+            error(this)
         }
 
         State.Idle -> idle()
@@ -55,8 +55,8 @@ inline fun <T> State<T>.processState(
         State.Loading -> loading()
 
         is State.Success -> {
-            success(data)
             any()
+            success(data)
         }
     }
 }

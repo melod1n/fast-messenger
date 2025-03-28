@@ -65,3 +65,5 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
 
     override fun iterator(): Iterator<T> = values.listIterator()
 }
+
+fun <T> emptyImmutableList(): ImmutableList<T> = ImmutableList(emptyList())

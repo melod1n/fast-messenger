@@ -1,5 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation
 
+import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -53,6 +55,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,7 +67,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -74,12 +76,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -93,22 +95,28 @@ import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
 import dev.meloda.fast.messageshistory.model.ActionMode
+import dev.meloda.fast.messageshistory.model.MessageDialog
+import dev.meloda.fast.messageshistory.model.MessageOption
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.messageshistory.util.firstMessage
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.components.SelectionType
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import java.util.concurrent.TimeUnit
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -119,10 +127,12 @@ fun MessagesHistoryRoute(
     viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val uiMessages by viewModel.uiMessages.collectAsStateWithLifecycle()
+    val messageDialog by viewModel.messageDialog.collectAsStateWithLifecycle()
     val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-    val showMessageOptions by viewModel.showMessageOptions.collectAsStateWithLifecycle()
     val scrollIndex by viewModel.isNeedToScrollToIndex.collectAsStateWithLifecycle()
 
     val userSettings: UserSettings = koinInject()
@@ -130,8 +140,10 @@ fun MessagesHistoryRoute(
 
     MessagesHistoryScreen(
         screenState = screenState,
+        messages = messages.toImmutableList(),
+        uiMessages = uiMessages.toImmutableList(),
         scrollIndex = scrollIndex,
-        selectedMessages = ImmutableList.copyOf(selectedMessages),
+        selectedMessages = selectedMessages.toImmutableList(),
         baseError = baseError,
         canPaginate = canPaginate,
         showEmojiButton = showEmojiButton,
@@ -149,43 +161,300 @@ fun MessagesHistoryRoute(
         onMessageClicked = viewModel::onMessageClicked,
         onMessageLongClicked = viewModel::onMessageLongClicked,
         onPinnedMessageClicked = viewModel::onPinnedMessageClicked,
-        onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked
+        onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked,
+        onDeleteSelectedButtonClicked = viewModel::onDeleteSelectedMessagesClicked
     )
 
-    if (showMessageOptions != null) {
-        val message = showMessageOptions!!
+    HandleDialogs(
+        screenState = screenState,
+        messageDialog = messageDialog,
+        onConfirmed = viewModel::onDialogConfirmed,
+        onCancelled = viewModel::onDialogCancelled,
+        onDismissed = viewModel::onDialogDismissed,
+        onItemPicked = viewModel::onDialogItemPicked
+    )
+}
 
-        val messageOptions = mutableListOf(
-            stringResource(UiR.string.message_context_action_reply),
-            stringResource(UiR.string.message_context_action_forward)
-        )
+@Composable
+fun HandleDialogs(
+    screenState: MessagesHistoryScreenState,
+    messageDialog: MessageDialog?,
+    onConfirmed: (MessageDialog, Bundle) -> Unit = { _, _ -> },
+    onCancelled: (MessageDialog) -> Unit = {},
+    onDismissed: (MessageDialog) -> Unit = {},
+    onItemPicked: (MessageDialog, Bundle) -> Unit = { _, _ -> }
+) {
+    when (messageDialog) {
+        null -> Unit
 
-        if (message.isPeerChat() && screenState.conversation.canChangePin) {
-            messageOptions += stringResource(
-                if (message.isPinned) UiR.string.message_context_action_unpin
-                else UiR.string.message_context_action_pin
+        is MessageDialog.MessageOptions -> {
+            MessageOptionsDialog(
+                screenState = screenState,
+                message = messageDialog.message,
+                onDismissed = { onDismissed(messageDialog) },
+                onItemPicked = { bundle -> onItemPicked(messageDialog, bundle) }
             )
         }
 
-        messageOptions += stringResource(UiR.string.message_context_action_copy)
-        messageOptions += stringResource(
-            if (message.isImportant) UiR.string.message_context_action_unmark_as_important
-            else UiR.string.message_context_action_mark_as_important
-        )
+        is MessageDialog.MessageDelete -> {
+            MessageDeleteDialog(
+                messages = listOf(messageDialog.message),
+                onConfirmed = { onConfirmed(messageDialog, it) },
+                onDismissed = { onDismissed(messageDialog) }
+            )
+        }
 
-//        if (!message.isOut) {
-//            messageOptions += "Mark as spam"
-//        }
+        is MessageDialog.MessagesDelete -> {
+            MessageDeleteDialog(
+                messages = messageDialog.messages,
+                onConfirmed = { onConfirmed(messageDialog, it) },
+                onDismissed = { onDismissed(messageDialog) }
+            )
+        }
 
-        messageOptions += stringResource(UiR.string.message_context_action_delete)
+        is MessageDialog.MessagePin,
+        is MessageDialog.MessageUnpin -> {
+            MessagePinStateDialog(
+                pin = messageDialog is MessageDialog.MessagePin,
+                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
+                onDismissed = { onDismissed(messageDialog) }
+            )
+        }
 
-        MaterialDialog(
-            onDismissRequest = viewModel::onMessageOptionsDialogDismissed,
-            selectionType = SelectionType.None,
-            items = ImmutableList.copyOf(messageOptions),
-            confirmText = stringResource(UiR.string.ok)
+        is MessageDialog.MessageMarkImportance -> {
+            MessageImportanceDialog(
+                important = messageDialog.isImportant,
+                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
+                onDismissed = { onDismissed(messageDialog) }
+            )
+        }
+
+        is MessageDialog.MessageSpam -> {
+            MessageSpamDialog(
+                spam = messageDialog.isSpam,
+                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
+                onDismissed = { onDismissed(messageDialog) }
+            )
+        }
+    }
+}
+
+
+@Composable
+fun MessageOptionsDialog(
+    screenState: MessagesHistoryScreenState,
+    message: VkMessage,
+    onDismissed: () -> Unit = {},
+    onItemPicked: (Bundle) -> Unit
+) {
+    val options = mutableListOf<MessageOption>()
+    if (message.isFailed()) {
+        options += MessageOption.Retry
+    } else {
+        options += MessageOption.Reply
+        options += MessageOption.ForwardHere
+        options += MessageOption.Forward
+
+        if (message.isPeerChat() && screenState.conversation.canChangePin) {
+            options += if (message.isPinned) MessageOption.Unpin else MessageOption.Pin
+        }
+
+        if (!message.isRead(screenState.conversation)) {
+            options += MessageOption.Read
+        }
+
+        options += MessageOption.Copy
+
+        if (message.isOut) {
+            val diff = System.currentTimeMillis() - message.date * 1000L
+            if (diff - TimeUnit.DAYS.toMillis(1) <= 0) {
+                options += MessageOption.Edit
+            }
+        }
+
+        options += if (message.isImportant) MessageOption.UnmarkAsImportant
+        else MessageOption.MarkAsImportant
+
+
+        if (!message.isOut) {
+            options += if (message.isSpam) MessageOption.UnmarkAsSpam
+            else MessageOption.MarkAsSpam
+        }
+    }
+
+    options += MessageOption.Delete
+
+    val messageOptions = options.map { option ->
+        Triple(
+            stringResource(option.titleResId),
+            painterResource(option.iconResId),
+            when {
+                option in listOf(
+                    MessageOption.Delete,
+                    MessageOption.MarkAsSpam
+                ) -> MaterialTheme.colorScheme.error
+
+                else -> MaterialTheme.colorScheme.primary
+            }
         )
     }
+
+    MaterialDialog(onDismissRequest = onDismissed) {
+        messageOptions
+            .forEachIndexed { index, (title, painter, tintColor) ->
+                DropdownMenuItem(
+                    text = {
+                        Row {
+                            Text(text = title)
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                    },
+                    leadingIcon = {
+                        Row {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                painter = painter,
+                                contentDescription = null,
+                                tint = tintColor
+                            )
+                        }
+                    },
+                    onClick = {
+                        onDismissed()
+                        val pickedOption = options[index]
+                        onItemPicked(bundleOf("option" to pickedOption))
+                    }
+                )
+            }
+    }
+}
+
+@Composable
+fun MessageDeleteDialog(
+    messages: List<VkMessage>,
+    onConfirmed: (Bundle) -> Unit = {},
+    onDismissed: () -> Unit = {},
+) {
+    var forEveryone by remember {
+        mutableStateOf(messages.all(VkMessage::isOut))
+    }
+
+    val shouldBeDisabled by remember(messages) {
+        mutableStateOf(messages.any(VkMessage::isFailed) || !messages.all(VkMessage::isOut))
+    }
+
+    MaterialDialog(
+        onDismissRequest = onDismissed,
+        title = stringResource(UiR.string.delete_message_title),
+        confirmText = stringResource(UiR.string.action_delete),
+        confirmAction = {
+            onConfirmed(
+                bundleOf("everyone" to if (messages.all(VkMessage::isOut)) forEveryone else false)
+            )
+        },
+        cancelText = stringResource(UiR.string.cancel),
+    ) {
+        Row(
+            modifier = Modifier
+                .then(
+                    if (!shouldBeDisabled) {
+                        Modifier.clickable { forEveryone = !forEveryone }
+                    } else Modifier)
+                .fillMaxWidth()
+                .minimumInteractiveComponentSize()
+                .padding(start = 24.dp, end = 16.dp)
+        ) {
+            Checkbox(
+                checked = forEveryone,
+                onCheckedChange = null,
+                enabled = !shouldBeDisabled
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            LocalContentAlpha(
+                alpha = if (shouldBeDisabled) ContentAlpha.disabled
+                else ContentAlpha.high
+            ) {
+                Text(text = stringResource(UiR.string.delete_message_for_everyone))
+            }
+        }
+    }
+}
+
+@Composable
+fun MessagePinStateDialog(
+    pin: Boolean,
+    onConfirmed: () -> Unit = {},
+    onDismissed: () -> Unit = {},
+) {
+    MaterialDialog(
+        onDismissRequest = onDismissed,
+        title = stringResource(
+            if (pin) UiR.string.pin_message_title
+            else UiR.string.unpin_message_title
+        ),
+        text = stringResource(
+            if (pin) UiR.string.pin_message_text
+            else UiR.string.unpin_message_text
+        ),
+        confirmText = stringResource(
+            if (pin) UiR.string.action_pin
+            else UiR.string.action_unpin
+        ),
+        confirmAction = onConfirmed,
+        cancelText = stringResource(UiR.string.cancel)
+    )
+}
+
+@Composable
+fun MessageImportanceDialog(
+    important: Boolean,
+    onConfirmed: () -> Unit = {},
+    onDismissed: () -> Unit = {},
+) {
+    MaterialDialog(
+        onDismissRequest = onDismissed,
+        title = stringResource(
+            if (important) UiR.string.important_message_title
+            else UiR.string.unimportant_message_title
+        ),
+        text = stringResource(
+            if (important) UiR.string.important_message_text
+            else UiR.string.unimportant_message_text
+        ),
+        confirmText = stringResource(
+            if (important) UiR.string.action_mark
+            else UiR.string.action_unmark
+        ),
+        confirmAction = onConfirmed,
+        cancelText = stringResource(UiR.string.cancel)
+    )
+}
+
+@Composable
+fun MessageSpamDialog(
+    spam: Boolean,
+    onConfirmed: () -> Unit = {},
+    onDismissed: () -> Unit = {},
+) {
+    MaterialDialog(
+        onDismissRequest = onDismissed,
+        title = stringResource(
+            if (spam) UiR.string.spam_message_title
+            else UiR.string.unspam_message_title
+        ),
+        text = stringResource(
+            if (spam) UiR.string.spam_message_text
+            else UiR.string.unspam_message_text
+        ),
+        confirmText = stringResource(
+            if (spam) UiR.string.action_mark
+            else UiR.string.action_unmark
+        ),
+        confirmAction = onConfirmed,
+        cancelText = stringResource(UiR.string.cancel)
+    )
 }
 
 @OptIn(
@@ -196,8 +465,10 @@ fun MessagesHistoryRoute(
 @Composable
 fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
+    messages: ImmutableList<VkMessage> = emptyImmutableList(),
+    uiMessages: ImmutableList<UiItem> = emptyImmutableList(),
     scrollIndex: Int? = null,
-    selectedMessages: ImmutableList<Int> = ImmutableList.empty(),
+    selectedMessages: ImmutableList<VkMessage> = emptyImmutableList(),
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
@@ -215,7 +486,8 @@ fun MessagesHistoryScreen(
     onMessageClicked: (Int) -> Unit = {},
     onMessageLongClicked: (Int) -> Unit = {},
     onPinnedMessageClicked: (Int) -> Unit = {},
-    onUnpinMessageButtonClicked: () -> Unit = {}
+    onUnpinMessageButtonClicked: () -> Unit = {},
+    onDeleteSelectedButtonClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
@@ -288,8 +560,8 @@ fun MessagesHistoryScreen(
 
     val density = LocalDensity.current
 
-    val showReplyAction by remember(screenState) {
-        mutableStateOf(selectedMessages.size == 1)
+    val showReplyAction by remember(selectedMessages) {
+        derivedStateOf { selectedMessages.size == 1 }
     }
 
     Scaffold(
@@ -415,6 +687,12 @@ fun MessagesHistoryScreen(
                                 }
                             ) {
                                 Icon(
+                                    painter = painterResource(UiR.drawable.round_forward_24),
+                                    contentDescription = null
+                                )
+                            }
+                            IconButton(onClick = onDeleteSelectedButtonClicked) {
+                                Icon(
                                     painter = painterResource(UiR.drawable.round_delete_outline_24),
                                     contentDescription = null
                                 )
@@ -449,7 +727,7 @@ fun MessagesHistoryScreen(
                                         // TODO: 23-Mar-25, Danil Nikolaev: crash if no messages (ex. new chat)
                                         onChatMaterialsDropdownItemClicked(
                                             screenState.conversationId,
-                                            screenState.messages.firstMessage().conversationMessageId
+                                            uiMessages.values.firstMessage().conversationMessageId
                                         )
                                     },
                                     text = {
@@ -483,7 +761,7 @@ fun MessagesHistoryScreen(
                 )
 
                 val showHorizontalProgressBar by remember(screenState) {
-                    derivedStateOf { screenState.isLoading && screenState.messages.isNotEmpty() }
+                    derivedStateOf { screenState.isLoading && messages.isNotEmpty() }
                 }
                 if (showHorizontalProgressBar) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -493,51 +771,15 @@ fun MessagesHistoryScreen(
                 }
 
                 if (!screenState.isLoading && pinnedMessage != null) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .clickable { onPinnedMessageClicked(pinnedMessage!!.id) }
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .rotate(45f)
-                                .alpha(0.5f),
-                            painter = painterResource(UiR.drawable.ic_round_push_pin_24),
-                            contentDescription = null
-                        )
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = screenState.pinnedTitle.orDots(),
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            screenState.pinnedSummary?.let { summary ->
-                                LocalContentAlpha(alpha = ContentAlpha.medium) {
-                                    Text(text = summary)
-                                }
-                            }
-                        }
-
-                        if (screenState.conversation.canChangePin) {
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            IconButton(onClick = onUnpinMessageButtonClicked) {
-                                Icon(
-                                    modifier = Modifier.alpha(0.5f),
-                                    imageVector = Icons.Rounded.Close,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    }
+                    PinnedMessageContainer(
+                        modifier = Modifier,
+                        pinnedMessage = requireNotNull(pinnedMessage),
+                        title = screenState.pinnedTitle.orDots(),
+                        summary = screenState.pinnedSummary,
+                        canChangePin = screenState.conversation.canChangePin,
+                        onPinnedMessageClicked = onPinnedMessageClicked,
+                        onUnpinMessageButtonClicked = onUnpinMessageButtonClicked
+                    )
                     HorizontalDivider()
                 }
             }
@@ -551,16 +793,17 @@ fun MessagesHistoryScreen(
                 .padding(bottom = padding.calculateBottomPadding()),
         ) {
             MessagesList(
+                modifier = Modifier.align(Alignment.BottomStart),
                 hazeState = hazeState,
                 listState = listState,
                 hasPinnedMessage = pinnedMessage != null,
-                immutableMessages = ImmutableList.copyOf(screenState.messages),
+                uiMessages = uiMessages,
                 isPaginating = screenState.isPaginating,
                 messageBarHeight = messageBarHeight,
                 onRequestScrollToCmId = { cmId ->
                     coroutineScope.launch {
                         listState.animateScrollToItem(
-                            index = screenState.messages.indexOfMessageByCmId(cmId)
+                            index = uiMessages.values.indexOfMessageByCmId(cmId)
                         )
                     }
                 },
@@ -775,7 +1018,7 @@ fun MessagesHistoryScreen(
             }
 
             when {
-                screenState.isLoading && screenState.messages.isEmpty() -> {
+                screenState.isLoading && messages.values.isEmpty() -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 

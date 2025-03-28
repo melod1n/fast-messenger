@@ -26,7 +26,8 @@ sealed class UiItem(
         val isRead: Boolean,
         val sendingStatus: SendingStatus,
         val isSelected: Boolean,
-        val isPinned: Boolean
+        val isPinned: Boolean,
+        val isImportant: Boolean
     ) : UiItem(id, conversationMessageId)
 
     data class ActionMessage(

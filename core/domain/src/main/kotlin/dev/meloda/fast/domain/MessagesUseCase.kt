@@ -57,6 +57,19 @@ interface MessagesUseCase {
         peerId: Int
     ): Flow<State<Int>>
 
+    fun markAsImportant(
+        peerId: Int,
+        messageIds: List<Int>,
+        important: Boolean
+    ): Flow<State<List<Int>>>
+
+    fun delete(
+        peerId: Int,
+        messageIds: List<Int>,
+        spam: Boolean = false,
+        deleteForAll: Boolean = false
+    ): Flow<State<List<Any>>>
+
     suspend fun storeMessage(message: VkMessage)
     suspend fun storeMessages(messages: List<VkMessage>)
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material3.Icon
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,7 +44,9 @@ fun MessageBubble(
     edited: Boolean,
     isRead: Boolean,
     sendingStatus: SendingStatus,
-    pinned: Boolean
+    pinned: Boolean,
+    important: Boolean,
+    isSelected: Boolean
 ) {
     val theme = LocalThemeConfig.current
     val backgroundColor = if (!isOut) {
@@ -68,12 +72,15 @@ fun MessageBubble(
             )
             .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
     ) {
-        val minDateContainerWidth = remember(edited, isOut) {
-            val mainPart = if (edited) 50.dp else 30.dp
-            val readIndicatorPart = if (isOut) 14.dp else 0.dp
-            val pinnedIndicatorPart = if (pinned) 14.dp else 0.dp
+        val minDateContainerWidth by remember(edited, isOut, pinned, important) {
+            derivedStateOf {
+                val mainPart = if (edited) 50.dp else 30.dp
+                val readIndicatorPart = if (isOut) 14.dp else 0.dp
+                val pinnedIndicatorPart = if (pinned) 14.dp else 0.dp
+                val importantIndicatorPart = if (important) 14.dp else 0.dp
 
-            mainPart + readIndicatorPart + pinnedIndicatorPart
+                mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart
+            }
         }
 
         val dateContainerWidth by animateDpAsState(
@@ -82,17 +89,29 @@ fun MessageBubble(
         )
 
         if (text != null) {
-            Text(
-                text = text,
-                modifier = Modifier
-                    .padding(2.dp)
-                    .align(Alignment.Center)
-                    .padding(end = 4.dp)
-                    .padding(end = dateContainerWidth)
-                    .padding(end = 4.dp)
-                    .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
-                color = textColor
-            )
+            val textLambda: @Composable () -> Unit = remember {
+                {
+                    Text(
+                        text = text,
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .align(Alignment.Center)
+                            .padding(end = 4.dp)
+                            .padding(end = dateContainerWidth)
+                            .padding(end = 4.dp)
+                            .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
+                        color = textColor
+                    )
+                }
+            }
+
+            if (isSelected) {
+                SelectionContainer {
+                    textLambda.invoke()
+                }
+            } else {
+                textLambda.invoke()
+            }
         }
 
         Row(
@@ -101,6 +120,14 @@ fun MessageBubble(
                 .defaultMinSize(minWidth = dateContainerWidth)
                 .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
         ) {
+            if (important) {
+                Icon(
+                    painter = painterResource(UiR.drawable.round_star_24),
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
             if (pinned) {
                 Icon(
                     painter = painterResource(UiR.drawable.ic_round_push_pin_24),
@@ -119,6 +146,7 @@ fun MessageBubble(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
             }
+
             Text(
                 text = date.orEmpty(),
                 style = MaterialTheme.typography.labelSmall,

@@ -286,7 +286,7 @@ fun ConversationsScreen(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
+                        painter = painterResource(id = UiR.drawable.round_create_24),
                         contentDescription = "Add chat button"
                     )
                 }

@@ -5,7 +5,9 @@
     <string name="sign_out_confirm">При выходе из учётной записи с устройства будут удалены все связанные с ней данные. Продолжить?</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
+    <string name="message_context_action_retry">Повторить</string>
     <string name="message_context_action_reply">Ответить</string>
+    <string name="message_context_action_forward_here">Переслать сюда</string>
     <string name="message_context_action_forward">Переслать</string>
     <string name="message_context_action_mark_as_important">Пометить как важное</string>
     <string name="message_context_action_unmark_as_important">Пометить как не важное</string>
@@ -15,6 +17,7 @@
     <string name="message_context_action_unpin">Открепить</string>
     <string name="message_context_action_edit">Изменить</string>
     <string name="message_context_action_delete">Удалить</string>
+    <string name="message_context_action_read">Прочитать</string>
     <string name="message_context_action_copy">Скопировать</string>
     <string name="confirm_delete_message">Удалить сообщение?</string>
     <string name="message_delete_for_all">Для всех</string>
@@ -31,6 +34,8 @@
     <string name="confirm_pin_conversation">Закрепить чат?</string>
     <string name="action_pin">Закрепить</string>
     <string name="action_unpin">Открепить</string>
+    <string name="action_mark">Пометить</string>
+    <string name="action_unmark">Убрать пометку</string>
     <string name="message_call_type_outgoing">Исходящий вызов</string>
     <string name="message_call_type_incoming">Входящий вызов</string>
     <string name="message_call_state_ended">Закончился</string>
@@ -233,4 +238,19 @@
     <string name="chat_attachment_files">Файлы</string>
     <string name="chat_attachment_links">Ссылки</string>
     <string name="message_context_action_mark_as_spam">Пометить как спам</string>
+    <string name="pin_message_text">Вы уверены, что хотите закрепить это сообщение? Это изменение увидят все участники чата.</string>
+    <string name="unpin_message_title">Открепить сообщение</string>
+    <string name="unpin_message_text">Вы уверены, что хотите открепить это сообщение? Все участники чата увидят это изменение.</string>
+    <string name="delete_message_title">Удалить сообщение?</string>
+    <string name="delete_message_for_everyone">Для всех</string>
+    <string name="important_message_title">Пометить как важное</string>
+    <string name="important_message_text">Вы уверены, что хотите пометить это сообщение как важное?</string>
+    <string name="unimportant_message_text">Вы уверены, что хотите убрать пометку избранного у этого сообщения?</string>
+    <string name="spam_message_title">Пометить как спам</string>
+    <string name="spam_message_text">Вы уверены, что хотите пометить это сообщение как спам?</string>
+    <string name="unimportant_message_title">Убрать пометку избранного</string>
+    <string name="unspam_message_title">Убрать пометку спама</string>
+    <string name="unspam_message_text">Вы уверены, что хотите убрать пометку спама у этого сообщения?</string>
+    <string name="pin_message_title">Закрепить сообщение</string>
+    <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
 </resources>

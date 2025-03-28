@@ -1,7 +1,9 @@
 package dev.meloda.fast.model.api.domain
 
+import androidx.compose.runtime.Immutable
 import dev.meloda.fast.model.database.VkMessageEntity
 
+@Immutable
 data class VkMessage(
     val id: Int,
     val conversationMessageId: Int,
@@ -21,6 +23,7 @@ data class VkMessage(
     val pinnedAt: Int?,
     val isPinned: Boolean,
     val isImportant: Boolean = false,
+    val isSpam: Boolean = false,
 
     val forwards: List<VkMessage>?,
     val attachments: List<VkAttachment>?,
@@ -54,6 +57,8 @@ data class VkMessage(
     fun hasGeo(): Boolean = geoType != null
 
     fun isUpdated(): Boolean = updateTime != null && updateTime > 0
+
+    fun isFailed(): Boolean = id <= -500_000
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),

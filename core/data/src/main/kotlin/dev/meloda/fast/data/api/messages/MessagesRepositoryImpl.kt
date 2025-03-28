@@ -16,13 +16,15 @@ import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.asEntity
 import dev.meloda.fast.model.api.requests.MessagesCreateChatRequest
+import dev.meloda.fast.model.api.requests.MessagesDeleteRequest
 import dev.meloda.fast.model.api.requests.MessagesGetByIdRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryAttachmentsRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryRequest
+import dev.meloda.fast.model.api.requests.MessagesMarkAsImportantRequest
 import dev.meloda.fast.model.api.requests.MessagesMarkAsReadRequest
 import dev.meloda.fast.model.api.requests.MessagesPinMessageRequest
 import dev.meloda.fast.model.api.requests.MessagesSendRequest
-import dev.meloda.fast.model.api.requests.MessagesUnPinMessageRequest
+import dev.meloda.fast.model.api.requests.MessagesUnpinMessageRequest
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
@@ -240,8 +242,38 @@ class MessagesRepositoryImpl(
     override suspend fun unpin(
         peerId: Int
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val requestModel = MessagesUnPinMessageRequest(peerId = peerId)
+        val requestModel = MessagesUnpinMessageRequest(peerId = peerId)
         messagesService.unpin(requestModel.map).mapApiDefault()
+    }
+
+    override suspend fun markAsImportant(
+        peerId: Int,
+        messageIds: List<Int>?,
+        conversationMessageIds: List<Int>?,
+        important: Boolean
+    ): ApiResult<List<Int>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesMarkAsImportantRequest(
+            messagesIds = messageIds.orEmpty(),
+            important = important
+        )
+        messagesService.markAsImportant(requestModel.map).mapApiDefault()
+    }
+
+    override suspend fun delete(
+        peerId: Int,
+        messageIds: List<Int>?,
+        conversationMessageIds: List<Int>?,
+        spam: Boolean,
+        deleteForAll: Boolean
+    ): ApiResult<List<Any>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        val requestModel = MessagesDeleteRequest(
+            peerId = peerId,
+            messagesIds = messageIds,
+            conversationsMessagesIds = conversationMessageIds,
+            isSpam = spam,
+            deleteForAll = deleteForAll
+        )
+        messagesService.delete(requestModel.map).mapApiDefault()
     }
 
     override suspend fun storeMessages(messages: List<VkMessage>) {

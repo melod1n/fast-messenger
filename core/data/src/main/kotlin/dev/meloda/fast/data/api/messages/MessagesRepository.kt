@@ -56,15 +56,22 @@ interface MessagesRepository {
         peerId: Int
     ): ApiResult<Int, RestApiErrorDomain>
 
-    suspend fun storeMessages(messages: List<VkMessage>)
+    suspend fun markAsImportant(
+        peerId: Int,
+        messageIds: List<Int>?,
+        conversationMessageIds: List<Int>?,
+        important: Boolean
+    ): ApiResult<List<Int>, RestApiErrorDomain>
 
-//    suspend fun markAsImportant(
-//        params: MessagesMarkAsImportantRequest
-//    ): ApiResult<List<Int>, RestApiErrorDomain>
-//
-//    suspend fun delete(
-//        params: MessagesDeleteRequest
-//    ): ApiResult<Unit, RestApiErrorDomain>
+    suspend fun delete(
+        peerId: Int,
+        messageIds: List<Int>?,
+        conversationMessageIds: List<Int>?,
+        spam: Boolean,
+        deleteForAll: Boolean
+    ): ApiResult<List<Any>, RestApiErrorDomain>
+
+    suspend fun storeMessages(messages: List<VkMessage>)
 //
 //    suspend fun edit(
 //        params: MessagesEditRequest

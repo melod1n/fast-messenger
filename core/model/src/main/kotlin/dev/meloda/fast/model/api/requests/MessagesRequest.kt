@@ -119,7 +119,7 @@ data class MessagesPinMessageRequest(
 
 }
 
-data class MessagesUnPinMessageRequest(val peerId: Int) {
+data class MessagesUnpinMessageRequest(val peerId: Int) {
     val map: Map<String, String>
         get() = mapOf("peer_id" to peerId.toString())
 }

@@ -110,13 +110,12 @@ fun MaterialDialog(
                         .verticalScroll(scrollState)
                         .onPlaced { isPlaced = true }
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     if (text != null && title == null) {
                         Spacer(modifier = Modifier.height(20.dp))
                     }
 
                     if (text != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Row {
                             Spacer(modifier = Modifier.width(24.dp))
                             Text(
@@ -137,8 +136,6 @@ fun MaterialDialog(
                             selectionType = selectionType,
                             items = alertItems,
                             onItemClick = { index ->
-                                onItemClick?.invoke(index)
-
                                 if (selectionType == SelectionType.None) {
                                     onDismissRequest.invoke()
                                 } else {
@@ -149,6 +146,8 @@ fun MaterialDialog(
 
                                     alertItems = newItems
                                 }
+
+                                onItemClick?.invoke(index)
                             },
                             onItemCheckedChanged = { index ->
                                 val newItems = alertItems.toMutableList()
@@ -161,11 +160,7 @@ fun MaterialDialog(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                     } else {
-                        if (customContent != null) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            customContent.invoke(this)
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
+                        customContent?.invoke(this)
                     }
                 }
 
