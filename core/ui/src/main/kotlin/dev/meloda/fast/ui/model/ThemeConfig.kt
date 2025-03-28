@@ -7,5 +7,6 @@ data class ThemeConfig(
     val amoledDark: Boolean,
     val enableBlur: Boolean,
     val enableMultiline: Boolean,
-    val useSystemFont: Boolean
+    val useSystemFont: Boolean,
+    val enableAnimations: Boolean
 )

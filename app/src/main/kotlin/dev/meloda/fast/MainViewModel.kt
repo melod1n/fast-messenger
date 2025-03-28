@@ -24,6 +24,7 @@ import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.GetCurrentAccountUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.settings.navigation.Settings
 import kotlinx.coroutines.Dispatchers
@@ -36,13 +37,12 @@ interface MainViewModel {
 
     val startDestination: StateFlow<Any?>
     val isNeedToReplaceWithAuth: StateFlow<Boolean>
+    val currentUser: StateFlow<VkUser?>
 
     val isNeedToShowNotificationsDeniedDialog: StateFlow<Boolean>
     val isNeedToShowNotificationsRationaleDialog: StateFlow<Boolean>
     val isNeedToCheckNotificationsPermission: StateFlow<Boolean>
     val isNeedToRequestNotifications: StateFlow<Boolean>
-
-    val profileImageUrl: StateFlow<String?>
 
     fun onError(error: BaseError)
 
@@ -59,6 +59,8 @@ interface MainViewModel {
     fun onNotificationsDeniedDialogDismissed()
     fun onNotificationsRationaleDialogDismissed()
     fun onNotificationsRationaleDialogCancelClicked()
+
+    fun onUserAuthenticated()
 }
 
 class MainViewModelImpl(
@@ -70,13 +72,12 @@ class MainViewModelImpl(
 
     override val startDestination = MutableStateFlow<Any?>(null)
     override val isNeedToReplaceWithAuth = MutableStateFlow(false)
+    override val currentUser = MutableStateFlow<VkUser?>(null)
 
     override val isNeedToShowNotificationsDeniedDialog = MutableStateFlow(false)
     override val isNeedToShowNotificationsRationaleDialog = MutableStateFlow(false)
     override val isNeedToCheckNotificationsPermission = MutableStateFlow(false)
     override val isNeedToRequestNotifications = MutableStateFlow(false)
-
-    override val profileImageUrl = MutableStateFlow<String?>(null)
 
     private var openNotificationsSettings = false
     private var openAppSettings = false
@@ -170,17 +171,20 @@ class MainViewModelImpl(
         disableBackgroundLongPoll()
     }
 
+    override fun onUserAuthenticated() {
+        loadProfile()
+    }
+
     private fun loadProfile() {
         loadUserByIdUseCase(userId = null)
             .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = { error ->
-                        profileImageUrl.emit(null)
+                        currentUser.emit(null)
                     },
                     success = { response ->
                         val user = response ?: return@listenValue
-
-                        profileImageUrl.emit(user.photo100)
+                        currentUser.emit(user)
                     }
                 )
             }

@@ -12,15 +12,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.messageshistory.model.UiItem
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 @Composable
 fun OutgoingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiItem.Message,
-    animate: Boolean
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().then(if (animate) Modifier.animateContentSize() else Modifier),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (LocalThemeConfig.current.enableAnimations) Modifier.animateContentSize()
+                else Modifier
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
     ) {
@@ -37,7 +42,6 @@ fun OutgoingMessageBubble(
                 isOut = true,
                 date = message.date,
                 edited = message.isEdited,
-                animate = animate,
                 isRead = message.isRead,
                 sendingStatus = message.sendingStatus,
                 pinned = message.isPinned

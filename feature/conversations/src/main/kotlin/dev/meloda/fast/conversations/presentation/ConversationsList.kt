@@ -26,7 +26,7 @@ import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
-import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -41,6 +41,7 @@ fun ConversationsList(
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
     padding: PaddingValues
 ) {
+    val theme = LocalThemeConfig.current
     val coroutineScope = rememberCoroutineScope()
 
     LazyColumn(
@@ -68,7 +69,12 @@ fun ConversationsList(
                 maxLines = maxLines,
                 isUserAccount = isUserAccount,
                 conversation = conversation,
-                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                modifier =
+                    if (theme.enableAnimations) Modifier.animateItem(
+                        fadeInSpec = null,
+                        fadeOutSpec = null
+                    )
+                    else Modifier
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -78,7 +84,14 @@ fun ConversationsList(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                    .then(
+                        if (theme.enableAnimations)
+                            Modifier.animateItem(
+                                fadeInSpec = null,
+                                fadeOutSpec = null
+                            )
+                        else Modifier
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (screenState.isPaginating) {

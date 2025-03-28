@@ -49,20 +49,17 @@ fun MessagesList(
     onMessageClicked: (Int) -> Unit = {},
     onMessageLongClicked: (Int) -> Unit = {}
 ) {
-    val enableAnimations = remember {
-        AppSettings.Experimental.moreAnimations
-    }
     val messages = remember(immutableMessages) {
         immutableMessages.toList()
     }
-    val currentTheme = LocalThemeConfig.current
+    val theme = LocalThemeConfig.current
     val view = LocalView.current
 
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (currentTheme.enableBlur) {
+                if (theme.enableBlur) {
                     Modifier.hazeSource(state = hazeState)
                 } else Modifier
             ),
@@ -93,7 +90,7 @@ fun MessagesList(
                 is UiItem.ActionMessage -> {
                     ActionMessageItem(
                         modifier = Modifier.then(
-                            if (enableAnimations) Modifier.animateItem(
+                            if (theme.enableAnimations) Modifier.animateItem(
                                 fadeInSpec = null,
                                 fadeOutSpec = null
                             ) else Modifier
@@ -119,7 +116,7 @@ fun MessagesList(
                     Surface(
                         modifier = Modifier
                             .then(
-                                if (enableAnimations) Modifier.animateItem(
+                                if (theme.enableAnimations) Modifier.animateItem(
                                     fadeInSpec = null,
                                     fadeOutSpec = null
                                 ) else Modifier
@@ -141,14 +138,13 @@ fun MessagesList(
                                     Modifier
                                         .padding(vertical = 4.dp)
                                         .then(
-                                            if (enableAnimations) Modifier.animateItem(
+                                            if (theme.enableAnimations) Modifier.animateItem(
                                                 fadeInSpec = null,
                                                 fadeOutSpec = null
                                             )
                                             else Modifier
                                         ),
-                                message = item,
-                                animate = enableAnimations
+                                message = item
                             )
                         } else {
                             IncomingMessageBubble(
@@ -156,14 +152,13 @@ fun MessagesList(
                                     Modifier
                                         .padding(vertical = 4.dp)
                                         .then(
-                                            if (enableAnimations) Modifier.animateItem(
+                                            if (theme.enableAnimations) Modifier.animateItem(
                                                 fadeInSpec = null,
                                                 fadeOutSpec = null
                                             )
                                             else Modifier
                                         ),
-                                message = item,
-                                animate = enableAnimations
+                                message = item
                             )
                         }
                     }

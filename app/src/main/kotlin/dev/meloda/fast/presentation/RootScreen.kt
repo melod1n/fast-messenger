@@ -118,7 +118,10 @@ fun RootScreen(
             exitTransition = { fadeOut(animationSpec = tween(200)) }
         ) {
             authNavGraph(
-                onNavigateToMain = navController::navigateToMain,
+                onNavigateToMain = {
+                    viewModel.onUserAuthenticated()
+                    navController.navigateToMain()
+                },
                 navController = navController
             )
             mainScreen(
@@ -127,8 +130,7 @@ fun RootScreen(
                 onConversationClicked = navController::navigateToMessagesHistory,
                 onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
                 onMessageClicked = navController::navigateToMessagesHistory,
-                onCreateChatClicked = navController::navigateToCreateChat,
-                viewModel = viewModel
+                onCreateChatClicked = navController::navigateToCreateChat
             )
 
             messagesHistoryScreen(

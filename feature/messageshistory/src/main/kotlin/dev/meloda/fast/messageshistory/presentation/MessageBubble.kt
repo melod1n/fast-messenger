@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.messageshistory.model.SendingStatus
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -39,11 +40,11 @@ fun MessageBubble(
     isOut: Boolean,
     date: String?,
     edited: Boolean,
-    animate: Boolean,
     isRead: Boolean,
     sendingStatus: SendingStatus,
     pinned: Boolean
 ) {
+    val theme = LocalThemeConfig.current
     val backgroundColor = if (!isOut) {
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
     } else {
@@ -65,7 +66,7 @@ fun MessageBubble(
                 horizontal = 8.dp,
                 vertical = 6.dp
             )
-            .then(if (animate) Modifier.animateContentSize() else Modifier),
+            .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
     ) {
         val minDateContainerWidth = remember(edited, isOut) {
             val mainPart = if (edited) 50.dp else 30.dp
@@ -89,7 +90,7 @@ fun MessageBubble(
                     .padding(end = 4.dp)
                     .padding(end = dateContainerWidth)
                     .padding(end = 4.dp)
-                    .then(if (animate) Modifier.animateContentSize() else Modifier),
+                    .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
                 color = textColor
             )
         }
@@ -98,7 +99,7 @@ fun MessageBubble(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .defaultMinSize(minWidth = dateContainerWidth)
-                .then(if (animate) Modifier.animateContentSize() else Modifier),
+                .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
         ) {
             if (pinned) {
                 Icon(

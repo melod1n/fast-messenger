@@ -27,14 +27,21 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import dev.meloda.fast.messageshistory.model.UiItem
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 @Composable
 fun IncomingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiItem.Message,
-    animate: Boolean,
 ) {
-    Row(modifier = modifier.fillMaxWidth().then(if (animate) Modifier.animateContentSize() else Modifier),) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (LocalThemeConfig.current.enableAnimations) Modifier.animateContentSize()
+                else Modifier
+            ),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth(0.85f)
@@ -81,13 +88,12 @@ fun IncomingMessageBubble(
                     isOut = false,
                     date = message.date,
                     edited = message.isEdited,
-                    animate = animate,
                     isRead = message.isRead,
                     sendingStatus = message.sendingStatus,
                     pinned = message.isPinned
                 )
             }
         }
-        Spacer(modifier=Modifier.fillMaxWidth(0.25f))
+        Spacer(modifier = Modifier.fillMaxWidth(0.25f))
     }
 }

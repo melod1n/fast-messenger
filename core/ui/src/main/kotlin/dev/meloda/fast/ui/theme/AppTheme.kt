@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import dev.chrisbanes.haze.HazeState
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.DeviceSize
 import dev.meloda.fast.ui.model.SizeConfig
@@ -113,7 +114,8 @@ val LocalThemeConfig = compositionLocalOf {
         amoledDark = false,
         enableBlur = false,
         enableMultiline = false,
-        useSystemFont = false
+        useSystemFont = false,
+        enableAnimations = false
     )
 }
 
@@ -124,13 +126,9 @@ val LocalSizeConfig = compositionLocalOf {
     )
 }
 
-val LocalHazeState = compositionLocalOf {
-    HazeState()
-}
-
-val LocalBottomPadding = compositionLocalOf {
-    0.dp
-}
+val LocalHazeState = compositionLocalOf { HazeState() }
+val LocalBottomPadding = compositionLocalOf { 0.dp }
+val LocalUser = compositionLocalOf<VkUser?> { null }
 
 @Composable
 fun AppTheme(

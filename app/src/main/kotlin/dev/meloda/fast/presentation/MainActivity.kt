@@ -38,6 +38,7 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.service.OnlineService
 import dev.meloda.fast.service.longpolling.LongPollingService
 import dev.meloda.fast.ui.model.DeviceSize
@@ -46,6 +47,7 @@ import dev.meloda.fast.ui.model.ThemeConfig
 import dev.meloda.fast.ui.theme.AppTheme
 import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
@@ -97,6 +99,8 @@ class MainActivity : AppCompatActivity() {
                 val longPollStateToApply by longPollController.stateToApply.collectAsStateWithLifecycle()
 
                 val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+
+                val currentUser: VkUser? by viewModel.currentUser.collectAsStateWithLifecycle()
 
                 LifecycleResumeEffect(true) {
                     viewModel.onAppResumed(intent)
@@ -202,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                 val enableBlur by userSettings.useBlur.collectAsStateWithLifecycle()
                 val enableMultiline by userSettings.enableMultiline.collectAsStateWithLifecycle()
                 val useSystemFont by userSettings.useSystemFont.collectAsStateWithLifecycle()
+                val enableAnimations by userSettings.enableAnimations.collectAsStateWithLifecycle()
 
                 val setDarkMode = isNeedToEnableDarkMode(darkMode = darkMode)
 
@@ -214,7 +219,7 @@ class MainActivity : AppCompatActivity() {
                     setDarkMode,
                     useSystemFont
                 ) {
-                    mutableStateOf(
+                    derivedStateOf {
                         ThemeConfig(
                             darkMode = setDarkMode,
                             dynamicColors = dynamicColors,
@@ -222,14 +227,16 @@ class MainActivity : AppCompatActivity() {
                             amoledDark = amoledDark,
                             enableBlur = enableBlur,
                             enableMultiline = enableMultiline,
-                            useSystemFont = useSystemFont
+                            useSystemFont = useSystemFont,
+                            enableAnimations = enableAnimations
                         )
-                    )
+                    }
                 }
 
                 CompositionLocalProvider(
                     LocalThemeConfig provides themeConfig,
-                    LocalSizeConfig provides sizeConfig
+                    LocalSizeConfig provides sizeConfig,
+                    LocalUser provides currentUser
                 ) {
                     AppTheme(
                         useDarkTheme = themeConfig.darkMode,

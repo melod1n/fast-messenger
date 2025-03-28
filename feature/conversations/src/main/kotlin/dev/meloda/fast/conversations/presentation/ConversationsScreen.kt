@@ -5,10 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -283,23 +279,17 @@ fun ConversationsScreen(
             )
 
             Column {
-//                AnimatedVisibility(
-//                    visible = listState.isScrollingUp(),
-//                    enter = slideIn { IntOffset(0, 600) } + fadeIn(tween(200)),
-//                    exit = slideOut { IntOffset(0, 600) } + fadeOut(tween(200))
-//                ) {
-                    FloatingActionButton(
-                        onClick = onCreateChatButtonClicked,
-                        modifier = Modifier.offset {
-                            IntOffset(0, offsetY)
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
-                            contentDescription = "Add chat button"
-                        )
+                FloatingActionButton(
+                    onClick = onCreateChatButtonClicked,
+                    modifier = Modifier.offset {
+                        IntOffset(0, offsetY)
                     }
-//                }
+                ) {
+                    Icon(
+                        painter = painterResource(id = UiR.drawable.ic_baseline_create_24),
+                        contentDescription = "Add chat button"
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }
