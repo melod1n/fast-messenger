@@ -39,11 +39,11 @@ Unofficial messenger for russian social network VKontakte
             - [ ] TODO
     - [x] Send messages
     - [x] Pinned message
-    - [ ] Pin & unpin messages
+    - [x] Pin & unpin messages
     - [ ] Reply to message
-    - [ ] Delete message
+    - [x] Delete message
     - [x] Select multiple messages
-        - [ ] Delete
+        - [x] Delete
         - [ ] Forward
         - [ ] Forward in current chat
     - [ ] Send attachments to chat
