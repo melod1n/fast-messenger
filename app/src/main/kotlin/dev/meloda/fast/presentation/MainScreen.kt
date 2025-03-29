@@ -6,11 +6,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -77,11 +77,16 @@ fun MainScreen(
             NavigationBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .hazeEffect(
-                        state = hazeState,
-                        style = HazeMaterials.thick()
+                    .then(
+                        if (theme.enableBlur) {
+                            Modifier.hazeEffect(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else Modifier
                     ),
-                containerColor = Color.Transparent
+                containerColor = if (theme.enableBlur) Color.Transparent
+                else NavigationBarDefaults.containerColor
             ) {
                 navigationItems.forEachIndexed { index, item ->
                     NavigationBarItem(

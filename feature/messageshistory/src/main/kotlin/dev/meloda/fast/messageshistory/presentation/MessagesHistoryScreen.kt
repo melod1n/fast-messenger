@@ -11,6 +11,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -497,7 +498,7 @@ fun MessagesHistoryScreen(
 ) {
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
-    val currentTheme = LocalThemeConfig.current
+    val theme = LocalThemeConfig.current
     val listState = rememberLazyListState()
     val hazeState = remember { HazeState() }
 
@@ -541,7 +542,7 @@ fun MessagesHistoryScreen(
     }
 
     val topBarContainerColorAlpha by animateFloatAsState(
-        targetValue = if (!currentTheme.enableBlur || !listState.canScrollBackward) 1f else 0f,
+        targetValue = if (!theme.enableBlur || !listState.canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
         animationSpec = tween(
             durationMillis = 200,
@@ -551,7 +552,7 @@ fun MessagesHistoryScreen(
 
     val topBarContainerColor by animateColorAsState(
         targetValue =
-            if (currentTheme.enableBlur || !listState.canScrollBackward) MaterialTheme.colorScheme.surface
+            if (theme.enableBlur || !listState.canScrollBackward) MaterialTheme.colorScheme.surface
             else MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
         animationSpec = tween(
@@ -579,7 +580,7 @@ fun MessagesHistoryScreen(
                     .fillMaxWidth()
                     .background(topBarContainerColor.copy(alpha = topBarContainerColorAlpha))
                     .then(
-                        if (currentTheme.enableBlur) {
+                        if (theme.enableBlur) {
                             Modifier.hazeEffect(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
@@ -590,7 +591,7 @@ fun MessagesHistoryScreen(
                 TopAppBar(
                     modifier = Modifier
                         .then(
-                            if (currentTheme.enableBlur) {
+                            if (theme.enableBlur) {
                                 Modifier.hazeEffect(
                                     state = hazeState,
                                     style = HazeMaterials.thick()
@@ -841,13 +842,25 @@ fun MessagesHistoryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Spacer(modifier = Modifier.width(10.dp))
-
                     Row(
                         modifier = Modifier
+                            .clip(RoundedCornerShape(36.dp))
+                            .then(
+                                if (theme.enableBlur) {
+                                    Modifier.hazeEffect(
+                                        state = hazeState,
+                                        style = HazeMaterials.ultraThin()
+                                    ).border(1.dp, MaterialTheme.colorScheme.outlineVariant,
+                                        RoundedCornerShape(36.dp)
+                                    )
+                                } else Modifier
+                            )
                             .animateContentSize()
                             .weight(1f)
-                            .clip(RoundedCornerShape(36.dp))
-                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
+                            .background(
+                                if (theme.enableBlur) Color.Transparent
+                                else MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
+                            )
                             .onGloballyPositioned {
                                 messageBarHeight = with(density) {
                                     it.size.height.toDp()
