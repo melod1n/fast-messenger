@@ -158,6 +158,15 @@ class MessagesHistoryViewModelImpl(
 
             is MessageDialog.MessageDelete -> {
                 val deleteForEveryone = bundle.getBoolean("everyone")
+
+                if (dialog.message.id <= 0) {
+                    val newMessages = messages.value.toMutableList()
+                    newMessages.remove(dialog.message)
+                    messages.setValue { newMessages }
+                    syncUiMessages()
+                    return
+                }
+
                 deleteMessage(
                     messageIds = listOf(dialog.message.id),
                     deleteForAll = deleteForEveryone

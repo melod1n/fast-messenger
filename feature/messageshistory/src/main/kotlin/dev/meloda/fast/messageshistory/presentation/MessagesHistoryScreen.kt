@@ -90,6 +90,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
@@ -336,11 +337,18 @@ fun MessageDeleteDialog(
     onDismissed: () -> Unit = {},
 ) {
     var forEveryone by remember {
-        mutableStateOf(messages.all(VkMessage::isOut))
+        mutableStateOf(
+            !messages.any { it.peerId == UserConfig.userId }
+                    && messages.all(VkMessage::isOut)
+        )
     }
 
     val shouldBeDisabled by remember(messages) {
-        mutableStateOf(messages.any(VkMessage::isFailed) || !messages.all(VkMessage::isOut))
+        mutableStateOf(
+            messages.any { it.peerId == UserConfig.userId }
+                    || messages.all(VkMessage::isFailed)
+                    || !messages.all(VkMessage::isOut)
+        )
     }
 
     MaterialDialog(
