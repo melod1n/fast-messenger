@@ -129,6 +129,7 @@ val LocalSizeConfig = compositionLocalOf {
 val LocalHazeState = compositionLocalOf { HazeState() }
 val LocalBottomPadding = compositionLocalOf { 0.dp }
 val LocalUser = compositionLocalOf<VkUser?> { null }
+val LocalScrollToTop = compositionLocalOf { mapOf<Any, Boolean>() }
 
 @Composable
 fun AppTheme(

@@ -17,6 +17,7 @@ fun NavGraphBuilder.conversationsScreen(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (id: Int) -> Unit,
     onCreateChatClicked: () -> Unit,
+    onScrolledToTop: () -> Unit,
     navController: NavController,
 ) {
     composable<Conversations> {
@@ -27,6 +28,7 @@ fun NavGraphBuilder.conversationsScreen(
             onError = onError,
             onConversationItemClicked = onConversationItemClicked,
             onCreateChatButtonClicked = onCreateChatClicked,
+            onScrolledToTop = onScrolledToTop,
             viewModel = viewModel
         )
     }

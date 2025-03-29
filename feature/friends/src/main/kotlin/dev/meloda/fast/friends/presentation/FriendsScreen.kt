@@ -29,12 +29,14 @@ import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.friends.FriendsViewModelImpl
 import dev.meloda.fast.friends.OnlineFriendsViewModelImpl
+import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalScrollToTop
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
@@ -51,7 +53,8 @@ fun FriendsScreen(
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
     onMessageClicked: (userId: Int) -> Unit = {},
-    setCanScrollBackward: (Boolean) -> Unit = {}
+    setCanScrollBackward: (Boolean) -> Unit = {},
+    onScrolledToTop: () -> Unit = {}
 ) {
     val context: Context = LocalContext.current
     val viewModel: FriendsViewModel =
@@ -92,6 +95,17 @@ fun FriendsScreen(
         initialFirstVisibleItemIndex = screenState.scrollIndex,
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
+
+    val scrollToTop = LocalScrollToTop.current[Friends] ?: false
+    LaunchedEffect(scrollToTop) {
+        if (scrollToTop) {
+            if (listState.firstVisibleItemIndex > 14) {
+                listState.scrollToItem(14)
+            }
+            listState.animateScrollToItem(0)
+            onScrolledToTop()
+        }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }

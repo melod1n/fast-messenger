@@ -63,6 +63,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.model.ConversationsScreenState
+import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
@@ -72,6 +73,7 @@ import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalScrollToTop
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
@@ -83,6 +85,7 @@ fun ConversationsRoute(
     onError: (BaseError) -> Unit,
     onConversationItemClicked: (conversationId: Int) -> Unit,
     onCreateChatButtonClicked: () -> Unit,
+    onScrolledToTop: () -> Unit,
     viewModel: ConversationsViewModel
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -105,7 +108,8 @@ fun ConversationsRoute(
         onRefresh = viewModel::onRefresh,
         onCreateChatButtonClicked = onCreateChatButtonClicked,
         setScrollIndex = viewModel::setScrollIndex,
-        setScrollOffset = viewModel::setScrollOffset
+        setScrollOffset = viewModel::setScrollOffset,
+        onScrolledToTop = onScrolledToTop
     )
 
     HandleDialogs(
@@ -132,7 +136,8 @@ fun ConversationsScreen(
     onRefresh: () -> Unit = {},
     onCreateChatButtonClicked: () -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
-    setScrollOffset: (Int) -> Unit = {}
+    setScrollOffset: (Int) -> Unit = {},
+    onScrolledToTop: () -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -144,6 +149,17 @@ fun ConversationsScreen(
         initialFirstVisibleItemIndex = screenState.scrollIndex,
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
+
+    val scrollToTop = LocalScrollToTop.current[Conversations] ?: false
+    LaunchedEffect(scrollToTop) {
+        if (scrollToTop) {
+            if (listState.firstVisibleItemIndex > 14) {
+                listState.scrollToItem(14)
+            }
+            listState.animateScrollToItem(0)
+            onScrolledToTop()
+        }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }

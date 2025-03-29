@@ -58,6 +58,7 @@ fun FriendsRoute(
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userId: Int) -> Unit,
+    onScrolledToTop: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val currentTheme = LocalThemeConfig.current
@@ -236,7 +237,8 @@ fun FriendsRoute(
                 onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
                 onPhotoClicked = onPhotoClicked,
                 onMessageClicked = onMessageClicked,
-                setCanScrollBackward = { canScrollBackward = it }
+                setCanScrollBackward = { canScrollBackward = it },
+                onScrolledToTop = onScrolledToTop
             )
         }
     }

@@ -36,7 +36,9 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.conversations.navigation.conversationsScreen
+import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.friends.navigation.friendsScreen
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
@@ -44,6 +46,7 @@ import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalScrollToTop
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.ImmutableList
@@ -70,6 +73,14 @@ fun MainScreen(
     val user = LocalUser.current
     val profileImageUrl by remember(user) {
         derivedStateOf { user?.photo100 }
+    }
+
+    var scrollToTop by remember {
+        mutableStateOf(
+            navigationItems.associate {
+                it.route to false
+            }
+        )
     }
 
     Scaffold(
@@ -100,6 +111,10 @@ fun MainScreen(
                                     popUpTo(route = currentRoute) {
                                         inclusive = true
                                     }
+                                }
+                            } else {
+                                scrollToTop = scrollToTop.toMutableMap().also {
+                                    it[navigationItems[index].route] = true
                                 }
                             }
                         },
@@ -148,7 +163,8 @@ fun MainScreen(
         ) {
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
-                LocalBottomPadding provides padding.calculateBottomPadding()
+                LocalBottomPadding provides padding.calculateBottomPadding(),
+                LocalScrollToTop provides scrollToTop
             ) {
                 NavHost(
                     navController = navController,
@@ -164,13 +180,23 @@ fun MainScreen(
                         friendsScreen(
                             onError = onError,
                             onPhotoClicked = onPhotoClicked,
-                            onMessageClicked = onMessageClicked
+                            onMessageClicked = onMessageClicked,
+                            onScrolledToTop = {
+                                scrollToTop = scrollToTop.toMutableMap().also {
+                                    it[Friends] = false
+                                }
+                            },
                         )
                         conversationsScreen(
                             onError = onError,
                             onConversationItemClicked = onConversationItemClicked,
                             onCreateChatClicked = onCreateChatClicked,
                             navController = navController,
+                            onScrolledToTop = {
+                                scrollToTop = scrollToTop.toMutableMap().also {
+                                    it[Conversations] = false
+                                }
+                            }
                         )
                         profileScreen(
                             onError = onError,
