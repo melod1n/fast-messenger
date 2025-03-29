@@ -1,7 +1,9 @@
 package dev.meloda.fast.messageshistory.model
 
+import androidx.compose.runtime.Immutable
 import dev.meloda.fast.model.api.domain.VkMessage
 
+@Immutable
 sealed class MessageDialog {
     data class MessageOptions(val message: VkMessage) : MessageDialog()
     data class MessagePin(val messageId: Int) : MessageDialog()

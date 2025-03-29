@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.friends.model.FriendsScreenState
 import dev.meloda.fast.ui.model.api.UiFriend
+import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,6 +99,7 @@ fun FriendsList(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }
         }
     }

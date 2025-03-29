@@ -71,7 +71,6 @@ interface MessagesHistoryViewModel {
     val canPaginate: StateFlow<Boolean>
 
     fun onDialogConfirmed(dialog: MessageDialog, bundle: Bundle)
-    fun onDialogCancelled(dialog: MessageDialog)
     fun onDialogDismissed(dialog: MessageDialog)
     fun onDialogItemPicked(dialog: MessageDialog, bundle: Bundle)
 
@@ -151,7 +150,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onDialogConfirmed(dialog: MessageDialog, bundle: Bundle) {
-        messageDialog.setValue { null }
+        onDialogDismissed(dialog)
 
         when (dialog) {
             is MessageDialog.MessageOptions -> Unit
@@ -221,10 +220,6 @@ class MessagesHistoryViewModelImpl(
                 }
             }
         }
-    }
-
-    override fun onDialogCancelled(dialog: MessageDialog) {
-        messageDialog.setValue { null }
     }
 
     override fun onDialogDismissed(dialog: MessageDialog) {

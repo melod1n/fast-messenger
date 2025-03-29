@@ -170,7 +170,6 @@ fun MessagesHistoryRoute(
         screenState = screenState,
         messageDialog = messageDialog,
         onConfirmed = viewModel::onDialogConfirmed,
-        onCancelled = viewModel::onDialogCancelled,
         onDismissed = viewModel::onDialogDismissed,
         onItemPicked = viewModel::onDialogItemPicked
     )
@@ -181,7 +180,6 @@ fun HandleDialogs(
     screenState: MessagesHistoryScreenState,
     messageDialog: MessageDialog?,
     onConfirmed: (MessageDialog, Bundle) -> Unit = { _, _ -> },
-    onCancelled: (MessageDialog) -> Unit = {},
     onDismissed: (MessageDialog) -> Unit = {},
     onItemPicked: (MessageDialog, Bundle) -> Unit = { _, _ -> }
 ) {

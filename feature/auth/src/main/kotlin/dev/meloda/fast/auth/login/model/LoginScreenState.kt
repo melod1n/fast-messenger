@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class LoginScreenState(
+    val showLogo: Boolean,
     val login: String,
     val password: String,
     val isLoading: Boolean,
@@ -14,6 +15,7 @@ data class LoginScreenState(
 
     companion object {
         val EMPTY = LoginScreenState(
+            showLogo = true,
             login = "",
             password = "",
             isLoading = false,

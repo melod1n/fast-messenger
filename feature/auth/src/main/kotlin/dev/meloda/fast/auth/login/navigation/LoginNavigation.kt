@@ -10,22 +10,17 @@ import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
 import dev.meloda.fast.auth.login.presentation.LoginRoute
-import dev.meloda.fast.auth.login.presentation.LogoRoute
 import dev.meloda.fast.ui.extensions.sharedViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
 object Login
 
-@Serializable
-object Logo
-
 fun NavGraphBuilder.loginScreen(
     onNavigateToCaptcha: (CaptchaArguments) -> Unit,
     onNavigateToValidation: (LoginValidationArguments) -> Unit,
     onNavigateToMain: () -> Unit,
     onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
-    onNavigateToCredentials: () -> Unit,
     navController: NavController
 ) {
     composable<Login> { backStackEntry ->
@@ -45,17 +40,6 @@ fun NavGraphBuilder.loginScreen(
             viewModel = viewModel
         )
     }
-
-    composable<Logo> {
-        LogoRoute(
-            onNavigateToMain = onNavigateToMain,
-            onGoNextButtonClicked = onNavigateToCredentials
-        )
-    }
-}
-
-fun NavController.navigateToLogin() {
-    this.navigate(route = Login)
 }
 
 fun NavBackStackEntry.getValidationResult(): String? {

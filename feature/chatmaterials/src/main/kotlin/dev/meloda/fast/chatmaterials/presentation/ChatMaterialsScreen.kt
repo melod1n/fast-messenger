@@ -27,6 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,7 @@ import dev.meloda.fast.chatmaterials.presentation.materials.LinkMaterialsScreen
 import dev.meloda.fast.chatmaterials.presentation.materials.PhotoMaterialsScreen
 import dev.meloda.fast.chatmaterials.presentation.materials.VideoMaterialsScreen
 import dev.meloda.fast.ui.model.TabItem
+import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -118,9 +120,10 @@ fun ChatMaterialsScreen(
     )
 
     val topBarContainerColor by animateColorAsState(
-        targetValue =
-            if (currentTheme.enableBlur || !canScrollBackward) MaterialTheme.colorScheme.surface
-            else MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+        targetValue = if (currentTheme.enableBlur || !canScrollBackward)
+            MaterialTheme.colorScheme.surface
+        else
+            MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
         animationSpec = tween(
             durationMillis = 200,
@@ -204,113 +207,115 @@ fun ChatMaterialsScreen(
             }
         }
     ) { padding ->
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize(),
-        ) { index ->
-            when (index) {
-                0 -> {
-                    val viewModel: ChatMaterialsViewModel =
-                        koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.PHOTO))
-                    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-                    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-                    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+        CompositionLocalProvider(LocalHazeState provides hazeState) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+            ) { index ->
+                when (index) {
+                    0 -> {
+                        val viewModel: ChatMaterialsViewModel =
+                            koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.PHOTO))
+                        val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+                        val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+                        val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
 
-                    PhotoMaterialsScreen(
-                        modifier = Modifier,
-                        screenState = screenState,
-                        baseError = baseError,
-                        padding = padding,
-                        onRefresh = viewModel::onRefresh,
-                        onSessionExpiredLogOutButtonClicked = { },
-                        setCanScrollBackward = { canScrollBackward = it },
-                        canPaginate = canPaginate,
-                        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-                        onPhotoClicked = onPhotoClicked
-                    )
+                        PhotoMaterialsScreen(
+                            modifier = Modifier,
+                            screenState = screenState,
+                            baseError = baseError,
+                            padding = padding,
+                            onRefresh = viewModel::onRefresh,
+                            onSessionExpiredLogOutButtonClicked = { },
+                            setCanScrollBackward = { canScrollBackward = it },
+                            canPaginate = canPaginate,
+                            onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
+                            onPhotoClicked = onPhotoClicked
+                        )
+                    }
+
+                    1 -> {
+                        val viewModel: ChatMaterialsViewModel =
+                            koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.VIDEO))
+                        val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+                        val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+                        val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+
+                        VideoMaterialsScreen(
+                            modifier = Modifier,
+                            screenState = screenState,
+                            baseError = baseError,
+                            padding = padding,
+                            onRefresh = viewModel::onRefresh,
+                            onSessionExpiredLogOutButtonClicked = { },
+                            setCanScrollBackward = { canScrollBackward = it },
+                            canPaginate = canPaginate,
+                            onPaginationConditionsMet = viewModel::onPaginationConditionsMet
+                        )
+                    }
+
+                    2 -> {
+                        val viewModel: ChatMaterialsViewModel =
+                            koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.AUDIO))
+                        val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+                        val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+                        val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+
+                        AudioMaterialsScreen(
+                            modifier = Modifier,
+                            screenState = screenState,
+                            baseError = baseError,
+                            padding = padding,
+                            onRefresh = viewModel::onRefresh,
+                            onSessionExpiredLogOutButtonClicked = { },
+                            setCanScrollBackward = { canScrollBackward = it },
+                            canPaginate = canPaginate,
+                            onPaginationConditionsMet = viewModel::onPaginationConditionsMet
+                        )
+                    }
+
+                    3 -> {
+                        val viewModel: ChatMaterialsViewModel =
+                            koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.FILE))
+                        val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+                        val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+                        val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+
+                        FileMaterialsScreen(
+                            modifier = Modifier,
+                            screenState = screenState,
+                            baseError = baseError,
+                            padding = padding,
+                            onRefresh = viewModel::onRefresh,
+                            onSessionExpiredLogOutButtonClicked = { },
+                            setCanScrollBackward = { canScrollBackward = it },
+                            canPaginate = canPaginate,
+                            onPaginationConditionsMet = viewModel::onPaginationConditionsMet
+                        )
+                    }
+
+                    4 -> {
+                        val viewModel: ChatMaterialsViewModel =
+                            koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.LINK))
+                        val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+                        val baseError by viewModel.baseError.collectAsStateWithLifecycle()
+                        val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+
+                        LinkMaterialsScreen(
+                            modifier = Modifier,
+                            screenState = screenState,
+                            baseError = baseError,
+                            padding = padding,
+                            onRefresh = viewModel::onRefresh,
+                            onSessionExpiredLogOutButtonClicked = { },
+                            setCanScrollBackward = { canScrollBackward = it },
+                            canPaginate = canPaginate,
+                            onPaginationConditionsMet = viewModel::onPaginationConditionsMet
+                        )
+                    }
+
+                    else -> Unit
                 }
-
-                1 -> {
-                    val viewModel: ChatMaterialsViewModel =
-                        koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.VIDEO))
-                    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-                    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-                    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-                    VideoMaterialsScreen(
-                        modifier = Modifier,
-                        screenState = screenState,
-                        baseError = baseError,
-                        padding = padding,
-                        onRefresh = viewModel::onRefresh,
-                        onSessionExpiredLogOutButtonClicked = { },
-                        setCanScrollBackward = { canScrollBackward = it },
-                        canPaginate = canPaginate,
-                        onPaginationConditionsMet = viewModel::onPaginationConditionsMet
-                    )
-                }
-
-                2 -> {
-                    val viewModel: ChatMaterialsViewModel =
-                        koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.AUDIO))
-                    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-                    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-                    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-                    AudioMaterialsScreen(
-                        modifier = Modifier,
-                        screenState = screenState,
-                        baseError = baseError,
-                        padding = padding,
-                        onRefresh = viewModel::onRefresh,
-                        onSessionExpiredLogOutButtonClicked = { },
-                        setCanScrollBackward = { canScrollBackward = it },
-                        canPaginate = canPaginate,
-                        onPaginationConditionsMet = viewModel::onPaginationConditionsMet
-                    )
-                }
-
-                3 -> {
-                    val viewModel: ChatMaterialsViewModel =
-                        koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.FILE))
-                    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-                    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-                    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-                    FileMaterialsScreen(
-                        modifier = Modifier,
-                        screenState = screenState,
-                        baseError = baseError,
-                        padding = padding,
-                        onRefresh = viewModel::onRefresh,
-                        onSessionExpiredLogOutButtonClicked = { },
-                        setCanScrollBackward = { canScrollBackward = it },
-                        canPaginate = canPaginate,
-                        onPaginationConditionsMet = viewModel::onPaginationConditionsMet
-                    )
-                }
-
-                4 -> {
-                    val viewModel: ChatMaterialsViewModel =
-                        koinViewModel<ChatMaterialsViewModelImpl>(named(MaterialType.LINK))
-                    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-                    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-                    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-                    LinkMaterialsScreen(
-                        modifier = Modifier,
-                        screenState = screenState,
-                        baseError = baseError,
-                        padding = padding,
-                        onRefresh = viewModel::onRefresh,
-                        onSessionExpiredLogOutButtonClicked = { },
-                        setCanScrollBackward = { canScrollBackward = it },
-                        canPaginate = canPaginate,
-                        onPaginationConditionsMet = viewModel::onPaginationConditionsMet
-                    )
-                }
-
-                else -> Unit
             }
         }
     }

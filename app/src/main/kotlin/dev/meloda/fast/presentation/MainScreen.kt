@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -26,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -42,6 +42,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
 import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
+import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
@@ -58,7 +59,7 @@ fun MainScreen(
     onMessageClicked: (userId: Int) -> Unit = {},
     onCreateChatClicked: () -> Unit = {}
 ) {
-    val currentTheme = LocalThemeConfig.current
+    val theme = LocalThemeConfig.current
     val hazeState = remember { HazeState() }
     val navController = rememberNavController()
 
@@ -75,18 +76,12 @@ fun MainScreen(
         bottomBar = {
             NavigationBar(
                 modifier = Modifier
-                    .then(
-                        if (currentTheme.enableBlur) {
-                            Modifier.hazeEffect(
-                                state = hazeState,
-                                style = HazeMaterials.thick()
-                            )
-                        } else Modifier
-                    )
-                    .fillMaxWidth(),
-                containerColor = NavigationBarDefaults.containerColor.copy(
-                    alpha = if (currentTheme.enableBlur) 0f else 1f
-                )
+                    .fillMaxWidth()
+                    .hazeEffect(
+                        state = hazeState,
+                        style = HazeMaterials.thick()
+                    ),
+                containerColor = Color.Transparent
             ) {
                 navigationItems.forEachIndexed { index, item ->
                     NavigationBarItem(
@@ -145,11 +140,10 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = padding.calculateBottomPadding())
         ) {
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
-//                LocalBottomPadding provides if (currentTheme.enableBlur) padding.calculateBottomPadding() else 0.dp
+                LocalBottomPadding provides padding.calculateBottomPadding()
             ) {
                 NavHost(
                     navController = navController,

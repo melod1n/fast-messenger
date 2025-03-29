@@ -6,9 +6,8 @@ import androidx.navigation.navigation
 import dev.meloda.fast.auth.captcha.navigation.captchaScreen
 import dev.meloda.fast.auth.captcha.navigation.navigateToCaptcha
 import dev.meloda.fast.auth.captcha.navigation.setCaptchaResult
-import dev.meloda.fast.auth.login.navigation.Logo
+import dev.meloda.fast.auth.login.navigation.Login
 import dev.meloda.fast.auth.login.navigation.loginScreen
-import dev.meloda.fast.auth.login.navigation.navigateToLogin
 import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
 import dev.meloda.fast.auth.userbanned.navigation.navigateToUserBanned
 import dev.meloda.fast.auth.userbanned.navigation.userBannedRoute
@@ -26,9 +25,7 @@ fun NavGraphBuilder.authNavGraph(
     onNavigateToMain: () -> Unit,
     navController: NavController
 ) {
-    navigation<AuthGraph>(
-        startDestination = Logo
-    ) {
+    navigation<AuthGraph>(startDestination = Login) {
         loginScreen(
             onNavigateToCaptcha = { arguments ->
                 navController.navigateToCaptcha(
@@ -57,7 +54,6 @@ fun NavGraphBuilder.authNavGraph(
                     )
                 )
             },
-            onNavigateToCredentials = navController::navigateToLogin,
             navController = navController
         )
 

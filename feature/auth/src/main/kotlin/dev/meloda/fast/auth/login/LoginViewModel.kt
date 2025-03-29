@@ -1,10 +1,11 @@
 package dev.meloda.fast.auth.login
 
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.auth.login.model.CaptchaArguments
-import dev.meloda.fast.auth.login.model.LoginError
+import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
@@ -36,7 +37,7 @@ import kotlinx.coroutines.launch
 
 interface LoginViewModel {
     val screenState: StateFlow<LoginScreenState>
-    val loginError: StateFlow<LoginError?>
+    val loginDialog: StateFlow<LoginDialog?>
 
     val validationCode: StateFlow<String?>
     val validationArguments: StateFlow<LoginValidationArguments?>
@@ -44,7 +45,11 @@ interface LoginViewModel {
     val captchaArguments: StateFlow<CaptchaArguments?>
     val userBannedArguments: StateFlow<LoginUserBannedArguments?>
     val isNeedToOpenMain: StateFlow<Boolean>
-    val isNeedToShowFastSignInAlert: StateFlow<Boolean>
+
+    fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle)
+    fun onDialogDismissed(dialog: LoginDialog)
+
+    fun onBackPressed()
 
     fun onPasswordVisibilityButtonClicked()
 
@@ -52,8 +57,6 @@ interface LoginViewModel {
     fun onPasswordInputChanged(newPassword: String)
 
     fun onSignInButtonClicked()
-
-    fun onErrorDialogDismissed()
 
     fun onNavigatedToMain()
     fun onNavigatedToUserBanned()
@@ -64,9 +67,6 @@ interface LoginViewModel {
     fun onCaptchaCodeReceived(code: String)
 
     fun onLogoLongClicked()
-
-    fun onFastLogInAlertDismissed()
-    fun onFastLogInAlertConfirmClicked(token: String)
 }
 
 class LoginViewModelImpl(
@@ -78,7 +78,7 @@ class LoginViewModelImpl(
 ) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
-    override val loginError = MutableStateFlow<LoginError?>(null)
+    override val loginDialog = MutableStateFlow<LoginDialog?>(null)
 
     override val validationCode = MutableStateFlow<String?>(null)
     override val validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
@@ -86,39 +86,63 @@ class LoginViewModelImpl(
     override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
     override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     override val isNeedToOpenMain = MutableStateFlow(false)
-    override val isNeedToShowFastSignInAlert = MutableStateFlow(false)
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
             .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
+
+    override fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle) {
+        onDialogDismissed(dialog)
+
+        when (dialog) {
+            is LoginDialog.Error -> Unit
+
+            LoginDialog.FastAuth -> {
+                val token = bundle.getString("token")?.trim() ?: return
+                fastAuth(token)
+            }
+        }
+    }
+
+    override fun onDialogDismissed(dialog: LoginDialog) {
+        loginDialog.setValue { null }
+    }
+
+    override fun onBackPressed() {
+        screenState.setValue { old -> old.copy(showLogo = true) }
+    }
 
     override fun onPasswordVisibilityButtonClicked() {
         screenState.setValue { old -> old.copy(passwordVisible = !old.passwordVisible) }
     }
 
     override fun onLoginInputChanged(newLogin: String) {
-        val newState = screenState.value.copy(
-            login = newLogin.trim(),
-            loginError = false
-        )
-        screenState.setValue { newState }
+        screenState.setValue { old ->
+            old.copy(
+                login = newLogin.trim(),
+                loginError = false
+            )
+        }
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
-        val newState = screenState.value.copy(
-            password = newPassword.trim(),
-            passwordError = false
-        )
-        screenState.setValue { newState }
+        screenState.setValue { old ->
+            old.copy(
+                password = newPassword.trim(),
+                passwordError = false
+            )
+        }
     }
 
     override fun onSignInButtonClicked() {
         if (screenState.value.isLoading) return
-        login()
-    }
 
-    override fun onErrorDialogDismissed() {
-        loginError.update { null }
+        if (screenState.value.showLogo) {
+            screenState.setValue { old -> old.copy(showLogo = false) }
+            return
+        }
+
+        login()
     }
 
     override fun onNavigatedToMain() {
@@ -150,14 +174,10 @@ class LoginViewModelImpl(
     }
 
     override fun onLogoLongClicked() {
-        isNeedToShowFastSignInAlert.update { true }
+        loginDialog.setValue { LoginDialog.FastAuth }
     }
 
-    override fun onFastLogInAlertDismissed() {
-        isNeedToShowFastSignInAlert.update { false }
-    }
-
-    override fun onFastLogInAlertConfirmClicked(token: String) {
+    private fun fastAuth(token: String) {
         var currentAccount = AccountEntity(
             userId = -1,
             accessToken = token,
@@ -177,12 +197,12 @@ class LoginViewModelImpl(
             nomCase = null
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
+                error = {
                     UserConfig.currentUserId = -1
                     UserConfig.userId = -1
                     UserConfig.accessToken = ""
 
-                    // TODO: 19/07/2024, Danil Nikolaev: show error?
+                    loginDialog.setValue { LoginDialog.Error() }
                 },
                 success = { response ->
                     val actualUserId = requireNotNull(response).id
@@ -241,7 +261,7 @@ class LoginViewModelImpl(
                     val accessToken = response.accessToken
 
                     if (userId == null || accessToken == null) {
-                        loginError.update { LoginError.Unknown }
+                        loginDialog.setValue { LoginDialog.Error() }
                         return@processState
                     }
 
@@ -312,7 +332,9 @@ class LoginViewModelImpl(
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
-                        loginError.update { LoginError.WrongCredentials }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Wrong login or password.")
+                        }
                     }
 
                     is OAuthErrorDomain.UserBannedError -> {
@@ -326,19 +348,25 @@ class LoginViewModelImpl(
                     }
 
                     OAuthErrorDomain.WrongValidationCode -> {
-                        loginError.update { LoginError.WrongValidationCode }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Wrong validation code.")
+                        }
                     }
 
                     OAuthErrorDomain.WrongValidationCodeFormat -> {
-                        loginError.update { LoginError.WrongValidationCodeFormat }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Wrong validation code format.")
+                        }
                     }
 
                     OAuthErrorDomain.TooManyTriesError -> {
-                        loginError.update { LoginError.TooManyTries }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Too many tries. Try in another hour or later.")
+                        }
                     }
 
                     OAuthErrorDomain.UnknownError -> {
-                        loginError.update { LoginError.Unknown }
+                        loginDialog.setValue { LoginDialog.Error() }
                     }
                 }
 
@@ -346,9 +374,9 @@ class LoginViewModelImpl(
             }
 
             is State.Error.TestError -> {
-                val message = stateError.message
-                val error = LoginError.SimpleError(message = message)
-                loginError.update { error }
+                loginDialog.setValue {
+                    LoginDialog.Error(errorText = stateError.message)
+                }
                 true
             }
 

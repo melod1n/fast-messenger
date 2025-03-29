@@ -30,12 +30,8 @@ retrofit = "2.11.0"
 room = "2.6.1"
 preference-ktx = "1.2.1"
 nanokt = "1.2.0"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-appcompat = "1.7.0"
 androidx-navigation = "2.8.9"
 serialization = "1.8.0"
-rebugger = "1.0.0-rc03"
 moduleGraph = "2.8.0"
 
 [libraries]
@@ -69,18 +65,13 @@ preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = 
 nanokt = { module = "com.conena.nanokt:nanokt", version.ref = "nanokt" }
 nanokt-android = { module = "com.conena.nanokt:nanokt-android", version.ref = "nanokt" }
 nanokt-jvm = { module = "com.conena.nanokt:nanokt-jvm", version.ref = "nanokt" }
-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
-rebugger = { module = "io.github.theapache64:rebugger-android", version.ref = "rebugger" }
-
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
-compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "1.8.0-rc02" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-material3-windowsize = { module = "androidx.compose.material3:material3-window-size-class" }
@@ -92,10 +83,7 @@ compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koin-core-coroutines = { module = "io.insert-koin:koin-core-coroutines", version.ref = "koin" }
-koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
-koin-android-test = { module = "io.insert-koin:koin-android-test", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 koin-androidx-compose-navigation = { module = "io.insert-koin:koin-androidx-compose-navigation", version.ref = "koin" }
 

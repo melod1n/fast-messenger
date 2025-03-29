@@ -26,18 +26,19 @@ import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
+import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun ConversationsList(
+    modifier: Modifier = Modifier,
     onConversationsClick: (Int) -> Unit,
     onConversationsLongClick: (UiConversation) -> Unit,
     screenState: ConversationsScreenState,
     state: LazyListState,
     maxLines: Int,
-    modifier: Modifier,
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
     padding: PaddingValues
 ) {
@@ -116,6 +117,7 @@ fun ConversationsList(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }
         }
     }
