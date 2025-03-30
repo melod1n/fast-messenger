@@ -137,7 +137,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                LaunchedEffect(longPollStateToApply) {
+                LifecycleResumeEffect(longPollStateToApply) {
+                    Log.d("LongPollMainActivity", "longPollStateToApply: $longPollStateToApply")
                     if (longPollStateToApply != LongPollState.Background) {
                         if (longPollStateToApply.isLaunched() && longPollCurrentState.isLaunched()
                             && longPollCurrentState != longPollStateToApply
@@ -151,6 +152,8 @@ class MainActivity : AppCompatActivity() {
                             inBackground = longPollStateToApply == LongPollState.Background
                         )
                     }
+
+                    onPauseOrDispose {}
                 }
 
                 val sendOnline by userSettings.sendOnlineStatus.collectAsStateWithLifecycle()
@@ -299,12 +302,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val longPollingServiceIntent by lazy {
+        Intent(this, LongPollingService::class.java)
+    }
+    private val onlineServiceIntent by lazy {
+        Intent(this, OnlineService::class.java)
+    }
+
     private fun toggleLongPollService(
         enable: Boolean,
         inBackground: Boolean = AppSettings.Experimental.longPollInBackground
     ) {
         if (enable) {
-            val longPollIntent = Intent(this, LongPollingService::class.java)
+            val longPollIntent = longPollingServiceIntent
 
             if (inBackground) {
                 ContextCompat.startForegroundService(this, longPollIntent)
@@ -312,15 +322,15 @@ class MainActivity : AppCompatActivity() {
                 startService(longPollIntent)
             }
         } else {
-            stopService(Intent(this, LongPollingService::class.java))
+            stopService(longPollingServiceIntent)
         }
     }
 
     private fun toggleOnlineService(enable: Boolean) {
         if (enable) {
-            startService(Intent(this, OnlineService::class.java))
+            startService(onlineServiceIntent)
         } else {
-            stopService(Intent(this, OnlineService::class.java))
+            stopService(onlineServiceIntent)
         }
     }
 
