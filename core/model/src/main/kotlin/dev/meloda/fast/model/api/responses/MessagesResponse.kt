@@ -47,6 +47,6 @@ data class MessagesGetHistoryAttachmentsResponse(
 
 @JsonClass(generateAdapter = true)
 data class MessagesCreateChatResponse(
-    @Json(name = "chat_id") val chatId: Int,
+    @Json(name = "chat_id") val chatId: Long,
     @Json(name = "peer_ids") val peerIds: List<Int>
 )

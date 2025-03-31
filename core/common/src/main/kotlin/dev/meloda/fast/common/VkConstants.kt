@@ -18,6 +18,11 @@ object VkConstants {
     const val FAST_GROUP_ID = -119516304
     const val FAST_APP_ID = "6964679"
 
+    const val MESSENGER_APP_ID = 51453752
+    const val MESSENGER_APP_SECRET = "4UyuCUsdK8pVCNoeQuGi"
+
+    const val MESSENGER_APP_SCOPE = 1454174
+
     object Auth {
         const val SCOPE = "notify," +
                 "friends," +

@@ -6,7 +6,7 @@ import dev.meloda.fast.model.api.domain.VkVideoDomain
 
 @JsonClass(generateAdapter = true)
 data class VkVideoData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "title") val title: String,
     @Json(name = "width") val width: Int?,
     @Json(name = "height") val height: Int?,
@@ -19,7 +19,7 @@ data class VkVideoData(
     @Json(name = "type") val type: String,
     @Json(name = "views") val views: Int,
     @Json(name = "access_key") val accessKey: String?,
-    @Json(name = "owner_id") val ownerId: Int,
+    @Json(name = "owner_id") val ownerId: Long,
     @Json(name = "is_favorite") val isFavorite: Boolean?,
     @Json(name = "image") val image: List<Image>?,
     @Json(name = "first_frame") val firstFrame: List<FirstFrame>?,

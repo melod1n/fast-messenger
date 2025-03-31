@@ -6,7 +6,7 @@ data class ConversationsGetRequest(
     val fields: String = "",
     val filter: String = "all",
     val extended: Boolean? = true,
-    val startMessageId: Int? = null
+    val startMessageId: Long? = null
 ) {
 
     val map
@@ -21,14 +21,14 @@ data class ConversationsGetRequest(
         }
 }
 
-data class ConversationsDeleteRequest(val peerId: Int) {
+data class ConversationsDeleteRequest(val peerId: Long) {
     val map get() = mapOf("peer_id" to peerId.toString())
 }
 
-data class ConversationsPinRequest(val peerId: Int) {
+data class ConversationsPinRequest(val peerId: Long) {
     val map get() = mapOf("peer_id" to peerId.toString())
 }
 
-data class ConversationsUnpinRequest(val peerId: Int) {
+data class ConversationsUnpinRequest(val peerId: Long) {
     val map get() = mapOf("peer_id" to peerId.toString())
 }

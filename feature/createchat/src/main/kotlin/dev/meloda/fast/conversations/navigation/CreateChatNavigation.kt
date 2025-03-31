@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 object CreateChat
 
 fun NavGraphBuilder.createChatScreen(
-    onChatCreated: (Int) -> Unit,
+    onChatCreated: (Long) -> Unit,
     navController: NavController,
 ) {
     composable<CreateChat> {

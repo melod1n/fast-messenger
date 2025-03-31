@@ -30,11 +30,10 @@ import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.friends.FriendsViewModelImpl
 import dev.meloda.fast.friends.OnlineFriendsViewModelImpl
 import dev.meloda.fast.friends.navigation.Friends
-import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalScrollToTop
 import dev.meloda.fast.ui.theme.LocalThemeConfig
@@ -52,7 +51,7 @@ fun FriendsScreen(
     tabIndex: Int,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
-    onMessageClicked: (userId: Int) -> Unit = {},
+    onMessageClicked: (userid: Long) -> Unit = {},
     setCanScrollBackward: (Boolean) -> Unit = {},
     onScrolledToTop: () -> Unit = {}
 ) {
@@ -136,24 +135,7 @@ fun FriendsScreen(
     val hazeState = LocalHazeState.current
 
     baseError?.let { error ->
-        when (error) {
-            is BaseError.SessionExpired -> {
-                ErrorView(
-                    text = stringResource(R.string.session_expired),
-                    buttonText = stringResource(R.string.action_log_out),
-                    onButtonClick = onSessionExpiredLogOutButtonClicked
-                )
-            }
-
-            is BaseError.SimpleError -> {
-                ErrorView(
-                    text = error.message,
-                    buttonText = stringResource(R.string.try_again),
-                    onButtonClick = viewModel::onRefresh
-                )
-            }
-        }
-
+        VkErrorView(baseError = error)
         return
     }
 

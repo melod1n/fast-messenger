@@ -25,8 +25,6 @@ sealed class State<out T> {
         data object InternalError : Error()
 
         data class OAuthError(val error: OAuthErrorDomain) : Error()
-
-        data class TestError(val message: String) : Error()
     }
 
     fun isLoading(): Boolean = this is Loading
@@ -61,10 +59,40 @@ inline fun <T> State<T>.processState(
     }
 }
 
+fun OAuthErrorDomain?.toStateApiError(): State.Error {
+    if (this == null) return State.Error.ConnectionError
+    return State.Error.OAuthError(this)
+}
+
 fun RestApiErrorDomain?.toStateApiError(): State.Error = when (this) {
     null -> State.Error.ConnectionError
     else -> State.Error.ApiError(VkErrorCode.parse(code), message)
 }
+
+fun <T : Any> ApiResult<T, OAuthErrorDomain>.asState() = when (this) {
+    is ApiResult.Success -> State.Success(this.value)
+
+    is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
+    is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
+    is ApiResult.Failure.HttpFailure -> this.error.toStateApiError()
+    is ApiResult.Failure.ApiFailure -> this.error.toStateApiError()
+}
+
+fun <T : Any, N> ApiResult<T, OAuthErrorDomain>.asState(successMapper: (T) -> N) =
+    when (this) {
+        is ApiResult.Success -> State.Success(successMapper(this.value))
+
+        is ApiResult.Failure.NetworkFailure -> State.Error.ConnectionError
+        is ApiResult.Failure.UnknownFailure -> State.UNKNOWN_ERROR
+        is ApiResult.Failure.HttpFailure -> this.error.toStateApiError()
+        is ApiResult.Failure.ApiFailure -> this.error.toStateApiError()
+    }
+
+fun <T : Any, E : Any> ApiResult<T, E>.success(): T =
+    when (this) {
+        is ApiResult.Success -> value
+        else -> throw IllegalArgumentException()
+    }
 
 fun <T : Any> ApiResult<T, RestApiErrorDomain>.mapToState() = when (this) {
     is ApiResult.Success -> State.Success(this.value)

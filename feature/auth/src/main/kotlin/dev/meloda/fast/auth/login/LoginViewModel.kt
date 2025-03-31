@@ -15,16 +15,20 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.data.api.auth.AuthRepository
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.data.success
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,9 +43,7 @@ interface LoginViewModel {
     val screenState: StateFlow<LoginScreenState>
     val loginDialog: StateFlow<LoginDialog?>
 
-    val validationCode: StateFlow<String?>
     val validationArguments: StateFlow<LoginValidationArguments?>
-    val captchaCode: StateFlow<String?>
     val captchaArguments: StateFlow<CaptchaArguments?>
     val userBannedArguments: StateFlow<LoginUserBannedArguments?>
     val isNeedToOpenMain: StateFlow<Boolean>
@@ -63,14 +65,15 @@ interface LoginViewModel {
     fun onNavigatedToCaptcha()
     fun onNavigatedToValidation()
 
-    fun onValidationCodeReceived(code: String)
-    fun onCaptchaCodeReceived(code: String)
+    fun onValidationCodeReceived(code: String?)
+    fun onCaptchaCodeReceived(code: String?)
 
     fun onLogoLongClicked()
 }
 
 class LoginViewModelImpl(
     private val oAuthUseCase: OAuthUseCase,
+    private val authRepository: AuthRepository,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
@@ -80,9 +83,7 @@ class LoginViewModelImpl(
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
     override val loginDialog = MutableStateFlow<LoginDialog?>(null)
 
-    override val validationCode = MutableStateFlow<String?>(null)
     override val validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
-    override val captchaCode = MutableStateFlow<String?>(null)
     override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
     override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     override val isNeedToOpenMain = MutableStateFlow(false)
@@ -90,6 +91,24 @@ class LoginViewModelImpl(
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
             .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
+
+    private val captchaSid = MutableStateFlow<String?>(null)
+    private val captchaCode = MutableStateFlow<String?>(null)
+    private val validationSid = MutableStateFlow<String?>(null)
+    private val validationCode = MutableStateFlow<String?>(null)
+
+    init {
+        captchaCode.listenValue(viewModelScope) {
+            if (it != null) {
+                login()
+            }
+        }
+        validationCode.listenValue(viewModelScope) {
+            if (it != null) {
+                login()
+            }
+        }
+    }
 
     override fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle) {
         onDialogDismissed(dialog)
@@ -161,28 +180,26 @@ class LoginViewModelImpl(
         validationArguments.update { null }
     }
 
-    override fun onValidationCodeReceived(code: String) {
+    override fun onValidationCodeReceived(code: String?) {
         validationCode.update { code }
-
-        login()
     }
 
-    override fun onCaptchaCodeReceived(code: String) {
+    override fun onCaptchaCodeReceived(code: String?) {
         captchaCode.update { code }
-
-        login()
     }
 
     override fun onLogoLongClicked() {
         loginDialog.setValue { LoginDialog.FastAuth }
     }
 
+    // TODO: 31-Mar-25, Danil Nikolaev: go through full auth flow
     private fun fastAuth(token: String) {
         var currentAccount = AccountEntity(
             userId = -1,
             accessToken = token,
             fastToken = null,
-            trustedHash = null
+            trustedHash = null,
+            exchangeToken = null
         ).also { account ->
             UserConfig.currentUserId = account.userId
             UserConfig.userId = account.userId
@@ -239,77 +256,119 @@ class LoginViewModelImpl(
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
 
-        oAuthUseCase.auth(
+        screenState.updateValue { copy(isLoading = false) }
+
+        val currentValidationSid = validationSid.value
+        val currentValidationCode = validationCode.value?.takeIf { currentValidationSid != null }
+        val currentCaptchaSid = captchaSid.value
+        val currentCaptchaCode = captchaCode.value?.takeIf { currentCaptchaSid != null }
+
+        oAuthUseCase.getSilentToken(
             login = currentState.login,
             password = currentState.password,
             forceSms = forceSms,
-            validationCode = validationCode.value,
-            captchaSid = captchaArguments.value?.captchaSid,
-            captchaKey = captchaCode.value
+            validationCode = currentValidationCode,
+            captchaSid = currentCaptchaSid,
+            captchaKey = currentCaptchaCode
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     Log.d("LoginViewModelImpl", "login: error: $error")
 
-                    validationCode.update { null }
-                    captchaCode.update { null }
+                    screenState.updateValue { copy(isLoading = false) }
+                    captchaSid.setValue { null }
 
                     parseError(error)
                 },
                 success = { response ->
-                    val userId = response.userId
-                    val accessToken = response.accessToken
-
-                    if (userId == null || accessToken == null) {
+                    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+                        screenState.updateValue { copy(isLoading = false) }
                         loginDialog.setValue { LoginDialog.Error() }
-                        return@processState
                     }
 
-                    loadUserByIdUseCase(
-                        userId = userId,
-                        fields = VkConstants.USER_FIELDS,
-                        nomCase = null
-                    )
+                    viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
+                        val (anonymToken) = authRepository.getAnonymToken(
+                            VkConstants.MESSENGER_APP_ID.toString(),
+                            VkConstants.MESSENGER_APP_SECRET
+                        ).success()
 
-                    val currentAccount = AccountEntity(
-                        userId = userId,
-                        accessToken = accessToken,
-                        fastToken = null,
-                        trustedHash = response.validationHash
-                    ).also { account ->
-                        UserConfig.currentUserId = account.userId
-                        UserConfig.userId = account.userId
-                        UserConfig.accessToken = account.accessToken
-                        UserConfig.fastToken = account.fastToken
-                        UserConfig.trustedHash = account.trustedHash
+                        val exchangeSilentTokenResponse = authRepository.exchangeSilentToken(
+                            anonymToken = anonymToken,
+                            silentToken = response.silentToken,
+                            silentUuid = response.silentTokenUuid
+                        ).success()
+
+
+                        val getExchangeTokenResponse =
+                            authRepository.getExchangeToken(exchangeSilentTokenResponse.accessToken)
+                                .success()
+
+                        val exchangeToken =
+                            getExchangeTokenResponse.usersTokens.firstOrNull {
+                                it.userId == exchangeSilentTokenResponse.userId
+                            }
+
+                        if (exchangeToken == null) {
+                            screenState.updateValue { copy(isLoading = false) }
+                            loginDialog.setValue { LoginDialog.Error() }
+                            return@launch
+                        }
+
+                        val userId = exchangeSilentTokenResponse.userId
+                        val accessToken = exchangeSilentTokenResponse.accessToken
+
+                        // TODO: 30-Mar-25, Danil Nikolaev: get fast's app token
+
+                        val currentAccount = AccountEntity(
+                            userId = userId,
+                            accessToken = accessToken,
+                            fastToken = null,
+                            trustedHash = response.trustedHash,
+                            exchangeToken = exchangeToken.commonToken
+                        ).also { account ->
+                            UserConfig.currentUserId = account.userId
+                            UserConfig.userId = account.userId
+                            UserConfig.accessToken = account.accessToken
+                            UserConfig.fastToken = account.fastToken
+                            UserConfig.trustedHash = account.trustedHash
+                            UserConfig.exchangeToken = account.exchangeToken
+                        }
+
+                        accountsRepository.storeAccounts(listOf(currentAccount))
+
+                        startLongPoll()
+
+                        captchaSid.update { null }
+                        validationSid.update { null }
+
+                        loadUserByIdUseCase(
+                            userId = userId,
+                            fields = VkConstants.USER_FIELDS,
+                            nomCase = null
+                        ).listenValue(viewModelScope) { state ->
+                            state.processState(
+                                any = {
+                                    screenState.updateValue { copy(isLoading = false) }
+                                },
+                                error = ::parseError,
+                                success = { user ->
+                                    if (user == null) {
+                                        loginDialog.update { LoginDialog.Error() }
+                                    } else {
+                                        screenState.updateValue { copy(login = "", password = "") }
+                                        isNeedToOpenMain.update { true }
+                                    }
+                                }
+                            )
+                        }
                     }
-
-                    startLongPoll()
-
-                    accountsRepository.storeAccounts(listOf(currentAccount))
-
-                    captchaArguments.update { null }
-                    captchaCode.update { null }
-
-                    validationArguments.update { null }
-                    validationCode.update { null }
-
-                    screenState.setValue { old ->
-                        old.copy(
-                            login = "",
-                            password = "",
-                        )
-                    }
-
-                    isNeedToOpenMain.update { true }
                 }
             )
-            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
         }
     }
 
-    private fun parseError(stateError: State.Error): Boolean {
-        return when (stateError) {
+    private fun parseError(stateError: State.Error) {
+        when (stateError) {
             is State.Error.OAuthError -> {
                 when (val error = stateError.error) {
                     is OAuthErrorDomain.ValidationRequiredError -> {
@@ -321,6 +380,7 @@ class LoginViewModelImpl(
                             canResendSms = error.validationResend == "sms"
                         )
                         validationArguments.update { arguments }
+                        validationSid.update { error.validationSid }
                     }
 
                     is OAuthErrorDomain.CaptchaRequiredError -> {
@@ -329,6 +389,7 @@ class LoginViewModelImpl(
                             captchaImageUrl = error.captchaImageUrl
                         )
                         captchaArguments.update { arguments }
+                        captchaSid.update { error.captchaSid }
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
@@ -369,18 +430,9 @@ class LoginViewModelImpl(
                         loginDialog.setValue { LoginDialog.Error() }
                     }
                 }
-
-                true
             }
 
-            is State.Error.TestError -> {
-                loginDialog.setValue {
-                    LoginDialog.Error(errorText = stateError.message)
-                }
-                true
-            }
-
-            else -> false
+            else -> Unit
         }
     }
 

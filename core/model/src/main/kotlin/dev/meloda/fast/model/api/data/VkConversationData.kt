@@ -9,13 +9,13 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class VkConversationData(
     @Json(name = "peer") val peer: Peer,
-    @Json(name = "last_message_id") val lastMessageId: Int?,
-    @Json(name = "in_read") val inRead: Int,
-    @Json(name = "out_read") val outRead: Int,
-    @Json(name = "in_read_cmid") val inReadConversationMessageId: Int,
-    @Json(name = "out_read_cmid") val outReadConversationMessageId: Int,
+    @Json(name = "last_message_id") val lastMessageId: Long?,
+    @Json(name = "in_read") val inRead: Long,
+    @Json(name = "out_read") val outRead: Long,
+    @Json(name = "in_read_cmid") val inReadConversationMessageId: Long,
+    @Json(name = "out_read_cmid") val outReadConversationMessageId: Long,
     @Json(name = "sort_id") val sortId: SortId,
-    @Json(name = "last_conversation_message_id") val lastConversationMessageId: Int,
+    @Json(name = "last_conversation_message_id") val lastConversationMessageId: Long,
     @Json(name = "is_marked_unread") val isMarkedUnread: Boolean,
     @Json(name = "important") val important: Boolean,
     @Json(name = "push_settings") val pushSettings: PushSettings?,
@@ -29,9 +29,9 @@ data class VkConversationData(
 
     @JsonClass(generateAdapter = true)
     data class Peer(
-        @Json(name = "id") val id: Int,
+        @Json(name = "id") val id: Long,
         @Json(name = "type") val type: String,
-        @Json(name = "local_id") val localId: Int,
+        @Json(name = "local_id") val localId: Long,
     )
 
     @JsonClass(generateAdapter = true)
@@ -55,7 +55,7 @@ data class VkConversationData(
 
     @JsonClass(generateAdapter = true)
     data class ChatSettings(
-        @Json(name = "owner_id") val ownerId: Int,
+        @Json(name = "owner_id") val ownerId: Long,
         @Json(name = "title") val title: String,
         @Json(name = "state") val state: String,
         @Json(name = "acl") val acl: Acl,

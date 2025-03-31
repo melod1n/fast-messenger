@@ -45,7 +45,7 @@ object SettingsKeys {
     const val KEY_ENABLE_HAPTIC = "enable_haptic"
     const val DEFAULT_ENABLE_HAPTIC = true
     const val KEY_DEBUG_NETWORK_LOG_LEVEL = "debug_network_log_level"
-    const val DEFAULT_NETWORK_LOG_LEVEL = 0
+    const val DEFAULT_NETWORK_LOG_LEVEL = 3
     const val KEY_USE_SYSTEM_FONT = "use_system_font"
     const val DEFAULT_USE_SYSTEM_FONT = false
     const val KEY_MORE_ANIMATIONS = "more_animations"
@@ -53,5 +53,5 @@ object SettingsKeys {
 
 
     const val KEY_SHOW_DEBUG_CATEGORY = "show_debug_category"
-    const val ID_DMITRY = 37610580
+    const val ID_DMITRY = 37610580L
 }

@@ -1,15 +1,15 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkStickerDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkStickerDomain
 
 @JsonClass(generateAdapter = true)
 data class VkStickerData(
-    @Json(name = "product_id") val productId: Int,
-    @Json(name = "sticker_id") val stickerId: Int,
-    @Json(name = "images") val images: List<Image>,
-    @Json(name = "images_with_background") val imagesWithBackground: List<Image>,
+    @Json(name = "product_id") val productId: Long,
+    @Json(name = "sticker_id") val stickerId: Long,
+    @Json(name = "images") val images: List<Image>?,
+    @Json(name = "images_with_background") val imagesWithBackground: List<Image>?,
     @Json(name = "animation_url") val animationUrl: String?,
     @Json(name = "animations") val animations: List<Animation>?
 ) {

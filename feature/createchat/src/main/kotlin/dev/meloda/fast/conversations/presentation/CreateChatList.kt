@@ -39,7 +39,7 @@ fun CreateChatList(
     maxLines: Int,
     modifier: Modifier,
     padding: PaddingValues,
-    onItemClicked: (Int) -> Unit,
+    onItemClicked: (Long) -> Unit,
     onTitleTextInputChanged: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()

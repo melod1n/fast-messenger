@@ -69,7 +69,7 @@ class FriendsRepositoryImpl(
     override suspend fun getOnlineFriends(
         count: Int?,
         offset: Int?
-    ): ApiResult<List<Int>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<List<Long>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = GetOnlineFriendsRequest(
             order = "hints",
             count = count,

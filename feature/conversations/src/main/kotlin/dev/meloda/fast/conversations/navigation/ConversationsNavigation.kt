@@ -15,7 +15,7 @@ object Conversations
 
 fun NavGraphBuilder.conversationsScreen(
     onError: (BaseError) -> Unit,
-    onConversationItemClicked: (id: Int) -> Unit,
+    onConversationItemClicked: (id: Long) -> Unit,
     onCreateChatClicked: () -> Unit,
     onScrolledToTop: () -> Unit,
     navController: NavController,

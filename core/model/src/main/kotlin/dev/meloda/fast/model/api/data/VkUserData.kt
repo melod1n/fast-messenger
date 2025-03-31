@@ -7,7 +7,7 @@ import dev.meloda.fast.model.api.domain.VkUser
 
 @JsonClass(generateAdapter = true)
 data class VkUserData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "first_name") val firstName: String,
     @Json(name = "last_name") val lastName: String,
     @Json(name = "can_access_closed") val canAccessClosed: Boolean,
@@ -32,7 +32,7 @@ data class VkUserData(
         @Json(name = "last_seen") val lastSeen: Int?,
         @Json(name = "is_online") val isOnline: Boolean?,
         @Json(name = "online_mobile") val onlineMobile: Boolean?,
-        @Json(name = "app_id") val appId: Int?
+        @Json(name = "app_id") val appId: Long?
     )
 
     fun mapToDomain() = VkUser(

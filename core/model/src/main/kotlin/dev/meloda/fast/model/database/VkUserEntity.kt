@@ -7,12 +7,12 @@ import dev.meloda.fast.model.api.domain.VkUser
 
 @Entity(tableName = "users")
 data class VkUserEntity(
-    @PrimaryKey val id: Int,
+    @PrimaryKey val id: Long,
     val firstName: String,
     val lastName: String,
     val isOnline: Boolean,
     val isOnlineMobile: Boolean,
-    val onlineAppId: Int?,
+    val onlineAppId: Long?,
     val lastSeen: Int?,
     val lastSeenStatus: String?,
     val birthday: String?,

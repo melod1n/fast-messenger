@@ -31,7 +31,7 @@ interface MessagesService {
     @POST(MessagesUrls.SEND)
     suspend fun send(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<Int>, RestApiError>
+    ): ApiResult<ApiResponse<Long>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.GET_LONG_POLL_SERVER)
@@ -73,7 +73,7 @@ interface MessagesService {
     @POST(MessagesUrls.MARK_AS_IMPORTANT)
     suspend fun markAsImportant(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
+    ): ApiResult<ApiResponse<List<Long>>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.DELETE)

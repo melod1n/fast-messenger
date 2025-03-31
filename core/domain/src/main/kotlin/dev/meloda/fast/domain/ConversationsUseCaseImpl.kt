@@ -19,7 +19,7 @@ class ConversationsUseCaseImpl(
 //        fields: String,
 //        filter: String,
 //        extended: Boolean?,
-//        startMessageId: Int?
+//        startMessageid: Long?
 //    ): Flow<dev.meloda.fast.network.State<ConversationsResponseDomain>> = flow {
 //        emit(dev.meloda.fast.network.State.Loading)
 //
@@ -44,7 +44,7 @@ class ConversationsUseCaseImpl(
 //
 
     //
-//    override fun pin(peerId: Int): Flow<dev.meloda.fast.network.State<Unit>> = flow {
+//    override fun pin(peerid: Long): Flow<dev.meloda.fast.network.State<Unit>> = flow {
 //        emit(dev.meloda.fast.network.State.Loading)
 //
 //        val newState = conversationsRepository.pin(
@@ -59,7 +59,7 @@ class ConversationsUseCaseImpl(
 //        emit(newState)
 //    }
 //
-//    override fun unpin(peerId: Int): Flow<dev.meloda.fast.network.State<Unit>> = flow {
+//    override fun unpin(peerid: Long): Flow<dev.meloda.fast.network.State<Unit>> = flow {
 //        emit(dev.meloda.fast.network.State.Loading)
 //
 //        val newState = conversationsRepository.unpin(
@@ -97,14 +97,14 @@ class ConversationsUseCaseImpl(
         repository.storeConversations(conversations)
     }
 
-    override fun delete(peerId: Int): Flow<State<Int>> = flow {
+    override fun delete(peerId: Long): Flow<State<Long>> = flow {
         emit(State.Loading)
 
         val newState = repository.delete(peerId = peerId).mapToState()
         emit(newState)
     }
 
-    override fun changePinState(peerId: Int, pin: Boolean): Flow<State<Int>> = flow {
+    override fun changePinState(peerId: Long, pin: Boolean): Flow<State<Int>> = flow {
         emit(State.Loading)
 
         val newState = if (pin) {

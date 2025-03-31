@@ -1,7 +1,7 @@
 package dev.meloda.fast.ui.model.api
 
 data class ConversationsShowOptions(
-    val showDeleteDialog: Int?,
+    val showDeleteDialog: Long?,
     val showPinDialog: UiConversation?
 ) {
 

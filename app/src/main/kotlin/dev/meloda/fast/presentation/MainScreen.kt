@@ -57,9 +57,9 @@ fun MainScreen(
     navigationItems: ImmutableList<BottomNavigationItem>,
     onError: (BaseError) -> Unit = {},
     onSettingsButtonClicked: () -> Unit = {},
-    onConversationItemClicked: (conversationId: Int) -> Unit = {},
+    onConversationItemClicked: (conversationid: Long) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
-    onMessageClicked: (userId: Int) -> Unit = {},
+    onMessageClicked: (userid: Long) -> Unit = {},
     onCreateChatClicked: () -> Unit = {}
 ) {
     val theme = LocalThemeConfig.current

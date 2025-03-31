@@ -35,5 +35,5 @@ data class ConversationsResponseItem(
 
 @JsonClass(generateAdapter = true)
 data class ConversationsDeleteResponse(
-    @Json(name = "last_deleted_id") val lastDeletedId: Int
+    @Json(name = "last_deleted_id") val lastDeletedId: Long
 )

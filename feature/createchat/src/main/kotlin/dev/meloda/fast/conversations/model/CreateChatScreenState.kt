@@ -9,7 +9,7 @@ data class CreateChatScreenState(
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean,
     val friends: List<UiFriend>,
-    val selectedFriendsIds: List<Int>,
+    val selectedFriendsIds: List<Long>,
     val chatTitle: String
 ) {
     companion object {

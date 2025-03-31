@@ -7,15 +7,15 @@ import java.util.Stack
 
 // TODO: 11/04/2024, Danil Nikolaev: review
 data class VkPhotoDomain(
-    val albumId: Int,
+    val albumId: Long,
     val date: Int?,
-    val id: Int,
-    val ownerId: Int,
+    val id: Long,
+    val ownerId: Long,
     val hasTags: Boolean,
     val accessKey: String?,
     val sizes: List<VkPhotoData.Size>,
     val text: String?,
-    val userId: Int?
+    val userId: Long?
 ) : VkAttachment {
 
     override val type: AttachmentType = AttachmentType.PHOTO

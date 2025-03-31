@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ConversationsList(
     modifier: Modifier = Modifier,
-    onConversationsClick: (Int) -> Unit,
+    onConversationsClick: (Long) -> Unit,
     onConversationsLongClick: (UiConversation) -> Unit,
     screenState: ConversationsScreenState,
     state: LazyListState,

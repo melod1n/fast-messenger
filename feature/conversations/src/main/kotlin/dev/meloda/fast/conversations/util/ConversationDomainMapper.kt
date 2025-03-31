@@ -121,7 +121,7 @@ private fun extractUnreadCount(
 private fun extractMessage(
     resources: Resources,
     lastMessage: VkMessage?,
-    peerId: Int,
+    peerId: Long,
     peerType: PeerType
 ): AnnotatedString {
     val youPrefix = UiText.Resource(UiR.string.you_message_prefix)
@@ -612,6 +612,8 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.PODCAST -> null
         AttachmentType.NARRATIVE -> null
         AttachmentType.ARTICLE -> null
+        AttachmentType.VIDEO_MESSAGE -> null
+        AttachmentType.GROUP_CHAT_STICKER -> UiR.drawable.ic_attachment_sticker
     }?.let(UiImage::Resource)
 }
 
@@ -676,7 +678,7 @@ private fun getTextWithVisualizedMentions(
         replacements.add(indexRange to replaced)
 
         mentions += MentionIndex(
-            id = id.toIntOrNull() ?: -1,
+            id = id.toLongOrNull() ?: -1,
             idPrefix = idPrefix,
             indexRange = indexRange
         )
@@ -707,7 +709,7 @@ private fun getTextWithVisualizedMentions(
 }
 
 data class MentionIndex(
-    val id: Int,
+    val id: Long,
     val idPrefix: String,
     val indexRange: IntRange
 )
@@ -755,6 +757,8 @@ private fun getAttachmentUiText(
         AttachmentType.PODCAST -> UiR.string.message_attachments_podcast
         AttachmentType.NARRATIVE -> UiR.string.message_attachments_narrative
         AttachmentType.ARTICLE -> UiR.string.message_attachments_article
+        AttachmentType.VIDEO_MESSAGE -> UiR.string.message_attachments_video_message
+        AttachmentType.GROUP_CHAT_STICKER -> UiR.string.message_attachments_group_sticker
     }.let(UiText::Resource)
 }
 
@@ -799,7 +803,7 @@ private fun extractReadCondition(
 ): Boolean = (lastMessage?.isOut == true && conversation.isOutUnread()) ||
         (lastMessage?.isOut == false && conversation.isInUnread())
 
-private fun isAccount(peerId: Int) = peerId == UserConfig.userId
+private fun isAccount(peerId: Long) = peerId == UserConfig.userId
 
 private fun extractInteractionText(
     resources: Resources,

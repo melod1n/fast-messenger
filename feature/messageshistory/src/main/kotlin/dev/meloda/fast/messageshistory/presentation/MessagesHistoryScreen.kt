@@ -110,6 +110,7 @@ import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
@@ -125,7 +126,7 @@ import dev.meloda.fast.ui.R as UiR
 fun MessagesHistoryRoute(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit,
+    onChatMaterialsDropdownItemClicked: (peerid: Long, conversationMessageid: Long) -> Unit,
     viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -483,16 +484,16 @@ fun MessagesHistoryScreen(
     onClose: () -> Unit = {},
     onScrolledToIndex: () -> Unit = {},
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
+    onChatMaterialsDropdownItemClicked: (peerid: Long, conversationMessageid: Long) -> Unit = { _, _ -> },
     onRefresh: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {},
     onEmojiButtonLongClicked: () -> Unit = {},
-    onMessageClicked: (Int) -> Unit = {},
-    onMessageLongClicked: (Int) -> Unit = {},
-    onPinnedMessageClicked: (Int) -> Unit = {},
+    onMessageClicked: (Long) -> Unit = {},
+    onMessageLongClicked: (Long) -> Unit = {},
+    onPinnedMessageClicked: (Long) -> Unit = {},
     onUnpinMessageButtonClicked: () -> Unit = {},
     onDeleteSelectedButtonClicked: () -> Unit = {}
 ) {
@@ -1042,23 +1043,7 @@ fun MessagesHistoryScreen(
                 }
 
                 baseError != null -> {
-                    when (baseError) {
-                        is BaseError.SessionExpired -> {
-                            ErrorView(
-                                text = stringResource(UiR.string.session_expired),
-                                buttonText = stringResource(UiR.string.action_log_out),
-                                onButtonClick = onSessionExpiredLogOutButtonClicked
-                            )
-                        }
-
-                        is BaseError.SimpleError -> {
-                            ErrorView(
-                                text = baseError.message,
-                                buttonText = stringResource(UiR.string.try_again),
-                                onButtonClick = onRefresh
-                            )
-                        }
-                    }
+                    VkErrorView(baseError = baseError)
                 }
             }
         }

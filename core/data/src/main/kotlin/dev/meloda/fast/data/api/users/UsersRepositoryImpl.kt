@@ -1,5 +1,6 @@
 package dev.meloda.fast.data.api.users
 
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.database.dao.UsersDao
 import dev.meloda.fast.model.api.data.VkUserData
@@ -11,7 +12,6 @@ import dev.meloda.fast.model.database.asExternalModel
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiResult
 import dev.meloda.fast.network.service.users.UsersService
-import com.slack.eithernet.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,7 +22,7 @@ class UsersRepositoryImpl(
 ) : UsersRepository {
 
     override suspend fun get(
-        userIds: List<Int>?,
+        userIds: List<Long>?,
         fields: String?,
         nomCase: String?
     ): ApiResult<List<VkUser>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
@@ -51,7 +51,7 @@ class UsersRepositoryImpl(
     }
 
     override suspend fun getLocalUsers(
-        userIds: List<Int>
+        userIds: List<Long>
     ): List<VkUser> = withContext(Dispatchers.IO) {
         dao.getAllByIds(userIds).map(VkUserEntity::asExternalModel)
     }

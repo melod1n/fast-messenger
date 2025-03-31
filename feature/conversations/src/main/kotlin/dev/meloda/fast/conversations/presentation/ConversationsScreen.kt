@@ -65,10 +65,10 @@ import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
@@ -83,7 +83,7 @@ import dev.meloda.fast.ui.R as UiR
 @Composable
 fun ConversationsRoute(
     onError: (BaseError) -> Unit,
-    onConversationItemClicked: (conversationId: Int) -> Unit,
+    onConversationItemClicked: (conversationid: Long) -> Unit,
     onCreateChatButtonClicked: () -> Unit,
     onScrolledToTop: () -> Unit,
     viewModel: ConversationsViewModel
@@ -96,7 +96,6 @@ fun ConversationsRoute(
         screenState = screenState,
         baseError = baseError,
         canPaginate = canPaginate,
-        onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
         onConversationItemClicked = { id ->
             onConversationItemClicked(id)
             viewModel.onConversationItemClick()
@@ -109,7 +108,14 @@ fun ConversationsRoute(
         onCreateChatButtonClicked = onCreateChatButtonClicked,
         setScrollIndex = viewModel::setScrollIndex,
         setScrollOffset = viewModel::setScrollOffset,
-        onScrolledToTop = onScrolledToTop
+        onScrolledToTop = onScrolledToTop,
+        onErrorViewButtonClicked = {
+            if (baseError in listOf(BaseError.AccountBlocked, BaseError.SessionExpired)) {
+                onError(requireNotNull(baseError))
+            } else {
+                viewModel.onErrorButtonClicked()
+            }
+        }
     )
 
     HandleDialogs(
@@ -127,8 +133,7 @@ fun ConversationsScreen(
     screenState: ConversationsScreenState = ConversationsScreenState.EMPTY,
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
-    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
-    onConversationItemClicked: (conversationId: Int) -> Unit = {},
+    onConversationItemClicked: (conversationId: Long) -> Unit = {},
     onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
     onOptionClicked: (UiConversation, ConversationOption) -> Unit = { _, _ -> },
     onPaginationConditionsMet: () -> Unit = {},
@@ -137,7 +142,8 @@ fun ConversationsScreen(
     onCreateChatButtonClicked: () -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
     setScrollOffset: (Int) -> Unit = {},
-    onScrolledToTop: () -> Unit = {}
+    onScrolledToTop: () -> Unit = {},
+    onErrorViewButtonClicked: () -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -313,23 +319,10 @@ fun ConversationsScreen(
     ) { padding ->
         when {
             baseError != null -> {
-                when (baseError) {
-                    is BaseError.SessionExpired -> {
-                        ErrorView(
-                            text = stringResource(UiR.string.session_expired),
-                            buttonText = stringResource(UiR.string.action_log_out),
-                            onButtonClick = onSessionExpiredLogOutButtonClicked
-                        )
-                    }
-
-                    is BaseError.SimpleError -> {
-                        ErrorView(
-                            text = baseError.message,
-                            buttonText = stringResource(UiR.string.try_again),
-                            onButtonClick = onRefresh
-                        )
-                    }
-                }
+                VkErrorView(
+                    baseError = baseError,
+                    onButtonClick = onErrorViewButtonClicked
+                )
             }
 
             screenState.isLoading && screenState.conversations.isEmpty() -> FullScreenLoader()

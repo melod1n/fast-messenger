@@ -45,9 +45,9 @@ fun MessagesList(
     uiMessages: ImmutableList<UiItem>,
     isPaginating: Boolean,
     messageBarHeight: Dp,
-    onRequestScrollToCmId: (cmId: Int) -> Unit = {},
-    onMessageClicked: (Int) -> Unit = {},
-    onMessageLongClicked: (Int) -> Unit = {}
+    onRequestScrollToCmId: (cmId: Long) -> Unit = {},
+    onMessageClicked: (Long) -> Unit = {},
+    onMessageLongClicked: (Long) -> Unit = {}
 ) {
     val messages = remember(uiMessages) {
         uiMessages.toList()

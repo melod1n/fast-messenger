@@ -10,62 +10,62 @@ import kotlinx.coroutines.flow.Flow
 interface MessagesUseCase {
 
     fun getMessagesHistory(
-        conversationId: Int,
+        conversationId: Long,
         count: Int?,
         offset: Int?
     ): Flow<State<MessagesHistoryInfo>>
 
     fun getById(
-        messageIds: List<Int>,
+        messageIds: List<Long>,
         extended: Boolean?,
         fields: String?
     ): Flow<State<List<VkMessage>>>
 
     fun sendMessage(
-        peerId: Int,
-        randomId: Int,
+        peerId: Long,
+        randomId: Long,
         message: String?,
-        replyTo: Int?,
+        replyTo: Long?,
         attachments: List<VkAttachment>?
-    ): Flow<State<Int>>
+    ): Flow<State<Long>>
 
     fun markAsRead(
-        peerId: Int,
-        startMessageId: Int
+        peerId: Long,
+        startMessageId: Long
     ): Flow<State<Int>>
 
     fun getHistoryAttachments(
-        peerId: Int,
+        peerId: Long,
         count: Int?,
         offset: Int?,
         attachmentTypes: List<String>,
-        conversationMessageId: Int
+        conversationMessageId: Long
     ): Flow<State<List<VkAttachmentHistoryMessage>>>
 
     fun createChat(
-        userIds: List<Int>?,
+        userIds: List<Long>?,
         title: String?
-    ): Flow<State<Int>>
+    ): Flow<State<Long>>
 
     fun pin(
-        peerId: Int,
-        messageId: Int?,
-        conversationMessageId: Int?
+        peerId: Long,
+        messageId: Long?,
+        conversationMessageId: Long?
     ): Flow<State<VkMessage>>
 
     fun unpin(
-        peerId: Int
+        peerId: Long
     ): Flow<State<Int>>
 
     fun markAsImportant(
-        peerId: Int,
-        messageIds: List<Int>,
+        peerId: Long,
+        messageIds: List<Long>,
         important: Boolean
-    ): Flow<State<List<Int>>>
+    ): Flow<State<List<Long>>>
 
     fun delete(
-        peerId: Int,
-        messageIds: List<Int>,
+        peerId: Long,
+        messageIds: List<Long>,
         spam: Boolean = false,
         deleteForAll: Boolean = false
     ): Flow<State<List<Any>>>

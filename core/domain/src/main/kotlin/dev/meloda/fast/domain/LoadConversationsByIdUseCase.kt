@@ -11,7 +11,7 @@ class LoadConversationsByIdUseCase(
     private val conversationsRepository: ConversationsRepository
 ) {
 
-    operator fun invoke(peerIds: List<Int>): Flow<State<List<VkConversation>>> = flow {
+    operator fun invoke(peerIds: List<Long>): Flow<State<List<VkConversation>>> = flow {
         emit(State.Loading)
 
         val newState = conversationsRepository

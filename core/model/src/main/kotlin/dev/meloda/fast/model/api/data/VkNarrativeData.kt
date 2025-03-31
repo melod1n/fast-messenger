@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkNarrativeData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "title") val title: String?
 ) : VkAttachmentData {
 

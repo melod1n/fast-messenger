@@ -9,8 +9,8 @@ import dev.meloda.fast.ui.util.ImmutableList
 
 @Immutable
 data class UiConversation(
-    val id: Int,
-    val lastMessageId: Int?,
+    val id: Long,
+    val lastMessageId: Long?,
     val avatar: UiImage?,
     val title: String,
     val unreadCount: String?,

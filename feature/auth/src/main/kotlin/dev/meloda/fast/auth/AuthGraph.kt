@@ -59,23 +59,23 @@ fun NavGraphBuilder.authNavGraph(
 
         validationScreen(
             onBack = {
-                navController.navigateUp()
                 navController.setValidationResult(null)
+                navController.navigateUp()
             },
             onResult = { code ->
-                navController.popBackStack()
                 navController.setValidationResult(code)
+                navController.popBackStack()
             }
         )
 
         captchaScreen(
             onBack = {
-                navController.navigateUp()
                 navController.setCaptchaResult(null)
+                navController.navigateUp()
             },
             onResult = { code ->
-                navController.popBackStack()
                 navController.setCaptchaResult(code)
+                navController.popBackStack()
             }
         )
 

@@ -16,11 +16,11 @@ abstract class ConversationDao : EntityDao<VkConversationEntity> {
     abstract suspend fun getAllByIds(ids: List<Int>): List<VkConversationEntity>
 
     @Query("SELECT * FROM conversations WHERE id IS (:id)")
-    abstract suspend fun getById(id: Int): VkConversationEntity?
+    abstract suspend fun getById(id: Long): VkConversationEntity?
 
     @Transaction
     @Query("SELECT * FROM conversations WHERE id IS (:id)")
-    abstract suspend fun getByIdWithMessage(id: Int): ConversationWithMessage?
+    abstract suspend fun getByIdWithMessage(id: Long): ConversationWithMessage?
 
     @Query("DELETE FROM conversations WHERE rowid IN (:ids)")
     abstract suspend fun deleteByIds(ids: List<Int>): Int

@@ -75,9 +75,22 @@ fun <T> MutableStateFlow<T>.setValue(function: (T) -> T) {
     update { newValue }
 }
 
+fun <T> MutableStateFlow<T>.updateValue(block: T.() -> T) {
+    val newValue = block(value)
+    update { newValue }
+}
+
 fun Any.asInt(): Int {
     return when (this) {
         is Number -> this.toInt()
+
+        else -> throw IllegalArgumentException("Object is not numeric")
+    }
+}
+
+fun Any.asLong(): Long {
+    return when(this) {
+        is Number -> this.toLong()
 
         else -> throw IllegalArgumentException("Object is not numeric")
     }

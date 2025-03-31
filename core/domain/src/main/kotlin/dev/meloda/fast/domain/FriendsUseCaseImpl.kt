@@ -36,7 +36,7 @@ class FriendsUseCaseImpl(private val repository: FriendsRepository) :
 
     override fun getOnlineFriends(
         count: Int?, offset: Int?
-    ): Flow<State<List<Int>>> = flow {
+    ): Flow<State<List<Long>>> = flow {
         emit(State.Loading)
 
         val newState = repository.getOnlineFriends(count, offset).mapToState()

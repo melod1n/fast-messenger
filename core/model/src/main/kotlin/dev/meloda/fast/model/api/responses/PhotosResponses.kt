@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 
 data class PhotosGetMessagesUploadServerResponse(
     @Json(name = "album_id")
-    val albumId: Int,
+    val albumid: Long,
     @Json(name = "upload_url")
     val uploadUrl: String
 )

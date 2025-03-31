@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "groups")
 data class VkGroupEntity(
-    @PrimaryKey val id: Int,
+    @PrimaryKey val id: Long,
     val name: String,
     val screenName: String,
     val photo50: String?,

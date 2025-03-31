@@ -33,13 +33,13 @@ interface CreateChatViewModel {
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
 
-    val isChatCreated: StateFlow<Int?>
+    val isChatCreated: StateFlow<Long?>
 
     fun onPaginationConditionsMet()
     fun onRefresh()
     fun onErrorConsumed()
 
-    fun toggleFriendSelection(userId: Int)
+    fun toggleFriendSelection(userId: Long)
 
     fun onTitleTextInputChanged(newTitle: String)
 
@@ -62,7 +62,7 @@ class CreateChatViewModelImpl(
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
 
-    override val isChatCreated = MutableStateFlow<Int?>(null)
+    override val isChatCreated = MutableStateFlow<Long?>(null)
 
     private val useContactNames: Boolean = userSettings.useContactNames.value
 
@@ -84,7 +84,7 @@ class CreateChatViewModelImpl(
         baseError.setValue { null }
     }
 
-    override fun toggleFriendSelection(userId: Int) {
+    override fun toggleFriendSelection(userId: Long) {
         val newSelectionList = screenState.value.selectedFriendsIds.toMutableList()
 
         if (newSelectionList.contains(userId)) {

@@ -3,8 +3,8 @@ package dev.meloda.fast.model.api.domain
 import dev.meloda.fast.model.api.data.AttachmentType
 
 data class VkAudioMessageDomain(
-    val id: Int,
-    val ownerId: Int,
+    val id: Long,
+    val ownerId: Long,
     val duration: Int,
     val waveform: List<Int>,
     val linkOgg: String,

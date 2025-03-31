@@ -5,18 +5,18 @@ import dev.meloda.fast.model.database.VkMessageEntity
 
 @Immutable
 data class VkMessage(
-    val id: Int,
-    val conversationMessageId: Int,
+    val id: Long,
+    val conversationMessageId: Long,
     val text: String?,
     val isOut: Boolean,
-    val peerId: Int,
-    val fromId: Int,
+    val peerId: Long,
+    val fromId: Long,
     val date: Int,
-    val randomId: Int,
+    val randomId: Long,
     val action: Action?,
-    val actionMemberId: Int?,
+    val actionMemberId: Long?,
     val actionText: String?,
-    val actionConversationMessageId: Int?,
+    val actionConversationMessageId: Long?,
     val actionMessage: String?,
 
     val updateTime: Int?,

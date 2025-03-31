@@ -3,6 +3,7 @@ package dev.meloda.fast.domain
 import android.util.Log
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.asInt
+import dev.meloda.fast.common.extensions.asLong
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.toList
 import dev.meloda.fast.data.UserConfig
@@ -92,8 +93,8 @@ class LongPollUpdatesParser(
             else -> return
         }
 
-        val peerId = event[1].asInt()
-        val userIds = event[2].toList(Any::asInt).filter { it != UserConfig.userId }
+        val peerId = event[1].asLong()
+        val userIds = event[2].toList(Any::asLong).filter { it != UserConfig.userId }
         val totalCount = event[3].asInt()
         val timestamp = event[4].asInt()
 
@@ -148,9 +149,9 @@ class LongPollUpdatesParser(
     private fun parseMessageSetFlags(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
-        val messageId = event[1].asInt()
+        val messageId = event[1].asLong()
         val flags = event[2].asInt()
-        val peerId = event[3].asInt()
+        val peerId = event[3].asLong()
 
         val eventsToSend = mutableListOf<LongPollParsedEvent>()
 
@@ -244,9 +245,9 @@ class LongPollUpdatesParser(
     private fun parseMessageClearFlags(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
-        val messageId = event[1].asInt()
+        val messageId = event[1].asLong()
         val flags = event[2].asInt()
-        val peerId = event[3].asInt()
+        val peerId = event[3].asLong()
 
         val eventsToSend = mutableListOf<LongPollParsedEvent>()
 
@@ -325,7 +326,7 @@ class LongPollUpdatesParser(
 
     private fun parseMessageNew(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val messageId = event[1].asInt()
+        val messageId = event[1].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
             loadMessage(messageId)?.let { message ->
@@ -341,7 +342,7 @@ class LongPollUpdatesParser(
 
     private fun parseMessageEdit(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val messageId = event[1].asInt()
+        val messageId = event[1].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
             loadMessage(messageId)?.let { message ->
@@ -357,8 +358,8 @@ class LongPollUpdatesParser(
 
     private fun parseMessageReadIncoming(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val peerId = event[1].asInt()
-        val messageId = event[2].asInt()
+        val peerId = event[1].asLong()
+        val messageId = event[2].asLong()
         val unreadCount = event[3].asInt()
 
         listenersMap[LongPollEvent.INCOMING_MESSAGE_READ]?.let { listeners ->
@@ -377,8 +378,8 @@ class LongPollUpdatesParser(
 
     private fun parseMessageReadOutgoing(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
-        val peerId = event[1].asInt()
-        val messageId = event[2].asInt()
+        val peerId = event[1].asLong()
+        val messageId = event[2].asLong()
         val unreadCount = event[3].asInt()
 
         listenersMap[LongPollEvent.OUTGOING_MESSAGE_READ]?.let { listeners ->
@@ -406,8 +407,8 @@ class LongPollUpdatesParser(
     private fun parseMessagesDeleted(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
-        val peerId = event[1].asInt()
-        val messageId = event[2].asInt()
+        val peerId = event[1].asLong()
+        val messageId = event[2].asLong()
 
         listenersMap[LongPollEvent.CHAT_CLEARED]?.let { listeners ->
             listeners.forEach { vkEventCallback ->
@@ -425,7 +426,7 @@ class LongPollUpdatesParser(
     private fun parseChatMajorChanged(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
-        val peerId = event[1].asInt()
+        val peerId = event[1].asLong()
         val majorId = event[2].asInt()
 
         listenersMap[LongPollEvent.CHAT_MAJOR_CHANGED]?.let { listeners ->
@@ -444,7 +445,7 @@ class LongPollUpdatesParser(
     private fun parseChatMinorChanged(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
-        val peerId = event[1].asInt()
+        val peerId = event[1].asLong()
         val minorId = event[2].asInt()
 
         listenersMap[LongPollEvent.CHAT_MINOR_CHANGED]?.let { listeners ->
@@ -460,7 +461,7 @@ class LongPollUpdatesParser(
         }
     }
 
-    private suspend fun loadMessage(messageId: Int): VkMessage? = suspendCoroutine { continuation ->
+    private suspend fun loadMessage(messageId: Long): VkMessage? = suspendCoroutine { continuation ->
         coroutineScope.launch(Dispatchers.IO) {
             messagesUseCase.getById(
                 messageIds = listOf(messageId),

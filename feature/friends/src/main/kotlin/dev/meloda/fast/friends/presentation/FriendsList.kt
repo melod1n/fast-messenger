@@ -37,7 +37,7 @@ fun FriendsList(
     maxLines: Int,
     padding: PaddingValues,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit,
+    onMessageClicked: (userid: Long) -> Unit,
     setCanScrollBackward: (Boolean) -> Unit
 ) {
     LaunchedEffect(listState) {

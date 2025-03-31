@@ -22,7 +22,7 @@ interface FriendsUseCase {
     fun getOnlineFriends(
         count: Int?,
         offset: Int?
-    ): Flow<State<List<Int>>>
+    ): Flow<State<List<Long>>>
 
     suspend fun storeUsers(users: List<VkUser>)
 }

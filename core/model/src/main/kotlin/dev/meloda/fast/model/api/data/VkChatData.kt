@@ -8,9 +8,9 @@ import com.squareup.moshi.JsonClass
 data class VkChatData(
     @Json(name = "type") val type: String,
     @Json(name = "val title") val title: String,
-    @Json(name = "admin_id") val adminId: Int,
+    @Json(name = "admin_id") val adminId: Long,
     @Json(name = "members_count") val membersCount: Int,
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "photo_50") val photo50: String,
     @Json(name = "photo_100") val photo100: String,
     @Json(name = "photo_200") val photo200: String,

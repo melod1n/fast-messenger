@@ -3,7 +3,7 @@ package dev.meloda.fast.model.api.domain
 import dev.meloda.fast.model.database.VkGroupEntity
 
 data class VkGroupDomain(
-    val id: Int,
+    val id: Long,
     val name: String,
     val screenName: String,
     val photo50: String?,

@@ -15,7 +15,7 @@ class MessagesUseCaseImpl(
 ) : MessagesUseCase {
 
     override fun getMessagesHistory(
-        conversationId: Int,
+        conversationId: Long,
         count: Int?,
         offset: Int?
     ): Flow<State<MessagesHistoryInfo>> = flow {
@@ -31,7 +31,7 @@ class MessagesUseCaseImpl(
     }
 
     override fun getById(
-        messageIds: List<Int>,
+        messageIds: List<Long>,
         extended: Boolean?,
         fields: String?
     ): Flow<State<List<VkMessage>>> = flow {
@@ -47,12 +47,12 @@ class MessagesUseCaseImpl(
     }
 
     override fun sendMessage(
-        peerId: Int,
-        randomId: Int,
+        peerId: Long,
+        randomId: Long,
         message: String?,
-        replyTo: Int?,
+        replyTo: Long?,
         attachments: List<VkAttachment>?
-    ): Flow<State<Int>> = flow {
+    ): Flow<State<Long>> = flow {
         emit(State.Loading)
 
         val newState = repository.send(
@@ -67,8 +67,8 @@ class MessagesUseCaseImpl(
     }
 
     override fun markAsRead(
-        peerId: Int,
-        startMessageId: Int
+        peerId: Long,
+        startMessageId: Long
     ): Flow<State<Int>> = flow {
         emit(State.Loading)
 
@@ -81,11 +81,11 @@ class MessagesUseCaseImpl(
     }
 
     override fun getHistoryAttachments(
-        peerId: Int,
+        peerId: Long,
         count: Int?,
         offset: Int?,
         attachmentTypes: List<String>,
-        conversationMessageId: Int
+        conversationMessageId: Long
     ): Flow<State<List<VkAttachmentHistoryMessage>>> = flow {
         emit(State.Loading)
 
@@ -100,16 +100,16 @@ class MessagesUseCaseImpl(
         emit(newState)
     }
 
-    override fun createChat(userIds: List<Int>?, title: String?): Flow<State<Int>> = flow {
+    override fun createChat(userIds: List<Long>?, title: String?): Flow<State<Long>> = flow {
         emit(State.Loading)
         val newState = repository.createChat(userIds, title).mapToState()
         emit(newState)
     }
 
     override fun pin(
-        peerId: Int,
-        messageId: Int?,
-        conversationMessageId: Int?
+        peerId: Long,
+        messageId: Long?,
+        conversationMessageId: Long?
     ): Flow<State<VkMessage>> = flow {
         emit(State.Loading)
 
@@ -122,17 +122,17 @@ class MessagesUseCaseImpl(
         emit(newState)
     }
 
-    override fun unpin(peerId: Int): Flow<State<Int>> = flow {
+    override fun unpin(peerId: Long): Flow<State<Int>> = flow {
         emit(State.Loading)
         val newState = repository.unpin(peerId = peerId).mapToState()
         emit(newState)
     }
 
     override fun markAsImportant(
-        peerId: Int,
-        messageIds: List<Int>,
+        peerId: Long,
+        messageIds: List<Long>,
         important: Boolean
-    ): Flow<State<List<Int>>> = flow {
+    ): Flow<State<List<Long>>> = flow {
         emit(State.Loading)
 
         val newState = repository.markAsImportant(
@@ -146,8 +146,8 @@ class MessagesUseCaseImpl(
     }
 
     override fun delete(
-        peerId: Int,
-        messageIds: List<Int>,
+        peerId: Long,
+        messageIds: List<Long>,
         spam: Boolean,
         deleteForAll: Boolean
     ): Flow<State<List<Any>>> = flow {

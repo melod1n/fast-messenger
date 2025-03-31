@@ -6,16 +6,16 @@ import dev.meloda.fast.model.api.domain.VkMessage
 
 @JsonClass(generateAdapter = true)
 data class VkMessageData(
-    @Json(name = "id") val id: Int?,
-    @Json(name = "peer_id") val peerId: Int?,
+    @Json(name = "id") val id: Long?,
+    @Json(name = "peer_id") val peerId: Long?,
     @Json(name = "date") val date: Int,
-    @Json(name = "from_id") val fromId: Int,
+    @Json(name = "from_id") val fromId: Long,
     @Json(name = "out") val out: Int?,
     @Json(name = "text") val text: String,
-    @Json(name = "conversation_message_id") val conversationMessageId: Int,
+    @Json(name = "conversation_message_id") val conversationMessageId: Long,
     @Json(name = "fwd_messages") val fwdMessages: List<VkMessageData>? = emptyList(),
     @Json(name = "important") val important: Boolean = false,
-    @Json(name = "random_id") val randomId: Int = 0,
+    @Json(name = "random_id") val randomId: Long = 0,
     @Json(name = "attachments") val attachments: List<VkAttachmentItemData> = emptyList(),
     @Json(name = "is_hidden") val isHidden: Boolean = false,
     @Json(name = "payload") val payload: String?,
@@ -52,9 +52,9 @@ data class VkMessageData(
     @JsonClass(generateAdapter = true)
     data class Action(
         @Json(name = "type") val type: String,
-        @Json(name = "member_id") val memberId: Int?,
+        @Json(name = "member_id") val memberId: Long?,
         @Json(name = "text") val text: String?,
-        @Json(name = "conversation_message_id") val conversationMessageId: Int?,
+        @Json(name = "conversation_message_id") val conversationMessageId: Long?,
         @Json(name = "message") val message: String?
     )
 }

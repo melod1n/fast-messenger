@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import dev.meloda.fast.ui.R as UiR
 
-private fun isAccount(fromId: Int) = fromId == UserConfig.userId
+private fun isAccount(fromId: Long) = fromId == UserConfig.userId
 
 fun VkMessage.extractAvatar() = when {
     isUser() -> {

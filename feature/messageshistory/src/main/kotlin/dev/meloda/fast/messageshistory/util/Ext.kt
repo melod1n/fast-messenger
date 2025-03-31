@@ -6,14 +6,14 @@ fun List<UiItem>.firstMessage(): UiItem.Message = filterIsInstance<UiItem.Messag
 
 fun List<UiItem>.firstMessageOrNull(): UiItem.Message? = filterIsInstance<UiItem.Message>().firstOrNull()
 
-fun List<UiItem>.indexOfMessageById(messageId: Int): Int =
+fun List<UiItem>.indexOfMessageById(messageId: Long): Int =
     indexOfFirst { it.id == messageId }
 
-fun List<UiItem>.findMessageById(messageId: Int): UiItem.Message? =
+fun List<UiItem>.findMessageById(messageId: Long): UiItem.Message? =
     firstOrNull { it.id == messageId } as UiItem.Message?
 
-fun List<UiItem>.indexOfMessageByCmId(cmId: Int): Int =
+fun List<UiItem>.indexOfMessageByCmId(cmId: Long): Int =
     indexOfFirst { it.cmId == cmId }
 
-fun List<UiItem>.findMessageByCmId(cmId: Int): UiItem.Message =
+fun List<UiItem>.findMessageByCmId(cmId: Long): UiItem.Message =
     first { it.cmId == cmId } as UiItem.Message

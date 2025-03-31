@@ -12,11 +12,11 @@ interface ConversationsRepository {
     ): ApiResult<List<VkConversation>, RestApiErrorDomain>
 
     suspend fun getConversationsById(
-        peerIds: List<Int>
+        peerIds: List<Long>
     ): ApiResult<List<VkConversation>, RestApiErrorDomain>
 
     suspend fun storeConversations(conversations: List<VkConversation>)
-    suspend fun delete(peerId: Int): ApiResult<Int, RestApiErrorDomain>
-    suspend fun pin(peerId: Int): ApiResult<Int, RestApiErrorDomain>
-    suspend fun unpin(peerId: Int): ApiResult<Int, RestApiErrorDomain>
+    suspend fun delete(peerId: Long): ApiResult<Long, RestApiErrorDomain>
+    suspend fun pin(peerId: Long): ApiResult<Int, RestApiErrorDomain>
+    suspend fun unpin(peerId: Long): ApiResult<Int, RestApiErrorDomain>
 }

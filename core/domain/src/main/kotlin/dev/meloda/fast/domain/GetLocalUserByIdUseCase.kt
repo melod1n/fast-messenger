@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 
 class GetLocalUserByIdUseCase(private val repository: UsersRepository) {
 
-    operator fun invoke(userId: Int): Flow<State<VkUser?>> = flow {
+    operator fun invoke(userId: Long): Flow<State<VkUser?>> = flow {
         emit(State.Loading)
 
         val newState = kotlin.runCatching {
@@ -21,7 +21,7 @@ class GetLocalUserByIdUseCase(private val repository: UsersRepository) {
         emit(newState)
     }
 
-    suspend fun proceed(userId: Int): VkUser? {
+    suspend fun proceed(userId: Long): VkUser? {
         return repository.getLocalUsers(userIds = listOf(userId)).singleOrNull()
     }
 }

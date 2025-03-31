@@ -9,64 +9,64 @@ import dev.meloda.fast.network.RestApiErrorDomain
 interface MessagesRepository {
 
     suspend fun getHistory(
-        conversationId: Int,
+        conversationId: Long,
         offset: Int?,
         count: Int?
     ): ApiResult<MessagesHistoryInfo, RestApiErrorDomain>
 
     suspend fun getById(
-        messagesIds: List<Int>,
+        messagesIds: List<Long>,
         extended: Boolean?,
         fields: String?
     ): ApiResult<List<VkMessage>, RestApiErrorDomain>
 
     suspend fun send(
-        peerId: Int,
-        randomId: Int,
+        peerId: Long,
+        randomId: Long,
         message: String?,
-        replyTo: Int?,
+        replyTo: Long?,
         attachments: List<VkAttachment>?
-    ): ApiResult<Int, RestApiErrorDomain>
+    ): ApiResult<Long, RestApiErrorDomain>
 
     suspend fun markAsRead(
-        peerId: Int,
-        startMessageId: Int?
+        peerId: Long,
+        startMessageId: Long?
     ): ApiResult<Int, RestApiErrorDomain>
 
     suspend fun getHistoryAttachments(
-        peerId: Int,
+        peerId: Long,
         count: Int?,
         offset: Int?,
         attachmentTypes: List<String>,
-        conversationMessageId: Int
+        conversationMessageId: Long
     ): ApiResult<List<VkAttachmentHistoryMessage>, RestApiErrorDomain>
 
     suspend fun createChat(
-        userIds: List<Int>?,
+        userIds: List<Long>?,
         title: String?
-    ): ApiResult<Int, RestApiErrorDomain>
+    ): ApiResult<Long, RestApiErrorDomain>
 
     suspend fun pin(
-        peerId: Int,
-        messageId: Int?,
-        conversationMessageId: Int?
+        peerId: Long,
+        messageId: Long?,
+        conversationMessageId: Long?
     ): ApiResult<VkMessage, RestApiErrorDomain>
 
     suspend fun unpin(
-        peerId: Int
+        peerId: Long
     ): ApiResult<Int, RestApiErrorDomain>
 
     suspend fun markAsImportant(
-        peerId: Int,
-        messageIds: List<Int>?,
-        conversationMessageIds: List<Int>?,
+        peerId: Long,
+        messageIds: List<Long>?,
+        conversationMessageIds: List<Long>?,
         important: Boolean
-    ): ApiResult<List<Int>, RestApiErrorDomain>
+    ): ApiResult<List<Long>, RestApiErrorDomain>
 
     suspend fun delete(
-        peerId: Int,
-        messageIds: List<Int>?,
-        conversationMessageIds: List<Int>?,
+        peerId: Long,
+        messageIds: List<Long>?,
+        conversationMessageIds: List<Long>?,
         spam: Boolean,
         deleteForAll: Boolean
     ): ApiResult<List<Any>, RestApiErrorDomain>

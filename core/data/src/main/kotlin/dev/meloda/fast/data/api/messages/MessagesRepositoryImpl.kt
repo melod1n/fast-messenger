@@ -38,7 +38,7 @@ class MessagesRepositoryImpl(
 ) : MessagesRepository {
 
     override suspend fun getHistory(
-        conversationId: Int,
+        conversationId: Long,
         offset: Int?,
         count: Int?
     ): ApiResult<MessagesHistoryInfo, RestApiErrorDomain> = withContext(Dispatchers.IO) {
@@ -101,7 +101,7 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun getById(
-        messagesIds: List<Int>,
+        messagesIds: List<Long>,
         extended: Boolean?,
         fields: String?
     ): ApiResult<List<VkMessage>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
@@ -135,12 +135,12 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun send(
-        peerId: Int,
-        randomId: Int,
+        peerId: Long,
+        randomId: Long,
         message: String?,
-        replyTo: Int?,
+        replyTo: Long?,
         attachments: List<VkAttachment>?
-    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<Long, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesSendRequest(
             peerId = peerId,
             randomId = randomId,
@@ -153,8 +153,8 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun markAsRead(
-        peerId: Int,
-        startMessageId: Int?
+        peerId: Long,
+        startMessageId: Long?
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesMarkAsReadRequest(
             peerId = peerId,
@@ -165,11 +165,11 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun getHistoryAttachments(
-        peerId: Int,
+        peerId: Long,
         count: Int?,
         offset: Int?,
         attachmentTypes: List<String>,
-        conversationMessageId: Int
+        conversationMessageId: Long
     ): ApiResult<List<VkAttachmentHistoryMessage>, RestApiErrorDomain> =
         withContext(Dispatchers.IO) {
             val requestModel = MessagesGetHistoryAttachmentsRequest(
@@ -204,9 +204,9 @@ class MessagesRepositoryImpl(
         }
 
     override suspend fun createChat(
-        userIds: List<Int>?,
+        userIds: List<Long>?,
         title: String?
-    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<Long, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesCreateChatRequest(
             userIds = userIds,
             title = title
@@ -221,9 +221,9 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun pin(
-        peerId: Int,
-        messageId: Int?,
-        conversationMessageId: Int?
+        peerId: Long,
+        messageId: Long?,
+        conversationMessageId: Long?
     ): ApiResult<VkMessage, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesPinMessageRequest(
             peerId = peerId,
@@ -240,18 +240,18 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun unpin(
-        peerId: Int
+        peerId: Long
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesUnpinMessageRequest(peerId = peerId)
         messagesService.unpin(requestModel.map).mapApiDefault()
     }
 
     override suspend fun markAsImportant(
-        peerId: Int,
-        messageIds: List<Int>?,
-        conversationMessageIds: List<Int>?,
+        peerId: Long,
+        messageIds: List<Long>?,
+        conversationMessageIds: List<Long>?,
         important: Boolean
-    ): ApiResult<List<Int>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<List<Long>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesMarkAsImportantRequest(
             messagesIds = messageIds.orEmpty(),
             important = important
@@ -260,9 +260,9 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun delete(
-        peerId: Int,
-        messageIds: List<Int>?,
-        conversationMessageIds: List<Int>?,
+        peerId: Long,
+        messageIds: List<Long>?,
+        conversationMessageIds: List<Long>?,
         spam: Boolean,
         deleteForAll: Boolean
     ): ApiResult<List<Any>, RestApiErrorDomain> = withContext(Dispatchers.IO) {

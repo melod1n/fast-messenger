@@ -21,9 +21,9 @@ object Main
 fun NavGraphBuilder.mainScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
-    onConversationClicked: (conversationId: Int) -> Unit,
+    onConversationClicked: (conversationid: Long) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit,
+    onMessageClicked: (userid: Long) -> Unit,
     onCreateChatClicked: () -> Unit
 ) {
     val navigationItems = ImmutableList.of(

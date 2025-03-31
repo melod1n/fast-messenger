@@ -80,7 +80,7 @@ class ConversationsRepositoryImpl(
     }
 
     override suspend fun getConversationsById(
-        peerIds: List<Int>
+        peerIds: List<Long>
     ): ApiResult<List<VkConversation>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestParams = mapOf(
             "peer_ids" to peerIds.joinToString(separator = ","),
@@ -122,7 +122,7 @@ class ConversationsRepositoryImpl(
         conversationDao.insertAll(conversations.map(VkConversation::asEntity))
     }
 
-    override suspend fun delete(peerId: Int): ApiResult<Int, RestApiErrorDomain> =
+    override suspend fun delete(peerId: Long): ApiResult<Long, RestApiErrorDomain> =
         withContext(Dispatchers.IO) {
             val requestModel = ConversationsDeleteRequest(peerId = peerId)
 
@@ -133,14 +133,14 @@ class ConversationsRepositoryImpl(
         }
 
     override suspend fun pin(
-        peerId: Int
+        peerId: Long
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = ConversationsPinRequest(peerId = peerId)
         conversationsService.pin(requestModel.map).mapApiDefault()
     }
 
     override suspend fun unpin(
-        peerId: Int
+        peerId: Long
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = ConversationsUnpinRequest(peerId = peerId)
         conversationsService.unpin(requestModel.map).mapApiDefault()

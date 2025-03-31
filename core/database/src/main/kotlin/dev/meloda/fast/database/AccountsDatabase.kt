@@ -7,7 +7,7 @@ import dev.meloda.fast.model.database.AccountEntity
 
 @Database(
     entities = [AccountEntity::class],
-    version = 2
+    version = 3
 )
 abstract class AccountsDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao

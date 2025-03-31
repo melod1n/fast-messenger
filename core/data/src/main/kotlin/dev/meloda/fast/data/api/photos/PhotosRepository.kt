@@ -8,7 +8,7 @@ class PhotosRepository(
     private val photosService: PhotosService
 ) {
 
-    suspend fun getMessagesUploadServer(peerId: Int) =
+    suspend fun getMessagesUploadServer(peerId: Long) =
         photosService.getUploadServer(mapOf("peer_id" to peerId.toString()))
 
     suspend fun uploadPhoto(url: String, photo: MultipartBody.Part) =

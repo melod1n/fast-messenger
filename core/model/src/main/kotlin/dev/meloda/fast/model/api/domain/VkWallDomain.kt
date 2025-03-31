@@ -4,9 +4,9 @@ import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.data.VkAttachmentItemData
 
 data class VkWallDomain(
-    val id: Int,
-    val fromId: Int,
-    val toId: Int,
+    val id: Long,
+    val fromId: Long,
+    val toId: Long,
     val date: Int,
     val text: String,
     val attachments: List<VkAttachmentItemData>?,

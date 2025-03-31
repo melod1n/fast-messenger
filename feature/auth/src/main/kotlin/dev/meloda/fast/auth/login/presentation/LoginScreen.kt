@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
@@ -35,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -56,7 +54,6 @@ import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.LoginViewModelImpl
 import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginDialog
-import dev.meloda.fast.auth.login.model.LoginError
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
@@ -90,41 +87,36 @@ fun LoginRoute(
         onBack = viewModel::onBackPressed
     )
 
-    LaunchedEffect(
-        isNeedToOpenMain,
-        userBannedArguments,
-        captchaArguments,
-        validationArguments,
-        validationCode,
-        captchaCode
-    ) {
+    LaunchedEffect(isNeedToOpenMain) {
         if (isNeedToOpenMain) {
             viewModel.onNavigatedToMain()
             onNavigateToMain()
         }
 
+    }
+    LaunchedEffect(userBannedArguments) {
         userBannedArguments?.let { arguments ->
             viewModel.onNavigatedToUserBanned()
             onNavigateToUserBanned(arguments)
         }
-
+    }
+    LaunchedEffect(captchaArguments) {
         captchaArguments?.let { arguments ->
             viewModel.onNavigatedToCaptcha()
             onNavigateToCaptcha(arguments)
         }
-
+    }
+    LaunchedEffect(validationArguments) {
         validationArguments?.let { arguments ->
             viewModel.onNavigatedToValidation()
             onNavigateToValidation(arguments)
         }
-
-        if (validationCode != null) {
-            viewModel.onValidationCodeReceived(validationCode)
-        }
-
-        if (captchaCode != null) {
-            viewModel.onCaptchaCodeReceived(captchaCode)
-        }
+    }
+    LaunchedEffect(validationCode) {
+        viewModel.onValidationCodeReceived(validationCode)
+    }
+    LaunchedEffect(captchaCode) {
+        viewModel.onCaptchaCodeReceived(captchaCode)
     }
 
     LoginScreen(
@@ -371,7 +363,8 @@ fun HandleDialogs(
                 onDismissRequest = { onDismissed(loginDialog) },
                 title = stringResource(UiR.string.title_error),
                 text = loginDialog.errorTextResId?.let { stringResource(it) }
-                    ?: loginDialog.errorText.orEmpty(),
+                    ?: loginDialog.errorText
+                    ?: stringResource(UiR.string.unknown_error_occurred),
                 confirmText = stringResource(id = UiR.string.ok)
             )
         }
@@ -380,71 +373,6 @@ fun HandleDialogs(
             SignInAlert(
                 onDismissRequest = { onDismissed(loginDialog) },
                 onConfirmClick = { onConfirmed(loginDialog, bundleOf("token" to it)) }
-            )
-        }
-    }
-}
-
-@Composable
-fun HandleError(
-    onDismiss: () -> Unit,
-    error: LoginError?,
-) {
-    when (error) {
-        null -> Unit
-
-        LoginError.Unknown -> {
-            MaterialDialog(
-                onDismissRequest = onDismiss,
-                title = "Error",
-                text = "Unknown error",
-                confirmText = stringResource(id = UiR.string.ok)
-            )
-        }
-
-        LoginError.WrongCredentials -> {
-            MaterialDialog(
-                onDismissRequest = onDismiss,
-                title = "Error",
-                text = "Wrong login or password.",
-                confirmText = stringResource(id = UiR.string.ok)
-            )
-        }
-
-        LoginError.TooManyTries -> {
-            MaterialDialog(
-                onDismissRequest = onDismiss,
-                title = "Error",
-                text = "Too many tries. Try in another hour or later.",
-                confirmText = stringResource(id = UiR.string.ok)
-            )
-        }
-
-
-        LoginError.WrongValidationCode -> {
-            MaterialDialog(
-                onDismissRequest = onDismiss,
-                title = "Error",
-                text = "Wrong validation code.",
-                confirmText = stringResource(id = UiR.string.ok)
-            )
-        }
-
-        LoginError.WrongValidationCodeFormat -> {
-            MaterialDialog(
-                onDismissRequest = onDismiss,
-                title = "Error",
-                text = "Wrong validation code format.",
-                confirmText = stringResource(id = UiR.string.ok)
-            )
-        }
-
-        is LoginError.SimpleError -> {
-            MaterialDialog(
-                onDismissRequest = onDismiss,
-                title = "Error",
-                text = error.message,
-                confirmText = stringResource(id = UiR.string.ok)
             )
         }
     }

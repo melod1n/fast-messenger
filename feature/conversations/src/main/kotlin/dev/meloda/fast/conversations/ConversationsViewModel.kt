@@ -14,7 +14,7 @@ import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.util.asPresentation
 import dev.meloda.fast.conversations.util.extractAvatar
-import dev.meloda.fast.data.State
+import dev.meloda.fast.data.VkUtils
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConversationsUseCase
@@ -25,7 +25,6 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkConversation
-import dev.meloda.fast.network.VkErrorCode
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.ConversationsShowOptions
 import dev.meloda.fast.ui.model.api.UiConversation
@@ -46,6 +45,8 @@ interface ConversationsViewModel {
     val baseError: StateFlow<BaseError?>
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
+
+    fun onErrorButtonClicked()
 
     fun onPaginationConditionsMet()
 
@@ -85,6 +86,19 @@ class ConversationsViewModelImpl(
     override val canPaginate = MutableStateFlow(false)
 
     private val useContactNames: Boolean get() = userSettings.useContactNames.value
+
+    override fun onErrorButtonClicked() {
+        when (baseError.value) {
+            null -> Unit
+
+            is BaseError.ConnectionError,
+            is BaseError.InternalError,
+            is BaseError.SimpleError,
+            is BaseError.UnknownError -> onRefresh()
+
+            else -> Unit
+        }
+    }
 
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.conversations.size }
@@ -230,7 +244,7 @@ class ConversationsViewModelImpl(
         screenState.setValue { old -> old.copy(scrollOffset = offset) }
     }
 
-    private fun hideOptions(conversationId: Int) {
+    private fun hideOptions(conversationId: Long) {
         screenState.setValue { old ->
             old.copy(
                 conversations = old.conversations.map { item ->
@@ -253,7 +267,10 @@ class ConversationsViewModelImpl(
         conversationsUseCase.getConversations(count = LOAD_COUNT, offset = offset)
             .listenValue(viewModelScope) { state ->
                 state.processState(
-                    error = ::handleError,
+                    error = { error ->
+                        val newBaseError = VkUtils.parseError(error)
+                        baseError.update { newBaseError }
+                    },
                     success = { response ->
                         val itemsCountSufficient = response.size == LOAD_COUNT
                         canPaginate.setValue { itemsCountSufficient }
@@ -309,45 +326,7 @@ class ConversationsViewModelImpl(
             }
     }
 
-    private fun handleError(error: State.Error) {
-        when (error) {
-            is State.Error.ApiError -> {
-                when (error.errorCode) {
-                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                        baseError.setValue { BaseError.SessionExpired }
-                    }
-
-                    else -> {
-                        baseError.setValue {
-                            BaseError.SimpleError(message = error.errorMessage)
-                        }
-                    }
-                }
-            }
-
-            State.Error.ConnectionError -> {
-                baseError.setValue {
-                    BaseError.SimpleError(message = "Connection error")
-                }
-            }
-
-            State.Error.InternalError -> {
-                baseError.setValue {
-                    BaseError.SimpleError(message = "Internal error")
-                }
-            }
-
-            State.Error.UnknownError -> {
-                baseError.setValue {
-                    BaseError.SimpleError(message = "Unknown error")
-                }
-            }
-
-            else -> Unit
-        }
-    }
-
-    private fun deleteConversation(peerId: Int) {
+    private fun deleteConversation(peerId: Long) {
         conversationsUseCase.delete(peerId).listenValue(viewModelScope) { state ->
             state.processState(
                 error = {},
@@ -366,7 +345,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun pinConversation(peerId: Int, pin: Boolean) {
+    private fun pinConversation(peerId: Long, pin: Boolean) {
         conversationsUseCase.changePinState(peerId, pin)
             .listenValue(viewModelScope) { state ->
                 state.processState(
@@ -661,7 +640,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private val interactionsTimers = hashMapOf<Int, InteractionJob?>()
+    private val interactionsTimers = hashMapOf<Long, InteractionJob?>()
 
     private data class InteractionJob(
         val interactionType: InteractionType,
@@ -725,7 +704,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    private fun stopInteraction(peerId: Int, interactionJob: InteractionJob) {
+    private fun stopInteraction(peerId: Long, interactionJob: InteractionJob) {
         interactionsTimers[peerId] ?: return
 
         val newConversations = conversations.value.toMutableList()
@@ -754,7 +733,7 @@ class ConversationsViewModelImpl(
         interactionsTimers[peerId] = null
     }
 
-    private fun readConversation(peerId: Int, startMessageId: Int) {
+    private fun readConversation(peerId: Long, startMessageId: Long) {
         messagesUseCase.markAsRead(
             peerId = peerId,
             startMessageId = startMessageId

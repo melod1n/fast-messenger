@@ -77,7 +77,8 @@ class SettingsViewModelImpl(
                         userId = UserConfig.userId,
                         accessToken = "",
                         fastToken = UserConfig.fastToken,
-                        trustedHash = UserConfig.trustedHash
+                        trustedHash = UserConfig.trustedHash,
+                        exchangeToken = null
                     )
                 )
             )

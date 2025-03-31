@@ -22,7 +22,7 @@ interface FriendsRepository {
     suspend fun getOnlineFriends(
         count: Int?,
         offset: Int?
-    ): ApiResult<List<Int>, RestApiErrorDomain>
+    ): ApiResult<List<Long>, RestApiErrorDomain>
 
     suspend fun storeUsers(users: List<VkUser>)
 }
