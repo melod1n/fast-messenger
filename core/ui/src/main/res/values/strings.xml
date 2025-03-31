@@ -106,6 +106,7 @@
     <string name="message_attachments_article">Article</string>
     <string name="message_attachments_video_message">Video message</string>
     <string name="message_attachments_group_sticker">Group sticker</string>
+    <string name="message_attachments_sticker_pack_preview">Sticker pack preview</string>
 
     <string name="chat_interaction_uploading_file">Uploading file</string>
     <string name="chat_interaction_uploading_photo">Uploading photo</string>

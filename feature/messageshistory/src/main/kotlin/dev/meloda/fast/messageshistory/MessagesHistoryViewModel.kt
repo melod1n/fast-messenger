@@ -993,7 +993,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     companion object {
-        const val MESSAGES_LOAD_COUNT = 200
+        const val MESSAGES_LOAD_COUNT = 30
     }
 }
 

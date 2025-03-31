@@ -614,6 +614,7 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.ARTICLE -> null
         AttachmentType.VIDEO_MESSAGE -> null
         AttachmentType.GROUP_CHAT_STICKER -> UiR.drawable.ic_attachment_sticker
+        AttachmentType.STICKER_PACK_PREVIEW -> null
     }?.let(UiImage::Resource)
 }
 
@@ -759,6 +760,7 @@ private fun getAttachmentUiText(
         AttachmentType.ARTICLE -> UiR.string.message_attachments_article
         AttachmentType.VIDEO_MESSAGE -> UiR.string.message_attachments_video_message
         AttachmentType.GROUP_CHAT_STICKER -> UiR.string.message_attachments_group_sticker
+        AttachmentType.STICKER_PACK_PREVIEW -> UiR.string.message_attachments_sticker_pack_preview
     }.let(UiText::Resource)
 }
 

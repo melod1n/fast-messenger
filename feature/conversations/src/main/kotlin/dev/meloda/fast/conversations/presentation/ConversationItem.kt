@@ -58,6 +58,7 @@ import dev.meloda.fast.ui.R as UiR
 
 val BirthdayColor = Color(0xffb00b69)
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationItem(
     onItemClick: (Long) -> Unit,
