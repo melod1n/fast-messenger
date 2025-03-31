@@ -12,13 +12,11 @@ interface OAuthService {
 
     @DecodeErrorBody
     @GET(OAuthUrls.GET_SILENT_TOKEN)
-    //@Headers("User-Agent: Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.135 Mobile Safari/537.36")
     suspend fun auth(
         @QueryMap param: Map<String, String>
     ): ApiResult<AuthDirectResponse, AuthDirectErrorOnlyResponse>
 
     @DecodeErrorBody
-    //@Headers("User-Agent: Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.135 Mobile Safari/537.36")
     @GET(OAuthUrls.GET_SILENT_TOKEN)
     suspend fun getSilentToken(
         @QueryMap param: Map<String, String>

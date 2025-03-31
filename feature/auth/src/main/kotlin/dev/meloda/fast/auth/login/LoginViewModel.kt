@@ -48,6 +48,9 @@ interface LoginViewModel {
     val userBannedArguments: StateFlow<LoginUserBannedArguments?>
     val isNeedToOpenMain: StateFlow<Boolean>
 
+    val isNeedToClearCaptchaCode: StateFlow<Boolean>
+    val isNeedToClearValidationCode: StateFlow<Boolean>
+
     fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle)
     fun onDialogDismissed(dialog: LoginDialog)
 
@@ -66,7 +69,9 @@ interface LoginViewModel {
     fun onNavigatedToValidation()
 
     fun onValidationCodeReceived(code: String?)
+    fun onValidationCodeCleared()
     fun onCaptchaCodeReceived(code: String?)
+    fun onCaptchaCodeCleared()
 
     fun onLogoLongClicked()
 }
@@ -87,6 +92,9 @@ class LoginViewModelImpl(
     override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
     override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     override val isNeedToOpenMain = MutableStateFlow(false)
+
+    override val isNeedToClearCaptchaCode = MutableStateFlow(false)
+    override val isNeedToClearValidationCode = MutableStateFlow(false)
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
@@ -184,8 +192,16 @@ class LoginViewModelImpl(
         validationCode.update { code }
     }
 
+    override fun onValidationCodeCleared() {
+        isNeedToClearValidationCode.update { false }
+    }
+
     override fun onCaptchaCodeReceived(code: String?) {
         captchaCode.update { code }
+    }
+
+    override fun onCaptchaCodeCleared() {
+        isNeedToClearCaptchaCode.update { false }
     }
 
     override fun onLogoLongClicked() {
@@ -409,12 +425,16 @@ class LoginViewModelImpl(
                     }
 
                     OAuthErrorDomain.WrongValidationCode -> {
+                        isNeedToClearValidationCode.update { true }
+                        validationCode.update { null }
                         loginDialog.setValue {
                             LoginDialog.Error(errorText = "Wrong validation code.")
                         }
                     }
 
                     OAuthErrorDomain.WrongValidationCodeFormat -> {
+                        isNeedToClearValidationCode.update { true }
+                        validationCode.update { null }
                         loginDialog.setValue {
                             LoginDialog.Error(errorText = "Wrong validation code format.")
                         }

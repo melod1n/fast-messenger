@@ -29,21 +29,18 @@ interface AuthService {
 
     @FormUrlEncoded
     @POST(AuthUrls.GET_ANONYM_TOKEN)
-//    @Headers("User-Agent: VKDesktop/1.0.0-dev.0")
     suspend fun getAnonymToken(
         @FieldMap param: Map<String, String>
     ): ApiResult<ApiResponse<GetAnonymTokenResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(AuthUrls.EXCHANGE_SILENT_TOKEN)
-//    @Headers("User-Agent: VKDesktop/1.0.0-dev.0")
     suspend fun exchangeSilentToken(
         @FieldMap param: Map<String, String>
     ): ApiResult<ApiResponse<ExchangeSilentTokenResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(AuthUrls.GET_EXCHANGE_TOKEN)
-//    @Headers("User-Agent: VKDesktop/1.0.0-dev.0")
     suspend fun getExchangeToken(
         @FieldMap param: Map<String, String>
     ): ApiResult<ApiResponse<GetExchangeTokenResponse>, RestApiError>

@@ -1,5 +1,8 @@
 package dev.meloda.fast.auth.login.navigation
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -26,6 +29,23 @@ fun NavGraphBuilder.loginScreen(
     composable<Login> { backStackEntry ->
         val viewModel: LoginViewModel =
             backStackEntry.sharedViewModel<LoginViewModelImpl>(navController = navController)
+
+        val clearValidationCode by viewModel.isNeedToClearValidationCode.collectAsStateWithLifecycle()
+        val clearCaptchaCode by viewModel.isNeedToClearCaptchaCode.collectAsStateWithLifecycle()
+
+        LaunchedEffect(clearValidationCode) {
+            if (clearValidationCode) {
+                backStackEntry.savedStateHandle["validation_code"] = null
+                viewModel.onValidationCodeCleared()
+            }
+        }
+
+        LaunchedEffect(clearCaptchaCode) {
+            if (clearCaptchaCode) {
+                backStackEntry.savedStateHandle["captcha_code"] = null
+                viewModel.onCaptchaCodeCleared()
+            }
+        }
 
         val validationCode = backStackEntry.getValidationResult()
         val captchaCode = backStackEntry.getCaptchaResult()
