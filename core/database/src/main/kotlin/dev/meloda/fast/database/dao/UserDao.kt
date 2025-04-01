@@ -5,7 +5,7 @@ import androidx.room.Query
 import dev.meloda.fast.model.database.VkUserEntity
 
 @Dao
-abstract class UsersDao : EntityDao<VkUserEntity> {
+abstract class UserDao : EntityDao<VkUserEntity> {
 
     @Query("SELECT * FROM users")
     abstract suspend fun getAll(): List<VkUserEntity>

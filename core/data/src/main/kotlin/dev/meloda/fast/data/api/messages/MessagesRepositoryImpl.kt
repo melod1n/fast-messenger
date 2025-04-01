@@ -5,7 +5,10 @@ import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkGroupsMap
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.data.VkUsersMap
+import dev.meloda.fast.database.dao.ConversationDao
+import dev.meloda.fast.database.dao.GroupDao
 import dev.meloda.fast.database.dao.MessageDao
+import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.model.api.data.VkAttachmentHistoryMessageData
 import dev.meloda.fast.model.api.data.VkContactData
 import dev.meloda.fast.model.api.data.VkGroupData
@@ -13,7 +16,10 @@ import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.data.asDomain
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkGroupDomain
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.model.api.domain.asEntity
 import dev.meloda.fast.model.api.requests.MessagesCreateChatRequest
 import dev.meloda.fast.model.api.requests.MessagesDeleteRequest
@@ -30,11 +36,15 @@ import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
 import dev.meloda.fast.network.service.messages.MessagesService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MessagesRepositoryImpl(
     private val messagesService: MessagesService,
     private val messageDao: MessageDao,
+    private val userDao: UserDao,
+    private val groupDao: GroupDao,
+    private val conversationDao: ConversationDao
 ) : MessagesRepository {
 
     override suspend fun getHistory(
@@ -89,6 +99,13 @@ class MessagesRepositoryImpl(
                         }
                 }
 
+                launch(Dispatchers.IO) {
+                    conversationDao.insertAll(conversations.map(VkConversation::asEntity))
+                    messageDao.insertAll(messages.map(VkMessage::asEntity))
+                    userDao.insertAll(profilesList.map(VkUser::asEntity))
+                    groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
+                }
+
                 MessagesHistoryInfo(
                     messages = messages,
                     conversations = conversations
@@ -122,12 +139,15 @@ class MessagesRepositoryImpl(
                 val response = apiResponse.requireResponse()
 
                 val messages = response.items
-                val usersMap =
-                    VkUsersMap.forUsers(response.profiles.orEmpty().map(VkUserData::mapToDomain))
-                val groupsMap =
-                    VkGroupsMap.forGroups(response.groups.orEmpty().map(VkGroupData::mapToDomain))
 
-                messages.map { message ->
+                val profilesList = response.profiles.orEmpty().map(VkUserData::mapToDomain)
+                val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
+                val contactsList = response.contacts.orEmpty().map(VkContactData::mapToDomain)
+
+                val usersMap = VkUsersMap.forUsers(profilesList)
+                val groupsMap = VkGroupsMap.forGroups(groupsList)
+
+                val domainMessages = messages.map { message ->
                     message.asDomain().copy(
                         user = usersMap.messageUser(message),
                         group = groupsMap.messageGroup(message),
@@ -135,6 +155,18 @@ class MessagesRepositoryImpl(
                         actionGroup = groupsMap.messageActionGroup(message)
                     )
                 }
+
+                launch(Dispatchers.IO) {
+                    messageDao.insertAll(domainMessages.map(VkMessage::asEntity))
+                    userDao.insertAll(profilesList.map(VkUser::asEntity))
+                    groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
+                }
+
+                VkMemoryCache.appendUsers(profilesList)
+                VkMemoryCache.appendGroups(groupsList)
+                VkMemoryCache.appendContacts(contactsList)
+
+                domainMessages
             },
             errorMapper = { error -> error?.toDomain() }
         )
@@ -200,6 +232,11 @@ class MessagesRepositoryImpl(
                     VkMemoryCache.appendUsers(profilesList)
                     VkMemoryCache.appendGroups(groupsList)
                     VkMemoryCache.appendContacts(contactsList)
+
+                    launch(Dispatchers.IO) {
+                        userDao.insertAll(profilesList.map(VkUser::asEntity))
+                        groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
+                    }
 
                     response.items.map(VkAttachmentHistoryMessageData::toDomain)
                 },

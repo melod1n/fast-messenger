@@ -30,7 +30,6 @@ import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -72,8 +71,6 @@ interface LoginViewModel {
     fun onValidationCodeCleared()
     fun onCaptchaCodeReceived(code: String?)
     fun onCaptchaCodeCleared()
-
-    fun onLogoLongClicked()
 }
 
 class LoginViewModelImpl(
@@ -123,11 +120,6 @@ class LoginViewModelImpl(
 
         when (dialog) {
             is LoginDialog.Error -> Unit
-
-            LoginDialog.FastAuth -> {
-                val token = bundle.getString("token")?.trim() ?: return
-                fastAuth(token)
-            }
         }
     }
 
@@ -204,60 +196,6 @@ class LoginViewModelImpl(
         isNeedToClearCaptchaCode.update { false }
     }
 
-    override fun onLogoLongClicked() {
-        loginDialog.setValue { LoginDialog.FastAuth }
-    }
-
-    // TODO: 31-Mar-25, Danil Nikolaev: go through full auth flow
-    private fun fastAuth(token: String) {
-        var currentAccount = AccountEntity(
-            userId = -1,
-            accessToken = token,
-            fastToken = null,
-            trustedHash = null,
-            exchangeToken = null
-        ).also { account ->
-            UserConfig.currentUserId = account.userId
-            UserConfig.userId = account.userId
-            UserConfig.accessToken = account.accessToken
-            UserConfig.fastToken = account.fastToken
-            UserConfig.trustedHash = account.trustedHash
-        }
-
-        loadUserByIdUseCase(
-            userId = null,
-            fields = VkConstants.USER_FIELDS,
-            nomCase = null
-        ).listenValue(viewModelScope) { state ->
-            state.processState(
-                error = {
-                    UserConfig.currentUserId = -1
-                    UserConfig.userId = -1
-                    UserConfig.accessToken = ""
-
-                    loginDialog.setValue { LoginDialog.Error() }
-                },
-                success = { response ->
-                    val actualUserId = requireNotNull(response).id
-
-                    currentAccount = currentAccount.copy(userId = actualUserId)
-
-                    UserConfig.userId = actualUserId
-                    UserConfig.currentUserId = actualUserId
-
-                    startLongPoll()
-
-                    viewModelScope.launch(Dispatchers.IO) {
-                        accountsRepository.storeAccounts(listOf(currentAccount))
-                        delay(350)
-                        isNeedToOpenMain.update { true }
-                    }
-                }
-            )
-            screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
-        }
-    }
-
     private fun login(forceSms: Boolean = false) {
         val currentState = screenState.value.copy()
 
@@ -297,10 +235,11 @@ class LoginViewModelImpl(
                     parseError(error)
                 },
                 success = { response ->
-                    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-                        screenState.updateValue { copy(isLoading = false) }
-                        loginDialog.setValue { LoginDialog.Error() }
-                    }
+                    val exceptionHandler =
+                        CoroutineExceptionHandler { _, _ ->
+                            screenState.updateValue { copy(isLoading = false) }
+                            loginDialog.setValue { LoginDialog.Error() }
+                        }
 
                     viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
                         val (anonymToken) = authRepository.getAnonymToken(

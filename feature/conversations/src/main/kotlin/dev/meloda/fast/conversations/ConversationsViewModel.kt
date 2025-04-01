@@ -687,7 +687,7 @@ class ConversationsViewModelImpl(
             var timeoutAction: (() -> Unit)? = null
 
             val timerJob = createTimerFlow(
-                time = 5,
+                time = 6,
                 onTimeoutAction = { timeoutAction?.invoke() }
             ).launchIn(viewModelScope)
 

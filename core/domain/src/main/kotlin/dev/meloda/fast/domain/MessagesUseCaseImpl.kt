@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class MessagesUseCaseImpl(
-    private val repository: MessagesRepository
+    private val repository: MessagesRepository,
 ) : MessagesUseCase {
 
     override fun getMessagesHistory(

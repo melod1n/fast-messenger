@@ -57,12 +57,14 @@ import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
 import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.util.handleEnterKey
 import dev.meloda.fast.ui.util.handleTabKey
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
@@ -126,8 +128,7 @@ fun LoginRoute(
         onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
         onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
         onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
-        onSignInButtonClicked = viewModel::onSignInButtonClicked,
-        onLogoLongClicked = viewModel::onLogoLongClicked
+        onSignInButtonClicked = viewModel::onSignInButtonClicked
     )
 
     HandleDialogs(
@@ -145,8 +146,7 @@ fun LoginScreen(
     onPasswordFieldEnterKeyClicked: () -> Unit = {},
     onPasswordVisibilityButtonClicked: () -> Unit = {},
     onPasswordFieldGoAction: () -> Unit = {},
-    onSignInButtonClicked: () -> Unit = {},
-    onLogoLongClicked: () -> Unit = {}
+    onSignInButtonClicked: () -> Unit = {}
 ) {
     val size = LocalSizeConfig.current
     val focusManager = LocalFocusManager.current
@@ -173,7 +173,7 @@ fun LoginScreen(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                Logo(onLogoLongClicked = onLogoLongClicked)
+                Logo()
             }
 
             AnimatedVisibility(
@@ -366,13 +366,6 @@ fun HandleDialogs(
                     ?: loginDialog.errorText
                     ?: stringResource(UiR.string.unknown_error_occurred),
                 confirmText = stringResource(id = UiR.string.ok)
-            )
-        }
-
-        LoginDialog.FastAuth -> {
-            SignInAlert(
-                onDismissRequest = { onDismissed(loginDialog) },
-                onConfirmClick = { onConfirmed(loginDialog, bundleOf("token" to it)) }
             )
         }
     }

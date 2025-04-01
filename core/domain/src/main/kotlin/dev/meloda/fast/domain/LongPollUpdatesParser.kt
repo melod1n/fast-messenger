@@ -86,7 +86,7 @@ class LongPollUpdatesParser(
         val parsedFlags = MessageFlags.parse(flags)
         parsedFlags.forEach { flag ->
             when (flag) {
-                MessageFlags.IMPORTANT -> { // marked as important
+                MessageFlags.IMPORTANT -> {
                     val eventToSend = LongPollParsedEvent.MessageMarkedAsImportant(
                         peerId = peerId,
                         cmId = cmId,
@@ -102,7 +102,7 @@ class LongPollUpdatesParser(
                     }
                 }
 
-                MessageFlags.SPAM -> { // marked as spam
+                MessageFlags.SPAM -> {
                     val eventToSend = LongPollParsedEvent.MessageMarkedAsSpam(
                         peerId = peerId,
                         cmId = cmId
@@ -119,13 +119,13 @@ class LongPollUpdatesParser(
 
                 MessageFlags.DELETED -> {
                     val eventToSend =
-                        if (parsedFlags.contains(MessageFlags.DELETED_FOR_ALL)) { // deleted for all
+                        if (parsedFlags.contains(MessageFlags.DELETED_FOR_ALL)) {
                             LongPollParsedEvent.MessageDeleted(
                                 peerId = peerId,
                                 cmId = cmId,
                                 forAll = true
                             )
-                        } else { // deleted only for me
+                        } else {
                             LongPollParsedEvent.MessageDeleted(
                                 peerId = peerId,
                                 cmId = cmId,
@@ -142,7 +142,7 @@ class LongPollUpdatesParser(
                     }
                 }
 
-                MessageFlags.AUDIO_LISTENED -> { // audio message listened
+                MessageFlags.AUDIO_LISTENED -> {
                     val eventToSend = LongPollParsedEvent.AudioMessageListened(
                         peerId = peerId,
                         cmId = cmId
@@ -184,7 +184,7 @@ class LongPollUpdatesParser(
         coroutineScope.launch {
             parsedFlags.forEach { flag ->
                 when (flag) {
-                    MessageFlags.IMPORTANT -> { // not important anymore
+                    MessageFlags.IMPORTANT -> {
                         val eventToSend = LongPollParsedEvent.MessageMarkedAsImportant(
                             peerId = peerId,
                             cmId = cmId,
@@ -201,7 +201,7 @@ class LongPollUpdatesParser(
                     }
 
                     MessageFlags.SPAM -> {
-                        if (parsedFlags.contains(MessageFlags.CANCEL_SPAM)) { // not spam anymore
+                        if (parsedFlags.contains(MessageFlags.CANCEL_SPAM)) {
                             withContext(Dispatchers.IO) {
                                 val message = loadMessage(
                                     peerId = peerId,
@@ -223,7 +223,7 @@ class LongPollUpdatesParser(
                         }
                     }
 
-                    MessageFlags.DELETED -> { // restored
+                    MessageFlags.DELETED -> {
                         withContext(Dispatchers.IO) {
                             val message = loadMessage(
                                 peerId = peerId,

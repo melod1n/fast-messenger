@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import dev.meloda.fast.database.dao.ConversationDao
 import dev.meloda.fast.database.dao.GroupDao
 import dev.meloda.fast.database.dao.MessageDao
-import dev.meloda.fast.database.dao.UsersDao
+import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.database.typeconverters.Converters
 import dev.meloda.fast.model.database.VkConversationEntity
 import dev.meloda.fast.model.database.VkGroupEntity
@@ -25,7 +25,7 @@ import dev.meloda.fast.model.database.VkUserEntity
 )
 @TypeConverters(Converters::class)
 abstract class CacheDatabase : RoomDatabase() {
-    abstract fun userDao(): UsersDao
+    abstract fun userDao(): UserDao
     abstract fun groupDao(): GroupDao
     abstract fun messageDao(): MessageDao
     abstract fun conversationDao(): ConversationDao

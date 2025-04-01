@@ -2,7 +2,7 @@ package dev.meloda.fast.data.api.users
 
 import com.slack.eithernet.ApiResult
 import dev.meloda.fast.data.VkMemoryCache
-import dev.meloda.fast.database.dao.UsersDao
+import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.model.api.domain.asEntity
@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 
 class UsersRepositoryImpl(
     private val service: UsersService,
-    private val dao: UsersDao
+    private val dao: UserDao
 ) : UsersRepository {
 
     override suspend fun get(
@@ -38,7 +38,9 @@ class UsersRepositoryImpl(
 
                 val users = response.map(VkUserData::mapToDomain)
 
-                launch { storeUsers(users) }
+                launch(Dispatchers.IO) {
+                    storeUsers(users)
+                }
 
                 VkMemoryCache.appendUsers(users)
 

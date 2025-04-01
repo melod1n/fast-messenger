@@ -6,11 +6,17 @@ import dev.meloda.fast.data.VkGroupsMap
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.data.VkUsersMap
 import dev.meloda.fast.database.dao.ConversationDao
+import dev.meloda.fast.database.dao.GroupDao
+import dev.meloda.fast.database.dao.MessageDao
+import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.model.api.data.VkContactData
 import dev.meloda.fast.model.api.data.VkGroupData
 import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.data.asDomain
 import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkGroupDomain
+import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.model.api.domain.asEntity
 import dev.meloda.fast.model.api.requests.ConversationsDeleteRequest
 import dev.meloda.fast.model.api.requests.ConversationsGetRequest
@@ -21,10 +27,14 @@ import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
 import dev.meloda.fast.network.service.conversations.ConversationsService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ConversationsRepositoryImpl(
     private val conversationsService: ConversationsService,
+    private val messageDao: MessageDao,
+    private val userDao: UserDao,
+    private val groupDao: GroupDao,
     private val conversationDao: ConversationDao
 ) : ConversationsRepository {
 
@@ -56,7 +66,7 @@ class ConversationsRepositoryImpl(
                 VkMemoryCache.appendGroups(groupsList)
                 VkMemoryCache.appendContacts(contactsList)
 
-                response.items.map { item ->
+                val conversations = response.items.map { item ->
                     val lastMessage = item.lastMessage?.asDomain()?.let { message ->
                         message.copy(
                             user = usersMap.messageUser(message),
@@ -72,6 +82,17 @@ class ConversationsRepositoryImpl(
                         ).also { VkMemoryCache[conversation.id] = it }
                     }
                 }
+
+                val messages = conversations.mapNotNull(VkConversation::lastMessage)
+
+                launch(Dispatchers.IO) {
+                    conversationDao.insertAll(conversations.map(VkConversation::asEntity))
+                    messageDao.insertAll(messages.map(VkMessage::asEntity))
+                    userDao.insertAll(profilesList.map(VkUser::asEntity))
+                    groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
+                }
+
+                conversations
             },
             errorMapper = { error ->
                 error?.toDomain()
@@ -99,11 +120,7 @@ class ConversationsRepositoryImpl(
                 val usersMap = VkUsersMap.forUsers(profilesList)
                 val groupsMap = VkGroupsMap.forGroups(groupsList)
 
-                VkMemoryCache.appendUsers(profilesList)
-                VkMemoryCache.appendGroups(groupsList)
-                VkMemoryCache.appendContacts(contactsList)
-
-                response.items.map { item ->
+                val conversations = response.items.map { item ->
                     item.asDomain().let { conversation ->
                         conversation.copy(
                             user = usersMap.conversationUser(conversation),
@@ -111,6 +128,18 @@ class ConversationsRepositoryImpl(
                         ).also { VkMemoryCache[conversation.id] = it }
                     }
                 }
+
+                launch(Dispatchers.IO) {
+                    conversationDao.insertAll(conversations.map(VkConversation::asEntity))
+                    userDao.insertAll(profilesList.map(VkUser::asEntity))
+                    groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
+                }
+
+                VkMemoryCache.appendUsers(profilesList)
+                VkMemoryCache.appendGroups(groupsList)
+                VkMemoryCache.appendContacts(contactsList)
+
+                conversations
             },
             errorMapper = { error ->
                 error?.toDomain()

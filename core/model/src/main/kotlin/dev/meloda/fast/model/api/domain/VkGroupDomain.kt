@@ -13,14 +13,14 @@ data class VkGroupDomain(
 ) {
 
     override fun toString() = name.trim()
-
-    fun mapToDB(): VkGroupEntity = VkGroupEntity(
-        id = id,
-        name = name,
-        screenName = screenName,
-        photo50 = photo50,
-        photo100 = photo100,
-        photo200 = photo200,
-        membersCount = membersCount
-    )
 }
+
+fun VkGroupDomain.asEntity(): VkGroupEntity = VkGroupEntity(
+    id = id,
+    name = name,
+    screenName = screenName,
+    photo50 = photo50,
+    photo100 = photo100,
+    photo200 = photo200,
+    membersCount = membersCount
+)

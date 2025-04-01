@@ -2,6 +2,7 @@ package dev.meloda.fast.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -11,6 +12,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -141,9 +143,10 @@ fun AppTheme(
     selectedColorScheme: Int = 0,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+
     val colorScheme: ColorScheme = when {
         useDynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (useDarkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
         }
@@ -165,6 +168,10 @@ fun AppTheme(
             scheme
         }
     }
+
+    val colorPrimary by animateColorAsState(colorScheme.primary)
+    val colorSurface by animateColorAsState(colorScheme.surface)
+    val colorBackground by animateColorAsState(colorScheme.background)
 
     val typography = if (useSystemFont) {
         MaterialTheme.typography
@@ -198,7 +205,12 @@ fun AppTheme(
     }
 
     MaterialTheme(
-        colorScheme = predefinedColorScheme ?: colorScheme,
+        colorScheme = (predefinedColorScheme ?: colorScheme)
+            .copy(
+                primary = colorPrimary,
+                background = colorBackground,
+                surface = colorSurface
+            ),
         typography = typography,
         content = content
     )

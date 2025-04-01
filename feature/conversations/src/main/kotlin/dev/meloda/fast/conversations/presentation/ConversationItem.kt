@@ -241,7 +241,7 @@ fun ConversationItem(
                         text = conversation.title,
                         minLines = 1,
                         maxLines = maxLines,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp)
+                        style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
                     )
 
                     Row {
@@ -356,6 +356,7 @@ fun ConversationItem(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(58.dp)
                         .padding(start = 8.dp)
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))

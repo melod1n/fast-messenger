@@ -21,8 +21,11 @@ data class VkUser(
 }
 
 sealed class OnlineStatus(open val appId: Long?) {
-    data class Online(override val appId: Long?) : OnlineStatus(appId)
-    data class OnlineMobile(override val appId: Long?) : OnlineStatus(appId)
+    data class Online(override val appId: Long? = null) : OnlineStatus(appId)
+    data class OnlineMobile(override val appId: Long? = null) : OnlineStatus(appId)
+    data object Recently : OnlineStatus(null)
+    data object LastWeek : OnlineStatus(null)
+    data object LastMonth : OnlineStatus(null)
     data object Offline : OnlineStatus(null)
 
     fun isOnline(): Boolean = this is Online || this is OnlineMobile

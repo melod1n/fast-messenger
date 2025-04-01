@@ -2,7 +2,7 @@ package dev.meloda.fast.data.api.friends
 
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkMemoryCache
-import dev.meloda.fast.database.dao.UsersDao
+import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.model.FriendsInfo
 import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.domain.VkUser
@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 
 class FriendsRepositoryImpl(
     private val service: FriendsService,
-    private val dao: UsersDao
+    private val dao: UserDao
 ) : FriendsRepository {
 
     override suspend fun getAllFriends(
