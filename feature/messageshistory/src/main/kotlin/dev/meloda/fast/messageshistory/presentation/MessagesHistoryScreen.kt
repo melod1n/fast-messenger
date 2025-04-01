@@ -86,6 +86,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
@@ -155,12 +156,6 @@ fun MessagesHistoryScreen(
     )
 
     val pinnedMessage = screenState.pinnedMessage
-
-//    val pinnedMessage by remember(screenState) {
-//        derivedStateOf {
-//            screenState.conversation.pinnedMessage
-//        }
-//    }
 
     val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
@@ -251,23 +246,41 @@ fun MessagesHistoryScreen(
                         ) {
                             if (selectedMessages.isEmpty()) {
                                 val avatar = screenState.avatar.getImage()
-                                if (avatar is Painter) {
-                                    Image(
-                                        painter = avatar,
-                                        contentDescription = null,
+                                if (screenState.conversationId == UserConfig.userId) {
+                                    Box(
                                         modifier = Modifier
                                             .size(36.dp)
                                             .clip(CircleShape)
-                                    )
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .size(24.dp),
+                                            painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
+                                            contentDescription = "Favorites icon",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
                                 } else {
-                                    AsyncImage(
-                                        model = screenState.avatar.getImage(),
-                                        contentDescription = "Profile Image",
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape),
-                                        placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
-                                    )
+                                    if (avatar is Painter) {
+                                        Image(
+                                            painter = avatar,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = screenState.avatar.getImage(),
+                                            contentDescription = "Profile Image",
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape),
+                                            placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
+                                        )
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.width(12.dp))

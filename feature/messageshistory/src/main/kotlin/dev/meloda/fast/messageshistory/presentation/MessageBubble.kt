@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -55,122 +56,123 @@ fun MessageBubble(
         MaterialTheme.colorScheme.primaryContainer
     }
 
-    val textColor = if (!isOut) {
+    val contentColor = if (!isOut) {
         MaterialTheme.colorScheme.onSurface
     } else {
         MaterialTheme.colorScheme.onPrimaryContainer
     }
 
-    Box(
-        modifier = modifier
-            .widthIn(min = 56.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(backgroundColor)
-            .padding(
-                horizontal = 8.dp,
-                vertical = 6.dp
-            )
-            .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
-    ) {
-        val minDateContainerWidth by remember(edited, isOut, pinned, important) {
-            derivedStateOf {
-                val mainPart = if (edited) 50.dp else 30.dp
-                val readIndicatorPart = if (isOut) 14.dp else 0.dp
-                val pinnedIndicatorPart = if (pinned) 14.dp else 0.dp
-                val importantIndicatorPart = if (important) 14.dp else 0.dp
-
-                mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart
-            }
-        }
-
-        val dateContainerWidth by animateDpAsState(
-            targetValue = minDateContainerWidth,
-            label = "dateContainerWidth"
-        )
-
-        if (text != null) {
-            val textLambda: @Composable () -> Unit = remember {
-                {
-                    Text(
-                        text = text,
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .align(Alignment.Center)
-                            .padding(end = 4.dp)
-                            .padding(end = dateContainerWidth)
-                            .padding(end = 4.dp)
-                            .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
-                        color = textColor
-                    )
-                }
-            }
-
-            if (isSelected) {
-                SelectionContainer {
-                    textLambda.invoke()
-                }
-            } else {
-                textLambda.invoke()
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .defaultMinSize(minWidth = dateContainerWidth)
+    CompositionLocalProvider(LocalContentColor provides contentColor) {
+        Box(
+            modifier = modifier
+                .widthIn(min = 56.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(backgroundColor)
+                .padding(
+                    horizontal = 8.dp,
+                    vertical = 6.dp
+                )
                 .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
         ) {
-            if (important) {
-                Icon(
-                    painter = painterResource(UiR.drawable.round_star_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-            }
-            if (pinned) {
-                Icon(
-                    painter = painterResource(UiR.drawable.ic_round_push_pin_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(14.dp)
-                        .rotate(45f)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-            }
-            if (edited) {
-                Icon(
-                    imageVector = Icons.Rounded.Create,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
+            val minDateContainerWidth by remember(edited, isOut, pinned, important) {
+                derivedStateOf {
+                    val mainPart = if (edited) 50.dp else 30.dp
+                    val readIndicatorPart = if (isOut) 14.dp else 0.dp
+                    val pinnedIndicatorPart = if (pinned) 14.dp else 0.dp
+                    val importantIndicatorPart = if (important) 14.dp else 0.dp
+
+                    mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart
+                }
             }
 
-            Text(
-                text = date.orEmpty(),
-                style = MaterialTheme.typography.labelSmall,
+            val dateContainerWidth by animateDpAsState(
+                targetValue = minDateContainerWidth,
+                label = "dateContainerWidth"
             )
-            Spacer(modifier = Modifier.width(4.dp))
 
-            if (isOut) {
-                Icon(
-                    modifier = Modifier.size(14.dp),
-                    painter = painterResource(
-                        when (sendingStatus) {
-                            SendingStatus.SENDING -> UiR.drawable.round_access_time_24
-                            SendingStatus.SENT -> {
-                                if (isRead) UiR.drawable.round_done_all_24
-                                else UiR.drawable.ic_round_done_24
-                            }
+            if (text != null) {
+                val textLambda: @Composable () -> Unit = remember {
+                    {
+                        Text(
+                            text = text,
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .align(Alignment.Center)
+                                .padding(end = 4.dp)
+                                .padding(end = dateContainerWidth)
+                                .padding(end = 4.dp)
+                                .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier)
+                        )
+                    }
+                }
 
-                            SendingStatus.FAILED -> UiR.drawable.round_error_outline_24
-                        }
-                    ),
-                    tint = if (sendingStatus == SendingStatus.FAILED) Color.Red
-                    else LocalContentColor.current,
-                    contentDescription = null
+                if (isSelected) {
+                    SelectionContainer {
+                        textLambda.invoke()
+                    }
+                } else {
+                    textLambda.invoke()
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .defaultMinSize(minWidth = dateContainerWidth)
+                    .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
+            ) {
+                if (important) {
+                    Icon(
+                        painter = painterResource(UiR.drawable.round_star_24),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                if (pinned) {
+                    Icon(
+                        painter = painterResource(UiR.drawable.ic_round_push_pin_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(14.dp)
+                            .rotate(45f)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                if (edited) {
+                    Icon(
+                        imageVector = Icons.Rounded.Create,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+
+                Text(
+                    text = date.orEmpty(),
+                    style = MaterialTheme.typography.labelSmall
                 )
+                Spacer(modifier = Modifier.width(4.dp))
+
+                if (isOut) {
+                    Icon(
+                        modifier = Modifier.size(14.dp),
+                        painter = painterResource(
+                            when (sendingStatus) {
+                                SendingStatus.SENDING -> UiR.drawable.round_access_time_24
+                                SendingStatus.SENT -> {
+                                    if (isRead) UiR.drawable.round_done_all_24
+                                    else UiR.drawable.ic_round_done_24
+                                }
+
+                                SendingStatus.FAILED -> UiR.drawable.round_error_outline_24
+                            }
+                        ),
+                        tint = if (sendingStatus == SendingStatus.FAILED) Color.Red
+                        else LocalContentColor.current,
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
