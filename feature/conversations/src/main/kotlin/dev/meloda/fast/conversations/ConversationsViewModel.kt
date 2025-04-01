@@ -395,7 +395,7 @@ class ConversationsViewModelImpl(
             var newConversation = conversation.copy(
                 lastMessage = message,
                 lastMessageId = message.id,
-                lastConversationMessageId = -1,
+                lastCmId = message.cmId,
                 unreadCount = if (message.isOut) conversation.unreadCount
                 else conversation.unreadCount + 1
             )
@@ -453,7 +453,7 @@ class ConversationsViewModelImpl(
             newConversations[conversationIndex] = conversation.copy(
                 lastMessage = message,
                 lastMessageId = message.id,
-                lastConversationMessageId = -1
+                lastCmId = -1
             )
             conversations.update { newConversations }
 
@@ -481,7 +481,7 @@ class ConversationsViewModelImpl(
         } else {
             newConversations[conversationIndex] =
                 newConversations[conversationIndex].copy(
-                    inRead = event.messageId,
+                    inReadCmId = event.cmId,
                     unreadCount = event.unreadCount
                 )
 
@@ -511,7 +511,7 @@ class ConversationsViewModelImpl(
         } else {
             newConversations[conversationIndex] =
                 newConversations[conversationIndex].copy(
-                    outRead = event.messageId,
+                    outReadCmId = event.cmId,
                     unreadCount = event.unreadCount
                 )
 

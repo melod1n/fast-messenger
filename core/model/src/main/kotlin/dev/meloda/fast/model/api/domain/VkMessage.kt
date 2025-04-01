@@ -6,7 +6,7 @@ import dev.meloda.fast.model.database.VkMessageEntity
 @Immutable
 data class VkMessage(
     val id: Long,
-    val conversationMessageId: Long,
+    val cmId: Long,
     val text: String?,
     val isOut: Boolean,
     val peerId: Long,
@@ -44,8 +44,7 @@ data class VkMessage(
 
     fun isRead(conversation: VkConversation): Boolean = when {
         id <= 0 -> false
-        isOut -> conversation.outRead - id >= 0
-        else -> conversation.inRead - id >= 0
+        else -> conversation.isRead(this)
     }
 
     fun hasAttachments(): Boolean = attachments.orEmpty().isNotEmpty()
@@ -84,7 +83,7 @@ data class VkMessage(
 
 fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     id = id,
-    conversationMessageId = conversationMessageId,
+    conversationMessageId = cmId,
     text = text,
     isOut = isOut,
     peerId = peerId,

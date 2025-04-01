@@ -61,7 +61,7 @@ data class VkMessageData(
 
 fun VkMessageData.asDomain(): VkMessage = VkMessage(
     id = id ?: -1,
-    conversationMessageId = conversationMessageId,
+    cmId = conversationMessageId,
     text = text.ifBlank { null },
     isOut = out == 1,
     peerId = peerId ?: -1,

@@ -13,7 +13,7 @@ data class VkConversation(
     val photo200: String?,
     val isCallInProgress: Boolean,
     val isPhantom: Boolean,
-    val lastConversationMessageId: Long,
+    val lastCmId: Long,
     val inReadCmId: Long,
     val outReadCmId: Long,
     val inRead: Long,
@@ -36,8 +36,20 @@ data class VkConversation(
 ) {
 
     fun isPinned(): Boolean = majorId > 0
-    fun isInUnread() = inRead - (lastMessageId ?: 0) < 0
-    fun isOutUnread() = outRead - (lastMessageId ?: 0) < 0
+
+    fun isInRead(cmId: Long? = null) = inReadCmId - (cmId ?: lastCmId) >= 0
+
+    fun isOutRead(cmId: Long? = null) = outReadCmId - (cmId ?: lastCmId) >= 0
+
+    fun isRead(lastMessage: VkMessage? = null): Boolean {
+        val message = lastMessage ?: this.lastMessage
+
+        return when {
+            message == null -> true
+            message.isOut -> isOutRead(message.cmId)
+            else -> isInRead(message.cmId)
+        }
+    }
 
     companion object {
         val EMPTY: VkConversation = VkConversation(
@@ -50,7 +62,7 @@ data class VkConversation(
             photo200 = null,
             isCallInProgress = false,
             isPhantom = false,
-            lastConversationMessageId = -1,
+            lastCmId = -1,
             inReadCmId = -1,
             outReadCmId = -1,
             inRead = -1,
@@ -84,7 +96,7 @@ fun VkConversation.asEntity(): VkConversationEntity = VkConversationEntity(
     photo100 = photo100,
     photo200 = photo200,
     isPhantom = isPhantom,
-    lastConversationMessageId = lastConversationMessageId,
+    lastConversationMessageId = lastCmId,
     inReadCmId = inReadCmId,
     outReadCmId = outReadCmId,
     inRead = inRead,

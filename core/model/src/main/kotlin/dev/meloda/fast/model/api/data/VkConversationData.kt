@@ -119,7 +119,7 @@ data class VkConversationData(
         photo200 = chatSettings?.photo?.photo200,
         isCallInProgress = callInProgress != null,
         isPhantom = chatSettings?.isDisappearing == true,
-        lastConversationMessageId = lastConversationMessageId,
+        lastCmId = lastConversationMessageId,
         inRead = inRead,
         outRead = outRead,
         lastMessageId = lastMessageId,

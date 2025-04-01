@@ -101,7 +101,7 @@ fun VkMessage.asPresentation(
 ): UiItem = when {
     action != null -> UiItem.ActionMessage(
         id = id,
-        conversationMessageId = conversationMessageId,
+        conversationMessageId = cmId,
         text = extractActionText(
             resources = resourceProvider.resources,
             youPrefix = resourceProvider.getString(R.string.you_message_prefix),
@@ -112,7 +112,7 @@ fun VkMessage.asPresentation(
 
     else -> UiItem.Message(
         id = id,
-        conversationMessageId = conversationMessageId,
+        conversationMessageId = cmId,
         text = text,
         isOut = isOut,
         fromId = fromId,

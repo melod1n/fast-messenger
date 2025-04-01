@@ -183,15 +183,20 @@ data class MessagesEditRequest(
 
 
 data class MessagesGetByIdRequest(
-    val messagesIds: List<Long>,
+    val peerCmIds: List<Long>?,
+    val peerId: Long?,
+    val messagesIds: List<Long>?,
+    val cmIds: List<Long>?,
     val extended: Boolean? = null,
     val fields: String? = null
 ) {
 
     val map: Map<String, String>
-        get() = mutableMapOf(
-            "message_ids" to messagesIds.joinToString(),
-        ).apply {
+        get() = mutableMapOf<String, String>().apply {
+            peerCmIds?.let { this["peer_cmids"] = it.joinToString() }
+            peerId?.let { this["peer_id"] = it.toString() }
+            messagesIds?.let { this["message_ids"] = it.joinToString() }
+            cmIds?.let { this["cmids"] = it.joinToString() }
             extended?.let { this["extended"] = it.asInt().toString() }
             fields?.let { this["fields"] = it }
         }

@@ -101,12 +101,18 @@ class MessagesRepositoryImpl(
     }
 
     override suspend fun getById(
-        messagesIds: List<Long>,
+        peerCmIds: List<Long>?,
+        peerId: Long?,
+        messagesIds: List<Long>?,
+        cmIds: List<Long>?,
         extended: Boolean?,
         fields: String?
     ): ApiResult<List<VkMessage>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesGetByIdRequest(
+            peerCmIds = peerCmIds,
+            peerId = peerId,
             messagesIds = messagesIds,
+            cmIds = cmIds,
             extended = extended,
             fields = fields
         )

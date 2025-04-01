@@ -32,6 +32,7 @@ import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.messageshistory.model.MessageDialog
+import dev.meloda.fast.messageshistory.model.MessageNavigation
 import dev.meloda.fast.messageshistory.model.MessageOption
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.model.UiItem
@@ -51,12 +52,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.random.Random
-
 import dev.meloda.fast.ui.R as UiR
 
 interface MessagesHistoryViewModel {
 
     val screenState: StateFlow<MessagesHistoryScreenState>
+    val navigation: StateFlow<MessageNavigation?>
     val messages: StateFlow<List<VkMessage>>
     val uiMessages: StateFlow<List<UiItem>>
     val messageDialog: StateFlow<MessageDialog?>
@@ -69,6 +70,10 @@ interface MessagesHistoryViewModel {
 
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
+
+    fun onNavigationConsumed()
+
+    fun onTopBarClicked()
 
     fun onDialogConfirmed(dialog: MessageDialog, bundle: Bundle)
     fun onDialogDismissed(dialog: MessageDialog)
@@ -106,6 +111,7 @@ class MessagesHistoryViewModelImpl(
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
+    override val navigation = MutableStateFlow<MessageNavigation?>(null)
     override val messageDialog = MutableStateFlow<MessageDialog?>(null)
     override val selectedMessages = MutableStateFlow<List<VkMessage>>(emptyList())
 
@@ -146,6 +152,21 @@ class MessagesHistoryViewModelImpl(
 
         userSettings.showTimeInActionMessages.listenValue(viewModelScope) {
             syncUiMessages()
+        }
+    }
+
+    override fun onNavigationConsumed() {
+        navigation.setValue { null }
+    }
+
+    override fun onTopBarClicked() {
+        val cmId = messages.value.firstOrNull()?.cmId ?: return
+
+        navigation.setValue {
+            MessageNavigation.ChatMaterials(
+                peerId = screenState.value.conversationId,
+                cmId = cmId
+            )
         }
     }
 
@@ -463,13 +484,13 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val messages = messages.value
-        val index = messages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = messages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // диалога нет в списке
             // pizdets
         } else {
             val newConversation = screenState.value.conversation.copy(
-                inRead = event.messageId
+                inReadCmId = event.cmId
             )
 
             screenState.setValue { old ->
@@ -484,13 +505,13 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val messages = messages.value
-        val index = messages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = messages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
         } else {
             val newConversation = screenState.value.conversation.copy(
-                outRead = event.messageId
+                outReadCmId = event.cmId
             )
 
             screenState.setValue { old ->
@@ -505,7 +526,7 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val index = newMessages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = newMessages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
@@ -520,10 +541,12 @@ class MessagesHistoryViewModelImpl(
         if (event.message.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val maxDate = newMessages.maxOf(VkMessage::date)
         val minDate = newMessages.minOf(VkMessage::date)
 
-        if (event.message.date !in minDate..maxDate) return
+        if (event.message.date < minDate) { // сообщения не должно быть в списке
+            // pizdets
+            return
+        }
 
         newMessages.add(event.message)
         messages.setValue { newMessages.sorted() }
@@ -534,7 +557,7 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val index = newMessages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = newMessages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
@@ -550,7 +573,7 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val index = newMessages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = newMessages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
@@ -746,7 +769,7 @@ class MessagesHistoryViewModelImpl(
 
         val newMessage = VkMessage(
             id = -1L - sendingMessages.size,
-            conversationMessageId = -1,
+            cmId = -1,
             text = lastMessageText,
             isOut = true,
             peerId = screenState.value.conversationId,
@@ -876,13 +899,17 @@ class MessagesHistoryViewModelImpl(
                 error = ::handleError,
                 success = { pinnedMessage ->
                     handlePinnedMessage(pinnedMessage)
-                    val newMessages = messages.value
-                        .toMutableList()
-                        .map { message ->
-                            message.copy(isPinned = message.id == messageId)
-                        }
-                    messages.setValue { newMessages }
-                    syncUiMessages()
+
+                    val newMessages = messages.value.toMutableList()
+                    val index = newMessages.indexOfFirstOrNull { it.id == messageId }
+
+                    if (index == null) {// сообщения нет в списке
+                        // pizdets
+                    } else {
+                        newMessages[index] = pinnedMessage
+                        messages.setValue { newMessages }
+                        syncUiMessages()
+                    }
                 }
             )
         }
@@ -895,10 +922,15 @@ class MessagesHistoryViewModelImpl(
                     error = ::handleError,
                     success = {
                         val newMessages = messages.value.toMutableList()
-                        val index = newMessages.indexOfFirst { it.id == messageId }
-                        newMessages[index] = newMessages[index].copy(isPinned = false)
-                        messages.setValue { newMessages }
-                        syncUiMessages()
+                        val index = newMessages.indexOfFirstOrNull { it.id == messageId }
+
+                        if (index == null) { // сообщения нет в списке
+                            // pizdets
+                        } else {
+                            newMessages[index] = newMessages[index].copy(isPinned = false)
+                            messages.setValue { newMessages }
+                            syncUiMessages()
+                        }
 
                         handlePinnedMessage(null)
                     }

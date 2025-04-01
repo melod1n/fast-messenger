@@ -136,7 +136,7 @@ fun RootScreen(
             messagesHistoryScreen(
                 onError = viewModel::onError,
                 onBack = navController::navigateUp,
-                onChatMaterialsDropdownItemClicked = navController::navigateToChatMaterials
+                onNavigateToChatMaterials = navController::navigateToChatMaterials
             )
             chatMaterialsScreen(
                 onBack = navController::navigateUp,

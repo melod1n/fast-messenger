@@ -8,15 +8,19 @@ sealed interface LongPollParsedEvent {
 
     data class MessageEdited(val message: VkMessage) : LongPollParsedEvent
 
+    data class MessageUpdated(val message: VkMessage) : LongPollParsedEvent
+
+    data class MessageCacheClear(val message: VkMessage) : LongPollParsedEvent
+
     data class IncomingMessageRead(
         val peerId: Long,
-        val messageId: Long,
+        val cmId: Long,
         val unreadCount: Int,
     ) : LongPollParsedEvent
 
     data class OutgoingMessageRead(
         val peerId: Long,
-        val messageId: Long,
+        val cmId: Long,
         val unreadCount: Int,
     ) : LongPollParsedEvent
 
@@ -50,13 +54,13 @@ sealed interface LongPollParsedEvent {
 
     data class MessageMarkedAsImportant(
         val peerId: Long,
-        val messageId: Long,
+        val cmId: Long,
         val marked: Boolean
     ) : LongPollParsedEvent
 
     data class MessageMarkedAsSpam(
         val peerId: Long,
-        val messageId: Long
+        val cmId: Long
     ) : LongPollParsedEvent
 
     data class MessageMarkedAsNotSpam(
@@ -65,7 +69,7 @@ sealed interface LongPollParsedEvent {
 
     data class MessageDeleted(
         val peerId: Long,
-        val messageId: Long,
+        val cmId: Long,
         val forAll: Boolean
     ) : LongPollParsedEvent
 
@@ -75,11 +79,11 @@ sealed interface LongPollParsedEvent {
 
     data class AudioMessageListened(
         val peerId: Long,
-        val messageId: Long
+        val cmId: Long
     ) : LongPollParsedEvent
 
     data class ChatCleared(
         val peerId: Long,
-        val toMessageId: Long
-    ): LongPollParsedEvent
+        val toCmId: Long
+    ) : LongPollParsedEvent
 }

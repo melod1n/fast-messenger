@@ -1,5 +1,6 @@
 package dev.meloda.fast.messageshistory.util
 
+import com.conena.nanokt.collections.indexOfFirstOrNull
 import dev.meloda.fast.messageshistory.model.UiItem
 
 fun List<UiItem>.firstMessage(): UiItem.Message = filterIsInstance<UiItem.Message>().first()
@@ -12,8 +13,8 @@ fun List<UiItem>.indexOfMessageById(messageId: Long): Int =
 fun List<UiItem>.findMessageById(messageId: Long): UiItem.Message? =
     firstOrNull { it.id == messageId } as UiItem.Message?
 
-fun List<UiItem>.indexOfMessageByCmId(cmId: Long): Int =
-    indexOfFirst { it.cmId == cmId }
+fun List<UiItem>.indexOfMessageByCmId(cmId: Long): Int? =
+    indexOfFirstOrNull { it.cmId == cmId }
 
 fun List<UiItem>.findMessageByCmId(cmId: Long): UiItem.Message =
     first { it.cmId == cmId } as UiItem.Message

@@ -16,7 +16,10 @@ interface MessagesUseCase {
     ): Flow<State<MessagesHistoryInfo>>
 
     fun getById(
-        messageIds: List<Long>,
+        peerCmIds: List<Long>?,
+        peerId: Long?,
+        messageIds: List<Long>?,
+        cmIds: List<Long>?,
         extended: Boolean?,
         fields: String?
     ): Flow<State<List<VkMessage>>>

@@ -329,9 +329,13 @@ fun ConversationItem(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                                .defaultMinSize(
+                                    minWidth = 20.dp,
+                                    minHeight = 20.dp
+                                )
                                 .background(MaterialTheme.colorScheme.primary)
                                 .align(Alignment.CenterHorizontally)
+                                .padding(horizontal = if (count.length > 1) 2.dp else 0.dp)
                         ) {
                             Text(
                                 modifier = Modifier

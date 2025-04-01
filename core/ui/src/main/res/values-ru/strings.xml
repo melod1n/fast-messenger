@@ -131,7 +131,7 @@
     <string name="chat_interaction_uploading_file">Загрузка файла</string>
     <string name="chat_interaction_uploading_photo">Загрузка фото</string>
     <string name="chat_interaction_uploading_video">Загрузка видео</string>
-    <string name="chat_interaction_typing">Печатает</string>
+    <string name="chat_interaction_typing">печатает</string>
     <string name="chat_interaction_recording_audio_message">Записывает</string>
     <string name="chat_interaction_chat_typing">%1$s печатают</string>
     <string name="chat_interaction_chat_single_typing">%1$s печатает</string>

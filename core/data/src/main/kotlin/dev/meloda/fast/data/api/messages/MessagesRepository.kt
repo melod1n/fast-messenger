@@ -15,7 +15,10 @@ interface MessagesRepository {
     ): ApiResult<MessagesHistoryInfo, RestApiErrorDomain>
 
     suspend fun getById(
-        messagesIds: List<Long>,
+        peerCmIds: List<Long>?,
+        peerId: Long?,
+        messagesIds: List<Long>?,
+        cmIds: List<Long>?,
         extended: Boolean?,
         fields: String?
     ): ApiResult<List<VkMessage>, RestApiErrorDomain>

@@ -32,7 +32,7 @@ data class VkMessageEntity(
 
 fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     id = id,
-    conversationMessageId = conversationMessageId,
+    cmId = conversationMessageId,
     text = text,
     isOut = isOut,
     peerId = peerId,

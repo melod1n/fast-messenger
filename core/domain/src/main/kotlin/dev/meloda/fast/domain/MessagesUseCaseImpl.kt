@@ -31,14 +31,20 @@ class MessagesUseCaseImpl(
     }
 
     override fun getById(
-        messageIds: List<Long>,
+        peerCmIds: List<Long>?,
+        peerId: Long?,
+        messageIds: List<Long>?,
+        cmIds: List<Long>?,
         extended: Boolean?,
         fields: String?
     ): Flow<State<List<VkMessage>>> = flow {
         emit(State.Loading)
 
         val newState = repository.getById(
+            peerCmIds = peerCmIds,
+            peerId = peerId,
             messagesIds = messageIds,
+            cmIds = cmIds,
             extended = extended,
             fields = fields
         ).mapToState()

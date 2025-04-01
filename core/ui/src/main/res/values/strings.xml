@@ -111,7 +111,7 @@
     <string name="chat_interaction_uploading_file">Uploading file</string>
     <string name="chat_interaction_uploading_photo">Uploading photo</string>
     <string name="chat_interaction_uploading_video">Uploading video</string>
-    <string name="chat_interaction_typing">Typing</string>
+    <string name="chat_interaction_typing">typing</string>
     <string name="chat_interaction_recording_audio_message">Recording</string>
 
     <string name="chat_interaction_chat_typing">%1$s are typing</string>

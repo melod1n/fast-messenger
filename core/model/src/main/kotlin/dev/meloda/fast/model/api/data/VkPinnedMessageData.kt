@@ -28,7 +28,7 @@ data class VkPinnedMessageData(
 
     fun mapToDomain(): VkMessage = VkMessage(
         id = id ?: -1,
-        conversationMessageId = conversationMessageId,
+        cmId = conversationMessageId,
         text = text.ifBlank { null },
         isOut = out == true,
         peerId = peerId ?: -1,

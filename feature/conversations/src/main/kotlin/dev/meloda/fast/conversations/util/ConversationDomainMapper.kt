@@ -47,7 +47,7 @@ fun VkConversation.asPresentation(
     isPinned = majorId > 0,
     actionImageId = ActionState.parse(isPhantom, isCallInProgress).getResourceId(),
     isBirthday = extractBirthday(this),
-    isUnread = extractReadCondition(this, lastMessage),
+    isUnread = !isRead(),
     isAccount = isAccount(id),
     isOnline = !isAccount(id) && user?.onlineStatus?.isOnline() == true,
     lastMessage = lastMessage,
@@ -101,7 +101,7 @@ private fun extractUnreadCount(
     lastMessage: VkMessage?,
     conversation: VkConversation
 ): String? = when {
-    lastMessage?.isOut == false && !conversation.isInUnread() -> null
+    lastMessage?.isOut == false && conversation.isInRead() -> null
     conversation.unreadCount == 0 -> null
     conversation.unreadCount < 1000 -> conversation.unreadCount.toString()
     else -> {
@@ -802,8 +802,7 @@ private fun extractBirthday(conversation: VkConversation): Boolean {
 private fun extractReadCondition(
     conversation: VkConversation,
     lastMessage: VkMessage?
-): Boolean = (lastMessage?.isOut == true && conversation.isOutUnread()) ||
-        (lastMessage?.isOut == false && conversation.isInUnread())
+): Boolean = !conversation.isRead(lastMessage)
 
 private fun isAccount(peerId: Long) = peerId == UserConfig.userId
 
