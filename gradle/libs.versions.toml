@@ -31,7 +31,7 @@ room = "2.6.1"
 preference-ktx = "1.2.1"
 nanokt = "1.2.0"
 androidx-navigation = "2.8.9"
-serialization = "1.8.0"
+serialization = "1.8.1"
 moduleGraph = "2.8.0"
 
 [libraries]
