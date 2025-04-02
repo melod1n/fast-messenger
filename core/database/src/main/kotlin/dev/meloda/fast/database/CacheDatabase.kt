@@ -21,7 +21,7 @@ import dev.meloda.fast.model.database.VkUserEntity
         VkConversationEntity::class
     ],
 
-    version = 9
+    version = 10
 )
 @TypeConverters(Converters::class)
 abstract class CacheDatabase : RoomDatabase() {

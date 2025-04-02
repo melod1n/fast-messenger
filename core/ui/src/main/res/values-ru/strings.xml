@@ -24,6 +24,7 @@
     <string name="message_mark_as_spam">Пометить как спам</string>
     <string name="action_mark_as_read">Прочитать</string>
     <string name="action_delete">Удалить</string>
+    <string name="conversation_context_action_unarchive">Из архива</string>
     <string name="conversation_context_action_delete">Удалить</string>
     <string name="confirm_delete_conversation">Удалить чат?</string>
     <string name="action_sign_out">Выйти</string>
@@ -32,10 +33,12 @@
     <string name="conversation_context_action_pin">Закрепить</string>
     <string name="confirm_unpin_conversation">Открепить чат?</string>
     <string name="confirm_pin_conversation">Закрепить чат?</string>
+    <string name="confirm_unarchive_conversation">Разархивировать чат?</string>
     <string name="action_pin">Закрепить</string>
     <string name="action_unpin">Открепить</string>
     <string name="action_mark">Пометить</string>
     <string name="action_unmark">Убрать пометку</string>
+    <string name="action_unarchive">Из архива</string>
     <string name="message_call_type_outgoing">Исходящий вызов</string>
     <string name="message_call_type_incoming">Входящий вызов</string>
     <string name="message_call_state_ended">Закончился</string>
@@ -256,4 +259,7 @@
     <string name="unspam_message_text">Вы уверены, что хотите убрать пометку спама у этого сообщения?</string>
     <string name="pin_message_title">Закрепить сообщение</string>
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="conversation_context_action_archive">В архив</string>
+    <string name="confirm_archive_conversation">Архивировать чат?</string>
+    <string name="action_archive">В архив</string>
 </resources>

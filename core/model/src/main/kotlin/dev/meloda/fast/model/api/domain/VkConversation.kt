@@ -29,6 +29,8 @@ data class VkConversation(
     val interactionType: Int,
     val interactionIds: List<Long>,
     val peerType: PeerType,
+    val isArchived: Boolean,
+
     val lastMessage: VkMessage?,
     val pinnedMessage: VkMessage?,
     val user: VkUser?,
@@ -78,11 +80,12 @@ data class VkConversation(
             interactionType = -1,
             interactionIds = emptyList(),
             peerType = PeerType.USER,
+            isArchived = false,
+
             lastMessage = null,
             pinnedMessage = null,
             user = null,
             group = null
-
         )
     }
 }
@@ -110,4 +113,5 @@ fun VkConversation.asEntity(): VkConversationEntity = VkConversationEntity(
     minorId = minorId,
     pinnedMessageId = pinnedMessageId,
     peerType = peerType.value,
+    isArchived = isArchived
 )

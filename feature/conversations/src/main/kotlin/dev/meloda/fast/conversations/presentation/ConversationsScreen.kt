@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -56,17 +56,14 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.FullScreenLoader
-import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.model.api.ConversationOption
@@ -75,54 +72,13 @@ import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalScrollToTop
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+
 import dev.meloda.fast.ui.R as UiR
-
-@Composable
-fun ConversationsRoute(
-    onError: (BaseError) -> Unit,
-    onConversationItemClicked: (conversationid: Long) -> Unit,
-    onCreateChatButtonClicked: () -> Unit,
-    onScrolledToTop: () -> Unit,
-    viewModel: ConversationsViewModel
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-    ConversationsScreen(
-        screenState = screenState,
-        baseError = baseError,
-        canPaginate = canPaginate,
-        onConversationItemClicked = { id ->
-            onConversationItemClicked(id)
-            viewModel.onConversationItemClick()
-        },
-        onConversationItemLongClicked = viewModel::onConversationItemLongClick,
-        onOptionClicked = viewModel::onOptionClicked,
-        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-        onRefreshDropdownItemClicked = viewModel::onRefresh,
-        onRefresh = viewModel::onRefresh,
-        onCreateChatButtonClicked = onCreateChatButtonClicked,
-        setScrollIndex = viewModel::setScrollIndex,
-        setScrollOffset = viewModel::setScrollOffset,
-        onScrolledToTop = onScrolledToTop,
-        onErrorViewButtonClicked = {
-            if (baseError in listOf(BaseError.AccountBlocked, BaseError.SessionExpired)) {
-                onError(requireNotNull(baseError))
-            } else {
-                viewModel.onErrorButtonClicked()
-            }
-        }
-    )
-
-    HandleDialogs(
-        screenState = screenState,
-        viewModel = viewModel
-    )
-}
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -131,9 +87,10 @@ fun ConversationsRoute(
 @Composable
 fun ConversationsScreen(
     screenState: ConversationsScreenState = ConversationsScreenState.EMPTY,
+    conversations: ImmutableList<UiConversation> = emptyImmutableList(),
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
-    onConversationItemClicked: (conversationId: Long) -> Unit = {},
+    onConversationItemClicked: (conversation: UiConversation) -> Unit = {},
     onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
     onOptionClicked: (UiConversation, ConversationOption) -> Unit = { _, _ -> },
     onPaginationConditionsMet: () -> Unit = {},
@@ -239,7 +196,7 @@ fun ConversationsScreen(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
+                                imageVector = Icons.Rounded.MoreVert,
                                 contentDescription = null
                             )
                         }
@@ -285,7 +242,7 @@ fun ConversationsScreen(
                 )
 
                 val showHorizontalProgressBar by remember(screenState) {
-                    derivedStateOf { screenState.isLoading && screenState.conversations.isNotEmpty() }
+                    derivedStateOf { screenState.isLoading && conversations.isNotEmpty() }
                 }
                 AnimatedVisibility(showHorizontalProgressBar) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -325,7 +282,7 @@ fun ConversationsScreen(
                 )
             }
 
-            screenState.isLoading && screenState.conversations.isEmpty() -> FullScreenLoader()
+            screenState.isLoading && conversations.isEmpty() -> FullScreenLoader()
 
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()
@@ -350,6 +307,7 @@ fun ConversationsScreen(
                     }
                 ) {
                     ConversationsList(
+                        conversations = conversations,
                         onConversationsClick = onConversationItemClicked,
                         onConversationsLongClick = onConversationItemLongClicked,
                         screenState = screenState,
@@ -364,7 +322,7 @@ fun ConversationsScreen(
                         padding = padding
                     )
 
-                    if (screenState.conversations.isEmpty()) {
+                    if (conversations.isEmpty()) {
                         NoItemsView(
                             buttonText = stringResource(UiR.string.action_refresh),
                             onButtonClick = onRefresh
@@ -373,40 +331,5 @@ fun ConversationsScreen(
                 }
             }
         }
-    }
-}
-
-// TODO: 26.08.2023, Danil Nikolaev: remove usage of viewModel
-@Composable
-fun HandleDialogs(
-    screenState: ConversationsScreenState,
-    viewModel: ConversationsViewModel
-) {
-    val showOptions = screenState.showOptions
-
-    if (showOptions.showDeleteDialog != null) {
-        MaterialDialog(
-            onDismissRequest = viewModel::onDeleteDialogDismissed,
-            title = stringResource(id = UiR.string.confirm_delete_conversation),
-            confirmAction = viewModel::onDeleteDialogPositiveClick,
-            confirmText = stringResource(id = UiR.string.action_delete),
-            cancelText = stringResource(id = UiR.string.cancel)
-        )
-    }
-
-    showOptions.showPinDialog?.let { conversation ->
-        MaterialDialog(
-            onDismissRequest = viewModel::onPinDialogDismissed,
-            title = stringResource(
-                id = if (conversation.isPinned) UiR.string.confirm_unpin_conversation
-                else UiR.string.confirm_pin_conversation
-            ),
-            confirmAction = viewModel::onPinDialogPositiveClick,
-            confirmText = stringResource(
-                id = if (conversation.isPinned) UiR.string.action_unpin
-                else UiR.string.action_pin
-            ),
-            cancelText = stringResource(id = UiR.string.cancel)
-        )
     }
 }

@@ -23,8 +23,10 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.model.api.ActionState
+import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.emptyImmutableList
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.ln
@@ -33,7 +35,9 @@ import dev.meloda.fast.ui.R as UiR
 
 fun VkConversation.asPresentation(
     resources: Resources,
-    useContactName: Boolean
+    useContactName: Boolean,
+    isExpanded: Boolean = false,
+    options: ImmutableList<ConversationOption> = emptyImmutableList()
 ): UiConversation = UiConversation(
     id = id,
     lastMessageId = lastMessageId,
@@ -53,8 +57,9 @@ fun VkConversation.asPresentation(
     lastMessage = lastMessage,
     peerType = peerType,
     interactionText = extractInteractionText(resources, this),
-    isExpanded = false,
-    options = ImmutableList.empty()
+    isExpanded = isExpanded,
+    isArchived = isArchived,
+    options = options
 )
 
 fun VkConversation.extractAvatar() = when (peerType) {

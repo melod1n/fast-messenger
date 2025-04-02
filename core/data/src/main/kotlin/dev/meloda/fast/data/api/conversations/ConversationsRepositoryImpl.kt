@@ -9,6 +9,7 @@ import dev.meloda.fast.database.dao.ConversationDao
 import dev.meloda.fast.database.dao.GroupDao
 import dev.meloda.fast.database.dao.MessageDao
 import dev.meloda.fast.database.dao.UserDao
+import dev.meloda.fast.model.ConversationFilter
 import dev.meloda.fast.model.api.data.VkContactData
 import dev.meloda.fast.model.api.data.VkGroupData
 import dev.meloda.fast.model.api.data.VkUserData
@@ -18,10 +19,7 @@ import dev.meloda.fast.model.api.domain.VkGroupDomain
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.model.api.domain.asEntity
-import dev.meloda.fast.model.api.requests.ConversationsDeleteRequest
 import dev.meloda.fast.model.api.requests.ConversationsGetRequest
-import dev.meloda.fast.model.api.requests.ConversationsPinRequest
-import dev.meloda.fast.model.api.requests.ConversationsUnpinRequest
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
@@ -38,15 +36,20 @@ class ConversationsRepositoryImpl(
     private val conversationDao: ConversationDao
 ) : ConversationsRepository {
 
+    override suspend fun storeConversations(conversations: List<VkConversation>) {
+        conversationDao.insertAll(conversations.map(VkConversation::asEntity))
+    }
+
     override suspend fun getConversations(
         count: Int?,
-        offset: Int?
+        offset: Int?,
+        filter: ConversationFilter
     ): ApiResult<List<VkConversation>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = ConversationsGetRequest(
             count = count,
             offset = offset,
             fields = VkConstants.ALL_FIELDS,
-            filter = "all",
+            filter = filter,
             extended = true,
             startMessageId = null
         )
@@ -101,13 +104,16 @@ class ConversationsRepositoryImpl(
     }
 
     override suspend fun getConversationsById(
-        peerIds: List<Long>
+        peerIds: List<Long>,
+        extended: Boolean?,
+        fields: String?
     ): ApiResult<List<VkConversation>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val requestParams = mapOf(
-            "peer_ids" to peerIds.joinToString(separator = ","),
-            "extended" to "1",
-            "fields" to VkConstants.ALL_FIELDS
-        )
+        val requestParams = mutableMapOf(
+            "peer_ids" to peerIds.joinToString(separator = ",")
+        ).apply {
+            extended?.let { this["extended"] = if (it) "1" else "0" }
+            fields?.let { this["fields"] = it }
+        }
 
         conversationsService.getConversationsById(requestParams).mapApiResult(
             successMapper = { apiResponse ->
@@ -147,15 +153,9 @@ class ConversationsRepositoryImpl(
         )
     }
 
-    override suspend fun storeConversations(conversations: List<VkConversation>) {
-        conversationDao.insertAll(conversations.map(VkConversation::asEntity))
-    }
-
     override suspend fun delete(peerId: Long): ApiResult<Long, RestApiErrorDomain> =
         withContext(Dispatchers.IO) {
-            val requestModel = ConversationsDeleteRequest(peerId = peerId)
-
-            conversationsService.delete(requestModel.map).mapApiResult(
+            conversationsService.delete(mapOf("peer_id" to peerId.toString())).mapApiResult(
                 successMapper = { response -> response.requireResponse().lastDeletedId },
                 errorMapper = { error -> error?.toDomain() }
             )
@@ -164,14 +164,32 @@ class ConversationsRepositoryImpl(
     override suspend fun pin(
         peerId: Long
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val requestModel = ConversationsPinRequest(peerId = peerId)
-        conversationsService.pin(requestModel.map).mapApiDefault()
+        conversationsService.pin(mapOf("peer_id" to peerId.toString())).mapApiDefault()
     }
 
     override suspend fun unpin(
         peerId: Long
     ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val requestModel = ConversationsUnpinRequest(peerId = peerId)
-        conversationsService.unpin(requestModel.map).mapApiDefault()
+        conversationsService.unpin(mapOf("peer_id" to peerId.toString())).mapApiDefault()
+    }
+
+    override suspend fun reorderPinned(
+        peerIds: List<Long>
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        conversationsService
+            .reorderPinned(mapOf("peer_ids" to peerIds.joinToString(",")))
+            .mapApiDefault()
+    }
+
+    override suspend fun archive(
+        peerId: Long
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        conversationsService.archive(mapOf("peer_id" to peerId.toString())).mapApiDefault()
+    }
+
+    override suspend fun unarchive(
+        peerId: Long
+    ): ApiResult<Int, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        conversationsService.unarchive(mapOf("peer_id" to peerId.toString())).mapApiDefault()
     }
 }

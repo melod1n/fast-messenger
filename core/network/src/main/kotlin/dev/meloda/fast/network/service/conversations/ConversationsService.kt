@@ -32,13 +32,31 @@ interface ConversationsService {
 
     @FormUrlEncoded
     @POST(ConversationsUrls.PIN)
-    suspend fun pin(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<Int>, RestApiError>
+    suspend fun pin(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
 
     @FormUrlEncoded
     @POST(ConversationsUrls.UNPIN)
-    suspend fun unpin(@FieldMap params: Map<String, String>): ApiResult<ApiResponse<Int>, RestApiError>
+    suspend fun unpin(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
 
     @FormUrlEncoded
     @POST(ConversationsUrls.REORDER_PINNED)
-    suspend fun reorderPinned(@FieldMap params: Map<String, String>): ApiResult<Unit, RestApiError>
+    suspend fun reorderPinned(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(ConversationsUrls.ARCHIVE)
+    suspend fun archive(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(ConversationsUrls.UNARCHIVE)
+    suspend fun unarchive(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
 }

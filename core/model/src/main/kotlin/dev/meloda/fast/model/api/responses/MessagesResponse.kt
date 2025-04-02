@@ -52,3 +52,9 @@ data class MessagesCreateChatResponse(
     @Json(name = "chat_id") val chatId: Long,
     @Json(name = "peer_ids") val peerIds: List<Int>
 )
+
+@JsonClass(generateAdapter = true)
+data class MessagesSendResponse(
+    @Json(name = "message_id") val messageId: Long,
+    @Json(name = "cmid") val cmId: Long
+)

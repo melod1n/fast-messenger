@@ -27,5 +27,6 @@ data class UiConversation(
     val peerType: PeerType,
     val interactionText: String?,
     val isExpanded: Boolean,
+    val isArchived: Boolean,
     val options: ImmutableList<ConversationOption>,
 )

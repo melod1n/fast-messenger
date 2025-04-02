@@ -57,10 +57,10 @@ fun MainScreen(
     navigationItems: ImmutableList<BottomNavigationItem>,
     onError: (BaseError) -> Unit = {},
     onSettingsButtonClicked: () -> Unit = {},
-    onConversationItemClicked: (conversationid: Long) -> Unit = {},
+    onNavigateToMessagesHistory: (conversationId: Long) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
     onMessageClicked: (userid: Long) -> Unit = {},
-    onCreateChatClicked: () -> Unit = {}
+    onNavigateToCreateChat: () -> Unit = {}
 ) {
     val theme = LocalThemeConfig.current
     val hazeState = remember { HazeState() }
@@ -189,8 +189,8 @@ fun MainScreen(
                         )
                         conversationsScreen(
                             onError = onError,
-                            onConversationItemClicked = onConversationItemClicked,
-                            onCreateChatClicked = onCreateChatClicked,
+                            onNavigateToMessagesHistory = onNavigateToMessagesHistory,
+                            onNavigateToCreateChat = onNavigateToCreateChat,
                             navController = navController,
                             onScrolledToTop = {
                                 scrollToTop = scrollToTop.toMutableMap().also {

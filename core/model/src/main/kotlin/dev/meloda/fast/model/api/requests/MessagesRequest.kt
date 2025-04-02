@@ -148,24 +148,26 @@ data class MessagesDeleteRequest(
 
 data class MessagesEditRequest(
     val peerId: Long,
-    val messageId: Long,
-    val message: String? = null,
-    val lat: Float? = null,
-    val long: Float? = null,
-    val attachments: List<VkAttachment>? = null,
-    val notParseLinks: Boolean = false,
-    val keepSnippets: Boolean = true,
-    val keepForwardedMessages: Boolean = true
+    val cmId: Long?,
+    val messageId: Long?,
+    val message: String?,
+    val lat: Float?,
+    val long: Float?,
+    val attachments: List<VkAttachment>?,
+    val notParseLinks: Boolean,
+    val keepSnippets: Boolean,
+    val keepForwardedMessages: Boolean
 ) {
 
     val map: Map<String, String>
         get() = mutableMapOf(
             "peer_id" to peerId.toString(),
-            "message_id" to messageId.toString(),
             "dont_parse_links" to notParseLinks.asInt().toString(),
             "keep_snippets" to keepSnippets.asInt().toString(),
             "keep_forward_messages" to keepForwardedMessages.asInt().toString()
         ).apply {
+            messageId?.let { this["message_id"] = it.toString() }
+            cmId?.let { this["cmid"] = it.toString() }
             message?.let { this["message"] = it }
             lat?.let { this["lat"] = it.toString() }
             long?.let { this["long"] = it.toString() }

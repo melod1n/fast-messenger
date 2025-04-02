@@ -37,61 +37,61 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun HandleDialogs(
     screenState: MessagesHistoryScreenState,
-    messageDialog: MessageDialog?,
+    dialog: MessageDialog?,
     onConfirmed: (MessageDialog, Bundle) -> Unit = { _, _ -> },
     onDismissed: (MessageDialog) -> Unit = {},
     onItemPicked: (MessageDialog, Bundle) -> Unit = { _, _ -> }
 ) {
-    when (messageDialog) {
+    when (dialog) {
         null -> Unit
 
         is MessageDialog.MessageOptions -> {
             MessageOptionsDialog(
                 screenState = screenState,
-                message = messageDialog.message,
-                onDismissed = { onDismissed(messageDialog) },
-                onItemPicked = { bundle -> onItemPicked(messageDialog, bundle) }
+                message = dialog.message,
+                onDismissed = { onDismissed(dialog) },
+                onItemPicked = { bundle -> onItemPicked(dialog, bundle) }
             )
         }
 
         is MessageDialog.MessageDelete -> {
             MessageDeleteDialog(
-                messages = listOf(messageDialog.message),
-                onConfirmed = { onConfirmed(messageDialog, it) },
-                onDismissed = { onDismissed(messageDialog) }
+                messages = listOf(dialog.message),
+                onConfirmed = { onConfirmed(dialog, it) },
+                onDismissed = { onDismissed(dialog) }
             )
         }
 
         is MessageDialog.MessagesDelete -> {
             MessageDeleteDialog(
-                messages = messageDialog.messages,
-                onConfirmed = { onConfirmed(messageDialog, it) },
-                onDismissed = { onDismissed(messageDialog) }
+                messages = dialog.messages,
+                onConfirmed = { onConfirmed(dialog, it) },
+                onDismissed = { onDismissed(dialog) }
             )
         }
 
         is MessageDialog.MessagePin,
         is MessageDialog.MessageUnpin -> {
             MessagePinStateDialog(
-                pin = messageDialog is MessageDialog.MessagePin,
-                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
-                onDismissed = { onDismissed(messageDialog) }
+                pin = dialog is MessageDialog.MessagePin,
+                onConfirmed = { onConfirmed(dialog, bundleOf()) },
+                onDismissed = { onDismissed(dialog) }
             )
         }
 
         is MessageDialog.MessageMarkImportance -> {
             MessageImportanceDialog(
-                important = messageDialog.isImportant,
-                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
-                onDismissed = { onDismissed(messageDialog) }
+                important = dialog.isImportant,
+                onConfirmed = { onConfirmed(dialog, bundleOf()) },
+                onDismissed = { onDismissed(dialog) }
             )
         }
 
         is MessageDialog.MessageSpam -> {
             MessageSpamDialog(
-                spam = messageDialog.isSpam,
-                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
-                onDismissed = { onDismissed(messageDialog) }
+                spam = dialog.isSpam,
+                onConfirmed = { onConfirmed(dialog, bundleOf()) },
+                onDismissed = { onDismissed(dialog) }
             )
         }
     }

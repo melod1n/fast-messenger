@@ -1,10 +1,14 @@
 package dev.meloda.fast.model
 
+import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 
 sealed interface LongPollParsedEvent {
 
-    data class NewMessage(val message: VkMessage) : LongPollParsedEvent
+    data class NewMessage(
+        val message: VkMessage,
+        val inArchive: Boolean
+    ) : LongPollParsedEvent
 
     data class MessageEdited(val message: VkMessage) : LongPollParsedEvent
 
@@ -85,5 +89,10 @@ sealed interface LongPollParsedEvent {
     data class ChatCleared(
         val peerId: Long,
         val toCmId: Long
+    ) : LongPollParsedEvent
+
+    data class ChatArchived(
+        val conversation: VkConversation,
+        val archived: Boolean
     ) : LongPollParsedEvent
 }

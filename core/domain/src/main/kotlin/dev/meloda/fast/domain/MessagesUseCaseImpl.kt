@@ -7,27 +7,31 @@ import dev.meloda.fast.data.mapToState
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 class MessagesUseCaseImpl(
     private val repository: MessagesRepository,
 ) : MessagesUseCase {
 
+    override suspend fun storeMessage(message: VkMessage) {
+        repository.storeMessages(listOf(message))
+    }
+
+    override suspend fun storeMessages(messages: List<VkMessage>) {
+        repository.storeMessages(messages)
+    }
+
     override fun getMessagesHistory(
         conversationId: Long,
         count: Int?,
         offset: Int?
-    ): Flow<State<MessagesHistoryInfo>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.getHistory(
+    ): Flow<State<MessagesHistoryInfo>> = flowNewState {
+        repository.getHistory(
             conversationId = conversationId,
             offset = offset,
             count = count
         ).mapToState()
-
-        emit(newState)
     }
 
     override fun getById(
@@ -37,10 +41,8 @@ class MessagesUseCaseImpl(
         cmIds: List<Long>?,
         extended: Boolean?,
         fields: String?
-    ): Flow<State<List<VkMessage>>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.getById(
+    ): Flow<State<List<VkMessage>>> = flowNewState {
+        repository.getById(
             peerCmIds = peerCmIds,
             peerId = peerId,
             messagesIds = messageIds,
@@ -48,8 +50,6 @@ class MessagesUseCaseImpl(
             extended = extended,
             fields = fields
         ).mapToState()
-
-        emit(newState)
     }
 
     override fun sendMessage(
@@ -58,32 +58,24 @@ class MessagesUseCaseImpl(
         message: String?,
         replyTo: Long?,
         attachments: List<VkAttachment>?
-    ): Flow<State<Long>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.send(
+    ): Flow<State<MessagesSendResponse>> = flowNewState {
+        repository.send(
             peerId = peerId,
             randomId = randomId,
             message = message,
             replyTo = replyTo,
             attachments = attachments
         ).mapToState()
-
-        emit(newState)
     }
 
     override fun markAsRead(
         peerId: Long,
         startMessageId: Long
-    ): Flow<State<Int>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.markAsRead(
+    ): Flow<State<Int>> = flowNewState {
+        repository.markAsRead(
             peerId = peerId,
             startMessageId = startMessageId
         ).mapToState()
-
-        emit(newState)
     }
 
     override fun getHistoryAttachments(
@@ -91,90 +83,67 @@ class MessagesUseCaseImpl(
         count: Int?,
         offset: Int?,
         attachmentTypes: List<String>,
-        conversationMessageId: Long
-    ): Flow<State<List<VkAttachmentHistoryMessage>>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.getHistoryAttachments(
+        cmId: Long
+    ): Flow<State<List<VkAttachmentHistoryMessage>>> = flowNewState {
+        repository.getHistoryAttachments(
             peerId = peerId,
             count = count,
             offset = offset,
             attachmentTypes = attachmentTypes,
-            conversationMessageId = conversationMessageId
+            cmId = cmId
         ).mapToState()
-
-        emit(newState)
     }
 
-    override fun createChat(userIds: List<Long>?, title: String?): Flow<State<Long>> = flow {
-        emit(State.Loading)
-        val newState = repository.createChat(userIds, title).mapToState()
-        emit(newState)
+    override fun createChat(
+        userIds: List<Long>?,
+        title: String
+    ): Flow<State<Long>> = flowNewState {
+        repository.createChat(userIds, title).mapToState()
     }
 
     override fun pin(
         peerId: Long,
         messageId: Long?,
-        conversationMessageId: Long?
-    ): Flow<State<VkMessage>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.pin(
+        cmId: Long?
+    ): Flow<State<VkMessage>> = flowNewState {
+        repository.pin(
             peerId = peerId,
             messageId = messageId,
-            conversationMessageId = conversationMessageId
+            cmId = cmId
         ).mapToState()
-
-        emit(newState)
     }
 
-    override fun unpin(peerId: Long): Flow<State<Int>> = flow {
-        emit(State.Loading)
-        val newState = repository.unpin(peerId = peerId).mapToState()
-        emit(newState)
+    override fun unpin(peerId: Long): Flow<State<Int>> = flowNewState {
+        repository.unpin(peerId = peerId).mapToState()
     }
 
     override fun markAsImportant(
         peerId: Long,
-        messageIds: List<Long>,
+        messageIds: List<Long>?,
+        cmIds: List<Long>?,
         important: Boolean
-    ): Flow<State<List<Long>>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.markAsImportant(
+    ): Flow<State<List<Long>>> = flowNewState {
+        repository.markAsImportant(
             peerId = peerId,
             messageIds = messageIds,
-            conversationMessageIds = null,
+            cmIds = cmIds,
             important = important
         ).mapToState()
-
-        emit(newState)
     }
 
     override fun delete(
         peerId: Long,
-        messageIds: List<Long>,
+        messageIds: List<Long>?,
+        cmIds: List<Long>?,
         spam: Boolean,
         deleteForAll: Boolean
-    ): Flow<State<List<Any>>> = flow {
-        emit(State.Loading)
-
-        val newState = repository.delete(
+    ): Flow<State<List<Any>>> = flowNewState {
+        repository.delete(
             peerId = peerId,
             messageIds = messageIds,
-            conversationMessageIds = null,
+            cmIds = cmIds,
             spam = spam,
             deleteForAll = deleteForAll
         ).mapToState()
-
-        emit(newState)
-    }
-
-    override suspend fun storeMessage(message: VkMessage) {
-        repository.storeMessages(listOf(message))
-    }
-
-    override suspend fun storeMessages(messages: List<VkMessage>) {
-        repository.storeMessages(messages)
     }
 }

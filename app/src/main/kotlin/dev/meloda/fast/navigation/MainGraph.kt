@@ -21,10 +21,10 @@ object Main
 fun NavGraphBuilder.mainScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
-    onConversationClicked: (conversationid: Long) -> Unit,
+    onNavigateToMessagesHistory: (conversationId: Long) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
-    onCreateChatClicked: () -> Unit
+    onNavigateToCreateChat: () -> Unit
 ) {
     val navigationItems = ImmutableList.of(
         BottomNavigationItem(
@@ -52,10 +52,10 @@ fun NavGraphBuilder.mainScreen(
             navigationItems = navigationItems,
             onError = onError,
             onSettingsButtonClicked = onSettingsButtonClicked,
-            onConversationItemClicked = onConversationClicked,
+            onNavigateToMessagesHistory = onNavigateToMessagesHistory,
             onPhotoClicked = onPhotoClicked,
             onMessageClicked = onMessageClicked,
-            onCreateChatClicked = onCreateChatClicked
+            onNavigateToCreateChat = onNavigateToCreateChat
         )
     }
 }

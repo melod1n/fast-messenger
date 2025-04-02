@@ -13,5 +13,20 @@ enum class ConversationFlags(val value: Int) {
     DO_NOT_NOTIFY_ALL_MENTIONS(524288),
     MARKED_AS_UNREAD(1048576),
     ARCHIVED(8388608),
-    CALL_IN_PROGRESS(16777216),
+    CALL_IN_PROGRESS(16777216);
+
+    companion object {
+
+        fun parse(mask: Int): List<ConversationFlags> {
+            val flags = mutableListOf<ConversationFlags>()
+
+            ConversationFlags.entries.forEach { flag ->
+                if (mask and flag.value > 0) {
+                    flags.add(flag)
+                }
+            }
+
+            return flags
+        }
+    }
 }

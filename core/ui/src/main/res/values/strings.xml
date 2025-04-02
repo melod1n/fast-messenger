@@ -152,6 +152,8 @@
     <string name="action_mark_as_read">Read</string>
 
     <string name="action_delete">Delete</string>
+    <string name="conversation_context_action_archive">Archive</string>
+    <string name="conversation_context_action_unarchive">Unarchive</string>
     <string name="conversation_context_action_delete">Delete</string>
     <string name="confirm_delete_conversation">Delete the conversation?</string>
     <string name="action_sign_out">Sign out</string>
@@ -160,10 +162,14 @@
     <string name="conversation_context_action_pin">Pin</string>
     <string name="confirm_unpin_conversation">Unpin the conversation?</string>
     <string name="confirm_pin_conversation">Pin the conversation?</string>
+    <string name="confirm_archive_conversation">Archive the conversation?</string>
+    <string name="confirm_unarchive_conversation">Unarchive the conversation?</string>
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
     <string name="action_mark">Mark</string>
     <string name="action_unmark">Unmark</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_unarchive">Unarchive</string>
     <string name="message_call_type_outgoing">Outgoing call</string>
     <string name="message_call_type_incoming">Incoming call</string>
     <string name="message_call_state_ended">Ended</string>

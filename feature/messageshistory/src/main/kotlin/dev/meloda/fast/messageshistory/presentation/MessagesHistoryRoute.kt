@@ -24,7 +24,7 @@ fun MessagesHistoryRoute(
     val navigationEvent by viewModel.navigation.collectAsStateWithLifecycle()
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiMessages by viewModel.uiMessages.collectAsStateWithLifecycle()
-    val messageDialog by viewModel.messageDialog.collectAsStateWithLifecycle()
+    val dialog by viewModel.dialog.collectAsStateWithLifecycle()
     val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
@@ -43,9 +43,7 @@ fun MessagesHistoryRoute(
                 true
             }
         }
-        if (needToConsume) {
-            viewModel.onNavigationConsumed()
-        }
+        if (needToConsume) viewModel.onNavigationConsumed()
     }
 
     MessagesHistoryScreen(
@@ -77,7 +75,7 @@ fun MessagesHistoryRoute(
 
     HandleDialogs(
         screenState = screenState,
-        messageDialog = messageDialog,
+        dialog = dialog,
         onConfirmed = viewModel::onDialogConfirmed,
         onDismissed = viewModel::onDialogDismissed,
         onItemPicked = viewModel::onDialogItemPicked

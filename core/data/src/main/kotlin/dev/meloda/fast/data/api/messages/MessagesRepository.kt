@@ -1,12 +1,17 @@
 package dev.meloda.fast.data.api.messages
 
 import com.slack.eithernet.ApiResult
+import dev.meloda.fast.model.api.data.VkChatData
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
+import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.RestApiErrorDomain
 
 interface MessagesRepository {
+
+    suspend fun storeMessages(messages: List<VkMessage>)
 
     suspend fun getHistory(
         conversationId: Long,
@@ -29,7 +34,7 @@ interface MessagesRepository {
         message: String?,
         replyTo: Long?,
         attachments: List<VkAttachment>?
-    ): ApiResult<Long, RestApiErrorDomain>
+    ): ApiResult<MessagesSendResponse, RestApiErrorDomain>
 
     suspend fun markAsRead(
         peerId: Long,
@@ -41,7 +46,7 @@ interface MessagesRepository {
         count: Int?,
         offset: Int?,
         attachmentTypes: List<String>,
-        conversationMessageId: Long
+        cmId: Long
     ): ApiResult<List<VkAttachmentHistoryMessage>, RestApiErrorDomain>
 
     suspend fun createChat(
@@ -51,8 +56,8 @@ interface MessagesRepository {
 
     suspend fun pin(
         peerId: Long,
-        messageId: Long?,
-        conversationMessageId: Long?
+        messageId: Long? = null,
+        cmId: Long? = null
     ): ApiResult<VkMessage, RestApiErrorDomain>
 
     suspend fun unpin(
@@ -61,34 +66,47 @@ interface MessagesRepository {
 
     suspend fun markAsImportant(
         peerId: Long,
-        messageIds: List<Long>?,
-        conversationMessageIds: List<Long>?,
+        messageIds: List<Long>? = null,
+        cmIds: List<Long>? = null,
         important: Boolean
     ): ApiResult<List<Long>, RestApiErrorDomain>
 
     suspend fun delete(
         peerId: Long,
         messageIds: List<Long>?,
-        conversationMessageIds: List<Long>?,
+        cmIds: List<Long>?,
         spam: Boolean,
         deleteForAll: Boolean
     ): ApiResult<List<Any>, RestApiErrorDomain>
 
-    suspend fun storeMessages(messages: List<VkMessage>)
-//
-//    suspend fun edit(
-//        params: MessagesEditRequest
-//    ): ApiResult<Int, RestApiErrorDomain>
-//
-//    suspend fun getChat(
-//        params: MessagesGetChatRequest
-//    ): ApiResult<VkChatData, RestApiErrorDomain>
-//
-//    suspend fun getConversationMembers(
-//        params: MessagesGetConversationMembersRequest
-//    ): ApiResult<MessagesGetConversationMembersResponse, RestApiErrorDomain>
-//
-//    suspend fun removeChatUser(
-//        params: MessagesRemoveChatUserRequest
-//    ): ApiResult<Int, RestApiErrorDomain>
+    suspend fun edit(
+        peerId: Long,
+        messageId: Long? = null,
+        cmId: Long? = null,
+        message: String? = null,
+        lat: Float? = null,
+        long: Float? = null,
+        attachments: List<VkAttachment>? = null,
+        notParseLinks: Boolean = false,
+        keepSnippets: Boolean = true,
+        keepForwardedMessages: Boolean = true
+    ): ApiResult<Int, RestApiErrorDomain>
+
+    suspend fun getChat(
+        chatId: Long,
+        fields: String? = null
+    ): ApiResult<VkChatData, RestApiErrorDomain>
+
+    suspend fun getConversationMembers(
+        peerId: Long,
+        offset: Int? = null,
+        count: Int? = null,
+        extended: Boolean? = null,
+        fields: String? = null
+    ): ApiResult<MessagesGetConversationMembersResponse, RestApiErrorDomain>
+
+    suspend fun removeChatUser(
+        chatId: Long,
+        memberId: Long
+    ): ApiResult<Int, RestApiErrorDomain>
 }

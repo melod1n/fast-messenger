@@ -17,7 +17,6 @@ import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.network.VkErrorCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 
 interface ChatMaterialsViewModel {
     val screenState: StateFlow<ChatMaterialsScreenState>
@@ -54,7 +53,7 @@ class ChatMaterialsViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 peerId = arguments.peerId,
-                conversationMessageId = arguments.conversationMessageId
+                cmId = arguments.conversationMessageId
             )
         }
 
@@ -85,7 +84,7 @@ class ChatMaterialsViewModelImpl(
             count = LOAD_COUNT,
             offset = offset,
             attachmentTypes = listOf(materialType.toString()),
-            conversationMessageId = screenState.value.conversationMessageId
+            cmId = screenState.value.cmId
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = ::handleError,
@@ -100,11 +99,11 @@ class ChatMaterialsViewModelImpl(
 
                     val newState = screenState.value.copy(
                         isPaginationExhausted = paginationExhausted,
-                        conversationMessageId = if (loadedMaterials.size + offset > 200) {
+                        cmId = if (loadedMaterials.size + offset > 200) {
                             currentOffset.setValue { 0 }
                             loadedMaterials.lastOrNull()?.conversationMessageId ?: -1
                         } else {
-                            screenState.value.conversationMessageId
+                            screenState.value.cmId
                         }
                     )
 

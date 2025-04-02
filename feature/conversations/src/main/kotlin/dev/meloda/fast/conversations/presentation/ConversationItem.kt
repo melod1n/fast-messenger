@@ -61,7 +61,7 @@ val BirthdayColor = Color(0xffb00b69)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationItem(
-    onItemClick: (Long) -> Unit,
+    onItemClick: (UiConversation) -> Unit,
     onItemLongClick: (conversation: UiConversation) -> Unit,
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
     maxLines: Int,
@@ -80,7 +80,7 @@ fun ConversationItem(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { onItemClick(conversation.id) },
+                onClick = { onItemClick(conversation) },
                 onLongClick = {
                     onItemLongClick(conversation)
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -356,11 +356,12 @@ fun ConversationItem(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(58.dp)
+                        .height(60.dp)
                         .padding(start = 8.dp)
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider()
+                    Spacer(modifier=Modifier.height(4.dp))
 
                     Row(
                         modifier = Modifier
@@ -398,5 +399,3 @@ fun ConversationItem(
         }
     }
 }
-
-

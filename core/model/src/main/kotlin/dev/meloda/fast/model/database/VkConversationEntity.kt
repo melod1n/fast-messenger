@@ -29,6 +29,7 @@ data class VkConversationEntity(
     val minorId: Int,
     val pinnedMessageId: Long?,
     val peerType: String,
+    val isArchived: Boolean
 )
 
 fun VkConversationEntity.asExternalModel(): VkConversation = VkConversation(
@@ -57,6 +58,8 @@ fun VkConversationEntity.asExternalModel(): VkConversation = VkConversation(
     interactionType = -1,
     interactionIds = emptyList(),
     peerType = PeerType.parse(peerType),
+    isArchived = isArchived,
+
     lastMessage = null,//lastMessage?.asExternalModel(),
     pinnedMessage = null,//pinnedMessage?.asExternalModel(),
     user = null,

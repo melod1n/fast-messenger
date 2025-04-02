@@ -10,7 +10,7 @@ data class ChatMaterialsScreenState(
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean,
     val peerId: Long,
-    val conversationMessageId: Long
+    val cmId: Long
 ) {
 
     companion object {
@@ -21,7 +21,7 @@ data class ChatMaterialsScreenState(
             isPaginating = false,
             isPaginationExhausted = false,
             peerId = -1,
-            conversationMessageId = -1
+            cmId = -1
         )
     }
 }

@@ -1,10 +1,10 @@
 package dev.meloda.fast.model.api.data
 
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.PeerType
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkConversationData(
@@ -25,6 +25,7 @@ data class VkConversationData(
     @Json(name = "chat_settings") val chatSettings: ChatSettings?,
     @Json(name = "call_in_progress") val callInProgress: CallInProgress?,
     @Json(name = "unread_count") val unreadCount: Int?,
+    @Json(name = "is_archived") val isArchived: Boolean?
 ) {
 
     @JsonClass(generateAdapter = true)
@@ -140,5 +141,6 @@ data class VkConversationData(
         pinnedMessage = chatSettings?.pinnedMessage?.mapToDomain(),
         user = null,
         group = null,
+        isArchived = isArchived == true
     )
 }

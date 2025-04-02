@@ -1,13 +1,10 @@
 package dev.meloda.fast.conversations.model
 
 import androidx.compose.runtime.Immutable
-import dev.meloda.fast.ui.model.api.ConversationsShowOptions
 import dev.meloda.fast.ui.model.api.UiConversation
 
 @Immutable
 data class ConversationsScreenState(
-    val showOptions: ConversationsShowOptions,
-    val conversations: List<UiConversation>,
     val isLoading: Boolean,
     val isPaginating: Boolean,
     val isPaginationExhausted: Boolean,
@@ -18,8 +15,6 @@ data class ConversationsScreenState(
 
     companion object {
         val EMPTY: ConversationsScreenState = ConversationsScreenState(
-            showOptions = ConversationsShowOptions.EMPTY,
-            conversations = emptyList(),
             isLoading = true,
             isPaginating = false,
             isPaginationExhausted = false,

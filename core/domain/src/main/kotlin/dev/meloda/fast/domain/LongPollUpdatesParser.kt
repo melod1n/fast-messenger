@@ -7,18 +7,20 @@ import dev.meloda.fast.common.extensions.asLong
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.toList
 import dev.meloda.fast.data.UserConfig
-import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.model.ApiEvent
+import dev.meloda.fast.model.ConversationFlags
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollEvent
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.MessageFlags
+import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -26,6 +28,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class LongPollUpdatesParser(
+    private val conversationsUseCase: ConversationsUseCase,
     private val messagesUseCase: MessagesUseCase
 ) {
     private val job = SupervisorJob()
@@ -265,14 +268,25 @@ class LongPollUpdatesParser(
         val peerId = event[4].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
-            loadMessage(
-                peerId = peerId,
-                cmId = cmId
-            )?.let { message ->
+            val message =
+                async { loadMessage(peerId = peerId, cmId = cmId) }.await()
+
+            val conversation =
+                async { loadConversation(peerId = peerId) }.await()
+
+            message?.let {
                 listenersMap[LongPollEvent.MESSAGE_NEW]?.let {
                     it.map { vkEventCallback ->
                         (vkEventCallback as VkEventCallback<LongPollParsedEvent.NewMessage>)
-                            .onEvent(LongPollParsedEvent.NewMessage(message))
+                            .onEvent(
+                                LongPollParsedEvent.NewMessage(
+                                    message = message,
+                                    inArchive = conversation?.isArchived == true
+                                    // TODO: 03-Apr-25, Danil Nikolaev:
+                                    // load user settings about restoring chats with
+                                    // enabled notifications from archive
+                                )
+                            )
                     }
                 }
             }
@@ -342,10 +356,112 @@ class LongPollUpdatesParser(
 
     private fun parseChatClearFlags(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
+
+        val peerId = event[1].asLong()
+        val flags = event[2].asInt()
+
+        val eventsToSend = mutableListOf<LongPollParsedEvent>()
+
+        val parsedFlags = ConversationFlags.parse(flags)
+
+        coroutineScope.launch(Dispatchers.IO) {
+            parsedFlags.forEach { flag ->
+                when (flag) {
+                    ConversationFlags.ARCHIVED -> {
+                        val conversation = loadConversation(
+                            peerId = peerId,
+                            extended = true,
+                            fields = VkConstants.ALL_FIELDS
+                        ) ?: return@forEach
+
+                        val message = loadMessage(
+                            peerId = peerId,
+                            cmId = conversation.lastCmId
+                        )
+
+                        val eventToSend = LongPollParsedEvent.ChatArchived(
+                            conversation = conversation.copy(lastMessage = message),
+                            archived = false
+                        )
+                        eventsToSend += eventToSend
+
+                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.let { listeners ->
+                            listeners.map { vkEventCallback ->
+                                (vkEventCallback as? VkEventCallback<LongPollParsedEvent.ChatArchived>)
+                                    ?.onEvent(eventToSend)
+                            }
+                        }
+                    }
+
+                    else -> Unit
+                }
+            }
+
+            eventsToSend.forEach { eventToSend ->
+                listenersMap[LongPollEvent.CHAT_CLEAR_FLAGS]?.let { listeners ->
+                    listeners.map { vkEventCallback ->
+                        (vkEventCallback as? VkEventCallback<LongPollParsedEvent>)?.onEvent(
+                            eventToSend
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun parseChatSetFlags(eventType: ApiEvent, event: List<Any>) {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
+
+        val peerId = event[1].asLong()
+        val flags = event[2].asInt()
+
+        val eventsToSend = mutableListOf<LongPollParsedEvent>()
+
+        val parsedFlags = ConversationFlags.parse(flags)
+
+        coroutineScope.launch(Dispatchers.IO) {
+            parsedFlags.forEach { flag ->
+                when (flag) {
+                    ConversationFlags.ARCHIVED -> {
+                        val conversation = loadConversation(
+                            peerId = peerId,
+                            extended = true,
+                            fields = VkConstants.ALL_FIELDS
+                        ) ?: return@forEach
+
+                        val message = loadMessage(
+                            peerId = peerId,
+                            cmId = conversation.lastCmId
+                        )
+
+                        val eventToSend = LongPollParsedEvent.ChatArchived(
+                            conversation = conversation.copy(lastMessage = message),
+                            archived = true
+                        )
+                        eventsToSend += eventToSend
+
+                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.let { listeners ->
+                            listeners.map { vkEventCallback ->
+                                (vkEventCallback as? VkEventCallback<LongPollParsedEvent.ChatArchived>)
+                                    ?.onEvent(eventToSend)
+                            }
+                        }
+                    }
+
+                    else -> Unit
+                }
+            }
+
+            eventsToSend.forEach { eventToSend ->
+                listenersMap[LongPollEvent.CHAT_SET_FLAGS]?.let { listeners ->
+                    listeners.map { vkEventCallback ->
+                        (vkEventCallback as? VkEventCallback<LongPollParsedEvent>)?.onEvent(
+                            eventToSend
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun parseMessagesDeleted(eventType: ApiEvent, event: List<Any>) {
@@ -544,10 +660,36 @@ class LongPollUpdatesParser(
                             return@listenValue
                         }
 
-                        VkMemoryCache[message.id] = message
-                        messagesUseCase.storeMessage(message)
-
                         continuation.resume(message)
+                    }
+                )
+            }
+        }
+    }
+
+    private suspend fun loadConversation(
+        peerId: Long,
+        extended: Boolean = false,
+        fields: String? = null
+    ): VkConversation? = suspendCoroutine { continuation ->
+        coroutineScope.launch(Dispatchers.IO) {
+            conversationsUseCase.getById(
+                peerIds = listOf(peerId),
+                extended = extended,
+                fields = fields
+            ).listenValue(coroutineScope) { state ->
+                state.processState(
+                    error = { error ->
+                        Log.e("LongPollUpdatesParser", "loadConversation: error: $error")
+                        continuation.resume(null)
+                    },
+                    success = { response ->
+                        val conversation = response.singleOrNull() ?: run {
+                            continuation.resume(null)
+                            return@listenValue
+                        }
+
+                        continuation.resume(conversation)
                     }
                 )
             }
@@ -628,6 +770,10 @@ class LongPollUpdatesParser(
 
     fun onChatMinorChanged(block: (LongPollParsedEvent.ChatMinorChanged) -> Unit) {
         registerListener(LongPollEvent.CHAT_MINOR_CHANGED, assembleEventCallback(block))
+    }
+
+    fun onChatArchived(block: (LongPollParsedEvent.ChatArchived) -> Unit) {
+        registerListener(LongPollEvent.CHAT_ARCHIVED, assembleEventCallback(block))
     }
 
     fun onInteractions(block: (LongPollParsedEvent.Interaction) -> Unit) {
