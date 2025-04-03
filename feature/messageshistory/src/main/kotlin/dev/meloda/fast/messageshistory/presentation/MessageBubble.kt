@@ -91,7 +91,7 @@ fun MessageBubble(
             )
 
             if (text != null) {
-                val textLambda: @Composable () -> Unit = remember {
+                val textLambda: @Composable () -> Unit = remember(text, theme, dateContainerWidth) {
                     {
                         Text(
                             text = text,
