@@ -11,9 +11,11 @@ import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
 @Composable
 fun ConversationsRoute(
+    onBack: (() -> Unit)? = null,
     onError: (BaseError) -> Unit,
     onNavigateToMessagesHistory: (conversationId: Long) -> Unit,
-    onNavigateToCreateChat: () -> Unit,
+    onNavigateToCreateChat: (() -> Unit)? = null,
+    onNavigateToArchive: (() -> Unit)? = null,
     onScrolledToTop: () -> Unit,
     viewModel: ConversationsViewModel
 ) {
@@ -29,7 +31,7 @@ fun ConversationsRoute(
             null -> false
 
             is ConversationNavigation.CreateChat -> {
-                onNavigateToCreateChat()
+                onNavigateToCreateChat?.invoke()
                 true
             }
 
@@ -43,6 +45,7 @@ fun ConversationsRoute(
     }
 
     ConversationsScreen(
+        onBack = { onBack?.invoke() },
         screenState = screenState,
         conversations = conversations.toImmutableList(),
         baseError = baseError,
@@ -54,9 +57,10 @@ fun ConversationsRoute(
         onRefreshDropdownItemClicked = viewModel::onRefresh,
         onRefresh = viewModel::onRefresh,
         onCreateChatButtonClicked = viewModel::onCreateChatButtonClicked,
+        onArchiveActionClicked = { onNavigateToArchive?.invoke() },
         setScrollIndex = viewModel::setScrollIndex,
         setScrollOffset = viewModel::setScrollOffset,
-        onScrolledToTop = onScrolledToTop,
+        onConsumeReselection = onScrolledToTop,
         onErrorViewButtonClicked = {
             if (baseError in listOf(BaseError.AccountBlocked, BaseError.SessionExpired)) {
                 onError(requireNotNull(baseError))

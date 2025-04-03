@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfFirstOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
 import com.conena.nanokt.text.isNotEmptyOrBlank
+import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.common.extensions.setValue
@@ -601,30 +602,33 @@ class MessagesHistoryViewModelImpl(
     private fun loadConversation() {
         Log.d("MessagesHistoryViewModelImpl", "loadConversation()")
 
-        loadConversationsByIdUseCase(listOf(screenState.value.conversationId))
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = ::handleError,
-                    success = { response ->
-                        val conversation = response.firstOrNull() ?: return@listenValue
-                        val title = conversation.extractTitle(
-                            useContactName = AppSettings.General.useContactNames,
-                            resources = resourceProvider.resources
+        loadConversationsByIdUseCase(
+            peerIds = listOf(screenState.value.conversationId),
+            extended = true,
+            fields = VkConstants.ALL_FIELDS
+        ).listenValue(viewModelScope) { state ->
+            state.processState(
+                error = ::handleError,
+                success = { response ->
+                    val conversation = response.firstOrNull() ?: return@listenValue
+                    val title = conversation.extractTitle(
+                        useContactName = AppSettings.General.useContactNames,
+                        resources = resourceProvider.resources
+                    )
+                    val avatar = conversation.extractAvatar()
+
+                    screenState.setValue { old ->
+                        old.copy(
+                            conversation = conversation,
+                            title = title,
+                            avatar = avatar
                         )
-                        val avatar = conversation.extractAvatar()
-
-                        screenState.setValue { old ->
-                            old.copy(
-                                conversation = conversation,
-                                title = title,
-                                avatar = avatar
-                            )
-                        }
-
-                        conversation.pinnedMessage?.let(::handlePinnedMessage)
                     }
-                )
-            }
+
+                    conversation.pinnedMessage?.let(::handlePinnedMessage)
+                }
+            )
+        }
     }
 
     private fun handlePinnedMessage(pinnedMessage: VkMessage?) {

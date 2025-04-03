@@ -35,7 +35,7 @@ import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
-import dev.meloda.fast.ui.theme.LocalScrollToTop
+import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
@@ -95,7 +95,7 @@ fun FriendsScreen(
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
 
-    val scrollToTop = LocalScrollToTop.current[Friends] ?: false
+    val scrollToTop = LocalReselectedTab.current[Friends] ?: false
     LaunchedEffect(scrollToTop) {
         if (scrollToTop) {
             if (listState.firstVisibleItemIndex > 14) {

@@ -1,7 +1,7 @@
 package dev.meloda.fast.data.api.conversations
 
 import com.slack.eithernet.ApiResult
-import dev.meloda.fast.model.ConversationFilter
+import dev.meloda.fast.model.ConversationsFilter
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.network.RestApiErrorDomain
 
@@ -12,7 +12,7 @@ interface ConversationsRepository {
     suspend fun getConversations(
         count: Int?,
         offset: Int?,
-        filter: ConversationFilter
+        filter: ConversationsFilter
     ): ApiResult<List<VkConversation>, RestApiErrorDomain>
 
     suspend fun getConversationsById(

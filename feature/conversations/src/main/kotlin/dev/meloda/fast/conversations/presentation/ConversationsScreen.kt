@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
@@ -70,7 +71,7 @@ import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
-import dev.meloda.fast.ui.theme.LocalScrollToTop
+import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
@@ -90,6 +91,7 @@ fun ConversationsScreen(
     conversations: ImmutableList<UiConversation> = emptyImmutableList(),
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
+    onBack: () -> Unit = {},
     onConversationItemClicked: (conversation: UiConversation) -> Unit = {},
     onConversationItemLongClicked: (conversation: UiConversation) -> Unit = {},
     onOptionClicked: (UiConversation, ConversationOption) -> Unit = { _, _ -> },
@@ -97,9 +99,10 @@ fun ConversationsScreen(
     onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onCreateChatButtonClicked: () -> Unit = {},
+    onArchiveActionClicked: () -> Unit = {},
     setScrollIndex: (Int) -> Unit = {},
     setScrollOffset: (Int) -> Unit = {},
-    onScrolledToTop: () -> Unit = {},
+    onConsumeReselection: () -> Unit = {},
     onErrorViewButtonClicked: () -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
@@ -113,14 +116,18 @@ fun ConversationsScreen(
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
 
-    val scrollToTop = LocalScrollToTop.current[Conversations] ?: false
-    LaunchedEffect(scrollToTop) {
-        if (scrollToTop) {
-            if (listState.firstVisibleItemIndex > 14) {
-                listState.scrollToItem(14)
+    val currentTabReselected = LocalReselectedTab.current[Conversations] ?: false
+    LaunchedEffect(currentTabReselected) {
+        if (currentTabReselected) {
+            if (screenState.isArchive) {
+                onBack.invoke()
+            } else {
+                if (listState.firstVisibleItemIndex > 14) {
+                    listState.scrollToItem(14)
+                }
+                listState.animateScrollToItem(0)
+                onConsumeReselection()
             }
-            listState.animateScrollToItem(0)
-            onScrolledToTop()
         }
     }
 
@@ -181,20 +188,38 @@ fun ConversationsScreen(
                     title = {
                         Text(
                             text = stringResource(
-                                id = if (screenState.isLoading) UiR.string.title_loading
-                                else UiR.string.title_conversations
+                                id = when {
+                                    screenState.isLoading -> UiR.string.title_loading
+                                    screenState.isArchive -> UiR.string.title_archive
+                                    else -> UiR.string.title_conversations
+                                }
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.headlineSmall
                         )
                     },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                dropDownMenuExpanded = true
+                    navigationIcon = {
+                        if (screenState.isArchive) {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    contentDescription = null
+                                )
                             }
-                        ) {
+                        }
+                    },
+                    actions = {
+                        if (!screenState.isArchive) {
+                            IconButton(onClick = onArchiveActionClicked) {
+                                Icon(
+                                    painter = painterResource(UiR.drawable.outline_archive_24),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+
+                        IconButton(onClick = { dropDownMenuExpanded = true }) {
                             Icon(
                                 imageVector = Icons.Rounded.MoreVert,
                                 contentDescription = null
@@ -253,24 +278,26 @@ fun ConversationsScreen(
             }
         },
         floatingActionButton = {
-            val offsetY by animateIntAsState(
-                targetValue = if (listState.isScrollingUp()) 0 else 600
-            )
+            if (!screenState.isArchive) {
+                val offsetY by animateIntAsState(
+                    targetValue = if (listState.isScrollingUp()) 0 else 600
+                )
 
-            Column {
-                FloatingActionButton(
-                    onClick = onCreateChatButtonClicked,
-                    modifier = Modifier.offset {
-                        IntOffset(0, offsetY)
+                Column {
+                    FloatingActionButton(
+                        onClick = onCreateChatButtonClicked,
+                        modifier = Modifier.offset {
+                            IntOffset(0, offsetY)
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = UiR.drawable.round_create_24),
+                            contentDescription = "Add chat button"
+                        )
                     }
-                ) {
-                    Icon(
-                        painter = painterResource(id = UiR.drawable.round_create_24),
-                        contentDescription = "Add chat button"
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(LocalBottomPadding.current))
+                    Spacer(modifier = Modifier.height(LocalBottomPadding.current))
+                }
             }
         }
     ) { padding ->

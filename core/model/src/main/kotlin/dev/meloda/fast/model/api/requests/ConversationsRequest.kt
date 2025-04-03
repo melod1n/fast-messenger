@@ -1,12 +1,12 @@
 package dev.meloda.fast.model.api.requests
 
-import dev.meloda.fast.model.ConversationFilter
+import dev.meloda.fast.model.ConversationsFilter
 
 data class ConversationsGetRequest(
     val count: Int? = null,
     val offset: Int? = null,
     val fields: String = "",
-    val filter: ConversationFilter = ConversationFilter.ALL,
+    val filter: ConversationsFilter = ConversationsFilter.ALL,
     val extended: Boolean? = true,
     val startMessageId: Long? = null
 ) {

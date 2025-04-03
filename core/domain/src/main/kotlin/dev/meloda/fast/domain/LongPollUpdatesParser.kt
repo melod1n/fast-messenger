@@ -272,7 +272,13 @@ class LongPollUpdatesParser(
                 async { loadMessage(peerId = peerId, cmId = cmId) }.await()
 
             val conversation =
-                async { loadConversation(peerId = peerId) }.await()
+                async {
+                    loadConversation(
+                        peerId = peerId,
+                        extended = true,
+                        fields = VkConstants.ALL_FIELDS
+                    )
+                }.await()
 
             message?.let {
                 listenersMap[LongPollEvent.MESSAGE_NEW]?.let {

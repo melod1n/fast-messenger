@@ -3,6 +3,7 @@ package dev.meloda.fast.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.conversations.navigation.Conversations
+import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
@@ -37,7 +38,7 @@ fun NavGraphBuilder.mainScreen(
             titleResId = UiR.string.title_conversations,
             selectedIconResId = UiR.drawable.baseline_chat_24,
             unselectedIconResId = UiR.drawable.outline_chat_24,
-            route = Conversations
+            route = ConversationsGraph
         ),
         BottomNavigationItem(
             titleResId = UiR.string.title_profile,

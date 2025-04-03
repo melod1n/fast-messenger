@@ -37,7 +37,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.navigation.Conversations
-import dev.meloda.fast.conversations.navigation.conversationsScreen
+import dev.meloda.fast.conversations.navigation.conversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.friends.navigation.friendsScreen
 import dev.meloda.fast.model.BaseError
@@ -46,7 +46,7 @@ import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
-import dev.meloda.fast.ui.theme.LocalScrollToTop
+import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.ImmutableList
@@ -164,7 +164,7 @@ fun MainScreen(
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
                 LocalBottomPadding provides padding.calculateBottomPadding(),
-                LocalScrollToTop provides scrollToTop
+                LocalReselectedTab provides scrollToTop
             ) {
                 NavHost(
                     navController = navController,
@@ -187,7 +187,7 @@ fun MainScreen(
                                 }
                             },
                         )
-                        conversationsScreen(
+                        conversationsGraph(
                             onError = onError,
                             onNavigateToMessagesHistory = onNavigateToMessagesHistory,
                             onNavigateToCreateChat = onNavigateToCreateChat,

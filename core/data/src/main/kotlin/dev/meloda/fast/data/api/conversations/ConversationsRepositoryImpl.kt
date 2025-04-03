@@ -9,7 +9,7 @@ import dev.meloda.fast.database.dao.ConversationDao
 import dev.meloda.fast.database.dao.GroupDao
 import dev.meloda.fast.database.dao.MessageDao
 import dev.meloda.fast.database.dao.UserDao
-import dev.meloda.fast.model.ConversationFilter
+import dev.meloda.fast.model.ConversationsFilter
 import dev.meloda.fast.model.api.data.VkContactData
 import dev.meloda.fast.model.api.data.VkGroupData
 import dev.meloda.fast.model.api.data.VkUserData
@@ -43,7 +43,7 @@ class ConversationsRepositoryImpl(
     override suspend fun getConversations(
         count: Int?,
         offset: Int?,
-        filter: ConversationFilter
+        filter: ConversationsFilter
     ): ApiResult<List<VkConversation>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = ConversationsGetRequest(
             count = count,

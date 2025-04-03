@@ -1,5 +1,5 @@
 package dev.meloda.fast.model
 
-enum class ConversationFilter {
+enum class ConversationsFilter {
     ALL, UNREAD, ARCHIVE, BUSINESS_NOTIFY
 }

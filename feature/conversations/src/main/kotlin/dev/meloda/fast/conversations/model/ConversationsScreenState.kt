@@ -11,6 +11,7 @@ data class ConversationsScreenState(
     val profileImageUrl: String?,
     val scrollIndex: Int,
     val scrollOffset: Int,
+    val isArchive: Boolean
 ) {
 
     companion object {
@@ -21,6 +22,7 @@ data class ConversationsScreenState(
             profileImageUrl = null,
             scrollIndex = 0,
             scrollOffset = 0,
+            isArchive = false
         )
     }
 }

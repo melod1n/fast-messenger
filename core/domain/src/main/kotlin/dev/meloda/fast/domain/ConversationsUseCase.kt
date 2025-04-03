@@ -1,7 +1,7 @@
 package dev.meloda.fast.domain
 
 import dev.meloda.fast.data.State
-import dev.meloda.fast.model.ConversationFilter
+import dev.meloda.fast.model.ConversationsFilter
 import dev.meloda.fast.model.api.domain.VkConversation
 import kotlinx.coroutines.flow.Flow
 
@@ -12,7 +12,7 @@ interface ConversationsUseCase : BaseUseCase {
     fun getConversations(
         count: Int? = null,
         offset: Int? = null,
-        filter: ConversationFilter
+        filter: ConversationsFilter
     ): Flow<State<List<VkConversation>>>
 
     fun getById(

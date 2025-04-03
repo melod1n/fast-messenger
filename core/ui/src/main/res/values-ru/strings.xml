@@ -181,6 +181,7 @@
     <string name="members_count">Участники: %1$d</string>
     <string name="title_loading">Загрузка&#8230;</string>
     <string name="title_conversations">Чаты</string>
+    <string name="title_archive">Архив</string>
     <string name="title_friends">Друзья</string>
     <string name="title_profile">Профиль</string>
     <string name="title_friends_all">Все</string>

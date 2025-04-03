@@ -29,7 +29,7 @@ import dev.meloda.fast.domain.LoadConversationsByIdUseCase
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.model.ConversationFilter
+import dev.meloda.fast.model.ConversationsFilter
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkConversation
@@ -84,7 +84,7 @@ interface ConversationsViewModel {
 }
 
 class ConversationsViewModelImpl(
-    private val filter: ConversationFilter,
+    private val filter: ConversationsFilter,
     private val updatesParser: LongPollUpdatesParser,
     private val conversationsUseCase: ConversationsUseCase,
     private val messagesUseCase: MessagesUseCase,
@@ -118,6 +118,8 @@ class ConversationsViewModelImpl(
     private val interactionsTimers = hashMapOf<Long, InteractionJob?>()
 
     init {
+        screenState.updateValue { copy(isArchive = filter == ConversationsFilter.ARCHIVE) }
+
         loadConversations()
 
         updatesParser.onNewMessage(::handleNewMessage)
@@ -404,7 +406,7 @@ class ConversationsViewModelImpl(
             newConversations.indexOfFirstOrNull { it.id == message.peerId }
 
         if (conversationIndex == null) {
-            if (event.inArchive && filter != ConversationFilter.ARCHIVE) return
+            if (event.inArchive != (filter == ConversationsFilter.ARCHIVE)) return
 
             loadConversationsByIdUseCase(
                 peerIds = listOf(message.peerId),
@@ -641,9 +643,9 @@ class ConversationsViewModelImpl(
         val newConversations = conversations.value.toMutableList()
 
         when (filter) {
-            ConversationFilter.BUSINESS_NOTIFY -> Unit
+            ConversationsFilter.BUSINESS_NOTIFY -> Unit
 
-            ConversationFilter.ARCHIVE -> {
+            ConversationsFilter.ARCHIVE -> {
                 if (event.archived) {
                     newConversations.add(0, conversation)
                 } else {
@@ -744,12 +746,12 @@ class ConversationsViewModelImpl(
             }
 
             when (filter) {
-                ConversationFilter.ARCHIVE -> ConversationOption.Unarchive
+                ConversationsFilter.ARCHIVE -> ConversationOption.Unarchive
 
-                ConversationFilter.UNREAD,
-                ConversationFilter.ALL -> ConversationOption.Archive
+                ConversationsFilter.UNREAD,
+                ConversationsFilter.ALL -> ConversationOption.Archive
 
-                ConversationFilter.BUSINESS_NOTIFY -> null
+                ConversationsFilter.BUSINESS_NOTIFY -> null
             }?.let(options::add)
 
             options += ConversationOption.Delete

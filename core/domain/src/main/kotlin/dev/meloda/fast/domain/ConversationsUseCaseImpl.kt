@@ -3,7 +3,7 @@ package dev.meloda.fast.domain
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.api.conversations.ConversationsRepository
 import dev.meloda.fast.data.mapToState
-import dev.meloda.fast.model.ConversationFilter
+import dev.meloda.fast.model.ConversationsFilter
 import dev.meloda.fast.model.api.domain.VkConversation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ class ConversationsUseCaseImpl(
     override fun getConversations(
         count: Int?,
         offset: Int?,
-        filter: ConversationFilter
+        filter: ConversationsFilter
     ): Flow<State<List<VkConversation>>> = flowNewState {
         repository.getConversations(
             count = count,
