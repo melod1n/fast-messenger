@@ -57,7 +57,7 @@ import dev.meloda.fast.ui.R as UiR
 fun FriendsRoute(
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit,
+    onMessageClicked: (userid: Long) -> Unit,
     onScrolledToTop: () -> Unit
 ) {
     val scope = rememberCoroutineScope()

@@ -16,9 +16,9 @@ data class VkMiniAppData(
     @JsonClass(generateAdapter = true)
     data class App(
         @Json(name = "type") val type: String,
-        @Json(name = "id") val id: Int,
+        @Json(name = "id") val id: Long,
         @Json(name = "title") val title: String,
-        @Json(name = "author_owner_id") val authorOwnerId: Int,
+        @Json(name = "author_owner_id") val authorOwnerid: Long,
         @Json(name = "is_favorite") val isFavorite: Boolean,
         @Json(name = "share_url") val shareUrl: String,
         @Json(name = "webview_url") val webViewUrl: String,

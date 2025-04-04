@@ -84,11 +84,12 @@ class MainViewModelImpl(
 
     override fun onError(error: BaseError) {
         when (error) {
-            BaseError.SessionExpired -> {
+            BaseError.SessionExpired,
+            BaseError.AccountBlocked -> {
                 isNeedToReplaceWithAuth.update { true }
             }
 
-            is BaseError.SimpleError -> Unit // TODO: 21-Mar-25, Danil Nikolaev: show error in ui
+            else -> Unit // TODO: 21-Mar-25, Danil Nikolaev: show error in ui
         }
     }
 

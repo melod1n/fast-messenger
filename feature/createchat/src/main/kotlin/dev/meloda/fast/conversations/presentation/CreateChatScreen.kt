@@ -68,6 +68,7 @@ import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
@@ -77,7 +78,7 @@ import dev.meloda.fast.ui.R as UiR
 fun CreateChatRoute(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onChatCreated: (Int) -> Unit,
+    onChatCreated: (Long) -> Unit,
     viewModel: CreateChatViewModel
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -87,7 +88,7 @@ fun CreateChatRoute(
 
     LaunchedEffect(isChatCreated) {
         if (isChatCreated != null) {
-            onChatCreated(isChatCreated ?: -1)
+            onChatCreated(isChatCreated ?: -1L)
             viewModel.onNavigatedBack()
         }
     }
@@ -120,7 +121,7 @@ fun CreateChatScreen(
     onBack: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onCreateChatButtonClicked: () -> Unit = {},
-    onItemClicked: (Int) -> Unit = {},
+    onItemClicked: (Long) -> Unit = {},
     onTitleTextInputChanged: (String) -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
@@ -267,23 +268,7 @@ fun CreateChatScreen(
     ) { padding ->
         when {
             baseError != null -> {
-                when (baseError) {
-                    is BaseError.SessionExpired -> {
-                        ErrorView(
-                            text = stringResource(UiR.string.session_expired),
-                            buttonText = stringResource(UiR.string.action_log_out),
-                            onButtonClick = onSessionExpiredLogOutButtonClicked
-                        )
-                    }
-
-                    is BaseError.SimpleError -> {
-                        ErrorView(
-                            text = baseError.message,
-                            buttonText = stringResource(UiR.string.try_again),
-                            onButtonClick = onRefresh
-                        )
-                    }
-                }
+                VkErrorView(baseError = baseError)
             }
 
             screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()

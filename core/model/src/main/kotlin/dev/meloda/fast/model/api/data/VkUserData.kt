@@ -7,7 +7,7 @@ import dev.meloda.fast.model.api.domain.VkUser
 
 @JsonClass(generateAdapter = true)
 data class VkUserData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "first_name") val firstName: String,
     @Json(name = "last_name") val lastName: String,
     @Json(name = "can_access_closed") val canAccessClosed: Boolean,
@@ -18,8 +18,8 @@ data class VkUserData(
     @Json(name = "photo_100") val photo100: String?,
     @Json(name = "photo_200") val photo200: String?,
     @Json(name = "photo_400_orig") val photo400Orig: String?,
-    @Json(name = "online") val online: Int?,
     @Json(name = "online_info") val onlineInfo: OnlineInfo?,
+    @Json(name = "last_seen") val lastSeen: LastSeen?,
     @Json(name = "screen_name") val screenName: String,
     @Json(name = "bdate") val birthday: String?
     //...other fields
@@ -31,25 +31,26 @@ data class VkUserData(
         @Json(name = "status") val status: String?,
         @Json(name = "last_seen") val lastSeen: Int?,
         @Json(name = "is_online") val isOnline: Boolean?,
-        @Json(name = "online_mobile") val onlineMobile: Boolean?,
-        @Json(name = "app_id") val appId: Int?
+        @Json(name = "online_mobile") val isOnlineMobile: Boolean?,
+        @Json(name = "app_id") val appId: Long?
+    )
+
+    @JsonClass(generateAdapter = true)
+    data class LastSeen(
+        @Json(name = "platform") val platform: Int,
+        @Json(name = "time") val time: Int
     )
 
     fun mapToDomain() = VkUser(
         id = id,
         firstName = firstName,
         lastName = lastName,
-        // TODO: 05/05/2024, Danil Nikolaev: improve
-        onlineStatus = when {
-            online != 1 -> OnlineStatus.Offline
-            onlineInfo?.onlineMobile == true -> {
-                OnlineStatus.OnlineMobile(appId = onlineInfo.appId)
-            }
-
-            else -> {
-                OnlineStatus.Online(appId = onlineInfo?.appId)
-            }
-        },
+        onlineStatus = parseUserOnlineState(
+            isOnline = onlineInfo?.isOnline,
+            isOnlineMobile = onlineInfo?.isOnlineMobile,
+            status = onlineInfo?.status,
+            appId = onlineInfo?.appId
+        ),
         photo50 = photo50,
         photo100 = photo100,
         photo200 = photo200,
@@ -58,4 +59,27 @@ data class VkUserData(
         lastSeenStatus = onlineInfo?.status,
         birthday = birthday
     )
+}
+
+fun parseUserOnlineState(
+    isOnline: Boolean?,
+    isOnlineMobile: Boolean?,
+    status: String?,
+    appId: Long?
+): OnlineStatus {
+    return when {
+        isOnlineMobile == true -> OnlineStatus.OnlineMobile(appId)
+        isOnline == true -> OnlineStatus.Online(appId)
+
+        status != null -> {
+            when (status) {
+                "last_week" -> OnlineStatus.LastWeek
+                "last_month" -> OnlineStatus.LastMonth
+
+                else -> OnlineStatus.Recently
+            }
+        }
+
+        else -> OnlineStatus.Offline
+    }
 }

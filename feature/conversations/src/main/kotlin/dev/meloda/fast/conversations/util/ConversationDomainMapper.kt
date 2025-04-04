@@ -23,8 +23,10 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.model.api.ActionState
+import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.emptyImmutableList
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.ln
@@ -33,7 +35,9 @@ import dev.meloda.fast.ui.R as UiR
 
 fun VkConversation.asPresentation(
     resources: Resources,
-    useContactName: Boolean
+    useContactName: Boolean,
+    isExpanded: Boolean = false,
+    options: ImmutableList<ConversationOption> = emptyImmutableList()
 ): UiConversation = UiConversation(
     id = id,
     lastMessageId = lastMessageId,
@@ -47,14 +51,15 @@ fun VkConversation.asPresentation(
     isPinned = majorId > 0,
     actionImageId = ActionState.parse(isPhantom, isCallInProgress).getResourceId(),
     isBirthday = extractBirthday(this),
-    isUnread = extractReadCondition(this, lastMessage),
+    isUnread = !isRead(),
     isAccount = isAccount(id),
     isOnline = !isAccount(id) && user?.onlineStatus?.isOnline() == true,
     lastMessage = lastMessage,
     peerType = peerType,
     interactionText = extractInteractionText(resources, this),
-    isExpanded = false,
-    options = ImmutableList.empty()
+    isExpanded = isExpanded,
+    isArchived = isArchived,
+    options = options
 )
 
 fun VkConversation.extractAvatar() = when (peerType) {
@@ -101,7 +106,7 @@ private fun extractUnreadCount(
     lastMessage: VkMessage?,
     conversation: VkConversation
 ): String? = when {
-    lastMessage?.isOut == false && !conversation.isInUnread() -> null
+    lastMessage?.isOut == false && conversation.isInRead() -> null
     conversation.unreadCount == 0 -> null
     conversation.unreadCount < 1000 -> conversation.unreadCount.toString()
     else -> {
@@ -121,7 +126,7 @@ private fun extractUnreadCount(
 private fun extractMessage(
     resources: Resources,
     lastMessage: VkMessage?,
-    peerId: Int,
+    peerId: Long,
     peerType: PeerType
 ): AnnotatedString {
     val youPrefix = UiText.Resource(UiR.string.you_message_prefix)
@@ -210,7 +215,12 @@ private fun extractMessage(
                 .replace("<br/>", " ")
                 .replace("&ndash;", "-")
                 .trim()
-                .let { text -> getTextWithVisualizedMentions(text, Color.Red) }
+                .let { text ->
+                    extractTextWithVisualizedMentions(
+                        isOut = lastMessage?.isOut == true,
+                        originalText = text
+                    )
+                }
                 .let { text -> prefix + text }
     }
 
@@ -612,6 +622,9 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.PODCAST -> null
         AttachmentType.NARRATIVE -> null
         AttachmentType.ARTICLE -> null
+        AttachmentType.VIDEO_MESSAGE -> null
+        AttachmentType.GROUP_CHAT_STICKER -> UiR.drawable.ic_attachment_sticker
+        AttachmentType.STICKER_PACK_PREVIEW -> null
     }?.let(UiImage::Resource)
 }
 
@@ -649,10 +662,9 @@ private fun extractForwardsText(
     else -> null
 }
 
-
-private fun getTextWithVisualizedMentions(
-    originalText: String,
-    mentionColor: Color,
+fun extractTextWithVisualizedMentions(
+    isOut: Boolean,
+    originalText: String
 ): AnnotatedString = buildAnnotatedString {
     val regex = """\[(id|club)(\d+)\|([^]]+)]""".toRegex()
 
@@ -676,7 +688,7 @@ private fun getTextWithVisualizedMentions(
         replacements.add(indexRange to replaced)
 
         mentions += MentionIndex(
-            id = id.toIntOrNull() ?: -1,
+            id = id.toLongOrNull() ?: -1,
             idPrefix = idPrefix,
             indexRange = indexRange
         )
@@ -693,7 +705,7 @@ private fun getTextWithVisualizedMentions(
         val endIndex = mention.indexRange.last
 
         addStyle(
-            style = SpanStyle(color = mentionColor),
+            style = SpanStyle(color = Color.Red),
             start = startIndex,
             end = endIndex
         )
@@ -707,7 +719,7 @@ private fun getTextWithVisualizedMentions(
 }
 
 data class MentionIndex(
-    val id: Int,
+    val id: Long,
     val idPrefix: String,
     val indexRange: IntRange
 )
@@ -755,6 +767,9 @@ private fun getAttachmentUiText(
         AttachmentType.PODCAST -> UiR.string.message_attachments_podcast
         AttachmentType.NARRATIVE -> UiR.string.message_attachments_narrative
         AttachmentType.ARTICLE -> UiR.string.message_attachments_article
+        AttachmentType.VIDEO_MESSAGE -> UiR.string.message_attachments_video_message
+        AttachmentType.GROUP_CHAT_STICKER -> UiR.string.message_attachments_group_sticker
+        AttachmentType.STICKER_PACK_PREVIEW -> UiR.string.message_attachments_sticker_pack_preview
     }.let(UiText::Resource)
 }
 
@@ -796,10 +811,9 @@ private fun extractBirthday(conversation: VkConversation): Boolean {
 private fun extractReadCondition(
     conversation: VkConversation,
     lastMessage: VkMessage?
-): Boolean = (lastMessage?.isOut == true && conversation.isOutUnread()) ||
-        (lastMessage?.isOut == false && conversation.isInUnread())
+): Boolean = !conversation.isRead(lastMessage)
 
-private fun isAccount(peerId: Int) = peerId == UserConfig.userId
+private fun isAccount(peerId: Long) = peerId == UserConfig.userId
 
 private fun extractInteractionText(
     resources: Resources,

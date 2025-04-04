@@ -35,6 +35,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.create
 import java.util.concurrent.TimeUnit
 
 val networkModule = module {
@@ -44,53 +45,45 @@ val networkModule = module {
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }
     singleOf(::VersionInterceptor)
     singleOf(::LanguageInterceptor)
-    single {
-        OkHttpClient.Builder()
-            .connectTimeout(20, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(get(named("token_interceptor")) as Interceptor)
-            .addInterceptor(get<VersionInterceptor>())
-            .addInterceptor(get<LanguageInterceptor>())
-            .addInterceptor(get<ChuckerInterceptor>())
-            .followRedirects(true)
-            .followSslRedirects(true)
-            .addInterceptor(
-                HttpLoggingInterceptor().apply {
-                    level =
-                        HttpLoggingInterceptor.Level.entries[AppSettings.Debug.networkLogLevel.ordinal]
-                }
-            )
-            .build()
+
+    single<OkHttpClient>(named("auth")) {
+        buildHttpClient(true)
     }
-    single {
-        Retrofit.Builder()
-            .baseUrl("${AppConstants.URL_API}/")
-            .addConverterFactory(ApiResultConverterFactory)
-            .addCallAdapterFactory(ApiResultCallAdapterFactory)
-            .addConverterFactory(ResponseConverterFactory(get<JsonConverter>()))
-            .addConverterFactory(MoshiConverterFactory.create(get()))
-            .client(get())
-            .build()
+    single<OkHttpClient> {
+        buildHttpClient(false)
     }
 
-    singleOf(::OAuthResultCallFactory)
+    single<Retrofit>(named("auth")) {
+        buildRetrofit(get(named("auth")))
+    }
+    single<Retrofit> {
+        buildRetrofit(get())
+    }
+
     single<Retrofit>(named("oauth")) {
         Retrofit.Builder()
             .baseUrl("${AppConstants.URL_OAUTH}/")
             .addCallAdapterFactory(get<OAuthResultCallFactory>())
             .addConverterFactory(MoshiConverterFactory.create(get()))
-            .client(get())
+            .client(get(named("auth")))
             .build()
     }
 
+    single<AuthService> {
+        get<Retrofit>(named("auth")).create()
+    }
+    single<OAuthService> {
+        get<Retrofit>(named("auth")).create()
+    }
+
+    singleOf(::OAuthResultCallFactory)
+
     single { service(AccountService::class.java) }
     single { service(AudiosService::class.java) }
-    single { service(AuthService::class.java) }
     single { service(ConversationsService::class.java) }
     single { service(FilesService::class.java) }
     single { service(LongPollService::class.java) }
     single { service(MessagesService::class.java) }
-    single { service(OAuthService::class.java) }
     single { service(PhotosService::class.java) }
     single { service(UsersService::class.java) }
     single { service(VideosService::class.java) }
@@ -98,3 +91,37 @@ val networkModule = module {
 }
 
 private fun <T> Scope.service(className: Class<T>): T = get<Retrofit>().create(className)
+
+private fun Scope.buildHttpClient(forAuth: Boolean): OkHttpClient {
+    return OkHttpClient.Builder()
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .apply {
+            if (!forAuth) {
+                addInterceptor(get(named("token_interceptor")) as Interceptor)
+            }
+        }
+        .addInterceptor(get<VersionInterceptor>())
+        .addInterceptor(get<LanguageInterceptor>())
+        .addInterceptor(get<ChuckerInterceptor>())
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .addInterceptor(
+            HttpLoggingInterceptor().apply {
+                level =
+                    HttpLoggingInterceptor.Level.entries[AppSettings.Debug.networkLogLevel.ordinal]
+            }
+        )
+        .build()
+}
+
+private fun Scope.buildRetrofit(client: OkHttpClient): Retrofit {
+    return Retrofit.Builder()
+        .baseUrl("${AppConstants.URL_API}/")
+        .addConverterFactory(ApiResultConverterFactory)
+        .addCallAdapterFactory(ApiResultCallAdapterFactory)
+        .addConverterFactory(ResponseConverterFactory(get<JsonConverter>()))
+        .addConverterFactory(MoshiConverterFactory.create(get()))
+        .client(client)
+        .build()
+}

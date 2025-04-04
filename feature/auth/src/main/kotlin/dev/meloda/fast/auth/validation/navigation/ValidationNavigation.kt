@@ -38,7 +38,7 @@ fun NavController.navigateToValidation(arguments: ValidationArguments) {
 }
 
 fun NavController.setValidationResult(code: String?) {
-    this.currentBackStackEntry
+    this.previousBackStackEntry
         ?.savedStateHandle
         ?.set("validation_code", code)
 }

@@ -28,13 +28,15 @@ import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun ConversationsList(
     modifier: Modifier = Modifier,
-    onConversationsClick: (Int) -> Unit,
+    conversations: ImmutableList<UiConversation>,
+    onConversationsClick: (UiConversation) -> Unit,
     onConversationsLongClick: (UiConversation) -> Unit,
     screenState: ConversationsScreenState,
     state: LazyListState,
@@ -54,7 +56,7 @@ fun ConversationsList(
             Spacer(modifier = Modifier.height(8.dp))
         }
         items(
-            items = screenState.conversations,
+            items = conversations.values,
             key = UiConversation::id,
         ) { conversation ->
             val isUserAccount by remember(conversation) {

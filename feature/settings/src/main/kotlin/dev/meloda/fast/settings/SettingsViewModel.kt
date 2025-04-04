@@ -5,7 +5,6 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.setValue
@@ -19,16 +18,19 @@ import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.domain.AuthUseCase
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.settings.model.SettingsItem
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.SettingsShowOptions
 import dev.meloda.fast.settings.model.TextProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import dev.meloda.fast.ui.R as UiR
 
 interface SettingsViewModel {
@@ -37,7 +39,7 @@ interface SettingsViewModel {
     val hapticType: StateFlow<HapticType?>
 
     fun onLogOutAlertDismissed()
-    fun onLogOutAlertPositiveClick()
+    suspend fun onLogOutAlertPositiveClick()
 
     fun onPerformCrashAlertDismissed()
     fun onPerformCrashPositiveButtonClicked()
@@ -50,6 +52,7 @@ interface SettingsViewModel {
 }
 
 class SettingsViewModelImpl(
+    private val authUseCase: AuthUseCase,
     private val accountsRepository: AccountsRepository,
     private val userSettings: UserSettings,
     private val resources: Resources,
@@ -69,20 +72,37 @@ class SettingsViewModelImpl(
         emitShowOptions { old -> old.copy(showLogOut = false) }
     }
 
-    override fun onLogOutAlertPositiveClick() {
-        viewModelScope.launch(Dispatchers.IO) {
-            accountsRepository.storeAccounts(
-                listOf(
-                    AccountEntity(
-                        userId = UserConfig.userId,
-                        accessToken = "",
-                        fastToken = UserConfig.fastToken,
-                        trustedHash = UserConfig.trustedHash
+    override suspend fun onLogOutAlertPositiveClick() {
+        withContext(Dispatchers.IO) {
+            val tasks = listOf(
+//                async {
+//                    suspendCoroutine { continuation ->
+//                        authUseCase.logout().listenValue(viewModelScope) { state ->
+//                            state.processState(
+//                                any = { continuation.resume(Unit) },
+//                                success = {},
+//                                error = {}
+//                            )
+//                        }
+//                    }
+//                },
+                async {
+                    accountsRepository.storeAccounts(
+                        listOf(
+                            AccountEntity(
+                                userId = UserConfig.userId,
+                                accessToken = "",
+                                fastToken = UserConfig.fastToken,
+                                trustedHash = UserConfig.trustedHash,
+                                exchangeToken = null
+                            )
+                        )
                     )
-                )
+                },
+                async { UserConfig.clear() }
             )
 
-            UserConfig.clear()
+            tasks.awaitAll()
         }
     }
 

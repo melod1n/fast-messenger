@@ -16,7 +16,7 @@ class FilesRepository(
 //        AUDIO_MESSAGE("audio_message")
 //    }
 //
-//    suspend fun getMessagesUploadServer(peerId: Int, type: FileType) =
+//    suspend fun getMessagesUploadServer(peerid: Long, type: FileType) =
 //        filesService.getUploadServer(
 //            mapOf(
 //                "peer_id" to peerId.toString(),

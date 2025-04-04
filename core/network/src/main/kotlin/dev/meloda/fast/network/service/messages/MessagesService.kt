@@ -1,12 +1,15 @@
 package dev.meloda.fast.network.service.messages
 
 import com.slack.eithernet.ApiResult
+import dev.meloda.fast.model.api.data.VkChatData
 import dev.meloda.fast.model.api.data.VkLongPollData
 import dev.meloda.fast.model.api.data.VkMessageData
 import dev.meloda.fast.model.api.responses.MessagesCreateChatResponse
 import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
+import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryResponse
+import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.ApiResponse
 import dev.meloda.fast.network.RestApiError
 import retrofit2.http.FieldMap
@@ -31,7 +34,7 @@ interface MessagesService {
     @POST(MessagesUrls.SEND)
     suspend fun send(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<Int>, RestApiError>
+    ): ApiResult<ApiResponse<MessagesSendResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.GET_LONG_POLL_SERVER)
@@ -73,36 +76,35 @@ interface MessagesService {
     @POST(MessagesUrls.MARK_AS_IMPORTANT)
     suspend fun markAsImportant(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
+    ): ApiResult<ApiResponse<List<Long>>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.DELETE)
     suspend fun delete(
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<List<Any>>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.Edit)
-//    suspend fun edit(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<Int>, RestApiError>
-//
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.GetChat)
-//    suspend fun getChat(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<VkChatData>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.GetConversationMembers)
-//    suspend fun getConversationMembers(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<MessagesGetConversationMembersResponse>, RestApiError>
-//
-//    @FormUrlEncoded
-//    @POST(MessagesUrls.RemoveChatUser)
-//    suspend fun removeChatUser(
-//        @FieldMap params: Map<String, String>
-//    ): ApiResult<ApiResponse<Int>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.EDIT)
+    suspend fun edit(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.GET_CHAT)
+    suspend fun getChat(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<VkChatData>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.GET_CONVERSATIONS_MEMBERS)
+    suspend fun getConversationMembers(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<MessagesGetConversationMembersResponse>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.REMOVE_CHAT_USER)
+    suspend fun removeChatUser(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<Int>, RestApiError>
 }

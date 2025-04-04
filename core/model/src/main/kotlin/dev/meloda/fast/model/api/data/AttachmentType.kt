@@ -27,7 +27,11 @@ enum class AttachmentType(var value: String) {
     AUDIO_PLAYLIST("audio_playlist"),
     PODCAST("podcast"),
     NARRATIVE("narrative"),
-    ARTICLE("article");
+    ARTICLE("article"),
+    VIDEO_MESSAGE("video_message"),
+    GROUP_CHAT_STICKER("ugc_sticker"),
+    STICKER_PACK_PREVIEW("sticker_pack_preview")
+    ;
 
     fun isMultiple(): Boolean = this in listOf(PHOTO, VIDEO, AUDIO, FILE)
 

@@ -4,31 +4,33 @@ import dev.meloda.fast.model.api.PeerType
 import dev.meloda.fast.model.database.VkConversationEntity
 
 data class VkConversation(
-    val id: Int,
-    val localId: Int,
-    val ownerId: Int?,
+    val id: Long,
+    val localId: Long,
+    val ownerId: Long?,
     val title: String?,
     val photo50: String?,
     val photo100: String?,
     val photo200: String?,
     val isCallInProgress: Boolean,
     val isPhantom: Boolean,
-    val lastConversationMessageId: Int,
-    val inReadCmId: Int,
-    val outReadCmId: Int,
-    val inRead: Int,
-    val outRead: Int,
-    val lastMessageId: Int?,
+    val lastCmId: Long,
+    val inReadCmId: Long,
+    val outReadCmId: Long,
+    val inRead: Long,
+    val outRead: Long,
+    val lastMessageId: Long?,
     val unreadCount: Int,
     val membersCount: Int?,
     val canChangePin: Boolean,
     val canChangeInfo: Boolean,
     val majorId: Int,
     val minorId: Int,
-    val pinnedMessageId: Int?,
+    val pinnedMessageId: Long?,
     val interactionType: Int,
-    val interactionIds: List<Int>,
+    val interactionIds: List<Long>,
     val peerType: PeerType,
+    val isArchived: Boolean,
+
     val lastMessage: VkMessage?,
     val pinnedMessage: VkMessage?,
     val user: VkUser?,
@@ -36,8 +38,20 @@ data class VkConversation(
 ) {
 
     fun isPinned(): Boolean = majorId > 0
-    fun isInUnread() = inRead - (lastMessageId ?: 0) < 0
-    fun isOutUnread() = outRead - (lastMessageId ?: 0) < 0
+
+    fun isInRead(cmId: Long? = null) = inReadCmId - (cmId ?: lastCmId) >= 0
+
+    fun isOutRead(cmId: Long? = null) = outReadCmId - (cmId ?: lastCmId) >= 0
+
+    fun isRead(lastMessage: VkMessage? = null): Boolean {
+        val message = lastMessage ?: this.lastMessage
+
+        return when {
+            message == null -> true
+            message.isOut -> isOutRead(message.cmId)
+            else -> isInRead(message.cmId)
+        }
+    }
 
     companion object {
         val EMPTY: VkConversation = VkConversation(
@@ -50,7 +64,7 @@ data class VkConversation(
             photo200 = null,
             isCallInProgress = false,
             isPhantom = false,
-            lastConversationMessageId = -1,
+            lastCmId = -1,
             inReadCmId = -1,
             outReadCmId = -1,
             inRead = -1,
@@ -66,11 +80,12 @@ data class VkConversation(
             interactionType = -1,
             interactionIds = emptyList(),
             peerType = PeerType.USER,
+            isArchived = false,
+
             lastMessage = null,
             pinnedMessage = null,
             user = null,
             group = null
-
         )
     }
 }
@@ -84,7 +99,7 @@ fun VkConversation.asEntity(): VkConversationEntity = VkConversationEntity(
     photo100 = photo100,
     photo200 = photo200,
     isPhantom = isPhantom,
-    lastConversationMessageId = lastConversationMessageId,
+    lastConversationMessageId = lastCmId,
     inReadCmId = inReadCmId,
     outReadCmId = outReadCmId,
     inRead = inRead,
@@ -98,4 +113,5 @@ fun VkConversation.asEntity(): VkConversationEntity = VkConversationEntity(
     minorId = minorId,
     pinnedMessageId = pinnedMessageId,
     peerType = peerType.value,
+    isArchived = isArchived
 )

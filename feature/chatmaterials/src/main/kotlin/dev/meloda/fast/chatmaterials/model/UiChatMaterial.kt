@@ -1,16 +1,16 @@
 package dev.meloda.fast.chatmaterials.model
 
 sealed class UiChatMaterial(
-    open val conversationMessageId: Int
+    open val conversationMessageId: Long
 ) {
 
     data class Photo(
-        override val conversationMessageId: Int,
+        override val conversationMessageId: Long,
         val previewUrl: String
     ) : UiChatMaterial(conversationMessageId)
 
     data class Video(
-        override val conversationMessageId: Int,
+        override val conversationMessageId: Long,
         val previewUrl: String?,
         val title: String,
         val views: Int,
@@ -18,7 +18,7 @@ sealed class UiChatMaterial(
     ) : UiChatMaterial(conversationMessageId)
 
     data class Audio(
-        override val conversationMessageId: Int,
+        override val conversationMessageId: Long,
         val previewUrl: String?,
         val title: String,
         val artist: String,
@@ -26,7 +26,7 @@ sealed class UiChatMaterial(
     ) : UiChatMaterial(conversationMessageId)
 
     data class File(
-        override val conversationMessageId: Int,
+        override val conversationMessageId: Long,
         val previewUrl: String?,
         val title: String,
         val size: String,
@@ -34,7 +34,7 @@ sealed class UiChatMaterial(
     ) : UiChatMaterial(conversationMessageId)
 
     data class Link(
-        override val conversationMessageId: Int,
+        override val conversationMessageId: Long,
         val previewUrl: String?,
         val title: String?,
         val url: String,

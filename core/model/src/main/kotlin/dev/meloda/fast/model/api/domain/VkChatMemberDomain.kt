@@ -1,7 +1,7 @@
 package dev.meloda.fast.model.api.domain
 
 data class VkChatMemberDomain(
-    val memberId: Int,
+    val memberId: Long,
     val invitedBy: Int,
     val joinDate: Int,
     val isAdmin: Boolean,

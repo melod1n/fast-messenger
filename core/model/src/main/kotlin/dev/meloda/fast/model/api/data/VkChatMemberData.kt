@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkChatMemberData(
-    @Json(name = "member_id") val memberId: Int,
+    @Json(name = "member_id") val memberId: Long,
     @Json(name = "invited_by") val invitedBy: Int,
     @Json(name = "join_date") val joinDate: Int,
     @Json(name = "is_admin") val isAdmin: Boolean?,

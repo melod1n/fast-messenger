@@ -10,6 +10,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +39,8 @@ import dev.meloda.fast.photoviewer.navigation.photoViewScreen
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.theme.LocalNavController
+import dev.meloda.fast.ui.theme.LocalNavRootController
 
 @Composable
 fun RootScreen(
@@ -111,53 +114,59 @@ fun RootScreen(
     }
 
     if (startDestination != null) {
-        NavHost(
-            navController = navController,
-            startDestination = requireNotNull(startDestination),
-            enterTransition = { fadeIn(animationSpec = tween(200)) },
-            exitTransition = { fadeOut(animationSpec = tween(200)) }
+        CompositionLocalProvider(
+            LocalNavRootController provides navController,
+            LocalNavController provides navController
         ) {
-            authNavGraph(
-                onNavigateToMain = {
-                    viewModel.onUserAuthenticated()
-                    navController.navigateToMain()
-                },
-                navController = navController
-            )
-            mainScreen(
-                onError = viewModel::onError,
-                onSettingsButtonClicked = navController::navigateToSettings,
-                onConversationClicked = navController::navigateToMessagesHistory,
-                onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
-                onMessageClicked = navController::navigateToMessagesHistory,
-                onCreateChatClicked = navController::navigateToCreateChat
-            )
+            NavHost(
+                navController = navController,
+                startDestination = requireNotNull(startDestination),
+                enterTransition = { fadeIn(animationSpec = tween(200)) },
+                exitTransition = { fadeOut(animationSpec = tween(200)) }
+            ) {
+                authNavGraph(
+                    onNavigateToMain = {
+                        viewModel.onUserAuthenticated()
+                        navController.navigateToMain()
+                    },
+                    navController = navController
+                )
 
-            messagesHistoryScreen(
-                onError = viewModel::onError,
-                onBack = navController::navigateUp,
-                onChatMaterialsDropdownItemClicked = navController::navigateToChatMaterials
-            )
-            chatMaterialsScreen(
-                onBack = navController::navigateUp,
-                onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
-            )
-            createChatScreen(
-                onChatCreated = { conversationId ->
-                    navController.popBackStack()
-                    navController.navigateToMessagesHistory(conversationId)
-                },
-                navController = navController
-            )
+                mainScreen(
+                    onError = viewModel::onError,
+                    onSettingsButtonClicked = navController::navigateToSettings,
+                    onNavigateToMessagesHistory = navController::navigateToMessagesHistory,
+                    onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
+                    onMessageClicked = navController::navigateToMessagesHistory,
+                    onNavigateToCreateChat = navController::navigateToCreateChat
+                )
 
-            settingsScreen(
-                onBack = navController::navigateUp,
-                onLogOutButtonClicked = { navController.navigateToAuth(true) },
-                onLanguageItemClicked = navController::navigateToLanguagePicker
-            )
-            languagePickerScreen(onBack = navController::navigateUp)
+                messagesHistoryScreen(
+                    onError = viewModel::onError,
+                    onBack = navController::navigateUp,
+                    onNavigateToChatMaterials = navController::navigateToChatMaterials
+                )
+                chatMaterialsScreen(
+                    onBack = navController::navigateUp,
+                    onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
+                )
+                createChatScreen(
+                    onChatCreated = { conversationId ->
+                        navController.popBackStack()
+                        navController.navigateToMessagesHistory(conversationId)
+                    },
+                    navController = navController
+                )
 
-            photoViewScreen(onBack = navController::navigateUp)
+                settingsScreen(
+                    onBack = navController::navigateUp,
+                    onLogOutButtonClicked = { navController.navigateToAuth(true) },
+                    onLanguageItemClicked = navController::navigateToLanguagePicker
+                )
+                languagePickerScreen(onBack = navController::navigateUp)
+
+                photoViewScreen(onBack = navController::navigateUp)
+            }
         }
     }
 }

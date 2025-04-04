@@ -56,9 +56,9 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
-import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.Dispatchers
@@ -104,23 +104,7 @@ fun VideoMaterialsScreen(
 
     when {
         baseError != null -> {
-            when (baseError) {
-                is BaseError.SessionExpired -> {
-                    ErrorView(
-                        text = stringResource(R.string.session_expired),
-                        buttonText = stringResource(R.string.action_log_out),
-                        onButtonClick = onSessionExpiredLogOutButtonClicked
-                    )
-                }
-
-                is BaseError.SimpleError -> {
-                    ErrorView(
-                        text = baseError.message,
-                        buttonText = stringResource(R.string.try_again),
-                        onButtonClick = onRefresh
-                    )
-                }
-            }
+            VkErrorView(baseError = baseError)
         }
 
         screenState.isLoading && screenState.materials.isEmpty() -> FullScreenLoader()

@@ -1,6 +1,5 @@
 package dev.meloda.fast.messageshistory.presentation
 
-import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -41,7 +40,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -56,7 +54,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -82,9 +79,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -93,376 +88,20 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.datastore.UserSettings
-import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
-import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
 import dev.meloda.fast.messageshistory.model.ActionMode
-import dev.meloda.fast.messageshistory.model.MessageDialog
-import dev.meloda.fast.messageshistory.model.MessageOption
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.model.UiItem
-import dev.meloda.fast.messageshistory.util.firstMessage
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkMessage
-import dev.meloda.fast.ui.basic.ContentAlpha
-import dev.meloda.fast.ui.basic.LocalContentAlpha
-import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.IconButton
-import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
-import java.util.concurrent.TimeUnit
 import dev.meloda.fast.ui.R as UiR
-
-@Composable
-fun MessagesHistoryRoute(
-    onError: (BaseError) -> Unit,
-    onBack: () -> Unit,
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit,
-    viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val messages by viewModel.messages.collectAsStateWithLifecycle()
-    val uiMessages by viewModel.uiMessages.collectAsStateWithLifecycle()
-    val messageDialog by viewModel.messageDialog.collectAsStateWithLifecycle()
-    val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-    val scrollIndex by viewModel.isNeedToScrollToIndex.collectAsStateWithLifecycle()
-
-    val userSettings: UserSettings = koinInject()
-    val showEmojiButton by userSettings.showEmojiButton.collectAsStateWithLifecycle()
-
-    MessagesHistoryScreen(
-        screenState = screenState,
-        messages = messages.toImmutableList(),
-        uiMessages = uiMessages.toImmutableList(),
-        scrollIndex = scrollIndex,
-        selectedMessages = selectedMessages.toImmutableList(),
-        baseError = baseError,
-        canPaginate = canPaginate,
-        showEmojiButton = showEmojiButton,
-        onBack = onBack,
-        onClose = viewModel::onCloseButtonClicked,
-        onScrolledToIndex = viewModel::onScrolledToIndex,
-        onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
-        onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
-        onRefresh = viewModel::onRefresh,
-        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-        onMessageInputChanged = viewModel::onMessageInputChanged,
-        onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
-        onActionButtonClicked = viewModel::onActionButtonClicked,
-        onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked,
-        onMessageClicked = viewModel::onMessageClicked,
-        onMessageLongClicked = viewModel::onMessageLongClicked,
-        onPinnedMessageClicked = viewModel::onPinnedMessageClicked,
-        onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked,
-        onDeleteSelectedButtonClicked = viewModel::onDeleteSelectedMessagesClicked
-    )
-
-    HandleDialogs(
-        screenState = screenState,
-        messageDialog = messageDialog,
-        onConfirmed = viewModel::onDialogConfirmed,
-        onDismissed = viewModel::onDialogDismissed,
-        onItemPicked = viewModel::onDialogItemPicked
-    )
-}
-
-@Composable
-fun HandleDialogs(
-    screenState: MessagesHistoryScreenState,
-    messageDialog: MessageDialog?,
-    onConfirmed: (MessageDialog, Bundle) -> Unit = { _, _ -> },
-    onDismissed: (MessageDialog) -> Unit = {},
-    onItemPicked: (MessageDialog, Bundle) -> Unit = { _, _ -> }
-) {
-    when (messageDialog) {
-        null -> Unit
-
-        is MessageDialog.MessageOptions -> {
-            MessageOptionsDialog(
-                screenState = screenState,
-                message = messageDialog.message,
-                onDismissed = { onDismissed(messageDialog) },
-                onItemPicked = { bundle -> onItemPicked(messageDialog, bundle) }
-            )
-        }
-
-        is MessageDialog.MessageDelete -> {
-            MessageDeleteDialog(
-                messages = listOf(messageDialog.message),
-                onConfirmed = { onConfirmed(messageDialog, it) },
-                onDismissed = { onDismissed(messageDialog) }
-            )
-        }
-
-        is MessageDialog.MessagesDelete -> {
-            MessageDeleteDialog(
-                messages = messageDialog.messages,
-                onConfirmed = { onConfirmed(messageDialog, it) },
-                onDismissed = { onDismissed(messageDialog) }
-            )
-        }
-
-        is MessageDialog.MessagePin,
-        is MessageDialog.MessageUnpin -> {
-            MessagePinStateDialog(
-                pin = messageDialog is MessageDialog.MessagePin,
-                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
-                onDismissed = { onDismissed(messageDialog) }
-            )
-        }
-
-        is MessageDialog.MessageMarkImportance -> {
-            MessageImportanceDialog(
-                important = messageDialog.isImportant,
-                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
-                onDismissed = { onDismissed(messageDialog) }
-            )
-        }
-
-        is MessageDialog.MessageSpam -> {
-            MessageSpamDialog(
-                spam = messageDialog.isSpam,
-                onConfirmed = { onConfirmed(messageDialog, bundleOf()) },
-                onDismissed = { onDismissed(messageDialog) }
-            )
-        }
-    }
-}
-
-
-@Composable
-fun MessageOptionsDialog(
-    screenState: MessagesHistoryScreenState,
-    message: VkMessage,
-    onDismissed: () -> Unit = {},
-    onItemPicked: (Bundle) -> Unit
-) {
-    val options = mutableListOf<MessageOption>()
-    if (message.isFailed()) {
-        options += MessageOption.Retry
-    } else {
-        options += MessageOption.Reply
-        options += MessageOption.ForwardHere
-        options += MessageOption.Forward
-
-        if (message.isPeerChat() && screenState.conversation.canChangePin) {
-            options += if (message.isPinned) MessageOption.Unpin else MessageOption.Pin
-        }
-
-        if (!message.isRead(screenState.conversation)) {
-            options += MessageOption.Read
-        }
-
-        options += MessageOption.Copy
-
-        if (message.isOut) {
-            val diff = System.currentTimeMillis() - message.date * 1000L
-            if (diff - TimeUnit.DAYS.toMillis(1) <= 0) {
-                options += MessageOption.Edit
-            }
-        }
-
-        options += if (message.isImportant) MessageOption.UnmarkAsImportant
-        else MessageOption.MarkAsImportant
-
-
-        if (!message.isOut) {
-            options += if (message.isSpam) MessageOption.UnmarkAsSpam
-            else MessageOption.MarkAsSpam
-        }
-    }
-
-    options += MessageOption.Delete
-
-    val messageOptions = options.map { option ->
-        Triple(
-            stringResource(option.titleResId),
-            painterResource(option.iconResId),
-            when {
-                option in listOf(
-                    MessageOption.Delete,
-                    MessageOption.MarkAsSpam
-                ) -> MaterialTheme.colorScheme.error
-
-                else -> MaterialTheme.colorScheme.primary
-            }
-        )
-    }
-
-    MaterialDialog(onDismissRequest = onDismissed) {
-        messageOptions
-            .forEachIndexed { index, (title, painter, tintColor) ->
-                DropdownMenuItem(
-                    text = {
-                        Row {
-                            Text(text = title)
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                    },
-                    leadingIcon = {
-                        Row {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                painter = painter,
-                                contentDescription = null,
-                                tint = tintColor
-                            )
-                        }
-                    },
-                    onClick = {
-                        onDismissed()
-                        val pickedOption = options[index]
-                        onItemPicked(bundleOf("option" to pickedOption))
-                    }
-                )
-            }
-    }
-}
-
-@Composable
-fun MessageDeleteDialog(
-    messages: List<VkMessage>,
-    onConfirmed: (Bundle) -> Unit = {},
-    onDismissed: () -> Unit = {},
-) {
-    var forEveryone by remember {
-        mutableStateOf(
-            !messages.any { it.peerId == UserConfig.userId }
-                    && messages.all(VkMessage::isOut)
-        )
-    }
-
-    val shouldBeDisabled by remember(messages) {
-        mutableStateOf(
-            messages.any { it.peerId == UserConfig.userId }
-                    || messages.all(VkMessage::isFailed)
-                    || !messages.all(VkMessage::isOut)
-        )
-    }
-
-    MaterialDialog(
-        onDismissRequest = onDismissed,
-        title = stringResource(UiR.string.delete_message_title),
-        confirmText = stringResource(UiR.string.action_delete),
-        confirmAction = {
-            onConfirmed(
-                bundleOf("everyone" to if (messages.all(VkMessage::isOut)) forEveryone else false)
-            )
-        },
-        cancelText = stringResource(UiR.string.cancel),
-    ) {
-        Row(
-            modifier = Modifier
-                .then(
-                    if (!shouldBeDisabled) {
-                        Modifier.clickable { forEveryone = !forEveryone }
-                    } else Modifier)
-                .fillMaxWidth()
-                .minimumInteractiveComponentSize()
-                .padding(start = 24.dp, end = 16.dp)
-        ) {
-            Checkbox(
-                checked = forEveryone,
-                onCheckedChange = null,
-                enabled = !shouldBeDisabled
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            LocalContentAlpha(
-                alpha = if (shouldBeDisabled) ContentAlpha.disabled
-                else ContentAlpha.high
-            ) {
-                Text(text = stringResource(UiR.string.delete_message_for_everyone))
-            }
-        }
-    }
-}
-
-@Composable
-fun MessagePinStateDialog(
-    pin: Boolean,
-    onConfirmed: () -> Unit = {},
-    onDismissed: () -> Unit = {},
-) {
-    MaterialDialog(
-        onDismissRequest = onDismissed,
-        title = stringResource(
-            if (pin) UiR.string.pin_message_title
-            else UiR.string.unpin_message_title
-        ),
-        text = stringResource(
-            if (pin) UiR.string.pin_message_text
-            else UiR.string.unpin_message_text
-        ),
-        confirmText = stringResource(
-            if (pin) UiR.string.action_pin
-            else UiR.string.action_unpin
-        ),
-        confirmAction = onConfirmed,
-        cancelText = stringResource(UiR.string.cancel)
-    )
-}
-
-@Composable
-fun MessageImportanceDialog(
-    important: Boolean,
-    onConfirmed: () -> Unit = {},
-    onDismissed: () -> Unit = {},
-) {
-    MaterialDialog(
-        onDismissRequest = onDismissed,
-        title = stringResource(
-            if (important) UiR.string.important_message_title
-            else UiR.string.unimportant_message_title
-        ),
-        text = stringResource(
-            if (important) UiR.string.important_message_text
-            else UiR.string.unimportant_message_text
-        ),
-        confirmText = stringResource(
-            if (important) UiR.string.action_mark
-            else UiR.string.action_unmark
-        ),
-        confirmAction = onConfirmed,
-        cancelText = stringResource(UiR.string.cancel)
-    )
-}
-
-@Composable
-fun MessageSpamDialog(
-    spam: Boolean,
-    onConfirmed: () -> Unit = {},
-    onDismissed: () -> Unit = {},
-) {
-    MaterialDialog(
-        onDismissRequest = onDismissed,
-        title = stringResource(
-            if (spam) UiR.string.spam_message_title
-            else UiR.string.unspam_message_title
-        ),
-        text = stringResource(
-            if (spam) UiR.string.spam_message_text
-            else UiR.string.unspam_message_text
-        ),
-        confirmText = stringResource(
-            if (spam) UiR.string.action_mark
-            else UiR.string.action_unmark
-        ),
-        confirmAction = onConfirmed,
-        cancelText = stringResource(UiR.string.cancel)
-    )
-}
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -483,16 +122,16 @@ fun MessagesHistoryScreen(
     onClose: () -> Unit = {},
     onScrolledToIndex: () -> Unit = {},
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
+    onTopBarClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {},
     onEmojiButtonLongClicked: () -> Unit = {},
-    onMessageClicked: (Int) -> Unit = {},
-    onMessageLongClicked: (Int) -> Unit = {},
-    onPinnedMessageClicked: (Int) -> Unit = {},
+    onMessageClicked: (Long) -> Unit = {},
+    onMessageLongClicked: (Long) -> Unit = {},
+    onPinnedMessageClicked: (Long) -> Unit = {},
     onUnpinMessageButtonClicked: () -> Unit = {},
     onDeleteSelectedButtonClicked: () -> Unit = {}
 ) {
@@ -516,12 +155,7 @@ fun MessagesHistoryScreen(
         onBack = onClose
     )
 
-    val pinnedMessage by remember(screenState) {
-        derivedStateOf {
-            screenState.conversation.pinnedMessage
-        }
-    }
-
+    val pinnedMessage = screenState.pinnedMessage
 
     val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
@@ -598,7 +232,13 @@ fun MessagesHistoryScreen(
                                 )
                             } else Modifier
                         )
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .then(
+                            if (screenState.isLoading && messages.isEmpty()) Modifier
+                            else Modifier.clickable {
+                                onTopBarClicked()
+                            }
+                        ),
                     title = {
                         Row(
                             modifier = Modifier.weight(1f),
@@ -606,23 +246,41 @@ fun MessagesHistoryScreen(
                         ) {
                             if (selectedMessages.isEmpty()) {
                                 val avatar = screenState.avatar.getImage()
-                                if (avatar is Painter) {
-                                    Image(
-                                        painter = avatar,
-                                        contentDescription = null,
+                                if (screenState.conversationId == UserConfig.userId) {
+                                    Box(
                                         modifier = Modifier
                                             .size(36.dp)
                                             .clip(CircleShape)
-                                    )
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .size(24.dp),
+                                            painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
+                                            contentDescription = "Favorites icon",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
                                 } else {
-                                    AsyncImage(
-                                        model = screenState.avatar.getImage(),
-                                        contentDescription = "Profile Image",
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape),
-                                        placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
-                                    )
+                                    if (avatar is Painter) {
+                                        Image(
+                                            painter = avatar,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = screenState.avatar.getImage(),
+                                            contentDescription = "Profile Image",
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape),
+                                            placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
+                                        )
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -705,9 +363,6 @@ fun MessagesHistoryScreen(
                                 )
                             }
                         } else {
-                            if (screenState.isLoading) {
-                                return@TopAppBar
-                            }
                             IconButton(
                                 onClick = { dropDownMenuExpanded = true }
                             ) {
@@ -725,28 +380,6 @@ fun MessagesHistoryScreen(
                                 },
                                 offset = DpOffset(x = (-4).dp, y = (-60).dp)
                             ) {
-                                DropdownMenuItem(
-                                    onClick = {
-                                        dropDownMenuExpanded = false
-
-                                        // TODO: 11/07/2024, Danil Nikolaev: to VM
-
-                                        // TODO: 23-Mar-25, Danil Nikolaev: crash if no messages (ex. new chat)
-                                        onChatMaterialsDropdownItemClicked(
-                                            screenState.conversationId,
-                                            uiMessages.values.firstMessage().conversationMessageId
-                                        )
-                                    },
-                                    text = {
-                                        Text(text = stringResource(UiR.string.chat_materials_action_title))
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            painter = painterResource(UiR.drawable.ic_multimedia),
-                                            contentDescription = null
-                                        )
-                                    }
-                                )
                                 DropdownMenuItem(
                                     onClick = {
                                         onRefresh()
@@ -808,10 +441,13 @@ fun MessagesHistoryScreen(
                 isPaginating = screenState.isPaginating,
                 messageBarHeight = messageBarHeight,
                 onRequestScrollToCmId = { cmId ->
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(
-                            index = uiMessages.values.indexOfMessageByCmId(cmId)
-                        )
+                    val index = uiMessages.values.indexOfMessageByCmId(cmId)
+                    if (index == null) { // сообщения нет в списке
+                        // pizdets
+                    } else {
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = index)
+                        }
                     }
                 },
                 onMessageClicked = { id ->
@@ -847,12 +483,15 @@ fun MessagesHistoryScreen(
                             .clip(RoundedCornerShape(36.dp))
                             .then(
                                 if (theme.enableBlur) {
-                                    Modifier.hazeEffect(
-                                        state = hazeState,
-                                        style = HazeMaterials.ultraThin()
-                                    ).border(1.dp, MaterialTheme.colorScheme.outlineVariant,
-                                        RoundedCornerShape(36.dp)
-                                    )
+                                    Modifier
+                                        .hazeEffect(
+                                            state = hazeState,
+                                            style = HazeMaterials.ultraThin()
+                                        )
+                                        .border(
+                                            1.dp, MaterialTheme.colorScheme.outlineVariant,
+                                            RoundedCornerShape(36.dp)
+                                        )
                                 } else Modifier
                             )
                             .animateContentSize()
@@ -1042,23 +681,7 @@ fun MessagesHistoryScreen(
                 }
 
                 baseError != null -> {
-                    when (baseError) {
-                        is BaseError.SessionExpired -> {
-                            ErrorView(
-                                text = stringResource(UiR.string.session_expired),
-                                buttonText = stringResource(UiR.string.action_log_out),
-                                onButtonClick = onSessionExpiredLogOutButtonClicked
-                            )
-                        }
-
-                        is BaseError.SimpleError -> {
-                            ErrorView(
-                                text = baseError.message,
-                                buttonText = stringResource(UiR.string.try_again),
-                                onButtonClick = onRefresh
-                            )
-                        }
-                    }
+                    VkErrorView(baseError = baseError)
                 }
             }
         }

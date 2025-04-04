@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.flow
 class LoadUserByIdUseCase(private val repository: UsersRepository) {
 
     operator fun invoke(
-        userId: Int?,
+        userId: Long?,
         fields: String = VkConstants.USER_FIELDS,
         nomCase: String? = null
     ): Flow<State<VkUser?>> = flow {

@@ -5,29 +5,31 @@ import dev.meloda.fast.model.database.VkMessageEntity
 
 @Immutable
 data class VkMessage(
-    val id: Int,
-    val conversationMessageId: Int,
+    val id: Long,
+    val cmId: Long,
     val text: String?,
     val isOut: Boolean,
-    val peerId: Int,
-    val fromId: Int,
+    val peerId: Long,
+    val fromId: Long,
     val date: Int,
-    val randomId: Int,
+    val randomId: Long,
     val action: Action?,
-    val actionMemberId: Int?,
+    val actionMemberId: Long?,
     val actionText: String?,
-    val actionConversationMessageId: Int?,
+    val actionConversationMessageId: Long?,
     val actionMessage: String?,
 
     val updateTime: Int?,
     val pinnedAt: Int?,
     val isPinned: Boolean,
-    val isImportant: Boolean = false,
-    val isSpam: Boolean = false,
+    val isImportant: Boolean,
+    val isSpam: Boolean,
 
     val forwards: List<VkMessage>?,
     val attachments: List<VkAttachment>?,
     val replyMessage: VkMessage?,
+
+    val formatData: FormatData?,
 
     val geoType: String?,
     val user: VkUser?,
@@ -44,8 +46,7 @@ data class VkMessage(
 
     fun isRead(conversation: VkConversation): Boolean = when {
         id <= 0 -> false
-        isOut -> conversation.outRead - id >= 0
-        else -> conversation.inRead - id >= 0
+        else -> conversation.isRead(this)
     }
 
     fun hasAttachments(): Boolean = attachments.orEmpty().isNotEmpty()
@@ -80,11 +81,24 @@ data class VkMessage(
             fun parse(value: String?): Action? = entries.firstOrNull { it.value == value }
         }
     }
+
+    data class FormatData(
+        val version: String,
+        val items: List<Item>
+    ) {
+
+        data class Item(
+            val offset: Int,
+            val length: Int,
+            val type: FormatDataType,
+            val url: String?
+        )
+    }
 }
 
 fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     id = id,
-    conversationMessageId = conversationMessageId,
+    conversationMessageId = cmId,
     text = text,
     isOut = isOut,
     peerId = peerId,

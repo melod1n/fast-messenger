@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.conena.nanokt.collections.indexOfFirstOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
 import com.conena.nanokt.text.isNotEmptyOrBlank
+import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.common.extensions.setValue
@@ -32,6 +33,7 @@ import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.messageshistory.model.MessageDialog
+import dev.meloda.fast.messageshistory.model.MessageNavigation
 import dev.meloda.fast.messageshistory.model.MessageOption
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.messageshistory.model.UiItem
@@ -51,15 +53,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.random.Random
-
 import dev.meloda.fast.ui.R as UiR
 
 interface MessagesHistoryViewModel {
 
     val screenState: StateFlow<MessagesHistoryScreenState>
+    val navigation: StateFlow<MessageNavigation?>
     val messages: StateFlow<List<VkMessage>>
     val uiMessages: StateFlow<List<UiItem>>
-    val messageDialog: StateFlow<MessageDialog?>
+    val dialog: StateFlow<MessageDialog?>
     val selectedMessages: StateFlow<List<VkMessage>>
 
     val isNeedToScrollToIndex: StateFlow<Int?>
@@ -69,6 +71,10 @@ interface MessagesHistoryViewModel {
 
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
+
+    fun onNavigationConsumed()
+
+    fun onTopBarClicked()
 
     fun onDialogConfirmed(dialog: MessageDialog, bundle: Bundle)
     fun onDialogDismissed(dialog: MessageDialog)
@@ -85,10 +91,10 @@ interface MessagesHistoryViewModel {
 
     fun onPaginationConditionsMet()
 
-    fun onMessageClicked(messageId: Int)
-    fun onMessageLongClicked(messageId: Int)
+    fun onMessageClicked(messageId: Long)
+    fun onMessageLongClicked(messageId: Long)
 
-    fun onPinnedMessageClicked(messageId: Int)
+    fun onPinnedMessageClicked(messageId: Long)
     fun onUnpinMessageClicked()
 
     fun onDeleteSelectedMessagesClicked()
@@ -106,7 +112,8 @@ class MessagesHistoryViewModelImpl(
 ) : MessagesHistoryViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(MessagesHistoryScreenState.EMPTY)
-    override val messageDialog = MutableStateFlow<MessageDialog?>(null)
+    override val navigation = MutableStateFlow<MessageNavigation?>(null)
+    override val dialog = MutableStateFlow<MessageDialog?>(null)
     override val selectedMessages = MutableStateFlow<List<VkMessage>>(emptyList())
 
     override val isNeedToScrollToIndex = MutableStateFlow<Int?>(null)
@@ -146,6 +153,21 @@ class MessagesHistoryViewModelImpl(
 
         userSettings.showTimeInActionMessages.listenValue(viewModelScope) {
             syncUiMessages()
+        }
+    }
+
+    override fun onNavigationConsumed() {
+        navigation.setValue { null }
+    }
+
+    override fun onTopBarClicked() {
+        val cmId = messages.value.firstOrNull()?.cmId ?: return
+
+        navigation.setValue {
+            MessageNavigation.ChatMaterials(
+                peerId = screenState.value.conversationId,
+                cmId = cmId
+            )
         }
     }
 
@@ -223,7 +245,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onDialogDismissed(dialog: MessageDialog) {
-        messageDialog.setValue { null }
+        this.dialog.setValue { null }
     }
 
     override fun onDialogItemPicked(dialog: MessageDialog, bundle: Bundle) {
@@ -241,13 +263,13 @@ class MessagesHistoryViewModelImpl(
                     MessageOption.Forward -> {}
 
                     MessageOption.Pin -> {
-                        messageDialog.setValue {
+                        this.dialog.setValue {
                             MessageDialog.MessagePin(dialog.message.id)
                         }
                     }
 
                     MessageOption.Unpin -> {
-                        messageDialog.setValue {
+                        this.dialog.setValue {
                             MessageDialog.MessageUnpin(dialog.message.id)
                         }
                     }
@@ -262,7 +284,7 @@ class MessagesHistoryViewModelImpl(
 
                     MessageOption.MarkAsImportant,
                     MessageOption.UnmarkAsImportant -> {
-                        messageDialog.setValue {
+                        this.dialog.setValue {
                             MessageDialog.MessageMarkImportance(
                                 message = dialog.message,
                                 isImportant = option is MessageOption.MarkAsImportant
@@ -272,7 +294,7 @@ class MessagesHistoryViewModelImpl(
 
                     MessageOption.MarkAsSpam,
                     MessageOption.UnmarkAsSpam -> {
-                        messageDialog.setValue {
+                        this.dialog.setValue {
                             MessageDialog.MessageSpam(
                                 message = dialog.message,
                                 isSpam = option is MessageOption.MarkAsSpam
@@ -283,7 +305,7 @@ class MessagesHistoryViewModelImpl(
                     MessageOption.Edit -> {}
 
                     MessageOption.Delete -> {
-                        messageDialog.setValue {
+                        this.dialog.setValue {
                             MessageDialog.MessageDelete(dialog.message)
                         }
                     }
@@ -362,7 +384,7 @@ class MessagesHistoryViewModelImpl(
         loadMessagesHistory()
     }
 
-    override fun onMessageClicked(messageId: Int) {
+    override fun onMessageClicked(messageId: Long) {
         val currentMessage = messages.value.firstOrNull { it.id == messageId } ?: return
 
         if (selectedMessages.value.isNotEmpty()) {
@@ -379,13 +401,13 @@ class MessagesHistoryViewModelImpl(
             }
             syncUiMessages()
         } else {
-            messageDialog.setValue {
+            dialog.setValue {
                 MessageDialog.MessageOptions(currentMessage)
             }
         }
     }
 
-    override fun onMessageLongClicked(messageId: Int) {
+    override fun onMessageLongClicked(messageId: Long) {
         val currentMessage = messages.value.firstOrNull { it.id == messageId } ?: return
 
         val isSelected = selectedMessages.value.contains(currentMessage)
@@ -399,7 +421,7 @@ class MessagesHistoryViewModelImpl(
         syncUiMessages()
     }
 
-    override fun onPinnedMessageClicked(messageId: Int) {
+    override fun onPinnedMessageClicked(messageId: Long) {
         val uiMessages = uiMessages.value
         val messageIndex = uiMessages.indexOfFirstOrNull {
             it is UiItem.Message && it.id == messageId
@@ -414,13 +436,13 @@ class MessagesHistoryViewModelImpl(
 
     override fun onUnpinMessageClicked() {
         val pinnedMessageId = screenState.value.pinnedMessage?.id ?: return
-        messageDialog.setValue {
+        dialog.setValue {
             MessageDialog.MessageUnpin(pinnedMessageId)
         }
     }
 
     override fun onDeleteSelectedMessagesClicked() {
-        messageDialog.setValue {
+        dialog.setValue {
             MessageDialog.MessagesDelete(selectedMessages.value)
         }
     }
@@ -434,7 +456,7 @@ class MessagesHistoryViewModelImpl(
         if (messages.value.indexOfFirstOrNull { it.id == message.id } != null) return
 
         val randomIds = messages.value.map(VkMessage::randomId)
-        if (message.randomId != 0 && message.randomId in randomIds) return
+        if (message.randomId != 0L && message.randomId in randomIds) return
 
         val newMessages = messages.value.toMutableList()
         newMessages.add(0, message)
@@ -463,13 +485,13 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val messages = messages.value
-        val index = messages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = messages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // диалога нет в списке
             // pizdets
         } else {
             val newConversation = screenState.value.conversation.copy(
-                inRead = event.messageId
+                inReadCmId = event.cmId
             )
 
             screenState.setValue { old ->
@@ -484,13 +506,13 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val messages = messages.value
-        val index = messages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = messages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
         } else {
             val newConversation = screenState.value.conversation.copy(
-                outRead = event.messageId
+                outReadCmId = event.cmId
             )
 
             screenState.setValue { old ->
@@ -505,7 +527,7 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val index = newMessages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = newMessages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
@@ -520,10 +542,12 @@ class MessagesHistoryViewModelImpl(
         if (event.message.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val maxDate = newMessages.maxOf(VkMessage::date)
         val minDate = newMessages.minOf(VkMessage::date)
 
-        if (event.message.date !in minDate..maxDate) return
+        if (event.message.date < minDate) { // сообщения не должно быть в списке
+            // pizdets
+            return
+        }
 
         newMessages.add(event.message)
         messages.setValue { newMessages.sorted() }
@@ -534,7 +558,7 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val index = newMessages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = newMessages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
@@ -550,7 +574,7 @@ class MessagesHistoryViewModelImpl(
         if (event.peerId != screenState.value.conversationId) return
 
         val newMessages = messages.value.toMutableList()
-        val index = newMessages.indexOfFirstOrNull { it.id == event.messageId }
+        val index = newMessages.indexOfFirstOrNull { it.cmId == event.cmId }
 
         if (index == null) { // сообщения нет в списке
             // pizdets
@@ -578,30 +602,33 @@ class MessagesHistoryViewModelImpl(
     private fun loadConversation() {
         Log.d("MessagesHistoryViewModelImpl", "loadConversation()")
 
-        loadConversationsByIdUseCase(listOf(screenState.value.conversationId))
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = ::handleError,
-                    success = { response ->
-                        val conversation = response.firstOrNull() ?: return@listenValue
-                        val title = conversation.extractTitle(
-                            useContactName = AppSettings.General.useContactNames,
-                            resources = resourceProvider.resources
+        loadConversationsByIdUseCase(
+            peerIds = listOf(screenState.value.conversationId),
+            extended = true,
+            fields = VkConstants.ALL_FIELDS
+        ).listenValue(viewModelScope) { state ->
+            state.processState(
+                error = ::handleError,
+                success = { response ->
+                    val conversation = response.firstOrNull() ?: return@listenValue
+                    val title = conversation.extractTitle(
+                        useContactName = AppSettings.General.useContactNames,
+                        resources = resourceProvider.resources
+                    )
+                    val avatar = conversation.extractAvatar()
+
+                    screenState.setValue { old ->
+                        old.copy(
+                            conversation = conversation,
+                            title = title,
+                            avatar = avatar
                         )
-                        val avatar = conversation.extractAvatar()
-
-                        screenState.setValue { old ->
-                            old.copy(
-                                conversation = conversation,
-                                title = title,
-                                avatar = avatar
-                            )
-                        }
-
-                        conversation.pinnedMessage?.let(::handlePinnedMessage)
                     }
-                )
-            }
+
+                    conversation.pinnedMessage?.let(::handlePinnedMessage)
+                }
+            )
+        }
     }
 
     private fun handlePinnedMessage(pinnedMessage: VkMessage?) {
@@ -736,7 +763,7 @@ class MessagesHistoryViewModelImpl(
                 dateDiff
             } else {
                 val idDiff = m2.id - m1.id
-                idDiff
+                idDiff.toInt()
             }
         }
     }
@@ -745,14 +772,14 @@ class MessagesHistoryViewModelImpl(
         lastMessageText = screenState.value.message.text
 
         val newMessage = VkMessage(
-            id = -1 - sendingMessages.size,
-            conversationMessageId = -1,
+            id = -1L - sendingMessages.size,
+            cmId = -1L - sendingMessages.size,
             text = lastMessageText,
             isOut = true,
             peerId = screenState.value.conversationId,
             fromId = UserConfig.userId,
             date = (System.currentTimeMillis() / 1000).toInt(),
-            randomId = Random.nextInt(),
+            randomId = Random.nextInt().toLong(),
             action = null,
             actionMemberId = null,
             actionText = null,
@@ -769,7 +796,11 @@ class MessagesHistoryViewModelImpl(
             actionUser = null,
             actionGroup = null,
             isPinned = false,
-            pinnedAt = null
+            isSpam = false,
+            pinnedAt = null,
+
+            // TODO: 04-Apr-25, Danil Nikolaev: implement
+            formatData = null,
         )
         sendingMessages += newMessage
         messages.setValue { old -> listOf(newMessage).plus(old) }
@@ -792,7 +823,7 @@ class MessagesHistoryViewModelImpl(
             state.processState(
                 any = { sendingMessages.remove(newMessage) },
                 error = { error ->
-                    val failedId = -500_000 - failedMessages.size
+                    val failedId = -500_000L - failedMessages.size
                     val newFailedMessage = newMessage.copy(id = failedId)
                     failedMessages += newFailedMessage
 
@@ -801,11 +832,13 @@ class MessagesHistoryViewModelImpl(
                     messages.setValue { newMessages }
                     syncUiMessages()
                 },
-                success = { messageId ->
+                success = { response ->
                     val newMessages = messages.value.toMutableList()
-                    newMessages[newMessages.indexOf(newMessage)] = newMessage.copy(id = messageId)
+                    newMessages[newMessages.indexOf(newMessage)] = newMessage.copy(
+                        id = response.messageId,
+                        cmId = response.cmId
+                    )
                     messages.setValue { newMessages }
-
                     syncUiMessages()
                 }
             )
@@ -813,7 +846,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun markAsImportant(
-        messageIds: List<Int>,
+        messageIds: List<Long>,
         important: Boolean,
     ) {
         messagesUseCase.markAsImportant(
@@ -841,7 +874,7 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun deleteMessage(
-        messageIds: List<Int>,
+        messageIds: List<Long>,
         spam: Boolean = false,
         deleteForAll: Boolean = false,
         onSuccess: () -> Unit = {}
@@ -866,39 +899,48 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
-    private fun pinMessage(messageId: Int) {
+    private fun pinMessage(messageId: Long) {
         messagesUseCase.pin(
             peerId = screenState.value.conversationId,
             messageId = messageId,
-            conversationMessageId = null
+            cmId = null
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = ::handleError,
                 success = { pinnedMessage ->
                     handlePinnedMessage(pinnedMessage)
-                    val newMessages = messages.value
-                        .toMutableList()
-                        .map { message ->
-                            message.copy(isPinned = message.id == messageId)
-                        }
-                    messages.setValue { newMessages }
-                    syncUiMessages()
+
+                    val newMessages = messages.value.toMutableList()
+                    val index = newMessages.indexOfFirstOrNull { it.id == messageId }
+
+                    if (index == null) {// сообщения нет в списке
+                        // pizdets
+                    } else {
+                        newMessages[index] = pinnedMessage
+                        messages.setValue { newMessages }
+                        syncUiMessages()
+                    }
                 }
             )
         }
     }
 
-    private fun unpinMessage(messageId: Int) {
+    private fun unpinMessage(messageId: Long) {
         messagesUseCase.unpin(screenState.value.conversationId)
             .listenValue(viewModelScope) { state ->
                 state.processState(
                     error = ::handleError,
                     success = {
                         val newMessages = messages.value.toMutableList()
-                        val index = newMessages.indexOfFirst { it.id == messageId }
-                        newMessages[index] = newMessages[index].copy(isPinned = false)
-                        messages.setValue { newMessages }
-                        syncUiMessages()
+                        val index = newMessages.indexOfFirstOrNull { it.id == messageId }
+
+                        if (index == null) { // сообщения нет в списке
+                            // pizdets
+                        } else {
+                            newMessages[index] = newMessages[index].copy(isPinned = false)
+                            messages.setValue { newMessages }
+                            syncUiMessages()
+                        }
 
                         handlePinnedMessage(null)
                     }
@@ -908,8 +950,8 @@ class MessagesHistoryViewModelImpl(
 
     fun editMessage(
         originalMessage: VkMessage,
-        peerId: Int,
-        messageId: Int,
+        peerid: Long,
+        messageid: Long,
         newText: String? = null,
         attachments: List<VkAttachment>? = null,
     ) {
@@ -1001,7 +1043,7 @@ class MessagesHistoryViewModelImpl(
 // TODO: 25.08.2023, Danil Nikolaev: this and down below - rewrite
 
 //    suspend fun uploadPhoto(
-//        peerId: Int,
+//        peerid: Long,
 //        photo: File,
 //        name: String,
 //    ) {
@@ -1021,7 +1063,7 @@ class MessagesHistoryViewModelImpl(
 //        }
 //    }
 
-//    private suspend fun getPhotoMessageUploadServer(peerId: Int) {
+//    private suspend fun getPhotoMessageUploadServer(peerid: Long) {
 //        suspendCoroutine { continuation ->
 //            viewModelScope.launch {
 //                sendRequestNotNull(
@@ -1218,7 +1260,7 @@ class MessagesHistoryViewModelImpl(
 //    }
 
 //    suspend fun uploadFile(
-//        peerId: Int,
+//        peerid: Long,
 //        file: File,
 //        name: String,
 //        type: FilesRepository.FileType,
@@ -1235,7 +1277,7 @@ class MessagesHistoryViewModelImpl(
 //    }
 
 //    private suspend fun getFileMessageUploadServer(
-//        peerId: Int,
+//        peerid: Long,
 //        type: FilesRepository.FileType,
 //    ) {
 //        suspendCoroutine { continuation ->
@@ -1314,14 +1356,14 @@ class MessagesHistoryViewModelImpl(
 //
 //object MessagesUnpinEvent : VkEvent()
 //
-//data class MessagesDeleteEvent(val peerId: Int, val messagesIds: List<Int>) : VkEvent()
+//data class MessagesDeleteEvent(val peerid: Long, val messagesIds: List<Int>) : VkEvent()
 //
 //data class MessagesEditEvent(val message: VkMessageDomain) : VkEvent()
 //
 //data class MessagesReadEvent(
 //    val isOut: Boolean,
-//    val peerId: Int,
-//    val messageId: Int,
+//    val peerid: Long,
+//    val messageid: Long,
 //) : VkEvent()
 //
 //data class MessagesNewEvent(

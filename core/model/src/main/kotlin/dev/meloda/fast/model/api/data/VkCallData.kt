@@ -6,8 +6,8 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkCallData(
-    @Json(name = "initiator_id") val initiatorId: Int,
-    @Json(name = "receiver_id") val receiverId: Int,
+    @Json(name = "initiator_id") val initiatorId: Long,
+    @Json(name = "receiver_id") val receiverId: Long,
     @Json(name = "state") val state: String,
     @Json(name = "time") val time: Int,
     @Json(name = "duration") val duration: Int,

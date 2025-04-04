@@ -20,5 +20,5 @@ interface FriendsService {
     @POST(FriendsUrls.GET_ONLINE)
     suspend fun getOnlineFriends(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<List<Int>>, RestApiError>
+    ): ApiResult<ApiResponse<List<Long>>, RestApiError>
 }

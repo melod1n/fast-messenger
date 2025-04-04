@@ -36,7 +36,7 @@ fun FriendItem(
     friend: UiFriend,
     maxLines: Int,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit
+    onMessageClicked: (userid: Long) -> Unit
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),

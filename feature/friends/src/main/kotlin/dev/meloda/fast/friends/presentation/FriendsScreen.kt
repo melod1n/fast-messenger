@@ -1,6 +1,7 @@
 package dev.meloda.fast.friends.presentation
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -30,13 +31,12 @@ import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.friends.FriendsViewModelImpl
 import dev.meloda.fast.friends.OnlineFriendsViewModelImpl
 import dev.meloda.fast.friends.navigation.Friends
-import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.components.ErrorView
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
-import dev.meloda.fast.ui.theme.LocalScrollToTop
+import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
@@ -52,16 +52,16 @@ fun FriendsScreen(
     tabIndex: Int,
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
-    onMessageClicked: (userId: Int) -> Unit = {},
+    onMessageClicked: (userid: Long) -> Unit = {},
     setCanScrollBackward: (Boolean) -> Unit = {},
     onScrolledToTop: () -> Unit = {}
 ) {
     val context: Context = LocalContext.current
     val viewModel: FriendsViewModel =
         if (tabIndex == 0) {
-            koinViewModel<FriendsViewModelImpl>()
+            koinViewModel<FriendsViewModelImpl>(viewModelStoreOwner = context as AppCompatActivity)
         } else {
-            koinViewModel<OnlineFriendsViewModelImpl>()
+            koinViewModel<OnlineFriendsViewModelImpl>(viewModelStoreOwner = context as AppCompatActivity)
         }
 
     LaunchedEffect(orderType) {
@@ -96,7 +96,7 @@ fun FriendsScreen(
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
 
-    val scrollToTop = LocalScrollToTop.current[Friends] ?: false
+    val scrollToTop = LocalReselectedTab.current[Friends] ?: false
     LaunchedEffect(scrollToTop) {
         if (scrollToTop) {
             if (listState.firstVisibleItemIndex > 14) {
@@ -136,24 +136,7 @@ fun FriendsScreen(
     val hazeState = LocalHazeState.current
 
     baseError?.let { error ->
-        when (error) {
-            is BaseError.SessionExpired -> {
-                ErrorView(
-                    text = stringResource(R.string.session_expired),
-                    buttonText = stringResource(R.string.action_log_out),
-                    onButtonClick = onSessionExpiredLogOutButtonClicked
-                )
-            }
-
-            is BaseError.SimpleError -> {
-                ErrorView(
-                    text = error.message,
-                    buttonText = stringResource(R.string.try_again),
-                    onButtonClick = viewModel::onRefresh
-                )
-            }
-        }
-
+        VkErrorView(baseError = error)
         return
     }
 

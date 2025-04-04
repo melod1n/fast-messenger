@@ -35,7 +35,7 @@ fun PinnedMessageContainer(
     title: String,
     summary: AnnotatedString?,
     canChangePin: Boolean,
-    onPinnedMessageClicked: (Int) -> Unit = {},
+    onPinnedMessageClicked: (Long) -> Unit = {},
     onUnpinMessageButtonClicked: () -> Unit = {}
 ) {
     Row(

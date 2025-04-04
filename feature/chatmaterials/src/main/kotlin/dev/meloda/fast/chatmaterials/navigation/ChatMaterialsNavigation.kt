@@ -10,8 +10,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChatMaterials(
-    val peerId: Int,
-    val conversationMessageId: Int
+    val peerId: Long,
+    val conversationMessageId: Long
 ) {
     companion object {
         fun from(savedStateHandle: SavedStateHandle) =
@@ -31,7 +31,7 @@ fun NavGraphBuilder.chatMaterialsScreen(
     }
 }
 
-fun NavController.navigateToChatMaterials(peerId: Int, conversationMessageId: Int) {
+fun NavController.navigateToChatMaterials(peerId: Long, conversationMessageId: Long) {
     this.navigate(
         ChatMaterials(
             peerId = peerId,

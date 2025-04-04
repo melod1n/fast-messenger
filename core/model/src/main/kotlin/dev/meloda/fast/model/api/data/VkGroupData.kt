@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 @JsonClass(generateAdapter = true)
 data class VkGroupData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "name") val name: String,
     @Json(name = "screen_name") val screenName: String,
     @Json(name = "is_closed") val isClosed: Int?,

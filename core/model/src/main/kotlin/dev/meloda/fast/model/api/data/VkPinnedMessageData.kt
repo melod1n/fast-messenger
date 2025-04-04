@@ -1,21 +1,21 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkMessage
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkMessage
 
 @JsonClass(generateAdapter = true)
 data class VkPinnedMessageData(
-    @Json(name = "id") val id: Int?,
-    @Json(name = "peer_id") val peerId: Int?,
+    @Json(name = "id") val id: Long?,
+    @Json(name = "peer_id") val peerId: Long?,
     @Json(name = "date") val date: Int,
-    @Json(name = "from_id") val fromId: Int,
+    @Json(name = "from_id") val fromId: Long,
     @Json(name = "out") val out: Boolean?,
     @Json(name = "text") val text: String,
-    @Json(name = "conversation_message_id") val conversationMessageId: Int,
+    @Json(name = "conversation_message_id") val conversationMessageId: Long,
     @Json(name = "fwd_messages") val forwards: List<VkMessageData>?,
     @Json(name = "important") val important: Boolean = false,
-    @Json(name = "random_id") val randomId: Int = 0,
+    @Json(name = "random_id") val randomId: Long = 0,
     @Json(name = "attachments") val attachments: List<VkAttachmentItemData>?,
     @Json(name = "is_hidden") val isHidden: Boolean = false,
     @Json(name = "payload") val payload: String?,
@@ -28,7 +28,7 @@ data class VkPinnedMessageData(
 
     fun mapToDomain(): VkMessage = VkMessage(
         id = id ?: -1,
-        conversationMessageId = conversationMessageId,
+        cmId = conversationMessageId,
         text = text.ifBlank { null },
         isOut = out == true,
         peerId = peerId ?: -1,
@@ -54,5 +54,7 @@ data class VkPinnedMessageData(
         actionGroup = null,
         pinnedAt = null,
         isPinned = true,
+        isSpam = false,
+        formatData = null,
     )
 }

@@ -1,21 +1,21 @@
 package dev.meloda.fast.model.api.data
 
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.PeerType
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkConversationData(
     @Json(name = "peer") val peer: Peer,
-    @Json(name = "last_message_id") val lastMessageId: Int?,
-    @Json(name = "in_read") val inRead: Int,
-    @Json(name = "out_read") val outRead: Int,
-    @Json(name = "in_read_cmid") val inReadConversationMessageId: Int,
-    @Json(name = "out_read_cmid") val outReadConversationMessageId: Int,
+    @Json(name = "last_message_id") val lastMessageId: Long?,
+    @Json(name = "in_read") val inRead: Long,
+    @Json(name = "out_read") val outRead: Long,
+    @Json(name = "in_read_cmid") val inReadConversationMessageId: Long,
+    @Json(name = "out_read_cmid") val outReadConversationMessageId: Long,
     @Json(name = "sort_id") val sortId: SortId,
-    @Json(name = "last_conversation_message_id") val lastConversationMessageId: Int,
+    @Json(name = "last_conversation_message_id") val lastConversationMessageId: Long,
     @Json(name = "is_marked_unread") val isMarkedUnread: Boolean,
     @Json(name = "important") val important: Boolean,
     @Json(name = "push_settings") val pushSettings: PushSettings?,
@@ -25,13 +25,14 @@ data class VkConversationData(
     @Json(name = "chat_settings") val chatSettings: ChatSettings?,
     @Json(name = "call_in_progress") val callInProgress: CallInProgress?,
     @Json(name = "unread_count") val unreadCount: Int?,
+    @Json(name = "is_archived") val isArchived: Boolean?
 ) {
 
     @JsonClass(generateAdapter = true)
     data class Peer(
-        @Json(name = "id") val id: Int,
+        @Json(name = "id") val id: Long,
         @Json(name = "type") val type: String,
-        @Json(name = "local_id") val localId: Int,
+        @Json(name = "local_id") val localId: Long,
     )
 
     @JsonClass(generateAdapter = true)
@@ -55,7 +56,7 @@ data class VkConversationData(
 
     @JsonClass(generateAdapter = true)
     data class ChatSettings(
-        @Json(name = "owner_id") val ownerId: Int,
+        @Json(name = "owner_id") val ownerId: Long,
         @Json(name = "title") val title: String,
         @Json(name = "state") val state: String,
         @Json(name = "acl") val acl: Acl,
@@ -119,7 +120,7 @@ data class VkConversationData(
         photo200 = chatSettings?.photo?.photo200,
         isCallInProgress = callInProgress != null,
         isPhantom = chatSettings?.isDisappearing == true,
-        lastConversationMessageId = lastConversationMessageId,
+        lastCmId = lastConversationMessageId,
         inRead = inRead,
         outRead = outRead,
         lastMessageId = lastMessageId,
@@ -140,5 +141,6 @@ data class VkConversationData(
         pinnedMessage = chatSettings?.pinnedMessage?.mapToDomain(),
         user = null,
         group = null,
+        isArchived = isArchived == true
     )
 }

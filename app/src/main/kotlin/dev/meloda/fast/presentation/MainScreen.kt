@@ -37,7 +37,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.navigation.Conversations
-import dev.meloda.fast.conversations.navigation.conversationsScreen
+import dev.meloda.fast.conversations.navigation.conversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.friends.navigation.friendsScreen
 import dev.meloda.fast.model.BaseError
@@ -46,7 +46,8 @@ import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
-import dev.meloda.fast.ui.theme.LocalScrollToTop
+import dev.meloda.fast.ui.theme.LocalNavController
+import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.ImmutableList
@@ -57,10 +58,10 @@ fun MainScreen(
     navigationItems: ImmutableList<BottomNavigationItem>,
     onError: (BaseError) -> Unit = {},
     onSettingsButtonClicked: () -> Unit = {},
-    onConversationItemClicked: (conversationId: Int) -> Unit = {},
+    onNavigateToMessagesHistory: (conversationId: Long) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
-    onMessageClicked: (userId: Int) -> Unit = {},
-    onCreateChatClicked: () -> Unit = {}
+    onMessageClicked: (userid: Long) -> Unit = {},
+    onNavigateToCreateChat: () -> Unit = {}
 ) {
     val theme = LocalThemeConfig.current
     val hazeState = remember { HazeState() }
@@ -75,7 +76,7 @@ fun MainScreen(
         derivedStateOf { user?.photo100 }
     }
 
-    var scrollToTop by remember {
+    var tabReselected by remember {
         mutableStateOf(
             navigationItems.associate {
                 it.route to false
@@ -113,7 +114,7 @@ fun MainScreen(
                                     }
                                 }
                             } else {
-                                scrollToTop = scrollToTop.toMutableMap().also {
+                                tabReselected = tabReselected.toMutableMap().also {
                                     it[navigationItems[index].route] = true
                                 }
                             }
@@ -164,7 +165,8 @@ fun MainScreen(
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
                 LocalBottomPadding provides padding.calculateBottomPadding(),
-                LocalScrollToTop provides scrollToTop
+                LocalReselectedTab provides tabReselected,
+                LocalNavController provides navController
             ) {
                 NavHost(
                     navController = navController,
@@ -182,18 +184,17 @@ fun MainScreen(
                             onPhotoClicked = onPhotoClicked,
                             onMessageClicked = onMessageClicked,
                             onScrolledToTop = {
-                                scrollToTop = scrollToTop.toMutableMap().also {
+                                tabReselected = tabReselected.toMutableMap().also {
                                     it[Friends] = false
                                 }
                             },
                         )
-                        conversationsScreen(
+                        conversationsGraph(
                             onError = onError,
-                            onConversationItemClicked = onConversationItemClicked,
-                            onCreateChatClicked = onCreateChatClicked,
-                            navController = navController,
+                            onNavigateToMessagesHistory = onNavigateToMessagesHistory,
+                            onNavigateToCreateChat = onNavigateToCreateChat,
                             onScrolledToTop = {
-                                scrollToTop = scrollToTop.toMutableMap().also {
+                                tabReselected = tabReselected.toMutableMap().also {
                                     it[Conversations] = false
                                 }
                             }
@@ -201,8 +202,7 @@ fun MainScreen(
                         profileScreen(
                             onError = onError,
                             onSettingsButtonClicked = onSettingsButtonClicked,
-                            onPhotoClicked = onPhotoClicked,
-                            navController = navController
+                            onPhotoClicked = onPhotoClicked
                         )
                     }
                 }

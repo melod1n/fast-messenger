@@ -10,7 +10,7 @@ import dev.meloda.fast.model.api.domain.VkMessage
 
 @Immutable
 data class MessagesHistoryScreenState(
-    val conversationId: Int,
+    val conversationId: Long,
     val title: String,
     val status: String?,
     val avatar: UiImage,

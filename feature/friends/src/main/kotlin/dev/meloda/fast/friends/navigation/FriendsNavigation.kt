@@ -12,7 +12,7 @@ object Friends
 fun NavGraphBuilder.friendsScreen(
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit,
+    onMessageClicked: (userid: Long) -> Unit,
     onScrolledToTop: () -> Unit
 ) {
     composable<Friends> {

@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class VkEventData(
     @Json(name = "button_text") val buttonText: String,
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "is_favorite") val isFavorite: Boolean,
     @Json(name = "text") val text: String,
     @Json(name = "address") val address: String,

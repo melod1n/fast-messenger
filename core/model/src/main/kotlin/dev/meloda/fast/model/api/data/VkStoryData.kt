@@ -5,8 +5,8 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkStoryData(
-    val id: Int,
-    val owner_id: Int,
+    val id: Long,
+    val owner_id: Long,
     val access_key: String?,
     val can_comment: Int?,
     val can_reply: Int?,

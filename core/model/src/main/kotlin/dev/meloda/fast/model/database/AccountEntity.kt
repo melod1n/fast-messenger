@@ -6,8 +6,9 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "accounts")
 data class AccountEntity(
     @PrimaryKey(autoGenerate = false)
-    val userId: Int,
+    val userId: Long,
     val accessToken: String,
     val fastToken: String?,
-    val trustedHash: String?
+    val trustedHash: String?,
+    val exchangeToken: String?
 )

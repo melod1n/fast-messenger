@@ -7,24 +7,24 @@ import dev.meloda.fast.model.api.domain.VkUnknownAttachment
 
 @Entity(tableName = "messages")
 data class VkMessageEntity(
-    @PrimaryKey val id: Int,
-    val conversationMessageId: Int,
+    @PrimaryKey val id: Long,
+    val conversationMessageId: Long,
     val text: String?,
     val isOut: Boolean,
-    val peerId: Int,
-    val fromId: Int,
+    val peerId: Long,
+    val fromId: Long,
     val date: Int,
-    val randomId: Int,
+    val randomId: Long,
     val action: String?,
-    val actionMemberId: Int?,
+    val actionMemberId: Long?,
     val actionText: String?,
-    val actionConversationMessageId: Int?,
+    val actionConversationMessageId: Long?,
     val actionMessage: String?,
     val updateTime: Int?,
     val important: Boolean,
-    val forwardIds: List<Int>?,
+    val forwardIds: List<Long>?,
     val attachments: List<String>?, // TODO: 01/05/2024, Danil Nikolaev: how to store???
-    val replyMessageId: Int?,
+    val replyMessageId: Long?,
     val geoType: String?,
     val pinnedAt: Int?,
     val isPinned: Boolean
@@ -32,7 +32,7 @@ data class VkMessageEntity(
 
 fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     id = id,
-    conversationMessageId = conversationMessageId,
+    cmId = conversationMessageId,
     text = text,
     isOut = isOut,
     peerId = peerId,
@@ -56,5 +56,7 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     actionUser = null,
     actionGroup = null,
     pinnedAt = pinnedAt,
-    isPinned = isPinned
+    isPinned = isPinned,
+    isSpam = false,
+    formatData = null,
 )

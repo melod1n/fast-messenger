@@ -104,11 +104,14 @@
     <string name="message_attachments_podcast">Podcast</string>
     <string name="message_attachments_narrative">Narrative</string>
     <string name="message_attachments_article">Article</string>
+    <string name="message_attachments_video_message">Video message</string>
+    <string name="message_attachments_group_sticker">Group sticker</string>
+    <string name="message_attachments_sticker_pack_preview">Sticker pack preview</string>
 
     <string name="chat_interaction_uploading_file">Uploading file</string>
     <string name="chat_interaction_uploading_photo">Uploading photo</string>
     <string name="chat_interaction_uploading_video">Uploading video</string>
-    <string name="chat_interaction_typing">Typing</string>
+    <string name="chat_interaction_typing">typing</string>
     <string name="chat_interaction_recording_audio_message">Recording</string>
 
     <string name="chat_interaction_chat_typing">%1$s are typing</string>
@@ -149,6 +152,8 @@
     <string name="action_mark_as_read">Read</string>
 
     <string name="action_delete">Delete</string>
+    <string name="conversation_context_action_archive">Archive</string>
+    <string name="conversation_context_action_unarchive">Unarchive</string>
     <string name="conversation_context_action_delete">Delete</string>
     <string name="confirm_delete_conversation">Delete the conversation?</string>
     <string name="action_sign_out">Sign out</string>
@@ -157,10 +162,14 @@
     <string name="conversation_context_action_pin">Pin</string>
     <string name="confirm_unpin_conversation">Unpin the conversation?</string>
     <string name="confirm_pin_conversation">Pin the conversation?</string>
+    <string name="confirm_archive_conversation">Archive the conversation?</string>
+    <string name="confirm_unarchive_conversation">Unarchive the conversation?</string>
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
     <string name="action_mark">Mark</string>
     <string name="action_unmark">Unmark</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_unarchive">Unarchive</string>
     <string name="message_call_type_outgoing">Outgoing call</string>
     <string name="message_call_type_incoming">Incoming call</string>
     <string name="message_call_state_ended">Ended</string>
@@ -236,6 +245,7 @@
     <string name="members_count">Members: %1$d</string>
     <string name="title_loading">Loading&#8230;</string>
     <string name="title_conversations">Conversations</string>
+    <string name="title_archive">Archive</string>
     <string name="title_friends">Friends</string>
     <string name="title_profile">Profile</string>
     <string name="title_friends_all">All</string>

@@ -14,6 +14,15 @@ class Converters {
             .mapNotNull(String::toIntOrNull)
 
     @TypeConverter
+    fun longListToString(list: List<Long>): String = list.joinToString()
+
+    @TypeConverter
+    fun stringToLongList(string: String): List<Long> =
+        string
+            .split(", ")
+            .mapNotNull(String::toLongOrNull)
+
+    @TypeConverter
     fun stringListToString(list: List<String>): String = list.joinToString()
 
     @TypeConverter

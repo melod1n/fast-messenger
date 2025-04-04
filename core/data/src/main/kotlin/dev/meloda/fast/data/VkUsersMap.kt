@@ -1,5 +1,6 @@
 package dev.meloda.fast.data
 
+import dev.meloda.fast.data.UserConfig.userId
 import dev.meloda.fast.model.api.data.VkMessageData
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
@@ -9,7 +10,7 @@ class VkUsersMap(
     private val users: List<VkUser>
 ) {
 
-    private val map: HashMap<Int, VkUser> by lazy {
+    private val map: HashMap<Long, VkUser> by lazy {
         HashMap(users.associateBy(VkUser::id))
     }
 
@@ -35,7 +36,7 @@ class VkUsersMap(
         if (message.fromId > 0) map[message.fromId]
         else null
 
-    fun user(userId: Int): VkUser? = map[userId]
+    fun user(userid: Long): VkUser? = map[userId]
 
     companion object {
 

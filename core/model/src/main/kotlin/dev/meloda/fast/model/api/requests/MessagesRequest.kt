@@ -6,9 +6,9 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 data class MessagesGetHistoryRequest(
     val count: Int? = null,
     val offset: Int? = null,
-    val peerId: Int,
+    val peerId: Long,
     val extended: Boolean? = null,
-    val startMessageId: Int? = null,
+    val startMessageId: Long? = null,
     val rev: Boolean? = null,
     val fields: String? = null,
 ) {
@@ -28,13 +28,13 @@ data class MessagesGetHistoryRequest(
 }
 
 data class MessagesSendRequest(
-    val peerId: Int,
-    val randomId: Int = 0,
+    val peerId: Long,
+    val randomId: Long = 0,
     val message: String?,
     val lat: Int? = null,
     val lon: Int? = null,
-    val replyTo: Int? = null,
-    val stickerId: Int? = null,
+    val replyTo: Long? = null,
+    val stickerId: Long? = null,
     val disableMentions: Boolean? = null,
     val doNotParseLinks: Boolean? = null,
     val silent: Boolean? = null,
@@ -65,8 +65,8 @@ data class MessagesSendRequest(
 }
 
 data class MessagesMarkAsReadRequest(
-    val peerId: Int,
-    val startMessageId: Int?
+    val peerId: Long,
+    val startMessageId: Long?
 ) {
 
     val map: Map<String, String>
@@ -78,7 +78,7 @@ data class MessagesMarkAsReadRequest(
 }
 
 data class MessagesMarkAsImportantRequest(
-    val messagesIds: List<Int>,
+    val messagesIds: List<Long>,
     val important: Boolean
 ) {
 
@@ -104,9 +104,9 @@ data class MessagesGetLongPollServerRequest(
 
 
 data class MessagesPinMessageRequest(
-    val peerId: Int,
-    val messageId: Int? = null,
-    val conversationMessageId: Int? = null
+    val peerId: Long,
+    val messageId: Long? = null,
+    val conversationMessageId: Long? = null
 ) {
 
     val map: Map<String, String>
@@ -119,15 +119,15 @@ data class MessagesPinMessageRequest(
 
 }
 
-data class MessagesUnpinMessageRequest(val peerId: Int) {
+data class MessagesUnpinMessageRequest(val peerId: Long) {
     val map: Map<String, String>
         get() = mapOf("peer_id" to peerId.toString())
 }
 
 data class MessagesDeleteRequest(
-    val peerId: Int,
-    val messagesIds: List<Int>? = null,
-    val conversationsMessagesIds: List<Int>? = null,
+    val peerId: Long,
+    val messagesIds: List<Long>? = null,
+    val conversationsMessagesIds: List<Long>? = null,
     val isSpam: Boolean? = null,
     val deleteForAll: Boolean? = null
 ) {
@@ -147,25 +147,27 @@ data class MessagesDeleteRequest(
 }
 
 data class MessagesEditRequest(
-    val peerId: Int,
-    val messageId: Int,
-    val message: String? = null,
-    val lat: Float? = null,
-    val long: Float? = null,
-    val attachments: List<VkAttachment>? = null,
-    val notParseLinks: Boolean = false,
-    val keepSnippets: Boolean = true,
-    val keepForwardedMessages: Boolean = true
+    val peerId: Long,
+    val cmId: Long?,
+    val messageId: Long?,
+    val message: String?,
+    val lat: Float?,
+    val long: Float?,
+    val attachments: List<VkAttachment>?,
+    val notParseLinks: Boolean,
+    val keepSnippets: Boolean,
+    val keepForwardedMessages: Boolean
 ) {
 
     val map: Map<String, String>
         get() = mutableMapOf(
             "peer_id" to peerId.toString(),
-            "message_id" to messageId.toString(),
             "dont_parse_links" to notParseLinks.asInt().toString(),
             "keep_snippets" to keepSnippets.asInt().toString(),
             "keep_forward_messages" to keepForwardedMessages.asInt().toString()
         ).apply {
+            messageId?.let { this["message_id"] = it.toString() }
+            cmId?.let { this["cmid"] = it.toString() }
             message?.let { this["message"] = it }
             lat?.let { this["lat"] = it.toString() }
             long?.let { this["long"] = it.toString() }
@@ -183,15 +185,20 @@ data class MessagesEditRequest(
 
 
 data class MessagesGetByIdRequest(
-    val messagesIds: List<Int>,
+    val peerCmIds: List<Long>?,
+    val peerId: Long?,
+    val messagesIds: List<Long>?,
+    val cmIds: List<Long>?,
     val extended: Boolean? = null,
     val fields: String? = null
 ) {
 
     val map: Map<String, String>
-        get() = mutableMapOf(
-            "message_ids" to messagesIds.joinToString(),
-        ).apply {
+        get() = mutableMapOf<String, String>().apply {
+            peerCmIds?.let { this["peer_cmids"] = it.joinToString() }
+            peerId?.let { this["peer_id"] = it.toString() }
+            messagesIds?.let { this["message_ids"] = it.joinToString() }
+            cmIds?.let { this["cmids"] = it.joinToString() }
             extended?.let { this["extended"] = it.asInt().toString() }
             fields?.let { this["fields"] = it }
         }
@@ -199,7 +206,7 @@ data class MessagesGetByIdRequest(
 
 
 data class MessagesGetChatRequest(
-    val chatId: Int,
+    val chatId: Long,
     val fields: String? = null
 ) {
 
@@ -213,7 +220,7 @@ data class MessagesGetChatRequest(
 
 
 data class MessagesGetConversationMembersRequest(
-    val peerId: Int,
+    val peerId: Long,
     val offset: Int? = null,
     val count: Int? = null,
     val extended: Boolean? = null,
@@ -234,8 +241,8 @@ data class MessagesGetConversationMembersRequest(
 
 
 data class MessagesRemoveChatUserRequest(
-    val chatId: Int,
-    val memberId: Int
+    val chatId: Long,
+    val memberId: Long
 ) {
     val map: Map<String, String>
         get() = mapOf(
@@ -245,13 +252,13 @@ data class MessagesRemoveChatUserRequest(
 }
 
 data class MessagesGetHistoryAttachmentsRequest(
-    val peerId: Int,
+    val peerId: Long,
     val extended: Boolean?,
     val count: Int?,
     val offset: Int?,
     val preserveOrder: Boolean?,
     val attachmentTypes: List<String>,
-    val conversationMessageId: Int,
+    val conversationMessageId: Long,
     val fields: String?
 ) {
 
@@ -269,7 +276,7 @@ data class MessagesGetHistoryAttachmentsRequest(
 }
 
 data class MessagesCreateChatRequest(
-    val userIds: List<Int>?,
+    val userIds: List<Long>?,
     val title: String?
 ) {
 

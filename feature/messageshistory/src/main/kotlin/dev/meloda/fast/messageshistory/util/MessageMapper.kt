@@ -1,10 +1,15 @@
 package dev.meloda.fast.messageshistory.util
 
 import android.content.res.Resources
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.AnnotatedString.Annotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.StringAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.common.model.UiText
@@ -15,6 +20,7 @@ import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.PeerType
+import dev.meloda.fast.model.api.domain.FormatDataType
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
@@ -22,7 +28,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import dev.meloda.fast.ui.R as UiR
 
-private fun isAccount(fromId: Int) = fromId == UserConfig.userId
+private fun isAccount(fromId: Long) = fromId == UserConfig.userId
 
 fun VkMessage.extractAvatar() = when {
     isUser() -> {
@@ -101,7 +107,7 @@ fun VkMessage.asPresentation(
 ): UiItem = when {
     action != null -> UiItem.ActionMessage(
         id = id,
-        conversationMessageId = conversationMessageId,
+        conversationMessageId = cmId,
         text = extractActionText(
             resources = resourceProvider.resources,
             youPrefix = resourceProvider.getString(R.string.you_message_prefix),
@@ -112,8 +118,12 @@ fun VkMessage.asPresentation(
 
     else -> UiItem.Message(
         id = id,
-        conversationMessageId = conversationMessageId,
-        text = text,
+        conversationMessageId = cmId,
+        text = extractTextWithVisualizedMentions(
+            isOut = isOut,
+            originalText = text,
+            formatData = formatData
+        ),
         isOut = isOut,
         fromId = fromId,
         date = extractDate(),
@@ -541,4 +551,145 @@ fun VkMessage.extractActionText(
             }
         }
     }
+}
+
+// TODO: 04-Apr-25, Danil Nikolaev: get rid of method duplication
+fun extractTextWithVisualizedMentions(
+    isOut: Boolean,
+    originalText: String?,
+    formatData: VkMessage.FormatData?
+): AnnotatedString? {
+    if (originalText == null) return null
+
+    val annotations =
+        mutableListOf<AnnotatedString.Range<out Annotation>>()
+
+    val regex = """\[(id|club)(\d+)\|([^]]+)]""".toRegex()
+
+    val mentions = mutableListOf<MentionIndex>()
+
+    var currentIndex = 0
+    val replacements = mutableListOf<Pair<IntRange, String>>()
+
+    val newText = regex.replace(originalText) { matchResult ->
+        val idPrefix = matchResult.groups[1]?.value.orEmpty()
+        val startIndex = matchResult.range.first
+        val endIndex = matchResult.range.last
+
+        val id = matchResult.groups[2]?.value ?: ""
+
+        val replaced = matchResult.groups[3]?.value.orEmpty()
+
+        val indexRange =
+            (startIndex + currentIndex)..startIndex + currentIndex + replaced.length
+
+        replacements.add(indexRange to replaced)
+
+        mentions += MentionIndex(
+            id = id.toLongOrNull() ?: -1,
+            idPrefix = idPrefix,
+            indexRange = indexRange
+        )
+
+        currentIndex += replaced.length - (endIndex - startIndex + 1)
+
+        replaced
+    }
+
+    mentions.forEach { mention ->
+        val startIndex = mention.indexRange.first
+        val endIndex = mention.indexRange.last
+
+        annotations += AnnotatedString.Range(
+            item = SpanStyle(color = Color.Red),
+            start = startIndex,
+            end = endIndex
+        )
+        annotations += AnnotatedString.Range(
+            item = StringAnnotation(mention.id.toString()),
+            tag = mention.idPrefix,
+            start = startIndex,
+            end = endIndex
+        )
+    }
+
+    if (formatData == null) return AnnotatedString(text = newText, annotations = annotations)
+
+    var current = 0
+
+    val newOffsets = formatData.items.map { (offset, length) ->
+        val r = replacements.filter { (range, _) ->
+            (range - current) collidesWith (offset..<offset + length) || offset > range.first
+        }
+
+        current = r.sumOf { (range, _) -> range.last - range.first - 1 }
+
+        offset + current
+    }
+
+    formatData.items.forEachIndexed { index, item ->
+        val offset = newOffsets[index]
+
+        val spanStyle = when (item.type) {
+            FormatDataType.BOLD -> {
+                SpanStyle(fontWeight = FontWeight.SemiBold)
+            }
+
+            FormatDataType.ITALIC -> {
+                SpanStyle(fontStyle = FontStyle.Italic)
+            }
+
+            FormatDataType.UNDERLINE -> {
+                SpanStyle(textDecoration = TextDecoration.Underline)
+            }
+
+            FormatDataType.URL -> {
+                annotations += AnnotatedString.Range(
+                    item = StringAnnotation(item.url.orEmpty()),
+                    start = offset,
+                    end = offset + item.length,
+                    tag = newText.substring(offset, offset + item.length)
+                )
+
+                if (isOut) {
+                    SpanStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline
+                    )
+
+                } else {
+                    SpanStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Red
+                    )
+                }
+            }
+        }
+
+        annotations += AnnotatedString.Range(
+            item = spanStyle,
+            start = offset,
+            end = offset + item.length
+        )
+    }
+
+    return AnnotatedString(text = newText, annotations = annotations)
+}
+
+data class MentionIndex(
+    val id: Long,
+    val idPrefix: String,
+    val indexRange: IntRange
+)
+
+infix fun ClosedRange<Int>.collidesWith(other: ClosedRange<Int>): Boolean {
+    return this.start < other.endInclusive && other.start < this.endInclusive
+}
+
+operator fun ClosedRange<Int>.minus(other: ClosedRange<Int>): ClosedRange<Int> {
+    return (this.start - other.start)..(this.endInclusive - other.endInclusive)
+}
+
+operator fun ClosedRange<Int>.minus(other: Int): ClosedRange<Int> {
+    return (this.start - other)..(this.endInclusive - other)
 }
