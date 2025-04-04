@@ -6,8 +6,8 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkAudioMessageData(
-    @Json(name = "id") val id: Int,
-    @Json(name = "owner_id") val ownerId: Int,
+    @Json(name = "id") val id: Long,
+    @Json(name = "owner_id") val ownerId: Long,
     @Json(name = "duration") val duration: Int,
     @Json(name = "waveform") val waveform: List<Int>,
     @Json(name = "link_ogg") val linkOgg: String,

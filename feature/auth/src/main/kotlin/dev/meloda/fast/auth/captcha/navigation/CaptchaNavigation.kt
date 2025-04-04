@@ -34,7 +34,7 @@ fun NavController.navigateToCaptcha(captchaImageUrl: String) {
 }
 
 fun NavController.setCaptchaResult(code: String?) {
-    this.currentBackStackEntry
+    this.previousBackStackEntry
         ?.savedStateHandle
         ?.set("captcha_code", code)
 }

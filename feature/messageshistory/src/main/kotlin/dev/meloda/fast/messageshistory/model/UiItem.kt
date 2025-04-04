@@ -4,18 +4,18 @@ import androidx.compose.ui.text.AnnotatedString
 import dev.meloda.fast.common.model.UiImage
 
 sealed class UiItem(
-    open val id: Int,
-    val cmId: Int
+    open val id: Long,
+    val cmId: Long
 ) {
 
     data class Message(
-        override val id: Int,
-        val conversationMessageId: Int,
-        val text: String?,
+        override val id: Long,
+        val conversationMessageId: Long,
+        val text: AnnotatedString?,
         val isOut: Boolean,
-        val fromId: Int,
+        val fromId: Long,
         val date: String,
-        val randomId: Int,
+        val randomId: Long,
         val isInChat: Boolean,
         val name: String,
         val showDate: Boolean,
@@ -24,13 +24,16 @@ sealed class UiItem(
         val avatar: UiImage,
         val isEdited: Boolean,
         val isRead: Boolean,
-        val sendingStatus: SendingStatus = SendingStatus.SENT
+        val sendingStatus: SendingStatus,
+        val isSelected: Boolean,
+        val isPinned: Boolean,
+        val isImportant: Boolean
     ) : UiItem(id, conversationMessageId)
 
     data class ActionMessage(
-        override val id: Int,
-        val conversationMessageId: Int,
+        override val id: Long,
+        val conversationMessageId: Long,
         val text: AnnotatedString,
-        val actionCmId: Int?
+        val actionCmId: Long?
     ) : UiItem(id, conversationMessageId)
 }

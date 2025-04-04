@@ -1,33 +1,33 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkAudioDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkAudioDomain
 
 @JsonClass(generateAdapter = true)
 data class VkAudioData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "title") val title: String,
     @Json(name = "artist") val artist: String,
     @Json(name = "duration") val duration: Int,
     @Json(name = "url") val url: String,
     @Json(name = "date") val date: Int,
-    @Json(name = "owner_id") val ownerId: Int,
+    @Json(name = "owner_id") val ownerId: Long,
     @Json(name = "access_key") val accessKey: String?,
     @Json(name = "is_explicit") val isExplicit: Boolean,
     @Json(name = "is_focus_track") val isFocusTrack: Boolean,
     @Json(name = "is_licensed") val isLicensed: Boolean?,
-    @Json(name = "genre_id") val genreId: Int?,
+    @Json(name = "genre_id") val genreId: Long?,
     @Json(name = "album") val album: Album?,
 ) : VkAttachmentData {
 
     @JsonClass(generateAdapter = true)
     data class Album(
-        @Json(name = "id") val id: Int,
+        @Json(name = "id") val id: Long,
         @Json(name = "title") val title: String,
-        @Json(name = "owner_id") val ownerId: Int,
+        @Json(name = "owner_id") val ownerId: Long,
         @Json(name = "access_key") val accessKey: String,
-        @Json(name = "thumb") val thumb: Thumb
+        @Json(name = "thumb") val thumb: Thumb?
     ) {
 
         @JsonClass(generateAdapter = true)

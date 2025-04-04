@@ -1,9 +1,9 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkAttachment
-import dev.meloda.fast.model.api.domain.VkUnknownAttachment
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkUnknownAttachment
 
 @JsonClass(generateAdapter = true)
 data class VkAttachmentItemData(
@@ -32,7 +32,10 @@ data class VkAttachmentItemData(
     @Json(name = "audio_playlist") val audioPlaylist: VkAudioPlaylistData?,
     @Json(name = "podcast") val podcast: VkPodcastData?,
     @Json(name = "narrative") val narrative: VkNarrativeData?,
-    @Json(name = "article") val article: VkArticleData?
+    @Json(name = "article") val article: VkArticleData?,
+    @Json(name = "video_message") val videoMessage: VkVideoMessageData?,
+    @Json(name = "ugc_sticker") val groupSticker: VkGroupStickerData?,
+    @Json(name = "sticker_pack_preview") val stickerPackPreview: VkStickerPackPreviewData?
 ) {
     fun toDomain(): VkAttachment = when (AttachmentType.parse(type)) {
         AttachmentType.UNKNOWN -> VkUnknownAttachment
@@ -60,5 +63,8 @@ data class VkAttachmentItemData(
         AttachmentType.PODCAST -> podcast?.toDomain()
         AttachmentType.NARRATIVE -> narrative?.toDomain()
         AttachmentType.ARTICLE -> article?.toDomain()
+        AttachmentType.VIDEO_MESSAGE -> videoMessage?.toDomain()
+        AttachmentType.GROUP_CHAT_STICKER -> groupSticker?.toDomain()
+        AttachmentType.STICKER_PACK_PREVIEW -> stickerPackPreview?.toDomain()
     } ?: VkUnknownAttachment
 }

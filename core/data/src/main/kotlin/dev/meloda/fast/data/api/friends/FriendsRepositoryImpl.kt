@@ -2,7 +2,7 @@ package dev.meloda.fast.data.api.friends
 
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkMemoryCache
-import dev.meloda.fast.database.dao.UsersDao
+import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.model.FriendsInfo
 import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.domain.VkUser
@@ -21,14 +21,15 @@ import kotlinx.coroutines.withContext
 
 class FriendsRepositoryImpl(
     private val service: FriendsService,
-    private val dao: UsersDao
+    private val dao: UserDao
 ) : FriendsRepository {
 
     override suspend fun getAllFriends(
+        order: String,
         count: Int?,
         offset: Int?
     ): ApiResult<FriendsInfo, RestApiErrorDomain> = withContext(Dispatchers.IO) {
-        val friends = async { getFriends(count, offset) }.await()
+        val friends = async { getFriends(order, count, offset) }.await()
             .successOrElse { failure ->
                 return@withContext failure
             }
@@ -42,11 +43,12 @@ class FriendsRepositoryImpl(
     }
 
     override suspend fun getFriends(
+        order: String,
         count: Int?,
         offset: Int?
     ): ApiResult<List<VkUser>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = GetFriendsRequest(
-            order = "hints",
+            order = order,
             count = count,
             offset = offset,
             fields = VkConstants.USER_FIELDS
@@ -67,7 +69,7 @@ class FriendsRepositoryImpl(
     override suspend fun getOnlineFriends(
         count: Int?,
         offset: Int?
-    ): ApiResult<List<Int>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+    ): ApiResult<List<Long>, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = GetOnlineFriendsRequest(
             order = "hints",
             count = count,

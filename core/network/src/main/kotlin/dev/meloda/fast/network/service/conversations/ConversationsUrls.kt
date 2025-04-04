@@ -4,10 +4,14 @@ import dev.meloda.fast.common.AppConstants
 
 object ConversationsUrls {
 
-    const val GET = "${AppConstants.URL_API}/messages.getConversations"
-    const val GET_BY_ID = "${AppConstants.URL_API}/messages.getConversationsById"
-    const val DELETE = "${AppConstants.URL_API}/messages.deleteConversation"
-    const val PIN = "${AppConstants.URL_API}/messages.pinConversation"
-    const val UNPIN = "${AppConstants.URL_API}/messages.unpinConversation"
-    const val REORDER_PINNED = "${AppConstants.URL_API}/messages.reorderPinnedConversations"
+    private const val URL = AppConstants.URL_API
+
+    const val GET = "$URL/messages.getConversations"
+    const val GET_BY_ID = "$URL/messages.getConversationsById"
+    const val DELETE = "$URL/messages.deleteConversation"
+    const val PIN = "$URL/messages.pinConversation"
+    const val UNPIN = "$URL/messages.unpinConversation"
+    const val REORDER_PINNED = "$URL/messages.reorderPinnedConversations"
+    const val ARCHIVE = "$URL/messages.archiveConversation"
+    const val UNARCHIVE = "$URL/messages.unarchiveConversation"
 }

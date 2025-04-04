@@ -27,17 +27,17 @@ data class MessagesHistory(val arguments: MessagesHistoryArguments) {
 fun NavGraphBuilder.messagesHistoryScreen(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit
+    onNavigateToChatMaterials: (peerId: Long, cmId: Long) -> Unit
 ) {
     composable<MessagesHistory>(typeMap = MessagesHistory.typeMap) {
         MessagesHistoryRoute(
             onError = onError,
             onBack = onBack,
-            onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
+            onNavigateToChatMaterials = onNavigateToChatMaterials
         )
     }
 }
 
-fun NavController.navigateToMessagesHistory(conversationId: Int) {
+fun NavController.navigateToMessagesHistory(conversationId: Long) {
     this.navigate(MessagesHistory(MessagesHistoryArguments(conversationId)))
 }

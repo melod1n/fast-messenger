@@ -59,3 +59,33 @@ data class AuthWithAppRequest(
             "sdk_fingerprint" to sdkFingerprint
         )
 }
+
+data class GetAnonymTokenRequest(
+    val clientId: String,
+    val clientSecret: String
+) {
+
+    val map
+        get() = mapOf(
+            "client_id" to clientId,
+            "client_secret" to clientSecret
+        )
+}
+
+data class ExchangeSilentTokenRequest(
+    val anonymToken: String,
+    val silentToken: String,
+    val silentUuid: String
+) {
+
+    val map
+        get() = mapOf(
+            "access_token" to anonymToken,
+            "token" to silentToken,
+            "uuid" to silentUuid
+        )
+}
+
+data class GetExchangeTokenRequest(val accessToken: String) {
+    val map get() = mapOf("access_token" to accessToken)
+}

@@ -1,13 +1,13 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkFileDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkFileDomain
 
 @JsonClass(generateAdapter = true)
 data class VkFileData(
-    @Json(name = "id") val id: Int,
-    @Json(name = "owner_id") val ownerId: Int,
+    @Json(name = "id") val id: Long,
+    @Json(name = "owner_id") val ownerId: Long,
     @Json(name = "title") val title: String,
     @Json(name = "size") val size: Int,
     @Json(name = "ext") val extension: String,

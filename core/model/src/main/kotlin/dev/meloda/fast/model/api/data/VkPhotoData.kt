@@ -1,23 +1,23 @@
 package dev.meloda.fast.model.api.data
 
-import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.VkPhotoDomain
 
 @JsonClass(generateAdapter = true)
 data class VkPhotoData(
-    @Json(name = "album_id") val albumId: Int,
-    val date: Int,
-    val id: Int,
-    @Json(name = "owner_id") val ownerId: Int,
-    @Json(name = "has_tags") val hasTags: Boolean,
+    @Json(name = "album_id") val albumId: Long,
+    @Json(name = "date") val date: Int?,
+    @Json(name = "id") val id: Long,
+    @Json(name = "owner_id") val ownerId: Long,
+    @Json(name = "has_tags") val hasTags: Boolean?,
     @Json(name = "access_key") val accessKey: String?,
-    val sizes: List<Size>,
-    val text: String?,
-    @Json(name = "user_id") val userId: Int?,
-    val lat: Double?,
-    val long: Double?,
-    @Json(name = "post_id") val postId: Int?
+    @Json(name = "sizes") val sizes: List<Size>,
+    @Json(name = "text") val text: String?,
+    @Json(name = "user_id") val userId: Long?,
+    @Json(name = "lat") val lat: Double?,
+    @Json(name = "long") val long: Double?,
+    @Json(name = "post_id") val postId: Long?
 ) : VkAttachmentData {
 
     @JsonClass(generateAdapter = true)
@@ -33,7 +33,7 @@ data class VkPhotoData(
         date = date,
         id = id,
         ownerId = ownerId,
-        hasTags = hasTags,
+        hasTags = hasTags == true,
         accessKey = accessKey,
         sizes = sizes,
         text = text,

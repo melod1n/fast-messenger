@@ -28,4 +28,14 @@ sealed class ConversationOption(
         title = UiText.Resource(R.string.action_delete),
         icon = UiImage.Resource(R.drawable.round_delete_outline_24)
     )
+
+    data object Archive : ConversationOption(
+        title = UiText.Resource(R.string.conversation_context_action_archive),
+        icon = UiImage.Resource(R.drawable.outline_archive_24)
+    )
+
+    data object Unarchive : ConversationOption(
+        title = UiText.Resource(R.string.conversation_context_action_unarchive),
+        icon = UiImage.Resource(R.drawable.outline_unarchive_24)
+    )
 }

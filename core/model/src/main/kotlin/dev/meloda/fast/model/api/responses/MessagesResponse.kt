@@ -25,7 +25,8 @@ data class MessagesGetByIdResponse(
     val count: Int,
     val items: List<VkMessageData> = emptyList(),
     val profiles: List<VkUserData>?,
-    val groups: List<VkGroupData>?
+    val groups: List<VkGroupData>?,
+    val contacts: List<VkContactData>?
 )
 
 @JsonClass(generateAdapter = true)
@@ -33,7 +34,8 @@ data class MessagesGetConversationMembersResponse(
     val count: Int,
     val items: List<VkChatMemberData>?,
     val profiles: List<VkUserData>?,
-    val groups: List<VkGroupData>?
+    val groups: List<VkGroupData>?,
+    val contacts: List<VkContactData>?
 )
 
 @JsonClass(generateAdapter = true)
@@ -47,6 +49,12 @@ data class MessagesGetHistoryAttachmentsResponse(
 
 @JsonClass(generateAdapter = true)
 data class MessagesCreateChatResponse(
-    @Json(name = "chat_id") val chatId: Int,
+    @Json(name = "chat_id") val chatId: Long,
     @Json(name = "peer_ids") val peerIds: List<Int>
+)
+
+@JsonClass(generateAdapter = true)
+data class MessagesSendResponse(
+    @Json(name = "message_id") val messageId: Long,
+    @Json(name = "cmid") val cmId: Long
 )

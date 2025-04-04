@@ -6,10 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedAssistChip
@@ -40,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -63,16 +60,14 @@ val BirthdayColor = Color(0xffb00b69)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationItem(
-    onItemClick: (Int) -> Unit,
+    onItemClick: (UiConversation) -> Unit,
     onItemLongClick: (conversation: UiConversation) -> Unit,
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
     maxLines: Int,
     isUserAccount: Boolean,
     conversation: UiConversation,
-    modifier: Modifier = Modifier,
-    onPhotoClicked: (url: String) -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
 
     val bottomStartCornerRadius by animateDpAsState(
@@ -84,7 +79,7 @@ fun ConversationItem(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { onItemClick(conversation.id) },
+                onClick = { onItemClick(conversation) },
                 onLongClick = {
                     onItemLongClick(conversation)
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -154,12 +149,7 @@ fun ConversationItem(
                                 contentDescription = "Avatar",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        if (avatarImage is String) {
-                                            onPhotoClicked(avatarImage)
-                                        }
-                                    },
+                                    .clip(CircleShape),
                                 placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
                             )
                         }
@@ -250,7 +240,7 @@ fun ConversationItem(
                         text = conversation.title,
                         minLines = 1,
                         maxLines = maxLines,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp)
+                        style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
                     )
 
                     Row {
@@ -338,9 +328,13 @@ fun ConversationItem(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                                .defaultMinSize(
+                                    minWidth = 20.dp,
+                                    minHeight = 20.dp
+                                )
                                 .background(MaterialTheme.colorScheme.primary)
                                 .align(Alignment.CenterHorizontally)
+                                .padding(horizontal = if (count.length > 1) 2.dp else 0.dp)
                         ) {
                             Text(
                                 modifier = Modifier
@@ -361,18 +355,19 @@ fun ConversationItem(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(60.dp)
                         .padding(start = 8.dp)
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider()
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                    Row(
+                    LazyRow(
                         modifier = Modifier
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp)
                     ) {
-                        conversation.options.forEach { option ->
+                        items(conversation.options.toList()) { option ->
                             ElevatedAssistChip(
                                 onClick = { onOptionClicked(conversation, option) },
                                 leadingIcon = {
@@ -388,6 +383,7 @@ fun ConversationItem(
                                     Text(text = option.title.getString().orEmpty())
                                 }
                             )
+                            Spacer(Modifier.width(8.dp))
                         }
                     }
                 }
@@ -402,5 +398,3 @@ fun ConversationItem(
         }
     }
 }
-
-

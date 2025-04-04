@@ -27,24 +27,25 @@ import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
+import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun ConversationsList(
-    onConversationsClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    conversations: ImmutableList<UiConversation>,
+    onConversationsClick: (UiConversation) -> Unit,
     onConversationsLongClick: (UiConversation) -> Unit,
     screenState: ConversationsScreenState,
     state: LazyListState,
     maxLines: Int,
-    modifier: Modifier,
     onOptionClicked: (UiConversation, ConversationOption) -> Unit,
-    padding: PaddingValues,
-    onPhotoClicked: (url: String) -> Unit
+    padding: PaddingValues
 ) {
+    val theme = LocalThemeConfig.current
     val coroutineScope = rememberCoroutineScope()
-
-    val bottomPadding = LocalBottomPadding.current
 
     LazyColumn(
         modifier = modifier,
@@ -55,7 +56,7 @@ fun ConversationsList(
             Spacer(modifier = Modifier.height(8.dp))
         }
         items(
-            items = screenState.conversations,
+            items = conversations.values,
             key = UiConversation::id,
         ) { conversation ->
             val isUserAccount by remember(conversation) {
@@ -71,8 +72,12 @@ fun ConversationsList(
                 maxLines = maxLines,
                 isUserAccount = isUserAccount,
                 conversation = conversation,
-                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
-                onPhotoClicked = onPhotoClicked
+                modifier =
+                    if (theme.enableAnimations) Modifier.animateItem(
+                        fadeInSpec = null,
+                        fadeOutSpec = null
+                    )
+                    else Modifier
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -82,7 +87,14 @@ fun ConversationsList(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                    .then(
+                        if (theme.enableAnimations)
+                            Modifier.animateItem(
+                                fadeInSpec = null,
+                                fadeOutSpec = null
+                            )
+                        else Modifier
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (screenState.isPaginating) {
@@ -107,6 +119,7 @@ fun ConversationsList(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }
         }
     }

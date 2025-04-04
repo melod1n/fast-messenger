@@ -1,14 +1,15 @@
 package dev.meloda.fast.profile.navigation
 
-import androidx.navigation.NavController
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.profile.ProfileViewModel
 import dev.meloda.fast.profile.ProfileViewModelImpl
 import dev.meloda.fast.profile.presentation.ProfileRoute
-import dev.meloda.fast.ui.extensions.sharedViewModel
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 @Serializable
 object Profile
@@ -16,12 +17,13 @@ object Profile
 fun NavGraphBuilder.profileScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
-    onPhotoClicked: (url: String) -> Unit,
-    navController: NavController
+    onPhotoClicked: (url: String) -> Unit
 ) {
     composable<Profile> {
-        val viewModel: ProfileViewModel =
-            it.sharedViewModel<ProfileViewModelImpl>(navController = navController)
+        val context = LocalContext.current
+        val viewModel: ProfileViewModel = koinViewModel<ProfileViewModelImpl>(
+            viewModelStoreOwner = context as AppCompatActivity
+        )
 
         ProfileRoute(
             onError = onError,

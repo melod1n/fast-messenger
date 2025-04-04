@@ -11,8 +11,8 @@ abstract class AccountDao : EntityDao<AccountEntity> {
     abstract suspend fun getAll(): List<AccountEntity>
 
     @Query("SELECT * FROM accounts WHERE userId = :userId")
-    abstract suspend fun getById(userId: Int): AccountEntity?
+    abstract suspend fun getById(userId: Long): AccountEntity?
 
     @Query("DELETE FROM accounts WHERE userId = :userId")
-    abstract suspend fun deleteById(userId: Int)
+    abstract suspend fun deleteById(userId: Long)
 }

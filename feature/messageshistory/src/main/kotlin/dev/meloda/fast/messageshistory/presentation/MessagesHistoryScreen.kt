@@ -1,13 +1,17 @@
 package dev.meloda.fast.messageshistory.presentation
 
-import android.content.SharedPreferences
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -75,59 +80,28 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.datastore.UserSettings
-import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
-import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
-import dev.meloda.fast.messageshistory.util.firstMessage
+import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.components.IconButton
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
-
-@Composable
-fun MessagesHistoryRoute(
-    onError: (BaseError) -> Unit,
-    onBack: () -> Unit,
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit,
-    viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-
-    val userSettings: UserSettings = koinInject()
-    val showEmojiButton by userSettings.showEmojiButton.collectAsStateWithLifecycle()
-
-    MessagesHistoryScreen(
-        screenState = screenState,
-        baseError = baseError,
-        canPaginate = canPaginate,
-        showEmojiButton = showEmojiButton,
-        onBack = onBack,
-        onChatMaterialsDropdownItemClicked = onChatMaterialsDropdownItemClicked,
-        onRefreshDropdownItemClicked = viewModel::onRefresh,
-        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-        onMessageInputChanged = viewModel::onMessageInputChanged,
-        onAttachmentButtonClicked = viewModel::onAttachmentButtonClicked,
-        onActionButtonClicked = viewModel::onActionButtonClicked,
-        onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked
-    )
-}
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -137,27 +111,51 @@ fun MessagesHistoryRoute(
 @Composable
 fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
+    messages: ImmutableList<VkMessage> = emptyImmutableList(),
+    uiMessages: ImmutableList<UiItem> = emptyImmutableList(),
+    scrollIndex: Int? = null,
+    selectedMessages: ImmutableList<VkMessage> = emptyImmutableList(),
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
     onBack: () -> Unit = {},
-    onChatMaterialsDropdownItemClicked: (peerId: Int, conversationMessageId: Int) -> Unit = { _, _ -> },
-    onRefreshDropdownItemClicked: () -> Unit = {},
-    onToggleAnimationsDropdownItemClicked: (Boolean) -> Unit = {},
+    onClose: () -> Unit = {},
+    onScrolledToIndex: () -> Unit = {},
+    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
+    onTopBarClicked: () -> Unit = {},
+    onRefresh: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {},
-    onEmojiButtonLongClicked: () -> Unit = {}
+    onEmojiButtonLongClicked: () -> Unit = {},
+    onMessageClicked: (Long) -> Unit = {},
+    onMessageLongClicked: (Long) -> Unit = {},
+    onPinnedMessageClicked: (Long) -> Unit = {},
+    onUnpinMessageButtonClicked: () -> Unit = {},
+    onDeleteSelectedButtonClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
-
     val coroutineScope = rememberCoroutineScope()
-
-    val preferences: SharedPreferences = koinInject()
-    val currentTheme = LocalThemeConfig.current
-
+    val theme = LocalThemeConfig.current
     val listState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
+
+    LaunchedEffect(scrollIndex) {
+        if (scrollIndex != null) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(scrollIndex)
+                onScrolledToIndex()
+            }
+        }
+    }
+
+    BackHandler(
+        enabled = selectedMessages.isNotEmpty(),
+        onBack = onClose
+    )
+
+    val pinnedMessage = screenState.pinnedMessage
 
     val paginationConditionMet by remember(canPaginate, listState) {
         derivedStateOf {
@@ -177,12 +175,24 @@ fun MessagesHistoryScreen(
         mutableStateOf(false)
     }
 
-    val hazeState = remember { HazeState() }
-
-    val toolbarColorAlpha by animateFloatAsState(
-        targetValue = if (!listState.canScrollForward) 1f else 0f,
+    val topBarContainerColorAlpha by animateFloatAsState(
+        targetValue = if (!theme.enableBlur || !listState.canScrollBackward) 1f else 0f,
         label = "toolbarColorAlpha",
-        animationSpec = tween(durationMillis = 50)
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
+    )
+
+    val topBarContainerColor by animateColorAsState(
+        targetValue =
+            if (theme.enableBlur || !listState.canScrollBackward) MaterialTheme.colorScheme.surface
+            else MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+        label = "toolbarColorAlpha",
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
     )
 
     var messageBarHeight by remember {
@@ -191,54 +201,97 @@ fun MessagesHistoryScreen(
 
     val density = LocalDensity.current
 
+    val showReplyAction by remember(selectedMessages) {
+        derivedStateOf { selectedMessages.size == 1 }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(topBarContainerColor.copy(alpha = topBarContainerColorAlpha))
+                    .then(
+                        if (theme.enableBlur) {
+                            Modifier.hazeEffect(
+                                state = hazeState,
+                                style = HazeMaterials.thick()
+                            )
+                        } else Modifier
+                    )
+            ) {
                 TopAppBar(
                     modifier = Modifier
                         .then(
-                            if (currentTheme.enableBlur) {
-                                Modifier.hazeChild(
+                            if (theme.enableBlur) {
+                                Modifier.hazeEffect(
                                     state = hazeState,
                                     style = HazeMaterials.thick()
                                 )
                             } else Modifier
                         )
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .then(
+                            if (screenState.isLoading && messages.isEmpty()) Modifier
+                            else Modifier.clickable {
+                                onTopBarClicked()
+                            }
+                        ),
                     title = {
                         Row(
-                            modifier = Modifier
-                                .weight(1f),
+                            modifier = Modifier.weight(1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val avatar = screenState.avatar.getImage()
-                            if (avatar is Painter) {
-                                Image(
-                                    painter = avatar,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                )
-                            } else {
-                                AsyncImage(
-                                    model = screenState.avatar.getImage(),
-                                    contentDescription = "Profile Image",
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape),
-                                    placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
-                                )
+                            if (selectedMessages.isEmpty()) {
+                                val avatar = screenState.avatar.getImage()
+                                if (screenState.conversationId == UserConfig.userId) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .size(24.dp),
+                                            painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
+                                            contentDescription = "Favorites icon",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
+                                } else {
+                                    if (avatar is Painter) {
+                                        Image(
+                                            painter = avatar,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = screenState.avatar.getImage(),
+                                            contentDescription = "Profile Image",
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape),
+                                            placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
                             }
 
-                            Spacer(modifier = Modifier.width(12.dp))
-
                             Text(
-                                text =
-                                if (screenState.isLoading) stringResource(id = UiR.string.title_loading)
-                                else screenState.title,
+                                text = when {
+                                    screenState.isLoading -> stringResource(id = UiR.string.title_loading)
+                                    selectedMessages.size > 0 -> "(${selectedMessages.size})"
+                                    else -> screenState.title
+                                },
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.headlineSmall
@@ -246,78 +299,127 @@ fun MessagesHistoryScreen(
                         }
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(
+                            onClick = {
+                                if (selectedMessages.isEmpty()) onBack()
+                                else onClose()
+                            }
+                        ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                imageVector = if (selectedMessages.isEmpty()) {
+                                    Icons.AutoMirrored.Rounded.ArrowBack
+                                } else {
+                                    Icons.Rounded.Close
+                                },
                                 contentDescription = "Back button"
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(
-                            alpha = if (currentTheme.enableBlur) toolbarColorAlpha else 1f
-                        )
-                    ),
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     actions = {
-                        IconButton(
-                            onClick = { dropDownMenuExpanded = true }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.MoreVert,
-                                contentDescription = "Options"
-                            )
-                        }
-
-                        DropdownMenu(
-                            modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-                            expanded = dropDownMenuExpanded,
-                            onDismissRequest = {
-                                dropDownMenuExpanded = false
-                            },
-                            offset = DpOffset(x = (-4).dp, y = (-60).dp)
-                        ) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    dropDownMenuExpanded = false
-
-                                    // TODO: 11/07/2024, Danil Nikolaev: to VM
-
-                                    // TODO: 23-Mar-25, Danil Nikolaev: crash if not messages (ex. new chat)
-                                    onChatMaterialsDropdownItemClicked(
-                                        screenState.conversationId,
-                                        screenState.messages.firstMessage().conversationMessageId
-                                    )
-                                },
-                                text = {
-                                    Text(text = "Materials")
-                                }
-                            )
-                            DropdownMenuItem(
-                                onClick = {
-                                    onRefreshDropdownItemClicked()
-                                    dropDownMenuExpanded = false
-                                },
-                                text = {
-                                    Text(text = "Refresh")
-                                },
-                                leadingIcon = {
+                        if (selectedMessages.isNotEmpty()) {
+                            AnimatedVisibility(showReplyAction) {
+                                IconButton(
+                                    onClick = {
+                                        if (AppSettings.General.enableHaptic) {
+                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                        }
+                                    }
+                                ) {
                                     Icon(
-                                        imageVector = Icons.Rounded.Refresh,
+                                        painter = painterResource(UiR.drawable.round_reply_24),
                                         contentDescription = null
                                     )
                                 }
-                            )
+                            }
+                            IconButton(
+                                onClick = {
+                                    if (AppSettings.General.enableHaptic) {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(UiR.drawable.round_reply_all_24),
+                                    contentDescription = null
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    if (AppSettings.General.enableHaptic) {
+                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(UiR.drawable.round_forward_24),
+                                    contentDescription = null
+                                )
+                            }
+                            IconButton(onClick = onDeleteSelectedButtonClicked) {
+                                Icon(
+                                    painter = painterResource(UiR.drawable.round_delete_outline_24),
+                                    contentDescription = null
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = { dropDownMenuExpanded = true }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MoreVert,
+                                    contentDescription = "Options"
+                                )
+                            }
+
+                            DropdownMenu(
+                                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+                                expanded = dropDownMenuExpanded,
+                                onDismissRequest = {
+                                    dropDownMenuExpanded = false
+                                },
+                                offset = DpOffset(x = (-4).dp, y = (-60).dp)
+                            ) {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        onRefresh()
+                                        dropDownMenuExpanded = false
+                                    },
+                                    text = {
+                                        Text(text = stringResource(UiR.string.action_refresh))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Refresh,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 )
 
                 val showHorizontalProgressBar by remember(screenState) {
-                    derivedStateOf { screenState.isLoading && screenState.messages.isNotEmpty() }
+                    derivedStateOf { screenState.isLoading && messages.isNotEmpty() }
                 }
                 if (showHorizontalProgressBar) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 AnimatedVisibility(!showHorizontalProgressBar) {
+                    HorizontalDivider()
+                }
+
+                if (!screenState.isLoading && pinnedMessage != null) {
+                    PinnedMessageContainer(
+                        modifier = Modifier,
+                        pinnedMessage = requireNotNull(pinnedMessage),
+                        title = screenState.pinnedTitle.orDots(),
+                        summary = screenState.pinnedSummary,
+                        canChangePin = screenState.conversation.canChangePin,
+                        onPinnedMessageClicked = onPinnedMessageClicked,
+                        onUnpinMessageButtonClicked = onUnpinMessageButtonClicked
+                    )
                     HorizontalDivider()
                 }
             }
@@ -331,18 +433,32 @@ fun MessagesHistoryScreen(
                 .padding(bottom = padding.calculateBottomPadding()),
         ) {
             MessagesList(
+                modifier = Modifier.align(Alignment.BottomStart),
                 hazeState = hazeState,
                 listState = listState,
-                immutableMessages = ImmutableList.copyOf(screenState.messages),
+                hasPinnedMessage = pinnedMessage != null,
+                uiMessages = uiMessages,
                 isPaginating = screenState.isPaginating,
                 messageBarHeight = messageBarHeight,
                 onRequestScrollToCmId = { cmId ->
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(
-                            index = screenState.messages.indexOfMessageByCmId(cmId)
-                        )
+                    val index = uiMessages.values.indexOfMessageByCmId(cmId)
+                    if (index == null) { // сообщения нет в списке
+                        // pizdets
+                    } else {
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index = index)
+                        }
                     }
-                }
+                },
+                onMessageClicked = { id ->
+                    if (selectedMessages.isNotEmpty()) {
+                        if (AppSettings.General.enableHaptic) {
+                            view.performHapticFeedback(HapticFeedbackConstantsCompat.CONTEXT_CLICK)
+                        }
+                    }
+                    onMessageClicked(id)
+                },
+                onMessageLongClicked = onMessageLongClicked
             )
 
             Column(
@@ -362,13 +478,28 @@ fun MessagesHistoryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Spacer(modifier = Modifier.width(10.dp))
-
                     Row(
                         modifier = Modifier
+                            .clip(RoundedCornerShape(36.dp))
+                            .then(
+                                if (theme.enableBlur) {
+                                    Modifier
+                                        .hazeEffect(
+                                            state = hazeState,
+                                            style = HazeMaterials.ultraThin()
+                                        )
+                                        .border(
+                                            1.dp, MaterialTheme.colorScheme.outlineVariant,
+                                            RoundedCornerShape(36.dp)
+                                        )
+                                } else Modifier
+                            )
                             .animateContentSize()
                             .weight(1f)
-                            .clip(RoundedCornerShape(36.dp))
-                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
+                            .background(
+                                if (theme.enableBlur) Color.Transparent
+                                else MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
+                            )
                             .onGloballyPositioned {
                                 messageBarHeight = with(density) {
                                     it.size.height.toDp()
@@ -386,7 +517,9 @@ fun MessagesHistoryScreen(
                                 IconButton(
                                     onClick = {
                                         if (AppSettings.General.enableHaptic) {
-                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                            view.performHapticFeedback(
+                                                HapticFeedbackConstantsCompat.REJECT
+                                            )
                                         }
                                         scope.launch {
                                             for (i in 20 downTo 0 step 4) {
@@ -405,7 +538,9 @@ fun MessagesHistoryScreen(
                                     },
                                     onLongClick = {
                                         if (AppSettings.General.enableHaptic) {
-                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
+                                            view.performHapticFeedback(
+                                                HapticFeedbackConstantsCompat.LONG_PRESS
+                                            )
                                         }
                                         onEmojiButtonLongClicked()
                                     },
@@ -447,8 +582,11 @@ fun MessagesHistoryScreen(
                         Column(verticalArrangement = Arrangement.Bottom) {
                             IconButton(
                                 onClick = {
+                                    onAttachmentButtonClicked()
                                     if (AppSettings.General.enableHaptic) {
-                                        view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                        view.performHapticFeedback(
+                                            HapticFeedbackConstantsCompat.REJECT
+                                        )
                                     }
                                     scope.launch {
                                         for (i in 20 downTo 0 step 4) {
@@ -484,7 +622,9 @@ fun MessagesHistoryScreen(
                                 onClick = {
                                     if (screenState.actionMode == ActionMode.Record) {
                                         if (AppSettings.General.enableHaptic) {
-                                            view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                                            view.performHapticFeedback(
+                                                HapticFeedbackConstantsCompat.REJECT
+                                            )
                                         }
                                         scope.launch {
                                             for (i in 20 downTo 0 step 4) {
@@ -535,8 +675,14 @@ fun MessagesHistoryScreen(
                 }
             }
 
-            if (screenState.isLoading && screenState.messages.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            when {
+                screenState.isLoading && messages.values.isEmpty() -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                baseError != null -> {
+                    VkErrorView(baseError = baseError)
+                }
             }
         }
     }

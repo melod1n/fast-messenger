@@ -6,10 +6,10 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkContactData(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "name") val name: String,
     @Json(name = "can_write") val canWrite: Boolean,
-    @Json(name = "user_id") val userId: Int,
+    @Json(name = "user_id") val userId: Long,
     @Json(name = "last_seen_status") val lastSeenStatus: String?,
     @Json(name = "photo_50") val photo50: String?,
     @Json(name = "calls_id") val callsId: String

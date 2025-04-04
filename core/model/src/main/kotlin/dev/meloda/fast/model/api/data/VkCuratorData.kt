@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkCuratorData(
-    val id: Int,
+    val id: Long,
     val name: String,
     val description: String,
     val url: String,

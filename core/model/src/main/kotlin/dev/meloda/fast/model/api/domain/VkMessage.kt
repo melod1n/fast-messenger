@@ -1,29 +1,35 @@
 package dev.meloda.fast.model.api.domain
 
+import androidx.compose.runtime.Immutable
 import dev.meloda.fast.model.database.VkMessageEntity
 
+@Immutable
 data class VkMessage(
-    val id: Int,
-    val conversationMessageId: Int,
+    val id: Long,
+    val cmId: Long,
     val text: String?,
     val isOut: Boolean,
-    val peerId: Int,
-    val fromId: Int,
+    val peerId: Long,
+    val fromId: Long,
     val date: Int,
-    val randomId: Int,
+    val randomId: Long,
     val action: Action?,
-    val actionMemberId: Int?,
+    val actionMemberId: Long?,
     val actionText: String?,
-    val actionConversationMessageId: Int?,
+    val actionConversationMessageId: Long?,
     val actionMessage: String?,
 
     val updateTime: Int?,
-
-    val important: Boolean = false,
+    val pinnedAt: Int?,
+    val isPinned: Boolean,
+    val isImportant: Boolean,
+    val isSpam: Boolean,
 
     val forwards: List<VkMessage>?,
     val attachments: List<VkAttachment>?,
     val replyMessage: VkMessage?,
+
+    val formatData: FormatData?,
 
     val geoType: String?,
     val user: VkUser?,
@@ -40,8 +46,7 @@ data class VkMessage(
 
     fun isRead(conversation: VkConversation): Boolean = when {
         id <= 0 -> false
-        isOut -> conversation.outRead - id >= 0
-        else -> conversation.inRead - id >= 0
+        else -> conversation.isRead(this)
     }
 
     fun hasAttachments(): Boolean = attachments.orEmpty().isNotEmpty()
@@ -53,6 +58,8 @@ data class VkMessage(
     fun hasGeo(): Boolean = geoType != null
 
     fun isUpdated(): Boolean = updateTime != null && updateTime > 0
+
+    fun isFailed(): Boolean = id <= -500_000
 
     enum class Action(val value: String) {
         CHAT_CREATE("chat_create"),
@@ -74,11 +81,24 @@ data class VkMessage(
             fun parse(value: String?): Action? = entries.firstOrNull { it.value == value }
         }
     }
+
+    data class FormatData(
+        val version: String,
+        val items: List<Item>
+    ) {
+
+        data class Item(
+            val offset: Int,
+            val length: Int,
+            val type: FormatDataType,
+            val url: String?
+        )
+    }
 }
 
 fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     id = id,
-    conversationMessageId = conversationMessageId,
+    conversationMessageId = cmId,
     text = text,
     isOut = isOut,
     peerId = peerId,
@@ -91,10 +111,12 @@ fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     actionConversationMessageId = actionConversationMessageId,
     actionMessage = actionMessage,
     updateTime = updateTime,
-    important = important,
+    important = isImportant,
     forwardIds = forwards.orEmpty().map(VkMessage::id),
     // TODO: 05/05/2024, Danil Nikolaev: save attachments
     attachments = emptyList(),
     replyMessageId = replyMessage?.id,
-    geoType = geoType
+    geoType = geoType,
+    pinnedAt = pinnedAt,
+    isPinned = isPinned,
 )

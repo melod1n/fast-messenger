@@ -1,10 +1,11 @@
 package dev.meloda.fast.auth.login
 
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.auth.login.model.CaptchaArguments
-import dev.meloda.fast.auth.login.model.LoginError
+import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
@@ -14,18 +15,21 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.data.api.auth.AuthRepository
 import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.data.success
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,15 +40,20 @@ import kotlinx.coroutines.launch
 
 interface LoginViewModel {
     val screenState: StateFlow<LoginScreenState>
-    val loginError: StateFlow<LoginError?>
+    val loginDialog: StateFlow<LoginDialog?>
 
-    val validationCode: StateFlow<String?>
     val validationArguments: StateFlow<LoginValidationArguments?>
-    val captchaCode: StateFlow<String?>
     val captchaArguments: StateFlow<CaptchaArguments?>
     val userBannedArguments: StateFlow<LoginUserBannedArguments?>
     val isNeedToOpenMain: StateFlow<Boolean>
-    val isNeedToShowFastSignInAlert: StateFlow<Boolean>
+
+    val isNeedToClearCaptchaCode: StateFlow<Boolean>
+    val isNeedToClearValidationCode: StateFlow<Boolean>
+
+    fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle)
+    fun onDialogDismissed(dialog: LoginDialog)
+
+    fun onBackPressed()
 
     fun onPasswordVisibilityButtonClicked()
 
@@ -53,24 +62,20 @@ interface LoginViewModel {
 
     fun onSignInButtonClicked()
 
-    fun onErrorDialogDismissed()
-
     fun onNavigatedToMain()
     fun onNavigatedToUserBanned()
     fun onNavigatedToCaptcha()
     fun onNavigatedToValidation()
 
-    fun onValidationCodeReceived(code: String)
-    fun onCaptchaCodeReceived(code: String)
-
-    fun onLogoLongClicked()
-
-    fun onFastLogInAlertDismissed()
-    fun onFastLogInAlertConfirmClicked(token: String)
+    fun onValidationCodeReceived(code: String?)
+    fun onValidationCodeCleared()
+    fun onCaptchaCodeReceived(code: String?)
+    fun onCaptchaCodeCleared()
 }
 
 class LoginViewModelImpl(
     private val oAuthUseCase: OAuthUseCase,
+    private val authRepository: AuthRepository,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
@@ -78,47 +83,85 @@ class LoginViewModelImpl(
 ) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
-    override val loginError = MutableStateFlow<LoginError?>(null)
+    override val loginDialog = MutableStateFlow<LoginDialog?>(null)
 
-    override val validationCode = MutableStateFlow<String?>(null)
     override val validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
-    override val captchaCode = MutableStateFlow<String?>(null)
     override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
     override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     override val isNeedToOpenMain = MutableStateFlow(false)
-    override val isNeedToShowFastSignInAlert = MutableStateFlow(false)
+
+    override val isNeedToClearCaptchaCode = MutableStateFlow(false)
+    override val isNeedToClearValidationCode = MutableStateFlow(false)
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
             .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
+
+    private val captchaSid = MutableStateFlow<String?>(null)
+    private val captchaCode = MutableStateFlow<String?>(null)
+    private val validationSid = MutableStateFlow<String?>(null)
+    private val validationCode = MutableStateFlow<String?>(null)
+
+    init {
+        captchaCode.listenValue(viewModelScope) {
+            if (it != null) {
+                login()
+            }
+        }
+        validationCode.listenValue(viewModelScope) {
+            if (it != null) {
+                login()
+            }
+        }
+    }
+
+    override fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle) {
+        onDialogDismissed(dialog)
+
+        when (dialog) {
+            is LoginDialog.Error -> Unit
+        }
+    }
+
+    override fun onDialogDismissed(dialog: LoginDialog) {
+        loginDialog.setValue { null }
+    }
+
+    override fun onBackPressed() {
+        screenState.setValue { old -> old.copy(showLogo = true) }
+    }
 
     override fun onPasswordVisibilityButtonClicked() {
         screenState.setValue { old -> old.copy(passwordVisible = !old.passwordVisible) }
     }
 
     override fun onLoginInputChanged(newLogin: String) {
-        val newState = screenState.value.copy(
-            login = newLogin.trim(),
-            loginError = false
-        )
-        screenState.setValue { newState }
+        screenState.setValue { old ->
+            old.copy(
+                login = newLogin.trim(),
+                loginError = false
+            )
+        }
     }
 
     override fun onPasswordInputChanged(newPassword: String) {
-        val newState = screenState.value.copy(
-            password = newPassword.trim(),
-            passwordError = false
-        )
-        screenState.setValue { newState }
+        screenState.setValue { old ->
+            old.copy(
+                password = newPassword.trim(),
+                passwordError = false
+            )
+        }
     }
 
     override fun onSignInButtonClicked() {
         if (screenState.value.isLoading) return
-        login()
-    }
 
-    override fun onErrorDialogDismissed() {
-        loginError.update { null }
+        if (screenState.value.showLogo) {
+            screenState.setValue { old -> old.copy(showLogo = false) }
+            return
+        }
+
+        login()
     }
 
     override fun onNavigatedToMain() {
@@ -137,72 +180,20 @@ class LoginViewModelImpl(
         validationArguments.update { null }
     }
 
-    override fun onValidationCodeReceived(code: String) {
+    override fun onValidationCodeReceived(code: String?) {
         validationCode.update { code }
-
-        login()
     }
 
-    override fun onCaptchaCodeReceived(code: String) {
+    override fun onValidationCodeCleared() {
+        isNeedToClearValidationCode.update { false }
+    }
+
+    override fun onCaptchaCodeReceived(code: String?) {
         captchaCode.update { code }
-
-        login()
     }
 
-    override fun onLogoLongClicked() {
-        isNeedToShowFastSignInAlert.update { true }
-    }
-
-    override fun onFastLogInAlertDismissed() {
-        isNeedToShowFastSignInAlert.update { false }
-    }
-
-    override fun onFastLogInAlertConfirmClicked(token: String) {
-        var currentAccount = AccountEntity(
-            userId = -1,
-            accessToken = token,
-            fastToken = null,
-            trustedHash = null
-        ).also { account ->
-            UserConfig.currentUserId = account.userId
-            UserConfig.userId = account.userId
-            UserConfig.accessToken = account.accessToken
-            UserConfig.fastToken = account.fastToken
-            UserConfig.trustedHash = account.trustedHash
-        }
-
-        loadUserByIdUseCase(
-            userId = null,
-            fields = VkConstants.USER_FIELDS,
-            nomCase = null
-        ).listenValue(viewModelScope) { state ->
-            state.processState(
-                error = { error ->
-                    UserConfig.currentUserId = -1
-                    UserConfig.userId = -1
-                    UserConfig.accessToken = ""
-
-                    // TODO: 19/07/2024, Danil Nikolaev: show error?
-                },
-                success = { response ->
-                    val actualUserId = requireNotNull(response).id
-
-                    currentAccount = currentAccount.copy(userId = actualUserId)
-
-                    UserConfig.userId = actualUserId
-                    UserConfig.currentUserId = actualUserId
-
-                    startLongPoll()
-
-                    viewModelScope.launch(Dispatchers.IO) {
-                        accountsRepository.storeAccounts(listOf(currentAccount))
-                        delay(350)
-                        isNeedToOpenMain.update { true }
-                    }
-                }
-            )
-            screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
-        }
+    override fun onCaptchaCodeCleared() {
+        isNeedToClearCaptchaCode.update { false }
     }
 
     private fun login(forceSms: Boolean = false) {
@@ -219,77 +210,120 @@ class LoginViewModelImpl(
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
 
-        oAuthUseCase.auth(
+        screenState.updateValue { copy(isLoading = false) }
+
+        val currentValidationSid = validationSid.value
+        val currentValidationCode = validationCode.value?.takeIf { currentValidationSid != null }
+        val currentCaptchaSid = captchaSid.value
+        val currentCaptchaCode = captchaCode.value?.takeIf { currentCaptchaSid != null }
+
+        oAuthUseCase.getSilentToken(
             login = currentState.login,
             password = currentState.password,
             forceSms = forceSms,
-            validationCode = validationCode.value,
-            captchaSid = captchaArguments.value?.captchaSid,
-            captchaKey = captchaCode.value
+            validationCode = currentValidationCode,
+            captchaSid = currentCaptchaSid,
+            captchaKey = currentCaptchaCode
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     Log.d("LoginViewModelImpl", "login: error: $error")
 
-                    validationCode.update { null }
-                    captchaCode.update { null }
+                    screenState.updateValue { copy(isLoading = false) }
+                    captchaSid.setValue { null }
 
                     parseError(error)
                 },
                 success = { response ->
-                    val userId = response.userId
-                    val accessToken = response.accessToken
+                    val exceptionHandler =
+                        CoroutineExceptionHandler { _, _ ->
+                            screenState.updateValue { copy(isLoading = false) }
+                            loginDialog.setValue { LoginDialog.Error() }
+                        }
 
-                    if (userId == null || accessToken == null) {
-                        loginError.update { LoginError.Unknown }
-                        return@processState
+                    viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
+                        val (anonymToken) = authRepository.getAnonymToken(
+                            VkConstants.MESSENGER_APP_ID.toString(),
+                            VkConstants.MESSENGER_APP_SECRET
+                        ).success()
+
+                        val exchangeSilentTokenResponse = authRepository.exchangeSilentToken(
+                            anonymToken = anonymToken,
+                            silentToken = response.silentToken,
+                            silentUuid = response.silentTokenUuid
+                        ).success()
+
+
+                        val getExchangeTokenResponse =
+                            authRepository.getExchangeToken(exchangeSilentTokenResponse.accessToken)
+                                .success()
+
+                        val exchangeToken =
+                            getExchangeTokenResponse.usersTokens.firstOrNull {
+                                it.userId == exchangeSilentTokenResponse.userId
+                            }
+
+                        if (exchangeToken == null) {
+                            screenState.updateValue { copy(isLoading = false) }
+                            loginDialog.setValue { LoginDialog.Error() }
+                            return@launch
+                        }
+
+                        val userId = exchangeSilentTokenResponse.userId
+                        val accessToken = exchangeSilentTokenResponse.accessToken
+
+                        // TODO: 30-Mar-25, Danil Nikolaev: get fast's app token
+
+                        val currentAccount = AccountEntity(
+                            userId = userId,
+                            accessToken = accessToken,
+                            fastToken = null,
+                            trustedHash = response.trustedHash,
+                            exchangeToken = exchangeToken.commonToken
+                        ).also { account ->
+                            UserConfig.currentUserId = account.userId
+                            UserConfig.userId = account.userId
+                            UserConfig.accessToken = account.accessToken
+                            UserConfig.fastToken = account.fastToken
+                            UserConfig.trustedHash = account.trustedHash
+                            UserConfig.exchangeToken = account.exchangeToken
+                        }
+
+                        accountsRepository.storeAccounts(listOf(currentAccount))
+
+                        startLongPoll()
+
+                        captchaSid.update { null }
+                        validationSid.update { null }
+
+                        loadUserByIdUseCase(
+                            userId = userId,
+                            fields = VkConstants.USER_FIELDS,
+                            nomCase = null
+                        ).listenValue(viewModelScope) { state ->
+                            state.processState(
+                                any = {
+                                    screenState.updateValue { copy(isLoading = false) }
+                                },
+                                error = ::parseError,
+                                success = { user ->
+                                    if (user == null) {
+                                        loginDialog.update { LoginDialog.Error() }
+                                    } else {
+                                        screenState.updateValue { copy(login = "", password = "") }
+                                        isNeedToOpenMain.update { true }
+                                    }
+                                }
+                            )
+                        }
                     }
-
-                    loadUserByIdUseCase(
-                        userId = userId,
-                        fields = VkConstants.USER_FIELDS,
-                        nomCase = null
-                    )
-
-                    val currentAccount = AccountEntity(
-                        userId = userId,
-                        accessToken = accessToken,
-                        fastToken = null,
-                        trustedHash = response.validationHash
-                    ).also { account ->
-                        UserConfig.currentUserId = account.userId
-                        UserConfig.userId = account.userId
-                        UserConfig.accessToken = account.accessToken
-                        UserConfig.fastToken = account.fastToken
-                        UserConfig.trustedHash = account.trustedHash
-                    }
-
-                    startLongPoll()
-
-                    accountsRepository.storeAccounts(listOf(currentAccount))
-
-                    captchaArguments.update { null }
-                    captchaCode.update { null }
-
-                    validationArguments.update { null }
-                    validationCode.update { null }
-
-                    screenState.setValue { old ->
-                        old.copy(
-                            login = "",
-                            password = "",
-                        )
-                    }
-
-                    isNeedToOpenMain.update { true }
                 }
             )
-            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
         }
     }
 
-    private fun parseError(stateError: State.Error): Boolean {
-        return when (stateError) {
+    private fun parseError(stateError: State.Error) {
+        when (stateError) {
             is State.Error.OAuthError -> {
                 when (val error = stateError.error) {
                     is OAuthErrorDomain.ValidationRequiredError -> {
@@ -301,6 +335,7 @@ class LoginViewModelImpl(
                             canResendSms = error.validationResend == "sms"
                         )
                         validationArguments.update { arguments }
+                        validationSid.update { error.validationSid }
                     }
 
                     is OAuthErrorDomain.CaptchaRequiredError -> {
@@ -309,10 +344,13 @@ class LoginViewModelImpl(
                             captchaImageUrl = error.captchaImageUrl
                         )
                         captchaArguments.update { arguments }
+                        captchaSid.update { error.captchaSid }
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
-                        loginError.update { LoginError.WrongCredentials }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Wrong login or password.")
+                        }
                     }
 
                     is OAuthErrorDomain.UserBannedError -> {
@@ -326,33 +364,34 @@ class LoginViewModelImpl(
                     }
 
                     OAuthErrorDomain.WrongValidationCode -> {
-                        loginError.update { LoginError.WrongValidationCode }
+                        isNeedToClearValidationCode.update { true }
+                        validationCode.update { null }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Wrong validation code.")
+                        }
                     }
 
                     OAuthErrorDomain.WrongValidationCodeFormat -> {
-                        loginError.update { LoginError.WrongValidationCodeFormat }
+                        isNeedToClearValidationCode.update { true }
+                        validationCode.update { null }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Wrong validation code format.")
+                        }
                     }
 
                     OAuthErrorDomain.TooManyTriesError -> {
-                        loginError.update { LoginError.TooManyTries }
+                        loginDialog.setValue {
+                            LoginDialog.Error(errorText = "Too many tries. Try in another hour or later.")
+                        }
                     }
 
                     OAuthErrorDomain.UnknownError -> {
-                        loginError.update { LoginError.Unknown }
+                        loginDialog.setValue { LoginDialog.Error() }
                     }
                 }
-
-                true
             }
 
-            is State.Error.TestError -> {
-                val message = stateError.message
-                val error = LoginError.SimpleError(message = message)
-                loginError.update { error }
-                true
-            }
-
-            else -> false
+            else -> Unit
         }
     }
 

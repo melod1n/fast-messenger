@@ -30,11 +30,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.time.Duration.Companion.seconds
 
 class LongPollingService : Service() {
 
@@ -42,16 +44,10 @@ class LongPollingService : Service() {
 
     private val job = SupervisorJob()
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(TAG, "error: $throwable")
-
-        if (throwable !is NoAccessTokenException) {
-            throwable.printStackTrace()
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            handleError(throwable)
         }
-
-        longPollController.updateCurrentState(LongPollState.Exception)
-        longPollController.setStateToApply(LongPollState.Exception)
-    }
 
     private val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + job + exceptionHandler
@@ -62,6 +58,8 @@ class LongPollingService : Service() {
     private val updatesParser: LongPollUpdatesParser by inject()
 
     private var currentJob: Job? = null
+
+    private val inBackground get() = AppSettings.Experimental.longPollInBackground
 
     override fun onCreate() {
         super.onCreate()
@@ -76,21 +74,12 @@ class LongPollingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        val inBackground = AppSettings.Experimental.longPollInBackground
-
         Log.d(
             STATE_TAG,
             "onStartCommand: asForeground: $inBackground; flags: $flags; startId: $startId;\ninstance: $this"
         )
 
-        if (currentJob != null) {
-            currentJob?.cancel()
-            currentJob = null
-        }
-
-        coroutineScope.launch {
-            currentJob = startPolling().also { it.join() }
-        }
+        startJob()
 
         val openCategorySettingsIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
@@ -106,11 +95,6 @@ class LongPollingService : Service() {
             1,
             openCategorySettingsIntent,
             PendingIntent.FLAG_IMMUTABLE
-        )
-
-        longPollController.updateCurrentState(
-            if (inBackground) LongPollState.Background
-            else LongPollState.InApp
         )
 
         if (inBackground) {
@@ -134,17 +118,33 @@ class LongPollingService : Service() {
         return START_STICKY
     }
 
+    private fun startJob() {
+        if (currentJob != null) {
+            currentJob?.cancel()
+            currentJob = null
+        }
+
+        coroutineScope.launch {
+            currentJob = startPolling().also { it.join() }
+        }
+    }
+
     private fun startPolling(): Job {
         if (job.isCompleted || job.isCancelled) {
-            Log.d(STATE_TAG, "job is completed or cancelled")
+            Log.d(STATE_TAG, "Job is completed or cancelled")
             throw Exception("Job is over")
         }
 
-        Log.d(STATE_TAG, "job started")
+        Log.d(STATE_TAG, "Starting job...")
 
-        return coroutineScope.launch {
+        return coroutineScope.launch(coroutineContext) {
+            longPollController.updateCurrentState(
+                if (inBackground) LongPollState.Background
+                else LongPollState.InApp
+            )
+
             if (UserConfig.accessToken.isEmpty()) {
-                throw NoAccessTokenException
+                throw NoAccessTokenException()
             }
 
             var serverInfo = getServerInfo()
@@ -246,10 +246,24 @@ class LongPollingService : Service() {
         }
     }
 
+    private fun handleError(throwable: Throwable) {
+        Log.e(TAG, "error: $throwable")
+
+        if (throwable !is NoAccessTokenException) {
+            throwable.printStackTrace()
+        }
+
+        coroutineScope.launch {
+            delay(5.seconds)
+            startJob()
+        }
+
+        longPollController.updateCurrentState(LongPollState.Exception)
+    }
+
     override fun onDestroy() {
         Log.d(STATE_TAG, "onDestroy")
         longPollController.updateCurrentState(LongPollState.Stopped)
-        updatesParser.clearListeners()
         try {
             AppSettings.edit { putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true) }
             job.cancel()
@@ -276,4 +290,4 @@ class LongPollingService : Service() {
 }
 
 private data class LongPollException(override val message: String) : Throwable()
-private data object NoAccessTokenException : Throwable()
+private class NoAccessTokenException : Throwable()

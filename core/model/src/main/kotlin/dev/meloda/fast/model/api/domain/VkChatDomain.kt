@@ -3,9 +3,9 @@ package dev.meloda.fast.model.api.domain
 data class VkChatDomain(
     val type: String,
     val title: String,
-    val adminId: Int,
+    val adminId: Long,
     val membersCount: Int,
-    val id: Int,
+    val id: Long,
     val members: List<ChatMember> = emptyList(),
     val photo50: String,
     val photo100: String,
@@ -13,7 +13,7 @@ data class VkChatDomain(
     val isDefaultPhoto: Boolean
 ) {
     data class ChatMember(
-        val id: Int,
+        val id: Long,
         val type: ChatMemberType,
         val isOnline: Boolean?,
         val lastSeen: Int?,

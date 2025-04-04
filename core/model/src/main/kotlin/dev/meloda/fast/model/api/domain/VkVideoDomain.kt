@@ -1,17 +1,19 @@
 package dev.meloda.fast.model.api.domain
 
+import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.data.VkVideoData
-import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkVideoDomain(
-    val id: Int,
-    val ownerId: Int,
+    val id: Long,
+    val ownerId: Long,
     val images: List<VideoImage>,
     val firstFrames: List<VkVideoData.FirstFrame>?,
     val accessKey: String?,
     val title: String,
+    val views: Int,
+    val duration: Int
 ) : VkAttachment {
 
     override val type: AttachmentType = AttachmentType.VIDEO

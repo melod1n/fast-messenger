@@ -1,7 +1,7 @@
 package dev.meloda.fast.model.api.requests
 
 data class UsersGetRequest(
-    val userIds: List<Int>? = null,
+    val userIds: List<Long>? = null,
     val fields: String? = null,
     val nomCase: String? = null
 ) {

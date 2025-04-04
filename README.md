@@ -17,16 +17,19 @@ Unofficial messenger for russian social network VKontakte
         - [ ] View archived conversations
         - [ ] Archive & unarchive conversations
 - [x] Friends list
-    - [ ] Sort alphabetically, by priority or random
-    - [ ] Separate tab with only friends who are online
+    - [x] Sort alphabetically, by priority or random
+    - [x] Separate tab with only friends who are online
 - [x] Settings screen
     - [ ] TODO
 - [x] Chat screen
-    - [ ] Pagination
+    - [x] Pagination
     - [x] Manual refresh
     - [x] Message bubbles
         - [x] Text
-        - [ ] Date
+        - [x] Date
+        - [x] Read status
+        - [x] Edit status
+        - [x] Sending status
         - [ ] Message's attachments
             - [ ] Photo
             - [ ] Video
@@ -35,19 +38,19 @@ Unofficial messenger for russian social network VKontakte
             - [ ] Link
             - [ ] TODO
     - [x] Send messages
-    - [ ] Pinned message
-    - [ ] Pin & unpin messages
+    - [x] Pinned message
+    - [x] Pin & unpin messages
     - [ ] Reply to message
-    - [ ] Delete message
-    - [ ] Select multiple messages
-        - [ ] Delete
+    - [x] Delete message
+    - [x] Select multiple messages
+        - [x] Delete
         - [ ] Forward
         - [ ] Forward in current chat
     - [ ] Send attachments to chat
         - [ ] TODO
 - [x] Chat materials (attachments)
     - [x] Separate tabs for each attachment type
-        - [ ] Pagination
+        - [x] Pagination
         - [x] Manual refresh
     - [x] View attachments
         - [x] Open photo

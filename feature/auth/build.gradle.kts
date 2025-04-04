@@ -46,6 +46,13 @@ androidComponents {
     }
 }
 
+// TODO: 29-Mar-25, Danil Nikolaev: remove when autofill changes will be in release
+configurations.all {
+    resolutionStrategy {
+        force(libs.compose.ui)
+    }
+}
+
 android {
     namespace = "dev.meloda.fast.auth"
 

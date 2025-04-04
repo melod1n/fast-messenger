@@ -4,17 +4,19 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.chatmaterials.model.ChatMaterialsScreenState
+import dev.meloda.fast.chatmaterials.model.MaterialType
 import dev.meloda.fast.chatmaterials.navigation.ChatMaterials
 import dev.meloda.fast.chatmaterials.util.asPresentation
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.data.State
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
+import dev.meloda.fast.network.VkErrorCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 
 interface ChatMaterialsViewModel {
     val screenState: StateFlow<ChatMaterialsScreenState>
@@ -23,7 +25,7 @@ interface ChatMaterialsViewModel {
     val currentOffset: StateFlow<Int>
     val canPaginate: StateFlow<Boolean>
 
-    fun onMetPaginationCondition()
+    fun onPaginationConditionsMet()
 
     fun onRefresh()
 
@@ -33,6 +35,7 @@ interface ChatMaterialsViewModel {
 }
 
 class ChatMaterialsViewModelImpl(
+    private val materialType: MaterialType,
     private val messagesUseCase: MessagesUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), ChatMaterialsViewModel {
@@ -50,15 +53,15 @@ class ChatMaterialsViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 peerId = arguments.peerId,
-                conversationMessageId = arguments.conversationMessageId
+                cmId = arguments.conversationMessageId
             )
         }
 
         loadChatMaterials()
     }
 
-    override fun onMetPaginationCondition() {
-        currentOffset.update { screenState.value.materials.size }
+    override fun onPaginationConditionsMet() {
+        currentOffset.setValue { old -> old + LOAD_COUNT }
         loadChatMaterials()
     }
 
@@ -75,31 +78,33 @@ class ChatMaterialsViewModelImpl(
         loadChatMaterials(0)
     }
 
-    private fun loadChatMaterials(
-        offset: Int = currentOffset.value
-    ) {
+    private fun loadChatMaterials(offset: Int = currentOffset.value) {
         messagesUseCase.getHistoryAttachments(
             peerId = screenState.value.peerId,
             count = LOAD_COUNT,
             offset = offset,
-            attachmentTypes = listOf(screenState.value.attachmentType),
-            conversationMessageId = screenState.value.conversationMessageId
+            attachmentTypes = listOf(materialType.toString()),
+            cmId = screenState.value.cmId
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
-
-                },
+                error = ::handleError,
                 success = { response ->
                     val itemsCountSufficient = response.size == LOAD_COUNT
                     canPaginate.setValue { itemsCountSufficient }
 
-                    val paginationExhausted = !itemsCountSufficient &&
-                            screenState.value.materials.size >= LOAD_COUNT
+                    val paginationExhausted = !itemsCountSufficient
+                            && screenState.value.materials.isNotEmpty()
 
-                    val loadedMaterials = response.map(VkAttachmentHistoryMessage::asPresentation)
+                    val loadedMaterials = response.mapNotNull(VkAttachmentHistoryMessage::asPresentation)
 
                     val newState = screenState.value.copy(
-                        isPaginationExhausted = paginationExhausted
+                        isPaginationExhausted = paginationExhausted,
+                        cmId = if (loadedMaterials.size + offset > 200) {
+                            currentOffset.setValue { 0 }
+                            loadedMaterials.lastOrNull()?.conversationMessageId ?: -1
+                        } else {
+                            screenState.value.cmId
+                        }
                     )
 
                     if (offset == 0) {
@@ -122,6 +127,44 @@ class ChatMaterialsViewModelImpl(
                     isPaginating = offset > 0 && state.isLoading()
                 )
             }
+        }
+    }
+
+    private fun handleError(error: State.Error) {
+        when (error) {
+            is State.Error.ApiError -> {
+                when (error.errorCode) {
+                    VkErrorCode.USER_AUTHORIZATION_FAILED -> {
+                        baseError.setValue { BaseError.SessionExpired }
+                    }
+
+                    else -> {
+                        baseError.setValue {
+                            BaseError.SimpleError(message = error.errorMessage)
+                        }
+                    }
+                }
+            }
+
+            State.Error.ConnectionError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Connection error")
+                }
+            }
+
+            State.Error.InternalError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Internal error")
+                }
+            }
+
+            State.Error.UnknownError -> {
+                baseError.setValue {
+                    BaseError.SimpleError(message = "Unknown error")
+                }
+            }
+
+            else -> Unit
         }
     }
 

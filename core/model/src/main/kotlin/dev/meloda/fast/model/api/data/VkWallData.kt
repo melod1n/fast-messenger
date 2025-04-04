@@ -6,9 +6,9 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class VkWallData(
-    @Json(name = "id") val id: Int,
-    @Json(name = "from_id") val from_id: Int,
-    @Json(name = "to_id") val to_id: Int,
+    @Json(name = "id") val id: Long,
+    @Json(name = "from_id") val from_id: Long,
+    @Json(name = "to_id") val to_id: Long,
     @Json(name = "date") val date: Int,
     @Json(name = "text") val text: String,
     @Json(name = "attachments") val attachments: List<VkAttachmentItemData>?,

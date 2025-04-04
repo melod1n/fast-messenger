@@ -2,6 +2,7 @@ package dev.meloda.fast.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -9,8 +10,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -20,7 +23,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavController
 import dev.chrisbanes.haze.HazeState
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.DeviceSize
 import dev.meloda.fast.ui.model.SizeConfig
@@ -113,7 +118,8 @@ val LocalThemeConfig = compositionLocalOf {
         amoledDark = false,
         enableBlur = false,
         enableMultiline = false,
-        useSystemFont = false
+        useSystemFont = false,
+        enableAnimations = false
     )
 }
 
@@ -124,12 +130,16 @@ val LocalSizeConfig = compositionLocalOf {
     )
 }
 
-val LocalHazeState = compositionLocalOf {
-    HazeState()
-}
+val LocalHazeState = compositionLocalOf { HazeState() }
+val LocalBottomPadding = compositionLocalOf { 0.dp }
+val LocalUser = compositionLocalOf<VkUser?> { null }
+val LocalReselectedTab = compositionLocalOf { mapOf<Any, Boolean>() }
+val LocalNavRootController = compositionLocalOf<NavController?> { null }
+val LocalNavController = compositionLocalOf<NavController?> { null }
 
-val LocalBottomPadding = compositionLocalOf {
-    0.dp
+@Composable
+fun <T: NavController> ProvidableCompositionLocal<T?>.getOrThrow(): T {
+    return requireNotNull(current)
 }
 
 @Composable
@@ -142,9 +152,10 @@ fun AppTheme(
     selectedColorScheme: Int = 0,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+
     val colorScheme: ColorScheme = when {
         useDynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (useDarkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
         }
@@ -167,6 +178,10 @@ fun AppTheme(
         }
     }
 
+    val colorPrimary by animateColorAsState(colorScheme.primary)
+    val colorSurface by animateColorAsState(colorScheme.surface)
+    val colorBackground by animateColorAsState(colorScheme.background)
+
     val typography = if (useSystemFont) {
         MaterialTheme.typography
     } else {
@@ -185,7 +200,7 @@ fun AppTheme(
             bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts),
             labelLarge = MaterialTheme.typography.labelLarge.copy(fontFamily = robotoFonts),
             labelMedium = MaterialTheme.typography.labelMedium.copy(fontFamily = robotoFonts),
-            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = robotoFonts)
+            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = robotoFonts),
         )
     }
 
@@ -199,7 +214,12 @@ fun AppTheme(
     }
 
     MaterialTheme(
-        colorScheme = predefinedColorScheme ?: colorScheme,
+        colorScheme = (predefinedColorScheme ?: colorScheme)
+            .copy(
+                primary = colorPrimary,
+                background = colorBackground,
+                surface = colorSurface
+            ),
         typography = typography,
         content = content
     )

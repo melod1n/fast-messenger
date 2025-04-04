@@ -2,8 +2,7 @@ package dev.meloda.fast.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.meloda.fast.MainViewModel
-import dev.meloda.fast.conversations.navigation.Conversations
+import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
@@ -22,11 +21,10 @@ object Main
 fun NavGraphBuilder.mainScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
-    onConversationClicked: (conversationId: Int) -> Unit,
+    onNavigateToMessagesHistory: (conversationId: Long) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit,
-    onCreateChatClicked: () -> Unit,
-    viewModel: MainViewModel
+    onMessageClicked: (userid: Long) -> Unit,
+    onNavigateToCreateChat: () -> Unit
 ) {
     val navigationItems = ImmutableList.of(
         BottomNavigationItem(
@@ -39,7 +37,7 @@ fun NavGraphBuilder.mainScreen(
             titleResId = UiR.string.title_conversations,
             selectedIconResId = UiR.drawable.baseline_chat_24,
             unselectedIconResId = UiR.drawable.outline_chat_24,
-            route = Conversations
+            route = ConversationsGraph
         ),
         BottomNavigationItem(
             titleResId = UiR.string.title_profile,
@@ -54,11 +52,10 @@ fun NavGraphBuilder.mainScreen(
             navigationItems = navigationItems,
             onError = onError,
             onSettingsButtonClicked = onSettingsButtonClicked,
-            onConversationItemClicked = onConversationClicked,
+            onNavigateToMessagesHistory = onNavigateToMessagesHistory,
             onPhotoClicked = onPhotoClicked,
             onMessageClicked = onMessageClicked,
-            onCreateChatClicked = onCreateChatClicked,
-            viewModel = viewModel
+            onNavigateToCreateChat = onNavigateToCreateChat
         )
     }
 }

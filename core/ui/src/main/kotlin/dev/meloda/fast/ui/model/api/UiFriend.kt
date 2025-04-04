@@ -6,7 +6,7 @@ import dev.meloda.fast.model.api.domain.OnlineStatus
 
 @Immutable
 data class UiFriend(
-    val userId: Int,
+    val userId: Long,
     val avatar: UiImage?,
     val firstName: String,
     val lastName: String,

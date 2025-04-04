@@ -10,7 +10,7 @@ class VkGroupsMap(
     private val groups: List<VkGroupDomain>
 ) {
 
-    private val map: HashMap<Int, VkGroupDomain> by lazy {
+    private val map: HashMap<Long, VkGroupDomain> by lazy {
         HashMap(groups.associateBy(VkGroupDomain::id))
     }
 
@@ -36,7 +36,7 @@ class VkGroupsMap(
         if (message.fromId >= 0) null
         else map[abs(message.fromId)]
 
-    fun group(groupId: Int): VkGroupDomain? = map[abs(groupId)]
+    fun group(groupId: Long): VkGroupDomain? = map[abs(groupId)]
 
     companion object {
 

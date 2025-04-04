@@ -3,7 +3,7 @@ package dev.meloda.fast.model.api.domain
 import dev.meloda.fast.model.database.VkGroupEntity
 
 data class VkGroupDomain(
-    val id: Int,
+    val id: Long,
     val name: String,
     val screenName: String,
     val photo50: String?,
@@ -13,14 +13,14 @@ data class VkGroupDomain(
 ) {
 
     override fun toString() = name.trim()
-
-    fun mapToDB(): VkGroupEntity = VkGroupEntity(
-        id = id,
-        name = name,
-        screenName = screenName,
-        photo50 = photo50,
-        photo100 = photo100,
-        photo200 = photo200,
-        membersCount = membersCount
-    )
 }
+
+fun VkGroupDomain.asEntity(): VkGroupEntity = VkGroupEntity(
+    id = id,
+    name = name,
+    screenName = screenName,
+    photo50 = photo50,
+    photo100 = photo100,
+    photo200 = photo200,
+    membersCount = membersCount
+)

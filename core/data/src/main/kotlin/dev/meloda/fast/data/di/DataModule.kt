@@ -65,7 +65,6 @@ val dataModule = module {
 
     singleOf(::FriendsRepositoryImpl) bind FriendsRepository::class
 
-    // TODO: 11/08/2024, Danil Nikolaev: find a better solution
     single<Interceptor>(named("token_interceptor")) {
         AccessTokenInterceptor()
     }

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.friends.model.FriendsScreenState
 import dev.meloda.fast.ui.model.api.UiFriend
+import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,7 +37,7 @@ fun FriendsList(
     maxLines: Int,
     padding: PaddingValues,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userId: Int) -> Unit,
+    onMessageClicked: (userid: Long) -> Unit,
     setCanScrollBackward: (Boolean) -> Unit
 ) {
     LaunchedEffect(listState) {
@@ -45,8 +46,6 @@ fun FriendsList(
     }
 
     val coroutineScope = rememberCoroutineScope()
-
-    val friends = uiFriends.toList()
 
     LazyColumn(
         modifier = modifier,
@@ -58,7 +57,7 @@ fun FriendsList(
         }
 
         items(
-            items = friends,
+            items = uiFriends.toList(),
             key = UiFriend::userId,
         ) { friend ->
             FriendItem(
@@ -100,6 +99,7 @@ fun FriendsList(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LocalBottomPadding.current))
             }
         }
     }

@@ -34,7 +34,7 @@ fun CreateChatItem(
     friend: UiFriend,
     maxLines: Int,
     isSelected: Boolean,
-    onItemClicked: (Int) -> Unit
+    onItemClicked: (Long) -> Unit
 ) {
     Row(
         modifier = modifier

@@ -38,6 +38,7 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.service.OnlineService
 import dev.meloda.fast.service.longpolling.LongPollingService
 import dev.meloda.fast.ui.model.DeviceSize
@@ -46,6 +47,7 @@ import dev.meloda.fast.ui.model.ThemeConfig
 import dev.meloda.fast.ui.theme.AppTheme
 import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.KoinContext
@@ -98,6 +100,8 @@ class MainActivity : AppCompatActivity() {
 
                 val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
 
+                val currentUser: VkUser? by viewModel.currentUser.collectAsStateWithLifecycle()
+
                 LifecycleResumeEffect(true) {
                     viewModel.onAppResumed(intent)
                     onPauseOrDispose {}
@@ -133,7 +137,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                LaunchedEffect(longPollStateToApply) {
+                LifecycleResumeEffect(longPollStateToApply) {
+                    Log.d("LongPollMainActivity", "longPollStateToApply: $longPollStateToApply")
                     if (longPollStateToApply != LongPollState.Background) {
                         if (longPollStateToApply.isLaunched() && longPollCurrentState.isLaunched()
                             && longPollCurrentState != longPollStateToApply
@@ -147,6 +152,8 @@ class MainActivity : AppCompatActivity() {
                             inBackground = longPollStateToApply == LongPollState.Background
                         )
                     }
+
+                    onPauseOrDispose {}
                 }
 
                 val sendOnline by userSettings.sendOnlineStatus.collectAsStateWithLifecycle()
@@ -202,6 +209,7 @@ class MainActivity : AppCompatActivity() {
                 val enableBlur by userSettings.useBlur.collectAsStateWithLifecycle()
                 val enableMultiline by userSettings.enableMultiline.collectAsStateWithLifecycle()
                 val useSystemFont by userSettings.useSystemFont.collectAsStateWithLifecycle()
+                val enableAnimations by userSettings.enableAnimations.collectAsStateWithLifecycle()
 
                 val setDarkMode = isNeedToEnableDarkMode(darkMode = darkMode)
 
@@ -214,7 +222,7 @@ class MainActivity : AppCompatActivity() {
                     setDarkMode,
                     useSystemFont
                 ) {
-                    mutableStateOf(
+                    derivedStateOf {
                         ThemeConfig(
                             darkMode = setDarkMode,
                             dynamicColors = dynamicColors,
@@ -222,14 +230,16 @@ class MainActivity : AppCompatActivity() {
                             amoledDark = amoledDark,
                             enableBlur = enableBlur,
                             enableMultiline = enableMultiline,
-                            useSystemFont = useSystemFont
+                            useSystemFont = useSystemFont,
+                            enableAnimations = enableAnimations
                         )
-                    )
+                    }
                 }
 
                 CompositionLocalProvider(
                     LocalThemeConfig provides themeConfig,
-                    LocalSizeConfig provides sizeConfig
+                    LocalSizeConfig provides sizeConfig,
+                    LocalUser provides currentUser
                 ) {
                     AppTheme(
                         useDarkTheme = themeConfig.darkMode,
@@ -292,12 +302,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val longPollingServiceIntent by lazy {
+        Intent(this, LongPollingService::class.java)
+    }
+    private val onlineServiceIntent by lazy {
+        Intent(this, OnlineService::class.java)
+    }
+
     private fun toggleLongPollService(
         enable: Boolean,
         inBackground: Boolean = AppSettings.Experimental.longPollInBackground
     ) {
         if (enable) {
-            val longPollIntent = Intent(this, LongPollingService::class.java)
+            val longPollIntent = longPollingServiceIntent
 
             if (inBackground) {
                 ContextCompat.startForegroundService(this, longPollIntent)
@@ -305,15 +322,15 @@ class MainActivity : AppCompatActivity() {
                 startService(longPollIntent)
             }
         } else {
-            stopService(Intent(this, LongPollingService::class.java))
+            stopService(longPollingServiceIntent)
         }
     }
 
     private fun toggleOnlineService(enable: Boolean) {
         if (enable) {
-            startService(Intent(this, OnlineService::class.java))
+            startService(onlineServiceIntent)
         } else {
-            stopService(Intent(this, OnlineService::class.java))
+            stopService(onlineServiceIntent)
         }
     }
 

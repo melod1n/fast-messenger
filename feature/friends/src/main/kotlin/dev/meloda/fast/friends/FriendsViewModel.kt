@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-// TODO: 13/07/2024, Danil Nikolaev: separate two lists and their pagination
 interface FriendsViewModel {
 
     val screenState: StateFlow<FriendsScreenState>
@@ -33,19 +32,13 @@ interface FriendsViewModel {
 
     fun onErrorConsumed()
 
-    fun onTabSelected(tabIndex: Int)
-
     fun setScrollIndex(index: Int)
     fun setScrollOffset(offset: Int)
-    fun setScrollIndexOnline(index: Int)
-    fun setScrollOffsetOnline(offset: Int)
+
+    fun onOrderTypeChanged(newOrderType: String)
 }
 
-class FriendsViewModelImpl(
-    private val friendsUseCase: FriendsUseCase,
-    private val userSettings: UserSettings,
-    private val loadUsersByIdsUseCase: LoadUsersByIdsUseCase
-) : ViewModel(), FriendsViewModel {
+abstract class BaseFriendsViewModelImpl : ViewModel(), FriendsViewModel {
 
     override val screenState = MutableStateFlow(FriendsScreenState.EMPTY)
 
@@ -54,13 +47,7 @@ class FriendsViewModelImpl(
     override val currentOffset = MutableStateFlow(0)
     override val canPaginate = MutableStateFlow(false)
 
-    private val friends = MutableStateFlow<List<VkUser>>(emptyList())
-
-    init {
-        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
-
-        loadFriends()
-    }
+    protected val friends = MutableStateFlow<List<VkUser>>(emptyList())
 
     override fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.friends.size }
@@ -76,10 +63,6 @@ class FriendsViewModelImpl(
         baseError.setValue { null }
     }
 
-    override fun onTabSelected(tabIndex: Int) {
-        screenState.setValue { old -> old.copy(selectedTabIndex = tabIndex) }
-    }
-
     override fun setScrollIndex(index: Int) {
         screenState.setValue { old -> old.copy(scrollIndex = index) }
     }
@@ -88,87 +71,15 @@ class FriendsViewModelImpl(
         screenState.setValue { old -> old.copy(scrollOffset = offset) }
     }
 
-    override fun setScrollIndexOnline(index: Int) {
-        screenState.setValue { old -> old.copy(scrollIndexOnline = index) }
+    override fun onOrderTypeChanged(newOrderType: String) {
+        if (screenState.value.orderType == newOrderType) return
+        screenState.setValue { old -> old.copy(orderType = newOrderType) }
+        loadFriends(offset = 0)
     }
 
-    override fun setScrollOffsetOnline(offset: Int) {
-        screenState.setValue { old -> old.copy(scrollOffsetOnline = offset) }
-    }
+    abstract fun loadFriends(offset: Int = currentOffset.value)
 
-    private fun loadFriends(offset: Int = currentOffset.value) {
-        friendsUseCase.getOnlineFriends(null, null)
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = ::handleError,
-                    success = { userIds ->
-                        loadUsersByIdsUseCase(userIds = userIds)
-                            .listenValue(viewModelScope) { state ->
-                                state.processState(
-                                    error = ::handleError,
-                                    success = { onlineFriends ->
-                                        screenState.setValue { old ->
-                                            old.copy(
-                                                onlineFriends = onlineFriends.map {
-                                                    it.asPresentation(userSettings.useContactNames.value)
-                                                }
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                    }
-                )
-            }
-        friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = ::handleError,
-                    success = { response ->
-                        val itemsCountSufficient = response.size == LOAD_COUNT
-                        canPaginate.setValue { itemsCountSufficient }
-
-                        val paginationExhausted = !itemsCountSufficient &&
-                                screenState.value.friends.size >= LOAD_COUNT
-
-                        imagesToPreload.setValue {
-                            response.mapNotNull(VkUser::photo100)
-                        }
-
-                        friendsUseCase.storeUsers(response)
-
-                        val loadedFriends = response.map {
-                            it.asPresentation(userSettings.useContactNames.value)
-                        }
-
-                        val newState = screenState.value.copy(
-                            isPaginationExhausted = paginationExhausted
-                        )
-
-                        if (offset == 0) {
-                            friends.emit(response)
-                            screenState.setValue {
-                                newState.copy(friends = loadedFriends)
-                            }
-                        } else {
-                            friends.emit(friends.value.plus(response))
-                            screenState.setValue {
-                                newState.copy(friends = newState.friends.plus(loadedFriends))
-                            }
-                        }
-                    }
-                )
-
-                screenState.setValue { old ->
-                    old.copy(
-                        isLoading = offset == 0 && state.isLoading(),
-                        isPaginating = offset > 0 && state.isLoading()
-                    )
-                }
-            }
-    }
-
-    private fun handleError(error: State.Error) {
+    protected fun handleError(error: State.Error) {
         when (error) {
             is State.Error.ApiError -> {
                 when (error.errorCode) {
@@ -183,26 +94,30 @@ class FriendsViewModelImpl(
                     }
                 }
             }
+
             State.Error.ConnectionError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Connection error")
                 }
             }
+
             State.Error.InternalError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Internal error")
                 }
             }
+
             State.Error.UnknownError -> {
                 baseError.setValue {
                     BaseError.SimpleError(message = "Unknown error")
                 }
             }
+
             else -> Unit
         }
     }
 
-    private fun updateFriendsNames(useContactNames: Boolean) {
+    protected fun updateFriendsNames(useContactNames: Boolean) {
         val friends = friends.value
         if (friends.isEmpty()) return
 
@@ -210,19 +125,119 @@ class FriendsViewModelImpl(
             conversation.asPresentation(useContactNames)
         }
 
-        val onlineUiFriends = screenState.value.onlineFriends.mapNotNull { friend ->
-            uiFriends.find { it.userId == friend.userId }
-        }
-
         screenState.setValue { old ->
-            old.copy(
-                friends = uiFriends,
-                onlineFriends = onlineUiFriends
-            )
+            old.copy(friends = uiFriends)
         }
     }
 
     companion object {
-        const val LOAD_COUNT = 15
+        const val LOAD_COUNT = 30
+    }
+}
+
+class FriendsViewModelImpl(
+    private val friendsUseCase: FriendsUseCase,
+    private val userSettings: UserSettings
+) : BaseFriendsViewModelImpl() {
+
+    init {
+        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
+        loadFriends()
+    }
+
+    override fun loadFriends(offset: Int) {
+        friendsUseCase.getFriends(
+            order = screenState.value.orderType,
+            count = LOAD_COUNT,
+            offset = offset
+        ).listenValue(viewModelScope) { state ->
+            state.processState(
+                error = ::handleError,
+                success = { response ->
+                    val itemsCountSufficient = response.size == LOAD_COUNT
+                    canPaginate.setValue { itemsCountSufficient }
+
+                    val paginationExhausted = !itemsCountSufficient
+                            && screenState.value.friends.isNotEmpty()
+
+                    imagesToPreload.setValue {
+                        response.mapNotNull(VkUser::photo100)
+                    }
+
+                    friendsUseCase.storeUsers(response)
+
+                    val loadedFriends = response.map {
+                        it.asPresentation(userSettings.useContactNames.value)
+                    }
+
+                    val newState = screenState.value.copy(
+                        isPaginationExhausted = paginationExhausted
+                    )
+
+                    if (offset == 0) {
+                        friends.emit(response)
+                        screenState.setValue {
+                            newState.copy(friends = loadedFriends)
+                        }
+                    } else {
+                        friends.emit(friends.value.plus(response))
+                        screenState.setValue {
+                            newState.copy(friends = newState.friends.plus(loadedFriends))
+                        }
+                    }
+                }
+            )
+
+            screenState.setValue { old ->
+                old.copy(
+                    isLoading = offset == 0 && state.isLoading(),
+                    isPaginating = offset > 0 && state.isLoading()
+                )
+            }
+        }
+    }
+}
+
+class OnlineFriendsViewModelImpl(
+    private val friendsUseCase: FriendsUseCase,
+    private val userSettings: UserSettings,
+    private val loadUsersByIdsUseCase: LoadUsersByIdsUseCase
+) : BaseFriendsViewModelImpl() {
+
+    init {
+        userSettings.useContactNames.listenValue(viewModelScope, ::updateFriendsNames)
+        loadFriends()
+    }
+
+    override fun loadFriends(offset: Int) {
+        friendsUseCase.getOnlineFriends(null, null)
+            .listenValue(viewModelScope) { onlineState ->
+                onlineState.processState(
+                    error = ::handleError,
+                    success = { userIds ->
+                        loadUsersByIdsUseCase(userIds = userIds).listenValue(viewModelScope) { state ->
+                            state.processState(
+                                error = ::handleError,
+                                success = { onlineFriends ->
+                                    screenState.setValue { old ->
+                                        old.copy(
+                                            friends = onlineFriends.map {
+                                                it.asPresentation(userSettings.useContactNames.value)
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+
+                            screenState.setValue { old ->
+                                old.copy(
+                                    isLoading = offset == 0 && (onlineState.isLoading() || state.isLoading()),
+                                    isPaginating = offset > 0 && (onlineState.isLoading() || state.isLoading())
+                                )
+                            }
+                        }
+                    }
+                )
+            }
     }
 }
