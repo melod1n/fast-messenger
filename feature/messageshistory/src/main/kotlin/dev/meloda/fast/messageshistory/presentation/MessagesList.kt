@@ -49,9 +49,6 @@ fun MessagesList(
     onMessageClicked: (Long) -> Unit = {},
     onMessageLongClicked: (Long) -> Unit = {}
 ) {
-    val messages = remember(uiMessages) {
-        uiMessages.toList()
-    }
     val theme = LocalThemeConfig.current
     val view = LocalView.current
 
@@ -77,7 +74,7 @@ fun MessagesList(
         }
 
         items(
-            items = messages,
+            items = uiMessages.values,
             key = UiItem::id,
             contentType = { item ->
                 when (item) {

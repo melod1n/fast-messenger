@@ -796,7 +796,11 @@ class MessagesHistoryViewModelImpl(
             actionUser = null,
             actionGroup = null,
             isPinned = false,
-            pinnedAt = null
+            isSpam = false,
+            pinnedAt = null,
+
+            // TODO: 04-Apr-25, Danil Nikolaev: implement
+            formatData = null,
         )
         sendingMessages += newMessage
         messages.setValue { old -> listOf(newMessage).plus(old) }

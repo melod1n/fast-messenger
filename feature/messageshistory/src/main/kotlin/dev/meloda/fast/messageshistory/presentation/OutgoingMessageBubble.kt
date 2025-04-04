@@ -38,7 +38,7 @@ fun OutgoingMessageBubble(
         ) {
             MessageBubble(
                 modifier = Modifier,
-                text = message.text.orDots(),
+                text = message.text,
                 isOut = true,
                 date = message.date,
                 edited = message.isEdited,

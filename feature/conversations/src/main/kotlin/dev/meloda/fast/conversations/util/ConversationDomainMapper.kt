@@ -215,7 +215,12 @@ private fun extractMessage(
                 .replace("<br/>", " ")
                 .replace("&ndash;", "-")
                 .trim()
-                .let { text -> getTextWithVisualizedMentions(text, Color.Red) }
+                .let { text ->
+                    extractTextWithVisualizedMentions(
+                        isOut = lastMessage?.isOut == true,
+                        originalText = text
+                    )
+                }
                 .let { text -> prefix + text }
     }
 
@@ -657,10 +662,9 @@ private fun extractForwardsText(
     else -> null
 }
 
-
-private fun getTextWithVisualizedMentions(
-    originalText: String,
-    mentionColor: Color,
+fun extractTextWithVisualizedMentions(
+    isOut: Boolean,
+    originalText: String
 ): AnnotatedString = buildAnnotatedString {
     val regex = """\[(id|club)(\d+)\|([^]]+)]""".toRegex()
 
@@ -701,7 +705,7 @@ private fun getTextWithVisualizedMentions(
         val endIndex = mention.indexRange.last
 
         addStyle(
-            style = SpanStyle(color = mentionColor),
+            style = SpanStyle(color = Color.Red),
             start = startIndex,
             end = endIndex
         )

@@ -56,5 +56,7 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     actionUser = null,
     actionGroup = null,
     pinnedAt = pinnedAt,
-    isPinned = isPinned
+    isPinned = isPinned,
+    isSpam = false,
+    formatData = null,
 )

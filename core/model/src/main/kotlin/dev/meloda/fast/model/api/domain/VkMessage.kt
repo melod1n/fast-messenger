@@ -22,12 +22,14 @@ data class VkMessage(
     val updateTime: Int?,
     val pinnedAt: Int?,
     val isPinned: Boolean,
-    val isImportant: Boolean = false,
-    val isSpam: Boolean = false,
+    val isImportant: Boolean,
+    val isSpam: Boolean,
 
     val forwards: List<VkMessage>?,
     val attachments: List<VkAttachment>?,
     val replyMessage: VkMessage?,
+
+    val formatData: FormatData?,
 
     val geoType: String?,
     val user: VkUser?,
@@ -78,6 +80,19 @@ data class VkMessage(
         companion object {
             fun parse(value: String?): Action? = entries.firstOrNull { it.value == value }
         }
+    }
+
+    data class FormatData(
+        val version: String,
+        val items: List<Item>
+    ) {
+
+        data class Item(
+            val offset: Int,
+            val length: Int,
+            val type: FormatDataType,
+            val url: String?
+        )
     }
 }
 

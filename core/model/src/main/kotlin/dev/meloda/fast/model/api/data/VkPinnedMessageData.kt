@@ -54,5 +54,7 @@ data class VkPinnedMessageData(
         actionGroup = null,
         pinnedAt = null,
         isPinned = true,
+        isSpam = false,
+        formatData = null,
     )
 }

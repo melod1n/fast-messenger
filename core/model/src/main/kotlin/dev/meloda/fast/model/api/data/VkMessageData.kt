@@ -2,6 +2,7 @@ package dev.meloda.fast.model.api.data
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.api.domain.FormatDataType
 import dev.meloda.fast.model.api.domain.VkMessage
 
 @JsonClass(generateAdapter = true)
@@ -12,12 +13,12 @@ data class VkMessageData(
     @Json(name = "from_id") val fromId: Long,
     @Json(name = "out") val out: Int?,
     @Json(name = "text") val text: String,
-    @Json(name = "conversation_message_id") val conversationMessageId: Long,
+    @Json(name = "conversation_message_id") val cmId: Long,
     @Json(name = "fwd_messages") val fwdMessages: List<VkMessageData>? = emptyList(),
-    @Json(name = "important") val important: Boolean = false,
-    @Json(name = "random_id") val randomId: Long = 0,
+    @Json(name = "important") val important: Boolean?,
+    @Json(name = "random_id") val randomId: Long?,
     @Json(name = "attachments") val attachments: List<VkAttachmentItemData> = emptyList(),
-    @Json(name = "is_hidden") val isHidden: Boolean = false,
+    @Json(name = "is_hidden") val isHidden: Boolean?,
     @Json(name = "payload") val payload: String?,
     @Json(name = "geo") val geo: Geo?,
     @Json(name = "action") val action: Action?,
@@ -25,7 +26,8 @@ data class VkMessageData(
     @Json(name = "reply_message") val replyMessage: VkMessageData?,
     @Json(name = "update_time") val updateTime: Int?,
     @Json(name = "is_pinned") val isPinned: Boolean?,
-    @Json(name = "pinned_at") val pinnedAt: Int?
+    @Json(name = "pinned_at") val pinnedAt: Int?,
+    @Json(name = "format_data") val formatData: FormatData?
 ) {
 
     @JsonClass(generateAdapter = true)
@@ -57,24 +59,53 @@ data class VkMessageData(
         @Json(name = "conversation_message_id") val conversationMessageId: Long?,
         @Json(name = "message") val message: String?
     )
+
+    @JsonClass(generateAdapter = true)
+    data class FormatData(
+        @Json(name = "version") val version: String,
+        @Json(name = "items") val items: List<Item>
+    ) {
+
+        @JsonClass(generateAdapter = true)
+        data class Item(
+            @Json(name = "offset") val offset: Int,
+            @Json(name = "length") val length: Int,
+            @Json(name = "type") val type: String,
+            @Json(name = "url") val url: String?
+        )
+
+        fun asDomain(): VkMessage.FormatData = VkMessage.FormatData(
+            version = version,
+            items = items.mapNotNull { item ->
+                FormatDataType.parse(item.type)?.let { type ->
+                    VkMessage.FormatData.Item(
+                        offset = item.offset,
+                        length = item.length,
+                        type = type,
+                        url = item.url
+                    )
+                }
+            }
+        )
+    }
 }
 
 fun VkMessageData.asDomain(): VkMessage = VkMessage(
     id = id ?: -1,
-    cmId = conversationMessageId,
+    cmId = cmId,
     text = text.ifBlank { null },
     isOut = out == 1,
     peerId = peerId ?: -1,
     fromId = fromId,
     date = date,
-    randomId = randomId,
+    randomId = randomId ?: 0,
     action = VkMessage.Action.parse(action?.type),
     actionMemberId = action?.memberId,
     actionText = action?.text,
     actionConversationMessageId = action?.conversationMessageId,
     actionMessage = action?.message,
     geoType = geo?.type,
-    isImportant = important,
+    isImportant = important ?: false,
     updateTime = updateTime,
     forwards = fwdMessages.orEmpty().map(VkMessageData::asDomain),
     attachments = attachments.map(VkAttachmentItemData::toDomain),
@@ -84,5 +115,7 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     actionUser = null,
     actionGroup = null,
     pinnedAt = pinnedAt,
-    isPinned = isPinned == true
+    isPinned = isPinned == true,
+    formatData = formatData?.asDomain(),
+    isSpam = false
 )

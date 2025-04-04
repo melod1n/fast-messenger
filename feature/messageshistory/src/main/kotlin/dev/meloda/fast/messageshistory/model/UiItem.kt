@@ -11,7 +11,7 @@ sealed class UiItem(
     data class Message(
         override val id: Long,
         val conversationMessageId: Long,
-        val text: String?,
+        val text: AnnotatedString?,
         val isOut: Boolean,
         val fromId: Long,
         val date: String,

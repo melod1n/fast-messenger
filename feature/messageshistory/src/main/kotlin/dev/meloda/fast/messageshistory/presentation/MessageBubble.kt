@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.ui.theme.LocalThemeConfig
@@ -39,7 +40,7 @@ import dev.meloda.fast.ui.R as UiR
 @Composable
 fun MessageBubble(
     modifier: Modifier = Modifier,
-    text: String?,
+    text: AnnotatedString?,
     isOut: Boolean,
     date: String?,
     edited: Boolean,
@@ -94,7 +95,34 @@ fun MessageBubble(
                 val textLambda: @Composable () -> Unit = remember(text, theme, dateContainerWidth) {
                     {
                         Text(
-                            text = text,
+                            text = kotlin.run {
+                                val builder = AnnotatedString.Builder(text)
+
+                                text.spanStyles.map { spanStyleRange ->
+                                    val updatedSpanStyle =
+                                        if (spanStyleRange.item.color == Color.Red) {
+                                            spanStyleRange.item.copy(color = MaterialTheme.colorScheme.primary)
+                                        } else {
+                                            spanStyleRange.item
+                                        }
+
+                                    builder.addStyle(
+                                        style = updatedSpanStyle,
+                                        start = spanStyleRange.start,
+                                        end = spanStyleRange.end
+                                    )
+                                }
+
+                                text.paragraphStyles.forEach { style ->
+                                    builder.addStyle(
+                                        style = style.item,
+                                        start = style.start,
+                                        end = style.end
+                                    )
+                                }
+
+                                builder.toAnnotatedString()
+                            },
                             modifier = Modifier
                                 .padding(2.dp)
                                 .align(Alignment.Center)
