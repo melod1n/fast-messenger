@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavController
 import dev.chrisbanes.haze.HazeState
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.ui.R
@@ -132,6 +134,13 @@ val LocalHazeState = compositionLocalOf { HazeState() }
 val LocalBottomPadding = compositionLocalOf { 0.dp }
 val LocalUser = compositionLocalOf<VkUser?> { null }
 val LocalReselectedTab = compositionLocalOf { mapOf<Any, Boolean>() }
+val LocalNavRootController = compositionLocalOf<NavController?> { null }
+val LocalNavController = compositionLocalOf<NavController?> { null }
+
+@Composable
+fun <T: NavController> ProvidableCompositionLocal<T?>.getOrThrow(): T {
+    return requireNotNull(current)
+}
 
 @Composable
 fun AppTheme(

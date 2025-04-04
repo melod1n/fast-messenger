@@ -2,7 +2,6 @@ package dev.meloda.fast.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.model.BaseError

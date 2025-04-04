@@ -46,6 +46,7 @@ import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
+import dev.meloda.fast.ui.theme.LocalNavController
 import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
@@ -75,7 +76,7 @@ fun MainScreen(
         derivedStateOf { user?.photo100 }
     }
 
-    var scrollToTop by remember {
+    var tabReselected by remember {
         mutableStateOf(
             navigationItems.associate {
                 it.route to false
@@ -113,7 +114,7 @@ fun MainScreen(
                                     }
                                 }
                             } else {
-                                scrollToTop = scrollToTop.toMutableMap().also {
+                                tabReselected = tabReselected.toMutableMap().also {
                                     it[navigationItems[index].route] = true
                                 }
                             }
@@ -164,7 +165,8 @@ fun MainScreen(
             CompositionLocalProvider(
                 LocalHazeState provides hazeState,
                 LocalBottomPadding provides padding.calculateBottomPadding(),
-                LocalReselectedTab provides scrollToTop
+                LocalReselectedTab provides tabReselected,
+                LocalNavController provides navController
             ) {
                 NavHost(
                     navController = navController,
@@ -182,7 +184,7 @@ fun MainScreen(
                             onPhotoClicked = onPhotoClicked,
                             onMessageClicked = onMessageClicked,
                             onScrolledToTop = {
-                                scrollToTop = scrollToTop.toMutableMap().also {
+                                tabReselected = tabReselected.toMutableMap().also {
                                     it[Friends] = false
                                 }
                             },
@@ -191,9 +193,8 @@ fun MainScreen(
                             onError = onError,
                             onNavigateToMessagesHistory = onNavigateToMessagesHistory,
                             onNavigateToCreateChat = onNavigateToCreateChat,
-                            navController = navController,
                             onScrolledToTop = {
-                                scrollToTop = scrollToTop.toMutableMap().also {
+                                tabReselected = tabReselected.toMutableMap().also {
                                     it[Conversations] = false
                                 }
                             }
@@ -201,8 +202,7 @@ fun MainScreen(
                         profileScreen(
                             onError = onError,
                             onSettingsButtonClicked = onSettingsButtonClicked,
-                            onPhotoClicked = onPhotoClicked,
-                            navController = navController
+                            onPhotoClicked = onPhotoClicked
                         )
                     }
                 }

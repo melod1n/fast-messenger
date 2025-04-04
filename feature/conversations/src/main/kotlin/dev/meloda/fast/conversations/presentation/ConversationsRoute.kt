@@ -11,13 +11,13 @@ import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
 @Composable
 fun ConversationsRoute(
+    viewModel: ConversationsViewModel,
     onBack: (() -> Unit)? = null,
     onError: (BaseError) -> Unit,
     onNavigateToMessagesHistory: (conversationId: Long) -> Unit,
     onNavigateToCreateChat: (() -> Unit)? = null,
     onNavigateToArchive: (() -> Unit)? = null,
     onScrolledToTop: () -> Unit,
-    viewModel: ConversationsViewModel
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val navigationEvent by viewModel.navigation.collectAsStateWithLifecycle()

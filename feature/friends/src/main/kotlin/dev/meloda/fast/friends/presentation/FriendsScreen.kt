@@ -1,6 +1,7 @@
 package dev.meloda.fast.friends.presentation
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -58,9 +59,9 @@ fun FriendsScreen(
     val context: Context = LocalContext.current
     val viewModel: FriendsViewModel =
         if (tabIndex == 0) {
-            koinViewModel<FriendsViewModelImpl>()
+            koinViewModel<FriendsViewModelImpl>(viewModelStoreOwner = context as AppCompatActivity)
         } else {
-            koinViewModel<OnlineFriendsViewModelImpl>()
+            koinViewModel<OnlineFriendsViewModelImpl>(viewModelStoreOwner = context as AppCompatActivity)
         }
 
     LaunchedEffect(orderType) {
