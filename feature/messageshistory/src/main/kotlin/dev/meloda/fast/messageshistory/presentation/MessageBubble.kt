@@ -101,7 +101,13 @@ fun MessageBubble(
                                 text.spanStyles.map { spanStyleRange ->
                                     val updatedSpanStyle =
                                         if (spanStyleRange.item.color == Color.Red) {
-                                            spanStyleRange.item.copy(color = MaterialTheme.colorScheme.primary)
+                                            spanStyleRange.item.copy(color =
+                                                if (isOut) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.primary
+                                                }
+                                            )
                                         } else {
                                             spanStyleRange.item
                                         }
@@ -196,7 +202,7 @@ fun MessageBubble(
                                 SendingStatus.FAILED -> UiR.drawable.round_error_outline_24
                             }
                         ),
-                        tint = if (sendingStatus == SendingStatus.FAILED) Color.Red
+                        tint = if (sendingStatus == SendingStatus.FAILED) MaterialTheme.colorScheme.error
                         else LocalContentColor.current,
                         contentDescription = null
                     )

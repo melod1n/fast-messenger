@@ -7,7 +7,9 @@ import dev.meloda.fast.model.api.responses.GetExchangeTokenResponse
 import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
 import kotlinx.coroutines.flow.Flow
 
-interface AuthUseCase {
+interface AuthUseCase : BaseUseCase {
+
+    fun logout(): Flow<State<Int>>
 
     fun validatePhone(
         validationSid: String

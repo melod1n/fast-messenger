@@ -17,6 +17,12 @@ import retrofit2.http.QueryMap
 
 interface AuthService {
 
+    @GET(AuthUrls.LOGOUT)
+    suspend fun logout(
+        @Query("client_id") clientId: String,
+        @Query("client_secret") clientSecret: String
+    ): ApiResult<ApiResponse<Int>, RestApiError>
+
     @GET(AuthUrls.VALIDATE_PHONE)
     suspend fun validatePhone(
         @Query("sid") validationSid: String

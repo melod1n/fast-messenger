@@ -1,6 +1,7 @@
 package dev.meloda.fast.data.api.auth
 
 import com.slack.eithernet.ApiResult
+import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.model.api.requests.ExchangeSilentTokenRequest
 import dev.meloda.fast.model.api.requests.GetAnonymTokenRequest
 import dev.meloda.fast.model.api.requests.GetExchangeTokenRequest
@@ -17,6 +18,14 @@ import kotlinx.coroutines.withContext
 class AuthRepositoryImpl(
     private val service: AuthService
 ) : AuthRepository {
+
+    override suspend fun logout(): ApiResult<Int, RestApiErrorDomain> =
+        withContext(Dispatchers.IO) {
+            service.logout(
+                clientId = VkConstants.MESSENGER_APP_ID.toString(),
+                clientSecret = VkConstants.MESSENGER_APP_SECRET
+            ).mapApiDefault()
+        }
 
     override suspend fun validatePhone(
         validationSid: String

@@ -9,6 +9,8 @@ import dev.meloda.fast.network.RestApiErrorDomain
 
 interface AuthRepository {
 
+    suspend fun logout(): ApiResult<Int, RestApiErrorDomain>
+
     suspend fun validatePhone(
         validationSid: String
     ): ApiResult<ValidatePhoneResponse, RestApiErrorDomain>

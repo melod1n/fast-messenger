@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -52,6 +53,7 @@ import dev.meloda.fast.settings.presentation.item.TitleTextItem
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.theme.LocalThemeConfig
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 
@@ -83,12 +85,16 @@ fun SettingsRoute(
         onSettingsItemValueChanged = viewModel::onSettingsItemChanged
     )
 
+    val scope = rememberCoroutineScope()
+
     HandlePopups(
         performCrashPositiveClick = viewModel::onPerformCrashPositiveButtonClicked,
         performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
         logoutPositiveClick = {
-            viewModel.onLogOutAlertPositiveClick()
-            onLogOutButtonClicked()
+            scope.launch {
+                viewModel.onLogOutAlertPositiveClick()
+                onLogOutButtonClicked()
+            }
         },
         logoutDismissed = viewModel::onLogOutAlertDismissed,
         screenState = screenState

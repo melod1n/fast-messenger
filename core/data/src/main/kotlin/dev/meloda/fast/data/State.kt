@@ -36,8 +36,8 @@ sealed class State<out T> {
 }
 
 inline fun <T> State<T>.processState(
-    error: (error: State.Error) -> (Unit),
-    success: (data: T) -> (Unit),
+    error: (error: State.Error) -> Unit,
+    success: (data: T) -> Unit,
     idle: (() -> (Unit)) = {},
     loading: (() -> (Unit)) = {},
     any: () -> Unit = {}
