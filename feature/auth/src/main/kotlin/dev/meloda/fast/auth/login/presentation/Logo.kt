@@ -36,7 +36,7 @@ fun Logo(modifier: Modifier = Modifier) {
     val size = LocalSizeConfig.current
 
     val iconWidth by animateDpAsState(if (size.isWidthSmall) 110.dp else 134.dp)
-    val appNameFontSize by animateIntAsState(if (size.isWidthSmall) 40 else 32)
+    val appNameFontSize by animateIntAsState(if (size.isWidthSmall) 32 else 40)
     val bottomAdditionalPadding by animateDpAsState(if (size.isHeightSmall) 10.dp else 30.dp)
 
     val userSettings: UserSettings = koinInject()
