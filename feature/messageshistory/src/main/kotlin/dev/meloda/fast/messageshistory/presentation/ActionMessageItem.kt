@@ -62,7 +62,7 @@ fun ActionMessageItemPreview() {
                     append("You pinned message \"wow hello there\"")
                 },
                 actionCmId = null,
-                conversationMessageId = 2135
+                cmId = 2135
             )
         )
     }

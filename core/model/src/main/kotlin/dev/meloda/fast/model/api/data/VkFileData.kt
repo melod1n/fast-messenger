@@ -27,7 +27,9 @@ data class VkFileData(
     ) {
 
         @JsonClass(generateAdapter = true)
-        data class Photo(val sizes: List<Size>) {
+        data class Photo(
+            val sizes: List<Size>
+        ) {
 
             @JsonClass(generateAdapter = true)
             data class Size(

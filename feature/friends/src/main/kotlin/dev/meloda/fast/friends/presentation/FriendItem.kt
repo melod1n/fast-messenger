@@ -47,30 +47,27 @@ fun FriendItem(
         val friendAvatar = friend.avatar?.extractUrl()
 
         Box(modifier = Modifier.size(56.dp)) {
-            if (friendAvatar == null) {
-                Image(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                    painter = painterResource(id = R.drawable.ic_account_circle_cut),
-                    contentDescription = "Avatar",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
-                )
-            } else {
-                AsyncImage(
-                    model = friendAvatar,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .clickable {
-                            friend.photo400Orig
-                                ?.extractUrl()
-                                ?.let(onPhotoClicked)
-                        },
-                    placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
-                )
-            }
+            Image(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                painter = painterResource(id = R.drawable.ic_account_circle_cut),
+                contentDescription = "Avatar",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+            )
+            AsyncImage(
+                model = friendAvatar,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .clickable {
+                        friend.photo400Orig
+                            ?.extractUrl()
+                            ?.let(onPhotoClicked)
+                    },
+                placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+            )
 
             if (friend.onlineStatus.isOnline()) {
                 Box(
