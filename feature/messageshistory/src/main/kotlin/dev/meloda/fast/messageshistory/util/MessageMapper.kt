@@ -107,7 +107,7 @@ fun VkMessage.asPresentation(
 ): UiItem = when {
     action != null -> UiItem.ActionMessage(
         id = id,
-        conversationMessageId = cmId,
+        cmId = cmId,
         text = extractActionText(
             resources = resourceProvider.resources,
             youPrefix = resourceProvider.getString(R.string.you_message_prefix),
@@ -118,7 +118,7 @@ fun VkMessage.asPresentation(
 
     else -> UiItem.Message(
         id = id,
-        conversationMessageId = cmId,
+        cmId = cmId,
         text = extractTextWithVisualizedMentions(
             isOut = isOut,
             originalText = text,
@@ -143,7 +143,8 @@ fun VkMessage.asPresentation(
         },
         isSelected = isSelected,
         isPinned = isPinned,
-        isImportant = isImportant
+        isImportant = isImportant,
+        attachments = attachments
     )
 }
 

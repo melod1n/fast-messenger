@@ -1,7 +1,7 @@
 package dev.meloda.fast.model.api.domain
 
+import dev.meloda.fast.model.PhotoSize
 import dev.meloda.fast.model.api.data.AttachmentType
-import dev.meloda.fast.model.api.data.VkPhotoData
 import java.util.Stack
 
 
@@ -13,7 +13,7 @@ data class VkPhotoDomain(
     val ownerId: Long,
     val hasTags: Boolean,
     val accessKey: String?,
-    val sizes: List<VkPhotoData.Size>,
+    val sizes: List<PhotoSize>,
     val text: String?,
     val userId: Long?
 ) : VkAttachment {
@@ -35,11 +35,15 @@ data class VkPhotoDomain(
         sizesChars.push(SIZE_TYPE_2560_2048)
     }
 
-    fun getMaxSize(): VkPhotoData.Size? {
+    fun getMaxSize(): PhotoSize? {
         return getSizeOrSmaller(sizesChars.peek())
     }
 
-    fun getSizeOrNull(type: Char): VkPhotoData.Size? {
+    fun getDefault(): PhotoSize? {
+        return getSizeOrSmaller(SIZE_TYPE_1080_1024)
+    }
+
+    fun getSizeOrNull(type: Char): PhotoSize? {
         for (size in sizes) {
             if (size.type == type.toString()) return size
         }
@@ -47,7 +51,7 @@ data class VkPhotoDomain(
         return null
     }
 
-    fun getSizeOrSmaller(type: Char): VkPhotoData.Size? {
+    fun getSizeOrSmaller(type: Char): PhotoSize? {
         val photoStack = sizesChars.clone() as Stack<*>
 
         val sizeIndex = photoStack.search(type)

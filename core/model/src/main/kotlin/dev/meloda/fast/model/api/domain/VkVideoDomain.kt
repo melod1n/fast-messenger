@@ -22,6 +22,10 @@ data class VkVideoDomain(
         return images.find { it.width == width }
     }
 
+    fun getDefault(): VideoImage? {
+        return imageForWidthAtLeast(720)
+    }
+
     fun imageForWidthAtLeast(width: Int): VideoImage? {
         var certainImages = images.sortedByDescending { it.width }
         var containsVertical = false
