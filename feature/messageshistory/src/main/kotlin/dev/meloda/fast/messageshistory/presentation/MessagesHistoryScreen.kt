@@ -2,6 +2,7 @@ package dev.meloda.fast.messageshistory.presentation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -305,14 +306,17 @@ fun MessagesHistoryScreen(
                                 else onClose()
                             }
                         ) {
-                            Icon(
-                                imageVector = if (selectedMessages.isEmpty()) {
-                                    Icons.AutoMirrored.Rounded.ArrowBack
-                                } else {
-                                    Icons.Rounded.Close
-                                },
-                                contentDescription = "Back button"
-                            )
+                            Crossfade(targetState = selectedMessages.isEmpty()) { state ->
+                                Icon(
+                                    imageVector = if (state) {
+                                        Icons.AutoMirrored.Rounded.ArrowBack
+                                    } else {
+                                        Icons.Rounded.Close
+                                    },
+                                    contentDescription = if (state) "Close button"
+                                    else "Back button"
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
