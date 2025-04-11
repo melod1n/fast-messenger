@@ -75,3 +75,5 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
 fun <T> emptyImmutableList(): ImmutableList<T> = ImmutableList(emptyList())
 
 fun <T> immutableListOf(vararg elements: T) = ImmutableList(listOf(elements = elements))
+
+fun <T> ImmutableList<T>?.orEmpty(): ImmutableList<T> = this ?: emptyImmutableList()

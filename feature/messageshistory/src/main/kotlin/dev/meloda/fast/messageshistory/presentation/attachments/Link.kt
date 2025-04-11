@@ -45,8 +45,8 @@ fun Link(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 72.dp)
-            .padding(horizontal = 16.dp),
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         var errorLoading by remember {
@@ -75,36 +75,27 @@ fun Link(
         } else {
             Text(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        MaterialTheme.colorScheme
-                            .surfaceColorAtElevation(3.dp)
-                    )
-                    .size(
-                        width = 86.dp,
-                        height = 64.dp
-                    )
-                    .padding(4.dp),
-                text = item.url.first().toString(),
-//                text = item.urlFirstChar,
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp))
+                    .size(width = 48.dp, height = 36.dp),
+                text = item.url.replace("https://", "").replace("http://", "").first().toString(),
                 textAlign = TextAlign.Center,
-                lineHeight = 56.sp,
+                lineHeight = 36.sp,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.titleLarge
             )
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             if (item.title != null) {
                 Text(
                     text = item.title!!,
                     style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(2.dp))
             }
 
             LocalContentAlpha(

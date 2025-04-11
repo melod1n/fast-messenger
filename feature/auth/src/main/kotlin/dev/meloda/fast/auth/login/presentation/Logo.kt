@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +37,7 @@ fun Logo(modifier: Modifier = Modifier) {
     val size = LocalSizeConfig.current
 
     val iconWidth by animateDpAsState(if (size.isWidthSmall) 110.dp else 134.dp)
-    val appNameFontSize by animateIntAsState(if (size.isWidthSmall) 32 else 40)
+    val appNameFontSize by animateIntAsState(if (size.isWidthSmall) 32 else 38)
     val bottomAdditionalPadding by animateDpAsState(if (size.isHeightSmall) 10.dp else 30.dp)
 
     val userSettings: UserSettings = koinInject()
@@ -78,7 +79,8 @@ fun Logo(modifier: Modifier = Modifier) {
             Text(
                 text = stringResource(id = R.string.fast_messenger),
                 style = MaterialTheme.typography.displayMedium.copy(fontSize = appNameFontSize.sp),
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
             )
         }
     }
