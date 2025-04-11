@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
@@ -62,11 +63,17 @@ fun PinnedMessageContainer(
             Text(
                 text = title,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             summary?.let { summary ->
                 LocalContentAlpha(alpha = ContentAlpha.medium) {
-                    Text(text = summary)
+                    Text(
+                        text = summary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
