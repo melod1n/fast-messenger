@@ -16,11 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,7 +67,7 @@ fun MessageBubble(
             val readIndicatorPart = if (isOut) 14.dp else 0.dp
             val pinnedIndicatorPart = if (isPinned) 14.dp else 0.dp
             val importantIndicatorPart = if (isImportant) 14.dp else 0.dp
-            
+
             mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart
         }
     }
@@ -78,12 +81,29 @@ fun MessageBubble(
         derivedStateOf { text != null }
     }
 
+    var bubbleContainerWidth by remember {
+        mutableIntStateOf(0)
+    }
+
+    var attachmentsContainerWidth by remember {
+        mutableIntStateOf(0)
+    }
+
+    val shouldFill by remember(bubbleContainerWidth, attachmentsContainerWidth) {
+        derivedStateOf {
+            attachmentsContainerWidth >= bubbleContainerWidth
+        }
+    }
+
     CompositionLocalProvider(LocalContentColor provides contentColor) {
         Column {
             if (shouldShowBubble) {
                 Box(
                     modifier = modifier
-                        .widthIn(min = 56.dp)
+                        .onGloballyPositioned {
+                            bubbleContainerWidth = it.size.width
+                        }
+                        .widthIn(min = if (shouldFill) attachmentsContainerWidth.dp else 56.dp)
                         .clip(
                             if (attachments == null) RoundedCornerShape(24.dp)
                             else RoundedCornerShape(
@@ -102,7 +122,6 @@ fun MessageBubble(
                 ) {
                     MessageTextContainer(
                         modifier = Modifier
-                            .align(Alignment.Center)
                             .padding(2.dp)
                             .padding(end = 4.dp)
                             .padding(end = dateContainerWidth)
@@ -135,6 +154,9 @@ fun MessageBubble(
             if (attachments != null) {
                 Box(
                     modifier = Modifier
+                        .onGloballyPositioned {
+                            attachmentsContainerWidth = it.size.width
+                        }
                         .clip(
                             if (!shouldShowBubble) RoundedCornerShape(24.dp)
                             else RoundedCornerShape(
