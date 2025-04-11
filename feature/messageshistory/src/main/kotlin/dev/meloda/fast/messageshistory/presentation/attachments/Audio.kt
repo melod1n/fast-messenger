@@ -35,35 +35,36 @@ fun Audio(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .padding(horizontal = 16.dp),
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             modifier = Modifier
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
-                .size(42.dp)
+                .size(36.dp)
                 .padding(4.dp),
             painter = painterResource(R.drawable.round_play_arrow_24),
             contentDescription = null,
             tint = contentColorFor(MaterialTheme.colorScheme.primary)
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.bodyLarge,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(2.dp))
             LocalContentAlpha(alpha = ContentAlpha.medium) {
                 Text(
                     text = item.artist,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

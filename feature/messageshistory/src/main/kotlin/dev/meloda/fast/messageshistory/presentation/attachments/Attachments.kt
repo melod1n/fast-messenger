@@ -38,6 +38,7 @@ fun Attachments(
         val nonPreviewAttachments by remember(attachments) {
             derivedStateOf {
                 attachments.values.filterNot { it.type in previewTypes }
+                    .sortedBy { it.type.ordinal }
             }
         }
 

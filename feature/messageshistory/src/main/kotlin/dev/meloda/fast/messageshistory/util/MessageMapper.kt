@@ -144,7 +144,7 @@ fun VkMessage.asPresentation(
         isSelected = isSelected,
         isPinned = isPinned,
         isImportant = isImportant,
-        attachments = attachments
+        attachments = attachments?.ifEmpty { null }
     )
 }
 

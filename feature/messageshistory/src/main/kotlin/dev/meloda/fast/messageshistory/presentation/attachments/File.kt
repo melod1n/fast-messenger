@@ -45,8 +45,8 @@ fun File(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .padding(horizontal = 16.dp),
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         var errorLoading by remember {
@@ -57,7 +57,7 @@ fun File(
             Image(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .size(width = 64.dp, height = 48.dp),
+                    .size(width = 48.dp, height = 36.dp),
                 painter = rememberAsyncImagePainter(
                     model = null,
 //                    model = item.previewUrl,
@@ -72,35 +72,33 @@ fun File(
         } else {
             Text(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        MaterialTheme.colorScheme
-                            .surfaceColorAtElevation(3.dp)
-                    )
-                    .size(width = 64.dp, height = 48.dp)
-                    .padding(4.dp),
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp))
+                    .size(width = 48.dp, height = 36.dp),
                 text = item.ext.uppercase(),
+                lineHeight = 36.sp,
                 textAlign = TextAlign.Center,
-                lineHeight = 40.sp,
                 fontWeight = FontWeight.Medium
             )
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.bodyLarge,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(2.dp))
+//            Spacer(modifier = Modifier.height(2.dp))
             LocalContentAlpha(alpha = ContentAlpha.medium) {
-//                Text(
-//                    text = item.size,
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
+                Text(
+                    text = "Zero KB",
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
