@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
+import dev.meloda.fast.common.util.AndroidUtils
 import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
@@ -53,14 +54,43 @@ fun File(
             mutableStateOf(false)
         }
 
-        if (/*item.previewUrl != null && */!errorLoading) {
+        // TODO: 11-Apr-25, Danil Nikolaev: extract to ui model
+        val preview by remember(item) {
+            derivedStateOf {
+                when (val preview = item.preview) {
+                    null -> null
+
+                    else -> {
+                        when {
+                            preview.photo != null -> {
+                                val size = preview.photo?.sizes?.maxByOrNull { it.width }
+                                size?.src
+                            }
+
+                            preview.video != null -> {
+                                val size = preview.video?.src
+                                size
+                            }
+
+                            else -> null
+                        }
+                    }
+                }
+            }
+        }
+        val formattedSize by remember(item) {
+            derivedStateOf {
+                AndroidUtils.bytesToHumanReadableSize(item.size.toDouble())
+            }
+        }
+
+        if (preview != null && !errorLoading) {
             Image(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
                     .size(width = 48.dp, height = 36.dp),
                 painter = rememberAsyncImagePainter(
-                    model = null,
-//                    model = item.previewUrl,
+                    model = preview,
                     imageLoader = LocalContext.current.imageLoader,
                     onState = {
                         errorLoading = it is AsyncImagePainter.State.Error
@@ -91,10 +121,9 @@ fun File(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-//            Spacer(modifier = Modifier.height(2.dp))
             LocalContentAlpha(alpha = ContentAlpha.medium) {
                 Text(
-                    text = "Zero KB",
+                    text = formattedSize,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,17 +53,27 @@ fun Link(
             mutableStateOf(false)
         }
 
-        if (/*item.previewUrl != null && */!errorLoading) {
+        // TODO: 11-Apr-25, Danil Nikolaev: extract to ui model
+        val preview by remember(item) {
+            derivedStateOf { item.photo?.getMaxSize()?.url }
+        }
+        val urlFirstChar by remember(item) {
+            derivedStateOf {
+                item.url
+                    .replace("https://", "")
+                    .replace("http://", "")
+                    .first()
+                    .toString()
+            }
+        }
+
+        if (preview != null && !errorLoading) {
             Image(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .size(
-                        width = 86.dp,
-                        height = 64.dp
-                    ),
+                    .size(width = 48.dp, height = 36.dp),
                 painter = rememberAsyncImagePainter(
-                    model = null,
-//                    model = item.previewUrl,
+                    model = preview,
                     imageLoader = LocalContext.current.imageLoader,
                     onState = {
                         errorLoading = it is AsyncImagePainter.State.Error
@@ -78,7 +88,7 @@ fun Link(
                     .clip(RoundedCornerShape(24.dp))
                     .background(MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp))
                     .size(width = 48.dp, height = 36.dp),
-                text = item.url.replace("https://", "").replace("http://", "").first().toString(),
+                text = urlFirstChar,
                 textAlign = TextAlign.Center,
                 lineHeight = 36.sp,
                 fontWeight = FontWeight.Medium,
