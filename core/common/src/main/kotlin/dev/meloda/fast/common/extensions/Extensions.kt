@@ -23,6 +23,10 @@ fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
     if (condition.invoke()) add(element)
 }
 
+fun <T> MutableList<T>.removeIf(element: T, condition: () -> Boolean) {
+    if (condition.invoke()) remove(element)
+}
+
 fun <T> Flow<T>.listenValue(
     coroutineScope: CoroutineScope,
     action: suspend (T) -> Unit

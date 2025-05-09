@@ -95,7 +95,13 @@ fun VkAttachment.asUiPhoto(): UiPreview {
         }
 
         is VkVideoDomain -> {
-            val size = this.getDefault()!!
+            val size = this.getDefault() ?: VkVideoDomain.VideoImage(
+                width = 1280,
+                height = 720,
+                url = "",
+                withPadding = false
+            )
+
             UiPreview(
                 id = this.id,
                 url = size.url,

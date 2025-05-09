@@ -338,4 +338,10 @@
     <string name="unspam_message_title">Unmark as spam</string>
     <string name="unspam_message_text">Are you sure you want to unmark this message as spam?</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="autofill">Autofill</string>
+    <string name="bold">Bold</string>
+    <string name="italic">Italic</string>
+    <string name="underline">Underline</string>
+    <string name="link">Link</string>
 </resources>

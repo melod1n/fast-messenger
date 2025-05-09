@@ -43,6 +43,7 @@ import dev.meloda.fast.messageshistory.util.extractAvatar
 import dev.meloda.fast.messageshistory.util.extractTitle
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.LongPollParsedEvent
+import dev.meloda.fast.model.api.domain.FormatDataType
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.network.VkErrorCode
@@ -98,6 +99,11 @@ interface MessagesHistoryViewModel {
     fun onUnpinMessageClicked()
 
     fun onDeleteSelectedMessagesClicked()
+
+    fun onBoldClicked()
+    fun onItalicClicked()
+    fun onUnderlineClicked()
+    fun onLinkClicked()
 }
 
 class MessagesHistoryViewModelImpl(
@@ -445,6 +451,39 @@ class MessagesHistoryViewModelImpl(
         dialog.setValue {
             MessageDialog.MessagesDelete(selectedMessages.value)
         }
+    }
+
+    private var formatData = VkMessage.FormatData("2", emptyList())
+
+    override fun onBoldClicked() {
+        val selectionRange = screenState.value.message.selection
+        val newItems = formatData.items.toMutableList()
+        val wasRemoved = newItems.removeIf {
+            it.offset == selectionRange.start && it.offset + it.length == selectionRange.end
+        }
+
+        if (!wasRemoved) {
+            newItems += VkMessage.FormatData.Item(
+                offset = selectionRange.start,
+                length = selectionRange.end - selectionRange.start + 1,
+                type = FormatDataType.BOLD,
+                url = null
+            )
+        }
+
+        formatData = formatData.copy(items = newItems)
+    }
+
+    override fun onItalicClicked() {
+
+    }
+
+    override fun onUnderlineClicked() {
+
+    }
+
+    override fun onLinkClicked() {
+        TODO("Not yet implemented")
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
@@ -800,7 +839,7 @@ class MessagesHistoryViewModelImpl(
             pinnedAt = null,
 
             // TODO: 04-Apr-25, Danil Nikolaev: implement
-            formatData = null,
+            formatData = formatData,
         )
         sendingMessages += newMessage
         messages.setValue { old -> listOf(newMessage).plus(old) }
