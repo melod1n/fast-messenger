@@ -2,9 +2,9 @@ name: Android CI Build
 
 on:
   push:
-    branches: [ "dev", "release/*", "hotfix/*" ]
+    branches: [ "dev", "release/*", "hotfix/*", "feature/*" ]
   pull_request:
-    branches: [ "dev", "release/*", "hotfix/*" ]
+    branches: [ "dev", "release/*", "hotfix/*", "feature/*" ]
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
