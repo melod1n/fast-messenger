@@ -1,11 +1,9 @@
 package dev.meloda.fast.messageshistory.presentation
 
-import android.R
 import android.os.Build
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.AnimatedVisibility
@@ -80,7 +78,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.LocalView
@@ -88,7 +85,6 @@ import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
@@ -578,13 +574,16 @@ fun MessagesHistoryScreen(
                             }
                         }
 
-                        val textToolbar = CustomTextToolbar(
-                            view = LocalView.current,
-                            onBoldRequested = onBoldRequested,
-                            onItalicRequested = onItalicRequested,
-                            onUnderlineRequested = onUnderlineRequested,
-                            onLinkRequested = {}
-                        )
+                        val view = LocalView.current
+                        val textToolbar = remember {
+                            CustomTextToolbar(
+                                view = view,
+                                onBoldRequested = onBoldRequested,
+                                onItalicRequested = onItalicRequested,
+                                onUnderlineRequested = onUnderlineRequested,
+                                onLinkRequested = {}
+                            )
+                        }
 
                         CompositionLocalProvider(LocalTextToolbar provides textToolbar) {
                             TextField(
@@ -937,15 +936,15 @@ internal enum class MenuItemOption {
     val titleResource: Int
         get() =
             when (this) {
-                Copy -> R.string.copy
-                Paste -> R.string.paste
-                Cut -> R.string.cut
-                SelectAll -> R.string.selectAll
+                Copy -> android.R.string.copy
+                Paste -> android.R.string.paste
+                Cut -> android.R.string.cut
+                SelectAll -> android.R.string.selectAll
                 Autofill ->
                     if (Build.VERSION.SDK_INT <= 26) {
                         UiR.string.autofill
                     } else {
-                        R.string.autofill
+                        android.R.string.autofill
                     }
 
                 Bold -> UiR.string.bold

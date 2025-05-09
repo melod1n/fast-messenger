@@ -107,6 +107,7 @@
     <string name="message_attachments_files_few">%1$d файла</string>
     <string name="message_attachments_files_many">%1$d файлов</string>
     <string name="message_attachments_files_other">%1$d файлов</string>
+    <string name="message_attachments_clip">Клип</string>
     <string name="message_attachments_audio_message">Голосовое сообщение</string>
     <string name="message_attachments_link">Ссылка</string>
     <string name="message_attachments_mini_app">Мини-приложение</string>
@@ -263,4 +264,9 @@
     <string name="conversation_context_action_archive">В архив</string>
     <string name="confirm_archive_conversation">Архивировать чат?</string>
     <string name="action_archive">В архив</string>
+    <string name="autofill">Автозаполнение</string>
+    <string name="bold">Жирный</string>
+    <string name="italic">Курсив</string>
+    <string name="underline">Подчёркнутый</string>
+    <string name="link">Ссылка</string>
 </resources>

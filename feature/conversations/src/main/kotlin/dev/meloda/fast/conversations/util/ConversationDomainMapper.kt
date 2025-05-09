@@ -22,6 +22,7 @@ import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkVideoDomain
 import dev.meloda.fast.ui.model.api.ActionState
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
@@ -728,6 +729,12 @@ private fun getAttachmentUiText(
     attachment: VkAttachment,
     size: Int = 1,
 ): UiText {
+    if (attachment.type == AttachmentType.VIDEO &&
+        (attachment as? VkVideoDomain)?.isShortVideo == true
+    ) {
+        return UiText.Resource(UiR.string.message_attachments_clip)
+    }
+
     if (attachment.type.isMultiple()) {
         return when (attachment.type) {
             AttachmentType.PHOTO -> UiR.plurals.attachment_photos

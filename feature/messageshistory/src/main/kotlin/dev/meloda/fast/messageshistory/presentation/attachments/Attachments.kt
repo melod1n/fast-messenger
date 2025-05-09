@@ -24,7 +24,9 @@ private val previewTypes = listOf(
 @Composable
 fun Attachments(
     modifier: Modifier = Modifier,
-    attachments: ImmutableList<out VkAttachment>
+    attachments: ImmutableList<out VkAttachment>,
+    onClick: (VkAttachment) -> Unit = {},
+    onLongClick: (VkAttachment) -> Unit = {}
 ) {
     Column(modifier = modifier) {
         if (attachments.isEmpty()) return
@@ -45,10 +47,15 @@ fun Attachments(
         if (previewAttachments.isNotEmpty()) {
             Previews(
                 modifier = Modifier,
-                photos = attachments.values
-                    .filter { it.type in previewTypes }
+                photos = previewAttachments
                     .map(VkAttachment::asUiPhoto)
-                    .toImmutableList()
+                    .toImmutableList(),
+                onClick = { index ->
+                    onClick(previewAttachments[index])
+                },
+                onLongClick = { index ->
+                    onLongClick(previewAttachments[index])
+                }
             )
         }
 
@@ -64,14 +71,18 @@ fun Attachments(
                 AttachmentType.FILE -> {
                     File(
                         item = attachment as VkFileDomain,
-                        modifier = Modifier
+                        modifier = Modifier,
+                        onClick = { onClick(attachment) },
+                        onLongClick = { onLongClick(attachment) }
                     )
                 }
 
                 AttachmentType.LINK -> {
                     Link(
                         item = attachment as VkLinkDomain,
-                        modifier = Modifier
+                        modifier = Modifier,
+                        onClick = { onClick(attachment) },
+                        onLongClick = { onLongClick(attachment) }
                     )
                 }
 

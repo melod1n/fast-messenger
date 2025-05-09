@@ -83,6 +83,7 @@
     <string name="message_attachments_files_many">%1$d files</string>
     <string name="message_attachments_files_other">%1$d files</string>
 
+    <string name="message_attachments_clip">Clip</string>
     <string name="message_attachments_audio_message">Voice message</string>
     <string name="message_attachments_link">Link</string>
     <string name="message_attachments_mini_app">Mini App</string>

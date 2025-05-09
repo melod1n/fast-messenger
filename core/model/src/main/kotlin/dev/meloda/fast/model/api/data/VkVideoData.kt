@@ -23,7 +23,7 @@ data class VkVideoData(
     @Json(name = "is_favorite") val isFavorite: Boolean?,
     @Json(name = "image") val image: List<Image>?,
     @Json(name = "first_frame") val firstFrame: List<FirstFrame>?,
-    @Json(name = "files") val files: File?
+    @Json(name = "files") val files: File?,
 ) : VkAttachmentData {
 
     @JsonClass(generateAdapter = true)
@@ -73,6 +73,7 @@ data class VkVideoData(
         accessKey = accessKey,
         title = title,
         views = views,
-        duration = duration
+        duration = duration,
+        isShortVideo = type == "short_video"
     )
 }

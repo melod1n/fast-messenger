@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import dev.meloda.fast.messageshistory.model.UiItem
+import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
@@ -34,6 +35,8 @@ import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 fun IncomingMessageBubble(
     modifier: Modifier = Modifier,
     message: UiItem.Message,
+    onClick: (VkAttachment) -> Unit = {},
+    onLongClick: (VkAttachment) -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -94,7 +97,9 @@ fun IncomingMessageBubble(
                     isPinned = message.isPinned,
                     isImportant = message.isImportant,
                     isSelected = message.isSelected,
-                    attachments = message.attachments?.toImmutableList()
+                    attachments = message.attachments?.toImmutableList(),
+                    onClick = onClick,
+                    onLongClick = onLongClick
                 )
             }
         }

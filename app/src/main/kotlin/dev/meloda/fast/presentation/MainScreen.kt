@@ -1,5 +1,6 @@
 package dev.meloda.fast.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,6 +38,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.navigation.Conversations
+import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.conversations.navigation.conversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.friends.navigation.friendsScreen
@@ -69,6 +71,18 @@ fun MainScreen(
 
     var selectedItemIndex by rememberSaveable {
         mutableIntStateOf(1)
+    }
+
+    BackHandler(enabled = selectedItemIndex != 1) {
+        val index = 1
+        val currentRoute = navigationItems[selectedItemIndex].route
+
+        selectedItemIndex = 1
+        navController.navigate(navigationItems[index].route) {
+            popUpTo(route = currentRoute) {
+                inclusive = true
+            }
+        }
     }
 
     val user = LocalUser.current
@@ -195,7 +209,7 @@ fun MainScreen(
                             onNavigateToCreateChat = onNavigateToCreateChat,
                             onScrolledToTop = {
                                 tabReselected = tabReselected.toMutableMap().also {
-                                    it[Conversations] = false
+                                    it[ConversationsGraph] = false
                                 }
                             }
                         )

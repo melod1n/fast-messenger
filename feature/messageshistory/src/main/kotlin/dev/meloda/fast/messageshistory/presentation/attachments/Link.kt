@@ -2,6 +2,7 @@ package dev.meloda.fast.messageshistory.presentation.attachments
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,13 +41,20 @@ import dev.meloda.fast.ui.basic.LocalContentAlpha
 @Composable
 fun Link(
     modifier: Modifier = Modifier,
-    item: VkLinkDomain
+    item: VkLinkDomain,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         var errorLoading by remember {

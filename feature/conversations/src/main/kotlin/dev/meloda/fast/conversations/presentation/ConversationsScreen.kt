@@ -63,6 +63,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.navigation.Conversations
+import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.FullScreenLoader
 import dev.meloda.fast.ui.components.NoItemsView
@@ -116,7 +117,7 @@ fun ConversationsScreen(
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
 
-    val currentTabReselected = LocalReselectedTab.current[Conversations] ?: false
+    val currentTabReselected = LocalReselectedTab.current[ConversationsGraph] ?: false
     LaunchedEffect(currentTabReselected) {
         if (currentTabReselected) {
             if (screenState.isArchive) {

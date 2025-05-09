@@ -25,25 +25,7 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
         return values.mapIndexed(transform).toImmutableList()
     }
 
-    fun singleOrNull(): T? {
-        return if (values.size == 1) this[0] else null
-    }
-
     override fun isEmpty(): Boolean = values.isEmpty()
-
-    inline fun singleOrNull(predicate: (T) -> Boolean): T? {
-        var single: T? = null
-        var found = false
-        for (element in this) {
-            if (predicate(element)) {
-                if (found) return null
-                single = element
-                found = true
-            }
-        }
-        if (!found) return null
-        return single
-    }
 
     override val size: Int get() = values.size
 

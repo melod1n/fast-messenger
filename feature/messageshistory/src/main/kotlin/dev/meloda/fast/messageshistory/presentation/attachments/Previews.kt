@@ -1,6 +1,8 @@
 package dev.meloda.fast.messageshistory.presentation.attachments
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,16 +34,26 @@ import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 @Composable
 fun Previews(
     modifier: Modifier = Modifier,
-    photos: ImmutableList<UiPreview>
+    photos: ImmutableList<UiPreview>,
+    onClick: (index: Int) -> Unit = {},
+    onLongClick: (index: Int) -> Unit = {}
 ) {
     DynamicPreviewGrid(
         modifier = modifier,
-        photos = photos
+        photos = photos,
+        onClick = onClick,
+        onLongClick = onLongClick
     )
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-fun DynamicPreviewGrid(photos: ImmutableList<UiPreview>, modifier: Modifier = Modifier) {
+fun DynamicPreviewGrid(
+    photos: ImmutableList<UiPreview>,
+    modifier: Modifier = Modifier,
+    onClick: (index: Int) -> Unit = {},
+    onLongClick: (index: Int) -> Unit = {}
+) {
     val spacing = 2.dp
     val shape = RoundedCornerShape(8.dp)
 
@@ -52,7 +64,7 @@ fun DynamicPreviewGrid(photos: ImmutableList<UiPreview>, modifier: Modifier = Mo
         val rows = photos.chunked(3)
 
         Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
-            rows.forEach { row ->
+            rows.forEachIndexed { index, row ->
                 val aspectRatios = row.map { it.width.toFloat() / it.height }
                 val totalAspect = aspectRatios.sum()
 
@@ -77,11 +89,15 @@ fun DynamicPreviewGrid(photos: ImmutableList<UiPreview>, modifier: Modifier = Mo
                                 modifier = Modifier
                                     .height(heightDp)
                                     .clip(shape)
+                                    .combinedClickable(
+                                        onLongClick = { onLongClick(index) },
+                                        onClick = { onClick(index) }
+                                    )
                             )
 
                             if (preview.isVideo) {
                                 IconButton(
-                                    onClick = {},
+                                    onClick = { onClick(index) },
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)

@@ -47,6 +47,8 @@ fun MessageBubble(
     isImportant: Boolean,
     isSelected: Boolean,
     attachments: ImmutableList<VkAttachment>?,
+    onClick: (VkAttachment) -> Unit = {},
+    onLongClick: (VkAttachment) -> Unit = {}
 ) {
     val theme = LocalThemeConfig.current
     val backgroundColor = if (!isOut) {
@@ -170,7 +172,9 @@ fun MessageBubble(
                 ) {
                     Attachments(
                         modifier = Modifier,
-                        attachments = attachments
+                        attachments = attachments,
+                        onClick = onClick,
+                        onLongClick = onLongClick
                     )
 
                     val dateStatusBackground = if (theme.darkMode) Color.Black.copy(alpha = 0.5f)
