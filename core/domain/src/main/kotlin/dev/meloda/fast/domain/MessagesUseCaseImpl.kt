@@ -57,14 +57,16 @@ class MessagesUseCaseImpl(
         randomId: Long,
         message: String?,
         replyTo: Long?,
-        attachments: List<VkAttachment>?
+        attachments: List<VkAttachment>?,
+        formatData: VkMessage.FormatData?
     ): Flow<State<MessagesSendResponse>> = flowNewState {
         repository.send(
             peerId = peerId,
             randomId = randomId,
             message = message,
             replyTo = replyTo,
-            attachments = attachments
+            attachments = attachments,
+            formatData = formatData
         ).mapToState()
     }
 

@@ -23,8 +23,18 @@ fun <T> MutableList<T>.addIf(element: T, condition: () -> Boolean) {
     if (condition.invoke()) add(element)
 }
 
-fun <T> MutableList<T>.removeIf(element: T, condition: () -> Boolean) {
-    if (condition.invoke()) remove(element)
+fun <T> MutableList<T>.removeIfCompat(condition: (T) -> Boolean): Boolean {
+    var removed = false
+
+    val each = iterator()
+    while (each.hasNext()) {
+        if (condition(each.next())) {
+            each.remove()
+            removed = true
+        }
+    }
+
+    return removed
 }
 
 fun <T> Flow<T>.listenValue(

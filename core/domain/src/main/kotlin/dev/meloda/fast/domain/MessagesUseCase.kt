@@ -34,6 +34,7 @@ interface MessagesUseCase : BaseUseCase {
         message: String?,
         replyTo: Long?,
         attachments: List<VkAttachment>?,
+        formatData: VkMessage.FormatData?
     ): Flow<State<MessagesSendResponse>>
 
     fun markAsRead(

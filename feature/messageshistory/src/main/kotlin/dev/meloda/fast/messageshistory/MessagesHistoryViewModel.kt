@@ -7,9 +7,15 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.StringAnnotation
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +25,7 @@ import com.conena.nanokt.text.isNotEmptyOrBlank
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.orDots
+import dev.meloda.fast.common.extensions.removeIfCompat
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.data.State
@@ -352,8 +359,7 @@ class MessagesHistoryViewModelImpl(
                 else ActionMode.Send
             )
         }
-
-        screenState.setValue { old -> old.copy(message = newText) }
+        updateStyles()
     }
 
     override fun onEmojiButtonLongClicked() {
@@ -453,37 +459,116 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
-    private var formatData = VkMessage.FormatData("2", emptyList())
+    private var formatData = VkMessage.FormatData("1", emptyList())
+
+    private fun updateStyles() {
+        val annotations =
+            mutableListOf<AnnotatedString.Range<out AnnotatedString.Annotation>>()
+
+        formatData.items.forEachIndexed { index, item ->
+            val spanStyle = when (item.type) {
+                FormatDataType.BOLD -> {
+                    SpanStyle(fontWeight = FontWeight.SemiBold)
+                }
+
+                FormatDataType.ITALIC -> {
+                    SpanStyle(fontStyle = FontStyle.Italic)
+                }
+
+                FormatDataType.UNDERLINE -> {
+                    SpanStyle(textDecoration = TextDecoration.Underline)
+                }
+
+                FormatDataType.URL -> null
+            }
+
+            spanStyle?.let {
+                annotations += AnnotatedString.Range(
+                    item = spanStyle,
+                    start = item.offset,
+                    end = item.offset + item.length
+                )
+            }
+        }
+
+        val newText = AnnotatedString(
+            text = screenState.value.message.text,
+            annotations = annotations
+        )
+
+        screenState.setValue { old ->
+            old.copy(message = old.message.copy(annotatedString = newText))
+        }
+    }
 
     override fun onBoldClicked() {
         val selectionRange = screenState.value.message.selection
         val newItems = formatData.items.toMutableList()
-        val wasRemoved = newItems.removeIf {
-            it.offset == selectionRange.start && it.offset + it.length == selectionRange.end
+        val wasRemoved = newItems.removeIfCompat {
+            it.type == FormatDataType.BOLD &&
+                    it.offset == selectionRange.start &&
+                    it.offset + it.length == selectionRange.end
         }
 
         if (!wasRemoved) {
             newItems += VkMessage.FormatData.Item(
                 offset = selectionRange.start,
-                length = selectionRange.end - selectionRange.start + 1,
+                length = selectionRange.end - selectionRange.start,
                 type = FormatDataType.BOLD,
                 url = null
             )
         }
 
         formatData = formatData.copy(items = newItems)
+        updateStyles()
     }
 
     override fun onItalicClicked() {
+        val selectionRange = screenState.value.message.selection
+        val newItems = formatData.items.toMutableList()
+        val wasRemoved = newItems.removeIfCompat {
+            it.type == FormatDataType.ITALIC &&
+                    it.offset == selectionRange.start &&
+                    it.offset + it.length == selectionRange.end
+        }
 
+        if (!wasRemoved) {
+            newItems += VkMessage.FormatData.Item(
+                offset = selectionRange.start,
+                length = selectionRange.end - selectionRange.start,
+                type = FormatDataType.ITALIC,
+                url = null
+            )
+        }
+
+        formatData = formatData.copy(items = newItems)
+        updateStyles()
     }
 
     override fun onUnderlineClicked() {
+        val selectionRange = screenState.value.message.selection
+        val newItems = formatData.items.toMutableList()
+        val wasRemoved = newItems.removeIfCompat {
+            it.type == FormatDataType.UNDERLINE &&
+                    it.offset == selectionRange.start &&
+                    it.offset + it.length == selectionRange.end
+        }
 
+        if (!wasRemoved) {
+            newItems += VkMessage.FormatData.Item(
+                offset = selectionRange.start,
+                length = selectionRange.end - selectionRange.start,
+                type = FormatDataType.UNDERLINE,
+                url = null
+            )
+        }
+
+        formatData = formatData.copy(items = newItems)
+        updateStyles()
     }
 
     override fun onLinkClicked() {
-        TODO("Not yet implemented")
+
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
@@ -841,6 +926,7 @@ class MessagesHistoryViewModelImpl(
             // TODO: 04-Apr-25, Danil Nikolaev: implement
             formatData = formatData,
         )
+        formatData = formatData.copy(items = emptyList())
         sendingMessages += newMessage
         messages.setValue { old -> listOf(newMessage).plus(old) }
         syncUiMessages()
@@ -857,7 +943,8 @@ class MessagesHistoryViewModelImpl(
             randomId = newMessage.randomId,
             message = newMessage.text,
             replyTo = null,
-            attachments = null
+            attachments = null,
+            formatData = newMessage.formatData
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 any = { sendingMessages.remove(newMessage) },

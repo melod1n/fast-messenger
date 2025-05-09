@@ -149,7 +149,9 @@ fun MessagesHistoryScreen(
     onPinnedMessageClicked: (Long) -> Unit = {},
     onUnpinMessageButtonClicked: () -> Unit = {},
     onDeleteSelectedButtonClicked: () -> Unit = {},
-    onBoldRequested: ()-> Unit = {}
+    onBoldRequested: () -> Unit = {},
+    onItalicRequested: () -> Unit = {},
+    onUnderlineRequested: () -> Unit = {},
 ) {
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
@@ -305,7 +307,7 @@ fun MessagesHistoryScreen(
                             Text(
                                 text = when {
                                     screenState.isLoading -> stringResource(id = UiR.string.title_loading)
-                                    selectedMessages.size > 0 -> "(${selectedMessages.size})"
+                                    selectedMessages.isNotEmpty() -> "(${selectedMessages.size})"
                                     else -> screenState.title
                                 },
                                 maxLines = 1,
@@ -578,16 +580,10 @@ fun MessagesHistoryScreen(
 
                         val textToolbar = CustomTextToolbar(
                             view = LocalView.current,
-                            onBoldRequested =onBoldRequested,
-                            onItalicRequested = {
-
-                            },
-                            onUnderlineRequested = {
-
-                            },
-                            onLinkRequested = {
-
-                            }
+                            onBoldRequested = onBoldRequested,
+                            onItalicRequested = onItalicRequested,
+                            onUnderlineRequested = onUnderlineRequested,
+                            onLinkRequested = {}
                         )
 
                         CompositionLocalProvider(LocalTextToolbar provides textToolbar) {

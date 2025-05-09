@@ -71,7 +71,9 @@ fun MessagesHistoryRoute(
         onPinnedMessageClicked = viewModel::onPinnedMessageClicked,
         onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked,
         onDeleteSelectedButtonClicked = viewModel::onDeleteSelectedMessagesClicked,
-        onBoldRequested = viewModel::onBoldClicked
+        onBoldRequested = viewModel::onBoldClicked,
+        onItalicRequested = viewModel::onItalicClicked,
+        onUnderlineRequested = viewModel::onUnderlineClicked
     )
 
     HandleDialogs(
