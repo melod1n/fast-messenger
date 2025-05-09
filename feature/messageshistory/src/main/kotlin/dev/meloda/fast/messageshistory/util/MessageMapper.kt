@@ -601,11 +601,20 @@ fun extractTextWithVisualizedMentions(
         val startIndex = mention.indexRange.first
         val endIndex = mention.indexRange.last
 
-        annotations += AnnotatedString.Range(
-            item = SpanStyle(color = Color.Red),
-            start = startIndex,
-            end = endIndex
-        )
+        annotations += if (isOut) {
+            AnnotatedString.Range(
+                item = SpanStyle(textDecoration = TextDecoration.Underline),
+                start = startIndex,
+                end = endIndex
+            )
+        } else {
+            AnnotatedString.Range(
+                item = SpanStyle(color = Color.Red),
+                start = startIndex,
+                end = endIndex
+            )
+        }
+
         annotations += AnnotatedString.Range(
             item = StringAnnotation(mention.id.toString()),
             tag = mention.idPrefix,
