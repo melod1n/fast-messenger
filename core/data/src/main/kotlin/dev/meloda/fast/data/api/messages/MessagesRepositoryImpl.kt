@@ -184,14 +184,16 @@ class MessagesRepositoryImpl(
         randomId: Long,
         message: String?,
         replyTo: Long?,
-        attachments: List<VkAttachment>?
+        attachments: List<VkAttachment>?,
+        formatData: VkMessage.FormatData?
     ): ApiResult<MessagesSendResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesSendRequest(
             peerId = peerId,
             randomId = randomId,
             message = message,
             replyTo = replyTo,
-            attachments = attachments
+            attachments = attachments,
+            formatData = formatData
         )
 
         messagesService.send(requestModel.map).mapApiDefault()

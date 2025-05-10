@@ -107,7 +107,7 @@ fun VkMessage.asPresentation(
 ): UiItem = when {
     action != null -> UiItem.ActionMessage(
         id = id,
-        conversationMessageId = cmId,
+        cmId = cmId,
         text = extractActionText(
             resources = resourceProvider.resources,
             youPrefix = resourceProvider.getString(R.string.you_message_prefix),
@@ -118,7 +118,7 @@ fun VkMessage.asPresentation(
 
     else -> UiItem.Message(
         id = id,
-        conversationMessageId = cmId,
+        cmId = cmId,
         text = extractTextWithVisualizedMentions(
             isOut = isOut,
             originalText = text,
@@ -143,7 +143,8 @@ fun VkMessage.asPresentation(
         },
         isSelected = isSelected,
         isPinned = isPinned,
-        isImportant = isImportant
+        isImportant = isImportant,
+        attachments = attachments?.ifEmpty { null }
     )
 }
 
@@ -600,11 +601,20 @@ fun extractTextWithVisualizedMentions(
         val startIndex = mention.indexRange.first
         val endIndex = mention.indexRange.last
 
-        annotations += AnnotatedString.Range(
-            item = SpanStyle(color = Color.Red),
-            start = startIndex,
-            end = endIndex
-        )
+        annotations += if (isOut) {
+            AnnotatedString.Range(
+                item = SpanStyle(textDecoration = TextDecoration.Underline),
+                start = startIndex,
+                end = endIndex
+            )
+        } else {
+            AnnotatedString.Range(
+                item = SpanStyle(color = Color.Red),
+                start = startIndex,
+                end = endIndex
+            )
+        }
+
         annotations += AnnotatedString.Range(
             item = StringAnnotation(mention.id.toString()),
             tag = mention.idPrefix,

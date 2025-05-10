@@ -3,7 +3,7 @@ package dev.meloda.fast.ui.util
 import androidx.compose.runtime.Immutable
 
 @Immutable
-class ImmutableList<T>(val values: List<T>) : Iterable<T> {
+class ImmutableList<T>(val values: List<T>) : Collection<T> {
 
     constructor(size: Int, init: (index: Int) -> T) : this(MutableList(size, init))
 
@@ -25,29 +25,17 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
         return values.mapIndexed(transform).toImmutableList()
     }
 
-    fun singleOrNull(): T? {
-        return if (values.size == 1) this[0] else null
+    override fun isEmpty(): Boolean = values.isEmpty()
+
+    override val size: Int get() = values.size
+
+    override fun containsAll(elements: Collection<T>): Boolean {
+        return values.containsAll(elements)
     }
 
-    fun isEmpty(): Boolean = values.isEmpty()
-
-    fun isNotEmpty(): Boolean = !isEmpty()
-
-    inline fun singleOrNull(predicate: (T) -> Boolean): T? {
-        var single: T? = null
-        var found = false
-        for (element in this) {
-            if (predicate(element)) {
-                if (found) return null
-                single = element
-                found = true
-            }
-        }
-        if (!found) return null
-        return single
+    override fun contains(element: T): Boolean {
+        return values.contains(element)
     }
-
-    val size: Int get() = values.size
 
     companion object {
         fun <T> copyOf(collection: Collection<T>): ImmutableList<T> =
@@ -67,3 +55,7 @@ class ImmutableList<T>(val values: List<T>) : Iterable<T> {
 }
 
 fun <T> emptyImmutableList(): ImmutableList<T> = ImmutableList(emptyList())
+
+fun <T> immutableListOf(vararg elements: T) = ImmutableList(listOf(elements = elements))
+
+fun <T> ImmutableList<T>?.orEmpty(): ImmutableList<T> = this ?: emptyImmutableList()

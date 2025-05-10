@@ -13,13 +13,18 @@ data class VkVideoDomain(
     val accessKey: String?,
     val title: String,
     val views: Int,
-    val duration: Int
+    val duration: Int,
+    val isShortVideo: Boolean
 ) : VkAttachment {
 
     override val type: AttachmentType = AttachmentType.VIDEO
 
     fun imageForWidth(width: Int): VideoImage? {
         return images.find { it.width == width }
+    }
+
+    fun getDefault(): VideoImage? {
+        return imageForWidthAtLeast(720)
     }
 
     fun imageForWidthAtLeast(width: Int): VideoImage? {
@@ -36,9 +41,11 @@ data class VkVideoDomain(
             certainImages = certainImages.filter { it.shapeKind == ShapeKind.Vertical }
         }
 
-        certainImages = certainImages.filter { it.width >= width }
+        val filteredCertainImages = certainImages.filter { it.width >= width }
 
-        return certainImages.firstOrNull()
+        return filteredCertainImages
+            .ifEmpty { certainImages }
+            .firstOrNull()
     }
 
     @JsonClass(generateAdapter = true)

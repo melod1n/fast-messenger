@@ -5,14 +5,14 @@ compileSdk = "35"
 versionCode = "10"
 versionName = "0.2.0"
 
-agp = "8.9.1"
+agp = "8.10.0"
 converterMoshi = "2.11.0"
 eithernet = "2.0.0"
-haze = "1.5.2"
+haze = "1.5.4"
 kotlin = "2.1.20"
-ksp = "2.1.20-1.0.32"
+ksp = "2.1.20-2.0.1"
 
-compose-bom = "2025.04.00"
+compose-bom = "2025.05.00"
 koin = "4.0.4"
 
 accompanist = "0.37.2"
@@ -20,17 +20,17 @@ coil = "2.7.0"
 coroutines = "1.10.2"
 junit = "4.13.2"
 chucker = "4.1.0"
-guava = "33.4.6-jre"
-lifecycle = "2.8.7"
-core-ktx = "1.15.0"
+guava = "33.4.8-jre"
+lifecycle = "2.9.0"
+core-ktx = "1.16.0"
 material = "1.12.0"
 loggingInterceptor = "5.0.0-alpha.14"
 moshi = "1.15.2"
 retrofit = "2.11.0"
-room = "2.7.0"
+room = "2.7.1"
 preference-ktx = "1.2.1"
 nanokt = "1.2.0"
-androidx-navigation = "2.8.9"
+androidx-navigation = "2.9.0"
 serialization = "1.8.1"
 moduleGraph = "2.8.0"
 
@@ -71,7 +71,7 @@ kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-j
 
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
-compose-ui = { module = "androidx.compose.ui:ui", version = "1.8.0-rc02" }
+compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-material3-windowsize = { module = "androidx.compose.material3:material3-window-size-class" }

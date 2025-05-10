@@ -42,13 +42,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.password
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.LoginViewModelImpl
@@ -57,14 +57,12 @@ import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
-import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
 import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.util.handleEnterKey
 import dev.meloda.fast.ui.util.handleTabKey
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
 
 @Composable

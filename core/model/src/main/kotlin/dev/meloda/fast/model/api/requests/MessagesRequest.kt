@@ -2,6 +2,7 @@ package dev.meloda.fast.model.api.requests
 
 import dev.meloda.fast.model.api.asInt
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkMessage
 
 data class MessagesGetHistoryRequest(
     val count: Int? = null,
@@ -38,7 +39,8 @@ data class MessagesSendRequest(
     val disableMentions: Boolean? = null,
     val doNotParseLinks: Boolean? = null,
     val silent: Boolean? = null,
-    val attachments: List<VkAttachment>? = null
+    val attachments: List<VkAttachment>? = null,
+    val formatData: VkMessage.FormatData? = null
 ) {
 
     val map: Map<String, String>
@@ -54,6 +56,13 @@ data class MessagesSendRequest(
             disableMentions?.let { this["disable_mentions"] = it.asInt().toString() }
             doNotParseLinks?.let { this["dont_parse_links"] = it.asInt().toString() }
             silent?.let { this["silent"] = it.toString() }
+            formatData?.let {
+                this["format_data"] = "{\"version\":\"${formatData.version}\",\"items\":[" +
+                        formatData.items.joinToString(separator = ", ") { item ->
+                            "{\"type\":\"${item.type}\",\"offset\":${item.offset},\"length\":${item.length}}"
+                        } +
+                        "]}"
+            }
 
             // TODO: 05/05/2024, Danil Nikolaev: add attachments
 //            attachments?.let {

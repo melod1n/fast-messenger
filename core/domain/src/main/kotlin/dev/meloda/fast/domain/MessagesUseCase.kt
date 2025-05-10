@@ -33,7 +33,8 @@ interface MessagesUseCase : BaseUseCase {
         randomId: Long,
         message: String?,
         replyTo: Long?,
-        attachments: List<VkAttachment>?
+        attachments: List<VkAttachment>?,
+        formatData: VkMessage.FormatData?
     ): Flow<State<MessagesSendResponse>>
 
     fun markAsRead(

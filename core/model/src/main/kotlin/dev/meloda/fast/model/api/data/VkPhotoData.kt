@@ -2,6 +2,7 @@ package dev.meloda.fast.model.api.data
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import dev.meloda.fast.model.PhotoSize
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 
 @JsonClass(generateAdapter = true)
@@ -35,7 +36,14 @@ data class VkPhotoData(
         ownerId = ownerId,
         hasTags = hasTags == true,
         accessKey = accessKey,
-        sizes = sizes,
+        sizes = sizes.map { size ->
+            PhotoSize(
+                height = size.height,
+                width = size.width,
+                type = size.type,
+                url = size.url
+            )
+        },
         text = text,
         userId = userId
     )
