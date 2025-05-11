@@ -10,7 +10,7 @@ converterMoshi = "2.11.0"
 eithernet = "2.0.0"
 haze = "1.5.2"
 kotlin = "2.1.20"
-ksp = "2.1.20-1.0.32"
+ksp = "2.1.20-2.0.1"
 
 compose-bom = "2025.03.01"
 koin = "4.0.4"
