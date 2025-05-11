@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
@@ -55,6 +56,8 @@ import dev.meloda.fast.ui.R as UiR
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun FriendsRoute(
+    friendsViewModel: FriendsViewModel,
+    onlineFriendsViewModel: FriendsViewModel,
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
@@ -231,6 +234,7 @@ fun FriendsRoute(
             modifier = Modifier.fillMaxSize(),
         ) { index ->
             FriendsScreen(
+                viewModel = if (index == 0) friendsViewModel else onlineFriendsViewModel,
                 orderType = orderType,
                 padding = padding,
                 tabIndex = index,

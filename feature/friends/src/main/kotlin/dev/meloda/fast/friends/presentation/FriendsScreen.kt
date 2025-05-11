@@ -46,6 +46,7 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsScreen(
+    viewModel: FriendsViewModel,
     modifier: Modifier = Modifier,
     orderType: String,
     padding: PaddingValues,
@@ -57,12 +58,6 @@ fun FriendsScreen(
     onScrolledToTop: () -> Unit = {}
 ) {
     val context: Context = LocalContext.current
-    val viewModel: FriendsViewModel =
-        if (tabIndex == 0) {
-            koinViewModel<FriendsViewModelImpl>(viewModelStoreOwner = context as AppCompatActivity)
-        } else {
-            koinViewModel<OnlineFriendsViewModelImpl>(viewModelStoreOwner = context as AppCompatActivity)
-        }
 
     LaunchedEffect(orderType) {
         viewModel.onOrderTypeChanged(orderType)

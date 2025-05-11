@@ -1,6 +1,8 @@
 package dev.meloda.fast.presentation
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,7 +39,6 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.conversations.navigation.conversationsGraph
 import dev.meloda.fast.friends.navigation.Friends
@@ -65,6 +66,7 @@ fun MainScreen(
     onMessageClicked: (userid: Long) -> Unit = {},
     onNavigateToCreateChat: () -> Unit = {}
 ) {
+    val activity = LocalActivity.current as? AppCompatActivity ?: return
     val theme = LocalThemeConfig.current
     val hazeState = remember { HazeState() }
     val navController = rememberNavController()
@@ -194,6 +196,7 @@ fun MainScreen(
                         exitTransition = { fadeOut(animationSpec = tween(200)) }
                     ) {
                         friendsScreen(
+                            activity = activity,
                             onError = onError,
                             onPhotoClicked = onPhotoClicked,
                             onMessageClicked = onMessageClicked,
@@ -204,6 +207,7 @@ fun MainScreen(
                             },
                         )
                         conversationsGraph(
+                            activity = activity,
                             onError = onError,
                             onNavigateToMessagesHistory = onNavigateToMessagesHistory,
                             onNavigateToCreateChat = onNavigateToCreateChat,
@@ -214,6 +218,7 @@ fun MainScreen(
                             }
                         )
                         profileScreen(
+                            activity = activity,
                             onError = onError,
                             onSettingsButtonClicked = onSettingsButtonClicked,
                             onPhotoClicked = onPhotoClicked

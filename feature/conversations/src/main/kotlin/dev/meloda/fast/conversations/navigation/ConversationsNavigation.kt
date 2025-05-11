@@ -1,8 +1,6 @@
 package dev.meloda.fast.conversations.navigation
 
-import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
@@ -13,7 +11,7 @@ import dev.meloda.fast.model.ConversationsFilter
 import dev.meloda.fast.ui.theme.LocalNavController
 import dev.meloda.fast.ui.theme.getOrThrow
 import kotlinx.serialization.Serializable
-import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.core.qualifier.named
 
 @Serializable
@@ -26,6 +24,7 @@ object Conversations
 object Archive
 
 fun NavGraphBuilder.conversationsGraph(
+    activity: AppCompatActivity,
     onError: (BaseError) -> Unit,
     onNavigateToMessagesHistory: (id: Long) -> Unit,
     onNavigateToCreateChat: () -> Unit,
@@ -34,17 +33,18 @@ fun NavGraphBuilder.conversationsGraph(
     navigation<ConversationsGraph>(
         startDestination = Conversations
     ) {
+        val conversationsViewModel: ConversationsViewModelImpl = with(activity) {
+            getViewModel(qualifier = named(ConversationsFilter.ALL))
+        }
+        val archiveViewModel: ConversationsViewModelImpl = with(activity) {
+            getViewModel(qualifier = named(ConversationsFilter.ARCHIVE))
+        }
+
         composable<Conversations> {
-            val context = LocalContext.current
             val navController = LocalNavController.getOrThrow()
 
-            val viewModel: ConversationsViewModelImpl = koinViewModel(
-                qualifier = named(ConversationsFilter.ALL),
-                viewModelStoreOwner = context as AppCompatActivity
-            )
-
             ConversationsRoute(
-                viewModel = viewModel,
+                viewModel = conversationsViewModel,
                 onError = onError,
                 onNavigateToMessagesHistory = onNavigateToMessagesHistory,
                 onNavigateToCreateChat = onNavigateToCreateChat,
@@ -53,16 +53,10 @@ fun NavGraphBuilder.conversationsGraph(
             )
         }
         composable<Archive> {
-            val context = LocalContext.current
             val navController = LocalNavController.getOrThrow()
 
-            val viewModel: ConversationsViewModelImpl = koinViewModel(
-                qualifier = named(ConversationsFilter.ARCHIVE),
-                viewModelStoreOwner = context as AppCompatActivity
-            )
-
             ConversationsRoute(
-                viewModel = viewModel,
+                viewModel = archiveViewModel,
                 onBack = navController::navigateUp,
                 onError = onError,
                 onNavigateToMessagesHistory = onNavigateToMessagesHistory,
