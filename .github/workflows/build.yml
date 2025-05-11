@@ -2,9 +2,9 @@ name: Android CI Build
 
 on:
   push:
-    branches: [ "dev", "release/*", "hotfix/*", "feature/*" ]
+    branches: [ "master", "hotfix/*", "feature/*" ]
   pull_request:
-    branches: [ "dev", "release/*", "hotfix/*", "feature/*" ]
+    branches: [ "master", "hotfix/*", "feature/*" ]
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -12,7 +12,7 @@ env:
   RELEASE_SIGN_KEY_PASSWORD: ${{ secrets.RELEASE_SIGN_KEY_PASSWORD }}
 
 jobs:
-  build_apk_aab:
+  build_apks:
     runs-on: ubuntu-24.04
     name: Build artifacts
     steps:
@@ -29,15 +29,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and sign debug APK
-        run: ./gradlew assembleDebug
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-
       - name: Build and sign release APK
         run: ./gradlew assembleRelease
 
@@ -46,3 +37,12 @@ jobs:
         with:
           name: app-release.apk
           path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Build and sign debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk

@@ -1,8 +1,8 @@
 name: Android CI Release
 
 on:
-  pull_request:
-    branches: [ "master" ]
+  push:
+    branches: [ "release/*"]
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -27,15 +27,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and sign debug APK
-        run: ./gradlew assembleDebug
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-
       - name: Build and sign release APK
         run: ./gradlew assembleRelease
 
@@ -44,15 +35,6 @@ jobs:
         with:
           name: app-release.apk
           path: app/build/outputs/apk/release/app-release.apk
-
-      - name: Build and sign debug Bundle
-        run: ./gradlew bundleDebug
-
-      - name: Upload debug Bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug.aab
-          path: app/build/outputs/bundle/debug/app-debug.aab
 
       - name: Build and sign release Bundle
         run: ./gradlew bundleRelease
