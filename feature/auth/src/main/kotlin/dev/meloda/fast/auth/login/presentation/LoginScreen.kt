@@ -1,5 +1,6 @@
 package dev.meloda.fast.auth.login.presentation
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -8,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,18 +40,20 @@ import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentType
-import androidx.compose.ui.semantics.password
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.LoginViewModelImpl
@@ -126,7 +131,8 @@ fun LoginRoute(
         onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
         onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
         onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
-        onSignInButtonClicked = viewModel::onSignInButtonClicked
+        onSignInButtonClicked = viewModel::onSignInButtonClicked,
+        onLogoClicked = viewModel::onLogoClicked
     )
 
     HandleDialogs(
@@ -144,13 +150,21 @@ fun LoginScreen(
     onPasswordFieldEnterKeyClicked: () -> Unit = {},
     onPasswordVisibilityButtonClicked: () -> Unit = {},
     onPasswordFieldGoAction: () -> Unit = {},
-    onSignInButtonClicked: () -> Unit = {}
+    onSignInButtonClicked: () -> Unit = {},
+    onLogoClicked: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val size = LocalSizeConfig.current
     val focusManager = LocalFocusManager.current
 
-    val titleSpacerSize by animateDpAsState(if (size.isHeightSmall) 24.dp else 58.dp)
-    val bottomPadding by animateDpAsState(if (size.isHeightSmall) 10.dp else 30.dp)
+    val titleSpacerSize by animateDpAsState(
+        targetValue = if (size.isHeightSmall) 24.dp else 58.dp,
+        label = "title spacer size"
+    )
+    val bottomPadding by animateDpAsState(
+        targetValue = if (size.isHeightSmall) 10.dp else 30.dp,
+        label = "bottom padding"
+    )
 
     val (loginFocusable, passwordFocusable) =
         FocusRequester.createRefs()
@@ -163,15 +177,15 @@ fun LoginScreen(
                 .padding(padding)
                 .padding(top = 30.dp)
                 .padding(horizontal = 30.dp)
-                .padding(bottom = bottomPadding)
                 .fillMaxSize()
         ) {
             AnimatedVisibility(
                 visible = screenState.showLogo,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
+                label = "Logo visibility"
             ) {
-                Logo()
+                Logo(onLogoClicked = onLogoClicked)
             }
 
             AnimatedVisibility(
@@ -180,7 +194,8 @@ fun LoginScreen(
                     .align(Alignment.Center),
                 visible = !screenState.showLogo,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
+                label = "Login visibility"
             ) {
                 Column(
                     modifier = Modifier
@@ -235,7 +250,10 @@ fun LoginScreen(
                         isError = screenState.loginError,
                         singleLine = true
                     )
-                    AnimatedVisibility(visible = screenState.loginError) {
+                    AnimatedVisibility(
+                        visible = screenState.loginError,
+                        label = "Login error visibility"
+                    ) {
                         TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
                     }
 
@@ -300,16 +318,18 @@ fun LoginScreen(
                         },
                         singleLine = true
                     )
-                    AnimatedVisibility(visible = screenState.passwordError) {
+                    AnimatedVisibility(
+                        visible = screenState.passwordError,
+                        label = "Password error visibility"
+                    ) {
                         TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
                     }
                 }
             }
 
-
-            Box(
+            Column(
                 modifier = Modifier.align(Alignment.BottomCenter),
-                contentAlignment = Alignment.Center
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 FloatingActionButton(
                     onClick = {
@@ -324,7 +344,8 @@ fun LoginScreen(
                     AnimatedVisibility(
                         visible = screenState.isLoading,
                         enter = fadeIn(),
-                        exit = fadeOut()
+                        exit = fadeOut(),
+                        label = "Progress indicator visibility"
                     ) {
                         CircularProgressIndicator()
                     }
@@ -332,7 +353,8 @@ fun LoginScreen(
                     AnimatedVisibility(
                         visible = !screenState.isLoading,
                         enter = fadeIn(),
-                        exit = fadeOut()
+                        exit = fadeOut(),
+                        label = "Sign in icon visibility"
                     ) {
                         Icon(
                             painter = painterResource(id = UiR.drawable.ic_arrow_end),
@@ -341,11 +363,56 @@ fun LoginScreen(
                         )
                     }
                 }
+
+                AnimatedVisibility(
+                    visible = screenState.showLogo,
+                    label = "Bottom padding visibility"
+                ) {
+                    Spacer(Modifier.height(bottomPadding))
+                }
+
+                AnimatedVisibility(
+                    visible = !screenState.showLogo,
+                    label = "Spacer between fab and bottom text buttons visibility"
+                ) {
+                    Spacer(Modifier.height(4.dp))
+                }
+
+                AnimatedVisibility(
+                    visible = !screenState.showLogo,
+                    label = "Text button row visibility"
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(
+                            onClick = {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, "https://vk.com/join".toUri())
+                                )
+                            }
+                        ) {
+                            Text(stringResource(UiR.string.login_sign_up))
+                        }
+
+                        Text(
+                            text = "•",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        TextButton(
+                            onClick = {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, "https://vk.com/restore".toUri())
+                                )
+                            }
+                        ) {
+                            Text(stringResource(UiR.string.login_forgot_password))
+                        }
+                    }
+                }
             }
         }
     }
 }
-
 
 @Composable
 fun HandleDialogs(
@@ -367,4 +434,14 @@ fun HandleDialogs(
             )
         }
     }
+}
+
+@Preview
+@Composable
+private fun LoginScreenPreview() {
+    LoginScreen(
+        screenState = LoginScreenState.EMPTY.copy(
+            showLogo = false
+        )
+    )
 }

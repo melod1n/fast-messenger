@@ -84,7 +84,7 @@ fun ChatMaterialsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val currentTheme = LocalThemeConfig.current
-    val hazeState = remember { HazeState() }
+    val hazeState = remember { HazeState(true) }
 
     val titles = remember {
         listOf(

@@ -23,5 +23,4 @@ class LoginValidator {
 
         return resultList
     }
-
 }

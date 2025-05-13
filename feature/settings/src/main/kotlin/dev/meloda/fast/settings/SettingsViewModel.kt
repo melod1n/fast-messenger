@@ -416,8 +416,7 @@ class SettingsViewModelImpl(
             key = SettingsKeys.KEY_USE_BLUR,
             defaultValue = SettingsKeys.DEFAULT_USE_BLUR,
             title = UiText.Resource(UiR.string.settings_experimental_use_blur_title),
-            text = UiText.Resource(UiR.string.settings_experimental_use_blur_summary),
-            isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            text = UiText.Resource(UiR.string.settings_experimental_use_blur_summary)
         )
         val enableAnimations = SettingsItem.Switch(
             key = SettingsKeys.KEY_MORE_ANIMATIONS,

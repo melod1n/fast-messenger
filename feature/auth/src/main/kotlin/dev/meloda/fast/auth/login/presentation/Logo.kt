@@ -1,9 +1,7 @@
 package dev.meloda.fast.auth.login.presentation
 
-import android.os.Build
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,21 +24,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.theme.LocalSizeConfig
-import org.koin.compose.koinInject
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Logo(modifier: Modifier = Modifier) {
+fun Logo(
+    modifier: Modifier = Modifier,
+    onLogoClicked: () -> Unit = {}
+) {
     val size = LocalSizeConfig.current
 
     val iconWidth by animateDpAsState(if (size.isWidthSmall) 110.dp else 134.dp)
     val appNameFontSize by animateIntAsState(if (size.isWidthSmall) 32 else 38)
     val bottomAdditionalPadding by animateDpAsState(if (size.isHeightSmall) 10.dp else 30.dp)
-
-    val userSettings: UserSettings = koinInject()
 
     Box(
         modifier = modifier
@@ -65,13 +61,7 @@ fun Logo(modifier: Modifier = Modifier) {
                         interactionSource = null,
                         indication = null,
                         onLongClick = null,
-                        onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                userSettings.onEnableDynamicColorsChanged(
-                                    !userSettings.enableDynamicColors.value
-                                )
-                            }
-                        }
+                        onClick = onLogoClicked
                     )
             )
 

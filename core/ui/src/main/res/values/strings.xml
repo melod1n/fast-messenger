@@ -270,7 +270,7 @@
     <string name="settings_features_long_poll_in_background_summary">Your messages will be updating even when app is not on the screen</string>
     <string name="settings_features_show_time_in_action_messages_title">Show time in action messages</string>
     <string name="settings_experimental_use_blur_title">Use blur</string>
-    <string name="settings_experimental_use_blur_summary">Adds blur wherever possible.\nWorks on android 12 and newer</string>
+    <string name="settings_experimental_use_blur_summary">Adds blur wherever possible</string>
     <string name="settings_experimental_more_animations_title">More animations</string>
     <string name="settings_experimental_more_animations_summary">Use animations wherever possible</string>
 
@@ -340,9 +340,11 @@
     <string name="unspam_message_text">Are you sure you want to unmark this message as spam?</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
 
-    <string name="autofill">Autofill</string>
+    <string name="autofill" tools:ignore="PrivateResource">Autofill</string>
     <string name="bold">Bold</string>
     <string name="italic">Italic</string>
     <string name="underline">Underline</string>
     <string name="link">Link</string>
+    <string name="login_sign_up">Sign up</string>
+    <string name="login_forgot_password">Forgot password?</string>
 </resources>

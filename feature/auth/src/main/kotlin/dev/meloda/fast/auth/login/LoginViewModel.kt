@@ -1,5 +1,6 @@
 package dev.meloda.fast.auth.login
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -24,6 +25,7 @@ import dev.meloda.fast.data.db.AccountsRepository
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.data.success
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.model.database.AccountEntity
@@ -62,6 +64,8 @@ interface LoginViewModel {
 
     fun onSignInButtonClicked()
 
+    fun onLogoClicked()
+
     fun onNavigatedToMain()
     fun onNavigatedToUserBanned()
     fun onNavigatedToCaptcha()
@@ -79,7 +83,8 @@ class LoginViewModelImpl(
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
-    private val longPollController: LongPollController
+    private val longPollController: LongPollController,
+    private val userSettings: UserSettings
 ) : ViewModel(), LoginViewModel {
 
     override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
@@ -164,6 +169,14 @@ class LoginViewModelImpl(
         login()
     }
 
+    override fun onLogoClicked() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            userSettings.onEnableDynamicColorsChanged(
+                !userSettings.enableDynamicColors.value
+            )
+        }
+    }
+
     override fun onNavigatedToMain() {
         isNeedToOpenMain.update { false }
     }
@@ -210,7 +223,7 @@ class LoginViewModelImpl(
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
 
-        screenState.updateValue { copy(isLoading = false) }
+        screenState.updateValue { copy(isLoading = true) }
 
         val currentValidationSid = validationSid.value
         val currentValidationCode = validationCode.value?.takeIf { currentValidationSid != null }

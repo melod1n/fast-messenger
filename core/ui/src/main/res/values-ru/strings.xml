@@ -222,7 +222,7 @@
     <string name="settings_general_show_emoji_button_summary">Показывать кнопку эмоджи на панели чата</string>
     <string name="settings_features_show_time_in_action_messages_title">Показывать время в сервисных сообщениях</string>
     <string name="settings_experimental_use_blur_title">Использовать размытие</string>
-    <string name="settings_experimental_use_blur_summary">Добавлять размытие везде, где возможно.\\nРаботает только с 12 версии Android</string>
+    <string name="settings_experimental_use_blur_summary">Добавлять размытие везде, где возможно</string>
     <string name="settings_experimental_more_animations_title">Больше анимаций</string>
     <string name="warning_confirmation">Подтверждение</string>
     <string name="captcha_exit_warning">Вы уверены? Процесс ввода капчи будет отменён</string>
@@ -269,4 +269,6 @@
     <string name="italic">Курсив</string>
     <string name="underline">Подчёркнутый</string>
     <string name="link">Ссылка</string>
+    <string name="login_sign_up">Регистрация</string>
+    <string name="login_forgot_password">Забыли пароль?</string>
 </resources>

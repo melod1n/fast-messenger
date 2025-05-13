@@ -68,7 +68,7 @@ fun MainScreen(
 ) {
     val activity = LocalActivity.current as? AppCompatActivity ?: return
     val theme = LocalThemeConfig.current
-    val hazeState = remember { HazeState() }
+    val hazeState = remember { HazeState(true) }
     val navController = rememberNavController()
 
     var selectedItemIndex by rememberSaveable {

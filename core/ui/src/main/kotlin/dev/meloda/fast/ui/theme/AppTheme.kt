@@ -130,7 +130,7 @@ val LocalSizeConfig = compositionLocalOf {
     )
 }
 
-val LocalHazeState = compositionLocalOf { HazeState() }
+val LocalHazeState = compositionLocalOf { HazeState(true) }
 val LocalBottomPadding = compositionLocalOf { 0.dp }
 val LocalUser = compositionLocalOf<VkUser?> { null }
 val LocalReselectedTab = compositionLocalOf { mapOf<Any, Boolean>() }

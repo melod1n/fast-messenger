@@ -153,7 +153,7 @@ fun MessagesHistoryScreen(
     val coroutineScope = rememberCoroutineScope()
     val theme = LocalThemeConfig.current
     val listState = rememberLazyListState()
-    val hazeState = remember { HazeState() }
+    val hazeState = remember { HazeState(true) }
 
     LaunchedEffect(scrollIndex) {
         if (scrollIndex != null) {

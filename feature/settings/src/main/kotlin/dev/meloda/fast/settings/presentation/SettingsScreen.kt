@@ -128,7 +128,7 @@ fun SettingsScreen(
 
     val themeConfig = LocalThemeConfig.current
 
-    val hazeState = remember { HazeState() }
+    val hazeState = remember { HazeState(true) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
