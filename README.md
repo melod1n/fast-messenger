@@ -7,15 +7,17 @@ Unofficial messenger for russian social network VKontakte
     - [x] 2FA support
         - [x] Resend otp
     - [x] Captcha support
-    - [ ] Support for new authorization with service and refresh tokens
+    - [x] Support for new authorization with service and refresh tokens
+    - [ ] Handle token expiration
+    - [ ] Ability to export/import tokens
 - [x] Conversations list
     - [x] Pagination
     - [x] Manual refresh
     - [x] Pin & unpin conversations
     - [x] Delete conversations
-    - [ ] Archive
-        - [ ] View archived conversations
-        - [ ] Archive & unarchive conversations
+    - [x] Archive
+        - [x] View archived conversations
+        - [x] Archive & unarchive conversations
 - [x] Friends list
     - [x] Sort alphabetically, by priority or random
     - [x] Separate tab with only friends who are online
@@ -30,12 +32,12 @@ Unofficial messenger for russian social network VKontakte
         - [x] Read status
         - [x] Edit status
         - [x] Sending status
-        - [ ] Message's attachments
-            - [ ] Photo
-            - [ ] Video
-            - [ ] Audio
-            - [ ] File
-            - [ ] Link
+        - [x] Message's attachments
+            - [x] Photo
+            - [x] Video
+            - [x] Audio
+            - [x] File
+            - [x] Link
             - [ ] TODO
     - [x] Send messages
     - [x] Pinned message
