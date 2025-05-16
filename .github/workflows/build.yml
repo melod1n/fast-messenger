@@ -32,17 +32,31 @@ jobs:
       - name: Build and sign release APK
         run: ./gradlew assembleRelease
 
-      - name: Upload release APK
+      - name: Find generated release APK name
+        id: find_apk
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
+          echo "APK_NAME=$(basename $APK_PATH)" >> $GITHUB_ENV
+
+      - name: Upload APK with original name
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_PATH }}
 
       - name: Build and sign debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload debug APK
+      - name: Find generated debug APK name
+        id: find_apk
+        run: |
+            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+            echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
+            echo "APK_NAME=$(basename $APK_PATH)" >> $GITHUB_ENV
+
+      - name: Upload APK with original name
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_PATH }}

@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import java.util.Properties
 
 plugins {
@@ -55,6 +56,18 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val date = System.currentTimeMillis() / 1000
+            val buildType = buildType.name
+            val appVersion = versionName
+            val appVersionCode = versionCode
+
+            val newApkName = "app-$buildType-v$appVersion($appVersionCode)-$date.apk"
+            (this as? BaseVariantOutputImpl)?.outputFileName = newApkName
         }
     }
 
