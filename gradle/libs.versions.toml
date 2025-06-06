@@ -8,7 +8,7 @@ versionName = "0.2.2"
 agp = "8.10.1"
 retrofit = "3.0.0"
 eithernet = "2.0.0"
-haze = "1.6.3"
+haze = "1.6.4"
 kotlin = "2.1.21"
 ksp = "2.1.21-2.0.1"
 
