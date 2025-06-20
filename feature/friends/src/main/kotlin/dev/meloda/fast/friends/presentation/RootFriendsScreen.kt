@@ -1,5 +1,6 @@
 package dev.meloda.fast.friends.presentation
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -41,6 +42,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.friends.FriendsViewModel
+import dev.meloda.fast.friends.OnlineFriendsViewModelImpl
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
@@ -51,13 +53,14 @@ import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import dev.meloda.fast.ui.R as UiR
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun FriendsRoute(
+    activity: AppCompatActivity,
     friendsViewModel: FriendsViewModel,
-    onlineFriendsViewModel: FriendsViewModel,
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
@@ -234,7 +237,9 @@ fun FriendsRoute(
             modifier = Modifier.fillMaxSize(),
         ) { index ->
             FriendsScreen(
-                viewModel = if (index == 0) friendsViewModel else onlineFriendsViewModel,
+                viewModel = if (index == 0) friendsViewModel else with(activity) {
+                    getViewModel<OnlineFriendsViewModelImpl>()
+                },
                 orderType = orderType,
                 padding = padding,
                 tabIndex = index,

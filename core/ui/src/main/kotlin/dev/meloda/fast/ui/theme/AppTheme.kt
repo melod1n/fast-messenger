@@ -4,6 +4,8 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -142,6 +144,7 @@ fun <T: NavController> ProvidableCompositionLocal<T?>.getOrThrow(): T {
     return requireNotNull(current)
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppTheme(
     predefinedColorScheme: ColorScheme? = null,
@@ -213,7 +216,7 @@ fun AppTheme(
         }
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = (predefinedColorScheme ?: colorScheme)
             .copy(
                 primary = colorPrimary,

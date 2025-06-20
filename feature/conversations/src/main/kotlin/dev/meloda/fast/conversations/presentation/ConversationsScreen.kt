@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -62,7 +63,6 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.model.ConversationsScreenState
-import dev.meloda.fast.conversations.navigation.Conversations
 import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.components.FullScreenLoader
@@ -79,12 +79,11 @@ import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-
 import dev.meloda.fast.ui.R as UiR
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class,
+    ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun ConversationsScreen(
@@ -117,7 +116,7 @@ fun ConversationsScreen(
         initialFirstVisibleItemScrollOffset = screenState.scrollOffset
     )
 
-    val currentTabReselected = LocalReselectedTab.current[ConversationsGraph] ?: false
+    val currentTabReselected = LocalReselectedTab.current[ConversationsGraph] == true
     LaunchedEffect(currentTabReselected) {
         if (currentTabReselected) {
             if (screenState.isArchive) {

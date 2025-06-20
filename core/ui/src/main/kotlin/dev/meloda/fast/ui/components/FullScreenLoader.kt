@@ -3,12 +3,15 @@ package dev.meloda.fast.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FullScreenLoader(modifier: Modifier = Modifier) {
     Box(
@@ -17,7 +20,10 @@ fun FullScreenLoader(modifier: Modifier = Modifier) {
             .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator()
+        ContainedLoadingIndicator(
+            containerColor = MaterialTheme.colorScheme.primary,
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer
+        )
     }
 }
 

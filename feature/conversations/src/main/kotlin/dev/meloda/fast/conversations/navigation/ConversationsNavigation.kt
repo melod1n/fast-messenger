@@ -36,10 +36,6 @@ fun NavGraphBuilder.conversationsGraph(
         val conversationsViewModel: ConversationsViewModelImpl = with(activity) {
             getViewModel(qualifier = named(ConversationsFilter.ALL))
         }
-        val archiveViewModel: ConversationsViewModelImpl = with(activity) {
-            getViewModel(qualifier = named(ConversationsFilter.ARCHIVE))
-        }
-
         composable<Conversations> {
             val navController = LocalNavController.getOrThrow()
 
@@ -56,7 +52,11 @@ fun NavGraphBuilder.conversationsGraph(
             val navController = LocalNavController.getOrThrow()
 
             ConversationsRoute(
-                viewModel = archiveViewModel,
+                viewModel = with(activity) {
+                    getViewModel<ConversationsViewModelImpl>(
+                        qualifier = named(ConversationsFilter.ARCHIVE)
+                    )
+                },
                 onBack = navController::navigateUp,
                 onError = onError,
                 onNavigateToMessagesHistory = onNavigateToMessagesHistory,
