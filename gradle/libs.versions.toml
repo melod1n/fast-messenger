@@ -12,7 +12,7 @@ haze = "1.6.4"
 kotlin = "2.1.21"
 ksp = "2.1.21-2.0.2"
 
-compose-bom = "2025.06.01"
+compose-bom = "2025.06.00"
 koin = "4.1.0"
 
 accompanist = "0.37.3"
@@ -68,7 +68,8 @@ nanokt-jvm = { module = "com.conena.nanokt:nanokt-jvm", version.ref = "nanokt" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose-bom" }
+compose-material-icons = { module = "androidx.compose.material:material-icons-core" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
@@ -95,6 +96,7 @@ room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", vers
 
 [bundles]
 compose = [
+    "compose-material-icons",
     "compose-material3",
     "compose-material3-windowsize",
     "compose-ui",

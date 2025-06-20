@@ -50,7 +50,6 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import dev.meloda.fast.ui.R as UiR
 
@@ -89,167 +88,165 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissions()
 
         setContent {
-            KoinContext {
-                val context = LocalContext.current
+            val context = LocalContext.current
 
-                val userSettings: UserSettings = koinInject()
-                val longPollController: LongPollController = koinInject()
+            val userSettings: UserSettings = koinInject()
+            val longPollController: LongPollController = koinInject()
 
-                val longPollCurrentState by longPollController.currentState.collectAsStateWithLifecycle()
-                val longPollStateToApply by longPollController.stateToApply.collectAsStateWithLifecycle()
+            val longPollCurrentState by longPollController.currentState.collectAsStateWithLifecycle()
+            val longPollStateToApply by longPollController.stateToApply.collectAsStateWithLifecycle()
 
-                val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+            val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
 
-                val currentUser: VkUser? by viewModel.currentUser.collectAsStateWithLifecycle()
+            val currentUser: VkUser? by viewModel.currentUser.collectAsStateWithLifecycle()
 
-                LifecycleResumeEffect(true) {
-                    viewModel.onAppResumed(intent)
-                    onPauseOrDispose {}
-                }
+            LifecycleResumeEffect(true) {
+                viewModel.onAppResumed(intent)
+                onPauseOrDispose {}
+            }
 
-                val permissionState =
-                    rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+            val permissionState =
+                rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
 
-                val isNeedToCheckPermission by viewModel.isNeedToCheckNotificationsPermission.collectAsStateWithLifecycle()
-                val isNeedToRequestPermission by viewModel.isNeedToRequestNotifications.collectAsStateWithLifecycle()
+            val isNeedToCheckPermission by viewModel.isNeedToCheckNotificationsPermission.collectAsStateWithLifecycle()
+            val isNeedToRequestPermission by viewModel.isNeedToRequestNotifications.collectAsStateWithLifecycle()
 
-                LaunchedEffect(isNeedToCheckPermission) {
-                    if (isNeedToCheckPermission) {
-                        viewModel.onPermissionCheckStatus(permissionState.status)
+            LaunchedEffect(isNeedToCheckPermission) {
+                if (isNeedToCheckPermission) {
+                    viewModel.onPermissionCheckStatus(permissionState.status)
 
-                        if (permissionState.status.isGranted) {
-                            if (longPollCurrentState == LongPollState.InApp) {
-                                toggleLongPollService(false)
-                            }
-
-                            toggleLongPollService(
-                                enable = true,
-                                inBackground = true
-                            )
-                        }
-                    }
-                }
-
-                LaunchedEffect(isNeedToRequestPermission) {
-                    if (isNeedToRequestPermission) {
-                        viewModel.onPermissionsRequested()
-                        permissionState.launchPermissionRequest()
-                    }
-                }
-
-                LifecycleResumeEffect(longPollStateToApply) {
-                    Log.d("LongPollMainActivity", "longPollStateToApply: $longPollStateToApply")
-                    if (longPollStateToApply != LongPollState.Background) {
-                        if (longPollStateToApply.isLaunched() && longPollCurrentState.isLaunched()
-                            && longPollCurrentState != longPollStateToApply
-                        ) {
+                    if (permissionState.status.isGranted) {
+                        if (longPollCurrentState == LongPollState.InApp) {
                             toggleLongPollService(false)
-                            Log.d("LongPoll", "recreate()")
                         }
 
                         toggleLongPollService(
-                            enable = longPollStateToApply.isLaunched(),
-                            inBackground = longPollStateToApply == LongPollState.Background
+                            enable = true,
+                            inBackground = true
                         )
                     }
-
-                    onPauseOrDispose {}
                 }
+            }
 
-                val sendOnline by userSettings.sendOnlineStatus.collectAsStateWithLifecycle()
-                LifecycleResumeEffect(sendOnline) {
-                    toggleOnlineService(sendOnline)
+            LaunchedEffect(isNeedToRequestPermission) {
+                if (isNeedToRequestPermission) {
+                    viewModel.onPermissionsRequested()
+                    permissionState.launchPermissionRequest()
+                }
+            }
 
-                    onPauseOrDispose {
-                        toggleOnlineService(false)
+            LifecycleResumeEffect(longPollStateToApply) {
+                Log.d("LongPollMainActivity", "longPollStateToApply: $longPollStateToApply")
+                if (longPollStateToApply != LongPollState.Background) {
+                    if (longPollStateToApply.isLaunched() && longPollCurrentState.isLaunched()
+                        && longPollCurrentState != longPollStateToApply
+                    ) {
+                        toggleLongPollService(false)
+                        Log.d("LongPoll", "recreate()")
                     }
-                }
 
-                val deviceWidthDp = remember(true) {
-                    context.resources.displayMetrics.widthPixels.pxToDp()
-                }
-                val deviceHeightDp = remember(true) {
-                    context.resources.displayMetrics.heightPixels.pxToDp()
-                }
-
-                val deviceWidthSize by remember(deviceWidthDp) {
-                    derivedStateOf {
-                        when {
-                            deviceWidthDp <= 360 -> DeviceSize.Small
-                            deviceWidthDp <= 600 -> DeviceSize.Compact
-                            deviceWidthDp <= 840 -> DeviceSize.Medium
-                            else -> DeviceSize.Expanded
-                        }
-                    }
-                }
-
-                val deviceHeightSize by remember(deviceHeightDp) {
-                    derivedStateOf {
-                        when {
-                            deviceHeightDp <= 480 -> DeviceSize.Small
-                            deviceHeightDp <= 700 -> DeviceSize.Compact
-                            deviceHeightDp <= 900 -> DeviceSize.Medium
-                            else -> DeviceSize.Expanded
-                        }
-                    }
-                }
-
-                val sizeConfig by remember(deviceWidthSize, deviceHeightSize) {
-                    mutableStateOf(
-                        SizeConfig(
-                            widthSize = deviceWidthSize,
-                            heightSize = deviceHeightSize
-                        )
+                    toggleLongPollService(
+                        enable = longPollStateToApply.isLaunched(),
+                        inBackground = longPollStateToApply == LongPollState.Background
                     )
                 }
 
-                val darkMode by userSettings.darkMode.collectAsStateWithLifecycle()
-                val dynamicColors by userSettings.enableDynamicColors.collectAsStateWithLifecycle()
-                val amoledDark by userSettings.enableAmoledDark.collectAsStateWithLifecycle()
-                val enableBlur by userSettings.useBlur.collectAsStateWithLifecycle()
-                val enableMultiline by userSettings.enableMultiline.collectAsStateWithLifecycle()
-                val useSystemFont by userSettings.useSystemFont.collectAsStateWithLifecycle()
-                val enableAnimations by userSettings.enableAnimations.collectAsStateWithLifecycle()
+                onPauseOrDispose {}
+            }
 
-                val setDarkMode = isNeedToEnableDarkMode(darkMode = darkMode)
+            val sendOnline by userSettings.sendOnlineStatus.collectAsStateWithLifecycle()
+            LifecycleResumeEffect(sendOnline) {
+                toggleOnlineService(sendOnline)
 
-                val themeConfig by remember(
-                    darkMode,
-                    dynamicColors,
-                    amoledDark,
-                    enableBlur,
-                    enableMultiline,
-                    setDarkMode,
-                    useSystemFont
-                ) {
-                    derivedStateOf {
-                        ThemeConfig(
-                            darkMode = setDarkMode,
-                            dynamicColors = dynamicColors,
-                            selectedColorScheme = 0,
-                            amoledDark = amoledDark,
-                            enableBlur = enableBlur,
-                            enableMultiline = enableMultiline,
-                            useSystemFont = useSystemFont,
-                            enableAnimations = enableAnimations
-                        )
+                onPauseOrDispose {
+                    toggleOnlineService(false)
+                }
+            }
+
+            val deviceWidthDp = remember(true) {
+                context.resources.displayMetrics.widthPixels.pxToDp()
+            }
+            val deviceHeightDp = remember(true) {
+                context.resources.displayMetrics.heightPixels.pxToDp()
+            }
+
+            val deviceWidthSize by remember(deviceWidthDp) {
+                derivedStateOf {
+                    when {
+                        deviceWidthDp <= 360 -> DeviceSize.Small
+                        deviceWidthDp <= 600 -> DeviceSize.Compact
+                        deviceWidthDp <= 840 -> DeviceSize.Medium
+                        else -> DeviceSize.Expanded
                     }
                 }
+            }
 
-                CompositionLocalProvider(
-                    LocalThemeConfig provides themeConfig,
-                    LocalSizeConfig provides sizeConfig,
-                    LocalUser provides currentUser
-                ) {
-                    AppTheme(
-                        useDarkTheme = themeConfig.darkMode,
-                        useDynamicColors = themeConfig.dynamicColors,
-                        selectedColorScheme = themeConfig.selectedColorScheme,
-                        useAmoledBackground = themeConfig.amoledDark,
-                        useSystemFont = themeConfig.useSystemFont
-                    ) {
-                        RootScreen(viewModel = viewModel)
+            val deviceHeightSize by remember(deviceHeightDp) {
+                derivedStateOf {
+                    when {
+                        deviceHeightDp <= 480 -> DeviceSize.Small
+                        deviceHeightDp <= 700 -> DeviceSize.Compact
+                        deviceHeightDp <= 900 -> DeviceSize.Medium
+                        else -> DeviceSize.Expanded
                     }
+                }
+            }
+
+            val sizeConfig by remember(deviceWidthSize, deviceHeightSize) {
+                mutableStateOf(
+                    SizeConfig(
+                        widthSize = deviceWidthSize,
+                        heightSize = deviceHeightSize
+                    )
+                )
+            }
+
+            val darkMode by userSettings.darkMode.collectAsStateWithLifecycle()
+            val dynamicColors by userSettings.enableDynamicColors.collectAsStateWithLifecycle()
+            val amoledDark by userSettings.enableAmoledDark.collectAsStateWithLifecycle()
+            val enableBlur by userSettings.useBlur.collectAsStateWithLifecycle()
+            val enableMultiline by userSettings.enableMultiline.collectAsStateWithLifecycle()
+            val useSystemFont by userSettings.useSystemFont.collectAsStateWithLifecycle()
+            val enableAnimations by userSettings.enableAnimations.collectAsStateWithLifecycle()
+
+            val setDarkMode = isNeedToEnableDarkMode(darkMode = darkMode)
+
+            val themeConfig by remember(
+                darkMode,
+                dynamicColors,
+                amoledDark,
+                enableBlur,
+                enableMultiline,
+                setDarkMode,
+                useSystemFont
+            ) {
+                derivedStateOf {
+                    ThemeConfig(
+                        darkMode = setDarkMode,
+                        dynamicColors = dynamicColors,
+                        selectedColorScheme = 0,
+                        amoledDark = amoledDark,
+                        enableBlur = enableBlur,
+                        enableMultiline = enableMultiline,
+                        useSystemFont = useSystemFont,
+                        enableAnimations = enableAnimations
+                    )
+                }
+            }
+
+            CompositionLocalProvider(
+                LocalThemeConfig provides themeConfig,
+                LocalSizeConfig provides sizeConfig,
+                LocalUser provides currentUser
+            ) {
+                AppTheme(
+                    useDarkTheme = themeConfig.darkMode,
+                    useDynamicColors = themeConfig.dynamicColors,
+                    selectedColorScheme = themeConfig.selectedColorScheme,
+                    useAmoledBackground = themeConfig.amoledDark,
+                    useSystemFont = themeConfig.useSystemFont
+                ) {
+                    RootScreen(viewModel = viewModel)
                 }
             }
         }

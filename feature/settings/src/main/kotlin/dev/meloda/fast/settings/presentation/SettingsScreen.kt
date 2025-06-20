@@ -33,8 +33,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.data.UserConfig
@@ -159,7 +159,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .then(
                         if (themeConfig.enableBlur) {
-                            Modifier.hazeChild(
+                            Modifier.hazeEffect(
                                 state = hazeState,
                                 style = HazeMaterials.thick()
                             )
@@ -175,7 +175,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .then(
                     if (themeConfig.enableBlur) {
-                        Modifier.haze(state = hazeState)
+                        Modifier.hazeSource(state = hazeState)
                     } else Modifier
                 )
                 .fillMaxWidth()

@@ -1,11 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation
 
-import android.os.Build
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
 import androidx.activity.compose.BackHandler
-import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -41,6 +36,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.contextmenu.builder.item
+import androidx.compose.foundation.text.contextmenu.modifier.addTextContextMenuComponents
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.MoreVert
@@ -62,7 +59,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -74,15 +70,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.TextToolbar
-import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -149,6 +142,7 @@ fun MessagesHistoryScreen(
     onItalicRequested: () -> Unit = {},
     onUnderlineRequested: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
     val theme = LocalThemeConfig.current
@@ -574,37 +568,59 @@ fun MessagesHistoryScreen(
                             }
                         }
 
-                        val view = LocalView.current
-                        val textToolbar = remember {
-                            CustomTextToolbar(
-                                view = view,
-                                onBoldRequested = onBoldRequested,
-                                onItalicRequested = onItalicRequested,
-                                onUnderlineRequested = onUnderlineRequested,
-                                onLinkRequested = {}
-                            )
-                        }
+                        TextField(
+                            modifier = Modifier
+                                .weight(1f)
+                                .addTextContextMenuComponents {
+                                    separator()
 
-                        CompositionLocalProvider(LocalTextToolbar provides textToolbar) {
-                            TextField(
-                                modifier = Modifier.weight(1f),
-                                value = screenState.message,
-                                onValueChange = onMessageInputChanged,
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent,
-                                ),
-                                placeholder = {
-                                    Text(
-                                        text = stringResource(id = UiR.string.message_input_hint),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            )
-                        }
+                                    item(
+                                        key = "Bold",
+                                        label = context.getString(UiR.string.bold)
+                                    ) {
+                                        onBoldRequested()
+                                        close()
+                                    }
+                                    item(
+                                        key = "Italic",
+                                        label = context.getString(UiR.string.italic)
+                                    ) {
+                                        onItalicRequested()
+                                        close()
+                                    }
+                                    item(
+                                        key = "Underline",
+                                        label = context.getString(UiR.string.underline)
+                                    ) {
+                                        onUnderlineRequested()
+                                        close()
+                                    }
+                                    item(
+                                        key = "Link",
+                                        label = context.getString(UiR.string.link)
+                                    ) {
+                                        close()
+                                    }
+
+                                    separator()
+                                },
+                            value = screenState.message,
+                            onValueChange = onMessageInputChanged,
+                            colors = TextFieldDefaults.colors(
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                            ),
+                            placeholder = {
+                                Text(
+                                    text = stringResource(id = UiR.string.message_input_hint),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        )
+
 
                         val scope = rememberCoroutineScope()
                         val attachmentRotation = remember { Animatable(0f) }
@@ -716,243 +732,4 @@ fun MessagesHistoryScreen(
             }
         }
     }
-}
-
-class CustomTextToolbar(
-    private val view: View,
-    private var onBoldRequested: (() -> Unit)? = null,
-    private var onItalicRequested: (() -> Unit)? = null,
-    private var onUnderlineRequested: (() -> Unit)? = null,
-    private var onLinkRequested: (() -> Unit)? = null
-) : TextToolbar {
-    private var actionMode: android.view.ActionMode? = null
-    private val textActionModeCallback: TextActionModeCallback =
-        TextActionModeCallback(onActionModeDestroy = { actionMode = null })
-    override var status: TextToolbarStatus = TextToolbarStatus.Hidden
-        private set
-
-    override fun showMenu(
-        rect: Rect,
-        onCopyRequested: (() -> Unit)?,
-        onPasteRequested: (() -> Unit)?,
-        onCutRequested: (() -> Unit)?,
-        onSelectAllRequested: (() -> Unit)?,
-        onAutofillRequested: (() -> Unit)?
-    ) {
-        textActionModeCallback.rect = rect
-        textActionModeCallback.onCopyRequested = onCopyRequested
-        textActionModeCallback.onCutRequested = onCutRequested
-        textActionModeCallback.onPasteRequested = onPasteRequested
-        textActionModeCallback.onSelectAllRequested = onSelectAllRequested
-        textActionModeCallback.onAutofillRequested = onAutofillRequested
-        textActionModeCallback.onBoldRequested = onBoldRequested
-        textActionModeCallback.onItalicRequested = onItalicRequested
-        textActionModeCallback.onUnderlineRequested = onUnderlineRequested
-        textActionModeCallback.onLinkRequested = onLinkRequested
-
-        if (actionMode == null) {
-            status = TextToolbarStatus.Shown
-            actionMode =
-                TextToolbarHelperMethods.startActionMode(
-                    view,
-                    FloatingTextActionModeCallback(textActionModeCallback),
-                    android.view.ActionMode.TYPE_FLOATING
-                )
-        } else {
-            actionMode?.invalidate()
-        }
-    }
-
-    override fun showMenu(
-        rect: Rect,
-        onCopyRequested: (() -> Unit)?,
-        onPasteRequested: (() -> Unit)?,
-        onCutRequested: (() -> Unit)?,
-        onSelectAllRequested: (() -> Unit)?
-    ) {
-        showMenu(
-            rect = rect,
-            onCopyRequested = onCopyRequested,
-            onPasteRequested = onPasteRequested,
-            onCutRequested = onCutRequested,
-            onSelectAllRequested = onSelectAllRequested,
-            onAutofillRequested = null
-        )
-    }
-
-    override fun hide() {
-        status = TextToolbarStatus.Hidden
-        actionMode?.finish()
-        actionMode = null
-    }
-}
-
-/**
- * This class is here to ensure that the classes that use this API will get verified and can be AOT
- * compiled. It is expected that this class will soft-fail verification, but the classes which use
- * this method will pass.
- */
-internal object TextToolbarHelperMethods {
-    fun startActionMode(
-        view: View,
-        actionModeCallback: android.view.ActionMode.Callback,
-        type: Int
-    ): android.view.ActionMode? {
-        return view.startActionMode(actionModeCallback, type)
-    }
-
-    fun invalidateContentRect(actionMode: android.view.ActionMode) {
-        actionMode.invalidateContentRect()
-    }
-}
-
-
-class FloatingTextActionModeCallback(private val callback: TextActionModeCallback) :
-    android.view.ActionMode.Callback2() {
-    override fun onActionItemClicked(mode: android.view.ActionMode?, item: MenuItem?): Boolean {
-        return callback.onActionItemClicked(mode, item)
-    }
-
-    override fun onCreateActionMode(mode: android.view.ActionMode?, menu: Menu?): Boolean {
-        return callback.onCreateActionMode(mode, menu)
-    }
-
-    override fun onPrepareActionMode(mode: android.view.ActionMode?, menu: Menu?): Boolean {
-        return callback.onPrepareActionMode(mode, menu)
-    }
-
-    override fun onDestroyActionMode(mode: android.view.ActionMode?) {
-        callback.onDestroyActionMode()
-    }
-
-    override fun onGetContentRect(
-        mode: android.view.ActionMode?,
-        view: View?,
-        outRect: android.graphics.Rect?
-    ) {
-        val rect = callback.rect
-        outRect?.set(rect.left.toInt(), rect.top.toInt(), rect.right.toInt(), rect.bottom.toInt())
-    }
-}
-
-class TextActionModeCallback(
-    val onActionModeDestroy: (() -> Unit)? = null,
-    var rect: Rect = Rect.Zero,
-    var onCopyRequested: (() -> Unit)? = null,
-    var onPasteRequested: (() -> Unit)? = null,
-    var onCutRequested: (() -> Unit)? = null,
-    var onSelectAllRequested: (() -> Unit)? = null,
-    var onAutofillRequested: (() -> Unit)? = null,
-    var onBoldRequested: (() -> Unit)? = null,
-    var onItalicRequested: (() -> Unit)? = null,
-    var onUnderlineRequested: (() -> Unit)? = null,
-    var onLinkRequested: (() -> Unit)? = null
-) {
-    fun onCreateActionMode(mode: android.view.ActionMode?, menu: Menu?): Boolean {
-        requireNotNull(menu) { "onCreateActionMode requires a non-null menu" }
-        requireNotNull(mode) { "onCreateActionMode requires a non-null mode" }
-
-        onCopyRequested?.let { addMenuItem(menu, MenuItemOption.Copy) }
-        onPasteRequested?.let { addMenuItem(menu, MenuItemOption.Paste) }
-        onCutRequested?.let { addMenuItem(menu, MenuItemOption.Cut) }
-        onSelectAllRequested?.let { addMenuItem(menu, MenuItemOption.SelectAll) }
-        if (onAutofillRequested != null && Build.VERSION.SDK_INT >= 26) {
-            addMenuItem(menu, MenuItemOption.Autofill)
-        }
-        onBoldRequested?.let { addMenuItem(menu, MenuItemOption.Bold) }
-        onItalicRequested?.let { addMenuItem(menu, MenuItemOption.Italic) }
-        onUnderlineRequested?.let { addMenuItem(menu, MenuItemOption.Underline) }
-        onLinkRequested?.let { addMenuItem(menu, MenuItemOption.Link) }
-        return true
-    }
-
-    // this method is called to populate new menu items when the actionMode was invalidated
-    fun onPrepareActionMode(mode: android.view.ActionMode?, menu: Menu?): Boolean {
-        if (mode == null || menu == null) return false
-        updateMenuItems(menu)
-        // should return true so that new menu items are populated
-        return true
-    }
-
-    fun onActionItemClicked(mode: android.view.ActionMode?, item: MenuItem?): Boolean {
-        when (item!!.itemId) {
-            MenuItemOption.Copy.ordinal -> onCopyRequested?.invoke()
-            MenuItemOption.Paste.ordinal -> onPasteRequested?.invoke()
-            MenuItemOption.Cut.ordinal -> onCutRequested?.invoke()
-            MenuItemOption.SelectAll.ordinal -> onSelectAllRequested?.invoke()
-            MenuItemOption.Autofill.ordinal -> onAutofillRequested?.invoke()
-            MenuItemOption.Bold.ordinal -> onBoldRequested?.invoke()
-            MenuItemOption.Italic.ordinal -> onItalicRequested?.invoke()
-            MenuItemOption.Underline.ordinal -> onUnderlineRequested?.invoke()
-            MenuItemOption.Link.ordinal -> onLinkRequested?.invoke()
-            else -> return false
-        }
-        mode?.finish()
-        return true
-    }
-
-    fun onDestroyActionMode() {
-        onActionModeDestroy?.invoke()
-    }
-
-    @VisibleForTesting
-    internal fun updateMenuItems(menu: Menu) {
-        addOrRemoveMenuItem(menu, MenuItemOption.Copy, onCopyRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Paste, onPasteRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Cut, onCutRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.SelectAll, onSelectAllRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Autofill, onAutofillRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Bold, onBoldRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Italic, onItalicRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Underline, onUnderlineRequested)
-        addOrRemoveMenuItem(menu, MenuItemOption.Link, onLinkRequested)
-    }
-
-    private fun addMenuItem(menu: Menu, item: MenuItemOption) {
-        menu
-            .add(0, item.ordinal, item.order, item.titleResource)
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-    }
-
-    private fun addOrRemoveMenuItem(menu: Menu, item: MenuItemOption, callback: (() -> Unit)?) {
-        when {
-            callback != null && menu.findItem(item.ordinal) == null -> addMenuItem(menu, item)
-            callback == null && menu.findItem(item.ordinal) != null -> menu.removeItem(item.ordinal)
-        }
-    }
-}
-
-internal enum class MenuItemOption {
-    Copy,
-    Paste,
-    Cut,
-    SelectAll,
-    Autofill,
-    Bold,
-    Italic,
-    Underline,
-    Link;
-
-    val titleResource: Int
-        get() =
-            when (this) {
-                Copy -> android.R.string.copy
-                Paste -> android.R.string.paste
-                Cut -> android.R.string.cut
-                SelectAll -> android.R.string.selectAll
-                Autofill ->
-                    if (Build.VERSION.SDK_INT <= 26) {
-                        UiR.string.autofill
-                    } else {
-                        android.R.string.autofill
-                    }
-
-                Bold -> UiR.string.bold
-                Italic -> UiR.string.italic
-                Underline -> UiR.string.underline
-                Link -> UiR.string.link
-            }
-
-    /** This item will be shown before all items that have order greater than this value. */
-    val order = ordinal
 }
