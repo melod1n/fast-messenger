@@ -2,9 +2,12 @@ package dev.meloda.fast.messageshistory.presentation.attachments
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.domain.VkAttachment
@@ -28,6 +31,9 @@ fun Attachments(
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {}
 ) {
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnLongClick by rememberUpdatedState(onLongClick)
+
     Column(modifier = modifier) {
         if (attachments.isEmpty()) return
 
@@ -51,10 +57,10 @@ fun Attachments(
                     .map(VkAttachment::asUiPhoto)
                     .toImmutableList(),
                 onClick = { index ->
-                    onClick(previewAttachments[index])
+                    currentOnClick(previewAttachments[index])
                 },
                 onLongClick = { index ->
-                    onLongClick(previewAttachments[index])
+                    currentOnLongClick(previewAttachments[index])
                 }
             )
         }
@@ -72,8 +78,8 @@ fun Attachments(
                     File(
                         item = attachment as VkFileDomain,
                         modifier = Modifier,
-                        onClick = { onClick(attachment) },
-                        onLongClick = { onLongClick(attachment) }
+                        onClick = { currentOnClick(attachment) },
+                        onLongClick = { currentOnLongClick(attachment) }
                     )
                 }
 
@@ -81,8 +87,8 @@ fun Attachments(
                     Link(
                         item = attachment as VkLinkDomain,
                         modifier = Modifier,
-                        onClick = { onClick(attachment) },
-                        onLongClick = { onLongClick(attachment) }
+                        onClick = { currentOnClick(attachment) },
+                        onLongClick = { currentOnLongClick(attachment) }
                     )
                 }
 
@@ -156,6 +162,7 @@ fun VkAttachment.asUiPhoto(): UiPreview {
     }
 }
 
+@Immutable
 data class UiPreview(
     val id: Long,
     val url: String,

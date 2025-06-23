@@ -18,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +56,9 @@ fun DynamicPreviewGrid(
     onClick: (index: Int) -> Unit = {},
     onLongClick: (index: Int) -> Unit = {}
 ) {
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnLongClick by rememberUpdatedState(onLongClick)
+
     val spacing = 2.dp
     val shape = RoundedCornerShape(8.dp)
 
@@ -90,14 +95,14 @@ fun DynamicPreviewGrid(
                                     .height(heightDp)
                                     .clip(shape)
                                     .combinedClickable(
-                                        onLongClick = { onLongClick(index) },
-                                        onClick = { onClick(index) }
+                                        onLongClick = { currentOnLongClick(index) },
+                                        onClick = { currentOnClick(index) }
                                     )
                             )
 
                             if (preview.isVideo) {
                                 IconButton(
-                                    onClick = { onClick(index) },
+                                    onClick = { currentOnClick(index) },
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
