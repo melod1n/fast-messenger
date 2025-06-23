@@ -345,6 +345,7 @@
     <string name="italic">Italic</string>
     <string name="underline">Underline</string>
     <string name="link">Link</string>
+    <string name="regular">Regular</string>
     <string name="login_sign_up">Sign up</string>
     <string name="login_forgot_password">Forgot password?</string>
 </resources>

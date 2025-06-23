@@ -269,6 +269,7 @@
     <string name="italic">Курсив</string>
     <string name="underline">Подчёркнутый</string>
     <string name="link">Ссылка</string>
+    <string name="regular">Обычный</string>
     <string name="login_sign_up">Регистрация</string>
     <string name="login_forgot_password">Забыли пароль?</string>
 </resources>

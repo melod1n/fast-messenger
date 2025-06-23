@@ -111,6 +111,7 @@ interface MessagesHistoryViewModel {
     fun onItalicClicked()
     fun onUnderlineClicked()
     fun onLinkClicked()
+    fun onRegularClicked()
 }
 
 class MessagesHistoryViewModelImpl(
@@ -569,6 +570,11 @@ class MessagesHistoryViewModelImpl(
 
     override fun onLinkClicked() {
 
+    }
+
+    override fun onRegularClicked() {
+        formatData = formatData.copy(items = emptyList())
+        updateStyles()
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {

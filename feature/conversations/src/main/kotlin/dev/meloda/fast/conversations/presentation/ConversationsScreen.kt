@@ -106,10 +106,7 @@ fun ConversationsScreen(
     onErrorViewButtonClicked: () -> Unit = {}
 ) {
     val currentTheme = LocalThemeConfig.current
-
-    val maxLines by remember(currentTheme) {
-        mutableIntStateOf(if (currentTheme.enableMultiline) 2 else 1)
-    }
+    val maxLines = if (currentTheme.enableMultiline) 2 else 1
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = screenState.scrollIndex,
