@@ -50,6 +50,7 @@ fun MessagesHistoryRoute(
         screenState = screenState,
         messages = messages.toImmutableList(),
         uiMessages = uiMessages.toImmutableList(),
+        isSelectedAtLeastOne = selectedMessages.isNotEmpty(),
         scrollIndex = scrollIndex,
         selectedMessages = selectedMessages.toImmutableList(),
         baseError = baseError,

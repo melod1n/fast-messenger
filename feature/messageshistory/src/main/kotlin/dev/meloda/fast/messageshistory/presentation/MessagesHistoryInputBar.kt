@@ -80,6 +80,8 @@ fun MessagesHistoryInputBar(
     val context = LocalContext.current
     val density = LocalDensity.current
 
+    val scope = rememberCoroutineScope()
+
     val theme = LocalThemeConfig.current
 
     Column(
@@ -130,7 +132,6 @@ fun MessagesHistoryInputBar(
                 Spacer(modifier = Modifier.width(6.dp))
 
                 if (showEmojiButton) {
-                    val scope = rememberCoroutineScope()
                     val rotation = remember { Animatable(0f) }
 
                     Column(verticalArrangement = Arrangement.Bottom) {
@@ -239,7 +240,6 @@ fun MessagesHistoryInputBar(
                 )
 
 
-                val scope = rememberCoroutineScope()
                 val attachmentRotation = remember { Animatable(0f) }
 
                 Column(verticalArrangement = Arrangement.Bottom) {

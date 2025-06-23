@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,7 @@ fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
     messages: ImmutableList<VkMessage> = emptyImmutableList(),
     uiMessages: ImmutableList<UiItem> = emptyImmutableList(),
+    isSelectedAtLeastOne: Boolean = false,
     scrollIndex: Int? = null,
     selectedMessages: ImmutableList<VkMessage> = emptyImmutableList(),
     baseError: BaseError? = null,
@@ -94,6 +96,8 @@ fun MessagesHistoryScreen(
     val theme = LocalThemeConfig.current
     val listState = rememberLazyListState()
     val hazeState = remember { HazeState(true) }
+
+    val currentOnMessageClicked by rememberUpdatedState(onMessageClicked)
 
     LaunchedEffect(scrollIndex) {
         if (scrollIndex != null) {
@@ -206,6 +210,7 @@ fun MessagesHistoryScreen(
                 listState = listState,
                 hasPinnedMessage = pinnedMessage != null,
                 uiMessages = uiMessages,
+                isSelectedAtLeastOne = isSelectedAtLeastOne,
                 isPaginating = screenState.isPaginating,
                 messageBarHeight = messageBarHeight,
                 onRequestScrollToCmId = { cmId ->
@@ -224,7 +229,7 @@ fun MessagesHistoryScreen(
                             view.performHapticFeedback(HapticFeedbackConstantsCompat.CONTEXT_CLICK)
                         }
                     }
-                    onMessageClicked(id)
+                    currentOnMessageClicked.invoke(id)
                 },
                 onMessageLongClicked = onMessageLongClicked
             )

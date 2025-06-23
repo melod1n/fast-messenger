@@ -1,7 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation
 
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
@@ -23,7 +22,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,17 +31,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
-import androidx.core.net.toUri
-import dev.meloda.fast.model.api.domain.VkFileDomain
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -53,6 +51,7 @@ fun MessagesList(
     hazeState: HazeState,
     listState: LazyListState,
     uiMessages: ImmutableList<UiItem>,
+    isSelectedAtLeastOne: Boolean,
     isPaginating: Boolean,
     messageBarHeight: Dp,
     onRequestScrollToCmId: (cmId: Long) -> Unit = {},
@@ -62,12 +61,6 @@ fun MessagesList(
     val context = LocalContext.current
     val theme = LocalThemeConfig.current
     val view = LocalView.current
-
-    val isSelectedAtLeastOne by remember(uiMessages) {
-        derivedStateOf {
-            uiMessages.values.any { (it as? UiItem.Message)?.isSelected == true }
-        }
-    }
 
     val onAttachmentClick = remember {
         { message: UiItem.Message, attachment: VkAttachment ->
