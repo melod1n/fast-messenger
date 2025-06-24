@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -88,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissions()
 
         setContent {
-            val context = LocalContext.current
+            val resources = LocalResources.current
 
             val userSettings: UserSettings = koinInject()
             val longPollController: LongPollController = koinInject()
@@ -164,10 +165,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             val deviceWidthDp = remember(true) {
-                context.resources.displayMetrics.widthPixels.pxToDp()
+                resources.displayMetrics.widthPixels.pxToDp()
             }
             val deviceHeightDp = remember(true) {
-                context.resources.displayMetrics.heightPixels.pxToDp()
+                resources.displayMetrics.heightPixels.pxToDp()
             }
 
             val deviceWidthSize by remember(deviceWidthDp) {

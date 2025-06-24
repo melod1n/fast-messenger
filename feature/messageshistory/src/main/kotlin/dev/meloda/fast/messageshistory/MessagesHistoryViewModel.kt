@@ -923,7 +923,9 @@ class MessagesHistoryViewModelImpl(
             isImportant = false,
             forwards = null,
             attachments = null,
-            replyMessage = null,
+            replyMessage = when {
+                else -> null
+            },
             geoType = null,
             user = VkMemoryCache.getUser(UserConfig.userId),
             group = null,
@@ -932,8 +934,6 @@ class MessagesHistoryViewModelImpl(
             isPinned = false,
             isSpam = false,
             pinnedAt = null,
-
-            // TODO: 04-Apr-25, Danil Nikolaev: implement
             formatData = formatData,
         )
         formatData = formatData.copy(items = emptyList())

@@ -29,7 +29,10 @@ sealed class UiItem(
         val isSelected: Boolean,
         val isPinned: Boolean,
         val isImportant: Boolean,
-        val attachments: List<VkAttachment>?
+        val attachments: List<VkAttachment>?,
+        val replyCmId: Long?,
+        val replyTitle: String?,
+        val replySummary: String?
     ) : UiItem(id, cmId)
 
     data class ActionMessage(

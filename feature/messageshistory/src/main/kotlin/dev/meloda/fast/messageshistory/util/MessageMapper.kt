@@ -57,6 +57,19 @@ fun VkMessage.extractTitle(): String = when {
     else -> throw IllegalStateException("Message is not from user nor group. fromId: $fromId")
 }
 
+fun VkMessage.extractReplyTitle(): String? = replyMessage?.extractTitle()
+
+// TODO: 24-Jun-25, Danil Nikolaev: improve
+fun VkMessage.extractReplySummary(): String? = when (val message = replyMessage) {
+    null -> null
+    else -> {
+        when {
+            message.text != null -> message.text
+            else -> null
+        }
+    }
+}
+
 fun VkConversation.extractAvatar(): UiImage = when (peerType) {
     PeerType.USER -> {
         if (isAccount(id)) null
@@ -144,7 +157,10 @@ fun VkMessage.asPresentation(
         isSelected = isSelected,
         isPinned = isPinned,
         isImportant = isImportant,
-        attachments = attachments?.ifEmpty { null }
+        attachments = attachments?.ifEmpty { null },
+        replyCmId = replyMessage?.cmId,
+        replyTitle = extractReplyTitle(),
+        replySummary = extractReplySummary()
     )
 }
 

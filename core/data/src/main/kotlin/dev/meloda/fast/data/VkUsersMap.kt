@@ -36,7 +36,7 @@ class VkUsersMap(
         if (message.fromId > 0) map[message.fromId]
         else null
 
-    fun user(userid: Long): VkUser? = map[userId]
+    fun user(userId: Long): VkUser? = map[userId]
 
     companion object {
 

@@ -105,7 +105,7 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     actionConversationMessageId = action?.conversationMessageId,
     actionMessage = action?.message,
     geoType = geo?.type,
-    isImportant = important ?: false,
+    isImportant = important == true,
     updateTime = updateTime,
     forwards = fwdMessages.orEmpty().map(VkMessageData::asDomain),
     attachments = attachments.map(VkAttachmentItemData::toDomain),
