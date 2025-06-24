@@ -31,7 +31,7 @@ preference-ktx = "1.2.1"
 nanokt = "1.2.0"
 androidx-navigation = "2.9.0"
 serialization = "1.8.1"
-moduleGraph = "2.8.0"
+moduleGraph = "2.9.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
