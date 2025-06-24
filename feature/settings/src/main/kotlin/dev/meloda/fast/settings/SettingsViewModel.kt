@@ -201,22 +201,10 @@ class SettingsViewModelImpl(
                 userSettings.onAppLanguageChanged(newLanguage)
             }
 
-
-            SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT -> {
-                val newText = newValue as? String ?: SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT
-                userSettings.onFastTextChanged(newText)
-            }
-
-
             SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
                 val isUsing = newValue as? Boolean
                     ?: SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS
                 userSettings.onSendOnlineStatusChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_DEBUG_SHOW_CRASH_ALERT -> {
-                val show = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
-                userSettings.onShowAlertAfterCrashChanged(show)
             }
 
             SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND -> {
@@ -238,17 +226,6 @@ class SettingsViewModelImpl(
                 val isUsing =
                     newValue as? Boolean ?: SettingsKeys.DEFAULT_USE_BLUR
                 userSettings.onUseBlurChanged(isUsing)
-            }
-
-            SettingsKeys.KEY_SHOW_EMOJI_BUTTON -> {
-                val show = newValue as? Boolean ?: SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
-                userSettings.onShowEmojiButtonChanged(show)
-            }
-
-            SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES -> {
-                val show = newValue as? Boolean
-                    ?: SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES
-                userSettings.onShowTimeInActionMessagesChanged(show)
             }
 
             SettingsKeys.KEY_USE_SYSTEM_FONT -> {
@@ -301,6 +278,12 @@ class SettingsViewModelImpl(
             title = UiText.Resource(UiR.string.settings_general_show_emoji_button_title),
             text = UiText.Resource(UiR.string.settings_general_show_emoji_button_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
+        )
+        val generalShowAttachmentButton = SettingsItem.Switch(
+            key = SettingsKeys.KEY_SHOW_ATTACHMENT_BUTTON,
+            title = UiText.Resource(UiR.string.settings_general_show_attachment_button_title),
+            text = UiText.Resource(UiR.string.settings_general_show_attachment_button_summary),
+            defaultValue = SettingsKeys.DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON
         )
         val generalEnableHaptic = SettingsItem.Switch(
             key = SettingsKeys.KEY_ENABLE_HAPTIC,
@@ -476,6 +459,7 @@ class SettingsViewModelImpl(
             generalTitle,
             generalUseContactNames,
             generalShowEmojiButton,
+            generalShowAttachmentButton,
             generalEnableHaptic
         )
         val appearanceList = listOf(

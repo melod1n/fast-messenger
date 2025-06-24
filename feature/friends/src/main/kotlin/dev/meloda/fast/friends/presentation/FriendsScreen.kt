@@ -1,7 +1,6 @@
 package dev.meloda.fast.friends.presentation
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -28,11 +27,9 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.friends.FriendsViewModel
-import dev.meloda.fast.friends.FriendsViewModelImpl
-import dev.meloda.fast.friends.OnlineFriendsViewModelImpl
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.components.FullScreenLoader
+import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
@@ -41,7 +38,6 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +132,7 @@ fun FriendsScreen(
     }
 
     when {
-        screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
+        screenState.isLoading && screenState.friends.isEmpty() -> FullScreenContainedLoader()
 
         else -> {
             val pullToRefreshState = rememberPullToRefreshState()

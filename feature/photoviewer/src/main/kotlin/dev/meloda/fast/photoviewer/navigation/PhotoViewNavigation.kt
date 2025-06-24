@@ -30,11 +30,15 @@ fun NavGraphBuilder.photoViewScreen(
     }
 }
 
-fun NavController.navigateToPhotoView(images: List<String>) {
+fun NavController.navigateToPhotoView(
+    images: List<String>,
+    selectedIndex: Int? = null
+) {
     this.navigate(
         PhotoView(
             arguments = PhotoViewArguments(
-                images.map { URLEncoder.encode(it, "utf-8") }
+                imageUrls = images.map { URLEncoder.encode(it, "utf-8") },
+                selectedIndex = selectedIndex
             )
         )
     )

@@ -23,7 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,25 +56,36 @@ fun MessagesList(
     messageBarHeight: Dp,
     onRequestScrollToCmId: (cmId: Long) -> Unit = {},
     onMessageClicked: (Long) -> Unit = {},
-    onMessageLongClicked: (Long) -> Unit = {}
+    onMessageLongClicked: (Long) -> Unit = {},
+    onPhotoClicked: (images: List<String>, index: Int) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val theme = LocalThemeConfig.current
     val view = LocalView.current
 
-    val onAttachmentClick = remember {
+    val onAttachmentClick by rememberUpdatedState(
         { message: UiItem.Message, attachment: VkAttachment ->
             if (isSelectedAtLeastOne) {
                 onMessageClicked(message.id)
             } else {
                 when (attachment) {
                     is VkPhotoDomain -> {
-                        val maxSize = attachment.getMaxSize()
-                        maxSize?.let {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, maxSize.url.toUri())
-                            )
-                        }
+                        val photos = message.attachments
+                            .orEmpty()
+                            .filterIsInstance<VkPhotoDomain>()
+                            .mapNotNull { photo -> photo.getMaxSize()?.url }
+
+                        onPhotoClicked(
+                            photos,
+                            photos.indexOfFirst { it == attachment.getMaxSize()?.url }
+                        )
+
+//                        val maxSize = attachment.getMaxSize()
+//                        maxSize?.let {
+//                            context.startActivity(
+//                                Intent(Intent.ACTION_VIEW, maxSize.url.toUri())
+//                            )
+//                        }
                     }
 
                     is VkFileDomain -> {
@@ -91,9 +102,9 @@ fun MessagesList(
                 }
             }
         }
-    }
+    )
 
-    val onAttachmentLongClick = remember {
+    val onAttachmentLongClick by rememberUpdatedState(
         { message: UiItem.Message, attachment: VkAttachment ->
             if (isSelectedAtLeastOne) {
                 onMessageLongClicked(message.id)
@@ -107,7 +118,7 @@ fun MessagesList(
                 }
             }
         }
-    }
+    )
 
     LazyColumn(
         modifier = modifier
@@ -200,6 +211,7 @@ fun MessagesList(
                                         ),
                                 message = item,
                                 onClick = { attachment ->
+
                                     onAttachmentClick(item, attachment)
                                 },
                                 onLongClick = { attachment ->

@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 data class PhotoViewArguments(
-    val images: List<String>
+    val imageUrls: List<String>,
+    val selectedIndex: Int?
 ) : Parcelable

@@ -14,15 +14,10 @@ interface UserSettings {
     val enableDynamicColors: StateFlow<Boolean>
     val appLanguage: StateFlow<String>
 
-    val fastText: StateFlow<String>
-
     val sendOnlineStatus: StateFlow<Boolean>
 
-    val showAlertAfterCrash: StateFlow<Boolean>
     val longPollInBackground: StateFlow<Boolean>
     val useBlur: StateFlow<Boolean>
-    val showEmojiButton: StateFlow<Boolean>
-    val showTimeInActionMessages: StateFlow<Boolean>
     val useSystemFont: StateFlow<Boolean>
     val enableAnimations: StateFlow<Boolean>
     val showDebugCategory: StateFlow<Boolean>
@@ -35,15 +30,10 @@ interface UserSettings {
     fun onEnableDynamicColorsChanged(enable: Boolean)
     fun onAppLanguageChanged(language: String)
 
-    fun onFastTextChanged(text: String)
-
     fun onSendOnlineStatusChanged(send: Boolean)
 
-    fun onShowAlertAfterCrashChanged(show: Boolean)
     fun onLongPollInBackgroundChanged(inBackground: Boolean)
     fun onUseBlurChanged(use: Boolean)
-    fun onShowEmojiButtonChanged(show: Boolean)
-    fun onShowTimeInActionMessagesChanged(show: Boolean)
     fun onUseSystemFontChanged(use: Boolean)
     fun onShowDebugCategoryChanged(show: Boolean)
 }
@@ -58,16 +48,11 @@ class UserSettingsImpl : UserSettings {
     override val enableDynamicColors = MutableStateFlow(AppSettings.Appearance.enableDynamicColors)
     override val appLanguage = MutableStateFlow(AppSettings.Appearance.appLanguage)
 
-    override val fastText = MutableStateFlow(AppSettings.Features.fastText)
-
     override val sendOnlineStatus = MutableStateFlow(AppSettings.Activity.sendOnlineStatus)
 
-    override val showAlertAfterCrash = MutableStateFlow(AppSettings.Debug.showAlertAfterCrash)
-    override val longPollInBackground = MutableStateFlow(AppSettings.Experimental.longPollInBackground)
+    override val longPollInBackground =
+        MutableStateFlow(AppSettings.Experimental.longPollInBackground)
     override val useBlur = MutableStateFlow(AppSettings.Experimental.useBlur)
-    override val showEmojiButton = MutableStateFlow(AppSettings.General.showEmojiButton)
-    override val showTimeInActionMessages =
-        MutableStateFlow(AppSettings.Experimental.showTimeInActionMessages)
     override val useSystemFont = MutableStateFlow(AppSettings.Appearance.useSystemFont)
     override val enableAnimations = MutableStateFlow(AppSettings.Experimental.moreAnimations)
     override val showDebugCategory = MutableStateFlow(AppSettings.Debug.showDebugCategory)
@@ -96,16 +81,8 @@ class UserSettingsImpl : UserSettings {
         appLanguage.value = language
     }
 
-    override fun onFastTextChanged(text: String) {
-        fastText.value = text
-    }
-
     override fun onSendOnlineStatusChanged(send: Boolean) {
         sendOnlineStatus.value = send
-    }
-
-    override fun onShowAlertAfterCrashChanged(show: Boolean) {
-        showAlertAfterCrash.value = show
     }
 
     override fun onLongPollInBackgroundChanged(inBackground: Boolean) {
@@ -114,14 +91,6 @@ class UserSettingsImpl : UserSettings {
 
     override fun onUseBlurChanged(use: Boolean) {
         useBlur.value = use
-    }
-
-    override fun onShowEmojiButtonChanged(show: Boolean) {
-        showEmojiButton.value = show
-    }
-
-    override fun onShowTimeInActionMessagesChanged(show: Boolean) {
-        showTimeInActionMessages.value = show
     }
 
     override fun onUseSystemFontChanged(use: Boolean) {

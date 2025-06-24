@@ -18,6 +18,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +51,9 @@ fun MessageBubble(
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {}
 ) {
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnLongClick by rememberUpdatedState(onLongClick)
+
     val theme = LocalThemeConfig.current
     val backgroundColor = if (!isOut) {
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
@@ -173,8 +177,8 @@ fun MessageBubble(
                     Attachments(
                         modifier = Modifier,
                         attachments = attachments,
-                        onClick = onClick,
-                        onLongClick = onLongClick
+                        onClick = currentOnClick,
+                        onLongClick = currentOnLongClick
                     )
 
                     val dateStatusBackground = if (theme.darkMode) Color.Black.copy(alpha = 0.5f)

@@ -194,6 +194,7 @@
     <string name="settings_general_title">Основное</string>
     <string name="settings_general_contact_names_title">Использовать имена контактов</string>
     <string name="settings_general_contact_names_summary">Приложение будет использовать доступные имена контактов для пользователей</string>
+    <string name="settings_general_show_attachment_button_summary">Показывать кнопку вложений на панели чата</string>
     <string name="settings_general_enable_haptic_title">Включить тактильную отдачу</string>
     <string name="settings_appearance_title">Внешний вид</string>
     <string name="settings_appearance_multiline_title">Многострочные заголовки и сообщения</string>
@@ -272,4 +273,8 @@
     <string name="regular">Обычный</string>
     <string name="login_sign_up">Регистрация</string>
     <string name="login_forgot_password">Забыли пароль?</string>
+    <string name="settings_general_show_attachment_button_title">Показывать кнопку вложений</string>
+    <string name="action_copy_link">Скопировать ссылку</string>
+    <string name="action_copy">Скопировать</string>
+    <string name="action_copy_image">Скопировать изображение</string>
 </resources>

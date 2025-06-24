@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.messageshistory.model.MessagesHistoryArguments
 import dev.meloda.fast.messageshistory.presentation.MessagesHistoryRoute
 import dev.meloda.fast.model.BaseError
@@ -27,13 +28,15 @@ data class MessagesHistory(val arguments: MessagesHistoryArguments) {
 fun NavGraphBuilder.messagesHistoryScreen(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onNavigateToChatMaterials: (peerId: Long, cmId: Long) -> Unit
+    onNavigateToChatMaterials: (peerId: Long, cmId: Long) -> Unit,
+    onNavigateToPhotoViewer: (images: List<String>, index: Int) -> Unit,
 ) {
     composable<MessagesHistory>(typeMap = MessagesHistory.typeMap) {
         MessagesHistoryRoute(
             onError = onError,
             onBack = onBack,
-            onNavigateToChatMaterials = onNavigateToChatMaterials
+            onNavigateToChatMaterials = onNavigateToChatMaterials,
+            onNavigateToPhotoViewer = onNavigateToPhotoViewer
         )
     }
 }

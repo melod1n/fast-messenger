@@ -63,7 +63,9 @@ fun MessagesHistoryInputBar(
     modifier: Modifier = Modifier,
     message: TextFieldValue,
     hazeState: HazeState,
+    enableHaptic: Boolean,
     showEmojiButton: Boolean,
+    showAttachmentButton: Boolean,
     actionMode: ActionMode,
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onBoldRequested: () -> Unit = {},
@@ -179,7 +181,7 @@ fun MessagesHistoryInputBar(
                 }
 
                 TextField(
-                    modifier = modifier
+                    modifier = Modifier
                         .weight(1f)
                         .addTextContextMenuComponents {
                             separator()
@@ -236,46 +238,47 @@ fun MessagesHistoryInputBar(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }
+                    },
                 )
 
+                if (showAttachmentButton) {
+                    val attachmentRotation = remember { Animatable(0f) }
 
-                val attachmentRotation = remember { Animatable(0f) }
-
-                Column(verticalArrangement = Arrangement.Bottom) {
-                    IconButton(
-                        onClick = {
-                            onAttachmentButtonClicked()
-                            if (AppSettings.General.enableHaptic) {
-                                view.performHapticFeedback(
-                                    HapticFeedbackConstantsCompat.REJECT
-                                )
-                            }
-                            scope.launch {
-                                for (i in 20 downTo 0 step 4) {
-                                    attachmentRotation.animateTo(
-                                        targetValue = i.toFloat(),
-                                        animationSpec = tween(50)
+                    Column(verticalArrangement = Arrangement.Bottom) {
+                        IconButton(
+                            onClick = {
+                                onAttachmentButtonClicked()
+                                if (enableHaptic) {
+                                    view.performHapticFeedback(
+                                        HapticFeedbackConstantsCompat.REJECT
                                     )
-                                    if (i > 0) {
+                                }
+                                scope.launch {
+                                    for (i in 20 downTo 0 step 4) {
                                         attachmentRotation.animateTo(
-                                            targetValue = -i.toFloat(),
+                                            targetValue = i.toFloat(),
                                             animationSpec = tween(50)
                                         )
+                                        if (i > 0) {
+                                            attachmentRotation.animateTo(
+                                                targetValue = -i.toFloat(),
+                                                animationSpec = tween(50)
+                                            )
+                                        }
                                     }
                                 }
                             }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = UiR.drawable.round_attach_file_24),
+                                contentDescription = "Add attachment button",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.rotate(30f + attachmentRotation.value)
+                            )
                         }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = UiR.drawable.round_attach_file_24),
-                            contentDescription = "Add attachment button",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.rotate(30f + attachmentRotation.value)
-                        )
-                    }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
                 }
 
                 val micRotation = remember { Animatable(0f) }

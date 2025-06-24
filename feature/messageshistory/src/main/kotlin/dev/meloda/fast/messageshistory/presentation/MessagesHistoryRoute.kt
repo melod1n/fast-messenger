@@ -4,20 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.datastore.UserSettings
+import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
 import dev.meloda.fast.messageshistory.model.MessageNavigation
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 @Composable
 fun MessagesHistoryRoute(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
     onNavigateToChatMaterials: (peerId: Long, conversationMessageId: Long) -> Unit,
+    onNavigateToPhotoViewer: (images: List<String>, index: Int) -> Unit,
     viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -29,9 +30,6 @@ fun MessagesHistoryRoute(
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
     val scrollIndex by viewModel.isNeedToScrollToIndex.collectAsStateWithLifecycle()
-
-    val userSettings: UserSettings = koinInject()
-    val showEmojiButton by userSettings.showEmojiButton.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigationEvent) {
         val needToConsume = when (val navigation = navigationEvent) {
@@ -55,7 +53,9 @@ fun MessagesHistoryRoute(
         selectedMessages = selectedMessages.toImmutableList(),
         baseError = baseError,
         canPaginate = canPaginate,
-        showEmojiButton = showEmojiButton,
+        showEmojiButton = AppSettings.General.showEmojiButton,
+        showAttachmentButton = AppSettings.General.showAttachmentButton,
+        enableHaptic = AppSettings.General.enableHaptic,
         onBack = onBack,
         onClose = viewModel::onCloseButtonClicked,
         onScrolledToIndex = viewModel::onScrolledToIndex,
@@ -69,6 +69,7 @@ fun MessagesHistoryRoute(
         onEmojiButtonLongClicked = viewModel::onEmojiButtonLongClicked,
         onMessageClicked = viewModel::onMessageClicked,
         onMessageLongClicked = viewModel::onMessageLongClicked,
+        onPhotoClicked = onNavigateToPhotoViewer,
         onPinnedMessageClicked = viewModel::onPinnedMessageClicked,
         onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked,
         onDeleteSelectedButtonClicked = viewModel::onDeleteSelectedMessagesClicked,

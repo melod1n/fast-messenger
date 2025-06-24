@@ -260,6 +260,8 @@
     <string name="settings_general_contact_names_summary">App will use available contact names for users</string>
     <string name="settings_general_show_emoji_button_title">Show emoji button</string>
     <string name="settings_general_show_emoji_button_summary">Show emoji button in chat panel</string>
+    <string name="settings_general_show_attachment_button_title">Show attachment button</string>
+    <string name="settings_general_show_attachment_button_summary">Show attachment button in chat panel</string>
     <string name="settings_general_enable_haptic_title">Enable haptic</string>
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_appearance_multiline_title">Multiline titles and messages</string>
@@ -348,4 +350,8 @@
     <string name="regular">Regular</string>
     <string name="login_sign_up">Sign up</string>
     <string name="login_forgot_password">Forgot password?</string>
+
+    <string name="action_copy_link">Copy link</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_copy_image">Copy image</string>
 </resources>

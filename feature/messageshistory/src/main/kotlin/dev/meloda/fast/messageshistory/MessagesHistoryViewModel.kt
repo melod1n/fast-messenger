@@ -3,6 +3,7 @@ package dev.meloda.fast.messageshistory
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -15,9 +16,13 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.core.content.FileProvider
+import androidx.core.graphics.drawable.toBitmapOrNull
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.conena.nanokt.collections.indexOfFirstOrNull
 import com.conena.nanokt.text.isEmptyOrBlank
 import com.conena.nanokt.text.isNotEmptyOrBlank
@@ -52,12 +57,16 @@ import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.FormatDataType
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.network.VkErrorCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.random.Random
 import dev.meloda.fast.ui.R as UiR
@@ -163,10 +172,6 @@ class MessagesHistoryViewModelImpl(
         updatesParser.onMessageMarkedAsImportant(::handleMessageMarkedAsImportant)
         updatesParser.onMessageMarkedAsSpam(::handleMessageMarkedAsSpam)
         updatesParser.onMessageMarkedAsNotSpam(::handleMessageMarkedAsNotSpam)
-
-        userSettings.showTimeInActionMessages.listenValue(viewModelScope) {
-            syncUiMessages()
-        }
     }
 
     override fun onNavigationConsumed() {
@@ -1131,13 +1136,54 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun copyMessage(message: VkMessage) {
-        val contentToCopy = message.text.orEmpty().trim()
-        if (contentToCopy.isEmpty()) return
-
         val clipboardManager =
             applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
-        clipboardManager.setPrimaryClip(ClipData.newPlainText("Message", contentToCopy))
+        val messageToCopy = message.text.orEmpty().trim()
+        if (messageToCopy.isEmpty()) {
+            val photo = with(message.attachments.orEmpty()) {
+                if (size == 1 && all { it is VkPhotoDomain }) {
+                    first() as? VkPhotoDomain
+                } else null
+            } ?: return
+
+            val photoMaxSize = photo.getMaxSize() ?: return
+
+            viewModelScope.launch(Dispatchers.IO) {
+                val drawable = applicationContext.imageLoader.execute(
+                    ImageRequest.Builder(applicationContext)
+                        .data(photoMaxSize.url)
+                        .build()
+                ).drawable ?: return@launch
+
+                val imagesDir = File(applicationContext.cacheDir, "images")
+                if (!imagesDir.exists()) imagesDir.mkdirs()
+                val imageFile = File(imagesDir, "shared_image_id${photo.id}.png")
+                FileOutputStream(imageFile).use {
+                    drawable.toBitmapOrNull()?.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+
+                val uri = FileProvider.getUriForFile(
+                    applicationContext,
+                    "${applicationContext.packageName}.provider",
+                    imageFile
+                )
+
+                val clip = ClipData.newUri(applicationContext.contentResolver, "Image", uri)
+                clipboardManager.setPrimaryClip(clip)
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Image copied to clipboard",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            return
+        }
+
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("Message", messageToCopy))
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S) {
             Toast.makeText(applicationContext, UiR.string.copied_to_clipboard, Toast.LENGTH_SHORT)
@@ -1155,7 +1201,7 @@ class MessagesHistoryViewModelImpl(
                 showName = false,
                 prevMessage = messages.getOrNull(index + 1),
                 nextMessage = messages.getOrNull(index - 1),
-                showTimeInActionMessages = userSettings.showTimeInActionMessages.value,
+                showTimeInActionMessages = AppSettings.Experimental.showTimeInActionMessages,
                 conversation = screenState.value.conversation,
                 isSelected = selectedMessages.indexOfFirstOrNull { it.id == message.id } != null
             )

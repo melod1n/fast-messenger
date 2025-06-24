@@ -44,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,7 +64,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.navigation.ConversationsGraph
 import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.ui.components.FullScreenLoader
+import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.model.api.ConversationOption
@@ -306,7 +305,7 @@ fun ConversationsScreen(
                 )
             }
 
-            screenState.isLoading && conversations.isEmpty() -> FullScreenLoader()
+            screenState.isLoading && conversations.isEmpty() -> FullScreenContainedLoader()
 
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()

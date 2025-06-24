@@ -96,6 +96,13 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_SHOW_EMOJI_BUTTON, value)
 
+        var showAttachmentButton: Boolean
+            get() = get(
+                SettingsKeys.KEY_SHOW_ATTACHMENT_BUTTON,
+                SettingsKeys.DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON
+            )
+            set(value) = put(SettingsKeys.KEY_SHOW_ATTACHMENT_BUTTON, value)
+
         var enableHaptic: Boolean
             get() = get(
                 SettingsKeys.KEY_ENABLE_HAPTIC,

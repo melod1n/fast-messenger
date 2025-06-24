@@ -144,7 +144,8 @@ fun RootScreen(
                 messagesHistoryScreen(
                     onError = viewModel::onError,
                     onBack = navController::navigateUp,
-                    onNavigateToChatMaterials = navController::navigateToChatMaterials
+                    onNavigateToChatMaterials = navController::navigateToChatMaterials,
+                    onNavigateToPhotoViewer = navController::navigateToPhotoView
                 )
                 chatMaterialsScreen(
                     onBack = navController::navigateUp,

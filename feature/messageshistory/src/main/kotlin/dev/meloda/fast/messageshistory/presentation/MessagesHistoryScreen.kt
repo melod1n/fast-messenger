@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -45,6 +44,7 @@ import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
@@ -68,6 +68,8 @@ fun MessagesHistoryScreen(
     baseError: BaseError? = null,
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
+    showAttachmentButton: Boolean = false,
+    enableHaptic: Boolean = false,
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
     onScrolledToIndex: () -> Unit = {},
@@ -81,6 +83,7 @@ fun MessagesHistoryScreen(
     onEmojiButtonLongClicked: () -> Unit = {},
     onMessageClicked: (Long) -> Unit = {},
     onMessageLongClicked: (Long) -> Unit = {},
+    onPhotoClicked: (images: List<String>, index: Int) -> Unit = { _, _ -> },
     onPinnedMessageClicked: (Long) -> Unit = {},
     onUnpinMessageButtonClicked: () -> Unit = {},
     onDeleteSelectedButtonClicked: () -> Unit = {},
@@ -231,7 +234,8 @@ fun MessagesHistoryScreen(
                     }
                     currentOnMessageClicked.invoke(id)
                 },
-                onMessageLongClicked = onMessageLongClicked
+                onMessageLongClicked = onMessageLongClicked,
+                onPhotoClicked = onPhotoClicked
             )
 
             MessagesHistoryInputBar(
@@ -244,7 +248,9 @@ fun MessagesHistoryScreen(
                 onLinkRequested = onLinkRequested,
                 onRegularRequested = onRegularRequested,
                 hazeState = hazeState,
+                enableHaptic = enableHaptic,
                 showEmojiButton = showEmojiButton,
+                showAttachmentButton = showAttachmentButton,
                 actionMode = screenState.actionMode,
                 onSetMessageBarHeight = { messageBarHeight = it },
                 onEmojiButtonLongClicked = onEmojiButtonLongClicked,
@@ -254,7 +260,7 @@ fun MessagesHistoryScreen(
 
             when {
                 screenState.isLoading && messages.values.isEmpty() -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    Loader(modifier = Modifier.align(Alignment.Center))
                 }
 
                 baseError != null -> {

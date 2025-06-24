@@ -51,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -64,8 +63,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.CreateChatViewModel
 import dev.meloda.fast.conversations.model.CreateChatScreenState
 import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.ui.components.ErrorView
-import dev.meloda.fast.ui.components.FullScreenLoader
+import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
@@ -271,7 +269,7 @@ fun CreateChatScreen(
                 VkErrorView(baseError = baseError)
             }
 
-            screenState.isLoading && screenState.friends.isEmpty() -> FullScreenLoader()
+            screenState.isLoading && screenState.friends.isEmpty() -> FullScreenContainedLoader()
 
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()

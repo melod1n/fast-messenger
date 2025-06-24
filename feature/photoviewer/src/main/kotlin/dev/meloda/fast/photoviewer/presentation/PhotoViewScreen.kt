@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -14,27 +15,36 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.conena.nanokt.android.content.pxToDp
@@ -56,16 +66,30 @@ fun PhotoViewRoute(
 
     PhotoViewScreen(
         screenState = screenState,
-        onBack = onBack
+        onBack = onBack,
+        onPageChanged = viewModel::onPageChanged,
+        onCopyLinkClicked = viewModel::onCopyLinkClicked,
+        onCopyClicked = viewModel::onCopyClicked
     )
 }
 
 @Composable
 fun PhotoViewScreen(
     screenState: PhotoViewScreenState = PhotoViewScreenState.EMPTY,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onPageChanged: (index: Int) -> Unit = {},
+    onCopyLinkClicked: () -> Unit = {},
+    onCopyClicked: () -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = { screenState.images.size })
+    val pagerState = rememberPagerState(
+        pageCount = { screenState.images.size },
+        initialPage = screenState.selectedPage
+    )
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect(onPageChanged)
+    }
 
     var offsetY by remember { mutableFloatStateOf(0f) }
 
@@ -81,7 +105,13 @@ fun PhotoViewScreen(
 
     Scaffold(
         modifier = Modifier.graphicsLayer(alpha = calculatedAlpha),
-        topBar = { TopBar(onBack = onBack) },
+        topBar = {
+            TopBar(
+                onBack = onBack,
+                onCopyClicked = onCopyClicked,
+                onCopyLinkClicked = onCopyLinkClicked,
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background.copy(
             alpha = calculatedAlpha
         )
@@ -103,13 +133,17 @@ fun PhotoViewScreen(
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onCopyClicked: () -> Unit,
+    onCopyLinkClicked: () -> Unit
 ) {
-    val context = LocalContext.current
-
     var dropdownMenuShown by remember {
         mutableStateOf(false)
     }
+
+    val hideDropDownMenu by rememberUpdatedState(
+        { dropdownMenuShown = false }
+    )
 
     TopAppBar(
         modifier = modifier,
@@ -123,29 +157,40 @@ fun TopBar(
             }
         },
         actions = {
-//            IconButton.kt(
-//                onClick = { dropdownMenuShown = true }
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Rounded.MoreVert,
-//                    contentDescription = "Options"
-//                )
-//            }
+            IconButton(
+                onClick = { dropdownMenuShown = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.MoreVert,
+                    contentDescription = "Options"
+                )
+            }
 
-//            DropdownMenu(
-//                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-//                expanded = dropdownMenuShown,
-//                onDismissRequest = { dropdownMenuShown = false },
-//                offset = DpOffset(x = (10).dp, y = (-60).dp)
-//            ) {
-//                DropdownMenuItem(
-//                    onClick = {
-//                        Toast.makeText(context, "Save clicked", Toast.LENGTH_SHORT).show()
-//                        dropdownMenuShown = false
-//                    },
-//                    text = { Text(text = "Save") },
-//                )
-//            }
+            DropdownMenu(
+                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+                expanded = dropdownMenuShown,
+                onDismissRequest = { dropdownMenuShown = false },
+                offset = DpOffset(x = (10).dp, y = (-60).dp)
+            ) {
+                DropdownMenuItem(
+                    onClick = {
+                        hideDropDownMenu()
+                        onCopyLinkClicked()
+                    },
+                    text = {
+                        Text(text = stringResource(UiR.string.action_copy_link))
+                    }
+                )
+                DropdownMenuItem(
+                    onClick = {
+                        hideDropDownMenu()
+                        onCopyClicked()
+                    },
+                    text = {
+                        Text(text = stringResource(UiR.string.action_copy_image))
+                    },
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
     )
@@ -230,7 +275,8 @@ private fun PhotoViewScreenPreview() {
         screenState = PhotoViewScreenState(
             images = List(200) {
                 UiImage.Resource(UiR.drawable.test_captcha)
-            }
+            },
+            selectedPage = 0
         )
     )
 }

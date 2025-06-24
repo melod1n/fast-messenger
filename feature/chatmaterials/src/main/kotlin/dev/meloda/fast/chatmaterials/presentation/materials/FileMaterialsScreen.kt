@@ -63,7 +63,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
-import dev.meloda.fast.ui.components.FullScreenLoader
+import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
@@ -114,7 +114,7 @@ fun FileMaterialsScreen(
             VkErrorView(baseError = baseError)
         }
 
-        screenState.isLoading && screenState.materials.isEmpty() -> FullScreenLoader()
+        screenState.isLoading && screenState.materials.isEmpty() -> FullScreenContainedLoader()
 
         else -> {
             PullToRefreshBox(
