@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.contextmenu.builder.item
-import androidx.compose.foundation.text.contextmenu.modifier.addTextContextMenuComponents
+import androidx.compose.foundation.text.contextmenu.modifier.appendTextContextMenuComponents
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -183,7 +183,7 @@ fun MessagesHistoryInputBar(
                 TextField(
                     modifier = Modifier
                         .weight(1f)
-                        .addTextContextMenuComponents {
+                        .appendTextContextMenuComponents {
                             separator()
 
                             item(
