@@ -75,7 +75,13 @@ class ConversationsRepositoryImpl(
                             user = usersMap.messageUser(message),
                             group = groupsMap.messageGroup(message),
                             actionUser = usersMap.messageActionUser(message),
-                            actionGroup = groupsMap.messageActionGroup(message)
+                            actionGroup = groupsMap.messageActionGroup(message),
+                            replyMessage = message.replyMessage?.copy(
+                                user = usersMap.messageUser(message),
+                                group = groupsMap.messageGroup(message),
+                                actionUser = usersMap.messageActionUser(message),
+                                actionGroup = groupsMap.messageActionGroup(message),
+                            )
                         ).also { VkMemoryCache[message.id] = it }
                     }
                     item.conversation.asDomain(lastMessage).let { conversation ->

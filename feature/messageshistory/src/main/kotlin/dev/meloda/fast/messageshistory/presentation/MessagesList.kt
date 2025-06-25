@@ -209,13 +209,18 @@ fun MessagesList(
                                             )
                                             else Modifier
                                         ),
+                                enableAnimations = theme.enableAnimations,
                                 message = item,
                                 onClick = { attachment ->
-
                                     onAttachmentClick(item, attachment)
                                 },
                                 onLongClick = { attachment ->
                                     onAttachmentLongClick(item, attachment)
+                                },
+                                onReplyClick = {
+                                    if (item.replyCmId != null) {
+                                        onRequestScrollToCmId(item.replyCmId)
+                                    }
                                 }
                             )
                         } else {
@@ -230,12 +235,18 @@ fun MessagesList(
                                             )
                                             else Modifier
                                         ),
+                                enableAnimations = theme.enableAnimations,
                                 message = item,
                                 onClick = { attachment ->
                                     onAttachmentClick(item, attachment)
                                 },
                                 onLongClick = { attachment ->
                                     onAttachmentLongClick(item, attachment)
+                                },
+                                onReplyClick = {
+                                    if (item.replyCmId != null) {
+                                        onRequestScrollToCmId(item.replyCmId)
+                                    }
                                 }
                             )
                         }

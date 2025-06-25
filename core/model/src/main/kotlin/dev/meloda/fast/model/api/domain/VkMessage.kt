@@ -35,7 +35,7 @@ data class VkMessage(
     val user: VkUser?,
     val group: VkGroupDomain?,
     val actionUser: VkUser?,
-    val actionGroup: VkGroupDomain?
+    val actionGroup: VkGroupDomain?,
 ) {
 
     fun isPeerChat() = peerId > 2_000_000_000

@@ -17,22 +17,22 @@ fun MessageTextContainer(
     isOut: Boolean,
     isSelected: Boolean,
 ) {
-    if (text != null) {
-        if (isSelected) {
-            SelectionContainer {
-                MessageText(
-                    modifier = modifier,
-                    text = text,
-                    isOut = isOut,
-                )
-            }
-        } else {
+    if (text == null) return
+
+    if (isSelected) {
+        SelectionContainer {
             MessageText(
                 modifier = modifier,
                 text = text,
                 isOut = isOut,
             )
         }
+    } else {
+        MessageText(
+            modifier = modifier,
+            text = text,
+            isOut = isOut,
+        )
     }
 }
 

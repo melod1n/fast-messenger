@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -25,11 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.messageshistory.presentation.attachments.Attachments
+import dev.meloda.fast.messageshistory.presentation.attachments.Reply
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
@@ -48,9 +52,14 @@ fun MessageBubble(
     isImportant: Boolean,
     isSelected: Boolean,
     attachments: ImmutableList<VkAttachment>?,
+    replyTitle: String?,
+    replySummary: String? = null,
     onClick: (VkAttachment) -> Unit = {},
-    onLongClick: (VkAttachment) -> Unit = {}
+    onLongClick: (VkAttachment) -> Unit = {},
+    onReplyClick: () -> Unit = {}
 ) {
+    val density = LocalDensity.current
+
     val currentOnClick by rememberUpdatedState(onClick)
     val currentOnLongClick by rememberUpdatedState(onLongClick)
 
@@ -59,6 +68,11 @@ fun MessageBubble(
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
     } else {
         MaterialTheme.colorScheme.primaryContainer
+    }
+    val replyBackgroundColor = if (!isOut) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.inversePrimary
     }
 
     val contentColor = if (!isOut) {
@@ -101,8 +115,38 @@ fun MessageBubble(
         }
     }
 
+    var containerWidth by remember {
+        mutableIntStateOf(0)
+    }
+
     CompositionLocalProvider(LocalContentColor provides contentColor) {
-        Column {
+        Column(
+            modifier = modifier
+                .wrapContentWidth()
+                .onGloballyPositioned {
+                    containerWidth = it.size.width
+                }
+        ) {
+            if (replyTitle != null) {
+                Reply(
+                    modifier = Modifier
+                        .padding(if (attachments == null || text != null) 0.dp else 4.dp)
+                        .width(with(density) { containerWidth.toDp() }),
+                    bottomPadding = if (attachments == null || text != null) 0.dp else 4.dp,
+                    shape = RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = if (attachments == null || text != null) 0.dp else 16.dp,
+                        bottomEnd = if (attachments == null || text != null) 0.dp else 16.dp
+                    ),
+                    onClick = onReplyClick,
+                    title = replyTitle,
+                    summary = replySummary,
+                    backgroundColor = backgroundColor,
+                    innerBackgroundColor = replyBackgroundColor
+                )
+            }
+
             if (shouldShowBubble) {
                 Box(
                     modifier = modifier
@@ -111,18 +155,19 @@ fun MessageBubble(
                         }
                         .widthIn(min = if (shouldFill) attachmentsContainerWidth.dp else 56.dp)
                         .clip(
-                            if (attachments == null) RoundedCornerShape(24.dp)
-                            else RoundedCornerShape(
-                                topStart = 24.dp,
-                                topEnd = 24.dp,
-                                bottomStart = 0.dp,
-                                bottomEnd = 0.dp
+                            RoundedCornerShape(
+                                topStart = if (replyTitle == null) 24.dp else 0.dp,
+                                topEnd = if (replyTitle == null) 24.dp else 0.dp,
+                                bottomStart = if (attachments != null) 0.dp else 24.dp,
+                                bottomEnd = if (attachments != null) 0.dp else 24.dp
                             )
                         )
                         .background(backgroundColor)
                         .padding(
-                            horizontal = 8.dp,
-                            vertical = 6.dp
+                            start = 8.dp,
+                            end = 8.dp,
+                            top = if (replyTitle != null) 0.dp else 6.dp,
+                            bottom = if (replyTitle != null) 4.dp else 6.dp
                         )
                         .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),
                 ) {
@@ -223,6 +268,10 @@ private fun Bubble() {
         isPinned = true,
         isImportant = true,
         isSelected = false,
-        attachments = emptyImmutableList()
+        attachments = emptyImmutableList(),
+        replyTitle = "Danil Nikolaev",
+        replySummary = "2 photos",
+        onClick = {},
+        onLongClick = {},
     )
 }

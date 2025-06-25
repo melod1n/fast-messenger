@@ -30,24 +30,26 @@ import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.domain.VkAttachment
-import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
 @Composable
 fun IncomingMessageBubble(
+    enableAnimations: Boolean,
     modifier: Modifier = Modifier,
     message: UiItem.Message,
     onClick: (VkAttachment) -> Unit = {},
-    onLongClick: (VkAttachment) -> Unit = {}
+    onLongClick: (VkAttachment) -> Unit = {},
+    onReplyClick: () -> Unit = {}
 ) {
     val currentOnClick by rememberUpdatedState(onClick)
     val currentOnLongClick by rememberUpdatedState(onLongClick)
+    val currentOnReplyClick by rememberUpdatedState(onReplyClick)
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (LocalThemeConfig.current.enableAnimations) Modifier.animateContentSize()
+                if (enableAnimations) Modifier.animateContentSize()
                 else Modifier
             ),
     ) {
@@ -103,8 +105,11 @@ fun IncomingMessageBubble(
                     isImportant = message.isImportant,
                     isSelected = message.isSelected,
                     attachments = message.attachments?.toImmutableList(),
+                    replyTitle = message.replyTitle,
+                    replySummary = message.replySummary,
                     onClick = currentOnClick,
-                    onLongClick = currentOnLongClick
+                    onLongClick = currentOnLongClick,
+                    onReplyClick = currentOnReplyClick
                 )
             }
         }
