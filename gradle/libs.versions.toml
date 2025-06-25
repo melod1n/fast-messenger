@@ -1,16 +1,10 @@
 [versions]
-minSdk = "23"
-targetSdk = "35"
-compileSdk = "35"
-versionCode = "10"
-versionName = "0.2.2"
-
 agp = "8.10.1"
 retrofit = "3.0.0"
 eithernet = "2.0.0"
 haze = "1.6.4"
 kotlin = "2.2.0"
-ksp = "2.1.21-2.0.2"
+ksp = "2.2.0-2.0.2"
 
 compose-bom = "2025.06.00"
 koin = "4.1.0"
@@ -31,7 +25,7 @@ preference-ktx = "1.2.1"
 nanokt = "1.2.0"
 androidx-navigation = "2.9.0"
 serialization = "1.8.1"
-moduleGraph = "2.8.0"
+moduleGraph = "2.9.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
@@ -132,5 +126,5 @@ fast-android-feature = { id = "fast.android.feature", version = "unspecified" }
 fast-android-library = { id = "fast.android.library", version = "unspecified" }
 fast-android-library-compose = { id = "fast.android.library.compose", version = "unspecified" }
 fast-android-room = { id = "fast.android.room", version = "unspecified" }
-fast-android-test = { id = "fast.android.test", version = "unspecified" }
-fast-jvm-library = { id = "fast.jvm.library", version = "unspecified" }
+#fast-android-test = { id = "fast.android.test", version = "unspecified" }
+#fast-jvm-library = { id = "fast.jvm.library", version = "unspecified" }

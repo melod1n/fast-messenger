@@ -13,8 +13,8 @@ android {
     defaultConfig {
         applicationId = "dev.meloda.fastvk"
 
-        versionCode = libs.versions.versionCode.get().toInt()
-        versionName = libs.versions.versionName.get()
+        versionCode = 10
+        versionName = "0.2.2"
     }
 
     signingConfigs {
