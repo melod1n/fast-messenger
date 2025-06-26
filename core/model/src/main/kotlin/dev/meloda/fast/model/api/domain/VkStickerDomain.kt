@@ -21,4 +21,12 @@ data class VkStickerDomain(
 
         return null
     }
+
+    fun getUrl(width: Int = 256, withBackground: Boolean = false): String? = when {
+        withBackground && backgroundImages != null -> {
+            backgroundImages.firstOrNull { it.width >= width }?.url
+        }
+        images != null -> images.firstOrNull { it.width >= width }?.url
+        else -> "https://vk.com/sticker/1-${id}-${width}b"
+    }
 }
