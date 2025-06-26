@@ -9,6 +9,7 @@ import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
 import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryResponse
+import dev.meloda.fast.model.api.responses.MessagesMarkAsImportantResponse
 import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.ApiResponse
 import dev.meloda.fast.network.RestApiError
@@ -76,7 +77,7 @@ interface MessagesService {
     @POST(MessagesUrls.MARK_AS_IMPORTANT)
     suspend fun markAsImportant(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<List<Long>>, RestApiError>
+    ): ApiResult<ApiResponse<MessagesMarkAsImportantResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.DELETE)

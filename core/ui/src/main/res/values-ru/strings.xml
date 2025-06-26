@@ -277,4 +277,6 @@
     <string name="action_copy_link">Скопировать ссылку</string>
     <string name="action_copy">Скопировать</string>
     <string name="action_copy_image">Скопировать изображение</string>
+    <string name="action_open_in">Открыть в…</string>
+    <string name="action_share">Поделиться</string>
 </resources>

@@ -354,4 +354,6 @@
     <string name="action_copy_link">Copy link</string>
     <string name="action_copy">Copy</string>
     <string name="action_copy_image">Copy image</string>
+    <string name="action_open_in">Open in…</string>
+    <string name="action_share">Share</string>
 </resources>

@@ -58,3 +58,15 @@ data class MessagesSendResponse(
     @Json(name = "message_id") val messageId: Long,
     @Json(name = "cmid") val cmId: Long
 )
+
+@JsonClass(generateAdapter = true)
+data class MessagesMarkAsImportantResponse(
+    @Json(name = "marked") val marked: List<Mark>
+) {
+    @JsonClass(generateAdapter = true)
+    data class Mark(
+        @Json(name = "cmid") val cmId: Long,
+        @Json(name = "message_id") val messageId: Long,
+        @Json(name = "peer_id") val peerId: Long
+    )
+}

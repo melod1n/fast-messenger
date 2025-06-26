@@ -5,6 +5,7 @@ import android.content.res.Resources
 import android.os.PowerManager
 import androidx.preference.PreferenceManager
 import coil.ImageLoader
+import coil.annotation.ExperimentalCoilApi
 import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.auth.captcha.di.captchaModule
 import dev.meloda.fast.auth.login.di.loginModule
@@ -33,6 +34,7 @@ import org.koin.core.qualifier.qualifier
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+@OptIn(ExperimentalCoilApi::class)
 val applicationModule = module {
     includes(domainModule)
     includes(
@@ -66,6 +68,7 @@ val applicationModule = module {
         ImageLoader.Builder(get())
             .crossfade(true)
             .build()
+            .also { it.diskCache?.directory?.toFile()?.listFiles() }
     }
 
     singleOf(::LongPollControllerImpl) bind LongPollController::class

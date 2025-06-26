@@ -38,6 +38,12 @@ Unofficial messenger for russian social network VKontakte
             - [x] Audio
             - [x] File
             - [x] Link
+            - [x] Sticker
+            - [x] Reply
+            - [ ] Forwarded messages
+            - [ ] Wall post
+            - [ ] Comment in wall post
+            - [ ] Poll
             - [ ] TODO
     - [x] Send messages
     - [x] Pinned message
@@ -57,7 +63,7 @@ Unofficial messenger for russian social network VKontakte
     - [x] View attachments
         - [x] Open photo
             - [x] Internal viewer
-            - [ ] External viewer
+            - [x] External viewer
         - [ ] Open video in external player
         - [ ] TODO
 - [ ] Caching

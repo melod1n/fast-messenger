@@ -3,10 +3,13 @@ package dev.meloda.fast.photoviewer
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,13 +29,21 @@ import java.io.FileOutputStream
 import java.net.URLDecoder
 import java.util.UUID
 
+import dev.meloda.fast.ui.R as UiR
+
 interface PhotoViewViewModel {
     val screenState: StateFlow<PhotoViewScreenState>
 
+    val shareRequest: StateFlow<Uri?>
+
     fun onPageChanged(newPage: Int)
 
+    fun onShareClicked()
+    fun onOpenInClicked()
     fun onCopyLinkClicked()
     fun onCopyClicked()
+
+    fun onImageShared()
 }
 
 class PhotoViewViewModelImpl(
@@ -41,6 +52,8 @@ class PhotoViewViewModelImpl(
 ) : PhotoViewViewModel, ViewModel() {
 
     override val screenState = MutableStateFlow(PhotoViewScreenState.EMPTY)
+
+    override val shareRequest = MutableStateFlow<Uri?>(null)
 
     init {
         val arguments = PhotoView.from(savedStateHandle).arguments
@@ -57,6 +70,47 @@ class PhotoViewViewModelImpl(
 
     override fun onPageChanged(newPage: Int) {
         screenState.setValue { old -> old.copy(selectedPage = newPage) }
+    }
+
+    override fun onShareClicked() {
+        val url = screenState.value.images
+            .getOrNull(screenState.value.selectedPage)
+            ?.extractUrl() ?: return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val imageFile = downloadAndStoreImageToCache(url) ?: return@launch
+
+            val uri = FileProvider.getUriForFile(
+                applicationContext,
+                "${applicationContext.packageName}.provider",
+                imageFile
+            )
+
+            shareRequest.setValue { uri }
+        }
+    }
+
+    override fun onOpenInClicked() {
+        val url = screenState.value.images
+            .getOrNull(screenState.value.selectedPage)
+            ?.extractUrl() ?: return
+
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        try {
+            applicationContext.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+            viewModelScope.launch(Dispatchers.Main) {
+                Toast.makeText(
+                    applicationContext,
+                    UiR.string.error_occurred,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     override fun onCopyLinkClicked() {
@@ -85,18 +139,7 @@ class PhotoViewViewModelImpl(
             ?.extractUrl() ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val drawable = applicationContext.imageLoader.execute(
-                ImageRequest.Builder(applicationContext)
-                    .data(url)
-                    .build()
-            ).drawable ?: return@launch
-
-            val imagesDir = File(applicationContext.cacheDir, "images")
-            if (!imagesDir.exists()) imagesDir.mkdirs()
-            val imageFile = File(imagesDir, "shared_image_id${UUID.randomUUID()}.png")
-            FileOutputStream(imageFile).use {
-                drawable.toBitmapOrNull()?.compress(Bitmap.CompressFormat.PNG, 100, it)
-            }
+            val imageFile = downloadAndStoreImageToCache(url) ?: return@launch
 
             val uri = FileProvider.getUriForFile(
                 applicationContext,
@@ -116,4 +159,26 @@ class PhotoViewViewModelImpl(
             }
         }
     }
+
+    override fun onImageShared() {
+        shareRequest.setValue { null }
+    }
+
+    private suspend fun downloadAndStoreImageToCache(url: String): File? =
+        withContext(Dispatchers.IO) {
+            val drawable = applicationContext.imageLoader.execute(
+                ImageRequest.Builder(applicationContext)
+                    .data(url)
+                    .build()
+            ).drawable ?: return@withContext null
+
+            val imagesDir = File(applicationContext.cacheDir, "images")
+            if (!imagesDir.exists()) imagesDir.mkdirs()
+            val imageFile = File(imagesDir, "shared_image_id${UUID.randomUUID()}.png")
+            FileOutputStream(imageFile).use {
+                drawable.toBitmapOrNull()?.compress(Bitmap.CompressFormat.PNG, 100, it)
+            }
+
+            imageFile
+        }
 }

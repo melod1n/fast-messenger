@@ -1,10 +1,13 @@
 package dev.meloda.fast.photoviewer.presentation
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
@@ -33,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -41,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -53,6 +58,8 @@ import dev.meloda.fast.photoviewer.PhotoViewViewModel
 import dev.meloda.fast.photoviewer.PhotoViewViewModelImpl
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
 import dev.meloda.fast.ui.util.getImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
 import dev.meloda.fast.ui.R as UiR
@@ -63,11 +70,46 @@ fun PhotoViewRoute(
     viewModel: PhotoViewViewModel = koinViewModel<PhotoViewViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val shareRequest by viewModel.shareRequest.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(shareRequest) {
+        if (shareRequest != null) {
+            viewModel.onImageShared()
+
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                setType("image/png")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                putExtra(Intent.EXTRA_STREAM, shareRequest)
+            }
+
+            val chooserIntent = Intent.createChooser(intent, null)
+            chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            try {
+                context.startActivity(chooserIntent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                scope.launch(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        UiR.string.error_occurred,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
 
     PhotoViewScreen(
         screenState = screenState,
         onBack = onBack,
         onPageChanged = viewModel::onPageChanged,
+        onShareClicked = viewModel::onShareClicked,
+        onOpenInClicked = viewModel::onOpenInClicked,
         onCopyLinkClicked = viewModel::onCopyLinkClicked,
         onCopyClicked = viewModel::onCopyClicked
     )
@@ -78,6 +120,8 @@ fun PhotoViewScreen(
     screenState: PhotoViewScreenState = PhotoViewScreenState.EMPTY,
     onBack: () -> Unit = {},
     onPageChanged: (index: Int) -> Unit = {},
+    onShareClicked: () -> Unit = {},
+    onOpenInClicked: () -> Unit = {},
     onCopyLinkClicked: () -> Unit = {},
     onCopyClicked: () -> Unit = {}
 ) {
@@ -108,6 +152,8 @@ fun PhotoViewScreen(
         topBar = {
             TopBar(
                 onBack = onBack,
+                onShareClicked = onShareClicked,
+                onOpenInClicked = onOpenInClicked,
                 onCopyClicked = onCopyClicked,
                 onCopyLinkClicked = onCopyLinkClicked,
             )
@@ -116,7 +162,7 @@ fun PhotoViewScreen(
             alpha = calculatedAlpha
         )
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Pager(
                 pagerState = pagerState,
                 state = screenState,
@@ -134,6 +180,8 @@ fun PhotoViewScreen(
 fun TopBar(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
+    onShareClicked: () -> Unit,
+    onOpenInClicked: () -> Unit,
     onCopyClicked: () -> Unit,
     onCopyLinkClicked: () -> Unit
 ) {
@@ -141,9 +189,7 @@ fun TopBar(
         mutableStateOf(false)
     }
 
-    val hideDropDownMenu by rememberUpdatedState(
-        { dropdownMenuShown = false }
-    )
+    val hideDropDownMenu by rememberUpdatedState { dropdownMenuShown = false }
 
     TopAppBar(
         modifier = modifier,
@@ -172,6 +218,24 @@ fun TopBar(
                 onDismissRequest = { dropdownMenuShown = false },
                 offset = DpOffset(x = (10).dp, y = (-60).dp)
             ) {
+                DropdownMenuItem(
+                    onClick = {
+                        hideDropDownMenu()
+                        onShareClicked()
+                    },
+                    text = {
+                        Text(text = stringResource(UiR.string.action_share))
+                    }
+                )
+                DropdownMenuItem(
+                    onClick = {
+                        hideDropDownMenu()
+                        onOpenInClicked()
+                    },
+                    text = {
+                        Text(text = stringResource(UiR.string.action_open_in))
+                    }
+                )
                 DropdownMenuItem(
                     onClick = {
                         hideDropDownMenu()

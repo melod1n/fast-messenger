@@ -320,7 +320,12 @@ class MessagesRepositoryImpl(
             messagesIds = messageIds.orEmpty(),
             important = important
         )
-        messagesService.markAsImportant(requestModel.map).mapApiDefault()
+        messagesService.markAsImportant(requestModel.map).mapApiResult(
+            successMapper = { apiResponse ->
+                apiResponse.requireResponse().marked.map { it.cmId }
+            },
+            errorMapper = { error -> error?.toDomain() }
+        )
     }
 
     override suspend fun delete(
