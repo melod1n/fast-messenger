@@ -35,6 +35,7 @@ import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.messageshistory.presentation.attachments.Attachments
 import dev.meloda.fast.messageshistory.presentation.attachments.Reply
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkStickerDomain
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
@@ -81,22 +82,6 @@ fun MessageBubble(
         MaterialTheme.colorScheme.onPrimaryContainer
     }
 
-    val minDateContainerWidth by remember(isEdited, isOut, isPinned, isImportant) {
-        derivedStateOf {
-            val mainPart = if (isEdited) 50.dp else 30.dp
-            val readIndicatorPart = if (isOut) 14.dp else 0.dp
-            val pinnedIndicatorPart = if (isPinned) 14.dp else 0.dp
-            val importantIndicatorPart = if (isImportant) 14.dp else 0.dp
-
-            mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart
-        }
-    }
-
-    val dateContainerWidth by animateDpAsState(
-        targetValue = minDateContainerWidth,
-        label = "dateContainerWidth"
-    )
-
     val shouldShowBubble by remember(text) {
         derivedStateOf { text != null }
     }
@@ -118,6 +103,22 @@ fun MessageBubble(
     var containerWidth by remember {
         mutableIntStateOf(0)
     }
+
+    val minDateContainerWidth by remember(isEdited, isOut, isPinned, isImportant) {
+        derivedStateOf {
+            val mainPart = if (isEdited) 50 else 30
+            val readIndicatorPart = if (isOut) 14 else 0
+            val pinnedIndicatorPart = if (isPinned) 14 else 0
+            val importantIndicatorPart = if (isImportant) 14 else 0
+
+            (mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart).dp
+        }
+    }
+
+    val dateContainerWidth by animateDpAsState(
+        targetValue = minDateContainerWidth,
+        label = "dateContainerWidth"
+    )
 
     CompositionLocalProvider(LocalContentColor provides contentColor) {
         Column(
@@ -217,7 +218,12 @@ fun MessageBubble(
                                 topEnd = 0.dp
                             )
                         )
-                        .background(backgroundColor)
+                        .background(
+                            backgroundColor.copy(
+                                alpha = if (attachments.firstOrNull() is VkStickerDomain) 0f
+                                else 1f
+                            )
+                        )
                 ) {
                     Attachments(
                         modifier = Modifier,
