@@ -22,27 +22,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.datastore.SettingsKeys
-import dev.meloda.fast.settings.HapticType
-import dev.meloda.fast.settings.SettingsViewModel
-import dev.meloda.fast.settings.SettingsViewModelImpl
+import dev.meloda.fast.settings.model.HapticType
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.UiItem
 import dev.meloda.fast.settings.presentation.item.ListItem
@@ -50,56 +43,9 @@ import dev.meloda.fast.settings.presentation.item.SwitchItem
 import dev.meloda.fast.settings.presentation.item.TextFieldItem
 import dev.meloda.fast.settings.presentation.item.TitleItem
 import dev.meloda.fast.settings.presentation.item.TitleTextItem
-import dev.meloda.fast.ui.components.ActionInvokeDismiss
-import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R as UiR
 
-@Composable
-fun SettingsRoute(
-    onBack: () -> Unit,
-    onLogOutButtonClicked: () -> Unit,
-    onLanguageItemClicked: () -> Unit,
-    viewModel: SettingsViewModel = koinViewModel<SettingsViewModelImpl>()
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val hapticType by viewModel.hapticType.collectAsStateWithLifecycle()
-
-    SettingsScreen(
-        screenState = screenState,
-        hapticType = hapticType,
-        onBack = onBack,
-        onHapticPerformed = viewModel::onHapticPerformed,
-        onSettingsItemClicked = { key ->
-            when (key) {
-                SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
-                    onLanguageItemClicked()
-                }
-
-                else -> viewModel.onSettingsItemClicked(key)
-            }
-        },
-        onSettingsItemLongClicked = viewModel::onSettingsItemLongClicked,
-        onSettingsItemValueChanged = viewModel::onSettingsItemChanged
-    )
-
-    val scope = rememberCoroutineScope()
-
-    HandlePopups(
-        performCrashPositiveClick = viewModel::onPerformCrashPositiveButtonClicked,
-        performCrashDismissed = viewModel::onPerformCrashAlertDismissed,
-        logoutPositiveClick = {
-            scope.launch {
-                viewModel.onLogOutAlertPositiveClick()
-                onLogOutButtonClicked()
-            }
-        },
-        logoutDismissed = viewModel::onLogOutAlertDismissed,
-        screenState = screenState
-    )
-}
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -246,74 +192,5 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.navigationBarsPadding())
             }
         }
-    }
-}
-
-@Composable
-fun HandlePopups(
-    performCrashPositiveClick: () -> Unit,
-    performCrashDismissed: () -> Unit,
-    logoutPositiveClick: () -> Unit,
-    logoutDismissed: () -> Unit,
-    screenState: SettingsScreenState
-) {
-    val showOptions = screenState.showOptions
-
-    PerformCrashDialog(
-        positiveClick = performCrashPositiveClick,
-        dismiss = performCrashDismissed,
-        show = showOptions.showPerformCrash
-    )
-
-    LogOutDialog(
-        positiveClick = logoutPositiveClick,
-        dismiss = logoutDismissed,
-        show = showOptions.showLogOut
-    )
-}
-
-@Composable
-fun PerformCrashDialog(
-    positiveClick: () -> Unit,
-    dismiss: () -> Unit,
-    show: Boolean,
-) {
-    if (show) {
-        MaterialDialog(
-            onDismissRequest = dismiss,
-            title = "Perform crash",
-            text = "App will be crashed. Are you sure?",
-            confirmAction = positiveClick,
-            confirmText = stringResource(id = UiR.string.yes),
-            cancelText = stringResource(id = UiR.string.cancel),
-            actionInvokeDismiss = ActionInvokeDismiss.Always
-        )
-    }
-}
-
-@Composable
-fun LogOutDialog(
-    positiveClick: () -> Unit,
-    dismiss: () -> Unit,
-    show: Boolean
-) {
-    if (show) {
-        val isEasterEgg = UserConfig.userId == SettingsKeys.ID_DMITRY
-
-        MaterialDialog(
-            onDismissRequest = dismiss,
-            title = stringResource(
-                id = if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
-                else UiR.string.sign_out_confirm_title
-            ),
-            text = stringResource(id = UiR.string.sign_out_confirm),
-            confirmAction = positiveClick,
-            confirmText = stringResource(
-                id = if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
-                else UiR.string.action_sign_out
-            ),
-            cancelText = stringResource(id = UiR.string.no),
-            actionInvokeDismiss = ActionInvokeDismiss.Always
-        )
     }
 }

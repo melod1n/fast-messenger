@@ -3,6 +3,7 @@ package dev.meloda.fast.presentation
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -47,6 +48,7 @@ fun RootScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: MainViewModel
 ) {
+    val activity = LocalActivity.current
     val context = LocalContext.current
     val startDestination by viewModel.startDestination.collectAsStateWithLifecycle()
     val isNeedToOpenAuth by viewModel.isNeedToReplaceWithAuth.collectAsStateWithLifecycle()
@@ -129,6 +131,7 @@ fun RootScreen(
                         viewModel.onUserAuthenticated()
                         navController.navigateToMain()
                     },
+                    onNavigateToSettings = navController::navigateToSettings,
                     navController = navController
                 )
 
@@ -162,7 +165,15 @@ fun RootScreen(
                 settingsScreen(
                     onBack = navController::navigateUp,
                     onLogOutButtonClicked = { navController.navigateToAuth(true) },
-                    onLanguageItemClicked = navController::navigateToLanguagePicker
+                    onLanguageItemClicked = navController::navigateToLanguagePicker,
+                    onRestartRequired = {
+                        activity?.let {
+                            val intent = Intent(activity, MainActivity::class.java)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            activity.startActivity(intent)
+                            activity.finish()
+                        }
+                    }
                 )
                 languagePickerScreen(onBack = navController::navigateUp)
 

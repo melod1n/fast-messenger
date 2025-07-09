@@ -39,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -56,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.auth.login.LoginViewModel
-import dev.meloda.fast.auth.login.LoginViewModelImpl
 import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginScreenState
@@ -76,9 +77,10 @@ fun LoginRoute(
     onNavigateToMain: () -> Unit,
     onNavigateToCaptcha: (CaptchaArguments) -> Unit,
     onNavigateToValidation: (LoginValidationArguments) -> Unit,
+    onNavigateToSettings: () -> Unit,
     validationCode: String?,
     captchaCode: String?,
-    viewModel: LoginViewModel = koinViewModel<LoginViewModelImpl>()
+    viewModel: LoginViewModel = koinViewModel()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
@@ -132,7 +134,8 @@ fun LoginRoute(
         onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
         onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
         onSignInButtonClicked = viewModel::onSignInButtonClicked,
-        onLogoClicked = viewModel::onLogoClicked
+        onLogoClicked = viewModel::onLogoClicked,
+        onLogoLongClicked = onNavigateToSettings
     )
 
     HandleDialogs(
@@ -151,7 +154,8 @@ fun LoginScreen(
     onPasswordVisibilityButtonClicked: () -> Unit = {},
     onPasswordFieldGoAction: () -> Unit = {},
     onSignInButtonClicked: () -> Unit = {},
-    onLogoClicked: () -> Unit = {}
+    onLogoClicked: () -> Unit = {},
+    onLogoLongClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val size = LocalSizeConfig.current
@@ -185,7 +189,10 @@ fun LoginScreen(
                 exit = fadeOut(),
                 label = "Logo visibility"
             ) {
-                Logo(onLogoClicked = onLogoClicked)
+                Logo(
+                    onLogoClicked = onLogoClicked,
+                    onLogoLongClicked = onLogoLongClicked
+                )
             }
 
             AnimatedVisibility(

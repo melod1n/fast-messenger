@@ -35,49 +35,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-interface LoginViewModel {
-    val screenState: StateFlow<LoginScreenState>
-    val loginDialog: StateFlow<LoginDialog?>
-
-    val validationArguments: StateFlow<LoginValidationArguments?>
-    val captchaArguments: StateFlow<CaptchaArguments?>
-    val userBannedArguments: StateFlow<LoginUserBannedArguments?>
-    val isNeedToOpenMain: StateFlow<Boolean>
-
-    val isNeedToClearCaptchaCode: StateFlow<Boolean>
-    val isNeedToClearValidationCode: StateFlow<Boolean>
-
-    fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle)
-    fun onDialogDismissed(dialog: LoginDialog)
-
-    fun onBackPressed()
-
-    fun onPasswordVisibilityButtonClicked()
-
-    fun onLoginInputChanged(newLogin: String)
-    fun onPasswordInputChanged(newPassword: String)
-
-    fun onSignInButtonClicked()
-
-    fun onLogoClicked()
-
-    fun onNavigatedToMain()
-    fun onNavigatedToUserBanned()
-    fun onNavigatedToCaptcha()
-    fun onNavigatedToValidation()
-
-    fun onValidationCodeReceived(code: String?)
-    fun onValidationCodeCleared()
-    fun onCaptchaCodeReceived(code: String?)
-    fun onCaptchaCodeCleared()
-}
-
-class LoginViewModelImpl(
+class LoginViewModel(
     private val oAuthUseCase: OAuthUseCase,
     private val authRepository: AuthRepository,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
@@ -85,18 +49,30 @@ class LoginViewModelImpl(
     private val loginValidator: LoginValidator,
     private val longPollController: LongPollController,
     private val userSettings: UserSettings
-) : ViewModel(), LoginViewModel {
+) : ViewModel() {
+    private val _screenState = MutableStateFlow(LoginScreenState.EMPTY)
+    val screenState = _screenState.asStateFlow()
 
-    override val screenState = MutableStateFlow(LoginScreenState.EMPTY)
-    override val loginDialog = MutableStateFlow<LoginDialog?>(null)
+    private val _loginDialog = MutableStateFlow<LoginDialog?>(null)
+    val loginDialog = _loginDialog.asStateFlow()
 
-    override val validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
-    override val captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
-    override val userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
-    override val isNeedToOpenMain = MutableStateFlow(false)
+    private val _validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
+    val validationArguments = _validationArguments.asStateFlow()
 
-    override val isNeedToClearCaptchaCode = MutableStateFlow(false)
-    override val isNeedToClearValidationCode = MutableStateFlow(false)
+    private val _captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
+    val captchaArguments = _captchaArguments.asStateFlow()
+
+    private val _userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
+    val userBannedArguments = _userBannedArguments.asStateFlow()
+
+    private val _isNeedToOpenMain = MutableStateFlow(false)
+    val isNeedToOpenMain = _isNeedToOpenMain.asStateFlow()
+
+    private val _isNeedToClearCaptchaCode = MutableStateFlow(false)
+    val isNeedToClearCaptchaCode = _isNeedToClearCaptchaCode.asStateFlow()
+
+    private val _isNeedToClearValidationCode = MutableStateFlow(false)
+    val isNeedToClearValidationCode = _isNeedToClearValidationCode.asStateFlow()
 
     private val validationState: StateFlow<List<LoginValidationResult>> =
         screenState.map(loginValidator::validate)
@@ -120,7 +96,7 @@ class LoginViewModelImpl(
         }
     }
 
-    override fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle) {
+    fun onDialogConfirmed(dialog: LoginDialog, bundle: Bundle) {
         onDialogDismissed(dialog)
 
         when (dialog) {
@@ -128,20 +104,24 @@ class LoginViewModelImpl(
         }
     }
 
-    override fun onDialogDismissed(dialog: LoginDialog) {
-        loginDialog.setValue { null }
+    fun onDialogDismissed(dialog: LoginDialog) {
+        when (dialog) {
+            is LoginDialog.Error -> Unit
+        }
+
+        _loginDialog.setValue { null }
     }
 
-    override fun onBackPressed() {
-        screenState.setValue { old -> old.copy(showLogo = true) }
+    fun onBackPressed() {
+        _screenState.setValue { old -> old.copy(showLogo = true) }
     }
 
-    override fun onPasswordVisibilityButtonClicked() {
-        screenState.setValue { old -> old.copy(passwordVisible = !old.passwordVisible) }
+    fun onPasswordVisibilityButtonClicked() {
+        _screenState.setValue { old -> old.copy(passwordVisible = !old.passwordVisible) }
     }
 
-    override fun onLoginInputChanged(newLogin: String) {
-        screenState.setValue { old ->
+    fun onLoginInputChanged(newLogin: String) {
+        _screenState.setValue { old ->
             old.copy(
                 login = newLogin.trim(),
                 loginError = false
@@ -149,8 +129,8 @@ class LoginViewModelImpl(
         }
     }
 
-    override fun onPasswordInputChanged(newPassword: String) {
-        screenState.setValue { old ->
+    fun onPasswordInputChanged(newPassword: String) {
+        _screenState.setValue { old ->
             old.copy(
                 password = newPassword.trim(),
                 passwordError = false
@@ -158,18 +138,18 @@ class LoginViewModelImpl(
         }
     }
 
-    override fun onSignInButtonClicked() {
+    fun onSignInButtonClicked() {
         if (screenState.value.isLoading) return
 
         if (screenState.value.showLogo) {
-            screenState.setValue { old -> old.copy(showLogo = false) }
+            _screenState.setValue { old -> old.copy(showLogo = false) }
             return
         }
 
         login()
     }
 
-    override fun onLogoClicked() {
+    fun onLogoClicked() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             userSettings.onEnableDynamicColorsChanged(
                 !userSettings.enableDynamicColors.value
@@ -177,36 +157,36 @@ class LoginViewModelImpl(
         }
     }
 
-    override fun onNavigatedToMain() {
-        isNeedToOpenMain.update { false }
+    fun onNavigatedToMain() {
+        _isNeedToOpenMain.update { false }
     }
 
-    override fun onNavigatedToUserBanned() {
-        userBannedArguments.update { null }
+    fun onNavigatedToUserBanned() {
+        _userBannedArguments.update { null }
     }
 
-    override fun onNavigatedToCaptcha() {
-        captchaArguments.update { null }
+    fun onNavigatedToCaptcha() {
+        _captchaArguments.update { null }
     }
 
-    override fun onNavigatedToValidation() {
-        validationArguments.update { null }
+    fun onNavigatedToValidation() {
+        _validationArguments.update { null }
     }
 
-    override fun onValidationCodeReceived(code: String?) {
+    fun onValidationCodeReceived(code: String?) {
         validationCode.update { code }
     }
 
-    override fun onValidationCodeCleared() {
-        isNeedToClearValidationCode.update { false }
+    fun onValidationCodeCleared() {
+        _isNeedToClearValidationCode.update { false }
     }
 
-    override fun onCaptchaCodeReceived(code: String?) {
+    fun onCaptchaCodeReceived(code: String?) {
         captchaCode.update { code }
     }
 
-    override fun onCaptchaCodeCleared() {
-        isNeedToClearCaptchaCode.update { false }
+    fun onCaptchaCodeCleared() {
+        _isNeedToClearCaptchaCode.update { false }
     }
 
     private fun login(forceSms: Boolean = false) {
@@ -223,7 +203,7 @@ class LoginViewModelImpl(
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
 
-        screenState.updateValue { copy(isLoading = true) }
+        _screenState.updateValue { copy(isLoading = true) }
 
         val currentValidationSid = validationSid.value
         val currentValidationCode = validationCode.value?.takeIf { currentValidationSid != null }
@@ -242,7 +222,7 @@ class LoginViewModelImpl(
                 error = { error ->
                     Log.d("LoginViewModelImpl", "login: error: $error")
 
-                    screenState.updateValue { copy(isLoading = false) }
+                    _screenState.updateValue { copy(isLoading = false) }
                     captchaSid.setValue { null }
 
                     parseError(error)
@@ -250,8 +230,8 @@ class LoginViewModelImpl(
                 success = { response ->
                     val exceptionHandler =
                         CoroutineExceptionHandler { _, _ ->
-                            screenState.updateValue { copy(isLoading = false) }
-                            loginDialog.setValue { LoginDialog.Error() }
+                            _screenState.updateValue { copy(isLoading = false) }
+                            _loginDialog.setValue { LoginDialog.Error() }
                         }
 
                     viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
@@ -277,8 +257,8 @@ class LoginViewModelImpl(
                             }
 
                         if (exchangeToken == null) {
-                            screenState.updateValue { copy(isLoading = false) }
-                            loginDialog.setValue { LoginDialog.Error() }
+                            _screenState.updateValue { copy(isLoading = false) }
+                            _loginDialog.setValue { LoginDialog.Error() }
                             return@launch
                         }
 
@@ -316,15 +296,15 @@ class LoginViewModelImpl(
                         ).listenValue(viewModelScope) { state ->
                             state.processState(
                                 any = {
-                                    screenState.updateValue { copy(isLoading = false) }
+                                    _screenState.updateValue { copy(isLoading = false) }
                                 },
                                 error = ::parseError,
                                 success = { user ->
                                     if (user == null) {
-                                        loginDialog.update { LoginDialog.Error() }
+                                        _loginDialog.update { LoginDialog.Error() }
                                     } else {
-                                        screenState.updateValue { copy(login = "", password = "") }
-                                        isNeedToOpenMain.update { true }
+                                        _screenState.updateValue { copy(login = "", password = "") }
+                                        _isNeedToOpenMain.update { true }
                                     }
                                 }
                             )
@@ -347,7 +327,7 @@ class LoginViewModelImpl(
                             validationType = error.validationType.value,
                             canResendSms = error.validationResend == "sms"
                         )
-                        validationArguments.update { arguments }
+                        _validationArguments.update { arguments }
                         validationSid.update { error.validationSid }
                     }
 
@@ -356,12 +336,12 @@ class LoginViewModelImpl(
                             captchaSid = error.captchaSid,
                             captchaImageUrl = error.captchaImageUrl
                         )
-                        captchaArguments.update { arguments }
+                        _captchaArguments.update { arguments }
                         captchaSid.update { error.captchaSid }
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
-                        loginDialog.setValue {
+                        _loginDialog.setValue {
                             LoginDialog.Error(errorText = "Wrong login or password.")
                         }
                     }
@@ -373,33 +353,33 @@ class LoginViewModelImpl(
                             restoreUrl = error.restoreUrl,
                             accessToken = error.accessToken
                         )
-                        userBannedArguments.update { arguments }
+                        _userBannedArguments.update { arguments }
                     }
 
                     OAuthErrorDomain.WrongValidationCode -> {
-                        isNeedToClearValidationCode.update { true }
+                        _isNeedToClearValidationCode.update { true }
                         validationCode.update { null }
-                        loginDialog.setValue {
+                        _loginDialog.setValue {
                             LoginDialog.Error(errorText = "Wrong validation code.")
                         }
                     }
 
                     OAuthErrorDomain.WrongValidationCodeFormat -> {
-                        isNeedToClearValidationCode.update { true }
+                        _isNeedToClearValidationCode.update { true }
                         validationCode.update { null }
-                        loginDialog.setValue {
+                        _loginDialog.setValue {
                             LoginDialog.Error(errorText = "Wrong validation code format.")
                         }
                     }
 
                     OAuthErrorDomain.TooManyTriesError -> {
-                        loginDialog.setValue {
+                        _loginDialog.setValue {
                             LoginDialog.Error(errorText = "Too many tries. Try in another hour or later.")
                         }
                     }
 
                     OAuthErrorDomain.UnknownError -> {
-                        loginDialog.setValue { LoginDialog.Error() }
+                        _loginDialog.setValue { LoginDialog.Error() }
                     }
                 }
             }
@@ -412,11 +392,11 @@ class LoginViewModelImpl(
         validationState.value.forEach { result ->
             when (result) {
                 LoginValidationResult.LoginEmpty -> {
-                    screenState.setValue { old -> old.copy(loginError = true) }
+                    _screenState.setValue { old -> old.copy(loginError = true) }
                 }
 
                 LoginValidationResult.PasswordEmpty -> {
-                    screenState.setValue { old -> old.copy(passwordError = true) }
+                    _screenState.setValue { old -> old.copy(passwordError = true) }
                 }
 
                 LoginValidationResult.Empty -> Unit

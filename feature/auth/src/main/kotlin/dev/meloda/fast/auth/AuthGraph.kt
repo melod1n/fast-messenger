@@ -23,6 +23,7 @@ object AuthGraph
 
 fun NavGraphBuilder.authNavGraph(
     onNavigateToMain: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     navController: NavController
 ) {
     navigation<AuthGraph>(startDestination = Login) {
@@ -54,6 +55,7 @@ fun NavGraphBuilder.authNavGraph(
                     )
                 )
             },
+            onNavigateToSettings = onNavigateToSettings,
             navController = navController
         )
 

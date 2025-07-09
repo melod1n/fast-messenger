@@ -30,7 +30,8 @@ import dev.meloda.fast.ui.theme.LocalSizeConfig
 @Composable
 fun Logo(
     modifier: Modifier = Modifier,
-    onLogoClicked: () -> Unit = {}
+    onLogoClicked: () -> Unit = {},
+    onLogoLongClicked: () -> Unit = {}
 ) {
     val size = LocalSizeConfig.current
 
@@ -60,7 +61,7 @@ fun Logo(
                     .combinedClickable(
                         interactionSource = null,
                         indication = null,
-                        onLongClick = null,
+                        onLongClick = onLogoLongClicked,
                         onClick = onLogoClicked
                     )
             )

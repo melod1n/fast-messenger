@@ -1,6 +1,6 @@
 package dev.meloda.fast.conversations.di
 
-import dev.meloda.fast.conversations.ConversationsViewModelImpl
+import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.domain.ConversationsUseCase
 import dev.meloda.fast.domain.ConversationsUseCaseImpl
 import dev.meloda.fast.model.ConversationsFilter
@@ -22,8 +22,8 @@ val conversationsModule = module {
     singleOf(::ConversationsUseCaseImpl) bind ConversationsUseCase::class
 }
 
-private fun Scope.createConversationsViewModel(filter: ConversationsFilter): ConversationsViewModelImpl {
-    return ConversationsViewModelImpl(
+private fun Scope.createConversationsViewModel(filter: ConversationsFilter): ConversationsViewModel {
+    return ConversationsViewModel(
         filter = filter,
         updatesParser = get(),
         conversationsUseCase = get(),

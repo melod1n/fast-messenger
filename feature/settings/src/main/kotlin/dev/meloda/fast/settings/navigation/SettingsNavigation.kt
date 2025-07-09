@@ -12,13 +12,15 @@ object Settings
 fun NavGraphBuilder.settingsScreen(
     onBack: () -> Unit,
     onLogOutButtonClicked: () -> Unit,
-    onLanguageItemClicked: () -> Unit
+    onLanguageItemClicked: () -> Unit,
+    onRestartRequired: () -> Unit,
 ) {
     composable<Settings> {
         SettingsRoute(
             onBack = onBack,
             onLogOutButtonClicked = onLogOutButtonClicked,
-            onLanguageItemClicked = onLanguageItemClicked
+            onLanguageItemClicked = onLanguageItemClicked,
+            onRestartRequired = onRestartRequired
         )
     }
 }

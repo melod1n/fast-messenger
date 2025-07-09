@@ -38,54 +38,15 @@ import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-interface ConversationsViewModel {
-
-    val screenState: StateFlow<ConversationsScreenState>
-    val navigation: StateFlow<ConversationNavigation?>
-    val dialog: StateFlow<ConversationDialog?>
-
-    val conversations: StateFlow<List<VkConversation>>
-    val uiConversations: StateFlow<List<UiConversation>>
-
-    val baseError: StateFlow<BaseError?>
-
-    val currentOffset: StateFlow<Int>
-    val canPaginate: StateFlow<Boolean>
-
-    fun onNavigationConsumed()
-
-    fun onDialogConfirmed(dialog: ConversationDialog, bundle: Bundle)
-    fun onDialogDismissed(dialog: ConversationDialog)
-    fun onDialogItemPicked(dialog: ConversationDialog, bundle: Bundle)
-
-    fun onErrorButtonClicked()
-
-    fun onPaginationConditionsMet()
-
-    fun onOptionClicked(conversation: UiConversation, option: ConversationOption)
-
-    fun onRefresh()
-
-    fun onConversationItemClick(conversation: UiConversation)
-    fun onConversationItemLongClick(conversation: UiConversation)
-
-    fun onErrorConsumed()
-
-    fun setScrollIndex(index: Int)
-    fun setScrollOffset(offset: Int)
-
-    fun onCreateChatButtonClicked()
-}
-
-class ConversationsViewModelImpl(
+class ConversationsViewModel(
+    updatesParser: LongPollUpdatesParser,
     private val filter: ConversationsFilter,
-    private val updatesParser: LongPollUpdatesParser,
     private val conversationsUseCase: ConversationsUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val resources: Resources,
@@ -93,23 +54,34 @@ class ConversationsViewModelImpl(
     private val imageLoader: ImageLoader,
     private val applicationContext: Context,
     private val loadConversationsByIdUseCase: LoadConversationsByIdUseCase
-) : ConversationsViewModel, ViewModel() {
+) : ViewModel() {
+    private val _screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
+    val screenState = _screenState.asStateFlow()
 
-    override val screenState = MutableStateFlow(ConversationsScreenState.EMPTY)
-    override val navigation = MutableStateFlow<ConversationNavigation?>(null)
-    override val dialog = MutableStateFlow<ConversationDialog?>(null)
+    private val _navigation = MutableStateFlow<ConversationNavigation?>(null)
+    val navigation = _navigation.asStateFlow()
 
-    override val conversations = MutableStateFlow<List<VkConversation>>(emptyList())
-    override val uiConversations = MutableStateFlow<List<UiConversation>>(emptyList())
+    private val _dialog = MutableStateFlow<ConversationDialog?>(null)
+    val dialog = _dialog.asStateFlow()
+
+    private val _conversations = MutableStateFlow<List<VkConversation>>(emptyList())
+    val conversations = _conversations.asStateFlow()
+
+    private val _uiConversations = MutableStateFlow<List<UiConversation>>(emptyList())
+    val uiConversations = _uiConversations.asStateFlow()
 
     private val pinnedConversationsCount = conversations.map { conversations ->
         conversations.count(VkConversation::isPinned)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    override val baseError = MutableStateFlow<BaseError?>(null)
+    private val _baseError = MutableStateFlow<BaseError?>(null)
+    val baseError = _baseError.asStateFlow()
 
-    override val currentOffset = MutableStateFlow(0)
-    override val canPaginate = MutableStateFlow(false)
+    private val _currentOffset = MutableStateFlow(0)
+    val currentOffset = _currentOffset.asStateFlow()
+
+    private val _canPaginate = MutableStateFlow(false)
+    val canPaginate = _canPaginate.asStateFlow()
 
     private val expandedConversationId = MutableStateFlow(0L)
 
@@ -118,7 +90,7 @@ class ConversationsViewModelImpl(
     private val interactionsTimers = hashMapOf<Long, InteractionJob?>()
 
     init {
-        screenState.updateValue { copy(isArchive = filter == ConversationsFilter.ARCHIVE) }
+        _screenState.updateValue { copy(isArchive = filter == ConversationsFilter.ARCHIVE) }
 
         loadConversations()
 
@@ -137,11 +109,11 @@ class ConversationsViewModelImpl(
         }
     }
 
-    override fun onNavigationConsumed() {
-        navigation.setValue { null }
+    fun onNavigationConsumed() {
+        _navigation.setValue { null }
     }
 
-    override fun onDialogConfirmed(dialog: ConversationDialog, bundle: Bundle) {
+    fun onDialogConfirmed(dialog: ConversationDialog, bundle: Bundle) {
         onDialogDismissed(dialog)
 
         when (dialog) {
@@ -170,11 +142,11 @@ class ConversationsViewModelImpl(
         syncUiConversation()
     }
 
-    override fun onDialogDismissed(dialog: ConversationDialog) {
-        this.dialog.setValue { null }
+    fun onDialogDismissed(dialog: ConversationDialog) {
+        _dialog.setValue { null }
     }
 
-    override fun onDialogItemPicked(dialog: ConversationDialog, bundle: Bundle) {
+    fun onDialogItemPicked(dialog: ConversationDialog, bundle: Bundle) {
         when (dialog) {
             is ConversationDialog.ConversationDelete -> Unit
             is ConversationDialog.ConversationPin -> Unit
@@ -184,7 +156,7 @@ class ConversationsViewModelImpl(
         }
     }
 
-    override fun onErrorButtonClicked() {
+    fun onErrorButtonClicked() {
         when (baseError.value) {
             null -> Unit
 
@@ -197,22 +169,22 @@ class ConversationsViewModelImpl(
         }
     }
 
-    override fun onPaginationConditionsMet() {
-        currentOffset.update { conversations.value.size }
+    fun onPaginationConditionsMet() {
+        _currentOffset.update { conversations.value.size }
         loadConversations()
     }
 
-    override fun onRefresh() {
+    fun onRefresh() {
         onErrorConsumed()
         loadConversations(offset = 0)
     }
 
-    override fun onConversationItemClick(conversation: UiConversation) {
+    fun onConversationItemClick(conversation: UiConversation) {
         collapseConversations()
-        navigation.setValue { ConversationNavigation.MessagesHistory(peerId = conversation.id) }
+        _navigation.setValue { ConversationNavigation.MessagesHistory(peerId = conversation.id) }
     }
 
-    override fun onConversationItemLongClick(conversation: UiConversation) {
+    fun onConversationItemLongClick(conversation: UiConversation) {
         expandedConversationId.setValue {
             if (conversation.isExpanded) 0
             else conversation.id
@@ -220,13 +192,13 @@ class ConversationsViewModelImpl(
         syncUiConversation()
     }
 
-    override fun onOptionClicked(
+    fun onOptionClicked(
         conversation: UiConversation,
         option: ConversationOption
     ) {
         when (option) {
             ConversationOption.Delete -> {
-                dialog.setValue { ConversationDialog.ConversationDelete(conversation.id) }
+                _dialog.setValue { ConversationDialog.ConversationDelete(conversation.id) }
             }
 
             ConversationOption.MarkAsRead -> {
@@ -240,37 +212,37 @@ class ConversationsViewModelImpl(
             }
 
             ConversationOption.Pin -> {
-                dialog.setValue { ConversationDialog.ConversationPin(conversation.id) }
+                _dialog.setValue { ConversationDialog.ConversationPin(conversation.id) }
             }
 
             ConversationOption.Unpin -> {
-                dialog.setValue { ConversationDialog.ConversationUnpin(conversation.id) }
+                _dialog.setValue { ConversationDialog.ConversationUnpin(conversation.id) }
             }
 
             ConversationOption.Archive -> {
-                dialog.setValue { ConversationDialog.ConversationArchive(conversation.id) }
+                _dialog.setValue { ConversationDialog.ConversationArchive(conversation.id) }
             }
 
             ConversationOption.Unarchive -> {
-                dialog.setValue { ConversationDialog.ConversationUnarchive(conversation.id) }
+                _dialog.setValue { ConversationDialog.ConversationUnarchive(conversation.id) }
             }
         }
     }
 
-    override fun onErrorConsumed() {
-        baseError.setValue { null }
+    fun onErrorConsumed() {
+        _baseError.setValue { null }
     }
 
-    override fun setScrollIndex(index: Int) {
-        screenState.setValue { old -> old.copy(scrollIndex = index) }
+    fun setScrollIndex(index: Int) {
+        _screenState.setValue { old -> old.copy(scrollIndex = index) }
     }
 
-    override fun setScrollOffset(offset: Int) {
-        screenState.setValue { old -> old.copy(scrollOffset = offset) }
+    fun setScrollOffset(offset: Int) {
+        _screenState.setValue { old -> old.copy(scrollOffset = offset) }
     }
 
-    override fun onCreateChatButtonClicked() {
-        navigation.setValue { ConversationNavigation.CreateChat }
+    fun onCreateChatButtonClicked() {
+        _navigation.setValue { ConversationNavigation.CreateChat }
     }
 
     private fun collapseConversations() {
@@ -289,7 +261,7 @@ class ConversationsViewModelImpl(
             state.processState(
                 error = { error ->
                     val newBaseError = VkUtils.parseError(error)
-                    baseError.update { newBaseError }
+                    _baseError.update { newBaseError }
                 },
                 success = { response ->
                     val conversations = response
@@ -304,7 +276,7 @@ class ConversationsViewModelImpl(
                     val paginationExhausted = !itemsCountSufficient &&
                             this.conversations.value.isNotEmpty()
 
-                    screenState.updateValue {
+                    _screenState.updateValue {
                         copy(isPaginationExhausted = paginationExhausted)
                     }
 
@@ -321,13 +293,13 @@ class ConversationsViewModelImpl(
 
                     conversationsUseCase.storeConversations(response)
 
-                    this.conversations.emit(fullConversations)
+                    _conversations.emit(fullConversations)
                     syncUiConversation()
-                    canPaginate.setValue { itemsCountSufficient }
+                    _canPaginate.setValue { itemsCountSufficient }
                 }
             )
 
-            screenState.setValue { old ->
+            _screenState.setValue { old ->
                 old.copy(
                     isLoading = offset == 0 && state.isLoading(),
                     isPaginating = offset > 0 && state.isLoading()
@@ -347,11 +319,11 @@ class ConversationsViewModelImpl(
                             ?: return@processState
 
                     newConversations.removeAt(conversationIndex)
-                    conversations.update { newConversations.sorted() }
+                    _conversations.update { newConversations.sorted() }
                     syncUiConversation()
                 }
             )
-            screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
+            _screenState.emit(screenState.value.copy(isLoading = state.isLoading()))
         }
     }
 
@@ -374,7 +346,7 @@ class ConversationsViewModelImpl(
                     }
                 )
 
-                screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
+                _screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
             }
     }
 
@@ -420,7 +392,7 @@ class ConversationsViewModelImpl(
                             .copy(lastMessage = message)
 
                         newConversations.add(pinnedConversationsCount.value, conversation)
-                        conversations.update { newConversations.sorted() }
+                        _conversations.update { newConversations.sorted() }
                         syncUiConversation()
                     }
                 )
@@ -461,7 +433,7 @@ class ConversationsViewModelImpl(
                 newConversations.add(toPosition, newConversation)
             }
 
-            conversations.update { newConversations.sorted() }
+            _conversations.update { newConversations.sorted() }
             syncUiConversation()
         }
     }
@@ -480,7 +452,7 @@ class ConversationsViewModelImpl(
                 lastMessageId = message.id,
                 lastCmId = message.cmId
             )
-            conversations.update { newConversations }
+            _conversations.update { newConversations }
             syncUiConversation()
         }
     }
@@ -500,7 +472,7 @@ class ConversationsViewModelImpl(
                     unreadCount = event.unreadCount
                 )
 
-            conversations.update { newConversations }
+            _conversations.update { newConversations }
             syncUiConversation()
         }
     }
@@ -520,7 +492,7 @@ class ConversationsViewModelImpl(
                     unreadCount = event.unreadCount
                 )
 
-            conversations.update { newConversations }
+            _conversations.update { newConversations }
             syncUiConversation()
         }
     }
@@ -541,7 +513,7 @@ class ConversationsViewModelImpl(
                     interactionIds = userIds
                 )
 
-            conversations.update { newConversations }
+            _conversations.update { newConversations }
             syncUiConversation()
 
             interactionsTimers[peerId]?.let { interactionJob ->
@@ -583,7 +555,7 @@ class ConversationsViewModelImpl(
                 interactionIds = emptyList()
             )
 
-        conversations.update { newConversations }
+        _conversations.update { newConversations }
         syncUiConversation()
 
         interactionJob.timerJob.cancel()
@@ -601,7 +573,7 @@ class ConversationsViewModelImpl(
             newConversations[conversationIndex] =
                 newConversations[conversationIndex].copy(majorId = event.majorId)
 
-            conversations.setValue { newConversations.sorted() }
+            _conversations.setValue { newConversations.sorted() }
             syncUiConversation()
         }
     }
@@ -617,7 +589,7 @@ class ConversationsViewModelImpl(
             newConversations[conversationIndex] =
                 newConversations[conversationIndex].copy(minorId = event.minorId)
 
-            conversations.setValue { newConversations.sorted() }
+            _conversations.setValue { newConversations.sorted() }
             syncUiConversation()
         }
     }
@@ -632,7 +604,7 @@ class ConversationsViewModelImpl(
         } else {
             newConversations.removeAt(conversationIndex)
 
-            conversations.setValue { newConversations.sorted() }
+            _conversations.setValue { newConversations.sorted() }
             syncUiConversation()
         }
     }
@@ -655,7 +627,7 @@ class ConversationsViewModelImpl(
                     newConversations.removeAt(index)
                 }
 
-                conversations.update { newConversations }
+                _conversations.update { newConversations }
                 syncUiConversation()
             }
 
@@ -669,7 +641,7 @@ class ConversationsViewModelImpl(
                     newConversations.add(pinnedConversationsCount.value, conversation)
                 }
 
-                conversations.update { newConversations.sorted() }
+                _conversations.update { newConversations.sorted() }
                 syncUiConversation()
             }
         }
@@ -691,7 +663,7 @@ class ConversationsViewModelImpl(
                     newConversations[conversationIndex] =
                         newConversations[conversationIndex].copy(inRead = startMessageId)
 
-                    conversations.update { newConversations }
+                    _conversations.update { newConversations }
                     syncUiConversation()
                 }
             )
@@ -763,7 +735,7 @@ class ConversationsViewModelImpl(
                 options = options.toImmutableList()
             )
         }
-        uiConversations.setValue { newUiConversations }
+        _uiConversations.setValue { newUiConversations }
 
         return newUiConversations
     }

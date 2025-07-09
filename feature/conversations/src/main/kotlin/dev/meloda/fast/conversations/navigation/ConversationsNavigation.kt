@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import dev.meloda.fast.conversations.ConversationsViewModelImpl
+import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.presentation.ConversationsRoute
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.ConversationsFilter
@@ -33,7 +33,7 @@ fun NavGraphBuilder.conversationsGraph(
     navigation<ConversationsGraph>(
         startDestination = Conversations
     ) {
-        val conversationsViewModel: ConversationsViewModelImpl = with(activity) {
+        val conversationsViewModel: ConversationsViewModel = with(activity) {
             getViewModel(qualifier = named(ConversationsFilter.ALL))
         }
         composable<Conversations> {
@@ -53,7 +53,7 @@ fun NavGraphBuilder.conversationsGraph(
 
             ConversationsRoute(
                 viewModel = with(activity) {
-                    getViewModel<ConversationsViewModelImpl>(
+                    getViewModel<ConversationsViewModel>(
                         qualifier = named(ConversationsFilter.ARCHIVE)
                     )
                 },

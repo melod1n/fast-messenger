@@ -50,6 +50,9 @@ object SettingsKeys {
     const val DEFAULT_ENABLE_HAPTIC = true
     const val KEY_DEBUG_NETWORK_LOG_LEVEL = "debug_network_log_level"
     const val DEFAULT_NETWORK_LOG_LEVEL = 3
+    const val KEY_DEBUG_IMPORT_AUTH_DATA = "debug_import_auth_data"
+    const val KEY_DEBUG_EXPORT_AUTH_DATA = "debug_export_auth_data"
+
     const val KEY_USE_SYSTEM_FONT = "use_system_font"
     const val DEFAULT_USE_SYSTEM_FONT = false
     const val KEY_MORE_ANIMATIONS = "more_animations"

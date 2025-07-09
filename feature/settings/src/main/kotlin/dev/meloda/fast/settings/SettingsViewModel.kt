@@ -2,11 +2,14 @@ package dev.meloda.fast.settings
 
 import android.content.res.Resources
 import android.os.Build
+import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.common.LongPollController
+import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.findWithIndex
+import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.DarkMode
 import dev.meloda.fast.common.model.LogLevel
@@ -15,52 +18,47 @@ import dev.meloda.fast.common.model.UiText
 import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.db.AccountsRepository
+import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.datastore.UserSettings
-import dev.meloda.fast.domain.AuthUseCase
+import dev.meloda.fast.domain.GetCurrentAccountUseCase
+import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.model.database.AccountEntity
+import dev.meloda.fast.settings.model.HapticType
+import dev.meloda.fast.settings.model.SettingsDialog
 import dev.meloda.fast.settings.model.SettingsItem
 import dev.meloda.fast.settings.model.SettingsScreenState
-import dev.meloda.fast.settings.model.SettingsShowOptions
 import dev.meloda.fast.settings.model.TextProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import dev.meloda.fast.ui.R as UiR
 
-interface SettingsViewModel {
-
-    val screenState: StateFlow<SettingsScreenState>
-    val hapticType: StateFlow<HapticType?>
-
-    fun onLogOutAlertDismissed()
-    suspend fun onLogOutAlertPositiveClick()
-
-    fun onPerformCrashAlertDismissed()
-    fun onPerformCrashPositiveButtonClicked()
-
-    fun onSettingsItemClicked(key: String)
-    fun onSettingsItemLongClicked(key: String)
-    fun onSettingsItemChanged(key: String, newValue: Any?)
-
-    fun onHapticPerformed()
-}
-
-class SettingsViewModelImpl(
-    private val authUseCase: AuthUseCase,
+class SettingsViewModel(
+    private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val accountsRepository: AccountsRepository,
+    private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
     private val userSettings: UserSettings,
     private val resources: Resources,
     private val longPollController: LongPollController
-) : SettingsViewModel, ViewModel() {
+) : ViewModel() {
 
-    override val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
-    override val hapticType = MutableStateFlow<HapticType?>(null)
+    private val _screenState = MutableStateFlow(SettingsScreenState.EMPTY)
+    val screenState = _screenState.asStateFlow()
+
+    private val _hapticType = MutableStateFlow<HapticType?>(null)
+    val hapticType = _hapticType.asStateFlow()
+
+    private val _dialog = MutableStateFlow<SettingsDialog?>(null)
+    val dialog = _dialog.asStateFlow()
+
+    private val _isNeedToRestart = MutableStateFlow(false)
+    val isNeedToRestart = _isNeedToRestart.asStateFlow()
 
     private val settings = MutableStateFlow<List<SettingsItem<*>>>(emptyList())
 
@@ -68,24 +66,87 @@ class SettingsViewModelImpl(
         createSettings()
     }
 
-    override fun onLogOutAlertDismissed() {
-        emitShowOptions { old -> old.copy(showLogOut = false) }
+    fun onDialogConfirmed(dialog: SettingsDialog, bundle: Bundle) {
+        onDialogDismissed(dialog)
+
+        when (dialog) {
+            is SettingsDialog.LogOut -> onLogOutAlertPositiveClick()
+            is SettingsDialog.PerformCrash -> onPerformCrashPositiveButtonClicked()
+
+            is SettingsDialog.ImportAuthData -> {
+                val accessToken = bundle.getString("ACCESS_TOKEN") ?: return
+                val exchangeToken = bundle.getString("EXCHANGE_TOKEN")
+                val trustedHash = bundle.getString("TRUSTED_HASH")
+
+                viewModelScope.launch(Dispatchers.IO) {
+                    val oldToken = UserConfig.accessToken
+
+                    UserConfig.accessToken = accessToken
+
+                    loadUserByIdUseCase(
+                        userId = null,
+                        fields = VkConstants.USER_FIELDS
+                    ).listenValue(viewModelScope) { state ->
+                        state.processState(
+                            error = { error ->
+                                UserConfig.accessToken = oldToken
+                            },
+                            success = { user ->
+                                if (user == null) return@listenValue
+
+                                UserConfig.currentUserId = user.id
+
+                                val account = getCurrentAccountUseCase()
+                                    ?.copy(
+                                        userId = user.id,
+                                        accessToken = accessToken,
+                                        fastToken = null,
+                                        exchangeToken = exchangeToken,
+                                        trustedHash = trustedHash
+                                    ) ?: AccountEntity(
+                                    userId = user.id,
+                                    accessToken = accessToken,
+                                    fastToken = null,
+                                    trustedHash = trustedHash,
+                                    exchangeToken = exchangeToken
+                                )
+
+                                accountsRepository.storeAccounts(listOf(account))
+
+                                _isNeedToRestart.setValue { true }
+                            }
+                        )
+                    }
+                }
+            }
+
+            is SettingsDialog.ExportAuthData -> Unit
+        }
     }
 
-    override suspend fun onLogOutAlertPositiveClick() {
-        withContext(Dispatchers.IO) {
+    fun onDialogDismissed(dialog: SettingsDialog) {
+        when (dialog) {
+            is SettingsDialog.LogOut -> Unit
+            is SettingsDialog.PerformCrash -> Unit
+            is SettingsDialog.ImportAuthData -> Unit
+            is SettingsDialog.ExportAuthData -> Unit
+        }
+
+        _dialog.setValue { null }
+    }
+
+    fun onDialogItemPicked(dialog: SettingsDialog, bundle: Bundle) {
+        when (dialog) {
+            is SettingsDialog.LogOut -> Unit
+            is SettingsDialog.PerformCrash -> Unit
+            is SettingsDialog.ImportAuthData -> Unit
+            is SettingsDialog.ExportAuthData -> Unit
+        }
+    }
+
+    fun onLogOutAlertPositiveClick() {
+        viewModelScope.launch(Dispatchers.IO) {
             val tasks = listOf(
-//                async {
-//                    suspendCoroutine { continuation ->
-//                        authUseCase.logout().listenValue(viewModelScope) { state ->
-//                            state.processState(
-//                                any = { continuation.resume(Unit) },
-//                                success = {},
-//                                error = {}
-//                            )
-//                        }
-//                    }
-//                },
                 async {
                     accountsRepository.storeAccounts(
                         listOf(
@@ -106,22 +167,32 @@ class SettingsViewModelImpl(
         }
     }
 
-    override fun onPerformCrashAlertDismissed() {
-        emitShowOptions { old -> old.copy(showPerformCrash = false) }
-    }
-
-    override fun onPerformCrashPositiveButtonClicked() {
+    fun onPerformCrashPositiveButtonClicked() {
         throw Exception("Test exception")
     }
 
-    override fun onSettingsItemClicked(key: String) {
+    fun onSettingsItemClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_ACCOUNT_LOGOUT -> {
-                emitShowOptions { old -> old.copy(showLogOut = true) }
+                _dialog.setValue { SettingsDialog.LogOut }
             }
 
             SettingsKeys.KEY_DEBUG_PERFORM_CRASH -> {
-                emitShowOptions { old -> old.copy(showPerformCrash = true) }
+                _dialog.setValue { SettingsDialog.PerformCrash }
+            }
+
+            SettingsKeys.KEY_DEBUG_IMPORT_AUTH_DATA -> {
+                _dialog.setValue { SettingsDialog.ImportAuthData }
+            }
+
+            SettingsKeys.KEY_DEBUG_EXPORT_AUTH_DATA -> {
+                _dialog.setValue {
+                    SettingsDialog.ExportAuthData(
+                        accessToken = UserConfig.accessToken,
+                        exchangeToken = UserConfig.exchangeToken,
+                        trustedHash = UserConfig.trustedHash
+                    )
+                }
             }
 
             SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
@@ -132,13 +203,13 @@ class SettingsViewModelImpl(
 
                 createSettings()
 
-                hapticType.update { HapticType.REJECT }
-                screenState.setValue { old -> old.copy(showDebugOptions = false) }
+                _hapticType.update { HapticType.REJECT }
+                _screenState.setValue { old -> old.copy(showDebugOptions = false) }
             }
         }
     }
 
-    override fun onSettingsItemLongClicked(key: String) {
+    fun onSettingsItemLongClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
                 if (AppSettings.Debug.showDebugCategory) return
@@ -148,18 +219,18 @@ class SettingsViewModelImpl(
 
                 createSettings()
 
-                hapticType.update { HapticType.LONG_PRESS }
-                screenState.setValue { old -> old.copy(showDebugOptions = true) }
+                _hapticType.update { HapticType.LONG_PRESS }
+                _screenState.setValue { old -> old.copy(showDebugOptions = true) }
             }
         }
     }
 
-    override fun onSettingsItemChanged(key: String, newValue: Any?) {
+    fun onSettingsItemChanged(key: String, newValue: Any?) {
         settings.value.findWithIndex { it.key == key }?.let { (index, item) ->
             item.updateValue(newValue)
             item.updateText()
 
-            screenState.setValue { old ->
+            _screenState.setValue { old ->
                 old.copy(
                     settings = old.settings.toMutableList().apply {
                         this[index] = item.asPresentation(resources)
@@ -240,13 +311,8 @@ class SettingsViewModelImpl(
         }
     }
 
-    override fun onHapticPerformed() {
-        hapticType.update { null }
-    }
-
-    private fun emitShowOptions(function: (SettingsShowOptions) -> SettingsShowOptions) {
-        val newShowOptions = function.invoke(screenState.value.showOptions)
-        screenState.setValue { old -> old.copy(showOptions = newShowOptions) }
+    fun onHapticPerformed() {
+        _hapticType.update { null }
     }
 
     private fun createSettings() {
@@ -446,6 +512,18 @@ class SettingsViewModelImpl(
             }
         }
 
+        val debugImportAuthData = SettingsItem.TitleText(
+            key = SettingsKeys.KEY_DEBUG_IMPORT_AUTH_DATA,
+            title = UiText.Simple("Import auth data"),
+            text = UiText.Simple("App will be restarted")
+        )
+        val debugExportAuthData = SettingsItem.TitleText(
+            key = SettingsKeys.KEY_DEBUG_EXPORT_AUTH_DATA,
+            title = UiText.Simple("Export auth data"),
+            text = UiText.Simple("Be careful with this data. If another person gets it, your account will be at risk"),
+            isVisible = UserConfig.isLoggedIn()
+        )
+
         val debugHideDebugList = SettingsItem.TitleText(
             key = SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST,
             title = UiText.Simple("Hide debug list")
@@ -492,6 +570,8 @@ class SettingsViewModelImpl(
             debugPerformCrash,
             debugShowCrashAlert,
             debugNetworkLogLevel,
+            debugImportAuthData,
+            debugExportAuthData
         ).forEach(debugList::add)
 
         debugList += debugHideDebugList
@@ -521,15 +601,6 @@ class SettingsViewModelImpl(
             item.asPresentation(resources)
         }
 
-        screenState.setValue { old -> old.copy(settings = uiSettings) }
-    }
-}
-
-enum class HapticType {
-    LONG_PRESS, REJECT;
-
-    fun getHaptic(): Int = when (this) {
-        LONG_PRESS -> HapticFeedbackConstantsCompat.LONG_PRESS
-        REJECT -> HapticFeedbackConstantsCompat.REJECT
+        _screenState.setValue { old -> old.copy(settings = uiSettings) }
     }
 }

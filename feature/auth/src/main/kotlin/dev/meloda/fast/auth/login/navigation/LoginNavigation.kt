@@ -8,7 +8,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.auth.login.LoginViewModel
-import dev.meloda.fast.auth.login.LoginViewModelImpl
 import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
@@ -24,11 +23,12 @@ fun NavGraphBuilder.loginScreen(
     onNavigateToValidation: (LoginValidationArguments) -> Unit,
     onNavigateToMain: () -> Unit,
     onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
+    onNavigateToSettings: () -> Unit,
     navController: NavController
 ) {
     composable<Login> { backStackEntry ->
         val viewModel: LoginViewModel =
-            backStackEntry.sharedViewModel<LoginViewModelImpl>(navController = navController)
+            backStackEntry.sharedViewModel<LoginViewModel>(navController = navController)
 
         val clearValidationCode by viewModel.isNeedToClearValidationCode.collectAsStateWithLifecycle()
         val clearCaptchaCode by viewModel.isNeedToClearCaptchaCode.collectAsStateWithLifecycle()
@@ -55,6 +55,7 @@ fun NavGraphBuilder.loginScreen(
             onNavigateToMain = onNavigateToMain,
             onNavigateToCaptcha = onNavigateToCaptcha,
             onNavigateToValidation = onNavigateToValidation,
+            onNavigateToSettings = onNavigateToSettings,
             validationCode = validationCode,
             captchaCode = captchaCode,
             viewModel = viewModel
