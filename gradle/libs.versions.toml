@@ -6,7 +6,7 @@ haze = "1.6.7"
 kotlin = "2.2.0"
 ksp = "2.2.0-2.0.2"
 
-compose-bom = "2025.06.02"
+compose-bom = "2025.07.00"
 koin = "4.1.0"
 
 accompanist = "0.37.3"
