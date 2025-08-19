@@ -7,6 +7,8 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -14,6 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
@@ -35,8 +41,7 @@ import dev.meloda.fast.messageshistory.navigation.messagesHistoryScreen
 import dev.meloda.fast.messageshistory.navigation.navigateToMessagesHistory
 import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.navigation.mainScreen
-import dev.meloda.fast.photoviewer.navigation.navigateToPhotoView
-import dev.meloda.fast.photoviewer.navigation.photoViewScreen
+import dev.meloda.fast.photoviewer.presentation.PhotoViewDialog
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
 import dev.meloda.fast.ui.R
@@ -120,64 +125,75 @@ fun RootScreen(
             LocalNavRootController provides navController,
             LocalNavController provides navController
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = requireNotNull(startDestination),
-                enterTransition = { fadeIn(animationSpec = tween(200)) },
-                exitTransition = { fadeOut(animationSpec = tween(200)) }
-            ) {
-                authNavGraph(
-                    onNavigateToMain = {
-                        viewModel.onUserAuthenticated()
-                        navController.navigateToMain()
-                    },
-                    onNavigateToSettings = navController::navigateToSettings,
-                    navController = navController
-                )
+            var photoViewerInfo by rememberSaveable {
+                mutableStateOf<Pair<List<String>, Int?>?>(null)
+            }
 
-                mainScreen(
-                    onError = viewModel::onError,
-                    onSettingsButtonClicked = navController::navigateToSettings,
-                    onNavigateToMessagesHistory = navController::navigateToMessagesHistory,
-                    onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) },
-                    onMessageClicked = navController::navigateToMessagesHistory,
-                    onNavigateToCreateChat = navController::navigateToCreateChat
-                )
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavHost(
+                    navController = navController,
+                    startDestination = requireNotNull(startDestination),
+                    enterTransition = { fadeIn(animationSpec = tween(200)) },
+                    exitTransition = { fadeOut(animationSpec = tween(200)) }
+                ) {
+                    authNavGraph(
+                        onNavigateToMain = {
+                            viewModel.onUserAuthenticated()
+                            navController.navigateToMain()
+                        },
+                        onNavigateToSettings = navController::navigateToSettings,
+                        navController = navController
+                    )
 
-                messagesHistoryScreen(
-                    onError = viewModel::onError,
-                    onBack = navController::navigateUp,
-                    onNavigateToChatMaterials = navController::navigateToChatMaterials,
-                    onNavigateToPhotoViewer = navController::navigateToPhotoView
-                )
-                chatMaterialsScreen(
-                    onBack = navController::navigateUp,
-                    onPhotoClicked = { url -> navController.navigateToPhotoView(listOf(url)) }
-                )
-                createChatScreen(
-                    onChatCreated = { conversationId ->
-                        navController.popBackStack()
-                        navController.navigateToMessagesHistory(conversationId)
-                    },
-                    navController = navController
-                )
+                    mainScreen(
+                        onError = viewModel::onError,
+                        onSettingsButtonClicked = navController::navigateToSettings,
+                        onNavigateToMessagesHistory = navController::navigateToMessagesHistory,
+                        onPhotoClicked = { url -> photoViewerInfo = listOf(url) to null },
+                        onMessageClicked = navController::navigateToMessagesHistory,
+                        onNavigateToCreateChat = navController::navigateToCreateChat
+                    )
 
-                settingsScreen(
-                    onBack = navController::navigateUp,
-                    onLogOutButtonClicked = { navController.navigateToAuth(true) },
-                    onLanguageItemClicked = navController::navigateToLanguagePicker,
-                    onRestartRequired = {
-                        activity?.let {
-                            val intent = Intent(activity, MainActivity::class.java)
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                            activity.startActivity(intent)
-                            activity.finish()
+                    messagesHistoryScreen(
+                        onError = viewModel::onError,
+                        onBack = navController::navigateUp,
+                        onNavigateToChatMaterials = navController::navigateToChatMaterials,
+                        onNavigateToPhotoViewer = { photos, index ->
+                            photoViewerInfo = photos to index
                         }
-                    }
-                )
-                languagePickerScreen(onBack = navController::navigateUp)
+                    )
+                    chatMaterialsScreen(
+                        onBack = navController::navigateUp,
+                        onPhotoClicked = { url -> photoViewerInfo = listOf(url) to null }
+                    )
+                    createChatScreen(
+                        onChatCreated = { conversationId ->
+                            navController.popBackStack()
+                            navController.navigateToMessagesHistory(conversationId)
+                        },
+                        navController = navController
+                    )
 
-                photoViewScreen(onBack = navController::navigateUp)
+                    settingsScreen(
+                        onBack = navController::navigateUp,
+                        onLogOutButtonClicked = { navController.navigateToAuth(true) },
+                        onLanguageItemClicked = navController::navigateToLanguagePicker,
+                        onRestartRequired = {
+                            activity?.let {
+                                val intent = Intent(activity, MainActivity::class.java)
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                activity.startActivity(intent)
+                                activity.finish()
+                            }
+                        }
+                    )
+                    languagePickerScreen(onBack = navController::navigateUp)
+                }
+
+                PhotoViewDialog(
+                    photoViewerInfo = photoViewerInfo,
+                    onDismiss = { photoViewerInfo = null }
+                )
             }
         }
     }

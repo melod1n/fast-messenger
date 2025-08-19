@@ -37,7 +37,7 @@ data class VkUserData(
 
     @JsonClass(generateAdapter = true)
     data class LastSeen(
-        @Json(name = "platform") val platform: Int,
+        @Json(name = "platform") val platform: Int?,
         @Json(name = "time") val time: Int
     )
 

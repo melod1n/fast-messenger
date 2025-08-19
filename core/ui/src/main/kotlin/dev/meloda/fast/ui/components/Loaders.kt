@@ -10,52 +10,70 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun FullScreenContainedLoader(modifier: Modifier = Modifier) {
+fun FullScreenContainedLoader(
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    indicatorColor: Color = MaterialTheme.colorScheme.primaryContainer
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
-        ContainedLoader()
+        ContainedLoader(
+            containerColor = containerColor,
+            indicatorColor = indicatorColor
+        )
     }
 }
 
 @Preview
 @Composable
-fun FullScreenLoader(modifier: Modifier = Modifier) {
+fun FullScreenLoader(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
-        Loader()
+        Loader(color = color)
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 @Preview
-fun ContainedLoader(modifier: Modifier = Modifier) {
+fun ContainedLoader(
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    indicatorColor: Color = MaterialTheme.colorScheme.primaryContainer
+) {
     ContainedLoadingIndicator(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.primary,
-        indicatorColor = MaterialTheme.colorScheme.primaryContainer
+        containerColor = containerColor,
+        indicatorColor = indicatorColor
     )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 @Preview
-fun Loader(modifier: Modifier = Modifier) {
+fun Loader(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
     LoadingIndicator(
         modifier = modifier,
-        color = MaterialTheme.colorScheme.primary
+        color = color
     )
 }
 

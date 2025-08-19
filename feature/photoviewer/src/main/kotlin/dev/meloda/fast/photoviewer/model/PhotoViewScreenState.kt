@@ -6,13 +6,15 @@ import dev.meloda.fast.common.model.UiImage
 @Immutable
 data class PhotoViewScreenState(
     val images: List<UiImage>,
-    val selectedPage: Int
+    val selectedPage: Int,
+    val isLoading: Boolean
 ) {
 
     companion object {
         val EMPTY: PhotoViewScreenState = PhotoViewScreenState(
             images = emptyList(),
-            selectedPage = 0
+            selectedPage = 0,
+            isLoading = false
         )
     }
 }

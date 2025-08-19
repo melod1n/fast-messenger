@@ -17,6 +17,7 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
 import dev.meloda.fast.photoviewer.navigation.PhotoView
 import kotlinx.coroutines.Dispatchers
@@ -47,17 +48,22 @@ interface PhotoViewViewModel {
 }
 
 class PhotoViewViewModelImpl(
-    savedStateHandle: SavedStateHandle,
+    arguments: PhotoViewArguments,
     private val applicationContext: Context
 ) : PhotoViewViewModel, ViewModel() {
 
-    override val screenState = MutableStateFlow(PhotoViewScreenState.EMPTY)
+    constructor(
+        savedStateHandle: SavedStateHandle,
+        applicationContext: Context
+    ) : this(
+        arguments = PhotoView.from(savedStateHandle).arguments,
+        applicationContext = applicationContext
+    )
 
+    override val screenState = MutableStateFlow(PhotoViewScreenState.EMPTY)
     override val shareRequest = MutableStateFlow<Uri?>(null)
 
     init {
-        val arguments = PhotoView.from(savedStateHandle).arguments
-
         screenState.setValue { old ->
             old.copy(
                 images = arguments.imageUrls
@@ -165,20 +171,37 @@ class PhotoViewViewModelImpl(
     }
 
     private suspend fun downloadAndStoreImageToCache(url: String): File? =
-        withContext(Dispatchers.IO) {
-            val drawable = applicationContext.imageLoader.execute(
-                ImageRequest.Builder(applicationContext)
-                    .data(url)
-                    .build()
-            ).drawable ?: return@withContext null
+        runCatching {
+            withContext(Dispatchers.IO) {
+                screenState.setValue { old -> old.copy(isLoading = true) }
 
-            val imagesDir = File(applicationContext.cacheDir, "images")
-            if (!imagesDir.exists()) imagesDir.mkdirs()
-            val imageFile = File(imagesDir, "shared_image_id${UUID.randomUUID()}.png")
-            FileOutputStream(imageFile).use {
-                drawable.toBitmapOrNull()?.compress(Bitmap.CompressFormat.PNG, 100, it)
+                val drawable = applicationContext.imageLoader.execute(
+                    ImageRequest.Builder(applicationContext)
+                        .data(url)
+                        .build()
+                ).drawable ?: run {
+                    screenState.setValue { old -> old.copy(isLoading = false) }
+                    return@withContext null
+                }
+
+                val imagesDir = File(applicationContext.cacheDir, "images")
+                if (!imagesDir.exists()) imagesDir.mkdirs()
+                val imageFile = File(imagesDir, "shared_image_id${UUID.randomUUID()}.png")
+                FileOutputStream(imageFile).use {
+                    drawable.toBitmapOrNull()?.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+
+                imageFile
             }
-
-            imageFile
-        }
+        }.fold(
+            onSuccess = { file ->
+                screenState.setValue { old -> old.copy(isLoading = false) }
+                file
+            },
+            onFailure = { e ->
+                e.printStackTrace()
+                screenState.setValue { old -> old.copy(isLoading = false) }
+                null
+            }
+        )
 }

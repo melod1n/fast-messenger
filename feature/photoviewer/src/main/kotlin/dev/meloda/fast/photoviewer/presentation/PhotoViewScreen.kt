@@ -2,8 +2,13 @@ package dev.meloda.fast.photoviewer.presentation
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -24,7 +29,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,32 +44,65 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.conena.nanokt.android.content.pxToDp
-import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.photoviewer.PhotoViewViewModel
 import dev.meloda.fast.photoviewer.PhotoViewViewModelImpl
+import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
+import dev.meloda.fast.ui.components.FullScreenDialog
+import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.net.URLEncoder
 import kotlin.math.abs
 import dev.meloda.fast.ui.R as UiR
 
 @Composable
-fun PhotoViewRoute(
+fun PhotoViewDialog(
+    photoViewerInfo: Pair<List<String>, Int?>?,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit
+) {
+    val applicationContext = LocalContext.current.applicationContext
+
+    if (photoViewerInfo != null) {
+        FullScreenDialog(modifier = modifier) {
+            val viewModel = remember(true) {
+                PhotoViewViewModelImpl(
+                    arguments = PhotoViewArguments(
+                        imageUrls = photoViewerInfo.first.map {
+                            URLEncoder.encode(it, "utf-8")
+                        },
+                        selectedIndex = photoViewerInfo.second
+                    ),
+                    applicationContext = applicationContext
+                )
+            }
+
+            PhotoViewRoute(
+                onBack = onDismiss,
+                viewModel = viewModel
+            )
+        }
+    }
+}
+
+@Composable
+private fun PhotoViewRoute(
     onBack: () -> Unit,
     viewModel: PhotoViewViewModel = koinViewModel<PhotoViewViewModelImpl>()
 ) {
@@ -80,7 +117,7 @@ fun PhotoViewRoute(
             viewModel.onImageShared()
 
             val intent = Intent(Intent.ACTION_SEND).apply {
-                setType("image/png")
+                type = "image/png"
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 putExtra(Intent.EXTRA_STREAM, shareRequest)
             }
@@ -116,7 +153,7 @@ fun PhotoViewRoute(
 }
 
 @Composable
-fun PhotoViewScreen(
+private fun PhotoViewScreen(
     screenState: PhotoViewScreenState = PhotoViewScreenState.EMPTY,
     onBack: () -> Unit = {},
     onPageChanged: (index: Int) -> Unit = {},
@@ -148,7 +185,6 @@ fun PhotoViewScreen(
     }
 
     Scaffold(
-        modifier = Modifier.graphicsLayer(alpha = calculatedAlpha),
         topBar = {
             TopBar(
                 onBack = onBack,
@@ -158,9 +194,7 @@ fun PhotoViewScreen(
                 onCopyLinkClicked = onCopyLinkClicked,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background.copy(
-            alpha = calculatedAlpha
-        )
+        containerColor = Color.Black.copy(alpha = calculatedAlpha)
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Pager(
@@ -169,15 +203,34 @@ fun PhotoViewScreen(
                 padding = padding,
                 onBack = onBack,
                 onVerticalDrag = { offset -> offsetY = offset },
-                modifier = Modifier
             )
+
+            AnimatedVisibility(
+                visible = screenState.isLoading,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = null,
+                        indication = null,
+                        onClick = {}
+                    )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Loader(color = Color.White)
+                }
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(
+private fun TopBar(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onShareClicked: () -> Unit,
@@ -193,12 +246,16 @@ fun TopBar(
 
     TopAppBar(
         modifier = modifier,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Black.copy(alpha = 0.3f)
+        ),
         title = {},
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back button"
+                    contentDescription = "Back button",
+                    tint = Color.White
                 )
             }
         },
@@ -208,7 +265,8 @@ fun TopBar(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = "Options"
+                    contentDescription = "Options",
+                    tint = Color.White
                 )
             }
 
@@ -255,13 +313,12 @@ fun TopBar(
                     },
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        }
     )
 }
 
 @Composable
-fun Pager(
+private fun Pager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
     state: PhotoViewScreenState,
@@ -269,6 +326,8 @@ fun Pager(
     onBack: () -> Unit,
     onVerticalDrag: (offset: Float) -> Unit
 ) {
+    val windowInfo = LocalWindowInfo.current
+
     HorizontalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize()
@@ -289,22 +348,25 @@ fun Pager(
             } else {
                 var offsetY by remember { mutableFloatStateOf(0f) }
 
-                val animatedOffset by animateFloatAsState(
-                    targetValue = offsetY,
-                    label = "animatedOffset"
-                )
                 var useAnimatedOffset by remember {
                     mutableStateOf(false)
                 }
+
+                val animatedOffset by animateFloatAsState(
+                    targetValue = offsetY,
+                    label = "animatedOffset",
+                    animationSpec = tween(
+                        durationMillis = if (useAnimatedOffset) 150 else 0,
+                        easing = LinearEasing
+                    )
+                )
 
                 AsyncImage(
                     model = model,
                     contentDescription = "Image",
                     modifier = Modifier
                         .graphicsLayer {
-                            this.translationY = if (useAnimatedOffset) {
-                                animatedOffset
-                            } else offsetY
+                            this.translationY = animatedOffset
                         }
                         .draggable(
                             state = rememberDraggableState { delta ->
@@ -314,7 +376,7 @@ fun Pager(
                             },
                             orientation = Orientation.Vertical,
                             onDragStopped = {
-                                if (abs(offsetY.pxToDp()) >= 200) {
+                                if (abs(offsetY) / windowInfo.containerSize.height >= 0.25) {
                                     onBack()
                                 } else {
                                     useAnimatedOffset = true
@@ -330,17 +392,4 @@ fun Pager(
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun PhotoViewScreenPreview() {
-    PhotoViewScreen(
-        screenState = PhotoViewScreenState(
-            images = List(200) {
-                UiImage.Resource(UiR.drawable.test_captcha)
-            },
-            selectedPage = 0
-        )
-    )
 }
