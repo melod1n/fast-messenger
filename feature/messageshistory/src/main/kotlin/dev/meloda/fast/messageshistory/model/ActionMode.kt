@@ -1,9 +1,11 @@
 package dev.meloda.fast.messageshistory.model
 
-sealed class ActionMode {
+enum class ActionMode {
+    SEND,
+    RECORD_AUDIO,
+    RECORD_VIDEO,
+    EDIT,
+    DELETE;
 
-    data object Send : ActionMode()
-    data object Record : ActionMode()
-    data object Edit : ActionMode()
-    data object Delete : ActionMode()
+    fun isRecord(): Boolean = this == RECORD_AUDIO || this == RECORD_VIDEO
 }

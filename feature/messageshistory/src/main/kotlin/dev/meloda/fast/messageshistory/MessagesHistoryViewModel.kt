@@ -24,8 +24,6 @@ import androidx.lifecycle.viewModelScope
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.conena.nanokt.collections.indexOfFirstOrNull
-import com.conena.nanokt.text.isEmptyOrBlank
-import com.conena.nanokt.text.isNotEmptyOrBlank
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.orDots
@@ -360,15 +358,15 @@ class MessagesHistoryViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 message = newText,
-                actionMode = if (newText.text.isEmptyOrBlank()) ActionMode.Record
-                else ActionMode.Send
+                actionMode = if (newText.text.isBlank()) ActionMode.RECORD_AUDIO
+                else ActionMode.SEND
             )
         }
         updateStyles()
     }
 
     override fun onEmojiButtonLongClicked() {
-        AppSettings.Features.fastText.takeIf { it.isNotEmptyOrBlank() }?.let { text ->
+        AppSettings.Features.fastText.takeIf { it.isNotBlank() }?.let { text ->
             screenState.setValue { old ->
                 val newText = "${old.message.text}$text"
                 old.copy(
@@ -380,19 +378,23 @@ class MessagesHistoryViewModelImpl(
 
     override fun onActionButtonClicked() {
         when (screenState.value.actionMode) {
-            ActionMode.Delete -> {
+            ActionMode.DELETE -> {
 
             }
 
-            ActionMode.Edit -> {
+            ActionMode.EDIT -> {
 
             }
 
-            ActionMode.Record -> {
-
+            ActionMode.RECORD_AUDIO -> {
+                screenState.setValue { it.copy(actionMode = ActionMode.RECORD_VIDEO) }
             }
 
-            ActionMode.Send -> sendMessage()
+            ActionMode.RECORD_VIDEO -> {
+                screenState.setValue { it.copy(actionMode = ActionMode.RECORD_AUDIO) }
+            }
+
+            ActionMode.SEND -> sendMessage()
         }
     }
 
@@ -944,7 +946,7 @@ class MessagesHistoryViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 message = TextFieldValue(),
-                actionMode = ActionMode.Record
+                actionMode = ActionMode.RECORD_AUDIO
             )
         }
 

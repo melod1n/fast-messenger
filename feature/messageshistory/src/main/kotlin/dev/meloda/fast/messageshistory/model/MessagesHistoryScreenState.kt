@@ -38,7 +38,7 @@ data class MessagesHistoryScreenState(
             isLoading = true,
             isPaginating = false,
             isPaginationExhausted = false,
-            actionMode = ActionMode.Record,
+            actionMode = ActionMode.RECORD_AUDIO,
             chatImageUrl = null,
             conversation = VkConversation.EMPTY,
             pinnedMessage = null,

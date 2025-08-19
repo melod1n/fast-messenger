@@ -54,9 +54,9 @@ data class VkVideoMessageData(
 
     @JsonClass(generateAdapter = true)
     data class Image(
-        val height: Int?,
-        val url: String?,
-        val width: Int?,
+        val height: Int,
+        val url: String,
+        val width: Int,
         val with_padding: Int?,
     )
 
@@ -73,6 +73,7 @@ data class VkVideoMessageData(
     )
 
     fun toDomain(): VkVideoMessageDomain = VkVideoMessageDomain(
-        id = id
+        id = id,
+        image = image.orEmpty().filter { it.width / it.height == 1 }.maxByOrNull { it.width }?.url
     )
 }

@@ -36,6 +36,7 @@ import dev.meloda.fast.messageshistory.presentation.attachments.Attachments
 import dev.meloda.fast.messageshistory.presentation.attachments.Reply
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkStickerDomain
+import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
@@ -220,7 +221,13 @@ fun MessageBubble(
                         )
                         .background(
                             backgroundColor.copy(
-                                alpha = if (attachments.firstOrNull() is VkStickerDomain) 0f
+                                alpha = if ((attachments.firstOrNull()?.javaClass
+                                        ?: Nothing::class.java)
+                                    in listOf(
+                                        VkStickerDomain::class.java,
+                                        VkVideoMessageDomain::class.java
+                                    )
+                                ) 0f
                                 else 1f
                             )
                         )

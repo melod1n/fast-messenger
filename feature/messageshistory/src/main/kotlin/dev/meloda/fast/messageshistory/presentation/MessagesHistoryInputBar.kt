@@ -1,8 +1,12 @@
 package dev.meloda.fast.messageshistory.presentation
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -28,12 +32,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -54,7 +56,6 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import kotlinx.coroutines.launch
 import dev.meloda.fast.ui.R as UiR
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalHazeMaterialsApi::class)
@@ -134,8 +135,6 @@ fun MessagesHistoryInputBar(
                 Spacer(modifier = Modifier.width(6.dp))
 
                 if (showEmojiButton) {
-                    val rotation = remember { Animatable(0f) }
-
                     Column(verticalArrangement = Arrangement.Bottom) {
                         IconButton(
                             onClick = {
@@ -143,20 +142,6 @@ fun MessagesHistoryInputBar(
                                     view.performHapticFeedback(
                                         HapticFeedbackConstantsCompat.REJECT
                                     )
-                                }
-                                scope.launch {
-                                    for (i in 20 downTo 0 step 4) {
-                                        rotation.animateTo(
-                                            targetValue = i.toFloat(),
-                                            animationSpec = tween(50)
-                                        )
-                                        if (i > 0) {
-                                            rotation.animateTo(
-                                                targetValue = -i.toFloat(),
-                                                animationSpec = tween(50)
-                                            )
-                                        }
-                                    }
                                 }
                             },
                             onLongClick = {
@@ -167,7 +152,6 @@ fun MessagesHistoryInputBar(
                                 }
                                 onEmojiButtonLongClicked()
                             },
-                            modifier = Modifier.rotate(rotation.value)
                         ) {
                             Icon(
                                 painter = painterResource(id = UiR.drawable.ic_outline_emoji_emotions_24),
@@ -242,8 +226,6 @@ fun MessagesHistoryInputBar(
                 )
 
                 if (showAttachmentButton) {
-                    val attachmentRotation = remember { Animatable(0f) }
-
                     Column(verticalArrangement = Arrangement.Bottom) {
                         IconButton(
                             onClick = {
@@ -253,27 +235,12 @@ fun MessagesHistoryInputBar(
                                         HapticFeedbackConstantsCompat.REJECT
                                     )
                                 }
-                                scope.launch {
-                                    for (i in 20 downTo 0 step 4) {
-                                        attachmentRotation.animateTo(
-                                            targetValue = i.toFloat(),
-                                            animationSpec = tween(50)
-                                        )
-                                        if (i > 0) {
-                                            attachmentRotation.animateTo(
-                                                targetValue = -i.toFloat(),
-                                                animationSpec = tween(50)
-                                            )
-                                        }
-                                    }
-                                }
                             }
                         ) {
                             Icon(
                                 painter = painterResource(id = UiR.drawable.round_attach_file_24),
                                 contentDescription = "Add attachment button",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.rotate(30f + attachmentRotation.value)
                             )
                         }
 
@@ -281,54 +248,37 @@ fun MessagesHistoryInputBar(
                     }
                 }
 
-                val micRotation = remember { Animatable(0f) }
-
                 Column(verticalArrangement = Arrangement.Bottom) {
                     IconButton(
                         onClick = {
-                            if (actionMode == ActionMode.Record) {
-                                if (AppSettings.General.enableHaptic) {
-                                    view.performHapticFeedback(
-                                        HapticFeedbackConstantsCompat.REJECT
-                                    )
-                                }
-                                scope.launch {
-                                    for (i in 20 downTo 0 step 4) {
-                                        micRotation.animateTo(
-                                            targetValue = i.toFloat(),
-                                            animationSpec = tween(50)
-                                        )
-                                        if (i > 0) {
-                                            micRotation.animateTo(
-                                                targetValue = -i.toFloat(),
-                                                animationSpec = tween(50)
-                                            )
-                                        }
-                                    }
-                                }
-                            } else {
-                                onActionButtonClicked()
+                            onActionButtonClicked()
+                            if (AppSettings.General.enableHaptic && actionMode.isRecord()) {
+                                view.performHapticFeedback(HapticFeedbackConstantsCompat.CONTEXT_CLICK)
                             }
-                        },
-                        modifier = Modifier.rotate(micRotation.value)
+                        }
                     ) {
-                        Icon(
-                            painter = painterResource(
-                                id = when (actionMode) {
-                                    ActionMode.Delete -> UiR.drawable.round_delete_outline_24
-                                    ActionMode.Edit -> UiR.drawable.ic_round_done_24
-                                    ActionMode.Record -> UiR.drawable.ic_round_mic_none_24
-                                    ActionMode.Send -> UiR.drawable.round_send_24
-                                }
-                            ),
-                            contentDescription = when (actionMode) {
-                                ActionMode.Delete -> "Delete message button"
-                                ActionMode.Edit -> "Edit message button"
-                                ActionMode.Record -> "Record audio message button"
-                                ActionMode.Send -> "Send message button"
-                            },
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        AnimatedContent(
+                            targetState = actionMode,
+                            transitionSpec = {
+                                (fadeIn() + scaleIn(initialScale = 0.9f)) togetherWith
+                                        (fadeOut() + scaleOut(targetScale = 1.2f))
+                            }
+                        ) { actionMode ->
+                            Icon(
+                                painter = painterResource(
+                                    id = when (actionMode) {
+                                        ActionMode.DELETE -> UiR.drawable.round_delete_outline_24
+                                        ActionMode.EDIT -> UiR.drawable.ic_round_done_24
+                                        ActionMode.RECORD_AUDIO -> UiR.drawable.ic_round_mic_none_24
+                                        ActionMode.RECORD_VIDEO -> UiR.drawable.rounded_photo_camera_24
+                                        ActionMode.SEND -> UiR.drawable.round_send_24
+                                    }
+                                ),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
