@@ -79,6 +79,8 @@ class PhotoViewViewModelImpl(
     }
 
     override fun onShareClicked() {
+        if (screenState.value.isLoading) return
+
         val url = screenState.value.images
             .getOrNull(screenState.value.selectedPage)
             ?.extractUrl() ?: return
@@ -137,6 +139,8 @@ class PhotoViewViewModelImpl(
     }
 
     override fun onCopyClicked() {
+        if (screenState.value.isLoading) return
+
         val clipboardManager =
             applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
