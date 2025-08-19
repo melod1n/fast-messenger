@@ -80,7 +80,10 @@ fun PhotoViewDialog(
     val applicationContext = LocalContext.current.applicationContext
 
     if (photoViewerInfo != null) {
-        FullScreenDialog(modifier = modifier) {
+        FullScreenDialog(
+            modifier = modifier,
+            onDismiss = onDismiss
+        ) {
             val viewModel = remember(true) {
                 PhotoViewViewModelImpl(
                     arguments = PhotoViewArguments(

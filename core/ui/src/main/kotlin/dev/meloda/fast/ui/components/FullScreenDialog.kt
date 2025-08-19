@@ -12,13 +12,14 @@ import androidx.compose.ui.zIndex
 @Composable
 fun FullScreenDialog(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    onDismiss: () -> Unit = {},
+    content: @Composable () -> Unit,
 ) {
     Dialog(
-        onDismissRequest = {},
-        DialogProperties(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
             usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
+            decorFitsSystemWindows = false,
         )
     ) {
         Box(
