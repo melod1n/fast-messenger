@@ -35,6 +35,7 @@ import coil.compose.AsyncImage
 import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAudioDomain
+import dev.meloda.fast.model.api.domain.VkAudioMessageDomain
 import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
@@ -129,7 +130,7 @@ fun Attachments(
                     }
 
                     val imageSize by animateDpAsState(
-                        targetValue = if (isPlaying) 320.dp else 192.dp,
+                        targetValue = if (isPlaying) 256.dp else 192.dp,
                         label = "video message preview animation",
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -156,6 +157,35 @@ fun Attachments(
                             contentScale = ContentScale.Crop
                         )
                     }
+                }
+
+                AttachmentType.AUDIO_MESSAGE -> {
+                    fun downsampleWaveform(wave: List<Int>): List<Int> {
+                        val result = mutableListOf<Int>()
+                        for (i in wave.indices step 2) {
+                            val first = wave[i]
+                            val second = wave.getOrNull(i + 1) ?: first
+                            result.add((first + second) / 2)
+                        }
+                        return result
+                    }
+
+                    fun amplifyWaveform(wave: List<Int>, originalMax: Int): List<Int> {
+                        val newMax = wave.maxOrNull() ?: 1
+                        val factor = if (newMax == 0) 1.0 else originalMax.toDouble() / newMax
+                        return wave.map { (it * factor).toInt() }
+                    }
+
+                    val audioMessage = attachment as VkAudioMessageDomain
+                    AudioMessage(
+                        waveform = audioMessage.waveform
+                            .let(::downsampleWaveform)
+                            .let(::downsampleWaveform)
+                            .let { amplifyWaveform(it, audioMessage.waveform.max()) }
+                            .map(::WaveForm),
+                        isPlaying = false,
+                        onPlayClick = {}
+                    )
                 }
 
                 else -> {
