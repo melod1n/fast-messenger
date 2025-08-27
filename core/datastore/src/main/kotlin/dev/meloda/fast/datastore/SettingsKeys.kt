@@ -13,8 +13,8 @@ object SettingsKeys {
     const val DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON = false
     const val KEY_SHOW_ATTACHMENT_BUTTON = "show_attachment_button"
     const val DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON = false
-    const val KEY_SHOW_RECORD_VOICE_BUTTON = "show_record_voice_button"
-    const val DEFAULT_VALUE_SHOW_RECORD_VOICE_BUTTON = false
+    const val KEY_SHOW_MANUAL_REFRESH_OPTIONS = "show_manual_refresh_options"
+    const val DEFAULT_VALUE_SHOW_MANUAL_REFRESH_OPTIONS = false
 
     const val KEY_APPEARANCE = "appearance"
     const val KEY_APPEARANCE_MULTILINE = "appearance_multiline"

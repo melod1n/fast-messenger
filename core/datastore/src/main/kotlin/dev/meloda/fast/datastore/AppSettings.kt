@@ -103,6 +103,13 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_SHOW_ATTACHMENT_BUTTON, value)
 
+        var showManualRefreshOptions: Boolean
+            get() = get(
+                SettingsKeys.KEY_SHOW_MANUAL_REFRESH_OPTIONS,
+                SettingsKeys.DEFAULT_VALUE_SHOW_MANUAL_REFRESH_OPTIONS
+            )
+            set(value) = put(SettingsKeys.KEY_SHOW_MANUAL_REFRESH_OPTIONS, value)
+
         var enableHaptic: Boolean
             get() = get(
                 SettingsKeys.KEY_ENABLE_HAPTIC,

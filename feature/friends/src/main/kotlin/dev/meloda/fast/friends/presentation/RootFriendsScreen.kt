@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,7 +70,7 @@ fun FriendsRoute(
     val currentTheme = LocalThemeConfig.current
     val hazeState = LocalHazeState.current
 
-    var canScrollBackward by remember {
+    var canScrollBackward by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -115,35 +116,30 @@ fun FriendsRoute(
         derivedStateOf { pagerState.currentPage }
     }
 
-    var orderType: String by remember { mutableStateOf("hints") }
-
-    var showOrderDialog by remember { mutableStateOf(false) }
+    var orderType: String by rememberSaveable { mutableStateOf("hints") }
+    var showOrderDialog by rememberSaveable { mutableStateOf(false) }
 
     val orderPriority = stringResource(R.string.friends_order_priority)
     val orderName = stringResource(R.string.friends_order_name)
     val orderRandom = stringResource(R.string.friends_order_random)
-    val orderMobile = stringResource(R.string.friends_order_mobile)
-    val orderSmart = stringResource(R.string.friends_order_smart)
 
     val orderTitleItems = remember {
         ImmutableList.of(
             orderPriority,
             orderName,
             orderRandom,
-            orderMobile,
-            orderSmart
         )
     }
 
     val orderItems = remember {
-        listOf("hints", "name", "random", "mobile", "smart")
-    }
-
-    var selectedIndex by remember {
-        mutableIntStateOf(0)
+        listOf("hints", "name", "random")
     }
 
     if (showOrderDialog) {
+        var selectedIndex by remember {
+            mutableIntStateOf(orderItems.indexOf(orderType))
+        }
+
         MaterialDialog(
             onDismissRequest = { showOrderDialog = false },
             confirmText = stringResource(R.string.ok),

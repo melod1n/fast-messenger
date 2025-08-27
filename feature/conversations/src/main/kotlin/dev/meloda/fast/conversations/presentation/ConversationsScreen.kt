@@ -63,7 +63,9 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.conversations.navigation.ConversationsGraph
+import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
@@ -78,7 +80,6 @@ import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import dev.meloda.fast.ui.R
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -215,11 +216,35 @@ fun ConversationsScreen(
                             }
                         }
 
-                        IconButton(onClick = { dropDownMenuExpanded = true }) {
-                            Icon(
-                                imageVector = Icons.Rounded.MoreVert,
-                                contentDescription = null
-                            )
+                        val dropDownItems = mutableListOf<@Composable () -> Unit>()
+
+                        if (AppSettings.General.showManualRefreshOptions) {
+                            dropDownItems += {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        onRefreshDropdownItemClicked()
+                                        dropDownMenuExpanded = false
+                                    },
+                                    text = {
+                                        Text(text = stringResource(id = R.string.action_refresh))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Refresh,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
+                        if (dropDownItems.isNotEmpty()) {
+                            IconButton(onClick = { dropDownMenuExpanded = true }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.MoreVert,
+                                    contentDescription = null
+                                )
+                            }
                         }
 
                         DropdownMenu(
@@ -228,21 +253,7 @@ fun ConversationsScreen(
                             onDismissRequest = { dropDownMenuExpanded = false },
                             offset = DpOffset(x = (-4).dp, y = (-60).dp)
                         ) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    onRefreshDropdownItemClicked()
-                                    dropDownMenuExpanded = false
-                                },
-                                text = {
-                                    Text(text = stringResource(id = R.string.action_refresh))
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Refresh,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
+                            dropDownItems.forEach { it.invoke() }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

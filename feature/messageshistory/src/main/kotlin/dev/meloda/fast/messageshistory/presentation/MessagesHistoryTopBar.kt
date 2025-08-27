@@ -51,10 +51,9 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.getImage
-
-import dev.meloda.fast.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -221,13 +220,37 @@ fun MessagesHistoryTopBar(
                     )
                 }
             } else {
-                IconButton(
-                    onClick = { dropDownMenuExpanded = true }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = "Options"
-                    )
+                val dropDownItems = mutableListOf<@Composable () -> Unit>()
+
+                if (AppSettings.General.showManualRefreshOptions) {
+                    dropDownItems += {
+                        DropdownMenuItem(
+                            onClick = {
+                                onRefresh()
+                                dropDownMenuExpanded = false
+                            },
+                            text = {
+                                Text(text = stringResource(R.string.action_refresh))
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Refresh,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                }
+
+                if (dropDownItems.isNotEmpty()) {
+                    IconButton(
+                        onClick = { dropDownMenuExpanded = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.MoreVert,
+                            contentDescription = "Options"
+                        )
+                    }
                 }
 
                 DropdownMenu(
@@ -238,21 +261,7 @@ fun MessagesHistoryTopBar(
                     },
                     offset = DpOffset(x = (-4).dp, y = (-60).dp)
                 ) {
-                    DropdownMenuItem(
-                        onClick = {
-                            onRefresh()
-                            dropDownMenuExpanded = false
-                        },
-                        text = {
-                            Text(text = stringResource(R.string.action_refresh))
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Rounded.Refresh,
-                                contentDescription = null
-                            )
-                        }
-                    )
+                    dropDownItems.forEach { it.invoke() }
                 }
             }
         }

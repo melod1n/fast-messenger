@@ -1,5 +1,7 @@
 package dev.meloda.fast.common.extensions
 
+import android.os.Build
+import android.os.Bundle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
+import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -103,7 +106,7 @@ fun Any.asInt(): Int {
 }
 
 fun Any.asLong(): Long {
-    return when(this) {
+    return when (this) {
         is Number -> this.toLong()
 
         else -> throw IllegalArgumentException("Object is not numeric")
@@ -115,5 +118,21 @@ fun <T> Any.toList(mapper: (old: Any) -> T): List<T> {
         is List<*> -> this.mapNotNull { it?.run(mapper) }
 
         else -> emptyList()
+    }
+}
+
+fun <T> Bundle.getParcelableCompat(key: String, clazz: Class<T>): T? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelable(key, clazz)
+    } else {
+        getParcelable(key)
+    }
+}
+
+fun <T : Any> Bundle.getParcelableCompat(key: String, clazz: KClass<T>): T? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelable(key, clazz.java)
+    } else {
+        getParcelable(key)
     }
 }

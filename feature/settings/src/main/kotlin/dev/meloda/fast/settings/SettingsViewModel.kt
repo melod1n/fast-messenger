@@ -30,6 +30,7 @@ import dev.meloda.fast.settings.model.SettingsDialog
 import dev.meloda.fast.settings.model.SettingsItem
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.TextProvider
+import dev.meloda.fast.ui.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import dev.meloda.fast.ui.R
 
 class SettingsViewModel(
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
@@ -351,6 +351,12 @@ class SettingsViewModel(
             text = UiText.Resource(R.string.settings_general_show_attachment_button_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON
         )
+        val generalShowManualRefreshOptions = SettingsItem.Switch(
+            key = SettingsKeys.KEY_SHOW_MANUAL_REFRESH_OPTIONS,
+            defaultValue = SettingsKeys.DEFAULT_VALUE_SHOW_MANUAL_REFRESH_OPTIONS,
+            title = UiText.Simple("Refresh options"),
+            text = UiText.Simple("Show manual refresh options in some screens")
+        )
         val generalEnableHaptic = SettingsItem.Switch(
             key = SettingsKeys.KEY_ENABLE_HAPTIC,
             defaultValue = SettingsKeys.DEFAULT_ENABLE_HAPTIC,
@@ -538,6 +544,7 @@ class SettingsViewModel(
             generalUseContactNames,
             generalShowEmojiButton,
             generalShowAttachmentButton,
+            generalShowManualRefreshOptions,
             generalEnableHaptic
         )
         val appearanceList = listOf(

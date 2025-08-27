@@ -25,6 +25,7 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import com.conena.nanokt.collections.indexOfFirstOrNull
 import dev.meloda.fast.common.VkConstants
+import dev.meloda.fast.common.extensions.getParcelableCompat
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.orDots
 import dev.meloda.fast.common.extensions.removeIfCompat
@@ -57,6 +58,7 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.network.VkErrorCode
+import dev.meloda.fast.ui.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +69,6 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.random.Random
-import dev.meloda.fast.ui.R
 
 interface MessagesHistoryViewModel {
 
@@ -267,7 +268,7 @@ class MessagesHistoryViewModelImpl(
     override fun onDialogItemPicked(dialog: MessageDialog, bundle: Bundle) {
         when (dialog) {
             is MessageDialog.MessageOptions -> {
-                when (val option = bundle.getParcelable<MessageOption>("option")) {
+                when (val option = bundle.getParcelableCompat("option", MessageOption::class)) {
                     null -> Unit
 
                     MessageOption.Retry -> {
