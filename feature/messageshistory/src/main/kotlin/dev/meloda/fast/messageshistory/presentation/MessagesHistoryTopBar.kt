@@ -54,7 +54,7 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.getImage
 
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -114,7 +114,7 @@ fun MessagesHistoryTopBar(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(24.dp),
-                                painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
+                                painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
                                 contentDescription = "Favorites icon",
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -137,7 +137,7 @@ fun MessagesHistoryTopBar(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape),
-                                placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut),
+                                placeholder = painterResource(id = R.drawable.ic_account_circle_cut),
                             )
                         }
                     }
@@ -185,7 +185,7 @@ fun MessagesHistoryTopBar(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(UiR.drawable.round_reply_24),
+                            painter = painterResource(R.drawable.round_reply_24),
                             contentDescription = null
                         )
                     }
@@ -198,7 +198,7 @@ fun MessagesHistoryTopBar(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(UiR.drawable.round_reply_all_24),
+                        painter = painterResource(R.drawable.round_reply_all_24),
                         contentDescription = null
                     )
                 }
@@ -210,13 +210,13 @@ fun MessagesHistoryTopBar(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(UiR.drawable.round_forward_24),
+                        painter = painterResource(R.drawable.round_forward_24),
                         contentDescription = null
                     )
                 }
                 IconButton(onClick = onDeleteSelectedButtonClicked) {
                     Icon(
-                        painter = painterResource(UiR.drawable.round_delete_outline_24),
+                        painter = painterResource(R.drawable.round_delete_outline_24),
                         contentDescription = null
                     )
                 }
@@ -244,7 +244,7 @@ fun MessagesHistoryTopBar(
                             dropDownMenuExpanded = false
                         },
                         text = {
-                            Text(text = stringResource(UiR.string.action_refresh))
+                            Text(text = stringResource(R.string.action_refresh))
                         },
                         leadingIcon = {
                             Icon(

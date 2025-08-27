@@ -78,7 +78,7 @@ import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -185,9 +185,9 @@ fun ConversationsScreen(
                         Text(
                             text = stringResource(
                                 id = when {
-                                    screenState.isLoading -> UiR.string.title_loading
-                                    screenState.isArchive -> UiR.string.title_archive
-                                    else -> UiR.string.title_conversations
+                                    screenState.isLoading -> R.string.title_loading
+                                    screenState.isArchive -> R.string.title_archive
+                                    else -> R.string.title_conversations
                                 }
                             ),
                             maxLines = 1,
@@ -209,7 +209,7 @@ fun ConversationsScreen(
                         if (!screenState.isArchive) {
                             IconButton(onClick = onArchiveActionClicked) {
                                 Icon(
-                                    painter = painterResource(UiR.drawable.outline_archive_24),
+                                    painter = painterResource(R.drawable.outline_archive_24),
                                     contentDescription = null
                                 )
                             }
@@ -234,7 +234,7 @@ fun ConversationsScreen(
                                     dropDownMenuExpanded = false
                                 },
                                 text = {
-                                    Text(text = stringResource(id = UiR.string.action_refresh))
+                                    Text(text = stringResource(id = R.string.action_refresh))
                                 },
                                 leadingIcon = {
                                     Icon(
@@ -287,7 +287,7 @@ fun ConversationsScreen(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(id = UiR.drawable.round_create_24),
+                            painter = painterResource(id = R.drawable.round_create_24),
                             contentDescription = "Add chat button"
                         )
                     }
@@ -347,7 +347,7 @@ fun ConversationsScreen(
 
                     if (conversations.isEmpty()) {
                         NoItemsView(
-                            buttonText = stringResource(UiR.string.action_refresh),
+                            buttonText = stringResource(R.string.action_refresh),
                             onButtonClick = onRefresh
                         )
                     }

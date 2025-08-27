@@ -61,6 +61,7 @@ import dev.meloda.fast.photoviewer.PhotoViewViewModel
 import dev.meloda.fast.photoviewer.PhotoViewViewModelImpl
 import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenDialog
 import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.util.getImage
@@ -69,7 +70,6 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.net.URLEncoder
 import kotlin.math.abs
-import dev.meloda.fast.ui.R as UiR
 
 @Composable
 fun PhotoViewDialog(
@@ -136,7 +136,7 @@ private fun PhotoViewRoute(
                 scope.launch(Dispatchers.Main) {
                     Toast.makeText(
                         context,
-                        UiR.string.error_occurred,
+                        R.string.error_occurred,
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -285,7 +285,7 @@ private fun TopBar(
                         onShareClicked()
                     },
                     text = {
-                        Text(text = stringResource(UiR.string.action_share))
+                        Text(text = stringResource(R.string.action_share))
                     }
                 )
                 DropdownMenuItem(
@@ -294,7 +294,7 @@ private fun TopBar(
                         onOpenInClicked()
                     },
                     text = {
-                        Text(text = stringResource(UiR.string.action_open_in))
+                        Text(text = stringResource(R.string.action_open_in))
                     }
                 )
                 DropdownMenuItem(
@@ -303,7 +303,7 @@ private fun TopBar(
                         onCopyLinkClicked()
                     },
                     text = {
-                        Text(text = stringResource(UiR.string.action_copy_link))
+                        Text(text = stringResource(R.string.action_copy_link))
                     }
                 )
                 DropdownMenuItem(
@@ -312,7 +312,7 @@ private fun TopBar(
                         onCopyClicked()
                     },
                     text = {
-                        Text(text = stringResource(UiR.string.action_copy_image))
+                        Text(text = stringResource(R.string.action_copy_image))
                     },
                 )
             }

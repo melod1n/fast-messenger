@@ -44,7 +44,7 @@ import dev.meloda.fast.settings.presentation.item.TextFieldItem
 import dev.meloda.fast.settings.presentation.item.TitleItem
 import dev.meloda.fast.settings.presentation.item.TitleTextItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 
 @OptIn(
@@ -83,7 +83,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = UiR.string.title_settings),
+                        text = stringResource(id = R.string.title_settings),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.headlineSmall
@@ -92,7 +92,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter = painterResource(id = UiR.drawable.ic_round_arrow_back_24),
+                            painter = painterResource(id = R.drawable.ic_round_arrow_back_24),
                             contentDescription = "Back button"
                         )
                     }

@@ -53,7 +53,7 @@ import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.util.getImage
 import dev.meloda.fast.ui.util.getResourcePainter
 import dev.meloda.fast.ui.util.getString
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 val BirthdayColor = Color(0xffb00b69)
 
@@ -127,7 +127,7 @@ fun ConversationItem(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(32.dp),
-                                painter = painterResource(id = UiR.drawable.ic_round_bookmark_border_24),
+                                painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
                                 contentDescription = "Favorites icon",
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -150,7 +150,7 @@ fun ConversationItem(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape),
-                                placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
+                                placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
                             )
                         }
                     }
@@ -166,7 +166,7 @@ fun ConversationItem(
                                 modifier = Modifier
                                     .height(14.dp)
                                     .align(Alignment.Center),
-                                painter = painterResource(id = UiR.drawable.ic_round_push_pin_24),
+                                painter = painterResource(id = R.drawable.ic_round_push_pin_24),
                                 contentDescription = "Pin icon",
                                 tint = Color.White
                             )
@@ -222,7 +222,7 @@ fun ConversationItem(
                                     modifier = Modifier
                                         .align(Alignment.Center)
                                         .size(10.dp),
-                                    painter = painterResource(id = UiR.drawable.round_cake_24),
+                                    painter = painterResource(id = R.drawable.round_cake_24),
                                     contentDescription = "Birthday icon",
                                     tint = Color.White
                                 )

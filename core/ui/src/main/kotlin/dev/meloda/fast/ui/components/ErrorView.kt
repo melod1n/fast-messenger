@@ -20,12 +20,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun ErrorView(
     modifier: Modifier = Modifier,
-    iconResId: Int? = UiR.drawable.round_error_24,
+    iconResId: Int? = R.drawable.round_error_24,
     text: String,
     buttonText: String? = null,
     onButtonClick: (() -> Unit)? = null,

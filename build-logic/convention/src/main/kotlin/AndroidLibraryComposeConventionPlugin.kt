@@ -12,6 +12,7 @@ class AndroidLibraryComposeConventionPlugin : Plugin<Project> {
             apply(plugin = "org.jetbrains.kotlin.plugin.compose")
 
             val extension = extensions.getByType<LibraryExtension>()
+            extension.androidResources.enable = false
             configureAndroidCompose(extension)
         }
     }

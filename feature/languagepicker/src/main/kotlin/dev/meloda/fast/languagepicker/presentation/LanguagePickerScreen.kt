@@ -59,7 +59,7 @@ import dev.meloda.fast.languagepicker.LanguagePickerViewModelImpl
 import dev.meloda.fast.languagepicker.model.LanguagePickerScreenState
 import dev.meloda.fast.languagepicker.model.SelectableLanguage
 import org.koin.androidx.compose.koinViewModel
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun LanguagePickerRoute(
@@ -110,7 +110,7 @@ fun LanguagePickerScreen(
             LargeTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = UiR.string.title_application_language),
+                        text = stringResource(id = R.string.title_application_language),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -162,7 +162,7 @@ fun LanguagePickerScreen(
                                 )
                             },
                             text = {
-                                Text(text = stringResource(id = UiR.string.open_system_language_picker))
+                                Text(text = stringResource(id = R.string.open_system_language_picker))
                             }
                         )
                     }
@@ -216,7 +216,7 @@ fun LanguagePickerScreen(
                     .align(Alignment.BottomCenter)
                     .height(64.dp)
             ) {
-                Text(text = stringResource(id = UiR.string.action_apply))
+                Text(text = stringResource(id = R.string.action_apply))
             }
         }
     }

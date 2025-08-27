@@ -26,7 +26,6 @@ import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
 import java.text.SimpleDateFormat
 import java.util.Locale
-import dev.meloda.fast.ui.R as UiR
 
 private fun isAccount(fromId: Long) = fromId == UserConfig.userId
 
@@ -41,7 +40,7 @@ fun VkMessage.extractAvatar() = when {
     }
 
     else -> null
-}?.let(UiImage::Url) ?: UiImage.Resource(UiR.drawable.ic_account_circle_cut)
+}?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_cut)
 
 fun VkMessage.extractDate(): String =
     SimpleDateFormat("HH:mm", Locale.getDefault()).format(date * 1000L)
@@ -91,7 +90,7 @@ fun VkConversation.extractTitle(
 ) = when (peerType) {
     PeerType.USER -> {
         if (isAccount(id)) {
-            UiText.Resource(UiR.string.favorites)
+            UiText.Resource(R.string.favorites)
         } else {
             val userName = user?.let { user ->
                 if (useContactName) {
@@ -214,7 +213,7 @@ fun VkMessage.extractActionText(
         when (action) {
             VkMessage.Action.CHAT_CREATE -> {
                 val string = UiText.ResourceParams(
-                    UiR.string.message_action_chat_created,
+                    R.string.message_action_chat_created,
                     listOf(prefix, text)
                 ).parseString(resources)
                     .orEmpty()
@@ -242,7 +241,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_TITLE_UPDATE -> {
                 val string = UiText.ResourceParams(
-                    UiR.string.message_action_chat_renamed,
+                    R.string.message_action_chat_renamed,
                     listOf(prefix, text)
                 ).parseString(resources)
                     .orEmpty()
@@ -270,7 +269,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_PHOTO_UPDATE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_photo_update,
+                    R.string.message_action_chat_photo_update,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -290,7 +289,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_PHOTO_REMOVE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_photo_remove,
+                    R.string.message_action_chat_photo_remove,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -311,7 +310,7 @@ fun VkMessage.extractActionText(
             VkMessage.Action.CHAT_KICK_USER -> {
                 if (memberId == fromId) {
                     UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_left,
+                        R.string.message_action_chat_user_left,
                         listOf(memberPrefix)
                     ).parseString(resources)
                         .orEmpty()
@@ -333,7 +332,7 @@ fun VkMessage.extractActionText(
                         else lastMessage.actionUser.toString()
 
                     val string = UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_kicked,
+                        R.string.message_action_chat_user_kicked,
                         listOf(prefix, postfix)
                     ).parseString(resources)
                         .orEmpty()
@@ -363,7 +362,7 @@ fun VkMessage.extractActionText(
             VkMessage.Action.CHAT_INVITE_USER -> {
                 if (memberId == lastMessage.fromId) {
                     UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_returned,
+                        R.string.message_action_chat_user_returned,
                         listOf(memberPrefix)
                     ).parseString(resources)
                         .orEmpty()
@@ -385,7 +384,7 @@ fun VkMessage.extractActionText(
                         else lastMessage.actionUser.toString()
 
                     val string = UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_invited,
+                        R.string.message_action_chat_user_invited,
                         listOf(memberPrefix, postfix)
                     ).parseString(resources)
                         .orEmpty()
@@ -408,7 +407,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_user_joined_by_link,
+                    R.string.message_action_chat_user_joined_by_link,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -428,7 +427,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_user_joined_by_call,
+                    R.string.message_action_chat_user_joined_by_call,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -448,7 +447,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_user_joined_by_call_link,
+                    R.string.message_action_chat_user_joined_by_call_link,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -473,7 +472,7 @@ fun VkMessage.extractActionText(
 //                val hasMessageText = messageText.isNotEmpty()
 
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_pin_message,
+                    R.string.message_action_chat_pin_message,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -509,7 +508,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_unpin_message,
+                    R.string.message_action_chat_unpin_message,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -529,7 +528,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_SCREENSHOT -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_screenshot,
+                    R.string.message_action_chat_screenshot,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()
@@ -549,7 +548,7 @@ fun VkMessage.extractActionText(
 
             VkMessage.Action.CHAT_STYLE_UPDATE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_style_update,
+                    R.string.message_action_chat_style_update,
                     listOf(prefix)
                 ).parseString(resources)
                     .orEmpty()

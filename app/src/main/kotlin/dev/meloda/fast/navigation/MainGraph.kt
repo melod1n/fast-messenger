@@ -10,7 +10,7 @@ import dev.meloda.fast.presentation.MainScreen
 import dev.meloda.fast.profile.navigation.Profile
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.serialization.Serializable
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Serializable
 object MainGraph
@@ -28,21 +28,21 @@ fun NavGraphBuilder.mainScreen(
 ) {
     val navigationItems = ImmutableList.of(
         BottomNavigationItem(
-            titleResId = UiR.string.title_friends,
-            selectedIconResId = UiR.drawable.baseline_people_alt_24,
-            unselectedIconResId = UiR.drawable.outline_people_alt_24,
+            titleResId = R.string.title_friends,
+            selectedIconResId = R.drawable.baseline_people_alt_24,
+            unselectedIconResId = R.drawable.outline_people_alt_24,
             route = Friends,
         ),
         BottomNavigationItem(
-            titleResId = UiR.string.title_conversations,
-            selectedIconResId = UiR.drawable.baseline_chat_24,
-            unselectedIconResId = UiR.drawable.outline_chat_24,
+            titleResId = R.string.title_conversations,
+            selectedIconResId = R.drawable.baseline_chat_24,
+            unselectedIconResId = R.drawable.outline_chat_24,
             route = ConversationsGraph
         ),
         BottomNavigationItem(
-            titleResId = UiR.string.title_profile,
-            selectedIconResId = UiR.drawable.baseline_account_circle_24,
-            unselectedIconResId = UiR.drawable.outline_account_circle_24,
+            titleResId = R.string.title_profile,
+            selectedIconResId = R.drawable.baseline_account_circle_24,
+            unselectedIconResId = R.drawable.outline_account_circle_24,
             route = Profile
         )
     )

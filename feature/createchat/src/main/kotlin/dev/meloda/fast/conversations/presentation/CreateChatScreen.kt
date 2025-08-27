@@ -70,7 +70,7 @@ import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun CreateChatRoute(
@@ -195,8 +195,8 @@ fun CreateChatScreen(
                     title = {
                         Text(
                             text = stringResource(
-                                id = if (screenState.isLoading) UiR.string.title_loading
-                                else UiR.string.title_create_chat
+                                id = if (screenState.isLoading) R.string.title_loading
+                                else R.string.title_create_chat
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -231,8 +231,8 @@ fun CreateChatScreen(
                         .onFocusChanged { isTextFieldFocused = it.hasFocus },
                     value = screenState.chatTitle,
                     onValueChange = onTitleTextInputChanged,
-                    label = { Text(text = stringResource(UiR.string.create_chat_title)) },
-                    placeholder = { Text(text = stringResource(UiR.string.create_chat_title)) },
+                    label = { Text(text = stringResource(R.string.create_chat_title)) },
+                    placeholder = { Text(text = stringResource(R.string.create_chat_title)) },
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
                         unfocusedIndicatorColor = Color.Transparent,
@@ -252,7 +252,7 @@ fun CreateChatScreen(
                     ExtendedFloatingActionButton(
                         onClick = onCreateChatButtonClicked,
                         expanded = listState.isScrollingUp(),
-                        text = { Text(text = stringResource(UiR.string.action_create)) },
+                        text = { Text(text = stringResource(R.string.action_create)) },
                         icon = {
                             Icon(
                                 imageVector = Icons.Rounded.Done,
@@ -309,7 +309,7 @@ fun CreateChatScreen(
 
                     if (screenState.friends.isEmpty()) {
                         NoItemsView(
-                            buttonText = stringResource(UiR.string.action_refresh),
+                            buttonText = stringResource(R.string.action_refresh),
                             onButtonClick = onRefresh
                         )
                     }

@@ -56,7 +56,7 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -154,7 +154,7 @@ fun MessagesHistoryInputBar(
                             },
                         ) {
                             Icon(
-                                painter = painterResource(id = UiR.drawable.ic_outline_emoji_emotions_24),
+                                painter = painterResource(id = R.drawable.ic_outline_emoji_emotions_24),
                                 contentDescription = "Emoji button",
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -172,35 +172,35 @@ fun MessagesHistoryInputBar(
 
                             item(
                                 key = "Bold",
-                                label = context.getString(UiR.string.bold)
+                                label = context.getString(R.string.bold)
                             ) {
                                 onBoldRequested()
                                 close()
                             }
                             item(
                                 key = "Italic",
-                                label = context.getString(UiR.string.italic)
+                                label = context.getString(R.string.italic)
                             ) {
                                 onItalicRequested()
                                 close()
                             }
                             item(
                                 key = "Underline",
-                                label = context.getString(UiR.string.underline)
+                                label = context.getString(R.string.underline)
                             ) {
                                 onUnderlineRequested()
                                 close()
                             }
                             item(
                                 key = "Link",
-                                label = context.getString(UiR.string.link)
+                                label = context.getString(R.string.link)
                             ) {
                                 onLinkRequested()
                                 close()
                             }
                             item(
                                 key = "Regular",
-                                label = context.getString(UiR.string.regular)
+                                label = context.getString(R.string.regular)
                             ) {
                                 onRegularRequested()
                                 close()
@@ -218,7 +218,7 @@ fun MessagesHistoryInputBar(
                     ),
                     placeholder = {
                         Text(
-                            text = stringResource(id = UiR.string.message_input_hint),
+                            text = stringResource(id = R.string.message_input_hint),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -238,7 +238,7 @@ fun MessagesHistoryInputBar(
                             }
                         ) {
                             Icon(
-                                painter = painterResource(id = UiR.drawable.round_attach_file_24),
+                                painter = painterResource(id = R.drawable.round_attach_file_24),
                                 contentDescription = "Add attachment button",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
@@ -267,11 +267,11 @@ fun MessagesHistoryInputBar(
                             Icon(
                                 painter = painterResource(
                                     id = when (actionMode) {
-                                        ActionMode.DELETE -> UiR.drawable.round_delete_outline_24
-                                        ActionMode.EDIT -> UiR.drawable.ic_round_done_24
-                                        ActionMode.RECORD_AUDIO -> UiR.drawable.ic_round_mic_none_24
-                                        ActionMode.RECORD_VIDEO -> UiR.drawable.rounded_photo_camera_24
-                                        ActionMode.SEND -> UiR.drawable.round_send_24
+                                        ActionMode.DELETE -> R.drawable.round_delete_outline_24
+                                        ActionMode.EDIT -> R.drawable.ic_round_done_24
+                                        ActionMode.RECORD_AUDIO -> R.drawable.ic_round_mic_none_24
+                                        ActionMode.RECORD_VIDEO -> R.drawable.rounded_photo_camera_24
+                                        ActionMode.SEND -> R.drawable.round_send_24
                                     }
                                 ),
                                 contentDescription = null,

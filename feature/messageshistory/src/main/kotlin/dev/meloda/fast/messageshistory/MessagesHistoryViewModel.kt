@@ -67,7 +67,7 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.random.Random
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 interface MessagesHistoryViewModel {
 
@@ -1188,7 +1188,7 @@ class MessagesHistoryViewModelImpl(
         clipboardManager.setPrimaryClip(ClipData.newPlainText("Message", messageToCopy))
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S) {
-            Toast.makeText(applicationContext, UiR.string.copied_to_clipboard, Toast.LENGTH_SHORT)
+            Toast.makeText(applicationContext, R.string.copied_to_clipboard, Toast.LENGTH_SHORT)
                 .show()
         }
     }

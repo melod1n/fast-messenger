@@ -58,7 +58,7 @@ import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun CaptchaRoute(
@@ -116,11 +116,11 @@ fun CaptchaScreen(
     if (showExitAlert) {
         MaterialDialog(
             onDismissRequest = { showExitAlert = false },
-            title = stringResource(id = UiR.string.warning_confirmation),
-            text = stringResource(id = UiR.string.captcha_exit_warning),
+            title = stringResource(id = R.string.warning_confirmation),
+            text = stringResource(id = R.string.captcha_exit_warning),
             confirmAction = { confirmedExit = true },
-            confirmText = stringResource(id = UiR.string.yes),
-            cancelText = stringResource(id = UiR.string.no),
+            confirmText = stringResource(id = R.string.yes),
+            cancelText = stringResource(id = R.string.no),
             actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
@@ -187,7 +187,7 @@ fun CaptchaScreen(
 
                     if (LocalView.current.isInEditMode) {
                         Image(
-                            painter = painterResource(id = UiR.drawable.test_captcha),
+                            painter = painterResource(id = R.drawable.test_captcha),
                             contentDescription = "Captcha image",
                             modifier = imageModifier
                         )
@@ -219,7 +219,7 @@ fun CaptchaScreen(
                         .clip(RoundedCornerShape(10.dp)),
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = UiR.drawable.round_qr_code_24),
+                            painter = painterResource(id = R.drawable.round_qr_code_24),
                             contentDescription = "QR code icon",
                             tint = if (showError) {
                                 MaterialTheme.colorScheme.error

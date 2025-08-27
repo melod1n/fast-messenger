@@ -30,7 +30,7 @@ import java.io.FileOutputStream
 import java.net.URLDecoder
 import java.util.UUID
 
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 interface PhotoViewViewModel {
     val screenState: StateFlow<PhotoViewScreenState>
@@ -114,7 +114,7 @@ class PhotoViewViewModelImpl(
             viewModelScope.launch(Dispatchers.Main) {
                 Toast.makeText(
                     applicationContext,
-                    UiR.string.error_occurred,
+                    R.string.error_occurred,
                     Toast.LENGTH_LONG
                 ).show()
             }

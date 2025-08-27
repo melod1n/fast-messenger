@@ -52,7 +52,7 @@ import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 class MainActivity : AppCompatActivity() {
 
@@ -255,9 +255,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val noCategoryName = getString(UiR.string.notification_channel_no_category_name)
+            val noCategoryName = getString(R.string.notification_channel_no_category_name)
             val noCategoryDescriptionText =
-                getString(UiR.string.notification_channel_no_category_description)
+                getString(R.string.notification_channel_no_category_description)
             val noCategoryChannel =
                 NotificationChannel(
                     AppConstants.NOTIFICATION_CHANNEL_UNCATEGORIZED,
@@ -267,9 +267,9 @@ class MainActivity : AppCompatActivity() {
                     description = noCategoryDescriptionText
                 }
 
-            val longPollName = getString(UiR.string.notification_channel_long_polling_service_name)
+            val longPollName = getString(R.string.notification_channel_long_polling_service_name)
             val longPollDescriptionText =
-                getString(UiR.string.notification_channel_long_polling_service_description)
+                getString(R.string.notification_channel_long_polling_service_description)
             val longPollChannel =
                 NotificationChannel(
                     AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING,

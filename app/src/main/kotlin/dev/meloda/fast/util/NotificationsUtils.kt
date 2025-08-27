@@ -6,7 +6,7 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dev.meloda.fast.common.AppConstants
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 object NotificationsUtils {
 
@@ -28,7 +28,7 @@ object NotificationsUtils {
         actions: List<NotificationCompat.Action> = emptyList(),
     ): NotificationCompat.Builder {
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(UiR.drawable.ic_fast_logo)
+            .setSmallIcon(R.drawable.ic_fast_logo)
             .setContentTitle(title)
             .setPriority(priority.value)
             .setContentIntent(contentIntent)

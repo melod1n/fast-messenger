@@ -356,4 +356,11 @@
     <string name="action_copy_image">Copy image</string>
     <string name="action_open_in">Open in…</string>
     <string name="action_share">Share</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="today">Today</string>
+    <string name="year_short">Y</string>
+    <string name="month_short">M</string>
+    <string name="week_short">W</string>
+    <string name="day_short">D</string>
+    <string name="time_now">Now</string>
 </resources>

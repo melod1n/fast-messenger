@@ -23,6 +23,7 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkVideoDomain
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.api.ActionState
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
@@ -32,7 +33,6 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.ln
 import kotlin.math.pow
-import dev.meloda.fast.ui.R as UiR
 
 fun VkConversation.asPresentation(
     resources: Resources,
@@ -45,7 +45,14 @@ fun VkConversation.asPresentation(
     avatar = extractAvatar(),
     title = extractTitle(this, useContactName, resources),
     unreadCount = extractUnreadCount(lastMessage, this),
-    date = TimeUtils.getLocalizedTime(resources, (lastMessage?.date ?: -1) * 1000L),
+    date = TimeUtils.getLocalizedTime(
+        date = (lastMessage?.date ?: -1) * 1000L,
+        yearShort = { resources.getString(R.string.year_short) },
+        monthShort = { resources.getString(R.string.month_short) },
+        weekShort = { resources.getString(R.string.week_short) },
+        dayShort = { resources.getString(R.string.day_short) },
+        now = { resources.getString(R.string.time_now) },
+    ),
     message = extractMessage(resources, lastMessage, id, peerType),
     attachmentImage = if (lastMessage?.text == null) null
     else getAttachmentConversationIcon(lastMessage),
@@ -76,7 +83,7 @@ fun VkConversation.extractAvatar() = when (peerType) {
     PeerType.CHAT -> {
         photo200
     }
-}?.let(UiImage::Url) ?: UiImage.Resource(UiR.drawable.ic_account_circle_cut)
+}?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_cut)
 
 private fun extractTitle(
     conversation: VkConversation,
@@ -85,7 +92,7 @@ private fun extractTitle(
 ) = when (conversation.peerType) {
     PeerType.USER -> {
         if (isAccount(conversation.id)) {
-            UiText.Resource(UiR.string.favorites)
+            UiText.Resource(R.string.favorites)
         } else {
             val userName = conversation.user?.let { user ->
                 if (useContactName) {
@@ -130,7 +137,7 @@ private fun extractMessage(
     peerId: Long,
     peerType: PeerType
 ): AnnotatedString {
-    val youPrefix = UiText.Resource(UiR.string.you_message_prefix)
+    val youPrefix = UiText.Resource(R.string.you_message_prefix)
         .parseString(resources)
         .orDots()
 
@@ -265,7 +272,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_CREATE -> {
                 val string = UiText.ResourceParams(
-                    UiR.string.message_action_chat_created,
+                    R.string.message_action_chat_created,
                     listOf(prefix, text)
                 ).parseString(resources).orEmpty()
 
@@ -288,7 +295,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_TITLE_UPDATE -> {
                 val string = UiText.ResourceParams(
-                    UiR.string.message_action_chat_renamed,
+                    R.string.message_action_chat_renamed,
                     listOf(prefix, text)
                 ).parseString(resources).orEmpty()
 
@@ -311,7 +318,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_PHOTO_UPDATE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_photo_update,
+                    R.string.message_action_chat_photo_update,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -324,7 +331,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_PHOTO_REMOVE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_photo_remove,
+                    R.string.message_action_chat_photo_remove,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -338,7 +345,7 @@ private fun extractActionText(
             VkMessage.Action.CHAT_KICK_USER -> {
                 if (memberId == fromId) {
                     UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_left,
+                        R.string.message_action_chat_user_left,
                         listOf(memberPrefix)
                     ).parseString(resources).orEmpty().let(::append)
 
@@ -353,7 +360,7 @@ private fun extractActionText(
                         else lastMessage.actionUser.toString()
 
                     val string = UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_kicked,
+                        R.string.message_action_chat_user_kicked,
                         listOf(prefix, postfix)
                     ).parseString(resources).orEmpty()
 
@@ -378,7 +385,7 @@ private fun extractActionText(
             VkMessage.Action.CHAT_INVITE_USER -> {
                 if (memberId == lastMessage.fromId) {
                     UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_returned,
+                        R.string.message_action_chat_user_returned,
                         listOf(memberPrefix)
                     ).parseString(resources).orEmpty().let(::append)
 
@@ -393,7 +400,7 @@ private fun extractActionText(
                         else lastMessage.actionUser.toString()
 
                     val string = UiText.ResourceParams(
-                        UiR.string.message_action_chat_user_invited,
+                        R.string.message_action_chat_user_invited,
                         listOf(memberPrefix, postfix)
                     ).parseString(resources).orEmpty()
 
@@ -411,7 +418,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_INVITE_USER_BY_LINK -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_user_joined_by_link,
+                    R.string.message_action_chat_user_joined_by_link,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -424,7 +431,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_INVITE_USER_BY_CALL -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_user_joined_by_call,
+                    R.string.message_action_chat_user_joined_by_call,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -437,7 +444,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_INVITE_USER_BY_CALL_LINK -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_user_joined_by_call_link,
+                    R.string.message_action_chat_user_joined_by_call_link,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -450,7 +457,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_PIN_MESSAGE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_pin_message,
+                    R.string.message_action_chat_pin_message,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -463,7 +470,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_UNPIN_MESSAGE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_unpin_message,
+                    R.string.message_action_chat_unpin_message,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -476,7 +483,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_SCREENSHOT -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_screenshot,
+                    R.string.message_action_chat_screenshot,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -489,7 +496,7 @@ private fun extractActionText(
 
             VkMessage.Action.CHAT_STYLE_UPDATE -> {
                 UiText.ResourceParams(
-                    UiR.string.message_action_chat_style_update,
+                    R.string.message_action_chat_style_update,
                     listOf(prefix)
                 ).parseString(resources).orEmpty().let(::append)
 
@@ -510,9 +517,9 @@ private fun extractAttachmentIcon(
     lastMessage.text == null -> null
     !lastMessage.forwards.isNullOrEmpty() -> {
         if (lastMessage.forwards.orEmpty().size == 1) {
-            UiImage.Resource(UiR.drawable.ic_attachment_forwarded_message)
+            UiImage.Resource(R.drawable.ic_attachment_forwarded_message)
         } else {
-            UiImage.Resource(UiR.drawable.ic_attachment_forwarded_messages)
+            UiImage.Resource(R.drawable.ic_attachment_forwarded_messages)
         }
     }
 
@@ -521,12 +528,12 @@ private fun extractAttachmentIcon(
             if (attachments.isEmpty()) return null
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
                 lastMessage.geoType?.let {
-                    return UiImage.Resource(UiR.drawable.ic_map_marker)
+                    return UiImage.Resource(R.drawable.ic_map_marker)
                 }
 
                 getAttachmentIconByType(attachments.first().type)
             } else {
-                UiImage.Resource(UiR.drawable.ic_baseline_attach_file_24)
+                UiImage.Resource(R.drawable.ic_baseline_attach_file_24)
             }
         }
     }
@@ -542,13 +549,13 @@ private fun extractAttachmentText(
             withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
                 when (lastMessage.geoType) {
                     "point" -> {
-                        UiText.Resource(UiR.string.message_geo_point)
+                        UiText.Resource(R.string.message_geo_point)
                             .parseString(resources)
                             .let(::append)
                     }
 
                     else -> {
-                        UiText.Resource(UiR.string.message_geo)
+                        UiText.Resource(R.string.message_geo)
                             .parseString(resources)
                             .let(::append)
                     }
@@ -583,7 +590,7 @@ private fun extractAttachmentText(
                         }
 
                         else -> {
-                            UiText.Resource(UiR.string.message_attachments_many)
+                            UiText.Resource(R.string.message_attachments_many)
                                 .parseString(resources)
                                 .let(::append)
                         }
@@ -598,22 +605,22 @@ private fun extractAttachmentText(
 
 private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
     return when (attachmentType) {
-        AttachmentType.PHOTO -> UiR.drawable.ic_attachment_photo
-        AttachmentType.VIDEO -> UiR.drawable.ic_attachment_video
-        AttachmentType.AUDIO -> UiR.drawable.ic_attachment_audio
-        AttachmentType.FILE -> UiR.drawable.ic_attachment_file
-        AttachmentType.LINK -> UiR.drawable.ic_attachment_link
-        AttachmentType.AUDIO_MESSAGE -> UiR.drawable.ic_attachment_voice
-        AttachmentType.MINI_APP -> UiR.drawable.ic_attachment_mini_app
-        AttachmentType.STICKER -> UiR.drawable.ic_attachment_sticker
-        AttachmentType.GIFT -> UiR.drawable.ic_attachment_gift
-        AttachmentType.WALL -> UiR.drawable.ic_attachment_wall
-        AttachmentType.GRAFFITI -> UiR.drawable.ic_attachment_graffiti
-        AttachmentType.POLL -> UiR.drawable.ic_attachment_poll
-        AttachmentType.WALL_REPLY -> UiR.drawable.ic_attachment_wall_reply
-        AttachmentType.CALL -> UiR.drawable.ic_attachment_call
-        AttachmentType.GROUP_CALL_IN_PROGRESS -> UiR.drawable.ic_attachment_group_call
-        AttachmentType.STORY -> UiR.drawable.ic_attachment_story
+        AttachmentType.PHOTO -> R.drawable.ic_attachment_photo
+        AttachmentType.VIDEO -> R.drawable.ic_attachment_video
+        AttachmentType.AUDIO -> R.drawable.ic_attachment_audio
+        AttachmentType.FILE -> R.drawable.ic_attachment_file
+        AttachmentType.LINK -> R.drawable.ic_attachment_link
+        AttachmentType.AUDIO_MESSAGE -> R.drawable.ic_attachment_voice
+        AttachmentType.MINI_APP -> R.drawable.ic_attachment_mini_app
+        AttachmentType.STICKER -> R.drawable.ic_attachment_sticker
+        AttachmentType.GIFT -> R.drawable.ic_attachment_gift
+        AttachmentType.WALL -> R.drawable.ic_attachment_wall
+        AttachmentType.GRAFFITI -> R.drawable.ic_attachment_graffiti
+        AttachmentType.POLL -> R.drawable.ic_attachment_poll
+        AttachmentType.WALL_REPLY -> R.drawable.ic_attachment_wall_reply
+        AttachmentType.CALL -> R.drawable.ic_attachment_call
+        AttachmentType.GROUP_CALL_IN_PROGRESS -> R.drawable.ic_attachment_group_call
+        AttachmentType.STORY -> R.drawable.ic_attachment_story
         AttachmentType.UNKNOWN -> null
         AttachmentType.CURATOR -> null
         AttachmentType.EVENT -> null
@@ -624,7 +631,7 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.NARRATIVE -> null
         AttachmentType.ARTICLE -> null
         AttachmentType.VIDEO_MESSAGE -> null
-        AttachmentType.GROUP_CHAT_STICKER -> UiR.drawable.ic_attachment_sticker
+        AttachmentType.GROUP_CHAT_STICKER -> R.drawable.ic_attachment_sticker
         AttachmentType.STICKER_PACK_PREVIEW -> null
     }?.let(UiImage::Resource)
 }
@@ -653,8 +660,8 @@ private fun extractForwardsText(
         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
             append(
                 UiText.Resource(
-                    if (forwards.size == 1) UiR.string.forwarded_message
-                    else UiR.string.forwarded_messages
+                    if (forwards.size == 1) R.string.forwarded_message
+                    else R.string.forwarded_messages
                 ).parseString(resources)
             )
         }
@@ -732,15 +739,15 @@ private fun getAttachmentUiText(
     if (attachment.type == AttachmentType.VIDEO &&
         (attachment as? VkVideoDomain)?.isShortVideo == true
     ) {
-        return UiText.Resource(UiR.string.message_attachments_clip)
+        return UiText.Resource(R.string.message_attachments_clip)
     }
 
     if (attachment.type.isMultiple()) {
         return when (attachment.type) {
-            AttachmentType.PHOTO -> UiR.plurals.attachment_photos
-            AttachmentType.VIDEO -> UiR.plurals.attachment_videos
-            AttachmentType.AUDIO -> UiR.plurals.attachment_audios
-            AttachmentType.FILE -> UiR.plurals.attachment_files
+            AttachmentType.PHOTO -> R.plurals.attachment_photos
+            AttachmentType.VIDEO -> R.plurals.attachment_videos
+            AttachmentType.AUDIO -> R.plurals.attachment_audios
+            AttachmentType.FILE -> R.plurals.attachment_files
             else -> throw IllegalArgumentException("Unknown multiple type: ${attachment.type}")
         }.let { resId -> UiText.QuantityResource(resId, size) }
     }
@@ -754,29 +761,29 @@ private fun getAttachmentUiText(
             throw IllegalArgumentException("Unknown multiple type: ${attachment.type}")
         }
 
-        AttachmentType.LINK -> UiR.string.message_attachments_link
-        AttachmentType.AUDIO_MESSAGE -> UiR.string.message_attachments_audio_message
-        AttachmentType.MINI_APP -> UiR.string.message_attachments_mini_app
-        AttachmentType.STICKER -> UiR.string.message_attachments_sticker
-        AttachmentType.GIFT -> UiR.string.message_attachments_gift
-        AttachmentType.WALL -> UiR.string.message_attachments_wall
-        AttachmentType.GRAFFITI -> UiR.string.message_attachments_graffiti
-        AttachmentType.POLL -> UiR.string.message_attachments_poll
-        AttachmentType.WALL_REPLY -> UiR.string.message_attachments_wall_reply
-        AttachmentType.CALL -> UiR.string.message_attachments_call
-        AttachmentType.GROUP_CALL_IN_PROGRESS -> UiR.string.message_attachments_call_in_progress
-        AttachmentType.CURATOR -> UiR.string.message_attachments_curator
-        AttachmentType.EVENT -> UiR.string.message_attachments_event
-        AttachmentType.STORY -> UiR.string.message_attachments_story
-        AttachmentType.WIDGET -> UiR.string.message_attachments_widget
-        AttachmentType.ARTIST -> UiR.string.message_attachments_artist
-        AttachmentType.AUDIO_PLAYLIST -> UiR.string.message_attachments_audio_playlist
-        AttachmentType.PODCAST -> UiR.string.message_attachments_podcast
-        AttachmentType.NARRATIVE -> UiR.string.message_attachments_narrative
-        AttachmentType.ARTICLE -> UiR.string.message_attachments_article
-        AttachmentType.VIDEO_MESSAGE -> UiR.string.message_attachments_video_message
-        AttachmentType.GROUP_CHAT_STICKER -> UiR.string.message_attachments_group_sticker
-        AttachmentType.STICKER_PACK_PREVIEW -> UiR.string.message_attachments_sticker_pack_preview
+        AttachmentType.LINK -> R.string.message_attachments_link
+        AttachmentType.AUDIO_MESSAGE -> R.string.message_attachments_audio_message
+        AttachmentType.MINI_APP -> R.string.message_attachments_mini_app
+        AttachmentType.STICKER -> R.string.message_attachments_sticker
+        AttachmentType.GIFT -> R.string.message_attachments_gift
+        AttachmentType.WALL -> R.string.message_attachments_wall
+        AttachmentType.GRAFFITI -> R.string.message_attachments_graffiti
+        AttachmentType.POLL -> R.string.message_attachments_poll
+        AttachmentType.WALL_REPLY -> R.string.message_attachments_wall_reply
+        AttachmentType.CALL -> R.string.message_attachments_call
+        AttachmentType.GROUP_CALL_IN_PROGRESS -> R.string.message_attachments_call_in_progress
+        AttachmentType.CURATOR -> R.string.message_attachments_curator
+        AttachmentType.EVENT -> R.string.message_attachments_event
+        AttachmentType.STORY -> R.string.message_attachments_story
+        AttachmentType.WIDGET -> R.string.message_attachments_widget
+        AttachmentType.ARTIST -> R.string.message_attachments_artist
+        AttachmentType.AUDIO_PLAYLIST -> R.string.message_attachments_audio_playlist
+        AttachmentType.PODCAST -> R.string.message_attachments_podcast
+        AttachmentType.NARRATIVE -> R.string.message_attachments_narrative
+        AttachmentType.ARTICLE -> R.string.message_attachments_article
+        AttachmentType.VIDEO_MESSAGE -> R.string.message_attachments_video_message
+        AttachmentType.GROUP_CHAT_STICKER -> R.string.message_attachments_group_sticker
+        AttachmentType.STICKER_PACK_PREVIEW -> R.string.message_attachments_sticker_pack_preview
     }.let(UiText::Resource)
 }
 
@@ -785,11 +792,11 @@ private fun getAttachmentConversationIcon(message: VkMessage?): UiImage? {
         if (attachments.isEmpty()) return null
         if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
             message.geoType?.let {
-                return UiImage.Resource(UiR.drawable.ic_map_marker)
+                return UiImage.Resource(R.drawable.ic_map_marker)
             }
             getAttachmentIconByType(attachments.first().type)
         } else {
-            UiImage.Resource(UiR.drawable.ic_baseline_attach_file_24)
+            UiImage.Resource(R.drawable.ic_baseline_attach_file_24)
         }
     }
 }
@@ -835,17 +842,17 @@ private fun extractInteractionText(
         } else {
             if (!conversation.peerType.isChat() && interactiveUsers.size == 1) {
                 when (interactionType) {
-                    InteractionType.File -> UiR.string.chat_interaction_uploading_file
-                    InteractionType.Photo -> UiR.string.chat_interaction_uploading_photo
-                    InteractionType.Typing -> UiR.string.chat_interaction_typing
-                    InteractionType.Video -> UiR.string.chat_interaction_uploading_video
-                    InteractionType.VoiceMessage -> UiR.string.chat_interaction_recording_audio_message
+                    InteractionType.File -> R.string.chat_interaction_uploading_file
+                    InteractionType.Photo -> R.string.chat_interaction_uploading_photo
+                    InteractionType.Typing -> R.string.chat_interaction_typing
+                    InteractionType.Video -> R.string.chat_interaction_uploading_video
+                    InteractionType.VoiceMessage -> R.string.chat_interaction_recording_audio_message
                 }.let(UiText::Resource)
             } else {
                 if (interactiveUsers.size == 1) {
-                    UiR.string.chat_interaction_chat_single_typing
+                    R.string.chat_interaction_chat_single_typing
                 } else {
-                    UiR.string.chat_interaction_chat_typing
+                    R.string.chat_interaction_chat_typing
                 }.let { resId ->
                     UiText.ResourceParams(
                         resId,

@@ -41,7 +41,7 @@ import dev.meloda.fast.profile.ProfileViewModelImpl
 import dev.meloda.fast.profile.model.ProfileScreenState
 import org.koin.androidx.compose.koinViewModel
 
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun ProfileRoute(
@@ -115,7 +115,7 @@ fun ProfileScreen(
                     model = screenState.avatarUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = UiR.drawable.ic_account_circle_cut)
+                    placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
                 )
 
                 Spacer(modifier = Modifier.height(18.dp))

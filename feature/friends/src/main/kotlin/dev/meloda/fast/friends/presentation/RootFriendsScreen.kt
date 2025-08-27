@@ -54,7 +54,6 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.getViewModel
-import dev.meloda.fast.ui.R as UiR
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -120,11 +119,11 @@ fun FriendsRoute(
 
     var showOrderDialog by remember { mutableStateOf(false) }
 
-    val orderPriority = stringResource(UiR.string.friends_order_priority)
-    val orderName = stringResource(UiR.string.friends_order_name)
-    val orderRandom = stringResource(UiR.string.friends_order_random)
-    val orderMobile = stringResource(UiR.string.friends_order_mobile)
-    val orderSmart = stringResource(UiR.string.friends_order_smart)
+    val orderPriority = stringResource(R.string.friends_order_priority)
+    val orderName = stringResource(R.string.friends_order_name)
+    val orderRandom = stringResource(R.string.friends_order_random)
+    val orderMobile = stringResource(R.string.friends_order_mobile)
+    val orderSmart = stringResource(R.string.friends_order_smart)
 
     val orderTitleItems = remember {
         ImmutableList.of(
@@ -158,7 +157,7 @@ fun FriendsRoute(
             onItemClick = {
                 selectedIndex = it
             },
-            title = stringResource(UiR.string.friends_order_by_title),
+            title = stringResource(R.string.friends_order_by_title),
             actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
@@ -202,7 +201,7 @@ fun FriendsRoute(
                             }
                         ) {
                             Icon(
-                                painter = painterResource(UiR.drawable.round_filter_list_24),
+                                painter = painterResource(R.drawable.round_filter_list_24),
                                 contentDescription = null
                             )
                         }

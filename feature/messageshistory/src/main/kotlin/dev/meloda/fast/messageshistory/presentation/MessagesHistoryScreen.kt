@@ -50,7 +50,7 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
 import kotlinx.coroutines.launch
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -167,7 +167,7 @@ fun MessagesHistoryScreen(
             val topBarTitle by remember(screenState, selectedMessages) {
                 derivedStateOf {
                     when {
-                        screenState.isLoading -> context.getString(UiR.string.title_loading)
+                        screenState.isLoading -> context.getString(R.string.title_loading)
                         selectedMessages.isNotEmpty() -> "(${selectedMessages.size})"
                         else -> screenState.title
                     }

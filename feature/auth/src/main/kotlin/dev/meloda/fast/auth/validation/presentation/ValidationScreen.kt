@@ -60,7 +60,7 @@ import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun ValidationRoute(
@@ -142,11 +142,11 @@ fun ValidationScreen(
     if (showExitAlert) {
         MaterialDialog(
             onDismissRequest = { showExitAlert = false },
-            title = stringResource(id = UiR.string.warning_confirmation),
-            text = stringResource(id = UiR.string.validation_exit_warning),
+            title = stringResource(id = R.string.warning_confirmation),
+            text = stringResource(id = R.string.validation_exit_warning),
             confirmAction = { confirmedExit = true },
-            confirmText = stringResource(id = UiR.string.yes),
-            cancelText = stringResource(id = UiR.string.no),
+            confirmText = stringResource(id = R.string.yes),
+            cancelText = stringResource(id = R.string.no),
             actionInvokeDismiss = ActionInvokeDismiss.Always
         )
     }
@@ -223,7 +223,7 @@ fun ValidationScreen(
                         .semantics { contentType = ContentType.SmsOtpCode },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = UiR.drawable.round_qr_code_24),
+                            painter = painterResource(id = R.drawable.round_qr_code_24),
                             contentDescription = "QR Code icon",
                             tint = if (screenState.codeError) {
                                 MaterialTheme.colorScheme.error
@@ -271,7 +271,7 @@ fun ValidationScreen(
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(id = UiR.drawable.round_sms_24),
+                                painter = painterResource(id = R.drawable.round_sms_24),
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 contentDescription = "SMS icon"
                             )

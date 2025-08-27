@@ -60,7 +60,6 @@ import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import dev.meloda.fast.ui.R as UiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,7 +157,7 @@ fun AudioMaterialsScreen(
                                     .background(MaterialTheme.colorScheme.primary)
                                     .size(42.dp)
                                     .padding(4.dp),
-                                painter = painterResource(UiR.drawable.round_play_arrow_24),
+                                painter = painterResource(R.drawable.round_play_arrow_24),
                                 contentDescription = null,
                                 tint = contentColorFor(MaterialTheme.colorScheme.primary)
                             )

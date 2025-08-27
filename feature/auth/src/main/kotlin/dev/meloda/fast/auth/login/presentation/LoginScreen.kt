@@ -69,7 +69,7 @@ import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.util.handleEnterKey
 import dev.meloda.fast.ui.util.handleTabKey
 import org.koin.androidx.compose.koinViewModel
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun LoginRoute(
@@ -210,7 +210,7 @@ fun LoginScreen(
                         .align(Alignment.Center)
                 ) {
                     Text(
-                        text = stringResource(id = UiR.string.sign_in_to_vk),
+                        text = stringResource(id = R.string.sign_in_to_vk),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.displayMedium
                     )
@@ -236,11 +236,11 @@ fun LoginScreen(
                             },
                         value = screenState.login,
                         onValueChange = onLoginInputChanged,
-                        label = { Text(text = stringResource(id = UiR.string.login_hint)) },
-                        placeholder = { Text(text = stringResource(id = UiR.string.login_hint)) },
+                        label = { Text(text = stringResource(id = R.string.login_hint)) },
+                        placeholder = { Text(text = stringResource(id = R.string.login_hint)) },
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(id = UiR.drawable.ic_round_person_24),
+                                painter = painterResource(id = R.drawable.ic_round_person_24),
                                 contentDescription = "Login icon",
                                 tint = if (screenState.loginError) {
                                     MaterialTheme.colorScheme.error
@@ -261,7 +261,7 @@ fun LoginScreen(
                         visible = screenState.loginError,
                         label = "Login error visibility"
                     ) {
-                        TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
+                        TextFieldErrorText(text = stringResource(id = R.string.error_empty_field))
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -280,11 +280,11 @@ fun LoginScreen(
                             .semantics { contentType = ContentType.Password },
                         value = screenState.password,
                         onValueChange = onPasswordInputChanged,
-                        label = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
-                        placeholder = { Text(text = stringResource(id = UiR.string.password_login_hint)) },
+                        label = { Text(text = stringResource(id = R.string.password_login_hint)) },
+                        placeholder = { Text(text = stringResource(id = R.string.password_login_hint)) },
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(id = UiR.drawable.round_vpn_key_24),
+                                painter = painterResource(id = R.drawable.round_vpn_key_24),
                                 contentDescription = "Password icon",
                                 tint = if (screenState.passwordError) {
                                     MaterialTheme.colorScheme.error
@@ -295,8 +295,8 @@ fun LoginScreen(
                         },
                         trailingIcon = {
                             val imagePainter = painterResource(
-                                id = if (screenState.passwordVisible) UiR.drawable.round_visibility_off_24
-                                else UiR.drawable.round_visibility_24
+                                id = if (screenState.passwordVisible) R.drawable.round_visibility_off_24
+                                else R.drawable.round_visibility_24
                             )
 
                             IconButton(onClick = onPasswordVisibilityButtonClicked) {
@@ -329,7 +329,7 @@ fun LoginScreen(
                         visible = screenState.passwordError,
                         label = "Password error visibility"
                     ) {
-                        TextFieldErrorText(text = stringResource(id = UiR.string.error_empty_field))
+                        TextFieldErrorText(text = stringResource(id = R.string.error_empty_field))
                     }
                 }
             }
@@ -364,7 +364,7 @@ fun LoginScreen(
                         label = "Sign in icon visibility"
                     ) {
                         Icon(
-                            painter = painterResource(id = UiR.drawable.ic_arrow_end),
+                            painter = painterResource(id = R.drawable.ic_arrow_end),
                             contentDescription = "Sign in icon",
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -397,7 +397,7 @@ fun LoginScreen(
                                 )
                             }
                         ) {
-                            Text(stringResource(UiR.string.login_sign_up))
+                            Text(stringResource(R.string.login_sign_up))
                         }
 
                         Text(
@@ -412,7 +412,7 @@ fun LoginScreen(
                                 )
                             }
                         ) {
-                            Text(stringResource(UiR.string.login_forgot_password))
+                            Text(stringResource(R.string.login_forgot_password))
                         }
                     }
                 }
@@ -433,11 +433,11 @@ fun HandleDialogs(
         is LoginDialog.Error -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(loginDialog) },
-                title = stringResource(UiR.string.title_error),
+                title = stringResource(R.string.title_error),
                 text = loginDialog.errorTextResId?.let { stringResource(it) }
                     ?: loginDialog.errorText
-                    ?: stringResource(UiR.string.unknown_error_occurred),
-                confirmText = stringResource(id = UiR.string.ok)
+                    ?: stringResource(R.string.unknown_error_occurred),
+                confirmText = stringResource(id = R.string.ok)
             )
         }
     }

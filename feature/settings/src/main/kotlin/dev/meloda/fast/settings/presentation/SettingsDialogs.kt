@@ -29,7 +29,7 @@ import dev.meloda.fast.settings.model.SettingsDialog
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun HandleDialogs(
@@ -50,16 +50,16 @@ fun HandleDialogs(
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
                 title = stringResource(
-                    id = if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
-                    else UiR.string.sign_out_confirm_title
+                    id = if (isEasterEgg) R.string.easter_egg_log_out_dmitry
+                    else R.string.sign_out_confirm_title
                 ),
-                text = stringResource(id = UiR.string.sign_out_confirm),
+                text = stringResource(id = R.string.sign_out_confirm),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
                 confirmText = stringResource(
-                    id = if (isEasterEgg) UiR.string.easter_egg_log_out_dmitry
-                    else UiR.string.action_sign_out
+                    id = if (isEasterEgg) R.string.easter_egg_log_out_dmitry
+                    else R.string.action_sign_out
                 ),
-                cancelText = stringResource(id = UiR.string.no),
+                cancelText = stringResource(id = R.string.no),
                 actionInvokeDismiss = ActionInvokeDismiss.Always
             )
         }
@@ -70,8 +70,8 @@ fun HandleDialogs(
                 title = "Perform crash",
                 text = "App will be crashed. Are you sure?",
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
-                confirmText = stringResource(id = UiR.string.yes),
-                cancelText = stringResource(id = UiR.string.cancel),
+                confirmText = stringResource(id = R.string.yes),
+                cancelText = stringResource(id = R.string.cancel),
                 actionInvokeDismiss = ActionInvokeDismiss.Always
             )
         }
@@ -101,7 +101,7 @@ fun HandleDialogs(
                     )
                 },
                 confirmText = "Import",
-                cancelText = stringResource(UiR.string.cancel)
+                cancelText = stringResource(R.string.cancel)
             ) {
                 Column(
                     modifier = Modifier
@@ -210,7 +210,7 @@ fun HandleDialogs(
                         )
                     )
                 },
-                confirmText = stringResource(UiR.string.ok),
+                confirmText = stringResource(R.string.ok),
             ) {
                 Column(
                     modifier = Modifier

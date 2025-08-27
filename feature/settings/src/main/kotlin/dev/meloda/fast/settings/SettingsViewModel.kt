@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 class SettingsViewModel(
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
@@ -319,65 +319,65 @@ class SettingsViewModel(
         val accountVisible = UserConfig.isLoggedIn()
         val accountTitle = SettingsItem.Title(
             key = SettingsKeys.KEY_ACCOUNT,
-            title = UiText.Resource(UiR.string.settings_account_title),
+            title = UiText.Resource(R.string.settings_account_title),
             isVisible = accountVisible
         )
         val accountLogOut = SettingsItem.TitleText(
             key = SettingsKeys.KEY_ACCOUNT_LOGOUT,
-            title = UiText.Resource(UiR.string.settings_account_logout_title),
-            text = UiText.Resource(UiR.string.settings_account_logout_summary),
+            title = UiText.Resource(R.string.settings_account_logout_title),
+            text = UiText.Resource(R.string.settings_account_logout_summary),
             isVisible = accountVisible
         )
 
         val generalTitle = SettingsItem.Title(
             key = SettingsKeys.KEY_GENERAL,
-            title = UiText.Resource(UiR.string.settings_general_title)
+            title = UiText.Resource(R.string.settings_general_title)
         )
         val generalUseContactNames = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_CONTACT_NAMES,
-            title = UiText.Resource(UiR.string.settings_general_contact_names_title),
-            text = UiText.Resource(UiR.string.settings_general_contact_names_summary),
+            title = UiText.Resource(R.string.settings_general_contact_names_title),
+            text = UiText.Resource(R.string.settings_general_contact_names_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_USE_CONTACT_NAMES
         )
         val generalShowEmojiButton = SettingsItem.Switch(
             key = SettingsKeys.KEY_SHOW_EMOJI_BUTTON,
-            title = UiText.Resource(UiR.string.settings_general_show_emoji_button_title),
-            text = UiText.Resource(UiR.string.settings_general_show_emoji_button_summary),
+            title = UiText.Resource(R.string.settings_general_show_emoji_button_title),
+            text = UiText.Resource(R.string.settings_general_show_emoji_button_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON
         )
         val generalShowAttachmentButton = SettingsItem.Switch(
             key = SettingsKeys.KEY_SHOW_ATTACHMENT_BUTTON,
-            title = UiText.Resource(UiR.string.settings_general_show_attachment_button_title),
-            text = UiText.Resource(UiR.string.settings_general_show_attachment_button_summary),
+            title = UiText.Resource(R.string.settings_general_show_attachment_button_title),
+            text = UiText.Resource(R.string.settings_general_show_attachment_button_summary),
             defaultValue = SettingsKeys.DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON
         )
         val generalEnableHaptic = SettingsItem.Switch(
             key = SettingsKeys.KEY_ENABLE_HAPTIC,
             defaultValue = SettingsKeys.DEFAULT_ENABLE_HAPTIC,
-            title = UiText.Resource(UiR.string.settings_general_enable_haptic_title)
+            title = UiText.Resource(R.string.settings_general_enable_haptic_title)
         )
 
         val appearanceTitle = SettingsItem.Title(
             key = SettingsKeys.KEY_APPEARANCE,
-            title = UiText.Resource(UiR.string.settings_appearance_title)
+            title = UiText.Resource(R.string.settings_appearance_title)
         )
         val appearanceMultiline = SettingsItem.Switch(
             key = SettingsKeys.KEY_APPEARANCE_MULTILINE,
             defaultValue = SettingsKeys.DEFAULT_VALUE_MULTILINE,
-            title = UiText.Resource(UiR.string.settings_appearance_multiline_title),
-            text = UiText.Resource(UiR.string.settings_appearance_multiline_summary)
+            title = UiText.Resource(R.string.settings_appearance_multiline_title),
+            text = UiText.Resource(R.string.settings_appearance_multiline_summary)
         )
 
         val darkThemeValues = listOf(
-            DarkMode.ENABLED to UiText.Resource(UiR.string.settings_dark_theme_value_enabled),
-            DarkMode.FOLLOW_SYSTEM to UiText.Resource(UiR.string.settings_dark_theme_value_follow_system),
-            DarkMode.AUTO_BATTERY to UiText.Resource(UiR.string.settings_dark_theme_value_battery_saver),
-            DarkMode.DISABLED to UiText.Resource(UiR.string.settings_dark_theme_value_disabled)
+            DarkMode.ENABLED to UiText.Resource(R.string.settings_dark_theme_value_enabled),
+            DarkMode.FOLLOW_SYSTEM to UiText.Resource(R.string.settings_dark_theme_value_follow_system),
+            DarkMode.AUTO_BATTERY to UiText.Resource(R.string.settings_dark_theme_value_battery_saver),
+            DarkMode.DISABLED to UiText.Resource(R.string.settings_dark_theme_value_disabled)
         ).toMap()
 
         val appearanceDarkTheme = SettingsItem.ListItem(
             key = SettingsKeys.KEY_APPEARANCE_DARK_MODE,
-            title = UiText.Resource(UiR.string.settings_dark_theme),
+            title = UiText.Resource(R.string.settings_dark_theme),
             valueClass = Int::class,
             defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_DARK_MODE,
             titles = darkThemeValues.values.toList(),
@@ -387,10 +387,10 @@ class SettingsViewModel(
                 val darkThemeValue = darkThemeValues[DarkMode.parse(item.value)]
 
                 UiText.ResourceParams(
-                    value = UiR.string.settings_dark_theme_current_value,
+                    value = R.string.settings_dark_theme_current_value,
                     args = listOf(
                         darkThemeValue
-                            ?: UiText.Resource(UiR.string.settings_dark_theme_current_value_unknown)
+                            ?: UiText.Resource(R.string.settings_dark_theme_current_value_unknown)
                     )
                 )
             }
@@ -398,38 +398,38 @@ class SettingsViewModel(
         val appearanceUseAmoledDarkTheme = SettingsItem.Switch(
             key = SettingsKeys.KEY_APPEARANCE_AMOLED_THEME,
             defaultValue = SettingsKeys.DEFAULT_VALUE_APPEARANCE_AMOLED_THEME,
-            title = UiText.Resource(UiR.string.settings_amoled_dark_theme),
-            text = UiText.Resource(UiR.string.settings_amoled_dark_theme_description)
+            title = UiText.Resource(R.string.settings_amoled_dark_theme),
+            text = UiText.Resource(R.string.settings_amoled_dark_theme_description)
         )
         val appearanceUseDynamicColors = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_DYNAMIC_COLORS,
-            title = UiText.Resource(UiR.string.settings_dynamic_colors),
+            title = UiText.Resource(R.string.settings_dynamic_colors),
             isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-            text = UiText.Resource(UiR.string.settings_dynamic_colors_description),
+            text = UiText.Resource(R.string.settings_dynamic_colors_description),
             defaultValue = SettingsKeys.DEFAULT_VALUE_USE_DYNAMIC_COLORS
         )
         val appearanceUseSystemFont = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_SYSTEM_FONT,
             defaultValue = SettingsKeys.DEFAULT_USE_SYSTEM_FONT,
-            title = UiText.Resource(UiR.string.settings_appearance_use_system_font_title)
+            title = UiText.Resource(R.string.settings_appearance_use_system_font_title)
         )
         val appearanceLanguage = SettingsItem.TitleText(
             key = SettingsKeys.KEY_APPEARANCE_LANGUAGE,
-            title = UiText.Resource(UiR.string.settings_application_language),
+            title = UiText.Resource(R.string.settings_application_language),
         )
 
         val featuresTitle = SettingsItem.Title(
             key = "features",
-            title = UiText.Resource(UiR.string.settings_features_title)
+            title = UiText.Resource(R.string.settings_features_title)
         )
         val featuresFastText = SettingsItem.TextField(
             key = SettingsKeys.KEY_FEATURES_FAST_TEXT,
-            title = UiText.Resource(UiR.string.settings_features_fast_text_title),
+            title = UiText.Resource(R.string.settings_features_fast_text_title),
             defaultValue = SettingsKeys.DEFAULT_VALUE_FEATURES_FAST_TEXT
         ).apply {
             textProvider = TextProvider { settingsItem ->
                 UiText.ResourceParams(
-                    UiR.string.pref_message_fast_text_summary,
+                    R.string.pref_message_fast_text_summary,
                     listOf(settingsItem.value)
                 )
             }
@@ -437,46 +437,46 @@ class SettingsViewModel(
 
         val activityTitle = SettingsItem.Title(
             key = "activity",
-            title = UiText.Resource(UiR.string.settings_activity_title)
+            title = UiText.Resource(R.string.settings_activity_title)
         )
         val visibilitySendOnlineStatus = SettingsItem.Switch(
             key = SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS,
             defaultValue = SettingsKeys.DEFAULT_VALUE_KEY_ACTIVITY_SEND_ONLINE_STATUS,
-            title = UiText.Resource(UiR.string.settings_activity_send_online_title),
-            text = UiText.Resource(UiR.string.settings_activity_send_online_summary)
+            title = UiText.Resource(R.string.settings_activity_send_online_title),
+            text = UiText.Resource(R.string.settings_activity_send_online_summary)
         )
 
         val experimentalTitle = SettingsItem.Title(
             key = "experimental",
-            title = UiText.Resource(UiR.string.settings_experimental_title)
+            title = UiText.Resource(R.string.settings_experimental_title)
         )
         val experimentalLongPollBackground = SettingsItem.Switch(
             key = SettingsKeys.KEY_LONG_POLL_IN_BACKGROUND,
             defaultValue = SettingsKeys.DEFAULT_LONG_POLL_IN_BACKGROUND,
-            title = UiText.Resource(UiR.string.settings_features_long_poll_in_background_title),
-            text = UiText.Resource(UiR.string.settings_features_long_poll_in_background_summary)
+            title = UiText.Resource(R.string.settings_features_long_poll_in_background_title),
+            text = UiText.Resource(R.string.settings_features_long_poll_in_background_summary)
         )
         val experimentalShowTimeInActionMessages = SettingsItem.Switch(
             key = SettingsKeys.KEY_SHOW_TIME_IN_ACTION_MESSAGES,
             defaultValue = SettingsKeys.DEFAULT_SHOW_TIME_IN_ACTION_MESSAGES,
-            title = UiText.Resource(UiR.string.settings_features_show_time_in_action_messages_title)
+            title = UiText.Resource(R.string.settings_features_show_time_in_action_messages_title)
         )
         val experimentalUseBlur = SettingsItem.Switch(
             key = SettingsKeys.KEY_USE_BLUR,
             defaultValue = SettingsKeys.DEFAULT_USE_BLUR,
-            title = UiText.Resource(UiR.string.settings_experimental_use_blur_title),
-            text = UiText.Resource(UiR.string.settings_experimental_use_blur_summary)
+            title = UiText.Resource(R.string.settings_experimental_use_blur_title),
+            text = UiText.Resource(R.string.settings_experimental_use_blur_summary)
         )
         val enableAnimations = SettingsItem.Switch(
             key = SettingsKeys.KEY_MORE_ANIMATIONS,
             defaultValue = SettingsKeys.DEFAULT_MORE_ANIMATIONS,
-            title = UiText.Resource(UiR.string.settings_experimental_more_animations_title),
-            text = UiText.Resource(UiR.string.settings_experimental_more_animations_summary)
+            title = UiText.Resource(R.string.settings_experimental_more_animations_title),
+            text = UiText.Resource(R.string.settings_experimental_more_animations_summary)
         )
 
         val debugTitle = SettingsItem.Title(
             key = "debug",
-            title = UiText.Resource(UiR.string.settings_debug_title)
+            title = UiText.Resource(R.string.settings_debug_title)
         )
         val debugPerformCrash = SettingsItem.TitleText(
             key = SettingsKeys.KEY_DEBUG_PERFORM_CRASH,

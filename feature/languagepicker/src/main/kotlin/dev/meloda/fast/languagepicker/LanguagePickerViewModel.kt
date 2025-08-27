@@ -12,7 +12,7 @@ import dev.meloda.fast.languagepicker.model.SelectableLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 interface LanguagePickerViewModel {
     val screenState: StateFlow<LanguagePickerScreenState>
@@ -32,23 +32,23 @@ class LanguagePickerViewModelImpl(
         val languages = listOf(
             Triple(
                 "",
-                UiText.Resource(UiR.string.language_key_system),
-                UiText.Resource(UiR.string.language_system)
+                UiText.Resource(R.string.language_key_system),
+                UiText.Resource(R.string.language_system)
             ),
             Triple(
                 "en-US",
-                UiText.Resource(UiR.string.language_key_english),
-                UiText.Resource(UiR.string.language_english),
+                UiText.Resource(R.string.language_key_english),
+                UiText.Resource(R.string.language_english),
             ),
             Triple(
                 "ru-RU",
-                UiText.Resource(UiR.string.language_key_russian),
-                UiText.Resource(UiR.string.language_russian)
+                UiText.Resource(R.string.language_key_russian),
+                UiText.Resource(R.string.language_russian)
             ),
             Triple(
                 "uk-UA",
-                UiText.Resource(UiR.string.language_key_ukrainian),
-                UiText.Resource(UiR.string.language_ukrainian)
+                UiText.Resource(R.string.language_key_ukrainian),
+                UiText.Resource(R.string.language_ukrainian)
             )
         ).map { (key, language, local) ->
             Triple(

@@ -8,7 +8,7 @@ import dev.meloda.fast.conversations.model.ConversationDialog
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.ui.components.MaterialDialog
 
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun HandleDialogs(
@@ -24,50 +24,50 @@ fun HandleDialogs(
         is ConversationDialog.ConversationArchive -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
-                title = stringResource(id = UiR.string.confirm_archive_conversation),
+                title = stringResource(id = R.string.confirm_archive_conversation),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
-                confirmText = stringResource(id = UiR.string.action_archive),
-                cancelText = stringResource(id = UiR.string.cancel)
+                confirmText = stringResource(id = R.string.action_archive),
+                cancelText = stringResource(id = R.string.cancel)
             )
         }
 
         is ConversationDialog.ConversationUnarchive -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
-                title = stringResource(id = UiR.string.confirm_unarchive_conversation),
+                title = stringResource(id = R.string.confirm_unarchive_conversation),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
-                confirmText = stringResource(id = UiR.string.action_unarchive),
-                cancelText = stringResource(id = UiR.string.cancel)
+                confirmText = stringResource(id = R.string.action_unarchive),
+                cancelText = stringResource(id = R.string.cancel)
             )
         }
 
         is ConversationDialog.ConversationDelete -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
-                title = stringResource(id = UiR.string.confirm_delete_conversation),
+                title = stringResource(id = R.string.confirm_delete_conversation),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
-                confirmText = stringResource(id = UiR.string.action_delete),
-                cancelText = stringResource(id = UiR.string.cancel)
+                confirmText = stringResource(id = R.string.action_delete),
+                cancelText = stringResource(id = R.string.cancel)
             )
         }
 
         is ConversationDialog.ConversationPin -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
-                title = stringResource(id = UiR.string.confirm_pin_conversation),
+                title = stringResource(id = R.string.confirm_pin_conversation),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
-                confirmText = stringResource(id = UiR.string.action_pin),
-                cancelText = stringResource(id = UiR.string.cancel)
+                confirmText = stringResource(id = R.string.action_pin),
+                cancelText = stringResource(id = R.string.cancel)
             )
         }
 
         is ConversationDialog.ConversationUnpin -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
-                title = stringResource(id = UiR.string.confirm_unpin_conversation),
+                title = stringResource(id = R.string.confirm_unpin_conversation),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
-                confirmText = stringResource(id = UiR.string.action_unpin),
-                cancelText = stringResource(id = UiR.string.cancel)
+                confirmText = stringResource(id = R.string.action_unpin),
+                cancelText = stringResource(id = R.string.cancel)
             )
         }
     }

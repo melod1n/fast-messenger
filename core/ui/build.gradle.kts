@@ -6,6 +6,7 @@ plugins {
 
 android {
     namespace = "dev.meloda.fast.ui"
+    androidResources.enable = true
 }
 
 dependencies {
@@ -18,6 +19,8 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
+
+    implementation(libs.bundles.nanokt)
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlin.serialization)

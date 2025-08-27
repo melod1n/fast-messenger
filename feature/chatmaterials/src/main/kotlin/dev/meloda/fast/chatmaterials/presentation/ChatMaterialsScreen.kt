@@ -58,7 +58,7 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Composable
 fun ChatMaterialsRoute(
@@ -88,11 +88,11 @@ fun ChatMaterialsScreen(
 
     val titles = remember {
         listOf(
-            UiR.string.chat_attachment_photos,
-            UiR.string.chat_attachment_videos,
-            UiR.string.chat_attachment_music,
-            UiR.string.chat_attachment_files,
-            UiR.string.chat_attachment_links,
+            R.string.chat_attachment_photos,
+            R.string.chat_attachment_videos,
+            R.string.chat_attachment_music,
+            R.string.chat_attachment_files,
+            R.string.chat_attachment_links,
         )
     }
 
@@ -157,7 +157,7 @@ fun ChatMaterialsScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = stringResource(UiR.string.chat_materials_title),
+                            text = stringResource(R.string.chat_materials_title),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.headlineSmall

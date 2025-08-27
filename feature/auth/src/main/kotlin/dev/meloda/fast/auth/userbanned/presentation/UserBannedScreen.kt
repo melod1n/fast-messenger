@@ -24,7 +24,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.auth.userbanned.model.UserBannedScreenState
-import dev.meloda.fast.ui.R as UiR
+import dev.meloda.fast.ui.R
 
 @Preview
 @Composable
@@ -74,7 +74,7 @@ fun UserBannedScreen(
                     }
                 },
                 title = {
-                    Text(text = stringResource(id = UiR.string.warning))
+                    Text(text = stringResource(id = R.string.warning))
                 }
             )
         }
@@ -86,7 +86,7 @@ fun UserBannedScreen(
                 .padding(vertical = 8.dp)
         ) {
             Text(
-                text = stringResource(id = UiR.string.account_temporarily_blocked),
+                text = stringResource(id = R.string.account_temporarily_blocked),
                 style = MaterialTheme.typography.titleLarge,
 
                 )
@@ -94,7 +94,7 @@ fun UserBannedScreen(
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Medium)) {
-                        append(stringResource(id = UiR.string.user_name))
+                        append(stringResource(id = R.string.user_name))
                         append(": ")
                     }
 
@@ -104,7 +104,7 @@ fun UserBannedScreen(
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Medium)) {
-                        append(stringResource(id = UiR.string.blocking_reason_title))
+                        append(stringResource(id = R.string.blocking_reason_title))
                         append(": ")
                     }
                     append(screenState.message)
