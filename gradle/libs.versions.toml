@@ -1,5 +1,5 @@
 [versions]
-agp = "8.12.2"
+agp = "8.13.0"
 retrofit = "3.0.0"
 eithernet = "2.0.0"
 haze = "1.6.10"
