@@ -168,10 +168,8 @@ fun ConversationsScreen(
 
     val toolbarContainerColor by animateColorAsState(
         targetValue =
-            if (currentTheme.enableBlur || !listState.canScrollBackward)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+            if (!listState.canScrollBackward) MaterialTheme.colorScheme.surface
+            else MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         label = "toolbarColorAlpha",
         animationSpec = tween(durationMillis = 50)
     )
@@ -266,7 +264,7 @@ fun ConversationsScreen(
                             if (currentTheme.enableBlur) {
                                 Modifier.hazeEffect(
                                     state = hazeState,
-                                    style = HazeMaterials.thick()
+                                    style = HazeMaterials.regular(toolbarContainerColor)
                                 )
                             } else Modifier
                         )

@@ -18,7 +18,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,28 +75,20 @@ fun MainScreen(
     }
 
     BackHandler(enabled = selectedItemIndex != 1) {
-        val index = 1
         val currentRoute = navigationItems[selectedItemIndex].route
 
         selectedItemIndex = 1
-        navController.navigate(navigationItems[index].route) {
+        navController.navigate(navigationItems[selectedItemIndex].route) {
             popUpTo(route = currentRoute) {
                 inclusive = true
             }
         }
     }
 
-    val user = LocalUser.current
-    val profileImageUrl by remember(user) {
-        derivedStateOf { user?.photo100 }
-    }
+    val profileImageUrl = LocalUser.current?.photo100
 
     var tabReselected by remember {
-        mutableStateOf(
-            navigationItems.associate {
-                it.route to false
-            }
-        )
+        mutableStateOf(navigationItems.associate { it.route to false })
     }
 
     Scaffold(
@@ -109,7 +100,7 @@ fun MainScreen(
                         if (theme.enableBlur) {
                             Modifier.hazeEffect(
                                 state = hazeState,
-                                style = HazeMaterials.thick()
+                                style = HazeMaterials.regular(NavigationBarDefaults.containerColor)
                             )
                         } else Modifier
                     ),

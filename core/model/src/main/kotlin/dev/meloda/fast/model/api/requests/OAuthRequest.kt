@@ -35,7 +35,7 @@ data class AuthDirectRequest(
 }
 
 data class AuthWithAppRequest(
-    val redirectUrl: String = "https://oauth.vk.com/blank.html",
+    val redirectUrl: String = "https://oauth.vk.ru/blank.html",
     val display: String = "page",
     val responseType: String = "token",
     val accessToken: String,

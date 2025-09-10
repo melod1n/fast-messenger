@@ -107,7 +107,7 @@ fun SettingsScreen(
                         if (themeConfig.enableBlur) {
                             Modifier.hazeEffect(
                                 state = hazeState,
-                                style = HazeMaterials.thick()
+                                style = HazeMaterials.regular()
                             )
                         } else {
                             Modifier

@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import dev.meloda.fast.auth.captcha.CaptchaViewModel
 import dev.meloda.fast.auth.captcha.CaptchaViewModelImpl
@@ -66,6 +67,7 @@ fun CaptchaRoute(
     onResult: (String) -> Unit,
     viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
 ) {
+    LocalViewModelStoreOwner.current
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isNeedToOpenLogin by viewModel.isNeedToOpenLogin.collectAsStateWithLifecycle()
 

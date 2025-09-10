@@ -393,7 +393,7 @@ fun LoginScreen(
                         TextButton(
                             onClick = {
                                 context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, "https://vk.com/join".toUri())
+                                    Intent(Intent.ACTION_VIEW, "https://vk.ru/join".toUri())
                                 )
                             }
                         ) {
@@ -408,7 +408,7 @@ fun LoginScreen(
                         TextButton(
                             onClick = {
                                 context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, "https://vk.com/restore".toUri())
+                                    Intent(Intent.ACTION_VIEW, "https://vk.ru/restore".toUri())
                                 )
                             }
                         ) {

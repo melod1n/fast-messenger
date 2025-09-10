@@ -27,6 +27,6 @@ data class VkStickerDomain(
             backgroundImages.firstOrNull { it.width >= width }?.url
         }
         images != null -> images.firstOrNull { it.width >= width }?.url
-        else -> "https://vk.com/sticker/1-${id}-${width}b"
+        else -> "https://vk.ru/sticker/1-${id}-${width}b"
     }
 }
