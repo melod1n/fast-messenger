@@ -9,7 +9,7 @@ Unofficial messenger for russian social network VKontakte
     - [x] Captcha support
     - [x] Support for new authorization with service and refresh tokens
     - [ ] Handle token expiration
-    - [ ] Ability to export/import tokens
+    - [x] Ability to export/import tokens
 - [x] Conversations list
     - [x] Pagination
     - [x] Manual refresh
