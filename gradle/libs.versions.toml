@@ -4,7 +4,7 @@ retrofit = "3.0.0"
 eithernet = "2.0.0"
 haze = "1.6.10"
 kotlin = "2.2.10"
-ksp = "2.2.10-2.0.2"
+ksp = "2.2.20-2.0.2"
 
 compose-bom = "2025.08.01"
 koin = "4.1.1"
