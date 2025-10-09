@@ -37,6 +37,7 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAudioDomain
 import dev.meloda.fast.model.api.domain.VkAudioMessageDomain
 import dev.meloda.fast.model.api.domain.VkFileDomain
+import dev.meloda.fast.model.api.domain.VkGiftDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.model.api.domain.VkStickerDomain
@@ -122,6 +123,10 @@ fun Attachments(
                     Sticker(
                         item = attachment as VkStickerDomain
                     )
+                }
+
+                AttachmentType.GIFT -> {
+                    Gift(item = attachment as VkGiftDomain)
                 }
 
                 AttachmentType.VIDEO_MESSAGE -> {
