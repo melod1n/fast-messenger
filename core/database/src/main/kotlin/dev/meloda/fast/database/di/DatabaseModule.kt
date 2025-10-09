@@ -17,7 +17,7 @@ val databaseModule = module {
 
     single {
         Room.databaseBuilder(get(), CacheDatabase::class.java, "cache")
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(true)
             .build()
     }
     single { cacheDB().userDao() }

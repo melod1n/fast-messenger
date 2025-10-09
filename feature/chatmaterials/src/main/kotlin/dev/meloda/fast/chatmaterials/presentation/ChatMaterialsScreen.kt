@@ -17,11 +17,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -52,13 +50,13 @@ import dev.meloda.fast.chatmaterials.presentation.materials.FileMaterialsScreen
 import dev.meloda.fast.chatmaterials.presentation.materials.LinkMaterialsScreen
 import dev.meloda.fast.chatmaterials.presentation.materials.PhotoMaterialsScreen
 import dev.meloda.fast.chatmaterials.presentation.materials.VideoMaterialsScreen
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
-import dev.meloda.fast.ui.R
 
 @Composable
 fun ChatMaterialsRoute(
@@ -176,17 +174,11 @@ fun ChatMaterialsScreen(
                         }
                     }
                 )
-                ScrollableTabRow(
+                PrimaryScrollableTabRow(
                     modifier = Modifier.fillMaxWidth(),
                     selectedTabIndex = selectedTabIndex,
                     containerColor = Color.Transparent,
-                    edgePadding = 0.dp,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.PrimaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    edgePadding = 0.dp
                 ) {
                     tabItems.forEachIndexed { index, item ->
                         Tab(
