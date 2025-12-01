@@ -18,8 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -157,7 +155,7 @@ fun AudioMaterialsScreen(
                                     .background(MaterialTheme.colorScheme.primary)
                                     .size(42.dp)
                                     .padding(4.dp),
-                                painter = painterResource(R.drawable.round_play_arrow_24),
+                                painter = painterResource(R.drawable.round_fill_play_arrow_24px),
                                 contentDescription = null,
                                 tint = contentColorFor(MaterialTheme.colorScheme.primary)
                             )
@@ -205,7 +203,7 @@ fun AudioMaterialsScreen(
                                     colors = IconButtonDefaults.filledIconButtonColors()
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Rounded.KeyboardArrowUp,
+                                        painter = painterResource(R.drawable.round_keyboard_arrow_up_24px),
                                         contentDescription = null
                                     )
                                 }

@@ -13,11 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -161,11 +156,13 @@ fun MessagesHistoryTopBar(
             ) {
                 Crossfade(targetState = !isMessagesSelecting) { state ->
                     Icon(
-                        imageVector = if (state) {
-                            Icons.AutoMirrored.Rounded.ArrowBack
-                        } else {
-                            Icons.Rounded.Close
-                        },
+                        painter = painterResource(
+                            if (state) {
+                                R.drawable.round_arrow_back_24px
+                            } else {
+                                R.drawable.round_close_24px
+                            }
+                        ),
                         contentDescription = if (state) "Close button"
                         else "Back button"
                     )
@@ -234,7 +231,7 @@ fun MessagesHistoryTopBar(
                             },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Rounded.Refresh,
+                                    painter = painterResource(R.drawable.round_refresh_24px),
                                     contentDescription = null
                                 )
                             }
@@ -247,7 +244,7 @@ fun MessagesHistoryTopBar(
                         onClick = { dropDownMenuExpanded = true }
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.MoreVert,
+                            painter = painterResource(R.drawable.round_more_vert_24px),
                             contentDescription = "Options"
                         )
                     }

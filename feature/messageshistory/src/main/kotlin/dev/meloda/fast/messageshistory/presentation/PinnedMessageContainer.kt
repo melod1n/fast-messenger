@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -84,7 +82,7 @@ fun PinnedMessageContainer(
             IconButton(onClick = onUnpinMessageButtonClicked) {
                 Icon(
                     modifier = Modifier.alpha(0.5f),
-                    imageVector = Icons.Rounded.Close,
+                    painter = painterResource(R.drawable.round_close_24px),
                     contentDescription = null
                 )
             }

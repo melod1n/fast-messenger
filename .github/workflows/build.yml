@@ -1,10 +1,7 @@
 name: Android CI Build
 
 on:
-  push:
-    branches: [ "master", "hotfix/*", "feature/*" ]
-  pull_request:
-    branches: [ "master", "hotfix/*", "feature/*" ]
+  workflow_dispatch:
 
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}

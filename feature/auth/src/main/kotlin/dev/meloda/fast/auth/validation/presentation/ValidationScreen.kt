@@ -18,9 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -56,11 +53,11 @@ import dev.meloda.fast.auth.validation.ValidationViewModel
 import dev.meloda.fast.auth.validation.ValidationViewModelImpl
 import dev.meloda.fast.auth.validation.model.ValidationScreenState
 import dev.meloda.fast.auth.validation.model.ValidationType
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
 import org.koin.androidx.compose.koinViewModel
-import dev.meloda.fast.ui.R
 
 @Composable
 fun ValidationRoute(
@@ -173,7 +170,7 @@ fun ValidationScreen(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Rounded.Close,
+                        painter = painterResource(R.drawable.round_close_24px),
                         contentDescription = "Close icon",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
@@ -287,7 +284,7 @@ fun ValidationScreen(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Done,
+                        painter = painterResource(R.drawable.round_check_24px),
                         contentDescription = "Done icon",
                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )

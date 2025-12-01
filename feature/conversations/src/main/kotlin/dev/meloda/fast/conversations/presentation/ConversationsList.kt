@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,9 +19,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.conversations.model.ConversationsScreenState
 import dev.meloda.fast.data.UserConfig
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.api.ConversationOption
 import dev.meloda.fast.ui.model.api.UiConversation
 import dev.meloda.fast.ui.theme.LocalBottomPadding
@@ -112,7 +112,7 @@ fun ConversationsList(
                         colors = IconButtonDefaults.filledIconButtonColors()
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowUp,
+                            painter = painterResource(R.drawable.round_keyboard_arrow_up_24px),
                             contentDescription = null
                         )
                     }

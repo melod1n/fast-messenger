@@ -21,9 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -51,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -63,6 +61,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.conversations.CreateChatViewModel
 import dev.meloda.fast.conversations.model.CreateChatScreenState
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.components.NoItemsView
@@ -70,7 +69,6 @@ import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
-import dev.meloda.fast.ui.R
 
 @Composable
 fun CreateChatRoute(
@@ -187,7 +185,7 @@ fun CreateChatScreen(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                painter = painterResource(R.drawable.round_arrow_back_24px),
                                 contentDescription = null
                             )
                         }
@@ -255,7 +253,7 @@ fun CreateChatScreen(
                         text = { Text(text = stringResource(R.string.action_create)) },
                         icon = {
                             Icon(
-                                imageVector = Icons.Rounded.Done,
+                                painter = painterResource(R.drawable.round_check_24px),
                                 contentDescription = null
                             )
                         }

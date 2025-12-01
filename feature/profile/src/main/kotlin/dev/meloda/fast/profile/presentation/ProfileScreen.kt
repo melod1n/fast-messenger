@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,9 +37,8 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.profile.ProfileViewModel
 import dev.meloda.fast.profile.ProfileViewModelImpl
 import dev.meloda.fast.profile.model.ProfileScreenState
-import org.koin.androidx.compose.koinViewModel
-
 import dev.meloda.fast.ui.R
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileRoute(
@@ -77,7 +74,7 @@ fun ProfileScreen(
                 actions = {
                     IconButton(onClick = onSettingsButtonClicked) {
                         Icon(
-                            imageVector = Icons.Rounded.Settings,
+                            painter = painterResource(R.drawable.round_settings_24px),
                             contentDescription = null
                         )
                     }

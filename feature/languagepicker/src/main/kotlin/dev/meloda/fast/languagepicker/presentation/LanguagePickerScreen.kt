@@ -21,9 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -47,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
@@ -58,8 +56,8 @@ import dev.meloda.fast.languagepicker.LanguagePickerViewModel
 import dev.meloda.fast.languagepicker.LanguagePickerViewModelImpl
 import dev.meloda.fast.languagepicker.model.LanguagePickerScreenState
 import dev.meloda.fast.languagepicker.model.SelectableLanguage
-import org.koin.androidx.compose.koinViewModel
 import dev.meloda.fast.ui.R
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LanguagePickerRoute(
@@ -117,7 +115,7 @@ fun LanguagePickerScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            painter = painterResource(R.drawable.round_arrow_back_24px),
                             contentDescription = "Navigate back"
                         )
                     }
@@ -134,7 +132,7 @@ fun LanguagePickerScreen(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.MoreVert,
+                            painter = painterResource(R.drawable.round_more_vert_24px),
                             contentDescription = "Options"
                         )
                     }

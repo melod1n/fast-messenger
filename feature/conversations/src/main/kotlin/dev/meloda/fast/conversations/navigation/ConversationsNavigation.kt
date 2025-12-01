@@ -8,8 +8,8 @@ import dev.meloda.fast.conversations.ConversationsViewModel
 import dev.meloda.fast.conversations.presentation.ConversationsRoute
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.ConversationsFilter
+import dev.meloda.fast.ui.extensions.getOrThrow
 import dev.meloda.fast.ui.theme.LocalNavController
-import dev.meloda.fast.ui.theme.getOrThrow
 import kotlinx.serialization.Serializable
 import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.core.qualifier.named

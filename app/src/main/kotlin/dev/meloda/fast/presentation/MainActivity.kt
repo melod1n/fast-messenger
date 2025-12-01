@@ -23,7 +23,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -42,17 +41,17 @@ import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.service.OnlineService
 import dev.meloda.fast.service.longpolling.LongPollingService
+import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.LocalSizeConfig
 import dev.meloda.fast.ui.model.DeviceSize
 import dev.meloda.fast.ui.model.SizeConfig
 import dev.meloda.fast.ui.model.ThemeConfig
 import dev.meloda.fast.ui.theme.AppTheme
-import dev.meloda.fast.ui.theme.LocalSizeConfig
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import dev.meloda.fast.ui.R
 
 class MainActivity : AppCompatActivity() {
 

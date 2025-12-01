@@ -1,13 +1,13 @@
 [versions]
-agp = "8.13.0"
+agp = "8.13.1"
 retrofit = "3.0.0"
 eithernet = "2.0.0"
-haze = "1.6.10"
-kotlin = "2.2.20"
-ksp = "2.2.20-2.0.4"
+haze = "1.7.1"
+kotlin = "2.2.21"
+ksp = "2.3.3"
 moduleGraph = "2.9.0"
 
-compose-bom = "2025.10.00"
+compose-bom = "2025.11.01"
 koin = "4.1.1"
 
 accompanist = "0.37.3"
@@ -16,15 +16,15 @@ coroutines = "1.10.2"
 junit = "4.13.2"
 chucker = "4.2.0"
 guava = "33.5.0-jre"
-lifecycle = "2.9.4"
+lifecycle = "2.10.0"
 core-ktx = "1.17.0"
 material = "1.13.0"
-loggingInterceptor = "5.2.0"
+loggingInterceptor = "5.3.2"
 moshi = "1.15.2"
-room = "2.8.2"
+room = "2.8.4"
 preference-ktx = "1.2.1"
 nanokt = "1.3.0"
-androidx-navigation = "2.9.5"
+androidx-navigation = "2.9.6"
 serialization = "1.9.0"
 
 [libraries]
@@ -63,7 +63,6 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
 compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose-bom" }
-compose-material-icons = { module = "androidx.compose.material:material-icons-core" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
@@ -90,7 +89,6 @@ room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", vers
 
 [bundles]
 compose = [
-    "compose-material-icons",
     "compose-material3",
     "compose-material3-windowsize",
     "compose-ui",

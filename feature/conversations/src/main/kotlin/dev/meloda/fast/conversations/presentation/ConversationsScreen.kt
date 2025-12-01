@@ -18,10 +18,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -198,7 +194,7 @@ fun ConversationsScreen(
                         if (screenState.isArchive) {
                             IconButton(onClick = onBack) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    painter = painterResource(R.drawable.round_arrow_back_24px),
                                     contentDescription = null
                                 )
                             }
@@ -228,7 +224,7 @@ fun ConversationsScreen(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Rounded.Refresh,
+                                            painter = painterResource(R.drawable.round_refresh_24px),
                                             contentDescription = null
                                         )
                                     }
@@ -239,7 +235,7 @@ fun ConversationsScreen(
                         if (dropDownItems.isNotEmpty()) {
                             IconButton(onClick = { dropDownMenuExpanded = true }) {
                                 Icon(
-                                    imageVector = Icons.Rounded.MoreVert,
+                                    painter = painterResource(R.drawable.round_more_vert_24px),
                                     contentDescription = null
                                 )
                             }

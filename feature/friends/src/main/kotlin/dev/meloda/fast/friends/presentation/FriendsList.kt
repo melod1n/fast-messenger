@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,8 +18,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.friends.model.FriendsScreenState
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.api.UiFriend
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.util.ImmutableList
@@ -92,7 +92,7 @@ fun FriendsList(
                         colors = IconButtonDefaults.filledIconButtonColors()
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowUp,
+                            painter = painterResource(R.drawable.round_keyboard_arrow_up_24px),
                             contentDescription = null
                         )
                     }

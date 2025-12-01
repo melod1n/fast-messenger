@@ -12,105 +12,18 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import dev.chrisbanes.haze.HazeState
 import dev.meloda.fast.model.api.domain.VkUser
-import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.model.DeviceSize
-import dev.meloda.fast.ui.model.SizeConfig
 import dev.meloda.fast.ui.model.ThemeConfig
-
-private val googleSansFonts = FontFamily(
-    Font(resId = R.font.google_sans_regular),
-    Font(
-        resId = R.font.google_sans_italic,
-        style = FontStyle.Italic
-    ),
-    Font(
-        resId = R.font.google_sans_medium,
-        weight = FontWeight.Medium
-    ),
-    Font(
-        resId = R.font.google_sans_medium_italic,
-        weight = FontWeight.Medium,
-        style = FontStyle.Italic
-    ),
-    Font(
-        resId = R.font.google_sans_bold,
-        weight = FontWeight.Bold
-    ),
-    Font(
-        resId = R.font.google_sans_bold_italic,
-        weight = FontWeight.Bold,
-        style = FontStyle.Italic
-    )
-)
-
-private val robotoFonts = FontFamily(
-    Font(
-        resId = R.font.roboto_thin,
-        weight = FontWeight.Thin
-    ),
-    Font(
-        resId = R.font.roboto_thin_italic,
-        weight = FontWeight.Thin,
-        style = FontStyle.Italic
-    ),
-    Font(
-        resId = R.font.roboto_light,
-        weight = FontWeight.Light
-    ),
-    Font(
-        resId = R.font.roboto_light_italic,
-        weight = FontWeight.Light,
-        style = FontStyle.Italic
-    ),
-    Font(resId = R.font.roboto_regular),
-    Font(
-        resId = R.font.roboto_italic,
-        style = FontStyle.Italic
-    ),
-    Font(
-        resId = R.font.roboto_medium,
-        weight = FontWeight.Medium
-    ),
-    Font(
-        resId = R.font.roboto_medium_italic,
-        weight = FontWeight.Medium,
-        style = FontStyle.Italic
-    ),
-    Font(
-        resId = R.font.roboto_bold,
-        weight = FontWeight.Bold
-    ),
-    Font(
-        resId = R.font.roboto_bold_italic,
-        weight = FontWeight.Bold,
-        style = FontStyle.Italic
-    ),
-    Font(
-        resId = R.font.roboto_black,
-        weight = FontWeight.Black
-    ),
-    Font(
-        resId = R.font.roboto_black_italic,
-        weight = FontWeight.Black,
-        style = FontStyle.Italic
-    )
-)
 
 val LocalThemeConfig = compositionLocalOf {
     ThemeConfig(
@@ -125,24 +38,12 @@ val LocalThemeConfig = compositionLocalOf {
     )
 }
 
-val LocalSizeConfig = compositionLocalOf {
-    SizeConfig(
-        widthSize = DeviceSize.Compact,
-        heightSize = DeviceSize.Compact
-    )
-}
-
 val LocalHazeState = compositionLocalOf { HazeState(true) }
 val LocalBottomPadding = compositionLocalOf { 0.dp }
 val LocalUser = compositionLocalOf<VkUser?> { null }
 val LocalReselectedTab = compositionLocalOf { mapOf<Any, Boolean>() }
 val LocalNavRootController = compositionLocalOf<NavController?> { null }
 val LocalNavController = compositionLocalOf<NavController?> { null }
-
-@Composable
-fun <T: NavController> ProvidableCompositionLocal<T?>.getOrThrow(): T {
-    return requireNotNull(current)
-}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -189,21 +90,21 @@ fun AppTheme(
         MaterialTheme.typography
     } else {
         MaterialTheme.typography.copy(
-            displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = googleSansFonts),
-            displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = googleSansFonts),
-            displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = googleSansFonts),
-            headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = googleSansFonts),
-            headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = googleSansFonts),
-            headlineSmall = MaterialTheme.typography.headlineSmall.copy(fontFamily = googleSansFonts),
-            titleLarge = MaterialTheme.typography.titleLarge.copy(fontFamily = robotoFonts),
-            titleMedium = MaterialTheme.typography.titleMedium.copy(fontFamily = robotoFonts),
-            titleSmall = MaterialTheme.typography.titleSmall.copy(fontFamily = robotoFonts),
-            bodyLarge = MaterialTheme.typography.bodyLarge.copy(fontFamily = robotoFonts),
-            bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontFamily = robotoFonts),
-            bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = robotoFonts),
-            labelLarge = MaterialTheme.typography.labelLarge.copy(fontFamily = robotoFonts),
-            labelMedium = MaterialTheme.typography.labelMedium.copy(fontFamily = robotoFonts),
-            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = robotoFonts),
+            displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = GoogleSansFamily),
+            displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = GoogleSansFamily),
+            displaySmall = MaterialTheme.typography.displaySmall.copy(fontFamily = GoogleSansFamily),
+            headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = GoogleSansFamily),
+            headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = GoogleSansFamily),
+            headlineSmall = MaterialTheme.typography.headlineSmall.copy(fontFamily = GoogleSansFamily),
+            titleLarge = MaterialTheme.typography.titleLarge.copy(fontFamily = RobotoFamily),
+            titleMedium = MaterialTheme.typography.titleMedium.copy(fontFamily = RobotoFamily),
+            titleSmall = MaterialTheme.typography.titleSmall.copy(fontFamily = RobotoFamily),
+            bodyLarge = MaterialTheme.typography.bodyLarge.copy(fontFamily = RobotoFamily),
+            bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontFamily = RobotoFamily),
+            bodySmall = MaterialTheme.typography.bodySmall.copy(fontFamily = RobotoFamily),
+            labelLarge = MaterialTheme.typography.labelLarge.copy(fontFamily = RobotoFamily),
+            labelMedium = MaterialTheme.typography.labelMedium.copy(fontFamily = RobotoFamily),
+            labelSmall = MaterialTheme.typography.labelSmall.copy(fontFamily = RobotoFamily),
         )
     }
 

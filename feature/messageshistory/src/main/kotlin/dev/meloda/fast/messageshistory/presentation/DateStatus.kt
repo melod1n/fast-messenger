@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -66,7 +64,7 @@ fun BoxScope.DateStatus(
         if (isEdited) {
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                imageVector = Icons.Rounded.Create,
+                painter = painterResource(R.drawable.round_edit_24px),
                 contentDescription = null,
                 modifier = Modifier.size(14.dp)
             )

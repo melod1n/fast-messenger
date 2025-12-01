@@ -91,7 +91,7 @@ fun AudioMessage(
             Icon(
                 painter = painterResource(
                     if (isPlaying) R.drawable.round_pause_24
-                    else R.drawable.round_play_arrow_24,
+                    else R.drawable.round_fill_play_arrow_24px,
                 ),
                 contentDescription = null
             )
