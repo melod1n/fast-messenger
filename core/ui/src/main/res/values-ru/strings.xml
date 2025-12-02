@@ -286,4 +286,7 @@
     <string name="week_short">Н</string>
     <string name="day_short">Д</string>
     <string name="time_now">Сейчас</string>
+
+    <string name="confirm_chat_create_with_title">Вы действительно хотите создать чат «%s»?</string>
+    <string name="confirm_chat_create_empty_with_title">Вы действительно хотите создать чат «%s» только с собой?</string>
 </resources>

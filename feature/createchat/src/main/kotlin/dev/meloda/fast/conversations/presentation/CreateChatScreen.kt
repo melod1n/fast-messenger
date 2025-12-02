@@ -64,6 +64,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.IconButton
+import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
@@ -87,6 +88,27 @@ fun CreateChatRoute(
             onChatCreated(isChatCreated ?: -1L)
             viewModel.onNavigatedBack()
         }
+    }
+
+    if (screenState.showConfirmDialog) {
+        MaterialDialog(
+            onDismissRequest = viewModel::onConfirmDialogDismissed,
+            title = stringResource(R.string.confirm),
+            text = when {
+                screenState.selectedFriendsIds.isEmpty() -> stringResource(
+                    R.string.confirm_chat_create_empty_with_title,
+                    viewModel.finalChatTitle.value
+                )
+
+                else -> stringResource(
+                    R.string.confirm_chat_create_with_title,
+                    viewModel.finalChatTitle.value
+                )
+            },
+            confirmAction = viewModel::onConfirmDialogConfirmed,
+            confirmText = stringResource(R.string.action_create),
+            cancelText = stringResource(R.string.cancel)
+        )
     }
 
     CreateChatScreen(

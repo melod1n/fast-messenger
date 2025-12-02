@@ -363,4 +363,7 @@
     <string name="week_short">W</string>
     <string name="day_short">D</string>
     <string name="time_now">Now</string>
+
+    <string name="confirm_chat_create_with_title">Are you sure you want to create chat «%s»?</string>
+    <string name="confirm_chat_create_empty_with_title">Are you sure you want to create chat «%s» only with yourself?</string>
 </resources>

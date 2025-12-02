@@ -17,74 +17,67 @@ import dev.meloda.fast.domain.GetLocalUserByIdUseCase
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.network.VkErrorCode
 import dev.meloda.fast.ui.model.api.UiFriend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-interface CreateChatViewModel {
-
-    val screenState: StateFlow<CreateChatScreenState>
-    val baseError: StateFlow<BaseError?>
-    val currentOffset: StateFlow<Int>
-    val canPaginate: StateFlow<Boolean>
-
-    val isChatCreated: StateFlow<Long?>
-
-    fun onPaginationConditionsMet()
-    fun onRefresh()
-    fun onErrorConsumed()
-
-    fun toggleFriendSelection(userId: Long)
-
-    fun onTitleTextInputChanged(newTitle: String)
-
-    fun onCreateChatButtonClicked()
-
-    fun onNavigatedBack()
-}
-
-class CreateChatViewModelImpl(
+class CreateChatViewModel(
     private val friendsUseCase: FriendsUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val imageLoader: ImageLoader,
     private val applicationContext: Context,
     private val getLocalUserByIdUseCase: GetLocalUserByIdUseCase,
     private val userSettings: UserSettings
-) : CreateChatViewModel, ViewModel() {
+) : ViewModel() {
 
-    override val screenState = MutableStateFlow(CreateChatScreenState.EMPTY)
-    override val baseError = MutableStateFlow<BaseError?>(null)
-    override val currentOffset = MutableStateFlow(0)
-    override val canPaginate = MutableStateFlow(false)
+    private val _screenState = MutableStateFlow(CreateChatScreenState.EMPTY)
+    val screenState: StateFlow<CreateChatScreenState> = _screenState.asStateFlow()
 
-    override val isChatCreated = MutableStateFlow<Long?>(null)
+    private val _baseError = MutableStateFlow<BaseError?>(null)
+    val baseError: StateFlow<BaseError?> = _baseError.asStateFlow()
+
+    private val currentOffset = MutableStateFlow(0)
+
+    private val _canPaginate = MutableStateFlow(false)
+    val canPaginate: StateFlow<Boolean> = _canPaginate.asStateFlow()
+
+    private val _isChatCreated = MutableStateFlow<Long?>(null)
+    val isChatCreated: StateFlow<Long?> = _isChatCreated.asStateFlow()
+
+    private val _finalChatTitle = MutableStateFlow("")
+    val finalChatTitle: StateFlow<String> = _finalChatTitle.asStateFlow()
 
     private val useContactNames: Boolean = userSettings.useContactNames.value
 
+    private var accountUser: VkUser? = null
+
     init {
-        loadFriends()
+        fetchAccountUser()
+        fetchUsers()
     }
 
-    override fun onPaginationConditionsMet() {
+    fun onPaginationConditionsMet() {
         currentOffset.update { screenState.value.friends.size }
-        loadFriends()
+        fetchUsers()
     }
 
-    override fun onRefresh() {
+    fun onRefresh() {
         onErrorConsumed()
-        loadFriends(offset = 0)
+        fetchUsers(offset = 0)
     }
 
-    override fun onErrorConsumed() {
-        baseError.setValue { null }
+    fun onErrorConsumed() {
+        _baseError.setValue { null }
     }
 
-    override fun toggleFriendSelection(userId: Long) {
+    fun toggleFriendSelection(userId: Long) {
         val newSelectionList = screenState.value.selectedFriendsIds.toMutableList()
 
         if (newSelectionList.contains(userId)) {
@@ -93,26 +86,69 @@ class CreateChatViewModelImpl(
             newSelectionList.add(userId)
         }
 
-        screenState.setValue { old ->
+        _screenState.setValue { old ->
             old.copy(selectedFriendsIds = newSelectionList)
+        }
+
+        refreshFinalTitle()
+    }
+
+    fun onTitleTextInputChanged(newTitle: String) {
+        _screenState.setValue { old -> old.copy(chatTitle = newTitle) }
+
+        refreshFinalTitle()
+    }
+
+    fun onCreateChatButtonClicked() {
+        _screenState.setValue { old -> old.copy(showConfirmDialog = true) }
+    }
+
+    fun onNavigatedBack() {
+        viewModelScope.launch(Dispatchers.Main) {
+            _isChatCreated.emit(null)
         }
     }
 
-    override fun onTitleTextInputChanged(newTitle: String) {
-        screenState.setValue { old -> old.copy(chatTitle = newTitle) }
+    fun onConfirmDialogDismissed() {
+        _screenState.setValue { old -> old.copy(showConfirmDialog = false) }
     }
 
-    override fun onCreateChatButtonClicked() {
+    fun onConfirmDialogConfirmed() {
+        _screenState.setValue { old -> old.copy(showConfirmDialog = false) }
         createChat()
     }
 
-    override fun onNavigatedBack() {
-        viewModelScope.launch(Dispatchers.Main) {
-            isChatCreated.emit(null)
+    private fun fetchAccountUser() {
+        viewModelScope.launch {
+            accountUser = getLocalUserByIdUseCase.proceed(UserConfig.userId)
+            if (accountUser != null) {
+                _finalChatTitle.setValue { accountUser?.firstName.orEmpty() }
+            }
         }
     }
 
-    private fun loadFriends(
+    private fun refreshFinalTitle() {
+        if (screenState.value.chatTitle.trim().isNotEmpty()) {
+            _finalChatTitle.setValue { screenState.value.chatTitle.trim() }
+        } else {
+            val accountAsFriend = accountUser?.asPresentation(useContactNames)
+
+            val accountList = accountAsFriend?.let(::listOf) ?: emptyList()
+
+            val selectedFriends = screenState.value.selectedFriendsIds
+                .take(3)
+                .takeIf { it.isNotEmpty() }
+                ?.mapNotNull { userId -> screenState.value.friends.find { it.userId == userId } }
+
+            val finalTitle =
+                (accountList + selectedFriends.orEmpty()).joinToString(transform = UiFriend::firstName)
+                    .plus(if (screenState.value.selectedFriendsIds.size > 3) ", ..." else "")
+
+            _finalChatTitle.setValue { finalTitle }
+        }
+    }
+
+    private fun fetchUsers(
         offset: Int = currentOffset.value
     ) {
         friendsUseCase.getFriends(count = LOAD_COUNT, offset = offset)
@@ -121,13 +157,13 @@ class CreateChatViewModelImpl(
                     error = ::handleError,
                     success = { response ->
                         val itemsCountSufficient = response.size == LOAD_COUNT
-                        canPaginate.setValue { itemsCountSufficient }
+                        _canPaginate.setValue { itemsCountSufficient }
 
                         val paginationExhausted = !itemsCountSufficient &&
                                 screenState.value.friends.isNotEmpty()
 
                         val imagesToPreload =
-                            response.mapNotNull { it.photo100.takeIf { !it.isNullOrEmpty() } }
+                            response.mapNotNull { it.photo100.takeIf { p -> !p.isNullOrEmpty() } }
 
                         imagesToPreload.forEach { url ->
                             imageLoader.enqueue(
@@ -147,11 +183,11 @@ class CreateChatViewModelImpl(
                             isPaginationExhausted = paginationExhausted
                         )
                         if (offset == 0) {
-                            screenState.setValue {
+                            _screenState.setValue {
                                 newState.copy(friends = loadedFriends)
                             }
                         } else {
-                            screenState.setValue {
+                            _screenState.setValue {
                                 newState.copy(
                                     friends = newState.friends.plus(loadedFriends)
                                 )
@@ -160,7 +196,7 @@ class CreateChatViewModelImpl(
                     }
                 )
 
-                screenState.setValue { old ->
+                _screenState.setValue { old ->
                     old.copy(
                         isLoading = offset == 0 && state.isLoading(),
                         isPaginating = offset > 0 && state.isLoading()
@@ -171,27 +207,19 @@ class CreateChatViewModelImpl(
 
     private fun createChat() {
         viewModelScope.launch {
-            val title = screenState.value.chatTitle.takeUnless(String::isBlank)
-
-            val accountAsFriend =
-                getLocalUserByIdUseCase.proceed(UserConfig.userId)?.asPresentation(useContactNames)
-
-            val accountList = accountAsFriend?.let(::listOf) ?: emptyList()
-
             val selectedFriends = screenState.value.selectedFriendsIds
                 .takeIf { it.isNotEmpty() }
                 ?.mapNotNull { userId -> screenState.value.friends.find { it.userId == userId } }
 
             messagesUseCase.createChat(
                 userIds = selectedFriends?.map { it.userId },
-                title = title
-                    ?: (accountList + selectedFriends.orEmpty()).joinToString(transform = UiFriend::firstName)
+                title = finalChatTitle.value
             ).listenValue(viewModelScope) { state ->
                 state.processState(
                     error = ::handleError,
                     success = { response ->
                         withContext(Dispatchers.Main) {
-                            isChatCreated.emit(2_000_000_000 + response)
+                            _isChatCreated.emit(2_000_000_000 + response)
                         }
                     }
                 )
@@ -204,11 +232,11 @@ class CreateChatViewModelImpl(
             is State.Error.ApiError -> {
                 when (error.errorCode) {
                     VkErrorCode.USER_AUTHORIZATION_FAILED -> {
-                        baseError.setValue { BaseError.SessionExpired }
+                        _baseError.setValue { BaseError.SessionExpired }
                     }
 
                     else -> {
-                        baseError.setValue {
+                        _baseError.setValue {
                             BaseError.SimpleError(message = error.errorMessage)
                         }
                     }
@@ -216,19 +244,19 @@ class CreateChatViewModelImpl(
             }
 
             State.Error.ConnectionError -> {
-                baseError.setValue {
+                _baseError.setValue {
                     BaseError.SimpleError(message = "Connection error")
                 }
             }
 
             State.Error.InternalError -> {
-                baseError.setValue {
+                _baseError.setValue {
                     BaseError.SimpleError(message = "Internal error")
                 }
             }
 
             State.Error.UnknownError -> {
-                baseError.setValue {
+                _baseError.setValue {
                     BaseError.SimpleError(message = "Unknown error")
                 }
             }

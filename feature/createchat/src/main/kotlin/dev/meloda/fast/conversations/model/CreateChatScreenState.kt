@@ -10,7 +10,8 @@ data class CreateChatScreenState(
     val isPaginationExhausted: Boolean,
     val friends: List<UiFriend>,
     val selectedFriendsIds: List<Long>,
-    val chatTitle: String
+    val chatTitle: String,
+    val showConfirmDialog: Boolean
 ) {
     companion object {
         val EMPTY: CreateChatScreenState = CreateChatScreenState(
@@ -19,7 +20,8 @@ data class CreateChatScreenState(
             isPaginationExhausted = false,
             friends = emptyList(),
             selectedFriendsIds = emptyList(),
-            chatTitle = ""
+            chatTitle = "",
+            showConfirmDialog = false
         )
     }
 }
