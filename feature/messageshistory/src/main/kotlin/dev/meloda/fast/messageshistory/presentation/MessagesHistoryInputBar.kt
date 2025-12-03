@@ -1,7 +1,9 @@
 package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -32,10 +34,14 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -54,9 +60,9 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.ActionMode
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.IconButton
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.R
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -68,6 +74,9 @@ fun MessagesHistoryInputBar(
     showEmojiButton: Boolean,
     showAttachmentButton: Boolean,
     actionMode: ActionMode,
+    replyTitle: String?,
+    replyText: String?,
+    inputFieldFocusRequester: Boolean,
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onBoldRequested: () -> Unit = {},
     onItalicRequested: () -> Unit = {},
@@ -77,15 +86,27 @@ fun MessagesHistoryInputBar(
     onSetMessageBarHeight: (Dp) -> Unit = {},
     onEmojiButtonLongClicked: () -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
-    onActionButtonClicked: () -> Unit = {}
+    onActionButtonClicked: () -> Unit = {},
+    onReplyCloseClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
     val context = LocalContext.current
     val density = LocalDensity.current
 
-    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(inputFieldFocusRequester) {
+        if (inputFieldFocusRequester) {
+            focusRequester.requestFocus()
+        }
+    }
 
     val theme = LocalThemeConfig.current
+
+    val inputBarTopCornerRadius by animateDpAsState(
+        targetValue = if (replyTitle == null) 24.dp else 0.dp,
+        label = "inputBarTopCornerRadius"
+    )
 
     Column(
         modifier = modifier
@@ -95,6 +116,14 @@ fun MessagesHistoryInputBar(
             .navigationBarsPadding()
             .imePadding()
     ) {
+        AnimatedVisibility(replyTitle != null) {
+            ReplyContainer(
+                title = replyTitle.orEmpty(),
+                text = replyText.orEmpty(),
+                onCloseClicked = onReplyCloseClicked,
+            )
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,10 +131,17 @@ fun MessagesHistoryInputBar(
                 .imeNestedScroll(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(36.dp))
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = inputBarTopCornerRadius,
+                            topEnd = inputBarTopCornerRadius,
+                            bottomStart = 24.dp,
+                            bottomEnd = 24.dp
+                        )
+                    )
                     .then(
                         if (theme.enableBlur) {
                             Modifier
@@ -166,6 +202,7 @@ fun MessagesHistoryInputBar(
 
                 TextField(
                     modifier = Modifier
+                        .focusRequester(focusRequester)
                         .weight(1f)
                         .appendTextContextMenuComponents {
                             separator()
@@ -287,7 +324,7 @@ fun MessagesHistoryInputBar(
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }

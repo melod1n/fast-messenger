@@ -53,6 +53,7 @@ fun MessagesList(
     uiMessages: ImmutableList<UiItem>,
     isSelectedAtLeastOne: Boolean,
     isPaginating: Boolean,
+    isReplying: Boolean,
     messageBarHeight: Dp,
     onRequestScrollToCmId: (cmId: Long) -> Unit = {},
     onMessageClicked: (Long) -> Unit = {},
@@ -132,6 +133,10 @@ fun MessagesList(
         reverseLayout = true
     ) {
         item {
+            AnimatedVisibility(isReplying) {
+                Spacer(modifier = Modifier.height(48.dp))
+            }
+
             Spacer(modifier = Modifier.height(messageBarHeight.plus(18.dp)))
             Spacer(
                 modifier = Modifier

@@ -65,61 +65,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.random.Random
-
-interface MessagesHistoryViewModel {
-
-    val screenState: StateFlow<MessagesHistoryScreenState>
-    val navigation: StateFlow<MessageNavigation?>
-    val messages: StateFlow<List<VkMessage>>
-    val uiMessages: StateFlow<List<UiItem>>
-    val dialog: StateFlow<MessageDialog?>
-    val selectedMessages: StateFlow<List<VkMessage>>
-
-    val isNeedToScrollToIndex: StateFlow<Int?>
-
-    val baseError: StateFlow<BaseError?>
-    val imagesToPreload: StateFlow<List<String>>
-
-    val currentOffset: StateFlow<Int>
-    val canPaginate: StateFlow<Boolean>
-
-    fun onNavigationConsumed()
-
-    fun onTopBarClicked()
-
-    fun onDialogConfirmed(dialog: MessageDialog, bundle: Bundle)
-    fun onDialogDismissed(dialog: MessageDialog)
-    fun onDialogItemPicked(dialog: MessageDialog, bundle: Bundle)
-
-    fun onScrolledToIndex()
-
-    fun onCloseButtonClicked()
-    fun onRefresh()
-    fun onAttachmentButtonClicked()
-    fun onMessageInputChanged(newText: TextFieldValue)
-    fun onEmojiButtonLongClicked()
-    fun onActionButtonClicked()
-
-    fun onPaginationConditionsMet()
-
-    fun onMessageClicked(messageId: Long)
-    fun onMessageLongClicked(messageId: Long)
-
-    fun onPinnedMessageClicked(messageId: Long)
-    fun onUnpinMessageClicked()
-
-    fun onDeleteSelectedMessagesClicked()
-
-    fun onBoldClicked()
-    fun onItalicClicked()
-    fun onUnderlineClicked()
-    fun onLinkClicked()
-    fun onRegularClicked()
-}
 
 class MessagesHistoryViewModelImpl(
     private val applicationContext: Context,
@@ -137,6 +90,8 @@ class MessagesHistoryViewModelImpl(
     override val dialog = MutableStateFlow<MessageDialog?>(null)
     override val selectedMessages = MutableStateFlow<List<VkMessage>>(emptyList())
 
+    override val inputFieldFocusRequester = MutableStateFlow(false)
+
     override val isNeedToScrollToIndex = MutableStateFlow<Int?>(null)
 
     override val baseError = MutableStateFlow<BaseError?>(null)
@@ -153,6 +108,8 @@ class MessagesHistoryViewModelImpl(
 
     private val sendingMessages: MutableList<VkMessage> = mutableListOf()
     private val failedMessages: MutableList<VkMessage> = mutableListOf()
+
+    private var replyToCmId: Long? = null
 
     init {
         val arguments = MessagesHistory.from(savedStateHandle).arguments
@@ -268,6 +225,9 @@ class MessagesHistoryViewModelImpl(
     override fun onDialogItemPicked(dialog: MessageDialog, bundle: Bundle) {
         when (dialog) {
             is MessageDialog.MessageOptions -> {
+                val messageId = bundle.getLong("messageId")
+                val cmId = bundle.getLong("cmId")
+
                 when (val option = bundle.getParcelableCompat("option", MessageOption::class)) {
                     null -> Unit
 
@@ -275,9 +235,30 @@ class MessagesHistoryViewModelImpl(
                         // TODO: 28-Mar-25, Danil Nikolaev: retry sending
                     }
 
-                    MessageOption.Reply -> {}
-                    MessageOption.ForwardHere -> {}
-                    MessageOption.Forward -> {}
+                    MessageOption.Reply -> {
+                        inputFieldFocusRequester.setValue { true }
+                        replyToCmId = cmId
+                        screenState.setValue { old ->
+                            val msg = messages.value.find { it.id == messageId }
+
+                            if (msg == null) {
+                                old
+                            } else {
+                                old.copy(
+                                    replyTitle = msg.extractTitle(),
+                                    replyText = msg.text
+                                )
+                            }
+                        }
+                    }
+
+                    MessageOption.ForwardHere -> {
+
+                    }
+
+                    MessageOption.Forward -> {
+
+                    }
 
                     MessageOption.Pin -> {
                         this.dialog.setValue {
@@ -582,6 +563,17 @@ class MessagesHistoryViewModelImpl(
     override fun onRegularClicked() {
         formatData = formatData.copy(items = emptyList())
         updateStyles()
+    }
+
+    override fun onReplyCloseClicked() {
+        replyToCmId = null
+
+        screenState.setValue { old ->
+            old.copy(
+                replyTitle = null,
+                replyText = null
+            )
+        }
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
@@ -927,6 +919,7 @@ class MessagesHistoryViewModelImpl(
             forwards = null,
             attachments = null,
             replyMessage = when {
+                replyToCmId != null -> messages.value.find { it.cmId == replyToCmId }
                 else -> null
             },
             geoType = null,
@@ -947,15 +940,32 @@ class MessagesHistoryViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 message = TextFieldValue(),
-                actionMode = ActionMode.RECORD_AUDIO
+                actionMode = ActionMode.RECORD_AUDIO,
+                replyTitle = null,
+                replyText = null
             )
+        }
+
+        val replyCmId = replyToCmId
+        replyToCmId = null
+
+        val forward = when {
+            replyCmId != null -> {
+                buildJsonObject {
+                    put("peer_id", screenState.value.conversationId)
+                    put("conversation_message_ids", buildJsonArray { add(replyCmId) })
+                    put("is_reply", true)
+                }.toString()
+            }
+
+            else -> null
         }
 
         messagesUseCase.sendMessage(
             peerId = screenState.value.conversationId,
             randomId = newMessage.randomId,
             message = newMessage.text,
-            replyTo = null,
+            forward = forward,
             attachments = null,
             formatData = newMessage.formatData
         ).listenValue(viewModelScope) { state ->

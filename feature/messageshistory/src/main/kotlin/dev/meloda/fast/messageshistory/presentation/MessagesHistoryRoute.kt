@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
@@ -30,6 +29,7 @@ fun MessagesHistoryRoute(
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
     val scrollIndex by viewModel.isNeedToScrollToIndex.collectAsStateWithLifecycle()
+    val inputFieldFocusRequester by viewModel.inputFieldFocusRequester.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigationEvent) {
         val needToConsume = when (val navigation = navigationEvent) {
@@ -56,6 +56,7 @@ fun MessagesHistoryRoute(
         showEmojiButton = AppSettings.General.showEmojiButton,
         showAttachmentButton = AppSettings.General.showAttachmentButton,
         enableHaptic = AppSettings.General.enableHaptic,
+        inputFieldFocusRequester = inputFieldFocusRequester,
         onBack = onBack,
         onClose = viewModel::onCloseButtonClicked,
         onScrolledToIndex = viewModel::onScrolledToIndex,
@@ -77,7 +78,8 @@ fun MessagesHistoryRoute(
         onItalicRequested = viewModel::onItalicClicked,
         onUnderlineRequested = viewModel::onUnderlineClicked,
         onLinkRequested = viewModel::onLinkClicked,
-        onRegularRequested = viewModel::onRegularClicked
+        onRegularRequested = viewModel::onRegularClicked,
+        onReplyCloseClicked = viewModel::onReplyCloseClicked
     )
 
     HandleDialogs(

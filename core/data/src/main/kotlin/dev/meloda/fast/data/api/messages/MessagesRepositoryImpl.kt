@@ -195,7 +195,7 @@ class MessagesRepositoryImpl(
         peerId: Long,
         randomId: Long,
         message: String?,
-        replyTo: Long?,
+        forward: String?,
         attachments: List<VkAttachment>?,
         formatData: VkMessage.FormatData?
     ): ApiResult<MessagesSendResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
@@ -203,7 +203,7 @@ class MessagesRepositoryImpl(
             peerId = peerId,
             randomId = randomId,
             message = message,
-            replyTo = replyTo,
+            forward = forward,
             attachments = attachments,
             formatData = formatData
         )

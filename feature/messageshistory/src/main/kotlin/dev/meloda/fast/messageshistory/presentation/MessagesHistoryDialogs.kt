@@ -180,7 +180,13 @@ fun MessageOptionsDialog(
                     onClick = {
                         onDismissed()
                         val pickedOption = options[index]
-                        onItemPicked(bundleOf("option" to pickedOption))
+                        onItemPicked(
+                            bundleOf(
+                                "option" to pickedOption,
+                                "messageId" to message.id,
+                                "cmId" to message.cmId
+                            )
+                        )
                     }
                 )
             }

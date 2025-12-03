@@ -56,7 +56,7 @@ class MessagesUseCaseImpl(
         peerId: Long,
         randomId: Long,
         message: String?,
-        replyTo: Long?,
+        forward: String?,
         attachments: List<VkAttachment>?,
         formatData: VkMessage.FormatData?
     ): Flow<State<MessagesSendResponse>> = flowNewState {
@@ -64,7 +64,7 @@ class MessagesUseCaseImpl(
             peerId = peerId,
             randomId = randomId,
             message = message,
-            replyTo = replyTo,
+            forward = forward,
             attachments = attachments,
             formatData = formatData
         ).mapToState()

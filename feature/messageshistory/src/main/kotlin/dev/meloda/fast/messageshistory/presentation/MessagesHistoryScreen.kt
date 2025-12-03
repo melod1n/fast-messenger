@@ -44,13 +44,13 @@ import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
 import kotlinx.coroutines.launch
-import dev.meloda.fast.ui.R
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -70,6 +70,7 @@ fun MessagesHistoryScreen(
     showEmojiButton: Boolean = false,
     showAttachmentButton: Boolean = false,
     enableHaptic: Boolean = false,
+    inputFieldFocusRequester: Boolean,
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
     onScrolledToIndex: () -> Unit = {},
@@ -91,7 +92,8 @@ fun MessagesHistoryScreen(
     onItalicRequested: () -> Unit = {},
     onLinkRequested: () -> Unit = {},
     onUnderlineRequested: () -> Unit = {},
-    onRegularRequested: () -> Unit = {}
+    onRegularRequested: () -> Unit = {},
+    onReplyCloseClicked: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -215,6 +217,7 @@ fun MessagesHistoryScreen(
                 uiMessages = uiMessages,
                 isSelectedAtLeastOne = isSelectedAtLeastOne,
                 isPaginating = screenState.isPaginating,
+                isReplying = screenState.replyTitle != null,
                 messageBarHeight = messageBarHeight,
                 onRequestScrollToCmId = { cmId ->
                     val index = uiMessages.values.indexOfMessageByCmId(cmId)
@@ -252,10 +255,14 @@ fun MessagesHistoryScreen(
                 showEmojiButton = showEmojiButton,
                 showAttachmentButton = showAttachmentButton,
                 actionMode = screenState.actionMode,
+                replyTitle = screenState.replyTitle,
+                replyText = screenState.replyText,
+                inputFieldFocusRequester = inputFieldFocusRequester,
                 onSetMessageBarHeight = { messageBarHeight = it },
                 onEmojiButtonLongClicked = onEmojiButtonLongClicked,
                 onAttachmentButtonClicked = onAttachmentButtonClicked,
-                onActionButtonClicked = onActionButtonClicked
+                onActionButtonClicked = onActionButtonClicked,
+                onReplyCloseClicked = onReplyCloseClicked
             )
 
             when {

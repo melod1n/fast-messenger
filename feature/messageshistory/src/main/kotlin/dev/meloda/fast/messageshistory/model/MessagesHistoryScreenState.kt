@@ -24,7 +24,9 @@ data class MessagesHistoryScreenState(
     val conversation: VkConversation,
     val pinnedMessage: VkMessage?,
     val pinnedTitle: String?,
-    val pinnedSummary: AnnotatedString?
+    val pinnedSummary: AnnotatedString?,
+    val replyTitle: String?,
+    val replyText: String?
 ) {
 
     companion object {
@@ -43,7 +45,9 @@ data class MessagesHistoryScreenState(
             conversation = VkConversation.EMPTY,
             pinnedMessage = null,
             pinnedTitle = null,
-            pinnedSummary = null
+            pinnedSummary = null,
+            replyTitle = null,
+            replyText = null,
         )
     }
 }

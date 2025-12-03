@@ -32,7 +32,7 @@ interface MessagesRepository {
         peerId: Long,
         randomId: Long,
         message: String?,
-        replyTo: Long?,
+        forward: String?,
         attachments: List<VkAttachment>?,
         formatData: VkMessage.FormatData?
     ): ApiResult<MessagesSendResponse, RestApiErrorDomain>

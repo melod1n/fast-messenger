@@ -34,7 +34,7 @@ data class MessagesSendRequest(
     val message: String?,
     val lat: Int? = null,
     val lon: Int? = null,
-    val replyTo: Long? = null,
+    val forward: String? = null,
     val stickerId: Long? = null,
     val disableMentions: Boolean? = null,
     val doNotParseLinks: Boolean? = null,
@@ -51,7 +51,7 @@ data class MessagesSendRequest(
             message?.let { this["message"] = it }
             lat?.let { this["lat"] = it.toString() }
             lon?.let { this["lon"] = it.toString() }
-            replyTo?.let { this["reply_to"] = it.toString() }
+            forward?.let { this["forward"] = it }
             stickerId?.let { this["sticker_id"] = it.toString() }
             disableMentions?.let { this["disable_mentions"] = it.asInt().toString() }
             doNotParseLinks?.let { this["dont_parse_links"] = it.asInt().toString() }
