@@ -2,7 +2,6 @@ package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,18 +16,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.components.RippledClickContainer
 
 @Composable
 fun ReplyContainer(
@@ -69,13 +68,17 @@ fun ReplyContainer(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             AnimatedVisibility(text != null) {
                 Text(
                     text = text.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -90,27 +93,6 @@ fun ReplyContainer(
                 contentDescription = null,
             )
         }
-    }
-}
-
-@Composable
-fun RippledClickContainer(
-    modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(4.dp),
-    onClick: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .clickable(
-                interactionSource = null,
-                indication = ripple(),
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        content()
     }
 }
 
