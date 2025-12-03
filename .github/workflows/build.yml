@@ -3,6 +3,9 @@ name: Android CI Build
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
   RELEASE_SIGN_KEY_ALIAS: ${{ secrets.RELEASE_SIGN_KEY_ALIAS }}
