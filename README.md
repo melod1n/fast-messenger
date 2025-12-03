@@ -48,7 +48,7 @@ Unofficial messenger for russian social network VKontakte
     - [x] Send messages
     - [x] Pinned message
     - [x] Pin & unpin messages
-    - [ ] Reply to message
+    - [x] Reply to message
     - [x] Delete message
     - [x] Select multiple messages
         - [x] Delete
