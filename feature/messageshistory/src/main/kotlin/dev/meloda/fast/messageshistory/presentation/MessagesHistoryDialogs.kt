@@ -117,7 +117,7 @@ fun MessageOptionsDialog(
             options += if (message.isPinned) MessageOption.Unpin else MessageOption.Pin
         }
 
-        if (!message.isRead(screenState.conversation)) {
+        if (!message.isOut && !message.isRead(screenState.conversation)) {
             options += MessageOption.Read
         }
 
