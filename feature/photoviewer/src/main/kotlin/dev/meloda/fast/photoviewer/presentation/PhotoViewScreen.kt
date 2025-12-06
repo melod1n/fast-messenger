@@ -3,9 +3,7 @@ package dev.meloda.fast.photoviewer.presentation
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,7 +30,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +61,7 @@ import dev.meloda.fast.ui.components.FullScreenDialog
 import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.net.URLEncoder
@@ -108,26 +106,17 @@ private fun PhotoViewRoute(
     viewModel: PhotoViewViewModel = koinViewModel<PhotoViewViewModelImpl>()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val shareRequest by viewModel.shareRequest.collectAsStateWithLifecycle()
+    val shareRequestIntent by viewModel.shareRequest.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(shareRequest) {
-        if (shareRequest != null) {
+    LaunchedEffect(shareRequestIntent) {
+        if (shareRequestIntent!= null) {
             viewModel.onImageShared()
 
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/png"
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                putExtra(Intent.EXTRA_STREAM, shareRequest)
-            }
-
-            val chooserIntent = Intent.createChooser(intent, null)
-            chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
             try {
-                context.startActivity(chooserIntent)
+                context.startActivity(shareRequestIntent)
             } catch (e: Exception) {
                 e.printStackTrace()
 
@@ -168,6 +157,8 @@ private fun PhotoViewScreen(
         initialPage = screenState.selectedPage
     )
 
+    val windowInfo = LocalWindowInfo.current
+
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
             .collect(onPageChanged)
@@ -175,15 +166,14 @@ private fun PhotoViewScreen(
 
     var offsetY by remember { mutableFloatStateOf(0f) }
 
-    val calculatedAlpha by remember(offsetY) {
-        derivedStateOf {
-            val absoluteOffset = abs(offsetY)
-
-            1 - if (absoluteOffset >= 1700) {
-                0.85f
-            } else absoluteOffset / 2000
+    val alpha by snapshotFlow {
+        if (offsetY == 0f) {
+            1f
+        } else {
+            (windowInfo.containerSize.width.toFloat() / (abs(offsetY) * 4))
+                .coerceIn(0f, 1f)
         }
-    }
+    }.collectAsStateWithLifecycle(1f)
 
     Scaffold(
         topBar = {
@@ -195,7 +185,7 @@ private fun PhotoViewScreen(
                 onCopyLinkClicked = onCopyLinkClicked,
             )
         },
-        containerColor = Color.Black.copy(alpha = calculatedAlpha)
+        containerColor = Color.Black.copy(alpha = alpha)
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Pager(
@@ -329,6 +319,36 @@ private fun Pager(
 ) {
     val windowInfo = LocalWindowInfo.current
 
+    val scope = rememberCoroutineScope()
+
+    val offsetY = remember { Animatable(0f) }
+    LaunchedEffect(offsetY.value) {
+        onVerticalDrag(offsetY.value)
+    }
+
+    val imageModifier = Modifier
+        .fillMaxSize()
+        .graphicsLayer {
+            this.translationY = offsetY.value
+        }
+        .draggable(
+            state = rememberDraggableState { delta ->
+                scope.launch {
+                    offsetY.snapTo(offsetY.value + delta)
+                }
+            },
+            orientation = Orientation.Vertical,
+            onDragStopped = {
+                if (abs(offsetY.value) / windowInfo.containerSize.height >= 0.25) {
+                    onBack()
+                } else {
+                    scope.launch {
+                        offsetY.animateTo(0f)
+                    }
+                }
+            }
+        )
+
     HorizontalPager(
         state = pagerState,
         modifier = modifier.fillMaxSize()
@@ -344,49 +364,13 @@ private fun Pager(
                 Image(
                     painter = model,
                     contentDescription = "Image",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = imageModifier
                 )
             } else {
-                var offsetY by remember { mutableFloatStateOf(0f) }
-
-                var useAnimatedOffset by remember {
-                    mutableStateOf(false)
-                }
-
-                val animatedOffset by animateFloatAsState(
-                    targetValue = offsetY,
-                    label = "animatedOffset",
-                    animationSpec = tween(
-                        durationMillis = if (useAnimatedOffset) 150 else 0,
-                        easing = LinearEasing
-                    )
-                )
-
                 AsyncImage(
                     model = model,
                     contentDescription = "Image",
-                    modifier = Modifier
-                        .graphicsLayer {
-                            this.translationY = animatedOffset
-                        }
-                        .draggable(
-                            state = rememberDraggableState { delta ->
-                                useAnimatedOffset = false
-                                offsetY += delta
-                                onVerticalDrag(offsetY)
-                            },
-                            orientation = Orientation.Vertical,
-                            onDragStopped = {
-                                if (abs(offsetY) / windowInfo.containerSize.height >= 0.25) {
-                                    onBack()
-                                } else {
-                                    useAnimatedOffset = true
-                                    offsetY = 0f
-                                    onVerticalDrag(0f)
-                                }
-                            }
-                        )
-                        .fillMaxSize(),
+                    modifier = imageModifier,
                     placeholder = ColorPainter(Color.DarkGray),
                     error = ColorPainter(Color.Red)
                 )

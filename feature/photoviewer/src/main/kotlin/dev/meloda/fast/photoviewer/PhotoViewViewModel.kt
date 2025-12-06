@@ -35,7 +35,7 @@ import dev.meloda.fast.ui.R
 interface PhotoViewViewModel {
     val screenState: StateFlow<PhotoViewScreenState>
 
-    val shareRequest: StateFlow<Uri?>
+    val shareRequest: StateFlow<Intent?>
 
     fun onPageChanged(newPage: Int)
 
@@ -61,7 +61,7 @@ class PhotoViewViewModelImpl(
     )
 
     override val screenState = MutableStateFlow(PhotoViewScreenState.EMPTY)
-    override val shareRequest = MutableStateFlow<Uri?>(null)
+    override val shareRequest = MutableStateFlow<Intent?>(null)
 
     init {
         screenState.setValue { old ->
@@ -94,7 +94,17 @@ class PhotoViewViewModelImpl(
                 imageFile
             )
 
-            shareRequest.setValue { uri }
+            shareRequest.setValue {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                }
+
+                val chooserIntent = Intent.createChooser(intent, null)
+                chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                chooserIntent
+            }
         }
     }
 
