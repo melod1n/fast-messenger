@@ -49,6 +49,7 @@ Unofficial messenger for russian social network VKontakte
     - [x] Pinned message
     - [x] Pin & unpin messages
     - [x] Reply to message
+    - [x] Swipe to reply to message
     - [x] Delete message
     - [x] Select multiple messages
         - [x] Delete
