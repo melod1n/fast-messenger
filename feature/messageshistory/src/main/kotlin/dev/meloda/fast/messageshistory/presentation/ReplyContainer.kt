@@ -3,10 +3,8 @@ package dev.meloda.fast.messageshistory.presentation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -15,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -31,25 +30,24 @@ import dev.meloda.fast.ui.components.RippledClickContainer
 
 @Composable
 fun ReplyContainer(
-    onCloseClicked: () -> Unit = {},
     title: String,
     text: String?,
     modifier: Modifier = Modifier,
+    onCloseClicked: () -> Unit = {},
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
 ) {
+    val shape = RoundedCornerShape(
+        topStart = 24.dp,
+        topEnd = 24.dp,
+        bottomStart = 0.dp,
+        bottomEnd = 0.dp
+    )
+
     Row(
         modifier = modifier
-            .padding(horizontal = 8.dp)
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .clip(
-                RoundedCornerShape(
-                    topStart = 24.dp,
-                    topEnd = 24.dp,
-                    bottomStart = 0.dp,
-                    bottomEnd = 0.dp
-                )
-            )
+            .clip(shape)
             .background(backgroundColor)
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -99,11 +97,8 @@ fun ReplyContainer(
 @Preview
 @Composable
 private fun ReplyContainerPreview() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
+    Surface(
+        modifier = Modifier,
     ) {
         ReplyContainer(
             onCloseClicked = {},

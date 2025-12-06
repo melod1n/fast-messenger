@@ -88,11 +88,10 @@ fun MessagesHistoryTopBarContainer(
         if (showPinnedContainer) {
             PinnedMessageContainer(
                 modifier = Modifier,
-                pinnedMessage = requireNotNull(pinnedMessage),
                 title = pinnedTitle.orDots(),
                 summary = pinnedSummary,
                 canChangePin = showUnpinButton,
-                onPinnedMessageClicked = onPinnedMessageClicked,
+                onPinnedMessageClicked = { onPinnedMessageClicked(pinnedMessage?.id ?: -1) },
                 onUnpinMessageButtonClicked = onUnpinMessageButtonClicked
             )
             HorizontalDivider()

@@ -69,7 +69,6 @@ fun MessagesHistoryScreen(
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
     showAttachmentButton: Boolean = false,
-    enableHaptic: Boolean = false,
     inputFieldFocusRequester: Boolean,
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
@@ -94,6 +93,7 @@ fun MessagesHistoryScreen(
     onUnderlineRequested: () -> Unit = {},
     onRegularRequested: () -> Unit = {},
     onReplyCloseClicked: () -> Unit = {},
+    onRequestReplyToMessage: (cmId: Long) -> Unit = {}
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -238,11 +238,14 @@ fun MessagesHistoryScreen(
                     currentOnMessageClicked.invoke(id)
                 },
                 onMessageLongClicked = onMessageLongClicked,
-                onPhotoClicked = onPhotoClicked
+                onPhotoClicked = onPhotoClicked,
+                onRequestMessageReply = onRequestReplyToMessage
             )
 
-            MessagesHistoryInputBar(
-                modifier = Modifier.align(Alignment.BottomStart),
+            InputBar(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 8.dp),
                 message = screenState.message,
                 onMessageInputChanged = onMessageInputChanged,
                 onBoldRequested = onBoldRequested,
@@ -251,7 +254,6 @@ fun MessagesHistoryScreen(
                 onLinkRequested = onLinkRequested,
                 onRegularRequested = onRegularRequested,
                 hazeState = hazeState,
-                enableHaptic = enableHaptic,
                 showEmojiButton = showEmojiButton,
                 showAttachmentButton = showAttachmentButton,
                 actionMode = screenState.actionMode,

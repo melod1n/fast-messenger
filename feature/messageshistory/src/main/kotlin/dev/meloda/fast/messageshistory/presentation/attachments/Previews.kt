@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.components.IconButton
+import dev.meloda.fast.ui.components.FastIconButton
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
@@ -101,7 +101,7 @@ fun DynamicPreviewGrid(
                             )
 
                             if (preview.isVideo) {
-                                IconButton(
+                                FastIconButton(
                                     onClick = { currentOnClick(index) },
                                     modifier = Modifier
                                         .size(36.dp)

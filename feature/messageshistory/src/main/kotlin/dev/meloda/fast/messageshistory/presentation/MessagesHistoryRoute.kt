@@ -55,7 +55,6 @@ fun MessagesHistoryRoute(
         canPaginate = canPaginate,
         showEmojiButton = AppSettings.General.showEmojiButton,
         showAttachmentButton = AppSettings.General.showAttachmentButton,
-        enableHaptic = AppSettings.General.enableHaptic,
         inputFieldFocusRequester = inputFieldFocusRequester,
         onBack = onBack,
         onClose = viewModel::onCloseButtonClicked,
@@ -79,7 +78,8 @@ fun MessagesHistoryRoute(
         onUnderlineRequested = viewModel::onUnderlineClicked,
         onLinkRequested = viewModel::onLinkClicked,
         onRegularRequested = viewModel::onRegularClicked,
-        onReplyCloseClicked = viewModel::onReplyCloseClicked
+        onReplyCloseClicked = viewModel::onReplyCloseClicked,
+        onRequestReplyToMessage = viewModel::onRequestReplyToMessage,
     )
 
     HandleDialogs(

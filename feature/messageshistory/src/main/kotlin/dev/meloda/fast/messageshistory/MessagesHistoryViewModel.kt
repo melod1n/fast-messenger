@@ -63,4 +63,6 @@ interface MessagesHistoryViewModel {
     fun onRegularClicked()
 
     fun onReplyCloseClicked()
+
+    fun onRequestReplyToMessage(cmId: Long)
 }

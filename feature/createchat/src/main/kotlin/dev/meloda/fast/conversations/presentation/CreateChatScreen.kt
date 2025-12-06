@@ -63,7 +63,7 @@ import dev.meloda.fast.conversations.model.CreateChatScreenState
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
-import dev.meloda.fast.ui.components.IconButton
+import dev.meloda.fast.ui.components.FastIconButton
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
@@ -205,7 +205,7 @@ fun CreateChatScreen(
             ) {
                 TopAppBar(
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        FastIconButton(onClick = onBack) {
                             Icon(
                                 painter = painterResource(R.drawable.round_arrow_back_24px),
                                 contentDescription = null

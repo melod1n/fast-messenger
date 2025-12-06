@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.components.IconButton
+import dev.meloda.fast.ui.components.FastIconButton
 import kotlin.collections.forEachIndexed
 
 @Composable
@@ -80,7 +80,7 @@ fun AudioMessage(
             }
         }
 
-        IconButton(
+        FastIconButton(
             onClick = onPlayClick,
             modifier = Modifier
                 .clip(CircleShape)

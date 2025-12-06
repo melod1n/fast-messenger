@@ -61,7 +61,6 @@ import dev.meloda.fast.network.VkErrorCode
 import dev.meloda.fast.ui.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -235,22 +234,7 @@ class MessagesHistoryViewModelImpl(
                         // TODO: 28-Mar-25, Danil Nikolaev: retry sending
                     }
 
-                    MessageOption.Reply -> {
-                        inputFieldFocusRequester.setValue { true }
-                        replyToCmId = cmId
-                        screenState.setValue { old ->
-                            val msg = messages.value.find { it.id == messageId }
-
-                            if (msg == null) {
-                                old
-                            } else {
-                                old.copy(
-                                    replyTitle = msg.extractTitle(),
-                                    replyText = msg.text
-                                )
-                            }
-                        }
-                    }
+                    MessageOption.Reply -> replyToMessage(cmId)
 
                     MessageOption.ForwardHere -> {
 
@@ -349,12 +333,10 @@ class MessagesHistoryViewModelImpl(
 
     override fun onEmojiButtonLongClicked() {
         AppSettings.Features.fastText.takeIf { it.isNotBlank() }?.let { text ->
-            screenState.setValue { old ->
-                val newText = "${old.message.text}$text"
-                old.copy(
-                    message = TextFieldValue(text = newText, selection = TextRange(newText.length))
-                )
-            }
+            val newText = "${screenState.value.message.text}$text"
+            onMessageInputChanged(
+                TextFieldValue(text = newText, selection = TextRange(newText.length))
+            )
         }
     }
 
@@ -445,6 +427,19 @@ class MessagesHistoryViewModelImpl(
     override fun onDeleteSelectedMessagesClicked() {
         dialog.setValue {
             MessageDialog.MessagesDelete(selectedMessages.value)
+        }
+    }
+
+    private fun replyToMessage(cmId: Long) {
+        val messageToReply = messages.value.find { it.cmId == cmId } ?: return
+
+        inputFieldFocusRequester.setValue { true }
+        replyToCmId = cmId
+        screenState.setValue { old ->
+            old.copy(
+                replyTitle = messageToReply.extractTitle(),
+                replyText = messageToReply.text
+            )
         }
     }
 
@@ -574,6 +569,10 @@ class MessagesHistoryViewModelImpl(
                 replyText = null
             )
         }
+    }
+
+    override fun onRequestReplyToMessage(cmId: Long) {
+        replyToMessage(cmId)
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {

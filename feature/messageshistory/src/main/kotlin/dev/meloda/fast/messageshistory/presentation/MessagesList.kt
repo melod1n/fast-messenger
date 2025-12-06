@@ -5,8 +5,10 @@ import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,16 +24,23 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.datastore.AppSettings
@@ -42,6 +51,8 @@ import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -58,11 +69,14 @@ fun MessagesList(
     onRequestScrollToCmId: (cmId: Long) -> Unit = {},
     onMessageClicked: (Long) -> Unit = {},
     onMessageLongClicked: (Long) -> Unit = {},
-    onPhotoClicked: (images: List<String>, index: Int) -> Unit = { _, _ -> }
+    onPhotoClicked: (images: List<String>, index: Int) -> Unit = { _, _ -> },
+    onRequestMessageReply: (cmId: Long) -> Unit = {}
 ) {
     val context = LocalContext.current
     val theme = LocalThemeConfig.current
     val view = LocalView.current
+
+    val scope = rememberCoroutineScope()
 
     val onAttachmentClick by rememberUpdatedState(
         { message: UiItem.Message, attachment: VkAttachment ->
@@ -137,7 +151,7 @@ fun MessagesList(
                 Spacer(modifier = Modifier.height(48.dp))
             }
 
-            Spacer(modifier = Modifier.height(messageBarHeight.plus(18.dp)))
+            Spacer(modifier = Modifier.height(messageBarHeight.plus(12.dp)))
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -183,6 +197,19 @@ fun MessagesList(
                         }
                     )
 
+                    val offsetX = remember { Animatable(0f) }
+
+                    val offsetDistinct by snapshotFlow { offsetX.value }
+                        .distinctUntilChanged()
+                        .collectAsStateWithLifecycle(offsetX)
+
+                    LaunchedEffect(offsetDistinct) {
+                        if (offsetDistinct == -100f && AppSettings.General.enableHaptic) {
+                            view.performHapticFeedback(HapticFeedbackConstantsCompat.CONTEXT_CLICK)
+                        }
+                        Log.d("MessagesList", "offsetDistinct: $offsetDistinct")
+                    }
+
                     Surface(
                         modifier = Modifier
                             .then(
@@ -199,7 +226,36 @@ fun MessagesList(
                                     onMessageLongClicked(item.id)
                                 },
                                 onClick = { onMessageClicked(item.id) }
-                            ),
+                            )
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragCancel = {
+                                        if (offsetX.value == -100f) {
+                                            onRequestMessageReply(item.cmId)
+                                        }
+
+                                        scope.launch {
+                                            offsetX.animateTo(0f)
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        if (offsetX.value == -100f) {
+                                            onRequestMessageReply(item.cmId)
+                                        }
+
+                                        scope.launch {
+                                            offsetX.animateTo(0f)
+                                        }
+                                    },
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        scope.launch {
+                                            offsetX.snapTo(
+                                                (offsetX.value + dragAmount).coerceIn(-100f, 0f)
+                                            )
+                                        }
+                                    }
+                                )
+                            },
                         color = backgroundColor
                     ) {
                         if (item.isOut) {
@@ -226,7 +282,8 @@ fun MessagesList(
                                     if (item.replyCmId != null) {
                                         onRequestScrollToCmId(item.replyCmId)
                                     }
-                                }
+                                },
+                                offsetX = offsetX.value
                             )
                         } else {
                             IncomingMessageBubble(
@@ -252,7 +309,8 @@ fun MessagesList(
                                     if (item.replyCmId != null) {
                                         onRequestScrollToCmId(item.replyCmId)
                                     }
-                                }
+                                },
+                                offsetX = offsetX.value
                             )
                         }
                     }

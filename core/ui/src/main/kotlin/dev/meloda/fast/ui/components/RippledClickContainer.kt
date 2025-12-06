@@ -1,6 +1,6 @@
 package dev.meloda.fast.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ripple
@@ -16,15 +16,17 @@ fun RippledClickContainer(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(4.dp),
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
             .clip(shape)
-            .clickable(
+            .combinedClickable(
                 interactionSource = null,
                 indication = ripple(),
-                onClick = onClick
+                onClick = onClick,
+                onLongClick = onLongClick
             ),
         contentAlignment = Alignment.Center
     ) {
