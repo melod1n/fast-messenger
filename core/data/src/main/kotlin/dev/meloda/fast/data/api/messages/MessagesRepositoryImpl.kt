@@ -37,6 +37,7 @@ import dev.meloda.fast.model.api.requests.MessagesRemoveChatUserRequest
 import dev.meloda.fast.model.api.requests.MessagesSendRequest
 import dev.meloda.fast.model.api.requests.MessagesUnpinMessageRequest
 import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
+import dev.meloda.fast.model.api.responses.MessagesGetReadPeersResponse
 import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
@@ -418,5 +419,19 @@ class MessagesRepositoryImpl(
         )
 
         messagesService.removeChatUser(requestModel.map).mapApiDefault()
+    }
+
+    override suspend fun getMessageReadPeers(
+        peerId: Long,
+        cmId: Long
+    ): ApiResult<MessagesGetReadPeersResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        messagesService.getMessageReadPeers(
+            mapOf(
+                "peer_id" to peerId.toString(),
+                "cmid" to cmId.toString(),
+                "extended" to "1",
+                "fields" to VkConstants.USER_FIELDS
+            )
+        ).mapApiDefault()
     }
 }

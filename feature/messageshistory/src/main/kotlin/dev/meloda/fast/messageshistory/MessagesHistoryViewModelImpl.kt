@@ -38,6 +38,7 @@ import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConversationsUseCase
+import dev.meloda.fast.domain.GetMessageReadPeersUseCase
 import dev.meloda.fast.domain.LoadConversationsByIdUseCase
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
@@ -70,6 +71,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -80,6 +83,7 @@ class MessagesHistoryViewModelImpl(
     private val resourceProvider: ResourceProvider,
     private val userSettings: UserSettings,
     private val loadConversationsByIdUseCase: LoadConversationsByIdUseCase,
+    private val getMessageReadPeersUseCase: GetMessageReadPeersUseCase,
     updatesParser: LongPollUpdatesParser,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
@@ -573,6 +577,23 @@ class MessagesHistoryViewModelImpl(
 
     override fun onRequestReplyToMessage(cmId: Long) {
         replyToMessage(cmId)
+    }
+
+    override suspend fun loadMessageReadPeers(peerId: Long, cmId: Long): Int = suspendCoroutine {
+        viewModelScope.launch {
+            getMessageReadPeersUseCase
+                .invoke(peerId = peerId, cmId = cmId)
+                .listenValue(viewModelScope) { state ->
+                    state.processState(
+                        error = { error ->
+                            it.resume(-1)
+                        },
+                        success = { count ->
+                            it.resume(count)
+                        }
+                    )
+                }
+        }
     }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {

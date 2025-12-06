@@ -83,9 +83,7 @@ fun MessageBubble(
         MaterialTheme.colorScheme.onPrimaryContainer
     }
 
-    val shouldShowBubble by remember(text) {
-        derivedStateOf { text != null }
-    }
+    val shouldShowBubble = !text.isNullOrEmpty()
 
     var bubbleContainerWidth by remember {
         mutableIntStateOf(0)
@@ -95,25 +93,21 @@ fun MessageBubble(
         mutableIntStateOf(0)
     }
 
-    val shouldFill by remember(bubbleContainerWidth, attachmentsContainerWidth) {
-        derivedStateOf {
-            attachmentsContainerWidth >= bubbleContainerWidth
-        }
+    val shouldFill by derivedStateOf {
+        attachmentsContainerWidth >= bubbleContainerWidth
     }
 
     var containerWidth by remember {
         mutableIntStateOf(0)
     }
 
-    val minDateContainerWidth by remember(isEdited, isOut, isPinned, isImportant) {
-        derivedStateOf {
-            val mainPart = if (isEdited) 50 else 30
-            val readIndicatorPart = if (isOut) 14 else 0
-            val pinnedIndicatorPart = if (isPinned) 14 else 0
-            val importantIndicatorPart = if (isImportant) 14 else 0
+    val minDateContainerWidth = remember(isEdited, isOut, isPinned, isImportant) {
+        val mainPart = if (isEdited) 50 else 30
+        val readIndicatorPart = if (isOut) 14 else 0
+        val pinnedIndicatorPart = if (isPinned) 14 else 0
+        val importantIndicatorPart = if (isImportant) 14 else 0
 
-            (mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart).dp
-        }
+        (mainPart + readIndicatorPart + pinnedIndicatorPart + importantIndicatorPart).dp
     }
 
     val dateContainerWidth by animateDpAsState(

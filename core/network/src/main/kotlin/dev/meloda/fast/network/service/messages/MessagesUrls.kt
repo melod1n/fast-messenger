@@ -22,4 +22,5 @@ object MessagesUrls {
     const val REMOVE_CHAT_USER = "$URL/messages.removeChatUser"
     const val GET_HISTORY_ATTACHMENTS = "$URL/messages.getHistoryAttachments"
     const val CREATE_CHAT = "$URL/messages.createChat"
+    const val GET_MESSAGE_READ_PEERS = "$URL/messages.getMessageReadPeers"
 }

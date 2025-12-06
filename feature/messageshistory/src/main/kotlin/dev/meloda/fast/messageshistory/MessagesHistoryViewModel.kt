@@ -65,4 +65,6 @@ interface MessagesHistoryViewModel {
     fun onReplyCloseClicked()
 
     fun onRequestReplyToMessage(cmId: Long)
+
+    suspend fun loadMessageReadPeers(peerId: Long, cmId: Long): Int
 }

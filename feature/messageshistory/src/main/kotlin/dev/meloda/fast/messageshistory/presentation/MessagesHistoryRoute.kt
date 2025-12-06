@@ -85,6 +85,7 @@ fun MessagesHistoryRoute(
     HandleDialogs(
         screenState = screenState,
         dialog = dialog,
+        messageReadPeersLoader = viewModel::loadMessageReadPeers,
         onConfirmed = viewModel::onDialogConfirmed,
         onDismissed = viewModel::onDialogDismissed,
         onItemPicked = viewModel::onDialogItemPicked

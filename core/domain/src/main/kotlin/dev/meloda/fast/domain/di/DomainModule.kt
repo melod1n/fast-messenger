@@ -6,6 +6,7 @@ import dev.meloda.fast.domain.AccountUseCaseImpl
 import dev.meloda.fast.domain.GetCurrentAccountUseCase
 import dev.meloda.fast.domain.GetLocalUserByIdUseCase
 import dev.meloda.fast.domain.GetLocalUsersByIdsUseCase
+import dev.meloda.fast.domain.GetMessageReadPeersUseCase
 import dev.meloda.fast.domain.LoadConversationsByIdUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.LoadUsersByIdsUseCase
@@ -27,4 +28,6 @@ val domainModule = module {
     singleOf(::GetCurrentAccountUseCase)
 
     singleOf(::LoadConversationsByIdUseCase)
+
+    singleOf(::GetMessageReadPeersUseCase)
 }

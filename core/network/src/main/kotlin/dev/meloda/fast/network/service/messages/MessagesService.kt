@@ -9,6 +9,7 @@ import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
 import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryResponse
+import dev.meloda.fast.model.api.responses.MessagesGetReadPeersResponse
 import dev.meloda.fast.model.api.responses.MessagesMarkAsImportantResponse
 import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.ApiResponse
@@ -108,4 +109,10 @@ interface MessagesService {
     suspend fun removeChatUser(
         @FieldMap params: Map<String, String>
     ): ApiResult<ApiResponse<Int>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(MessagesUrls.GET_MESSAGE_READ_PEERS)
+    suspend fun getMessageReadPeers(
+        @FieldMap params: Map<String, String>
+    ): ApiResult<ApiResponse<MessagesGetReadPeersResponse>, RestApiError>
 }

@@ -78,22 +78,21 @@ fun MessagesList(
 
     val scope = rememberCoroutineScope()
 
-    val onAttachmentClick by rememberUpdatedState(
-        { message: UiItem.Message, attachment: VkAttachment ->
-            if (isSelectedAtLeastOne) {
-                onMessageClicked(message.id)
-            } else {
-                when (attachment) {
-                    is VkPhotoDomain -> {
-                        val photos = message.attachments
-                            .orEmpty()
-                            .filterIsInstance<VkPhotoDomain>()
-                            .mapNotNull { photo -> photo.getMaxSize()?.url }
+    val onAttachmentClick by rememberUpdatedState { message: UiItem.Message, attachment: VkAttachment ->
+        if (isSelectedAtLeastOne) {
+            onMessageClicked(message.id)
+        } else {
+            when (attachment) {
+                is VkPhotoDomain -> {
+                    val photos = message.attachments
+                        .orEmpty()
+                        .filterIsInstance<VkPhotoDomain>()
+                        .mapNotNull { photo -> photo.getMaxSize()?.url }
 
-                        onPhotoClicked(
-                            photos,
-                            photos.indexOfFirst { it == attachment.getMaxSize()?.url }
-                        )
+                    onPhotoClicked(
+                        photos,
+                        photos.indexOfFirst { it == attachment.getMaxSize()?.url }
+                    )
 
 //                        val maxSize = attachment.getMaxSize()
 //                        maxSize?.let {
@@ -101,39 +100,36 @@ fun MessagesList(
 //                                Intent(Intent.ACTION_VIEW, maxSize.url.toUri())
 //                            )
 //                        }
-                    }
+                }
 
-                    is VkFileDomain -> {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, attachment.url.toUri())
-                        )
-                    }
+                is VkFileDomain -> {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, attachment.url.toUri())
+                    )
+                }
 
-                    is VkLinkDomain -> {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, attachment.url.toUri())
-                        )
-                    }
+                is VkLinkDomain -> {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, attachment.url.toUri())
+                    )
                 }
             }
         }
-    )
+    }
 
-    val onAttachmentLongClick by rememberUpdatedState(
-        { message: UiItem.Message, attachment: VkAttachment ->
-            if (isSelectedAtLeastOne) {
-                onMessageLongClicked(message.id)
-                uiMessages
-            } else {
-                when (attachment) {
-                    is VkPhotoDomain -> {
-                        val maxSize = attachment.getMaxSize()
-                        Log.d("MessagesList", "onPhotoLongClicked. Max size: ${maxSize?.url}")
-                    }
+    val onAttachmentLongClick by rememberUpdatedState { message: UiItem.Message, attachment: VkAttachment ->
+        if (isSelectedAtLeastOne) {
+            onMessageLongClicked(message.id)
+            uiMessages
+        } else {
+            when (attachment) {
+                is VkPhotoDomain -> {
+                    val maxSize = attachment.getMaxSize()
+                    Log.d("MessagesList", "onPhotoLongClicked. Max size: ${maxSize?.url}")
                 }
             }
         }
-    )
+    }
 
     LazyColumn(
         modifier = modifier
@@ -207,7 +203,6 @@ fun MessagesList(
                         if (offsetDistinct == -100f && AppSettings.General.enableHaptic) {
                             view.performHapticFeedback(HapticFeedbackConstantsCompat.CONTEXT_CLICK)
                         }
-                        Log.d("MessagesList", "offsetDistinct: $offsetDistinct")
                     }
 
                     Surface(

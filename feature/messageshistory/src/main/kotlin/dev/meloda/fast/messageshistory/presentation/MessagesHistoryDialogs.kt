@@ -14,11 +14,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,7 @@ import java.util.concurrent.TimeUnit
 fun HandleDialogs(
     screenState: MessagesHistoryScreenState,
     dialog: MessageDialog?,
+    messageReadPeersLoader: suspend (peerId: Long, cmId: Long) -> Int,
     onConfirmed: (MessageDialog, Bundle) -> Unit = { _, _ -> },
     onDismissed: (MessageDialog) -> Unit = {},
     onItemPicked: (MessageDialog, Bundle) -> Unit = { _, _ -> }
@@ -49,6 +52,7 @@ fun HandleDialogs(
             MessageOptionsDialog(
                 screenState = screenState,
                 message = dialog.message,
+                messageReadPeersLoader = messageReadPeersLoader,
                 onDismissed = { onDismissed(dialog) },
                 onItemPicked = { bundle -> onItemPicked(dialog, bundle) }
             )
@@ -102,9 +106,15 @@ fun HandleDialogs(
 fun MessageOptionsDialog(
     screenState: MessagesHistoryScreenState,
     message: VkMessage,
+    messageReadPeersLoader: suspend (peerId: Long, cmId: Long) -> Int,
     onDismissed: () -> Unit = {},
     onItemPicked: (Bundle) -> Unit
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val errorColor = MaterialTheme.colorScheme.error
+
+    val showReadPeers = message.isOut && message.isPeerChat()
+
     val options = mutableListOf<MessageOption>()
     if (message.isFailed()) {
         options += MessageOption.Retry
@@ -142,41 +152,47 @@ fun MessageOptionsDialog(
 
     options += MessageOption.Delete
 
-    val messageOptions = options.map { option ->
-        Triple(
-            stringResource(option.titleResId),
-            painterResource(option.iconResId),
-            when {
-                option in listOf(
-                    MessageOption.Delete,
-                    MessageOption.MarkAsSpam
-                ) -> MaterialTheme.colorScheme.error
+    val messageOptions = remember(options) {
+        options.map { option ->
+            Triple(
+                option.titleResId,
+                option.iconResId,
+                when {
+                    option in listOf(
+                        MessageOption.Delete,
+                        MessageOption.MarkAsSpam
+                    ) -> errorColor
 
-                else -> MaterialTheme.colorScheme.primary
-            }
-        )
+                    else -> primaryColor
+                }
+            )
+        }
     }
 
     MaterialDialog(onDismissRequest = onDismissed) {
+        if (showReadPeers) {
+            var viewCount by remember {
+                mutableStateOf<Int?>(null)
+            }
+
+            LaunchedEffect(Unit) {
+                viewCount = messageReadPeersLoader.invoke(message.peerId, message.cmId)
+            }
+
+            MessageOptionItem(
+                title = viewCount?.let { "$it views" } ?: "...",
+                iconResId = R.drawable.round_visibility_24px,
+                tintColor = primaryColor,
+                onClick = {}
+            )
+        }
+
         messageOptions
-            .forEachIndexed { index, (title, painter, tintColor) ->
-                DropdownMenuItem(
-                    text = {
-                        Row {
-                            Text(text = title)
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                    },
-                    leadingIcon = {
-                        Row {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                painter = painter,
-                                contentDescription = null,
-                                tint = tintColor
-                            )
-                        }
-                    },
+            .forEachIndexed { index, (titleResId, iconResId, tintColor) ->
+                MessageOptionItem(
+                    title = stringResource(titleResId),
+                    iconResId = iconResId,
+                    tintColor = tintColor,
                     onClick = {
                         onDismissed()
                         val pickedOption = options[index]
@@ -191,6 +207,34 @@ fun MessageOptionsDialog(
                 )
             }
     }
+}
+
+@Composable
+private fun MessageOptionItem(
+    title: String,
+    iconResId: Int,
+    tintColor: Color,
+    onClick: () -> Unit
+) {
+    DropdownMenuItem(
+        text = {
+            Row {
+                Text(text = title)
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        },
+        leadingIcon = {
+            Row {
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(iconResId),
+                    contentDescription = null,
+                    tint = tintColor
+                )
+            }
+        },
+        onClick = onClick
+    )
 }
 
 @Composable

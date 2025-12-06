@@ -6,6 +6,7 @@ import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
+import dev.meloda.fast.model.api.responses.MessagesGetReadPeersResponse
 import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.RestApiErrorDomain
 
@@ -110,4 +111,9 @@ interface MessagesRepository {
         chatId: Long,
         memberId: Long
     ): ApiResult<Int, RestApiErrorDomain>
+
+    suspend fun getMessageReadPeers(
+        peerId: Long,
+        cmId: Long
+    ): ApiResult<MessagesGetReadPeersResponse, RestApiErrorDomain>
 }

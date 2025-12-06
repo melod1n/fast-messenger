@@ -28,14 +28,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun Reply(
-    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
     bottomPadding: Dp,
     shape: Shape,
-    onClick: () -> Unit,
     backgroundColor: Color,
     innerBackgroundColor: Color,
     title: String,
-    summary: String?
+    summary: String?,
+    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier

@@ -70,3 +70,10 @@ data class MessagesMarkAsImportantResponse(
         @Json(name = "peer_id") val peerId: Long
     )
 }
+
+@JsonClass(generateAdapter = true)
+data class MessagesGetReadPeersResponse(
+    @Json(name = "items") val items: List<Long>,
+    @Json(name = "total_count") val totalCount: Int,
+    @Json(name = "profiles") val profiles: List<VkUserData>?,
+)
