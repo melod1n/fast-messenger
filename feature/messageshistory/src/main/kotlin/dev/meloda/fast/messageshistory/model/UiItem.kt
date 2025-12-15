@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.AnnotatedString
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.ui.util.ImmutableList
 
 sealed class UiItem(
     open val id: Long,
@@ -31,7 +32,7 @@ sealed class UiItem(
         val isSelected: Boolean,
         val isPinned: Boolean,
         val isImportant: Boolean,
-        val attachments: List<VkAttachment>?,
+        val attachments: ImmutableList<VkAttachment>?,
         val replyCmId: Long?,
         val replyTitle: String?,
         val replySummary: String?

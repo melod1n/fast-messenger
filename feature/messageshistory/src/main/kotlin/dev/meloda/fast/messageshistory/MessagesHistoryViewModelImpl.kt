@@ -1231,7 +1231,7 @@ class MessagesHistoryViewModelImpl(
         val newUiMessages = messages.mapIndexed { index, message ->
             message.asPresentation(
                 resourceProvider = resourceProvider,
-                showName = false,
+                showName = true,
                 prevMessage = messages.getOrNull(index + 1),
                 nextMessage = messages.getOrNull(index - 1),
                 showTimeInActionMessages = AppSettings.Experimental.showTimeInActionMessages,

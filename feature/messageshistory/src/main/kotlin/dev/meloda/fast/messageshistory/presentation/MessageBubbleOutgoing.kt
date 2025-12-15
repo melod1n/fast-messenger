@@ -80,7 +80,7 @@ fun OutgoingMessageBubble(
                     isPinned = message.isPinned,
                     isImportant = message.isImportant,
                     isSelected = message.isSelected,
-                    attachments = message.attachments?.toImmutableList(),
+                    attachments = message.attachments,
                     replyTitle = message.replyTitle,
                     replySummary = message.replySummary,
                     onClick = currentOnClick,

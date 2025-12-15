@@ -20,12 +20,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -36,7 +40,6 @@ import com.conena.nanokt.android.content.dpInPx
 import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 import kotlin.math.roundToInt
 
 @Composable
@@ -49,9 +52,15 @@ fun IncomingMessageBubble(
     onLongClick: (VkAttachment) -> Unit = {},
     onReplyClick: () -> Unit = {}
 ) {
+    val density = LocalDensity.current
+
     val currentOnClick by rememberUpdatedState(onClick)
     val currentOnLongClick by rememberUpdatedState(onLongClick)
     val currentOnReplyClick by rememberUpdatedState(onReplyClick)
+
+    var bubbleContainerWidth by remember {
+        mutableStateOf(0.dp)
+    }
 
     Row(
         modifier = modifier
@@ -103,9 +112,12 @@ fun IncomingMessageBubble(
                         Text(
                             modifier = Modifier
                                 .padding(start = 12.dp)
-                                .widthIn(max = 140.dp),
+                                .widthIn(
+                                    max = (bubbleContainerWidth.takeIf { it > 0.dp }
+                                        ?: 140.dp) - 24.dp
+                                ),
                             text = message.name,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -123,14 +135,16 @@ fun IncomingMessageBubble(
                         isPinned = message.isPinned,
                         isImportant = message.isImportant,
                         isSelected = message.isSelected,
-                        attachments = message.attachments?.toImmutableList(),
+                        attachments = message.attachments,
                         replyTitle = message.replyTitle,
                         replySummary = message.replySummary,
                         onClick = currentOnClick,
                         onLongClick = currentOnLongClick,
-                        onReplyClick = currentOnReplyClick
+                        onReplyClick = currentOnReplyClick,
+                        onBubbleWidthChange = {
+                            bubbleContainerWidth = with(density) { it.toDp() }
+                        }
                     )
-
                 }
             }
             Spacer(modifier = Modifier.fillMaxWidth(0.25f))

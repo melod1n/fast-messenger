@@ -24,6 +24,7 @@ import dev.meloda.fast.model.api.domain.FormatDataType
 import dev.meloda.fast.model.api.domain.VkConversation
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -156,7 +157,7 @@ fun VkMessage.asPresentation(
         isSelected = isSelected,
         isPinned = isPinned,
         isImportant = isImportant,
-        attachments = attachments?.ifEmpty { null },
+        attachments = attachments?.ifEmpty { null }?.toImmutableList(),
         replyCmId = replyMessage?.cmId,
         replyTitle = extractReplyTitle(),
         replySummary = extractReplySummary()

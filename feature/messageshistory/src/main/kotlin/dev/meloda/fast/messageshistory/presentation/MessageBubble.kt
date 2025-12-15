@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,7 +59,8 @@ fun MessageBubble(
     replySummary: String? = null,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {},
-    onReplyClick: () -> Unit = {}
+    onReplyClick: () -> Unit = {},
+    onBubbleWidthChange: (Int) -> Unit = {},
 ) {
     val density = LocalDensity.current
 
@@ -148,6 +150,9 @@ fun MessageBubble(
                     modifier = modifier
                         .onGloballyPositioned {
                             bubbleContainerWidth = it.size.width
+                        }
+                        .onSizeChanged {
+                            onBubbleWidthChange(it.width)
                         }
                         .widthIn(min = if (shouldFill) attachmentsContainerWidth.dp else 56.dp)
                         .clip(
