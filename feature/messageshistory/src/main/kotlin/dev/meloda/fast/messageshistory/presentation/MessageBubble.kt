@@ -267,9 +267,9 @@ private fun messageBubbleColors(isOut: Boolean): MessageBubbleColors {
         )
     } else {
         MessageBubbleColors(
-            container = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+            container = MaterialTheme.colorScheme.surfaceContainer,
             content = MaterialTheme.colorScheme.onSurface,
-            replyContainer = MaterialTheme.colorScheme.primaryContainer
+            replyContainer = MaterialTheme.colorScheme.surfaceContainerHighest
         )
     }
 }
@@ -277,21 +277,41 @@ private fun messageBubbleColors(isOut: Boolean): MessageBubbleColors {
 @Preview
 @Composable
 private fun Bubble() {
-    MessageBubble(
-        modifier = Modifier,
-        text = AnnotatedString("Some cool text"),
-        isOut = true,
-        date = "19:01",
-        isEdited = true,
-        isRead = true,
-        sendingStatus = SendingStatus.SENT,
-        isPinned = true,
-        isImportant = true,
-        isSelected = false,
-        attachments = emptyImmutableList(),
-        replyTitle = "Danil Nikolaev",
-        replySummary = "2 photos",
-        onClick = {},
-        onLongClick = {},
-    )
+    Column {
+        MessageBubble(
+            modifier = Modifier,
+            text = AnnotatedString("Some cool text"),
+            isOut = true,
+            date = "19:01",
+            isEdited = true,
+            isRead = true,
+            sendingStatus = SendingStatus.SENT,
+            isPinned = true,
+            isImportant = true,
+            isSelected = false,
+            attachments = emptyImmutableList(),
+            replyTitle = "Danil Nikolaev",
+            replySummary = "2 photos",
+            onClick = {},
+            onLongClick = {},
+        )
+
+        MessageBubble(
+            modifier = Modifier,
+            text = AnnotatedString("Some cool text"),
+            isOut = false,
+            date = "19:01",
+            isEdited = true,
+            isRead = true,
+            sendingStatus = SendingStatus.SENT,
+            isPinned = true,
+            isImportant = true,
+            isSelected = false,
+            attachments = emptyImmutableList(),
+            replyTitle = "Danil Nikolaev",
+            replySummary = "2 photos",
+            onClick = {},
+            onLongClick = {},
+        )
+    }
 }
