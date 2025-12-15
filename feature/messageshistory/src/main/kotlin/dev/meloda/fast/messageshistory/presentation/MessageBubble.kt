@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -68,22 +69,7 @@ fun MessageBubble(
     val currentOnLongClick by rememberUpdatedState(onLongClick)
 
     val theme = LocalThemeConfig.current
-    val backgroundColor = if (!isOut) {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-    } else {
-        MaterialTheme.colorScheme.primaryContainer
-    }
-    val replyBackgroundColor = if (!isOut) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.inversePrimary
-    }
-
-    val contentColor = if (!isOut) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    }
+    val colors = messageBubbleColors(isOut = isOut)
 
     val shouldShowBubble = !text.isNullOrEmpty()
 
@@ -117,7 +103,7 @@ fun MessageBubble(
         label = "dateContainerWidth"
     )
 
-    CompositionLocalProvider(LocalContentColor provides contentColor) {
+    CompositionLocalProvider(LocalContentColor provides colors.content) {
         Column(
             modifier = modifier
                 .wrapContentWidth()
@@ -140,8 +126,8 @@ fun MessageBubble(
                     onClick = onReplyClick,
                     title = replyTitle,
                     summary = replySummary,
-                    backgroundColor = backgroundColor,
-                    innerBackgroundColor = replyBackgroundColor
+                    backgroundColor = colors.container,
+                    innerBackgroundColor = colors.replyContainer
                 )
             }
 
@@ -163,7 +149,7 @@ fun MessageBubble(
                                 bottomEnd = if (attachments != null) 0.dp else 24.dp
                             )
                         )
-                        .background(backgroundColor)
+                        .background(colors.container)
                         .padding(
                             start = 8.dp,
                             end = 8.dp,
@@ -204,6 +190,15 @@ fun MessageBubble(
             }
 
             if (attachments != null) {
+                val firstAttachment = attachments.firstOrNull()
+                val isMediaAttachment = firstAttachment is VkStickerDomain ||
+                        firstAttachment is VkVideoMessageDomain
+                val attachmentBackgroundColor = if (isMediaAttachment) {
+                    Color.Transparent
+                } else {
+                    colors.container
+                }
+
                 Box(
                     modifier = Modifier
                         .onGloballyPositioned {
@@ -218,18 +213,7 @@ fun MessageBubble(
                                 topEnd = 0.dp
                             )
                         )
-                        .background(
-                            backgroundColor.copy(
-                                alpha = if ((attachments.firstOrNull()?.javaClass
-                                        ?: Nothing::class.java)
-                                    in listOf(
-                                        VkStickerDomain::class.java,
-                                        VkVideoMessageDomain::class.java
-                                    )
-                                ) 0f
-                                else 1f
-                            )
-                        )
+                        .background(attachmentBackgroundColor)
                 ) {
                     Attachments(
                         modifier = Modifier,
@@ -241,7 +225,7 @@ fun MessageBubble(
                     val dateStatusBackground = if (theme.darkMode) Color.Black.copy(alpha = 0.5f)
                     else Color.White.copy(alpha = 0.5f)
 
-                    CompositionLocalProvider(LocalContentColor provides contentColor) {
+                    CompositionLocalProvider(LocalContentColor provides colors.content) {
                         DateStatus(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
@@ -263,6 +247,30 @@ fun MessageBubble(
                 }
             }
         }
+    }
+}
+
+@Immutable
+private data class MessageBubbleColors(
+    val container: Color,
+    val content: Color,
+    val replyContainer: Color,
+)
+
+@Composable
+private fun messageBubbleColors(isOut: Boolean): MessageBubbleColors {
+    return if (isOut) {
+        MessageBubbleColors(
+            container = MaterialTheme.colorScheme.primaryContainer,
+            content = MaterialTheme.colorScheme.onPrimaryContainer,
+            replyContainer = MaterialTheme.colorScheme.inversePrimary
+        )
+    } else {
+        MessageBubbleColors(
+            container = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+            content = MaterialTheme.colorScheme.onSurface,
+            replyContainer = MaterialTheme.colorScheme.primaryContainer
+        )
     }
 }
 
