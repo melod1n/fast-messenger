@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.friends.FriendsViewModel
 import dev.meloda.fast.friends.FriendsViewModelImpl
+import dev.meloda.fast.friends.OnlineFriendsViewModelImpl
 import dev.meloda.fast.friends.presentation.FriendsRoute
 import dev.meloda.fast.model.BaseError
 import kotlinx.serialization.Serializable
@@ -20,14 +21,14 @@ fun NavGraphBuilder.friendsScreen(
     onMessageClicked: (userId: Long) -> Unit,
     onScrolledToTop: () -> Unit
 ) {
-    val friendsViewModel: FriendsViewModel = with(activity) {
-        getViewModel<FriendsViewModelImpl>()
-    }
+    val friendsViewModel: FriendsViewModel = activity.getViewModel<FriendsViewModelImpl>()
+    val onlineFriendsViewModel =
+        activity.getViewModel<OnlineFriendsViewModelImpl>()
 
     composable<Friends> {
         FriendsRoute(
-            activity = activity,
             friendsViewModel = friendsViewModel,
+            onlineFriendsViewModel = onlineFriendsViewModel,
             onError = onError,
             onPhotoClicked = onPhotoClicked,
             onMessageClicked = onMessageClicked,

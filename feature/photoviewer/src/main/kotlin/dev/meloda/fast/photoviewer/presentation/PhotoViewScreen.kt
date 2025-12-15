@@ -1,6 +1,5 @@
 package dev.meloda.fast.photoviewer.presentation
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -59,9 +58,9 @@ import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenDialog
 import dev.meloda.fast.ui.components.Loader
+import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.getImage
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.net.URLEncoder
@@ -69,7 +68,7 @@ import kotlin.math.abs
 
 @Composable
 fun PhotoViewDialog(
-    photoViewerInfo: Pair<List<String>, Int?>?,
+    photoViewerInfo: Pair<ImmutableList<String>, Int?>?,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit
 ) {
@@ -85,7 +84,7 @@ fun PhotoViewDialog(
                     arguments = PhotoViewArguments(
                         imageUrls = photoViewerInfo.first.map {
                             URLEncoder.encode(it, "utf-8")
-                        },
+                        }.toList(),
                         selectedIndex = photoViewerInfo.second
                     ),
                     applicationContext = applicationContext

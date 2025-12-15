@@ -92,12 +92,14 @@ class MessagesRepositoryImpl(
                             group = groupsMap.messageGroup(message),
                             actionUser = usersMap.messageActionUser(message),
                             actionGroup = groupsMap.messageActionGroup(message),
-                            replyMessage = message.replyMessage?.copy(
-                                user = usersMap.messageUser(message),
-                                group = groupsMap.messageGroup(message),
-                                actionUser = usersMap.messageActionUser(message),
-                                actionGroup = groupsMap.messageActionGroup(message),
-                            )
+                            replyMessage = message.replyMessage.let { replyMessage ->
+                                replyMessage?.copy(
+                                    user = usersMap.messageUser(replyMessage),
+                                    group = groupsMap.messageGroup(replyMessage),
+                                    actionUser = usersMap.messageActionUser(replyMessage),
+                                    actionGroup = groupsMap.messageActionGroup(replyMessage),
+                                )
+                            }
                         ).also { VkMemoryCache[message.id] = it }
                     }
                 }
@@ -167,12 +169,14 @@ class MessagesRepositoryImpl(
                         group = groupsMap.messageGroup(message),
                         actionUser = usersMap.messageActionUser(message),
                         actionGroup = groupsMap.messageActionGroup(message),
-                        replyMessage = message.replyMessage?.asDomain()?.copy(
-                            user = usersMap.messageUser(message),
-                            group = groupsMap.messageGroup(message),
-                            actionUser = usersMap.messageActionUser(message),
-                            actionGroup = groupsMap.messageActionGroup(message),
-                        )
+                        replyMessage = message.replyMessage?.asDomain().let { replyMessage ->
+                            replyMessage?.copy(
+                                user = usersMap.messageUser(replyMessage),
+                                group = groupsMap.messageGroup(replyMessage),
+                                actionUser = usersMap.messageActionUser(replyMessage),
+                                actionGroup = groupsMap.messageActionGroup(replyMessage),
+                            )
+                        }
                     )
                 }
 

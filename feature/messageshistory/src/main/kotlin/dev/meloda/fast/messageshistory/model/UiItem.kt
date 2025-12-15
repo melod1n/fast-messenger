@@ -1,5 +1,6 @@
 package dev.meloda.fast.messageshistory.model
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.AnnotatedString
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkAttachment
@@ -9,6 +10,7 @@ sealed class UiItem(
     open val cmId: Long
 ) {
 
+    @Stable
     data class Message(
         override val id: Long,
         override val cmId: Long,
@@ -35,6 +37,7 @@ sealed class UiItem(
         val replySummary: String?
     ) : UiItem(id, cmId)
 
+    @Stable
     data class ActionMessage(
         override val id: Long,
         override val cmId: Long,

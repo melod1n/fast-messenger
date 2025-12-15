@@ -1,6 +1,5 @@
 package dev.meloda.fast.friends.presentation
 
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -54,17 +53,16 @@ import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun FriendsRoute(
-    activity: AppCompatActivity,
     friendsViewModel: FriendsViewModel,
+    onlineFriendsViewModel: OnlineFriendsViewModelImpl,
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
-    onScrolledToTop: () -> Unit
+    onScrolledToTop: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val currentTheme = LocalThemeConfig.current
@@ -232,9 +230,7 @@ fun FriendsRoute(
             modifier = Modifier.fillMaxSize(),
         ) { index ->
             FriendsScreen(
-                viewModel = if (index == 0) friendsViewModel else with(activity) {
-                    getViewModel<OnlineFriendsViewModelImpl>()
-                },
+                viewModel = if (index == 0) friendsViewModel else onlineFriendsViewModel,
                 orderType = orderType,
                 padding = padding,
                 tabIndex = index,
