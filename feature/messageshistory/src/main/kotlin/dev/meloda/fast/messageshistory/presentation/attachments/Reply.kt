@@ -1,5 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation.attachments
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -78,9 +79,9 @@ fun Reply(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                summary?.let {
+                AnimatedVisibility(summary != null) {
                     Text(
-                        text = summary,
+                        text = summary.orEmpty(),
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
