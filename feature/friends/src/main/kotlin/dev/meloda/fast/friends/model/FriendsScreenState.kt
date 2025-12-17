@@ -1,7 +1,7 @@
 package dev.meloda.fast.friends.model
 
 import androidx.compose.runtime.Immutable
-import dev.meloda.fast.ui.model.api.UiFriend
+import dev.meloda.fast.ui.model.vk.UiFriend
 
 @Immutable
 data class FriendsScreenState(

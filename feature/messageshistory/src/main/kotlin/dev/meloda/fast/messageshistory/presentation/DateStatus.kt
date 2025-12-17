@@ -17,8 +17,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.meloda.fast.messageshistory.model.SendingStatus
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.model.vk.SendingStatus
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 @Composable

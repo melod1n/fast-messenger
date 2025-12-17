@@ -16,8 +16,8 @@ import dev.meloda.fast.common.LongPollControllerImpl
 import dev.meloda.fast.common.provider.Provider
 import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.common.provider.ResourceProviderImpl
-import dev.meloda.fast.conversations.di.conversationsModule
-import dev.meloda.fast.conversations.di.createChatModule
+import dev.meloda.fast.convos.di.convosModule
+import dev.meloda.fast.convos.di.createChatModule
 import dev.meloda.fast.domain.di.domainModule
 import dev.meloda.fast.friends.di.friendsModule
 import dev.meloda.fast.languagepicker.di.languagePickerModule
@@ -41,7 +41,7 @@ val applicationModule = module {
         loginModule,
         validationModule,
         captchaModule,
-        conversationsModule,
+        convosModule,
         settingsModule,
         messagesHistoryModule,
         photoViewModule,

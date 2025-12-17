@@ -16,7 +16,7 @@ data class VkMessage(
     val action: Action?,
     val actionMemberId: Long?,
     val actionText: String?,
-    val actionConversationMessageId: Long?,
+    val actionCmId: Long?,
     val actionMessage: String?,
 
     val updateTime: Int?,
@@ -44,9 +44,9 @@ data class VkMessage(
 
     fun isGroup() = fromId < 0
 
-    fun isRead(conversation: VkConversation): Boolean = when {
+    fun isRead(convo: VkConvo): Boolean = when {
         id <= 0 -> false
-        else -> conversation.isRead(this)
+        else -> convo.isRead(this)
     }
 
     fun hasAttachments(): Boolean = attachments.orEmpty().isNotEmpty()
@@ -98,7 +98,7 @@ data class VkMessage(
 
 fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     id = id,
-    conversationMessageId = cmId,
+    cmId = cmId,
     text = text,
     isOut = isOut,
     peerId = peerId,
@@ -108,7 +108,7 @@ fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     action = action?.value,
     actionMemberId = actionMemberId,
     actionText = actionText,
-    actionConversationMessageId = actionConversationMessageId,
+    actionCmId = actionCmId,
     actionMessage = actionMessage,
     updateTime = updateTime,
     important = isImportant,

@@ -56,7 +56,7 @@ data class VkMessageData(
         @Json(name = "type") val type: String,
         @Json(name = "member_id") val memberId: Long?,
         @Json(name = "text") val text: String?,
-        @Json(name = "conversation_message_id") val conversationMessageId: Long?,
+        @Json(name = "conversation_message_id") val cmId: Long?,
         @Json(name = "message") val message: String?
     )
 
@@ -102,7 +102,7 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     action = VkMessage.Action.parse(action?.type),
     actionMemberId = action?.memberId,
     actionText = action?.text,
-    actionConversationMessageId = action?.conversationMessageId,
+    actionCmId = action?.cmId,
     actionMessage = action?.message,
     geoType = geo?.type,
     isImportant = important == true,

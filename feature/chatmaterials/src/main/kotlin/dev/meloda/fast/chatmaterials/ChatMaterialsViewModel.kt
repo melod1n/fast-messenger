@@ -53,7 +53,7 @@ class ChatMaterialsViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 peerId = arguments.peerId,
-                cmId = arguments.conversationMessageId
+                cmId = arguments.cmId
             )
         }
 
@@ -101,7 +101,7 @@ class ChatMaterialsViewModelImpl(
                         isPaginationExhausted = paginationExhausted,
                         cmId = if (loadedMaterials.size + offset > 200) {
                             currentOffset.setValue { 0 }
-                            loadedMaterials.lastOrNull()?.conversationMessageId ?: -1
+                            loadedMaterials.lastOrNull()?.cmId ?: -1
                         } else {
                             screenState.value.cmId
                         }

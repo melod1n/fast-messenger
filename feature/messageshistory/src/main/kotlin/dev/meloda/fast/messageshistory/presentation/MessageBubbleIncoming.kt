@@ -37,16 +37,16 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import com.conena.nanokt.android.content.dpInPx
-import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.model.vk.MessageUiItem
 import kotlin.math.roundToInt
 
 @Composable
 fun IncomingMessageBubble(
     enableAnimations: Boolean,
     modifier: Modifier = Modifier,
-    message: UiItem.Message,
+    message: MessageUiItem.Message,
     offsetX: Float = 0f,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {},

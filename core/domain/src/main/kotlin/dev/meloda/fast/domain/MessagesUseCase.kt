@@ -14,7 +14,7 @@ interface MessagesUseCase : BaseUseCase {
     suspend fun storeMessages(messages: List<VkMessage>)
 
     fun getMessagesHistory(
-        conversationId: Long,
+        convoId: Long,
         count: Int?,
         offset: Int?
     ): Flow<State<MessagesHistoryInfo>>

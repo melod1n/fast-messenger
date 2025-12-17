@@ -5,7 +5,7 @@ import dev.meloda.fast.model.api.data.VkChatData
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
 import dev.meloda.fast.model.api.domain.VkMessage
-import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
+import dev.meloda.fast.model.api.responses.MessagesGetConvoMembersResponse
 import dev.meloda.fast.model.api.responses.MessagesGetReadPeersResponse
 import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.RestApiErrorDomain
@@ -15,7 +15,7 @@ interface MessagesRepository {
     suspend fun storeMessages(messages: List<VkMessage>)
 
     suspend fun getHistory(
-        conversationId: Long,
+        convoId: Long,
         offset: Int?,
         count: Int?
     ): ApiResult<MessagesHistoryInfo, RestApiErrorDomain>
@@ -99,13 +99,13 @@ interface MessagesRepository {
         fields: String? = null
     ): ApiResult<VkChatData, RestApiErrorDomain>
 
-    suspend fun getConversationMembers(
+    suspend fun getConvoMembers(
         peerId: Long,
         offset: Int? = null,
         count: Int? = null,
         extended: Boolean? = null,
         fields: String? = null
-    ): ApiResult<MessagesGetConversationMembersResponse, RestApiErrorDomain>
+    ): ApiResult<MessagesGetConvoMembersResponse, RestApiErrorDomain>
 
     suspend fun removeChatUser(
         chatId: Long,

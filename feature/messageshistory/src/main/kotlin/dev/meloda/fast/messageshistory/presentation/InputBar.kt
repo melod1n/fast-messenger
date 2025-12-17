@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,6 +63,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.util.annotated
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FastTextField
@@ -78,7 +80,7 @@ fun InputBar(
     showAttachmentButton: Boolean,
     actionMode: ActionMode,
     replyTitle: String?,
-    replyText: String?,
+    replyText: AnnotatedString?,
     inputFieldFocusRequester: Boolean,
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onBoldRequested: () -> Unit = {},
@@ -136,7 +138,7 @@ fun InputBar(
             ReplyContainer(
                 modifier = Modifier.padding(horizontal = 8.dp),
                 title = replyTitle.orEmpty(),
-                text = replyText.orEmpty(),
+                text = replyText,
                 onCloseClicked = onReplyCloseClicked,
             )
         }
@@ -357,7 +359,7 @@ private fun InputBarPreview() {
         showAttachmentButton = true,
         actionMode = ActionMode.SEND,
         replyTitle = "Иннокентий Панфилович",
-        replyText = "Ого, ром!",
+        replyText = "Ого, ром!".annotated(),
         inputFieldFocusRequester = false
     )
 }

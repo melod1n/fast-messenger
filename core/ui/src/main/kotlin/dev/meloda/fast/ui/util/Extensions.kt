@@ -11,6 +11,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.onKeyEvent
@@ -120,4 +124,15 @@ fun isNeedToEnableDarkMode(darkMode: DarkMode): Boolean {
         systemUiNightMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
     return appForceDarkMode || (appBatterySaver && isSystemBatterySaver) || (!appBatterySaver && isSystemUsingDarkTheme && darkMode == DarkMode.FOLLOW_SYSTEM)
+}
+
+fun Color.lighten(amount: Float) = lerp(this, Color.White, amount.coerceIn(0f, 1f))
+fun Color.darken(amount: Float) = lerp(this, Color.Black, amount.coerceIn(0f, 1f))
+
+fun Color.isDark(
+    background: Color = Color.White,
+    threshold: Float = 0.5f
+): Boolean {
+    val opaque = if (alpha < 1f) this.compositeOver(background) else this
+    return opaque.luminance() < threshold
 }

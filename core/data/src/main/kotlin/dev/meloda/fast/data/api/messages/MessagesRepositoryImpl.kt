@@ -5,7 +5,7 @@ import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkGroupsMap
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.data.VkUsersMap
-import dev.meloda.fast.database.dao.ConversationDao
+import dev.meloda.fast.database.dao.ConvoDao
 import dev.meloda.fast.database.dao.GroupDao
 import dev.meloda.fast.database.dao.MessageDao
 import dev.meloda.fast.database.dao.UserDao
@@ -17,7 +17,7 @@ import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.data.asDomain
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAttachmentHistoryMessage
-import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.model.api.domain.VkGroupDomain
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkUser
@@ -27,7 +27,7 @@ import dev.meloda.fast.model.api.requests.MessagesDeleteRequest
 import dev.meloda.fast.model.api.requests.MessagesEditRequest
 import dev.meloda.fast.model.api.requests.MessagesGetByIdRequest
 import dev.meloda.fast.model.api.requests.MessagesGetChatRequest
-import dev.meloda.fast.model.api.requests.MessagesGetConversationMembersRequest
+import dev.meloda.fast.model.api.requests.MessagesGetConvoMembersRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryAttachmentsRequest
 import dev.meloda.fast.model.api.requests.MessagesGetHistoryRequest
 import dev.meloda.fast.model.api.requests.MessagesMarkAsImportantRequest
@@ -36,7 +36,7 @@ import dev.meloda.fast.model.api.requests.MessagesPinMessageRequest
 import dev.meloda.fast.model.api.requests.MessagesRemoveChatUserRequest
 import dev.meloda.fast.model.api.requests.MessagesSendRequest
 import dev.meloda.fast.model.api.requests.MessagesUnpinMessageRequest
-import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
+import dev.meloda.fast.model.api.responses.MessagesGetConvoMembersResponse
 import dev.meloda.fast.model.api.responses.MessagesGetReadPeersResponse
 import dev.meloda.fast.model.api.responses.MessagesSendResponse
 import dev.meloda.fast.network.RestApiErrorDomain
@@ -52,18 +52,18 @@ class MessagesRepositoryImpl(
     private val messageDao: MessageDao,
     private val userDao: UserDao,
     private val groupDao: GroupDao,
-    private val conversationDao: ConversationDao
+    private val convoDao: ConvoDao
 ) : MessagesRepository {
 
     override suspend fun getHistory(
-        conversationId: Long,
+        convoId: Long,
         offset: Int?,
         count: Int?
     ): ApiResult<MessagesHistoryInfo, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesGetHistoryRequest(
             count = count,
             offset = offset,
-            peerId = conversationId,
+            peerId = convoId,
             extended = true,
             startMessageId = null,
             rev = null,
@@ -104,19 +104,19 @@ class MessagesRepositoryImpl(
                     }
                 }
 
-                val conversations = response.conversations.orEmpty().map { item ->
+                val convos = response.convos.orEmpty().map { item ->
                     val message = messages.firstOrNull { it.id == item.lastMessageId }
                     item.asDomain(message)
-                        .let { conversation ->
-                            conversation.copy(
-                                user = usersMap.conversationUser(conversation),
-                                group = groupsMap.conversationGroup(conversation)
-                            ).also { VkMemoryCache[conversation.id] = it }
+                        .let { convo ->
+                            convo.copy(
+                                user = usersMap.convoUser(convo),
+                                group = groupsMap.convoGroup(convo)
+                            ).also { VkMemoryCache[convo.id] = it }
                         }
                 }
 
                 launch(Dispatchers.IO) {
-                    conversationDao.insertAll(conversations.map(VkConversation::asEntity))
+                    convoDao.insertAll(convos.map(VkConvo::asEntity))
                     messageDao.insertAll(messages.map(VkMessage::asEntity))
                     userDao.insertAll(profilesList.map(VkUser::asEntity))
                     groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
@@ -124,7 +124,7 @@ class MessagesRepositoryImpl(
 
                 MessagesHistoryInfo(
                     messages = messages,
-                    conversations = conversations
+                    convos = convos
                 )
             },
             errorMapper = { error ->
@@ -243,7 +243,7 @@ class MessagesRepositoryImpl(
                 offset = offset,
                 preserveOrder = true,
                 attachmentTypes = attachmentTypes,
-                conversationMessageId = cmId,
+                cmId = cmId,
                 fields = VkConstants.ALL_FIELDS
             )
 
@@ -297,7 +297,7 @@ class MessagesRepositoryImpl(
         val requestModel = MessagesPinMessageRequest(
             peerId = peerId,
             messageId = messageId,
-            conversationMessageId = cmId
+            cmId = cmId
         )
 
         messagesService.pin(requestModel.map).mapApiResult(
@@ -343,7 +343,7 @@ class MessagesRepositoryImpl(
         val requestModel = MessagesDeleteRequest(
             peerId = peerId,
             messagesIds = messageIds,
-            conversationsMessagesIds = cmIds,
+            cmIds = cmIds,
             isSpam = spam,
             deleteForAll = deleteForAll
         )
@@ -394,15 +394,15 @@ class MessagesRepositoryImpl(
         messagesService.getChat(requestModel.map).mapApiDefault()
     }
 
-    override suspend fun getConversationMembers(
+    override suspend fun getConvoMembers(
         peerId: Long,
         offset: Int?,
         count: Int?,
         extended: Boolean?,
         fields: String?
-    ): ApiResult<MessagesGetConversationMembersResponse, RestApiErrorDomain> =
+    ): ApiResult<MessagesGetConvoMembersResponse, RestApiErrorDomain> =
         withContext(Dispatchers.IO) {
-            val requestModel = MessagesGetConversationMembersRequest(
+            val requestModel = MessagesGetConvoMembersRequest(
                 peerId = peerId,
                 offset = offset,
                 count = count,
@@ -410,7 +410,7 @@ class MessagesRepositoryImpl(
                 fields = fields
             )
 
-            messagesService.getConversationMembers(requestModel.map).mapApiDefault()
+            messagesService.getConvoMembers(requestModel.map).mapApiDefault()
         }
 
     override suspend fun removeChatUser(

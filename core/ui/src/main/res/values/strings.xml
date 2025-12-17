@@ -153,18 +153,18 @@
     <string name="action_mark_as_read">Read</string>
 
     <string name="action_delete">Delete</string>
-    <string name="conversation_context_action_archive">Archive</string>
-    <string name="conversation_context_action_unarchive">Unarchive</string>
-    <string name="conversation_context_action_delete">Delete</string>
-    <string name="confirm_delete_conversation">Delete the conversation?</string>
+    <string name="convo_context_action_archive">Archive</string>
+    <string name="convo_context_action_unarchive">Unarchive</string>
+    <string name="convo_context_action_delete">Delete</string>
+    <string name="confirm_delete_convo">Delete the conversation?</string>
     <string name="action_sign_out">Sign out</string>
     <string name="sign_out_confirm_title">Sign out?</string>
-    <string name="conversation_context_action_unpin">Unpin</string>
-    <string name="conversation_context_action_pin">Pin</string>
-    <string name="confirm_unpin_conversation">Unpin the conversation?</string>
-    <string name="confirm_pin_conversation">Pin the conversation?</string>
-    <string name="confirm_archive_conversation">Archive the conversation?</string>
-    <string name="confirm_unarchive_conversation">Unarchive the conversation?</string>
+    <string name="convo_context_action_unpin">Unpin</string>
+    <string name="convo_context_action_pin">Pin</string>
+    <string name="confirm_unpin_convo">Unpin the conversation?</string>
+    <string name="confirm_pin_convo">Pin the conversation?</string>
+    <string name="confirm_archive_convo">Archive the conversation?</string>
+    <string name="confirm_unarchive_convo">Unarchive the conversation?</string>
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
     <string name="action_mark">Mark</string>
@@ -245,7 +245,7 @@
     <string name="action_refresh">Refresh</string>
     <string name="members_count">Members: %1$d</string>
     <string name="title_loading">Loading&#8230;</string>
-    <string name="title_conversations">Conversations</string>
+    <string name="title_convos">Conversations</string>
     <string name="title_archive">Archive</string>
     <string name="title_friends">Friends</string>
     <string name="title_profile">Profile</string>

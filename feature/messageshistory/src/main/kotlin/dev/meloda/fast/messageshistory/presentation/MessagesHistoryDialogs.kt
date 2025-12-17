@@ -123,11 +123,11 @@ fun MessageOptionsDialog(
         options += MessageOption.ForwardHere
         options += MessageOption.Forward
 
-        if (message.isPeerChat() && screenState.conversation.canChangePin) {
+        if (message.isPeerChat() && screenState.convo.canChangePin) {
             options += if (message.isPinned) MessageOption.Unpin else MessageOption.Pin
         }
 
-        if (!message.isOut && !message.isRead(screenState.conversation)) {
+        if (!message.isOut && !message.isRead(screenState.convo)) {
             options += MessageOption.Read
         }
 

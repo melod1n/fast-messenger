@@ -2,7 +2,7 @@ package dev.meloda.fast.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.meloda.fast.conversations.navigation.ConversationsGraph
+import dev.meloda.fast.convos.navigation.ConvoGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
@@ -21,7 +21,7 @@ object Main
 fun NavGraphBuilder.mainScreen(
     onError: (BaseError) -> Unit,
     onSettingsButtonClicked: () -> Unit,
-    onNavigateToMessagesHistory: (conversationId: Long) -> Unit,
+    onNavigateToMessagesHistory: (convoId: Long) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
     onNavigateToCreateChat: () -> Unit
@@ -34,10 +34,10 @@ fun NavGraphBuilder.mainScreen(
             route = Friends,
         ),
         BottomNavigationItem(
-            titleResId = R.string.title_conversations,
+            titleResId = R.string.title_convos,
             selectedIconResId = R.drawable.baseline_chat_24,
             unselectedIconResId = R.drawable.outline_chat_24,
-            route = ConversationsGraph
+            route = ConvoGraph
         ),
         BottomNavigationItem(
             titleResId = R.string.title_profile,

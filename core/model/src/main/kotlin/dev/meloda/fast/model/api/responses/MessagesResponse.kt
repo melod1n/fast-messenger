@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.data.VkAttachmentHistoryMessageData
 import dev.meloda.fast.model.api.data.VkChatMemberData
 import dev.meloda.fast.model.api.data.VkContactData
-import dev.meloda.fast.model.api.data.VkConversationData
+import dev.meloda.fast.model.api.data.VkConvoData
 import dev.meloda.fast.model.api.data.VkGroupData
 import dev.meloda.fast.model.api.data.VkMessageData
 import dev.meloda.fast.model.api.data.VkUserData
@@ -14,7 +14,7 @@ import dev.meloda.fast.model.api.data.VkUserData
 data class MessagesGetHistoryResponse(
     val count: Int,
     val items: List<VkMessageData>,
-    val conversations: List<VkConversationData>?,
+    val convos: List<VkConvoData>?,
     val profiles: List<VkUserData>?,
     val groups: List<VkGroupData>?,
     val contacts: List<VkContactData>?
@@ -30,7 +30,7 @@ data class MessagesGetByIdResponse(
 )
 
 @JsonClass(generateAdapter = true)
-data class MessagesGetConversationMembersResponse(
+data class MessagesGetConvoMembersResponse(
     val count: Int,
     val items: List<VkChatMemberData>?,
     val profiles: List<VkUserData>?,

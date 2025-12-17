@@ -18,7 +18,7 @@ object MessagesUrls {
     const val GET_BY_ID = "$URL/messages.getById"
     const val MARK_AS_READ = "$URL/messages.markAsRead"
     const val GET_CHAT = "$URL/messages.getChat"
-    const val GET_CONVERSATIONS_MEMBERS = "$URL/messages.getConversationMembers"
+    const val GET_CONVOS_MEMBERS = "$URL/messages.getConversationMembers"
     const val REMOVE_CHAT_USER = "$URL/messages.removeChatUser"
     const val GET_HISTORY_ATTACHMENTS = "$URL/messages.getHistoryAttachments"
     const val CREATE_CHAT = "$URL/messages.createChat"

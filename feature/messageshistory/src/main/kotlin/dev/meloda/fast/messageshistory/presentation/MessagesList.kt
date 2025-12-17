@@ -44,11 +44,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
+import dev.meloda.fast.ui.model.vk.MessageUiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -61,7 +61,7 @@ fun MessagesList(
     hasPinnedMessage: Boolean,
     hazeState: HazeState,
     listState: LazyListState,
-    uiMessages: ImmutableList<UiItem>,
+    uiMessages: ImmutableList<MessageUiItem>,
     isSelectedAtLeastOne: Boolean,
     isPaginating: Boolean,
     isReplying: Boolean,
@@ -78,7 +78,7 @@ fun MessagesList(
 
     val scope = rememberCoroutineScope()
 
-    val onAttachmentClick by rememberUpdatedState { message: UiItem.Message, attachment: VkAttachment ->
+    val onAttachmentClick by rememberUpdatedState { message: MessageUiItem.Message, attachment: VkAttachment ->
         if (isSelectedAtLeastOne) {
             onMessageClicked(message.id)
         } else {
@@ -117,7 +117,7 @@ fun MessagesList(
         }
     }
 
-    val onAttachmentLongClick by rememberUpdatedState { message: UiItem.Message, attachment: VkAttachment ->
+    val onAttachmentLongClick by rememberUpdatedState { message: MessageUiItem.Message, attachment: VkAttachment ->
         if (isSelectedAtLeastOne) {
             onMessageLongClicked(message.id)
             uiMessages
@@ -158,16 +158,16 @@ fun MessagesList(
 
         items(
             items = uiMessages.values,
-            key = UiItem::id,
+            key = MessageUiItem::id,
             contentType = { item ->
                 when (item) {
-                    is UiItem.ActionMessage -> "action_message"
-                    is UiItem.Message -> "message"
+                    is MessageUiItem.ActionMessage -> "action_message"
+                    is MessageUiItem.Message -> "message"
                 }
             }
         ) { item ->
             when (item) {
-                is UiItem.ActionMessage -> {
+                is MessageUiItem.ActionMessage -> {
                     ActionMessageItem(
                         modifier = Modifier.then(
                             if (theme.enableAnimations) Modifier.animateItem(
@@ -178,13 +178,13 @@ fun MessagesList(
                         item = item,
                         onClick = {
                             if (item.actionCmId != null) {
-                                onRequestScrollToCmId(item.actionCmId)
+                                onRequestScrollToCmId(item.actionCmId!!)
                             }
                         }
                     )
                 }
 
-                is UiItem.Message -> {
+                is MessageUiItem.Message -> {
                     val backgroundColor by animateColorAsState(
                         targetValue = if (item.isSelected) {
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
@@ -275,7 +275,7 @@ fun MessagesList(
                                 },
                                 onReplyClick = {
                                     if (item.replyCmId != null) {
-                                        onRequestScrollToCmId(item.replyCmId)
+                                        onRequestScrollToCmId(item.replyCmId!!)
                                     }
                                 },
                                 offsetX = offsetX.value
@@ -302,7 +302,7 @@ fun MessagesList(
                                 },
                                 onReplyClick = {
                                     if (item.replyCmId != null) {
-                                        onRequestScrollToCmId(item.replyCmId)
+                                        onRequestScrollToCmId(item.replyCmId!!)
                                     }
                                 },
                                 offsetX = offsetX.value

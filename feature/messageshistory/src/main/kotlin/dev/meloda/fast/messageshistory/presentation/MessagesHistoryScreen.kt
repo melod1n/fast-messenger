@@ -39,14 +39,14 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.util.indexOfMessageByCmId
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
-import dev.meloda.fast.messageshistory.model.UiItem
-import dev.meloda.fast.messageshistory.util.indexOfMessageByCmId
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.components.VkErrorView
+import dev.meloda.fast.ui.model.vk.MessageUiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
 fun MessagesHistoryScreen(
     screenState: MessagesHistoryScreenState = MessagesHistoryScreenState.EMPTY,
     messages: ImmutableList<VkMessage> = emptyImmutableList(),
-    uiMessages: ImmutableList<UiItem> = emptyImmutableList(),
+    uiMessages: ImmutableList<MessageUiItem> = emptyImmutableList(),
     isSelectedAtLeastOne: Boolean = false,
     scrollIndex: Int? = null,
     selectedMessages: ImmutableList<VkMessage> = emptyImmutableList(),
@@ -183,7 +183,7 @@ fun MessagesHistoryScreen(
                 topBarContainerColorAlpha = topBarContainerColorAlpha,
                 isClickable = !(screenState.isLoading && messages.isEmpty()),
                 isMessagesSelecting = selectedMessages.isNotEmpty(),
-                isPeerAccount = screenState.conversationId == UserConfig.userId,
+                isPeerAccount = screenState.convoId == UserConfig.userId,
                 avatar = screenState.avatar,
                 title = topBarTitle,
                 showHorizontalProgressBar = screenState.isLoading && messages.isNotEmpty(),
@@ -191,7 +191,7 @@ fun MessagesHistoryScreen(
                 pinnedMessage = pinnedMessage,
                 pinnedTitle = screenState.pinnedTitle,
                 pinnedSummary = screenState.pinnedSummary,
-                showUnpinButton = screenState.conversation.canChangePin,
+                showUnpinButton = screenState.convo.canChangePin,
                 onTopBarClicked = onTopBarClicked,
                 onBack = onBack,
                 onClose = onClose,

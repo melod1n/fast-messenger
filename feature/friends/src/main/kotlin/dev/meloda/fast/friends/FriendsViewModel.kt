@@ -121,8 +121,8 @@ abstract class BaseFriendsViewModelImpl : ViewModel(), FriendsViewModel {
         val friends = friends.value
         if (friends.isEmpty()) return
 
-        val uiFriends = friends.map { conversation ->
-            conversation.asPresentation(useContactNames)
+        val uiFriends = friends.map { convo ->
+            convo.asPresentation(useContactNames)
         }
 
         screenState.setValue { old ->

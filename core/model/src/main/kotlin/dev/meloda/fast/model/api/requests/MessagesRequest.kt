@@ -115,7 +115,7 @@ data class MessagesGetLongPollServerRequest(
 data class MessagesPinMessageRequest(
     val peerId: Long,
     val messageId: Long? = null,
-    val conversationMessageId: Long? = null
+    val cmId: Long? = null
 ) {
 
     val map: Map<String, String>
@@ -123,7 +123,7 @@ data class MessagesPinMessageRequest(
             "peer_id" to peerId.toString()
         ).apply {
             messageId?.let { this["message_id"] = it.toString() }
-            conversationMessageId?.let { this["conversation_message_id"] = it.toString() }
+            cmId?.let { this["conversation_message_id"] = it.toString() }
         }
 
 }
@@ -136,7 +136,7 @@ data class MessagesUnpinMessageRequest(val peerId: Long) {
 data class MessagesDeleteRequest(
     val peerId: Long,
     val messagesIds: List<Long>? = null,
-    val conversationsMessagesIds: List<Long>? = null,
+    val cmIds: List<Long>? = null,
     val isSpam: Boolean? = null,
     val deleteForAll: Boolean? = null
 ) {
@@ -149,7 +149,7 @@ data class MessagesDeleteRequest(
             deleteForAll?.let { this["delete_for_all"] = it.asInt().toString() }
             messagesIds?.let { this["message_ids"] = it.joinToString() }
 
-            conversationsMessagesIds?.let {
+            cmIds?.let {
                 this["conversation_message_ids"] = it.joinToString()
             }
         }
@@ -228,7 +228,7 @@ data class MessagesGetChatRequest(
 }
 
 
-data class MessagesGetConversationMembersRequest(
+data class MessagesGetConvoMembersRequest(
     val peerId: Long,
     val offset: Int? = null,
     val count: Int? = null,
@@ -267,14 +267,14 @@ data class MessagesGetHistoryAttachmentsRequest(
     val offset: Int?,
     val preserveOrder: Boolean?,
     val attachmentTypes: List<String>,
-    val conversationMessageId: Long,
+    val cmId: Long,
     val fields: String?
 ) {
 
     val map = mutableMapOf(
         "peer_id" to peerId.toString(),
         "attachment_types" to attachmentTypes.joinToString(","),
-        "cmid" to conversationMessageId.toString()
+        "cmid" to cmId.toString()
     ).apply {
         extended?.let { this["extended"] = it.toString() }
         count?.let { this["count"] = it.toString() }

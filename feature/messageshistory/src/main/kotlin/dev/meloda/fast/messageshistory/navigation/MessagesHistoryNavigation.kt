@@ -5,7 +5,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.messageshistory.model.MessagesHistoryArguments
 import dev.meloda.fast.messageshistory.presentation.MessagesHistoryRoute
 import dev.meloda.fast.model.BaseError
@@ -41,6 +40,6 @@ fun NavGraphBuilder.messagesHistoryScreen(
     }
 }
 
-fun NavController.navigateToMessagesHistory(conversationId: Long) {
-    this.navigate(MessagesHistory(MessagesHistoryArguments(conversationId)))
+fun NavController.navigateToMessagesHistory(convoId: Long) {
+    this.navigate(MessagesHistory(MessagesHistoryArguments(convoId)))
 }

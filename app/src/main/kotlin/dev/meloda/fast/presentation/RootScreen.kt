@@ -46,8 +46,8 @@ import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
 import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.model.LongPollState
-import dev.meloda.fast.conversations.navigation.createChatScreen
-import dev.meloda.fast.conversations.navigation.navigateToCreateChat
+import dev.meloda.fast.convos.navigation.createChatScreen
+import dev.meloda.fast.convos.navigation.navigateToCreateChat
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.languagepicker.navigation.languagePickerScreen
 import dev.meloda.fast.languagepicker.navigation.navigateToLanguagePicker
@@ -354,9 +354,9 @@ fun RootScreen(
                                 }
                             )
                             createChatScreen(
-                                onChatCreated = { conversationId ->
+                                onChatCreated = { convoId ->
                                     navController.popBackStack()
-                                    navController.navigateToMessagesHistory(conversationId)
+                                    navController.navigateToMessagesHistory(convoId)
                                 },
                                 navController = navController
                             )

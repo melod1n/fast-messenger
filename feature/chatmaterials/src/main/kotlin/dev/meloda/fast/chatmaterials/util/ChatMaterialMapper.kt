@@ -17,7 +17,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
         AttachmentType.PHOTO -> {
             val attachment = this.attachment as VkPhotoDomain
             UiChatMaterial.Photo(
-                conversationMessageId = this.conversationMessageId,
+                cmId = this.cmId,
                 previewUrl = attachment.getSizeOrSmaller(VkPhotoDomain.SIZE_TYPE_1080_1024)?.url.orEmpty()
             )
         }
@@ -47,7 +47,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
                 builder.toString().format(Locale.getDefault(), *args.toTypedArray())
 
             UiChatMaterial.Video(
-                conversationMessageId = this.conversationMessageId,
+                cmId = this.cmId,
                 previewUrl = attachment.images.maxByOrNull(VkVideoDomain.VideoImage::width)?.url.orEmpty(),
                 title = attachment.title,
                 views = attachment.views,
@@ -80,7 +80,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
                 builder.toString().format(Locale.getDefault(), *args.toTypedArray())
 
             UiChatMaterial.Audio(
-                conversationMessageId = this.conversationMessageId,
+                cmId = this.cmId,
                 previewUrl = null,
                 title = attachment.title,
                 artist = attachment.artist,
@@ -112,7 +112,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
             }
 
             UiChatMaterial.File(
-                conversationMessageId = this.conversationMessageId,
+                cmId = this.cmId,
                 title = attachment.title,
                 previewUrl = previewUrl,
                 size = AndroidUtils.bytesToHumanReadableSize(attachment.size.toDouble()),
@@ -124,7 +124,7 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
             val attachment = this.attachment as VkLinkDomain
 
             UiChatMaterial.Link(
-                conversationMessageId = this.conversationMessageId,
+                cmId = this.cmId,
                 title = attachment.title,
                 previewUrl = attachment.photo?.getMaxSize()?.url,
                 url = attachment.url,

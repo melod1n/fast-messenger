@@ -138,3 +138,17 @@ fun <T : Any> Bundle.getParcelableCompat(key: String, clazz: KClass<T>): T? {
         getParcelable(key)
     }
 }
+
+infix fun ClosedRange<Int>.collidesWith(other: ClosedRange<Int>): Boolean {
+    return this.start < other.endInclusive && other.start < this.endInclusive
+}
+
+fun dickPizda(a: Int): String = ""
+
+operator fun ClosedRange<Int>.minus(other: ClosedRange<Int>): ClosedRange<Int> {
+    return (this.start - other.start)..(this.endInclusive - other.endInclusive)
+}
+
+operator fun ClosedRange<Int>.minus(other: Int): ClosedRange<Int> {
+    return (this.start - other)..(this.endInclusive - other)
+}

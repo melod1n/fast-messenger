@@ -16,7 +16,7 @@ import org.koin.androidx.compose.koinViewModel
 fun MessagesHistoryRoute(
     onError: (BaseError) -> Unit,
     onBack: () -> Unit,
-    onNavigateToChatMaterials: (peerId: Long, conversationMessageId: Long) -> Unit,
+    onNavigateToChatMaterials: (peerId: Long, cmId: Long) -> Unit,
     onNavigateToPhotoViewer: (images: List<String>, index: Int) -> Unit,
     viewModel: MessagesHistoryViewModel = koinViewModel<MessagesHistoryViewModelImpl>()
 ) {

@@ -23,7 +23,7 @@ val databaseModule = module {
     single { cacheDB().userDao() }
     single { cacheDB().groupDao() }
     single { cacheDB().messageDao() }
-    single { cacheDB().conversationDao() }
+    single { cacheDB().convoDao() }
 }
 
 private fun Scope.cacheDB(): CacheDatabase = get()

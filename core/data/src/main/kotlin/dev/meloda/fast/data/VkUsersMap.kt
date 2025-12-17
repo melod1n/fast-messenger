@@ -1,8 +1,7 @@
 package dev.meloda.fast.data
 
-import dev.meloda.fast.data.UserConfig.userId
 import dev.meloda.fast.model.api.data.VkMessageData
-import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkUser
 
@@ -16,9 +15,9 @@ class VkUsersMap(
 
     fun users(): List<VkUser> = map.values.toList()
 
-    fun conversationUser(conversation: VkConversation): VkUser? =
-        if (!conversation.peerType.isUser()) null
-        else map[conversation.id]
+    fun convoUser(convo: VkConvo): VkUser? =
+        if (!convo.peerType.isUser()) null
+        else map[convo.id]
 
     fun messageActionUser(message: VkMessage): VkUser? =
         if (message.actionMemberId == null || message.actionMemberId!! <= 0) null

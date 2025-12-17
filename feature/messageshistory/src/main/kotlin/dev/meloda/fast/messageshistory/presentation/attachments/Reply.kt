@@ -22,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.meloda.fast.domain.util.annotated
+import dev.meloda.fast.domain.util.orEmpty
 
 @Composable
 fun Reply(
@@ -35,7 +38,7 @@ fun Reply(
     backgroundColor: Color,
     innerBackgroundColor: Color,
     title: String,
-    summary: String?,
+    summary: AnnotatedString?,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -105,7 +108,7 @@ private fun ReplyBasePreview(
         ),
         onClick = {},
         title = "Danil Nikolaev",
-        summary = "2 photos",
+        summary = "2 photos".annotated(),
         backgroundColor = backgroundColor,
         innerBackgroundColor = innerBackgroundColor,
         bottomPadding = 0.dp

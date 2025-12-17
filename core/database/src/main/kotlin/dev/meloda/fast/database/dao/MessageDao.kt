@@ -10,8 +10,8 @@ abstract class MessageDao : EntityDao<VkMessageEntity> {
     @Query("SELECT * FROM messages")
     abstract suspend fun getAll(): List<VkMessageEntity>
 
-    @Query("SELECT * FROM messages WHERE peerId IS (:conversationId)")
-    abstract suspend fun getAll(conversationId: Long): List<VkMessageEntity>
+    @Query("SELECT * FROM messages WHERE peerId IS (:convoId)")
+    abstract suspend fun getAll(convoId: Long): List<VkMessageEntity>
 
     @Query("SELECT * FROM messages WHERE id IN (:ids)")
     abstract suspend fun getAllByIds(ids: List<Int>): List<VkMessageEntity>

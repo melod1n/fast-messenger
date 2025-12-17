@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "fa307a5eb2e1f7d601bd1374174635cd",
+    "identityHash": "6c315b7f800694f635318d86032746ec",
     "entities": [
       {
         "tableName": "users",
@@ -41,50 +41,42 @@
           {
             "fieldPath": "onlineAppId",
             "columnName": "onlineAppId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "lastSeen",
             "columnName": "lastSeen",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "lastSeenStatus",
             "columnName": "lastSeenStatus",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "birthday",
             "columnName": "birthday",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo50",
             "columnName": "photo50",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo100",
             "columnName": "photo100",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo200",
             "columnName": "photo200",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo400Orig",
             "columnName": "photo400Orig",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -92,9 +84,7 @@
           "columnNames": [
             "id"
           ]
-        },
-        "indices": [],
-        "foreignKeys": []
+        }
       },
       {
         "tableName": "groups",
@@ -121,26 +111,22 @@
           {
             "fieldPath": "photo50",
             "columnName": "photo50",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo100",
             "columnName": "photo100",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo200",
             "columnName": "photo200",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "membersCount",
             "columnName": "membersCount",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -148,13 +134,11 @@
           "columnNames": [
             "id"
           ]
-        },
-        "indices": [],
-        "foreignKeys": []
+        }
       },
       {
         "tableName": "messages",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `conversationMessageId` INTEGER NOT NULL, `text` TEXT, `isOut` INTEGER NOT NULL, `peerId` INTEGER NOT NULL, `fromId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `randomId` INTEGER NOT NULL, `action` TEXT, `actionMemberId` INTEGER, `actionText` TEXT, `actionConversationMessageId` INTEGER, `actionMessage` TEXT, `updateTime` INTEGER, `important` INTEGER NOT NULL, `forwardIds` TEXT, `attachments` TEXT, `replyMessageId` INTEGER, `geoType` TEXT, `pinnedAt` INTEGER, `isPinned` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `cmId` INTEGER NOT NULL, `text` TEXT, `isOut` INTEGER NOT NULL, `peerId` INTEGER NOT NULL, `fromId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `randomId` INTEGER NOT NULL, `action` TEXT, `actionMemberId` INTEGER, `actionText` TEXT, `actionCmId` INTEGER, `actionMessage` TEXT, `updateTime` INTEGER, `important` INTEGER NOT NULL, `forwardIds` TEXT, `attachments` TEXT, `replyMessageId` INTEGER, `geoType` TEXT, `pinnedAt` INTEGER, `isPinned` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -163,16 +147,15 @@
             "notNull": true
           },
           {
-            "fieldPath": "conversationMessageId",
-            "columnName": "conversationMessageId",
+            "fieldPath": "cmId",
+            "columnName": "cmId",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
             "fieldPath": "text",
             "columnName": "text",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "isOut",
@@ -207,38 +190,32 @@
           {
             "fieldPath": "action",
             "columnName": "action",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "actionMemberId",
             "columnName": "actionMemberId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "actionText",
             "columnName": "actionText",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
-            "fieldPath": "actionConversationMessageId",
-            "columnName": "actionConversationMessageId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "fieldPath": "actionCmId",
+            "columnName": "actionCmId",
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "actionMessage",
             "columnName": "actionMessage",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "updateTime",
             "columnName": "updateTime",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "important",
@@ -249,32 +226,27 @@
           {
             "fieldPath": "forwardIds",
             "columnName": "forwardIds",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "attachments",
             "columnName": "attachments",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "replyMessageId",
             "columnName": "replyMessageId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "geoType",
             "columnName": "geoType",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "pinnedAt",
             "columnName": "pinnedAt",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "isPinned",
@@ -288,13 +260,11 @@
           "columnNames": [
             "id"
           ]
-        },
-        "indices": [],
-        "foreignKeys": []
+        }
       },
       {
         "tableName": "conversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `localId` INTEGER NOT NULL, `ownerId` INTEGER, `title` TEXT, `photo50` TEXT, `photo100` TEXT, `photo200` TEXT, `isPhantom` INTEGER NOT NULL, `lastConversationMessageId` INTEGER NOT NULL, `inReadCmId` INTEGER NOT NULL, `outReadCmId` INTEGER NOT NULL, `inRead` INTEGER NOT NULL, `outRead` INTEGER NOT NULL, `lastMessageId` INTEGER, `unreadCount` INTEGER NOT NULL, `membersCount` INTEGER, `canChangePin` INTEGER NOT NULL, `canChangeInfo` INTEGER NOT NULL, `majorId` INTEGER NOT NULL, `minorId` INTEGER NOT NULL, `pinnedMessageId` INTEGER, `peerType` TEXT NOT NULL, `isArchived` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `localId` INTEGER NOT NULL, `ownerId` INTEGER, `title` TEXT, `photo50` TEXT, `photo100` TEXT, `photo200` TEXT, `isPhantom` INTEGER NOT NULL, `lastCmId` INTEGER NOT NULL, `inReadCmId` INTEGER NOT NULL, `outReadCmId` INTEGER NOT NULL, `inRead` INTEGER NOT NULL, `outRead` INTEGER NOT NULL, `lastMessageId` INTEGER, `unreadCount` INTEGER NOT NULL, `membersCount` INTEGER, `canChangePin` INTEGER NOT NULL, `canChangeInfo` INTEGER NOT NULL, `majorId` INTEGER NOT NULL, `minorId` INTEGER NOT NULL, `pinnedMessageId` INTEGER, `peerType` TEXT NOT NULL, `isArchived` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -311,32 +281,27 @@
           {
             "fieldPath": "ownerId",
             "columnName": "ownerId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "title",
             "columnName": "title",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo50",
             "columnName": "photo50",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo100",
             "columnName": "photo100",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "photo200",
             "columnName": "photo200",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "isPhantom",
@@ -345,8 +310,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "lastConversationMessageId",
-            "columnName": "lastConversationMessageId",
+            "fieldPath": "lastCmId",
+            "columnName": "lastCmId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -377,8 +342,7 @@
           {
             "fieldPath": "lastMessageId",
             "columnName": "lastMessageId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "unreadCount",
@@ -389,8 +353,7 @@
           {
             "fieldPath": "membersCount",
             "columnName": "membersCount",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "canChangePin",
@@ -419,8 +382,7 @@
           {
             "fieldPath": "pinnedMessageId",
             "columnName": "pinnedMessageId",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "peerType",
@@ -440,15 +402,12 @@
           "columnNames": [
             "id"
           ]
-        },
-        "indices": [],
-        "foreignKeys": []
+        }
       }
     ],
-    "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fa307a5eb2e1f7d601bd1374174635cd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6c315b7f800694f635318d86032746ec')"
     ]
   }
 }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -33,15 +32,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.meloda.fast.messageshistory.model.SendingStatus
+import dev.meloda.fast.domain.util.annotated
 import dev.meloda.fast.messageshistory.presentation.attachments.Attachments
 import dev.meloda.fast.messageshistory.presentation.attachments.Reply
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkStickerDomain
 import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
+import dev.meloda.fast.ui.model.vk.SendingStatus
+import dev.meloda.fast.ui.theme.AppTheme
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.darken
 import dev.meloda.fast.ui.util.emptyImmutableList
+import dev.meloda.fast.ui.util.isDark
+import dev.meloda.fast.ui.util.lighten
 
 @Composable
 fun MessageBubble(
@@ -57,7 +61,7 @@ fun MessageBubble(
     isSelected: Boolean,
     attachments: ImmutableList<VkAttachment>?,
     replyTitle: String?,
-    replySummary: String? = null,
+    replySummary: AnnotatedString? = null,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {},
     onReplyClick: () -> Unit = {},
@@ -260,10 +264,18 @@ private data class MessageBubbleColors(
 @Composable
 private fun messageBubbleColors(isOut: Boolean): MessageBubbleColors {
     return if (isOut) {
+        val containerColor = MaterialTheme.colorScheme.primaryContainer
+
+        val replyContainerColor = if (containerColor.isDark()) {
+            containerColor.lighten(0.15f)
+        } else {
+            containerColor.darken(0.075f)
+        }
+
         MessageBubbleColors(
-            container = MaterialTheme.colorScheme.primaryContainer,
+            container = containerColor,
             content = MaterialTheme.colorScheme.onPrimaryContainer,
-            replyContainer = MaterialTheme.colorScheme.inversePrimary
+            replyContainer = replyContainerColor
         )
     } else {
         MessageBubbleColors(
@@ -277,41 +289,46 @@ private fun messageBubbleColors(isOut: Boolean): MessageBubbleColors {
 @Preview
 @Composable
 private fun Bubble() {
-    Column {
-        MessageBubble(
-            modifier = Modifier,
-            text = AnnotatedString("Some cool text"),
-            isOut = true,
-            date = "19:01",
-            isEdited = true,
-            isRead = true,
-            sendingStatus = SendingStatus.SENT,
-            isPinned = true,
-            isImportant = true,
-            isSelected = false,
-            attachments = emptyImmutableList(),
-            replyTitle = "Danil Nikolaev",
-            replySummary = "2 photos",
-            onClick = {},
-            onLongClick = {},
-        )
+    AppTheme(
+        useDarkTheme = true,
+        useDynamicColors = true
+    ) {
+        Column {
+            MessageBubble(
+                modifier = Modifier,
+                text = AnnotatedString("Some cool text"),
+                isOut = true,
+                date = "19:01",
+                isEdited = true,
+                isRead = true,
+                sendingStatus = SendingStatus.SENT,
+                isPinned = true,
+                isImportant = true,
+                isSelected = false,
+                attachments = emptyImmutableList(),
+                replyTitle = "Danil Nikolaev",
+                replySummary = "2 photos".annotated(),
+                onClick = {},
+                onLongClick = {},
+            )
 
-        MessageBubble(
-            modifier = Modifier,
-            text = AnnotatedString("Some cool text"),
-            isOut = false,
-            date = "19:01",
-            isEdited = true,
-            isRead = true,
-            sendingStatus = SendingStatus.SENT,
-            isPinned = true,
-            isImportant = true,
-            isSelected = false,
-            attachments = emptyImmutableList(),
-            replyTitle = "Danil Nikolaev",
-            replySummary = "2 photos",
-            onClick = {},
-            onLongClick = {},
-        )
+            MessageBubble(
+                modifier = Modifier,
+                text = AnnotatedString("Some cool text"),
+                isOut = false,
+                date = "19:01",
+                isEdited = true,
+                isRead = true,
+                sendingStatus = SendingStatus.SENT,
+                isPinned = true,
+                isImportant = true,
+                isSelected = false,
+                attachments = emptyImmutableList(),
+                replyTitle = "Danil Nikolaev",
+                replySummary = "2 photos".annotated(),
+                onClick = {},
+                onLongClick = {},
+            )
+        }
     }
 }

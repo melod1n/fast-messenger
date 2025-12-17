@@ -2,7 +2,7 @@ package dev.meloda.fast.data
 
 import dev.meloda.fast.data.UserConfig.userId
 import dev.meloda.fast.model.api.domain.VkContactDomain
-import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.model.api.domain.VkGroupDomain
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkUser
@@ -13,7 +13,7 @@ object VkMemoryCache {
     private val users: HashMap<Long, VkUser> = hashMapOf()
     private val groups: HashMap<Long, VkGroupDomain> = hashMapOf()
     private val messages: HashMap<Long, VkMessage> = hashMapOf()
-    private val conversations: HashMap<Long, VkConversation> = hashMapOf()
+    private val convos: HashMap<Long, VkConvo> = hashMapOf()
     private val contacts: HashMap<Long, VkContactDomain> = hashMapOf()
 
     fun appendUsers(users: List<VkUser>) {
@@ -28,9 +28,9 @@ object VkMemoryCache {
         messages.forEach { message -> VkMemoryCache.messages[message.id] = message }
     }
 
-    fun appendConversations(conversations: List<VkConversation>) {
-        conversations.forEach { conversation ->
-            VkMemoryCache.conversations[conversation.id] = conversation
+    fun appendConvos(convos: List<VkConvo>) {
+        convos.forEach { convo ->
+            VkMemoryCache.convos[convo.id] = convo
         }
     }
 
@@ -50,8 +50,8 @@ object VkMemoryCache {
         messages[messageId] = message
     }
 
-    operator fun set(conversationId: Long, conversation: VkConversation) {
-        conversations[conversationId] = conversation
+    operator fun set(convoId: Long, convo: VkConvo) {
+        convos[convoId] = convo
     }
 
     operator fun set(contactId: Long, contact: VkContactDomain) {
@@ -94,16 +94,16 @@ object VkMemoryCache {
         return ids.mapNotNull { id -> messages[id] }
     }
 
-    fun getConversation(id: Long): VkConversation? {
-        return getConversations(id).firstOrNull()
+    fun getConvo(id: Long): VkConvo? {
+        return getConvos(id).firstOrNull()
     }
 
-    fun getConversations(vararg ids: Long): List<VkConversation> {
-        return getConversations(ids.toList())
+    fun getConvos(vararg ids: Long): List<VkConvo> {
+        return getConvos(ids.toList())
     }
 
-    fun getConversations(ids: List<Long>): List<VkConversation> {
-        return ids.mapNotNull { id -> conversations[id] }
+    fun getConvos(ids: List<Long>): List<VkConvo> {
+        return ids.mapNotNull { id -> convos[id] }
     }
 
     fun getContact(id: Long): VkContactDomain? {

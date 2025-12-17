@@ -12,7 +12,7 @@ data class VkPinnedMessageData(
     @Json(name = "from_id") val fromId: Long,
     @Json(name = "out") val out: Boolean?,
     @Json(name = "text") val text: String,
-    @Json(name = "conversation_message_id") val conversationMessageId: Long,
+    @Json(name = "conversation_message_id") val cmId: Long,
     @Json(name = "fwd_messages") val forwards: List<VkMessageData>?,
     @Json(name = "important") val important: Boolean = false,
     @Json(name = "random_id") val randomId: Long = 0,
@@ -28,7 +28,7 @@ data class VkPinnedMessageData(
 
     fun mapToDomain(): VkMessage = VkMessage(
         id = id ?: -1,
-        cmId = conversationMessageId,
+        cmId = cmId,
         text = text.ifBlank { null },
         isOut = out == true,
         peerId = peerId ?: -1,
@@ -38,7 +38,7 @@ data class VkPinnedMessageData(
         action = VkMessage.Action.parse(action?.type),
         actionMemberId = action?.memberId,
         actionText = action?.text,
-        actionConversationMessageId = action?.conversationMessageId,
+        actionCmId = action?.cmId,
         actionMessage = action?.message,
         geoType = geo?.type,
         isImportant = important,

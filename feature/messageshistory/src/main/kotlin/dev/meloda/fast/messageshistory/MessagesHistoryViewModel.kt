@@ -5,9 +5,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import dev.meloda.fast.messageshistory.model.MessageDialog
 import dev.meloda.fast.messageshistory.model.MessageNavigation
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
-import dev.meloda.fast.messageshistory.model.UiItem
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.ui.model.vk.MessageUiItem
 import kotlinx.coroutines.flow.StateFlow
 
 interface MessagesHistoryViewModel {
@@ -15,7 +15,7 @@ interface MessagesHistoryViewModel {
     val screenState: StateFlow<MessagesHistoryScreenState>
     val navigation: StateFlow<MessageNavigation?>
     val messages: StateFlow<List<VkMessage>>
-    val uiMessages: StateFlow<List<UiItem>>
+    val uiMessages: StateFlow<List<MessageUiItem>>
     val dialog: StateFlow<MessageDialog?>
     val selectedMessages: StateFlow<List<VkMessage>>
 

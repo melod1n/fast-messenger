@@ -8,7 +8,7 @@ import dev.meloda.fast.model.api.domain.VkUnknownAttachment
 @Entity(tableName = "messages")
 data class VkMessageEntity(
     @PrimaryKey val id: Long,
-    val conversationMessageId: Long,
+    val cmId: Long,
     val text: String?,
     val isOut: Boolean,
     val peerId: Long,
@@ -18,7 +18,7 @@ data class VkMessageEntity(
     val action: String?,
     val actionMemberId: Long?,
     val actionText: String?,
-    val actionConversationMessageId: Long?,
+    val actionCmId: Long?,
     val actionMessage: String?,
     val updateTime: Int?,
     val important: Boolean,
@@ -32,7 +32,7 @@ data class VkMessageEntity(
 
 fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     id = id,
-    cmId = conversationMessageId,
+    cmId = cmId,
     text = text,
     isOut = isOut,
     peerId = peerId,
@@ -42,7 +42,7 @@ fun VkMessageEntity.asExternalModel(): VkMessage = VkMessage(
     action = VkMessage.Action.parse(action),
     actionMemberId = actionMemberId,
     actionText = actionText,
-    actionConversationMessageId = actionConversationMessageId,
+    actionCmId = actionCmId,
     actionMessage = actionMessage,
     updateTime = updateTime,
     isImportant = important,

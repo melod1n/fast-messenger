@@ -6,8 +6,8 @@ import dev.meloda.fast.data.api.account.AccountRepositoryImpl
 import dev.meloda.fast.data.api.audios.AudiosRepository
 import dev.meloda.fast.data.api.auth.AuthRepository
 import dev.meloda.fast.data.api.auth.AuthRepositoryImpl
-import dev.meloda.fast.data.api.conversations.ConversationsRepository
-import dev.meloda.fast.data.api.conversations.ConversationsRepositoryImpl
+import dev.meloda.fast.data.api.convos.ConvosRepository
+import dev.meloda.fast.data.api.convos.ConvosRepositoryImpl
 import dev.meloda.fast.data.api.files.FilesRepository
 import dev.meloda.fast.data.api.friends.FriendsRepository
 import dev.meloda.fast.data.api.friends.FriendsRepositoryImpl
@@ -45,7 +45,7 @@ val dataModule = module {
 
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
 
-    singleOf(::ConversationsRepositoryImpl) bind ConversationsRepository::class
+    singleOf(::ConvosRepositoryImpl) bind ConvosRepository::class
 
     singleOf(::FilesRepository)
 

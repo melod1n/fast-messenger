@@ -22,16 +22,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.meloda.fast.domain.util.annotated
+import dev.meloda.fast.domain.util.orEmpty
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.RippledClickContainer
 
 @Composable
 fun ReplyContainer(
     title: String,
-    text: String?,
+    text: AnnotatedString?,
     modifier: Modifier = Modifier,
     onCloseClicked: () -> Unit = {},
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)
@@ -103,7 +106,7 @@ private fun ReplyContainerPreview() {
         ReplyContainer(
             onCloseClicked = {},
             title = "В ответ Ишак",
-            text = "Приветствую тебя, Ишак!",
+            text = "Приветствую тебя, Ишак!".annotated(),
         )
     }
 }

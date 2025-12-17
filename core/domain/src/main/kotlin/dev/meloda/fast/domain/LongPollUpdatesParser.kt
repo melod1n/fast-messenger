@@ -9,12 +9,12 @@ import dev.meloda.fast.common.extensions.toList
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.model.ApiEvent
-import dev.meloda.fast.model.ConversationFlags
+import dev.meloda.fast.model.ConvoFlags
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollEvent
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.MessageFlags
-import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.model.api.domain.VkMessage
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +28,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class LongPollUpdatesParser(
-    private val conversationsUseCase: ConversationsUseCase,
+    private val convoUseCase: ConvoUseCase,
     private val messagesUseCase: MessagesUseCase
 ) {
     private val job = SupervisorJob()
@@ -271,9 +271,9 @@ class LongPollUpdatesParser(
             val message =
                 async { loadMessage(peerId = peerId, cmId = cmId) }.await()
 
-            val conversation =
+            val convo =
                 async {
-                    loadConversation(
+                    loadConvo(
                         peerId = peerId,
                         extended = true,
                         fields = VkConstants.ALL_FIELDS
@@ -287,7 +287,7 @@ class LongPollUpdatesParser(
                             .onEvent(
                                 LongPollParsedEvent.NewMessage(
                                     message = message,
-                                    inArchive = conversation?.isArchived == true
+                                    inArchive = convo?.isArchived == true
                                     // TODO: 03-Apr-25, Danil Nikolaev:
                                     // load user settings about restoring chats with
                                     // enabled notifications from archive
@@ -368,13 +368,13 @@ class LongPollUpdatesParser(
 
         val eventsToSend = mutableListOf<LongPollParsedEvent>()
 
-        val parsedFlags = ConversationFlags.parse(flags)
+        val parsedFlags = ConvoFlags.parse(flags)
 
         coroutineScope.launch(Dispatchers.IO) {
             parsedFlags.forEach { flag ->
                 when (flag) {
-                    ConversationFlags.ARCHIVED -> {
-                        val conversation = loadConversation(
+                    ConvoFlags.ARCHIVED -> {
+                        val convo = loadConvo(
                             peerId = peerId,
                             extended = true,
                             fields = VkConstants.ALL_FIELDS
@@ -382,11 +382,11 @@ class LongPollUpdatesParser(
 
                         val message = loadMessage(
                             peerId = peerId,
-                            cmId = conversation.lastCmId
+                            cmId = convo.lastCmId
                         )
 
                         val eventToSend = LongPollParsedEvent.ChatArchived(
-                            conversation = conversation.copy(lastMessage = message),
+                            convo = convo.copy(lastMessage = message),
                             archived = false
                         )
                         eventsToSend += eventToSend
@@ -423,13 +423,13 @@ class LongPollUpdatesParser(
 
         val eventsToSend = mutableListOf<LongPollParsedEvent>()
 
-        val parsedFlags = ConversationFlags.parse(flags)
+        val parsedFlags = ConvoFlags.parse(flags)
 
         coroutineScope.launch(Dispatchers.IO) {
             parsedFlags.forEach { flag ->
                 when (flag) {
-                    ConversationFlags.ARCHIVED -> {
-                        val conversation = loadConversation(
+                    ConvoFlags.ARCHIVED -> {
+                        val convo = loadConvo(
                             peerId = peerId,
                             extended = true,
                             fields = VkConstants.ALL_FIELDS
@@ -437,11 +437,11 @@ class LongPollUpdatesParser(
 
                         val message = loadMessage(
                             peerId = peerId,
-                            cmId = conversation.lastCmId
+                            cmId = convo.lastCmId
                         )
 
                         val eventToSend = LongPollParsedEvent.ChatArchived(
-                            conversation = conversation.copy(lastMessage = message),
+                            convo = convo.copy(lastMessage = message),
                             archived = true
                         )
                         eventsToSend += eventToSend
@@ -673,29 +673,29 @@ class LongPollUpdatesParser(
         }
     }
 
-    private suspend fun loadConversation(
+    private suspend fun loadConvo(
         peerId: Long,
         extended: Boolean = false,
         fields: String? = null
-    ): VkConversation? = suspendCoroutine { continuation ->
+    ): VkConvo? = suspendCoroutine { continuation ->
         coroutineScope.launch(Dispatchers.IO) {
-            conversationsUseCase.getById(
+            convoUseCase.getById(
                 peerIds = listOf(peerId),
                 extended = extended,
                 fields = fields
             ).listenValue(coroutineScope) { state ->
                 state.processState(
                     error = { error ->
-                        Log.e("LongPollUpdatesParser", "loadConversation: error: $error")
+                        Log.e("LongPollUpdatesParser", "loadConvo: error: $error")
                         continuation.resume(null)
                     },
                     success = { response ->
-                        val conversation = response.singleOrNull() ?: run {
+                        val convo = response.singleOrNull() ?: run {
                             continuation.resume(null)
                             return@listenValue
                         }
 
-                        continuation.resume(conversation)
+                        continuation.resume(convo)
                     }
                 )
             }

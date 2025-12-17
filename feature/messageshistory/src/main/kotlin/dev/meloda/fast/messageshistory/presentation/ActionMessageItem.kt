@@ -16,11 +16,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.meloda.fast.messageshistory.model.UiItem
+import dev.meloda.fast.ui.model.vk.MessageUiItem
 
 @Composable
 fun ActionMessageItem(
-    item: UiItem.ActionMessage,
+    item: MessageUiItem.ActionMessage,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
@@ -56,7 +56,7 @@ fun ActionMessageItemPreview() {
             .padding(10.dp)
     ) {
         ActionMessageItem(
-            item = UiItem.ActionMessage(
+            item = MessageUiItem.ActionMessage(
                 id = 0,
                 text = buildAnnotatedString {
                     append("You pinned message \"wow hello there\"")

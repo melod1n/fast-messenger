@@ -8,6 +8,7 @@ android {
 }
 
 dependencies {
+    api(projects.core.common)
     api(projects.core.data)
     api(projects.core.model)
 
@@ -15,4 +16,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.koin.core)
     implementation(libs.eithernet)
+
+    implementation(libs.bundles.nanokt)
+
+    implementation(libs.compose.ui)
 }

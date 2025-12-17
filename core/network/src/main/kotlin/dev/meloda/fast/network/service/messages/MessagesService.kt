@@ -6,7 +6,7 @@ import dev.meloda.fast.model.api.data.VkLongPollData
 import dev.meloda.fast.model.api.data.VkMessageData
 import dev.meloda.fast.model.api.responses.MessagesCreateChatResponse
 import dev.meloda.fast.model.api.responses.MessagesGetByIdResponse
-import dev.meloda.fast.model.api.responses.MessagesGetConversationMembersResponse
+import dev.meloda.fast.model.api.responses.MessagesGetConvoMembersResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryAttachmentsResponse
 import dev.meloda.fast.model.api.responses.MessagesGetHistoryResponse
 import dev.meloda.fast.model.api.responses.MessagesGetReadPeersResponse
@@ -99,10 +99,10 @@ interface MessagesService {
     ): ApiResult<ApiResponse<VkChatData>, RestApiError>
 
     @FormUrlEncoded
-    @POST(MessagesUrls.GET_CONVERSATIONS_MEMBERS)
-    suspend fun getConversationMembers(
+    @POST(MessagesUrls.GET_CONVOS_MEMBERS)
+    suspend fun getConvoMembers(
         @FieldMap params: Map<String, String>
-    ): ApiResult<ApiResponse<MessagesGetConversationMembersResponse>, RestApiError>
+    ): ApiResult<ApiResponse<MessagesGetConvoMembersResponse>, RestApiError>
 
     @FormUrlEncoded
     @POST(MessagesUrls.REMOVE_CHAT_USER)

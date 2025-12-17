@@ -16,7 +16,7 @@ import dev.meloda.fast.network.interceptor.VersionInterceptor
 import dev.meloda.fast.network.service.account.AccountService
 import dev.meloda.fast.network.service.audios.AudiosService
 import dev.meloda.fast.network.service.auth.AuthService
-import dev.meloda.fast.network.service.conversations.ConversationsService
+import dev.meloda.fast.network.service.convos.ConvosService
 import dev.meloda.fast.network.service.files.FilesService
 import dev.meloda.fast.network.service.friends.FriendsService
 import dev.meloda.fast.network.service.longpoll.LongPollService
@@ -80,7 +80,7 @@ val networkModule = module {
 
     single { service(AccountService::class.java) }
     single { service(AudiosService::class.java) }
-    single { service(ConversationsService::class.java) }
+    single { service(ConvosService::class.java) }
     single { service(FilesService::class.java) }
     single { service(LongPollService::class.java) }
     single { service(MessagesService::class.java) }

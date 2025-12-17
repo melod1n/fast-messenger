@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.model.api.UiFriend
+import dev.meloda.fast.ui.model.vk.UiFriend
 
 @Composable
 fun FriendItem(

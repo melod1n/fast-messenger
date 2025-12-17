@@ -30,7 +30,7 @@ include(":core:domain")
 include(":core:model")
 
 include(":feature:messageshistory")
-include(":feature:conversations")
+include(":feature:convos")
 include(":feature:auth")
 include(":feature:chatmaterials")
 include(":feature:languagepicker")

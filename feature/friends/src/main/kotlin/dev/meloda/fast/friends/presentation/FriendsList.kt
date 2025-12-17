@@ -22,7 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.friends.model.FriendsScreenState
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.model.api.UiFriend
+import dev.meloda.fast.ui.model.vk.UiFriend
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.Dispatchers

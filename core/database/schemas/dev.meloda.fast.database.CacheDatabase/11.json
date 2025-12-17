@@ -1,0 +1,413 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 11,
+    "identityHash": "a746865995959331f8a1b512c049dacb",
+    "entities": [
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `isOnline` INTEGER NOT NULL, `isOnlineMobile` INTEGER NOT NULL, `onlineAppId` INTEGER, `lastSeen` INTEGER, `lastSeenStatus` TEXT, `birthday` TEXT, `photo50` TEXT, `photo100` TEXT, `photo200` TEXT, `photo400Orig` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstName",
+            "columnName": "firstName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastName",
+            "columnName": "lastName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isOnline",
+            "columnName": "isOnline",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isOnlineMobile",
+            "columnName": "isOnlineMobile",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "onlineAppId",
+            "columnName": "onlineAppId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastSeen",
+            "columnName": "lastSeen",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastSeenStatus",
+            "columnName": "lastSeenStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "birthday",
+            "columnName": "birthday",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo50",
+            "columnName": "photo50",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo100",
+            "columnName": "photo100",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo200",
+            "columnName": "photo200",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo400Orig",
+            "columnName": "photo400Orig",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "groups",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `screenName` TEXT NOT NULL, `photo50` TEXT, `photo100` TEXT, `photo200` TEXT, `membersCount` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenName",
+            "columnName": "screenName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photo50",
+            "columnName": "photo50",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo100",
+            "columnName": "photo100",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo200",
+            "columnName": "photo200",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "membersCount",
+            "columnName": "membersCount",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "messages",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `cmId` INTEGER NOT NULL, `text` TEXT, `isOut` INTEGER NOT NULL, `peerId` INTEGER NOT NULL, `fromId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `randomId` INTEGER NOT NULL, `action` TEXT, `actionMemberId` INTEGER, `actionText` TEXT, `actionCmId` INTEGER, `actionMessage` TEXT, `updateTime` INTEGER, `important` INTEGER NOT NULL, `forwardIds` TEXT, `attachments` TEXT, `replyMessageId` INTEGER, `geoType` TEXT, `pinnedAt` INTEGER, `isPinned` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cmId",
+            "columnName": "cmId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isOut",
+            "columnName": "isOut",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "peerId",
+            "columnName": "peerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromId",
+            "columnName": "fromId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "randomId",
+            "columnName": "randomId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "actionMemberId",
+            "columnName": "actionMemberId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "actionText",
+            "columnName": "actionText",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "actionCmId",
+            "columnName": "actionCmId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "actionMessage",
+            "columnName": "actionMessage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updateTime",
+            "columnName": "updateTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "important",
+            "columnName": "important",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "forwardIds",
+            "columnName": "forwardIds",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "attachments",
+            "columnName": "attachments",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "replyMessageId",
+            "columnName": "replyMessageId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "geoType",
+            "columnName": "geoType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "pinnedAt",
+            "columnName": "pinnedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isPinned",
+            "columnName": "isPinned",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "convos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `localId` INTEGER NOT NULL, `ownerId` INTEGER, `title` TEXT, `photo50` TEXT, `photo100` TEXT, `photo200` TEXT, `isPhantom` INTEGER NOT NULL, `lastCmId` INTEGER NOT NULL, `inReadCmId` INTEGER NOT NULL, `outReadCmId` INTEGER NOT NULL, `inRead` INTEGER NOT NULL, `outRead` INTEGER NOT NULL, `lastMessageId` INTEGER, `unreadCount` INTEGER NOT NULL, `membersCount` INTEGER, `canChangePin` INTEGER NOT NULL, `canChangeInfo` INTEGER NOT NULL, `majorId` INTEGER NOT NULL, `minorId` INTEGER NOT NULL, `pinnedMessageId` INTEGER, `peerType` TEXT NOT NULL, `isArchived` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localId",
+            "columnName": "localId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo50",
+            "columnName": "photo50",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo100",
+            "columnName": "photo100",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photo200",
+            "columnName": "photo200",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isPhantom",
+            "columnName": "isPhantom",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCmId",
+            "columnName": "lastCmId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inReadCmId",
+            "columnName": "inReadCmId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outReadCmId",
+            "columnName": "outReadCmId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inRead",
+            "columnName": "inRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outRead",
+            "columnName": "outRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastMessageId",
+            "columnName": "lastMessageId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "unreadCount",
+            "columnName": "unreadCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "membersCount",
+            "columnName": "membersCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "canChangePin",
+            "columnName": "canChangePin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "canChangeInfo",
+            "columnName": "canChangeInfo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "majorId",
+            "columnName": "majorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minorId",
+            "columnName": "minorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pinnedMessageId",
+            "columnName": "pinnedMessageId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "peerType",
+            "columnName": "peerType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isArchived",
+            "columnName": "isArchived",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a746865995959331f8a1b512c049dacb')"
+    ]
+  }
+}

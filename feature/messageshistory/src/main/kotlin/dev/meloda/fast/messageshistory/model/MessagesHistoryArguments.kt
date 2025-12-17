@@ -6,4 +6,4 @@ import kotlinx.serialization.Serializable
 
 @Parcelize
 @Serializable
-data class MessagesHistoryArguments(val conversationId: Long) : Parcelable
+data class MessagesHistoryArguments(val convoId: Long) : Parcelable

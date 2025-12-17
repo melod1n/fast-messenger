@@ -82,7 +82,7 @@ dependencies {
     implementation(projects.feature.auth)
 
     implementation(projects.feature.chatmaterials)
-    implementation(projects.feature.conversations)
+    implementation(projects.feature.convos)
     implementation(projects.feature.languagepicker)
     implementation(projects.feature.messageshistory)
     implementation(projects.feature.photoviewer)

@@ -5,12 +5,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkAttachment
-import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.model.api.domain.VkMessage
 
 @Immutable
 data class MessagesHistoryScreenState(
-    val conversationId: Long,
+    val convoId: Long,
     val title: String,
     val status: String?,
     val avatar: UiImage,
@@ -21,17 +21,17 @@ data class MessagesHistoryScreenState(
     val isPaginationExhausted: Boolean,
     val actionMode: ActionMode,
     val chatImageUrl: String?,
-    val conversation: VkConversation,
+    val convo: VkConvo,
     val pinnedMessage: VkMessage?,
     val pinnedTitle: String?,
     val pinnedSummary: AnnotatedString?,
     val replyTitle: String?,
-    val replyText: String?
+    val replyText: AnnotatedString?
 ) {
 
     companion object {
         val EMPTY: MessagesHistoryScreenState = MessagesHistoryScreenState(
-            conversationId = -1,
+            convoId = -1,
             title = "",
             status = null,
             avatar = UiImage.Color(0),
@@ -42,7 +42,7 @@ data class MessagesHistoryScreenState(
             isPaginationExhausted = false,
             actionMode = ActionMode.RECORD_AUDIO,
             chatImageUrl = null,
-            conversation = VkConversation.EMPTY,
+            convo = VkConvo.EMPTY,
             pinnedMessage = null,
             pinnedTitle = null,
             pinnedSummary = null,

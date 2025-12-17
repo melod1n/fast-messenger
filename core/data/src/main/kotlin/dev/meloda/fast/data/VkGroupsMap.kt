@@ -1,7 +1,7 @@
 package dev.meloda.fast.data
 
 import dev.meloda.fast.model.api.data.VkMessageData
-import dev.meloda.fast.model.api.domain.VkConversation
+import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.model.api.domain.VkGroupDomain
 import dev.meloda.fast.model.api.domain.VkMessage
 import kotlin.math.abs
@@ -16,9 +16,9 @@ class VkGroupsMap(
 
     fun groups(): List<VkGroupDomain> = map.values.toList()
 
-    fun conversationGroup(conversation: VkConversation): VkGroupDomain? =
-        if (!conversation.peerType.isGroup()) null
-        else map[abs(conversation.id)]
+    fun convoGroup(convo: VkConvo): VkGroupDomain? =
+        if (!convo.peerType.isGroup()) null
+        else map[abs(convo.id)]
 
     fun messageActionGroup(message: VkMessage): VkGroupDomain? =
         if (message.actionMemberId == null || message.actionMemberId!! >= 0) null

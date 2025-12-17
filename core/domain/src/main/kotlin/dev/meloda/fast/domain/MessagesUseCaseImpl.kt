@@ -23,12 +23,12 @@ class MessagesUseCaseImpl(
     }
 
     override fun getMessagesHistory(
-        conversationId: Long,
+        convoId: Long,
         count: Int?,
         offset: Int?
     ): Flow<State<MessagesHistoryInfo>> = flowNewState {
         repository.getHistory(
-            conversationId = conversationId,
+            convoId = convoId,
             offset = offset,
             count = count
         ).mapToState()
