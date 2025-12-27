@@ -2,27 +2,18 @@
     <string name="app_name" translatable="false">Fast</string>
     <string name="fast_messenger" translatable="false">Fast Messenger</string>
 
-    <string name="message_attachment">Attachment</string>
     <string name="message_attachments_many">Attachments</string>
 
     <string name="error_occurred">Error occurred</string>
-    <string name="error_occurred_description">Error: %1$s</string>
 
     <string name="title_error">Error</string>
 
     <string name="password_login_hint">Password</string>
 
-    <string name="captcha_hint">Captcha code</string>
-
-    <string name="input_captcha">Input code from picture</string>
-
     <string name="login_hint">Login</string>
 
     <string name="error_empty_field">Field must not be empty</string>
 
-    <string name="code_hint">Code</string>
-
-    <string name="input_validation_code">Input code from sms</string>
     <string name="you_message_prefix">You</string>
 
     <string name="message_geo">Geolocation</string>
@@ -32,18 +23,8 @@
     <string name="forwarded_message">Message</string>
     <string name="forwarded_messages">Messages</string>
 
-    <string name="no_messages">No messages</string>
-
-    <string name="messages_self_destructed">Messages self-destructed</string>
-
     <string name="message_input_hint">Message&#8230;</string>
-    <string name="input_login_hint">Input login</string>
-    <string name="input_password_hint">Input password</string>
-    <string name="input_code_hint">Input code</string>
-    <string name="validation_required">Validation required</string>
     <string name="unknown_error_occurred">Unknown error occurred</string>
-    <string name="authorization_failed">Authorization failed</string>
-    <string name="token_expired">Access token expired</string>
 
 
     <string name="message_action_chat_created">%1$s created «%2$s»</string>
@@ -99,7 +80,6 @@
     <string name="message_attachments_curator">Curator</string>
     <string name="message_attachments_story">Story</string>
     <string name="message_attachments_widget">Widget</string>
-    <string name="message_attachments_place">Place</string>
     <string name="message_attachments_artist">Artist</string>
     <string name="message_attachments_audio_playlist">Playlist</string>
     <string name="message_attachments_podcast">Podcast</string>
@@ -118,17 +98,11 @@
     <string name="chat_interaction_chat_typing">%1$s are typing</string>
     <string name="chat_interaction_chat_single_typing">%1$s is typing</string>
 
-    <string name="file_size_in_bytes">%1$d bytes</string>
-
-    <string name="post_type_community">Community post</string>
-    <string name="post_type_user">User post</string>
-    <string name="post_type_unknown">Post</string>
     <string name="action_log_out">Log out</string>
     <string name="confirm">Confirmation</string>
     <string name="sign_out_confirm">Signing out will delete all data related to this account from this device. Continue?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="time_format">Time: %1$s</string>
 
     <string name="message_context_action_retry">Retry</string>
     <string name="message_context_action_reply">Reply</string>
@@ -145,22 +119,14 @@
     <string name="message_context_action_read">Read</string>
     <string name="message_context_action_copy">Copy</string>
 
-    <string name="confirm_delete_message">Delete the message?</string>
-
-    <string name="message_delete_for_all">Delete for all</string>
-
-    <string name="message_mark_as_spam">Mark as spam</string>
     <string name="action_mark_as_read">Read</string>
 
     <string name="action_delete">Delete</string>
     <string name="convo_context_action_archive">Archive</string>
     <string name="convo_context_action_unarchive">Unarchive</string>
-    <string name="convo_context_action_delete">Delete</string>
     <string name="confirm_delete_convo">Delete the conversation?</string>
     <string name="action_sign_out">Sign out</string>
     <string name="sign_out_confirm_title">Sign out?</string>
-    <string name="convo_context_action_unpin">Unpin</string>
-    <string name="convo_context_action_pin">Pin</string>
     <string name="confirm_unpin_convo">Unpin the conversation?</string>
     <string name="confirm_pin_convo">Pin the conversation?</string>
     <string name="confirm_archive_convo">Archive the conversation?</string>
@@ -171,39 +137,18 @@
     <string name="action_unmark">Unmark</string>
     <string name="action_archive">Archive</string>
     <string name="action_unarchive">Unarchive</string>
-    <string name="message_call_type_outgoing">Outgoing call</string>
-    <string name="message_call_type_incoming">Incoming call</string>
-    <string name="message_call_state_ended">Ended</string>
-    <string name="message_call_state_cancelled">Cancelled</string>
-    <string name="message_call_state_missed">Missed</string>
-    <string name="message_call_unknown">Unknown</string>
-    <string name="confirm_pin_message">Pin the message?</string>
-    <string name="confirm_unpin_message">Unpin the message?</string>
 
-    <string name="title_messages">Messages</string>
-    <string name="title_forwarded_messages">Forwarded messages</string>
     <string name="title_settings">Settings</string>
 
-    <string name="message_attachment_story_your_story">Your story</string>
-    <string name="message_attachment_story_story_from">Story from</string>
     <string name="favorites">Favorites</string>
 
     <string name="warning">Warning</string>
 
-    <string name="app_crash_occurred">Crash occurred</string>
-    <string name="app_crash_comment_prompt">Leave a comment</string>
-    <string name="app_crash_report">Report</string>
-
     <string name="ok" translatable="false">@android:string/ok</string>
     <string name="cancel" translatable="false">@android:string/cancel</string>
 
-    <string name="copy" tools:override="true">Copy</string>
-    <string name="share">Share</string>
-
     <string name="pref_message_fast_text_summary">Text that will be inserted into the input field on emoji button long click.\nCurrent value: %1$s</string>
 
-    <string name="confirm_remove_chat_user">Are you sure you want to kick this member?</string>
-    <string name="user_banned_error">User banned</string>
     <string name="blocking_reason_title">Blocking reason</string>
     <string name="account_temporarily_blocked">Account temporarily blocked</string>
     <string name="user_name">User name</string>
@@ -227,7 +172,6 @@
     <string name="settings_appearance_use_system_font_title">Use system font</string>
 
     <string name="settings_application_language">Application Language</string>
-    <string name="settings_application_language_value">Current: %1$s</string>
 
     <string name="language_key_system" translatable="false">System</string>
     <string name="language_key_english" translatable="false">English</string>
@@ -243,7 +187,6 @@
     <string name="open_system_language_picker">Open system language picker</string>
     <string name="title_application_language">Application language</string>
     <string name="action_refresh">Refresh</string>
-    <string name="members_count">Members: %1$d</string>
     <string name="title_loading">Loading&#8230;</string>
     <string name="title_convos">Conversations</string>
     <string name="title_archive">Archive</string>
@@ -299,7 +242,6 @@
     <string name="warning_confirmation">Confirmation</string>
     <string name="captcha_exit_warning">Are you sure? Captcha process will be cancelled</string>
     <string name="validation_exit_warning">Are you sure? Validation process will be cancelled</string>
-    <string name="action_authorize">Authorize</string>
     <string name="no_online_friends">No one is online</string>
     <string name="try_again">Try again</string>
     <string name="session_expired">Session expired</string>
@@ -307,12 +249,9 @@
     <string name="action_create">Create</string>
     <string name="create_chat_title">Title</string>
     <string name="chat_materials_title">Chat materials</string>
-    <string name="chat_materials_action_title">Materials</string>
     <string name="friends_order_priority">Priority</string>
     <string name="friends_order_name">Name</string>
     <string name="friends_order_random">Random</string>
-    <string name="friends_order_mobile" translatable="false">Mobile</string>
-    <string name="friends_order_smart" translatable="false">Smart</string>
     <string name="friends_order_by_title">Order by</string>
     <string name="chat_attachment_photos">Photos</string>
     <string name="chat_attachment_videos">Videos</string>
@@ -342,7 +281,6 @@
     <string name="unspam_message_text">Are you sure you want to unmark this message as spam?</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
 
-    <string name="autofill" tools:ignore="PrivateResource">Autofill</string>
     <string name="bold">Bold</string>
     <string name="italic">Italic</string>
     <string name="underline">Underline</string>
@@ -352,12 +290,9 @@
     <string name="login_forgot_password">Forgot password?</string>
 
     <string name="action_copy_link">Copy link</string>
-    <string name="action_copy">Copy</string>
     <string name="action_copy_image">Copy image</string>
     <string name="action_open_in">Open in…</string>
     <string name="action_share">Share</string>
-    <string name="yesterday">Yesterday</string>
-    <string name="today">Today</string>
     <string name="year_short">Y</string>
     <string name="month_short">M</string>
     <string name="week_short">W</string>
