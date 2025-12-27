@@ -14,7 +14,6 @@ dependencies {
     api(projects.core.network)
     api(projects.core.database)
 
-    // TODO: 11/08/2024, Danil Nikolaev: remove?
     implementation(libs.retrofit)
     implementation(libs.eithernet)
     implementation(libs.koin.android)

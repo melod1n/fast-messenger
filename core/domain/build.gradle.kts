@@ -12,7 +12,6 @@ dependencies {
     api(projects.core.data)
     api(projects.core.model)
 
-    // TODO: 11/08/2024, Danil Nikolaev: remove?
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.koin.core)
     implementation(libs.eithernet)

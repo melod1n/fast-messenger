@@ -47,7 +47,7 @@ private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() =
     when (this) {
         is KotlinAndroidProjectExtension -> compilerOptions
         is KotlinJvmProjectExtension -> compilerOptions
-        else -> TODO("Unsupported project extension $this ${T::class}")
+        else -> throw IllegalArgumentException("Unsupported project extension $this ${T::class}")
     }.apply {
         jvmTarget = JvmTarget.JVM_21
         allWarningsAsErrors = warningsAsErrors.toBoolean()
