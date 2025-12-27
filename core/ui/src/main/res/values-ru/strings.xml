@@ -12,7 +12,7 @@
     <string name="message_context_action_mark_as_important">Пометить как важное</string>
     <string name="message_context_action_unmark_as_important">Пометить как не важное</string>
     <string name="time_format">Время: %1$s</string>
-    <string name="message_context_action_unmark_as_spam">Помеьиьб как не спам</string>
+    <string name="message_context_action_unmark_as_spam">Пометить как не спам</string>
     <string name="message_context_action_pin">Закрепить</string>
     <string name="message_context_action_unpin">Открепить</string>
     <string name="message_context_action_edit">Изменить</string>
