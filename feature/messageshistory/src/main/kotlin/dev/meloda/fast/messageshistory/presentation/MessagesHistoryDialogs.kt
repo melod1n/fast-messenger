@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import dev.meloda.fast.data.UserConfig
@@ -35,6 +38,9 @@ import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.ui.util.immutableListOf
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -61,7 +67,7 @@ fun HandleDialogs(
 
         is MessageDialog.MessageDelete -> {
             MessageDeleteDialog(
-                messages = listOf(dialog.message),
+                messages = immutableListOf(dialog.message),
                 onConfirmed = { onConfirmed(dialog, it) },
                 onDismissed = { onDismissed(dialog) }
             )
@@ -69,7 +75,7 @@ fun HandleDialogs(
 
         is MessageDialog.MessagesDelete -> {
             MessageDeleteDialog(
-                messages = dialog.messages,
+                messages = dialog.messages.toImmutableList(),
                 onConfirmed = { onConfirmed(dialog, it) },
                 onDismissed = { onDismissed(dialog) }
             )
@@ -242,10 +248,12 @@ private fun MessageOptionItem(
 
 @Composable
 fun MessageDeleteDialog(
-    messages: List<VkMessage>,
+    messages: ImmutableList<VkMessage>,
     onConfirmed: (Bundle) -> Unit = {},
     onDismissed: () -> Unit = {},
 ) {
+    val errorColor = MaterialTheme.colorScheme.error
+
     var forEveryone by remember {
         mutableStateOf(
             !messages.any { it.peerId == UserConfig.userId }
@@ -263,6 +271,8 @@ fun MessageDeleteDialog(
 
     MaterialDialog(
         onDismissRequest = onDismissed,
+        icon = ImageVector.vectorResource(R.drawable.ic_delete_fill_round_24),
+        iconTint = errorColor,
         title = stringResource(R.string.delete_message_title),
         confirmText = stringResource(R.string.action_delete),
         confirmAction = {
@@ -270,6 +280,7 @@ fun MessageDeleteDialog(
                 bundleOf("everyone" to if (messages.all(VkMessage::isOut)) forEveryone else false)
             )
         },
+        confirmContainerColor = errorColor,
         cancelText = stringResource(R.string.cancel),
     ) {
         Row(
@@ -285,7 +296,8 @@ fun MessageDeleteDialog(
             Checkbox(
                 checked = forEveryone,
                 onCheckedChange = null,
-                enabled = !shouldBeDisabled
+                enabled = !shouldBeDisabled,
+                colors = CheckboxDefaults.colors(checkedColor = errorColor)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -308,6 +320,10 @@ fun MessagePinStateDialog(
 ) {
     MaterialDialog(
         onDismissRequest = onDismissed,
+        icon = ImageVector.vectorResource(
+            if (pin) R.drawable.ic_keep_fill_round_24
+            else R.drawable.ic_keep_off_fill_round_24
+        ),
         title = stringResource(
             if (pin) R.string.pin_message_title
             else R.string.unpin_message_title
@@ -333,6 +349,10 @@ fun MessageImportanceDialog(
 ) {
     MaterialDialog(
         onDismissRequest = onDismissed,
+        icon = ImageVector.vectorResource(
+            if (important) R.drawable.ic_star_fill_round_24
+            else R.drawable.ic_star_round_24
+        ),
         title = stringResource(
             if (important) R.string.important_message_title
             else R.string.unimportant_message_title
@@ -356,8 +376,12 @@ fun MessageSpamDialog(
     onConfirmed: () -> Unit = {},
     onDismissed: () -> Unit = {},
 ) {
+    val errorColor = MaterialTheme.colorScheme.error
+
     MaterialDialog(
         onDismissRequest = onDismissed,
+        icon = ImageVector.vectorResource(R.drawable.ic_report_fill_round_24),
+        iconTint = errorColor,
         title = stringResource(
             if (spam) R.string.spam_message_title
             else R.string.unspam_message_title
@@ -371,6 +395,7 @@ fun MessageSpamDialog(
             else R.string.action_unmark
         ),
         confirmAction = onConfirmed,
+        confirmContainerColor = errorColor,
         cancelText = stringResource(R.string.cancel)
     )
 }

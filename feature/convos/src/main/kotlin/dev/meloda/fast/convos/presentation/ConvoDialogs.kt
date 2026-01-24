@@ -63,22 +63,22 @@ fun HandleDialogs(
         is ConvoDialog.ConvoPin -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
+                icon = ImageVector.vectorResource(R.drawable.ic_keep_fill_round_24),
                 title = stringResource(id = R.string.confirm_pin_convo),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
                 confirmText = stringResource(id = R.string.action_pin),
                 cancelText = stringResource(id = R.string.cancel),
-                icon = ImageVector.vectorResource(R.drawable.ic_keep_fill_round_24)
             )
         }
 
         is ConvoDialog.ConvoUnpin -> {
             MaterialDialog(
                 onDismissRequest = { onDismissed(dialog) },
+                icon = ImageVector.vectorResource(R.drawable.ic_keep_off_fill_round_24),
                 title = stringResource(id = R.string.confirm_unpin_convo),
                 confirmAction = { onConfirmed(dialog, bundleOf()) },
                 confirmText = stringResource(id = R.string.action_unpin),
                 cancelText = stringResource(id = R.string.cancel),
-                icon = ImageVector.vectorResource(R.drawable.ic_keep_off_fill_round_24)
             )
         }
     }
