@@ -54,7 +54,6 @@ fun ConvosRoute(
         onConvoItemLongClicked = viewModel::onConvoItemLongClick,
         onOptionClicked = viewModel::onOptionClicked,
         onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-        onRefreshDropdownItemClicked = viewModel::onRefresh,
         onRefresh = viewModel::onRefresh,
         onCreateChatButtonClicked = viewModel::onCreateChatButtonClicked,
         onArchiveActionClicked = { onNavigateToArchive?.invoke() },

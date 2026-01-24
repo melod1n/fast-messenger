@@ -29,20 +29,20 @@ fun NavGraphBuilder.mainScreen(
     val navigationItems = ImmutableList.of(
         BottomNavigationItem(
             titleResId = R.string.title_friends,
-            selectedIconResId = R.drawable.baseline_people_alt_24,
-            unselectedIconResId = R.drawable.outline_people_alt_24,
+            selectedIconResId = R.drawable.ic_group_fill_round_24,
+            unselectedIconResId = R.drawable.ic_group_round_24,
             route = Friends,
         ),
         BottomNavigationItem(
             titleResId = R.string.title_convos,
-            selectedIconResId = R.drawable.baseline_chat_24,
-            unselectedIconResId = R.drawable.outline_chat_24,
+            selectedIconResId = R.drawable.ic_mail_fill_round_24,
+            unselectedIconResId = R.drawable.ic_mail_round_24,
             route = ConvoGraph
         ),
         BottomNavigationItem(
             titleResId = R.string.title_profile,
-            selectedIconResId = R.drawable.baseline_account_circle_24,
-            unselectedIconResId = R.drawable.outline_account_circle_24,
+            selectedIconResId = R.drawable.ic_account_circle_fill_round_24,
+            unselectedIconResId = R.drawable.ic_account_circle_round_24,
             route = Profile
         )
     )

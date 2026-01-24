@@ -52,7 +52,7 @@ fun OutgoingMessageBubble(
             contentAlignment = Alignment.CenterEnd
         ) {
             Icon(
-                painter = painterResource(R.drawable.round_reply_24),
+                painter = painterResource(R.drawable.ic_reply_round_24),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier

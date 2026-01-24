@@ -240,7 +240,7 @@ fun LoginScreen(
                         placeholder = { Text(text = stringResource(id = R.string.login_hint)) },
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_round_person_24),
+                                painter = painterResource(id = R.drawable.ic_person_round_24),
                                 contentDescription = "Login icon",
                                 tint = if (screenState.loginError) {
                                     MaterialTheme.colorScheme.error
@@ -284,7 +284,7 @@ fun LoginScreen(
                         placeholder = { Text(text = stringResource(id = R.string.password_login_hint)) },
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.round_vpn_key_24),
+                                painter = painterResource(id = R.drawable.ic_vpn_key_round_24),
                                 contentDescription = "Password icon",
                                 tint = if (screenState.passwordError) {
                                     MaterialTheme.colorScheme.error
@@ -295,8 +295,8 @@ fun LoginScreen(
                         },
                         trailingIcon = {
                             val imagePainter = painterResource(
-                                id = if (screenState.passwordVisible) R.drawable.round_visibility_off_24
-                                else R.drawable.round_visibility_24px
+                                id = if (screenState.passwordVisible) R.drawable.ic_visibility_off_round_24
+                                else R.drawable.ic_visibility_round_24
                             )
 
                             IconButton(onClick = onPasswordVisibilityButtonClicked) {
@@ -364,7 +364,7 @@ fun LoginScreen(
                         label = "Sign in icon visibility"
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_end),
+                            painter = painterResource(id = R.drawable.ic_arrow_forward_round_24),
                             contentDescription = "Sign in icon",
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )

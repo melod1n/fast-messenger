@@ -49,7 +49,7 @@ fun FriendItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape),
-                painter = painterResource(id = R.drawable.ic_account_circle_cut),
+                painter = painterResource(id = R.drawable.ic_account_circle_fill_round_24),
                 contentDescription = "Avatar",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
             )
@@ -64,7 +64,7 @@ fun FriendItem(
                             ?.extractUrl()
                             ?.let(onPhotoClicked)
                     },
-                placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+                placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24)
             )
 
             if (friend.onlineStatus.isOnline()) {
@@ -104,7 +104,7 @@ fun FriendItem(
             }
         ) {
             Icon(
-                painter = painterResource(R.drawable.round_mail_24px),
+                painter = painterResource(R.drawable.ic_mail_fill_round_24),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )

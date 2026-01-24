@@ -27,7 +27,7 @@ fun VkMessage.extractAvatar() = when {
     }
 
     else -> null
-}?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_cut)
+}?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_fill_round_24)
 
 fun VkMessage.extractDate(): String =
     SimpleDateFormat("HH:mm", Locale.getDefault()).format(date * 1000L)

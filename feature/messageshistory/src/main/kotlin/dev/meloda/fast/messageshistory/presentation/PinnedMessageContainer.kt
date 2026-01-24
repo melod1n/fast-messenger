@@ -89,7 +89,7 @@ fun PinnedMessageContainer(
                     onClick = onUnpinMessageButtonClicked
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.round_close_24px),
+                        painter = painterResource(R.drawable.ic_close_round_24),
                         contentDescription = null,
                         modifier = Modifier.alpha(0.5f),
                     )

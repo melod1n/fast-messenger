@@ -170,7 +170,7 @@ fun ValidationScreen(
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(R.drawable.round_close_24px),
+                        painter = painterResource(R.drawable.ic_close_round_24),
                         contentDescription = "Close icon",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
@@ -220,7 +220,7 @@ fun ValidationScreen(
                         .semantics { contentType = ContentType.SmsOtpCode },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.round_qr_code_24),
+                            painter = painterResource(id = R.drawable.ic_qr_code_round_24),
                             contentDescription = "QR Code icon",
                             tint = if (screenState.codeError) {
                                 MaterialTheme.colorScheme.error
@@ -256,7 +256,7 @@ fun ValidationScreen(
                 val canResendSms = screenState.isSmsButtonVisible
 
                 AnimatedVisibility(
-                    visible = canResendSms,
+                    visible = true,
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = onRequestSmsButtonClicked,
@@ -268,7 +268,7 @@ fun ValidationScreen(
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.round_sms_24),
+                                painter = painterResource(id = R.drawable.ic_sms_round_24),
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 contentDescription = "SMS icon"
                             )
@@ -284,7 +284,7 @@ fun ValidationScreen(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.round_check_24px),
+                        painter = painterResource(R.drawable.ic_check_round_24),
                         contentDescription = "Done icon",
                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )

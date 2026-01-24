@@ -92,7 +92,6 @@ fun ConvosScreen(
     onConvoItemLongClicked: (convo: UiConvo) -> Unit = {},
     onOptionClicked: (UiConvo, ConvoOption) -> Unit = { _, _ -> },
     onPaginationConditionsMet: () -> Unit = {},
-    onRefreshDropdownItemClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onCreateChatButtonClicked: () -> Unit = {},
     onArchiveActionClicked: () -> Unit = {},
@@ -194,7 +193,7 @@ fun ConvosScreen(
                         if (screenState.isArchive) {
                             IconButton(onClick = onBack) {
                                 Icon(
-                                    painter = painterResource(R.drawable.round_arrow_back_24px),
+                                    painter = painterResource(R.drawable.ic_arrow_back_round_24),
                                     contentDescription = null
                                 )
                             }
@@ -216,7 +215,7 @@ fun ConvosScreen(
                             dropDownItems += {
                                 DropdownMenuItem(
                                     onClick = {
-                                        onRefreshDropdownItemClicked()
+                                        onRefresh()
                                         dropDownMenuExpanded = false
                                     },
                                     text = {
@@ -224,7 +223,7 @@ fun ConvosScreen(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.round_refresh_24px),
+                                            painter = painterResource(R.drawable.ic_refresh_round_24),
                                             contentDescription = null
                                         )
                                     }
@@ -235,7 +234,7 @@ fun ConvosScreen(
                         if (dropDownItems.isNotEmpty()) {
                             IconButton(onClick = { dropDownMenuExpanded = true }) {
                                 Icon(
-                                    painter = painterResource(R.drawable.round_more_vert_24px),
+                                    painter = painterResource(R.drawable.ic_more_vert_round_24),
                                     contentDescription = null
                                 )
                             }
@@ -292,7 +291,7 @@ fun ConvosScreen(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.round_create_24),
+                            painter = painterResource(id = R.drawable.ic_edit_round_24),
                             contentDescription = "Add chat button"
                         )
                     }

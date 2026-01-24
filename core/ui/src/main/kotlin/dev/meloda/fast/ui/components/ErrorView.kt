@@ -25,7 +25,7 @@ import dev.meloda.fast.ui.R
 @Composable
 fun ErrorView(
     modifier: Modifier = Modifier,
-    iconResId: Int? = R.drawable.round_error_24,
+    iconResId: Int? = R.drawable.ic_error_fill_round_24,
     text: String,
     buttonText: String? = null,
     onButtonClick: (() -> Unit)? = null,

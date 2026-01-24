@@ -195,7 +195,7 @@ fun FriendsRoute(
                             }
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.round_filter_list_24),
+                                painter = painterResource(R.drawable.ic_filter_list_round_24),
                                 contentDescription = null
                             )
                         }

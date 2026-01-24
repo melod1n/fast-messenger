@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.DotsFlashing
@@ -53,7 +56,6 @@ import dev.meloda.fast.ui.model.vk.UiConvo
 import dev.meloda.fast.ui.util.getImage
 import dev.meloda.fast.ui.util.getResourcePainter
 import dev.meloda.fast.ui.util.getString
-import dev.meloda.fast.ui.R
 
 val BirthdayColor = Color(0xffb00b69)
 
@@ -127,7 +129,7 @@ fun ConvoItem(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(32.dp),
-                                painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
+                                painter = painterResource(id = R.drawable.ic_bookmark_round_24),
                                 contentDescription = "Favorites icon",
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -150,7 +152,7 @@ fun ConvoItem(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape),
-                                placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+                                placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24)
                             )
                         }
                     }
@@ -166,7 +168,7 @@ fun ConvoItem(
                                 modifier = Modifier
                                     .height(14.dp)
                                     .align(Alignment.Center),
-                                painter = painterResource(id = R.drawable.ic_round_push_pin_24),
+                                painter = painterResource(id = R.drawable.ic_keep_fill_round_24),
                                 contentDescription = "Pin icon",
                                 tint = Color.White
                             )
@@ -222,7 +224,7 @@ fun ConvoItem(
                                     modifier = Modifier
                                         .align(Alignment.Center)
                                         .size(10.dp),
-                                    painter = painterResource(id = R.drawable.round_cake_24),
+                                    painter = painterResource(id = R.drawable.ic_cake_fill_round_24),
                                     contentDescription = "Birthday icon",
                                     tint = Color.White
                                 )
@@ -363,11 +365,18 @@ fun ConvoItem(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        overscrollEffect = null,
                     ) {
-                        items(convo.options.toList()) { option ->
+                        itemsIndexed(
+                            items = convo.options.toList(),
+                            key = { _, option -> option.hashCode() }
+                        ) { index, option ->
+                            if (index == 0) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+
                             ElevatedAssistChip(
                                 onClick = { onOptionClicked(convo, option) },
                                 leadingIcon = {
@@ -375,7 +384,10 @@ fun ConvoItem(
                                         Icon(
                                             painter = painter,
                                             contentDescription = "Chip icon",
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(16.dp),
+                                            tint = if (option is ConvoOption.Delete) {
+                                                MaterialTheme.colorScheme.error
+                                            } else LocalContentColor.current
                                         )
                                     }
                                 },
@@ -383,7 +395,10 @@ fun ConvoItem(
                                     Text(text = option.title.getString().orEmpty())
                                 }
                             )
-                            Spacer(Modifier.width(8.dp))
+
+                            if (index == convo.options.lastIndex) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
                         }
                     }
                 }

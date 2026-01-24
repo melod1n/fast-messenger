@@ -45,7 +45,7 @@ fun BoxScope.DateStatus(
         if (isImportant) {
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(R.drawable.round_star_24),
+                painter = painterResource(R.drawable.ic_star_round_24),
                 contentDescription = null,
                 modifier = Modifier.size(14.dp)
             )
@@ -64,7 +64,7 @@ fun BoxScope.DateStatus(
         if (isEdited) {
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(R.drawable.round_edit_24px),
+                painter = painterResource(R.drawable.ic_edit_round_24),
                 contentDescription = null,
                 modifier = Modifier.size(14.dp)
             )
@@ -83,13 +83,13 @@ fun BoxScope.DateStatus(
                 modifier = Modifier.size(14.dp),
                 painter = painterResource(
                     when (sendingStatus) {
-                        SendingStatus.SENDING -> R.drawable.round_access_time_24
+                        SendingStatus.SENDING -> R.drawable.ic_schedule_round_24
                         SendingStatus.SENT -> {
                             if (isRead) R.drawable.ic_done_all_round_24
-                            else R.drawable.ic_round_done_24
+                            else R.drawable.ic_check_round_24
                         }
 
-                        SendingStatus.FAILED -> R.drawable.round_error_outline_24
+                        SendingStatus.FAILED -> R.drawable.ic_error_round_24
                     }
                 ),
                 tint = if (sendingStatus == SendingStatus.FAILED) MaterialTheme.colorScheme.error

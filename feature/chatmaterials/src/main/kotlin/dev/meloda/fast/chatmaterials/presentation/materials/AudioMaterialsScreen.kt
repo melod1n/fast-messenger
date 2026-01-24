@@ -155,7 +155,7 @@ fun AudioMaterialsScreen(
                                     .background(MaterialTheme.colorScheme.primary)
                                     .size(42.dp)
                                     .padding(4.dp),
-                                painter = painterResource(R.drawable.round_fill_play_arrow_24px),
+                                painter = painterResource(R.drawable.ic_play_arrow_fill_round_24),
                                 contentDescription = null,
                                 tint = contentColorFor(MaterialTheme.colorScheme.primary)
                             )
@@ -203,7 +203,7 @@ fun AudioMaterialsScreen(
                                     colors = IconButtonDefaults.filledIconButtonColors()
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.round_keyboard_arrow_up_24px),
+                                        painter = painterResource(R.drawable.ic_keyboard_arrow_up_round_24),
                                         contentDescription = null
                                     )
                                 }

@@ -115,7 +115,7 @@ fun LanguagePickerScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter = painterResource(R.drawable.round_arrow_back_24px),
+                            painter = painterResource(R.drawable.ic_arrow_back_round_24),
                             contentDescription = "Navigate back"
                         )
                     }
@@ -132,7 +132,7 @@ fun LanguagePickerScreen(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.round_more_vert_24px),
+                            painter = painterResource(R.drawable.ic_more_vert_round_24),
                             contentDescription = "Options"
                         )
                     }

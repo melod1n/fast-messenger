@@ -57,7 +57,7 @@ fun ReplyContainer(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_reply_24px),
+            painter = painterResource(R.drawable.ic_reply_round_24),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary
         )
@@ -90,7 +90,7 @@ fun ReplyContainer(
             onClick = onCloseClicked
         ) {
             Icon(
-                painter = painterResource(R.drawable.round_close_24px),
+                painter = painterResource(R.drawable.ic_close_round_24),
                 contentDescription = null,
             )
         }

@@ -52,6 +52,8 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
     }
 
     override fun iterator(): Iterator<T> = values.listIterator()
+
+    val lastIndex: Int get() = this.size - 1
 }
 
 fun <T> emptyImmutableList(): ImmutableList<T> = ImmutableList(emptyList())

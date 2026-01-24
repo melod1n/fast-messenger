@@ -146,7 +146,7 @@ fun CaptchaScreen(
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(R.drawable.round_close_24px),
+                        painter = painterResource(R.drawable.ic_close_round_24),
                         contentDescription = "Close icon",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
@@ -186,7 +186,7 @@ fun CaptchaScreen(
 
                     if (LocalView.current.isInEditMode) {
                         Image(
-                            painter = painterResource(id = R.drawable.test_captcha),
+                            painter = painterResource(id = R.drawable.img_test_captcha),
                             contentDescription = "Captcha image",
                             modifier = imageModifier
                         )
@@ -218,7 +218,7 @@ fun CaptchaScreen(
                         .clip(RoundedCornerShape(10.dp)),
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.round_qr_code_24),
+                            painter = painterResource(id = R.drawable.ic_qr_code_round_24),
                             contentDescription = "QR code icon",
                             tint = if (showError) {
                                 MaterialTheme.colorScheme.error
@@ -249,7 +249,7 @@ fun CaptchaScreen(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.round_check_24px),
+                    painter = painterResource(R.drawable.ic_check_round_24),
                     contentDescription = "Done icon",
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )

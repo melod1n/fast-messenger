@@ -47,7 +47,7 @@ fun Gift(
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_attachment_gift),
+                imageVector = ImageVector.vectorResource(R.drawable.ic_attachment_gift_old),
                 contentDescription = null,
                 modifier = Modifier.size(16.dp)
             )

@@ -74,7 +74,7 @@ fun ProfileScreen(
                 actions = {
                     IconButton(onClick = onSettingsButtonClicked) {
                         Icon(
-                            painter = painterResource(R.drawable.round_settings_24px),
+                            painter = painterResource(R.drawable.ic_settings_round_24),
                             contentDescription = null
                         )
                     }
@@ -112,7 +112,7 @@ fun ProfileScreen(
                     model = screenState.avatarUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+                    placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24)
                 )
 
                 Spacer(modifier = Modifier.height(18.dp))

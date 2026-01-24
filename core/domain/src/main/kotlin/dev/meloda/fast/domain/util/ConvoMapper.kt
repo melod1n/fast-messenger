@@ -40,7 +40,7 @@ fun VkConvo.extractAvatar(): UiImage = when (peerType) {
     PeerType.CHAT -> {
         photo200
     }
-}?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_cut)
+}?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_fill_round_24)
 
 fun VkConvo.extractTitle(
     useContactName: Boolean,
@@ -470,16 +470,25 @@ fun extractActionText(
     }
 }
 
-private fun extractAttachmentIcon(
+fun extractAttachmentIcon(
     lastMessage: VkMessage?
 ): UiImage? = when {
     lastMessage == null -> null
     lastMessage.text == null -> null
+    lastMessage.geoType != null -> {
+        val geoType = lastMessage.geoType
+        if (geoType == "point") {
+            UiImage.Resource(R.drawable.ic_pin_drop_fill_round_24)
+        } else {
+            UiImage.Resource(R.drawable.ic_map_fill_round_24)
+        }
+    }
+
     !lastMessage.forwards.isNullOrEmpty() -> {
         if (lastMessage.forwards.orEmpty().size == 1) {
-            UiImage.Resource(R.drawable.ic_attachment_forwarded_message)
+            UiImage.Resource(R.drawable.ic_reply_round_24)
         } else {
-            UiImage.Resource(R.drawable.ic_attachment_forwarded_messages)
+            UiImage.Resource(R.drawable.ic_reply_all_round_24)
         }
     }
 
@@ -487,13 +496,9 @@ private fun extractAttachmentIcon(
         lastMessage.attachments?.let { attachments ->
             if (attachments.isEmpty()) return null
             if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
-                lastMessage.geoType?.let {
-                    return UiImage.Resource(R.drawable.ic_map_marker)
-                }
-
                 getAttachmentIconByType(attachments.first().type)
             } else {
-                UiImage.Resource(R.drawable.ic_baseline_attach_file_24)
+                UiImage.Resource(R.drawable.ic_attach_file_round_24)
             }
         }
     }
@@ -565,22 +570,22 @@ fun extractAttachmentText(
 
 private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
     return when (attachmentType) {
-        AttachmentType.PHOTO -> R.drawable.ic_attachment_photo
-        AttachmentType.VIDEO -> R.drawable.ic_attachment_video
-        AttachmentType.AUDIO -> R.drawable.ic_attachment_audio
-        AttachmentType.FILE -> R.drawable.ic_attachment_file
-        AttachmentType.LINK -> R.drawable.ic_attachment_link
-        AttachmentType.AUDIO_MESSAGE -> R.drawable.ic_attachment_voice
-        AttachmentType.MINI_APP -> R.drawable.ic_attachment_mini_app
-        AttachmentType.STICKER -> R.drawable.ic_attachment_sticker
-        AttachmentType.GIFT -> R.drawable.ic_attachment_gift
-        AttachmentType.WALL -> R.drawable.ic_attachment_wall
-        AttachmentType.GRAFFITI -> R.drawable.ic_attachment_graffiti
-        AttachmentType.POLL -> R.drawable.ic_attachment_poll
-        AttachmentType.WALL_REPLY -> R.drawable.ic_attachment_wall_reply
-        AttachmentType.CALL -> R.drawable.ic_attachment_call
-        AttachmentType.GROUP_CALL_IN_PROGRESS -> R.drawable.ic_attachment_group_call
-        AttachmentType.STORY -> R.drawable.ic_attachment_story
+        AttachmentType.PHOTO -> R.drawable.ic_image_fill_round_24
+        AttachmentType.VIDEO -> R.drawable.ic_video_fill_round_24
+        AttachmentType.AUDIO -> R.drawable.ic_music_note_round_24
+        AttachmentType.FILE -> R.drawable.ic_draft_fill_round_24
+        AttachmentType.LINK -> R.drawable.ic_language_round_24
+        AttachmentType.AUDIO_MESSAGE -> R.drawable.ic_mic_fill_round_24
+        AttachmentType.MINI_APP -> R.drawable.ic_widgets_fill_round_24
+        AttachmentType.STICKER -> R.drawable.ic_sticker_fill_round_24
+        AttachmentType.GIFT -> R.drawable.ic_attachment_gift_old
+        AttachmentType.WALL -> R.drawable.ic_brick_fill_round_24
+        AttachmentType.GRAFFITI -> R.drawable.ic_fragrance_fill_round_24
+        AttachmentType.POLL -> R.drawable.ic_insert_chart_fill_round_24
+        AttachmentType.WALL_REPLY -> R.drawable.ic_comment_fill_round_24
+        AttachmentType.CALL -> R.drawable.ic_call_round_24
+        AttachmentType.GROUP_CALL_IN_PROGRESS -> R.drawable.ic_perm_phone_msg_fill_round_24
+        AttachmentType.STORY -> R.drawable.ic_history_toggle_off_round_24
         AttachmentType.UNKNOWN -> null
         AttachmentType.CURATOR -> null
         AttachmentType.EVENT -> null
@@ -591,7 +596,7 @@ private fun getAttachmentIconByType(attachmentType: AttachmentType): UiImage? {
         AttachmentType.NARRATIVE -> null
         AttachmentType.ARTICLE -> null
         AttachmentType.VIDEO_MESSAGE -> null
-        AttachmentType.GROUP_CHAT_STICKER -> R.drawable.ic_attachment_sticker
+        AttachmentType.GROUP_CHAT_STICKER -> R.drawable.ic_sticker_fill_round_24
         AttachmentType.STICKER_PACK_PREVIEW -> null
     }?.let(UiImage::Resource)
 }
@@ -683,20 +688,6 @@ fun getAttachmentUiText(
         AttachmentType.GROUP_CHAT_STICKER -> R.string.message_attachments_group_sticker
         AttachmentType.STICKER_PACK_PREVIEW -> R.string.message_attachments_sticker_pack_preview
     }.let(UiText::Resource)
-}
-
-fun getAttachmentConvoIcon(message: VkMessage?): UiImage? {
-    return message?.attachments?.let { attachments ->
-        if (attachments.isEmpty()) return null
-        if (attachments.size == 1 || isAttachmentsHaveOneType(attachments)) {
-            message.geoType?.let {
-                return UiImage.Resource(R.drawable.ic_map_marker)
-            }
-            getAttachmentIconByType(attachments.first().type)
-        } else {
-            UiImage.Resource(R.drawable.ic_baseline_attach_file_24)
-        }
-    }
 }
 
 fun extractBirthday(convo: VkConvo): Boolean {

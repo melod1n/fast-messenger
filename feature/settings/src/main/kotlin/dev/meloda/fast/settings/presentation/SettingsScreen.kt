@@ -92,7 +92,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter = painterResource(id = R.drawable.round_arrow_back_24px),
+                            painter = painterResource(id = R.drawable.ic_arrow_back_round_24),
                             contentDescription = "Back button"
                         )
                     }

@@ -67,7 +67,7 @@ fun UserBannedScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter = painterResource(R.drawable.round_arrow_back_24px),
+                            painter = painterResource(R.drawable.ic_arrow_back_round_24),
                             contentDescription = null
                         )
                     }

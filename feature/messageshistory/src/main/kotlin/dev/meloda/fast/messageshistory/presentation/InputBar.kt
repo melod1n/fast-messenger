@@ -200,7 +200,7 @@ fun InputBar(
                             },
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_outline_emoji_emotions_24),
+                                painter = painterResource(id = R.drawable.ic_sentiment_satisfied_round_24),
                                 contentDescription = "Emoji button",
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -291,7 +291,7 @@ fun InputBar(
                             }
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.round_attach_file_24),
+                                painter = painterResource(id = R.drawable.ic_attach_file_round_24),
                                 contentDescription = "Add attachment button",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
@@ -325,10 +325,10 @@ fun InputBar(
                                 painter = painterResource(
                                     id = when (actionMode) {
                                         ActionMode.DELETE -> R.drawable.ic_delete_round_24
-                                        ActionMode.EDIT -> R.drawable.ic_round_done_24
-                                        ActionMode.RECORD_AUDIO -> R.drawable.ic_round_mic_none_24
-                                        ActionMode.RECORD_VIDEO -> R.drawable.rounded_photo_camera_24
-                                        ActionMode.SEND -> R.drawable.round_send_24
+                                        ActionMode.EDIT -> R.drawable.ic_check_round_24
+                                        ActionMode.RECORD_AUDIO -> R.drawable.ic_mic_round_24
+                                        ActionMode.RECORD_VIDEO -> R.drawable.ic_photo_camera_round_24
+                                        ActionMode.SEND -> R.drawable.ic_send_round_24
                                     }
                                 ),
                                 contentDescription = null,

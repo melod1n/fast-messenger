@@ -14,22 +14,22 @@ sealed class MessageOption(
 
     data object Retry : MessageOption(
         titleResId = R.string.message_context_action_retry,
-        iconResId = R.drawable.round_restart_alt_24
+        iconResId = R.drawable.ic_restart_alt_round_24
     )
 
     data object Reply : MessageOption(
         titleResId = R.string.message_context_action_reply,
-        iconResId = R.drawable.round_reply_24
+        iconResId = R.drawable.ic_reply_round_24
     )
 
     data object ForwardHere : MessageOption(
         titleResId = R.string.message_context_action_forward_here,
-        iconResId = R.drawable.round_reply_all_24
+        iconResId = R.drawable.ic_reply_all_round_24
     )
 
     data object Forward : MessageOption(
         titleResId = R.string.message_context_action_forward,
-        iconResId = R.drawable.round_forward_24
+        iconResId = R.drawable.ic_forward_round_24
     )
 
     data object Pin : MessageOption(
@@ -44,37 +44,37 @@ sealed class MessageOption(
 
     data object Read : MessageOption(
         titleResId = R.string.message_context_action_read,
-        iconResId = R.drawable.round_mark_email_read_24
+        iconResId = R.drawable.ic_done_all_round_24
     )
 
     data object Copy : MessageOption(
         titleResId = R.string.message_context_action_copy,
-        iconResId = R.drawable.round_content_copy_24
+        iconResId = R.drawable.ic_content_copy_round_24
     )
 
     data object MarkAsImportant : MessageOption(
         titleResId = R.string.message_context_action_mark_as_important,
-        iconResId = R.drawable.round_star_24
+        iconResId = R.drawable.ic_star_round_24
     )
 
     data object UnmarkAsImportant : MessageOption(
         titleResId = R.string.message_context_action_unmark_as_important,
-        iconResId = R.drawable.round_star_outline_24
+        iconResId = R.drawable.ic_star_round_24
     )
 
     data object MarkAsSpam : MessageOption(
         titleResId = R.string.message_context_action_mark_as_spam,
-        iconResId = R.drawable.round_report_gmailerrorred_24
+        iconResId = R.drawable.ic_report_round_24
     )
 
     data object UnmarkAsSpam : MessageOption(
         titleResId = R.string.message_context_action_unmark_as_spam,
-        iconResId = R.drawable.round_report_off_24
+        iconResId = R.drawable.ic_report_off_round_24
     )
 
     data object Edit : MessageOption(
         titleResId = R.string.message_context_action_edit,
-        iconResId = R.drawable.round_create_24
+        iconResId = R.drawable.ic_edit_round_24
     )
 
     data object Delete : MessageOption(

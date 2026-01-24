@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
@@ -170,6 +171,7 @@ fun MessageOptionsDialog(
     }
 
     MaterialDialog(onDismissRequest = onDismissed) {
+        Spacer(modifier = Modifier.height(4.dp))
         if (showReadPeers) {
             var viewCount by remember {
                 mutableStateOf<Int?>(null)
@@ -181,31 +183,32 @@ fun MessageOptionsDialog(
 
             MessageOptionItem(
                 title = viewCount?.let { "$it views" } ?: "...",
-                iconResId = R.drawable.round_visibility_24px,
+                iconResId = R.drawable.ic_visibility_round_24,
                 tintColor = primaryColor,
                 onClick = {}
             )
         }
 
-        messageOptions
-            .forEachIndexed { index, (titleResId, iconResId, tintColor) ->
-                MessageOptionItem(
-                    title = stringResource(titleResId),
-                    iconResId = iconResId,
-                    tintColor = tintColor,
-                    onClick = {
-                        onDismissed()
-                        val pickedOption = options[index]
-                        onItemPicked(
-                            bundleOf(
-                                "option" to pickedOption,
-                                "messageId" to message.id,
-                                "cmId" to message.cmId
-                            )
+        messageOptions.forEachIndexed { index, (titleResId, iconResId, tintColor) ->
+            MessageOptionItem(
+                title = stringResource(titleResId),
+                iconResId = iconResId,
+                tintColor = tintColor,
+                onClick = {
+                    onDismissed()
+                    val pickedOption = options[index]
+                    onItemPicked(
+                        bundleOf(
+                            "option" to pickedOption,
+                            "messageId" to message.id,
+                            "cmId" to message.cmId
                         )
-                    }
-                )
-            }
+                    )
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 

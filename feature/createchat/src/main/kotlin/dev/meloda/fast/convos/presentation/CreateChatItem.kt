@@ -53,7 +53,7 @@ fun CreateChatItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape),
-                    painter = painterResource(id = R.drawable.ic_account_circle_cut),
+                    painter = painterResource(id = R.drawable.ic_account_circle_fill_round_24),
                     contentDescription = "Avatar",
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
                 )
@@ -64,7 +64,7 @@ fun CreateChatItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape),
-                    placeholder = painterResource(id = R.drawable.ic_account_circle_cut)
+                    placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24)
                 )
             }
 

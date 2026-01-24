@@ -207,7 +207,7 @@ fun CreateChatScreen(
                     navigationIcon = {
                         FastIconButton(onClick = onBack) {
                             Icon(
-                                painter = painterResource(R.drawable.round_arrow_back_24px),
+                                painter = painterResource(R.drawable.ic_arrow_back_round_24),
                                 contentDescription = null
                             )
                         }
@@ -275,7 +275,7 @@ fun CreateChatScreen(
                         text = { Text(text = stringResource(R.string.action_create)) },
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.round_check_24px),
+                                painter = painterResource(R.drawable.ic_check_round_24),
                                 contentDescription = null
                             )
                         }

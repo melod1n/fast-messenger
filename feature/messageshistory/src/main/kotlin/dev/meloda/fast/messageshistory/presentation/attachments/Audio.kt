@@ -48,7 +48,7 @@ fun Audio(
                 .background(MaterialTheme.colorScheme.primary)
                 .size(36.dp)
                 .padding(4.dp),
-            painter = painterResource(R.drawable.round_fill_play_arrow_24px),
+            painter = painterResource(R.drawable.ic_play_arrow_fill_round_24),
             contentDescription = null,
             tint = contentColorFor(MaterialTheme.colorScheme.primary)
         )

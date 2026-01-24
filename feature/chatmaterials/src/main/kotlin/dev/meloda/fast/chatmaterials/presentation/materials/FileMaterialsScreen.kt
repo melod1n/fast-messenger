@@ -237,7 +237,7 @@ fun FileMaterialsScreen(
                                     colors = IconButtonDefaults.filledIconButtonColors()
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.round_keyboard_arrow_up_24px),
+                                        painter = painterResource(R.drawable.ic_keyboard_arrow_up_round_24),
                                         contentDescription = null
                                     )
                                 }

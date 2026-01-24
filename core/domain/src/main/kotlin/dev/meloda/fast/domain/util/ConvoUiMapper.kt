@@ -31,7 +31,7 @@ fun VkConvo.asPresentation(
     ),
     message = extractMessage(resources, lastMessage, id, peerType),
     attachmentImage = if (lastMessage?.text == null) null
-    else getAttachmentConvoIcon(lastMessage),
+    else extractAttachmentIcon(lastMessage),
     isPinned = majorId > 0,
     actionImageId = ActionState.parse(isPhantom, isCallInProgress).getResourceId(),
     isBirthday = extractBirthday(this),

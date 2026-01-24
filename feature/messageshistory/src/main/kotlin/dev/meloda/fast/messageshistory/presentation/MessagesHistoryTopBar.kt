@@ -108,7 +108,7 @@ fun MessagesHistoryTopBar(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(24.dp),
-                                painter = painterResource(id = R.drawable.ic_round_bookmark_border_24),
+                                painter = painterResource(id = R.drawable.ic_bookmark_round_24),
                                 contentDescription = "Favorites icon",
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -131,7 +131,7 @@ fun MessagesHistoryTopBar(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape),
-                                placeholder = painterResource(id = R.drawable.ic_account_circle_cut),
+                                placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24),
                             )
                         }
                     }
@@ -158,9 +158,9 @@ fun MessagesHistoryTopBar(
                     Icon(
                         painter = painterResource(
                             if (state) {
-                                R.drawable.round_arrow_back_24px
+                                R.drawable.ic_arrow_back_round_24
                             } else {
-                                R.drawable.round_close_24px
+                                R.drawable.ic_close_round_24
                             }
                         ),
                         contentDescription = if (state) "Close button"
@@ -181,7 +181,7 @@ fun MessagesHistoryTopBar(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.round_reply_24),
+                            painter = painterResource(R.drawable.ic_reply_round_24),
                             contentDescription = null
                         )
                     }
@@ -194,7 +194,7 @@ fun MessagesHistoryTopBar(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.round_reply_all_24),
+                        painter = painterResource(R.drawable.ic_reply_all_round_24),
                         contentDescription = null
                     )
                 }
@@ -206,7 +206,7 @@ fun MessagesHistoryTopBar(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.round_forward_24),
+                        painter = painterResource(R.drawable.ic_forward_round_24),
                         contentDescription = null
                     )
                 }
@@ -231,7 +231,7 @@ fun MessagesHistoryTopBar(
                             },
                             leadingIcon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.round_refresh_24px),
+                                    painter = painterResource(R.drawable.ic_refresh_round_24),
                                     contentDescription = null
                                 )
                             }
@@ -244,7 +244,7 @@ fun MessagesHistoryTopBar(
                         onClick = { dropDownMenuExpanded = true }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.round_more_vert_24px),
+                            painter = painterResource(R.drawable.ic_more_vert_round_24),
                             contentDescription = "Options"
                         )
                     }
