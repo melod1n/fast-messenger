@@ -1,5 +1,5 @@
+import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
-import com.android.build.gradle.LibraryExtension
 import dev.meloda.fast.configureKotlinAndroid
 import dev.meloda.fast.disableUnnecessaryAndroidTests
 import org.gradle.api.Plugin
@@ -13,7 +13,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.library")
-                apply("org.jetbrains.kotlin.android")
                 apply("org.jetbrains.kotlin.plugin.parcelize")
                 apply("org.jetbrains.kotlin.plugin.serialization")
             }
@@ -21,7 +20,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
                 androidResources.enable = false
-                defaultConfig.targetSdk = 36
                 defaultConfig.testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
             }
             extensions.configure<LibraryAndroidComponentsExtension> {

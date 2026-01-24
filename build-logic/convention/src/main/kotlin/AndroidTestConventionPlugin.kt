@@ -1,6 +1,5 @@
-import com.android.build.gradle.TestExtension
+import com.android.build.api.dsl.TestExtension
 import dev.meloda.fast.configureKotlinAndroid
-import dev.meloda.fast.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -10,7 +9,6 @@ class AndroidTestConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.test")
-                apply("org.jetbrains.kotlin.android")
             }
 
             extensions.configure<TestExtension> {

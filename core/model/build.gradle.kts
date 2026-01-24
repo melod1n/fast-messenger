@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.meloda.fast.datastore"
+    namespace = "dev.meloda.fast.model"
 }
 
 dependencies {
@@ -12,7 +12,7 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
 
     implementation(platform(libs.compose.bom))
-    implementation(libs.bundles.compose)
+    implementation(libs.compose.ui)
 
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)

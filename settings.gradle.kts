@@ -22,7 +22,6 @@ dependencyResolutionManagement {
         .orElse(providers.environmentVariable("NEXUS_MAVEN_URL"))
         .orNull
 
-
     repositories {
         if (!nexusMavenUrl.isNullOrBlank()) {
             maven(url = uri(nexusMavenUrl))

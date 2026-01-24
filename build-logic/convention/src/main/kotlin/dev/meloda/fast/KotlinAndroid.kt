@@ -1,6 +1,9 @@
 package dev.meloda.fast
 
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.CompileOptions
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
@@ -13,22 +16,23 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 internal fun Project.configureKotlinAndroid(
-    commonExtension: CommonExtension<*, *, *, *, *, *>,
+    commonExtension: CommonExtension,
 ) {
+    when (commonExtension) {
+        is ApplicationExtension -> commonExtension.compileOptions(buildCompileOptions())
+        is LibraryExtension -> commonExtension.compileOptions(buildCompileOptions())
+    }
+
     commonExtension.apply {
         compileSdk = 36
-
-        defaultConfig {
-            minSdk = 23
-        }
-
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_21
-            targetCompatibility = JavaVersion.VERSION_21
-        }
     }
 
     configureKotlin<KotlinAndroidProjectExtension>()
+}
+
+private fun buildCompileOptions(): CompileOptions.() -> Unit = {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 internal fun Project.configureKotlinJvm() {

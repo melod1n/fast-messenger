@@ -59,17 +59,17 @@ android {
         }
     }
 
-    applicationVariants.all {
-        outputs.all {
-            val date = System.currentTimeMillis() / 1000
-            val buildType = buildType.name
-            val appVersion = versionName
-            val appVersionCode = versionCode
-
-            val newApkName = "app-$buildType-v$appVersion($appVersionCode)-$date.apk"
-            (this as? BaseVariantOutputImpl)?.outputFileName = newApkName
-        }
-    }
+//    applicationVariants.all {
+//        outputs.all {
+//            val date = System.currentTimeMillis() / 1000
+//            val buildType = buildType.name
+//            val appVersion = versionName
+//            val appVersionCode = versionCode
+//
+//            val newApkName = "app-$buildType-v$appVersion($appVersionCode)-$date.apk"
+//            (this as? BaseVariantOutputImpl)?.outputFileName = newApkName
+//        }
+//    }
 
     packaging {
         resources {
