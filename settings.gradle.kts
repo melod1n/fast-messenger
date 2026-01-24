@@ -1,8 +1,15 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    val nexusPluginsUrl = providers.gradleProperty("NEXUS_PLUGINS_URL")
+        .orElse(providers.environmentVariable("NEXUS_PLUGINS_URL"))
+        .orNull
+
     includeBuild("build-logic")
     repositories {
+        if (!nexusPluginsUrl.isNullOrBlank()) {
+            maven(url = uri(nexusPluginsUrl))
+        }
         google()
         mavenCentral()
         gradlePluginPortal()
@@ -10,7 +17,16 @@ pluginManagement {
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
+    val nexusMavenUrl = providers.gradleProperty("NEXUS_MAVEN_URL")
+        .orElse(providers.environmentVariable("NEXUS_MAVEN_URL"))
+        .orNull
+
+
     repositories {
+        if (!nexusMavenUrl.isNullOrBlank()) {
+            maven(url = uri(nexusMavenUrl))
+        }
         google()
         mavenCentral()
     }
