@@ -54,7 +54,7 @@ fun BoxScope.DateStatus(
         if (isPinned) {
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_round_push_pin_24),
+                painter = painterResource(R.drawable.ic_keep_fill_round_24),
                 contentDescription = null,
                 modifier = Modifier
                     .size(14.dp)
@@ -85,7 +85,7 @@ fun BoxScope.DateStatus(
                     when (sendingStatus) {
                         SendingStatus.SENDING -> R.drawable.round_access_time_24
                         SendingStatus.SENT -> {
-                            if (isRead) R.drawable.round_done_all_24
+                            if (isRead) R.drawable.ic_done_all_round_24
                             else R.drawable.ic_round_done_24
                         }
 

@@ -324,7 +324,7 @@ fun InputBar(
                             Icon(
                                 painter = painterResource(
                                     id = when (actionMode) {
-                                        ActionMode.DELETE -> R.drawable.round_delete_outline_24
+                                        ActionMode.DELETE -> R.drawable.ic_delete_round_24
                                         ActionMode.EDIT -> R.drawable.ic_round_done_24
                                         ActionMode.RECORD_AUDIO -> R.drawable.ic_round_mic_none_24
                                         ActionMode.RECORD_VIDEO -> R.drawable.rounded_photo_camera_24

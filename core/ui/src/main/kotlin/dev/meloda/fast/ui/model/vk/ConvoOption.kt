@@ -11,31 +11,31 @@ sealed class ConvoOption(
 
     data object MarkAsRead : ConvoOption(
         title = UiText.Resource(R.string.action_mark_as_read),
-        icon = UiImage.Resource(R.drawable.round_done_all_24)
+        icon = UiImage.Resource(R.drawable.ic_done_all_round_24)
     )
 
     data object Pin : ConvoOption(
         title = UiText.Resource(R.string.action_pin),
-        icon = UiImage.Resource(R.drawable.pin_outline_24)
+        icon = UiImage.Resource(R.drawable.ic_keep_round_24)
     )
 
     data object Unpin : ConvoOption(
         title = UiText.Resource(R.string.action_unpin),
-        icon = UiImage.Resource(R.drawable.pin_off_outline_24)
+        icon = UiImage.Resource(R.drawable.ic_keep_off_round_24)
     )
 
     data object Delete : ConvoOption(
         title = UiText.Resource(R.string.action_delete),
-        icon = UiImage.Resource(R.drawable.round_delete_outline_24)
+        icon = UiImage.Resource(R.drawable.ic_delete_round_24)
     )
 
     data object Archive : ConvoOption(
         title = UiText.Resource(R.string.convo_context_action_archive),
-        icon = UiImage.Resource(R.drawable.outline_archive_24)
+        icon = UiImage.Resource(R.drawable.ic_archive_round_24)
     )
 
     data object Unarchive : ConvoOption(
         title = UiText.Resource(R.string.convo_context_action_unarchive),
-        icon = UiImage.Resource(R.drawable.outline_unarchive_24)
+        icon = UiImage.Resource(R.drawable.ic_unarchive_round_24)
     )
 }

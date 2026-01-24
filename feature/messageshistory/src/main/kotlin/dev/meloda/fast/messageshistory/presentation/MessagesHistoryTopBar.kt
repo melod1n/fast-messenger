@@ -212,7 +212,7 @@ fun MessagesHistoryTopBar(
                 }
                 IconButton(onClick = onDeleteSelectedButtonClicked) {
                     Icon(
-                        painter = painterResource(R.drawable.round_delete_outline_24),
+                        painter = painterResource(R.drawable.ic_delete_round_24),
                         contentDescription = null
                     )
                 }

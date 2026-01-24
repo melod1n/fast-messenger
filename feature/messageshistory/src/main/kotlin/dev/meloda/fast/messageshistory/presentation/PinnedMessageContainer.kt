@@ -52,7 +52,7 @@ fun PinnedMessageContainer(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_round_push_pin_24),
+            painter = painterResource(R.drawable.ic_keep_fill_round_24),
             contentDescription = null,
             modifier = Modifier
                 .rotate(45f)

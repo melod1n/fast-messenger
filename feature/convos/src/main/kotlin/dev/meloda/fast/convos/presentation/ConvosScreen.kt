@@ -204,7 +204,7 @@ fun ConvosScreen(
                         if (!screenState.isArchive) {
                             IconButton(onClick = onArchiveActionClicked) {
                                 Icon(
-                                    painter = painterResource(R.drawable.outline_archive_24),
+                                    painter = painterResource(R.drawable.ic_archive_round_24),
                                     contentDescription = null
                                 )
                             }

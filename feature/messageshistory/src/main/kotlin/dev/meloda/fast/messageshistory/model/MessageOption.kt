@@ -34,12 +34,12 @@ sealed class MessageOption(
 
     data object Pin : MessageOption(
         titleResId = R.string.message_context_action_pin,
-        iconResId = R.drawable.pin_outline_24
+        iconResId = R.drawable.ic_keep_round_24
     )
 
     data object Unpin : MessageOption(
         titleResId = R.string.message_context_action_unpin,
-        iconResId = R.drawable.pin_off_outline_24
+        iconResId = R.drawable.ic_keep_off_round_24
     )
 
     data object Read : MessageOption(
@@ -79,6 +79,6 @@ sealed class MessageOption(
 
     data object Delete : MessageOption(
         titleResId = R.string.message_context_action_delete,
-        iconResId = R.drawable.round_delete_outline_24
+        iconResId = R.drawable.ic_delete_round_24
     )
 }
