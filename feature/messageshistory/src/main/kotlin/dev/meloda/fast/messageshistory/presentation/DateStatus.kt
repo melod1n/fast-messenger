@@ -45,7 +45,7 @@ fun BoxScope.DateStatus(
         if (isImportant) {
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_star_round_24),
+                painter = painterResource(R.drawable.ic_star_fill_round_24),
                 contentDescription = null,
                 modifier = Modifier.size(14.dp)
             )
@@ -64,7 +64,7 @@ fun BoxScope.DateStatus(
         if (isEdited) {
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_edit_round_24),
+                painter = painterResource(R.drawable.ic_edit_fill_round_24),
                 contentDescription = null,
                 modifier = Modifier.size(14.dp)
             )

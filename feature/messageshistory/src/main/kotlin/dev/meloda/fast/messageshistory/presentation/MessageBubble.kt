@@ -85,8 +85,10 @@ fun MessageBubble(
         mutableIntStateOf(0)
     }
 
-    val shouldFill by derivedStateOf {
-        attachmentsContainerWidth >= bubbleContainerWidth
+    val shouldFill by remember {
+        derivedStateOf {
+            attachmentsContainerWidth >= bubbleContainerWidth
+        }
     }
 
     var containerWidth by remember {

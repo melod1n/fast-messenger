@@ -54,7 +54,7 @@ sealed class MessageOption(
 
     data object MarkAsImportant : MessageOption(
         titleResId = R.string.message_context_action_mark_as_important,
-        iconResId = R.drawable.ic_star_round_24
+        iconResId = R.drawable.ic_star_fill_round_24
     )
 
     data object UnmarkAsImportant : MessageOption(
