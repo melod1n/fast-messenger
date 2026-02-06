@@ -118,15 +118,10 @@ fun MessageBubble(
         ) {
             if (replyTitle != null) {
                 Reply(
-                    modifier = Modifier
-                        .padding(if (attachments == null || text != null) 0.dp else 0.dp)
-                        .width(with(density) { containerWidth.toDp() }),
-                    bottomPadding = if (attachments == null || text != null) 0.dp else 4.dp,
+                    modifier = Modifier.width(with(density) { containerWidth.toDp() }),
                     shape = RoundedCornerShape(
                         topStart = 16.dp,
                         topEnd = 16.dp,
-                        bottomStart = if (attachments == null || text != null) 0.dp else 0.dp,
-                        bottomEnd = if (attachments == null || text != null) 0.dp else 0.dp
                     ),
                     onClick = onReplyClick,
                     title = replyTitle,
@@ -160,7 +155,7 @@ fun MessageBubble(
                         .padding(
                             start = 8.dp,
                             end = 8.dp,
-                            top = if (replyTitle != null) 4.dp else 6.dp,
+                            top = if (replyTitle != null) 0.dp else 6.dp,
                             bottom = if (replyTitle != null) 4.dp else 6.dp
                         )
                         .then(if (theme.enableAnimations) Modifier.animateContentSize() else Modifier),

@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -19,16 +16,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.conena.nanokt.android.content.pxToDp
 import dev.meloda.fast.domain.util.annotated
 import dev.meloda.fast.domain.util.orEmpty
 import dev.meloda.fast.ui.common.FastPreview
@@ -37,7 +39,6 @@ import dev.meloda.fast.ui.theme.AppTheme
 @Composable
 fun Reply(
     onClick: () -> Unit,
-    bottomPadding: Dp,
     shape: Shape,
     backgroundColor: Color,
     innerBackgroundColor: Color,
@@ -47,60 +48,54 @@ fun Reply(
     summary: AnnotatedString?,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    var innerContainerHeight by remember {
+        mutableIntStateOf(0)
+    }
+
+    Row(
         modifier = modifier
             .background(
                 color = backgroundColor,
                 shape = shape
             )
-            .height(48.dp)
-            .padding(
-                top = 4.dp,
-                start = 4.dp,
-                end = 4.dp,
-                bottom = bottomPadding
-            )
+            .padding(4.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .background(innerBackgroundColor),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onClick)
-                .fillMaxSize()
-                .background(innerBackgroundColor)
+                .width(3.dp)
+                .height(innerContainerHeight.dp + 12.dp)
+                .background(MaterialTheme.colorScheme.primary)
+        )
+
+        Column(
+            modifier = Modifier
+                .padding(vertical = 6.dp)
+                .padding(end = 9.dp)
+                .onGloballyPositioned { innerContainerHeight = it.size.height.pxToDp() }
         ) {
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp,
+                color = titleColor
             )
 
-            Spacer(modifier = Modifier.width(6.dp))
-
-            Column(
-                modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.Center
-            ) {
+            AnimatedVisibility(summary != null) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelLarge,
+                    text = summary.orEmpty(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 16.sp,
-                    color = titleColor
+                    color = textColor
                 )
-
-                AnimatedVisibility(summary != null) {
-                    Text(
-                        text = summary.orEmpty(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Normal,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = 20.sp,
-                        color = textColor
-                    )
-                }
             }
         }
     }
@@ -114,7 +109,6 @@ private fun ReplyBasePreview(
     textColor: Color
 ) {
     Reply(
-        modifier = Modifier.width(120.dp),
         shape = RoundedCornerShape(
             topStart = 12.dp,
             topEnd = 12.dp
@@ -126,7 +120,6 @@ private fun ReplyBasePreview(
         innerBackgroundColor = innerBackgroundColor,
         titleColor = titleColor,
         textColor = textColor,
-        bottomPadding = 0.dp,
     )
 }
 
