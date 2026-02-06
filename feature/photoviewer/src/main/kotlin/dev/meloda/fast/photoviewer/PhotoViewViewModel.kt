@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
@@ -17,9 +16,11 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.UiImage
+import dev.meloda.fast.common.util.sha256
 import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
 import dev.meloda.fast.photoviewer.navigation.PhotoView
+import dev.meloda.fast.ui.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,9 +29,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URLDecoder
-import java.util.UUID
-
-import dev.meloda.fast.ui.R
 
 interface PhotoViewViewModel {
     val screenState: StateFlow<PhotoViewScreenState>
@@ -99,9 +97,10 @@ class PhotoViewViewModelImpl(
                     type = "image/png"
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     putExtra(Intent.EXTRA_STREAM, uri)
+                    clipData = ClipData.newRawUri(null, uri)
                 }
 
-                val chooserIntent = Intent.createChooser(intent, null)
+                val chooserIntent = Intent.createChooser(intent, "Share image via...")
                 chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 chooserIntent
             }
@@ -186,6 +185,13 @@ class PhotoViewViewModelImpl(
 
     private suspend fun downloadAndStoreImageToCache(url: String): File? =
         runCatching {
+            val imagesDir = File(applicationContext.cacheDir, "images")
+            if (!imagesDir.exists()) {
+                imagesDir.mkdirs()
+            }
+            val imageFile = File(imagesDir, "${url.sha256()}.png")
+            if (imageFile.exists()) return imageFile
+
             withContext(Dispatchers.IO) {
                 screenState.setValue { old -> old.copy(isLoading = true) }
 
@@ -198,9 +204,6 @@ class PhotoViewViewModelImpl(
                     return@withContext null
                 }
 
-                val imagesDir = File(applicationContext.cacheDir, "images")
-                if (!imagesDir.exists()) imagesDir.mkdirs()
-                val imageFile = File(imagesDir, "shared_image_id${UUID.randomUUID()}.png")
                 FileOutputStream(imageFile).use {
                     drawable.toBitmapOrNull()?.compress(Bitmap.CompressFormat.PNG, 100, it)
                 }

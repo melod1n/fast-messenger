@@ -2,6 +2,7 @@ package dev.meloda.fast.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -46,9 +47,14 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewDynamicColors
+import androidx.compose.ui.tooling.preview.PreviewFontScale
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.theme.AppTheme
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
@@ -361,10 +367,10 @@ sealed class SelectionType {
     data object None : SelectionType()
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun MaterialDialogPreview() {
-    AppTheme {
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
         MaterialDialog(
             onDismissRequest = {},
             title = "Material Dialog",
@@ -376,10 +382,10 @@ private fun MaterialDialogPreview() {
     }
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun MaterialDialogWithListPreview() {
-    AppTheme {
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
         MaterialDialog(
             onDismissRequest = {},
             title = "Material Dialog",
@@ -393,10 +399,10 @@ private fun MaterialDialogWithListPreview() {
     }
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun MaterialDialogWithCustomContent() {
-    AppTheme {
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
         MaterialDialog(
             onDismissRequest = {},
             title = "Material Dialog",
@@ -425,10 +431,10 @@ private fun MaterialDialogWithCustomContent() {
     }
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun MaterialDialogWithOnlyCustomContent() {
-    AppTheme {
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
         MaterialDialog(onDismissRequest = {}) {
             Row(
                 modifier = Modifier

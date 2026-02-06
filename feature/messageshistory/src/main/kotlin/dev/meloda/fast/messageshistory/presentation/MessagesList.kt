@@ -26,9 +26,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +43,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.datastore.AppSettings
@@ -193,11 +195,22 @@ fun MessagesList(
                         }
                     )
 
-                    val offsetX = remember { Animatable(0f) }
+                    var animate by remember { mutableStateOf(false) }
+                    var offsetX by remember { mutableFloatStateOf(0f) }
+                    var offsetDistinct by remember { mutableFloatStateOf(0f) }
+                    val offsetAnimatable = remember { Animatable(0f) }
 
-                    val offsetDistinct by snapshotFlow { offsetX.value }
-                        .distinctUntilChanged()
-                        .collectAsStateWithLifecycle(offsetX)
+                    LaunchedEffect(offsetX) {
+                        if (!animate) {
+                            offsetAnimatable.snapTo(offsetX)
+                        }
+                    }
+
+                    LaunchedEffect(Unit) {
+                        snapshotFlow { offsetX.minus(5f).coerceIn(-100f, 0f) }
+                            .distinctUntilChanged()
+                            .collect { offsetDistinct = it }
+                    }
 
                     LaunchedEffect(offsetDistinct) {
                         if (offsetDistinct == -100f && AppSettings.General.enableHaptic) {
@@ -222,32 +235,35 @@ fun MessagesList(
                                 },
                                 onClick = { onMessageClicked(item.id) }
                             )
-                            .pointerInput(Unit) {
+                            .pointerInput(item.cmId) {
                                 detectHorizontalDragGestures(
                                     onDragCancel = {
-                                        if (offsetX.value == -100f) {
+                                        if (offsetX == -100f) {
                                             onRequestMessageReply(item.cmId)
                                         }
 
                                         scope.launch {
-                                            offsetX.animateTo(0f)
+                                            animate = true
+                                            offsetX = 0f
+                                            offsetAnimatable.animateTo(0f)
+                                            animate = false
                                         }
                                     },
                                     onDragEnd = {
-                                        if (offsetX.value == -100f) {
+                                        if (offsetX == -100f) {
                                             onRequestMessageReply(item.cmId)
                                         }
 
                                         scope.launch {
-                                            offsetX.animateTo(0f)
+                                            animate = true
+                                            offsetX = 0f
+                                            offsetAnimatable.animateTo(0f)
+                                            animate = false
                                         }
                                     },
-                                    onHorizontalDrag = { _, dragAmount ->
-                                        scope.launch {
-                                            offsetX.snapTo(
-                                                (offsetX.value + dragAmount).coerceIn(-100f, 0f)
-                                            )
-                                        }
+                                    onHorizontalDrag = { change, dragAmount ->
+                                        change.consume()
+                                        offsetX = (offsetX + dragAmount).coerceIn(-100f, 0f)
                                     }
                                 )
                             },
@@ -278,7 +294,7 @@ fun MessagesList(
                                         onRequestScrollToCmId(item.replyCmId!!)
                                     }
                                 },
-                                offsetX = offsetX.value
+                                offsetX = offsetAnimatable.value
                             )
                         } else {
                             IncomingMessageBubble(
@@ -305,7 +321,7 @@ fun MessagesList(
                                         onRequestScrollToCmId(item.replyCmId!!)
                                     }
                                 },
-                                offsetX = offsetX.value
+                                offsetX = offsetAnimatable.value
                             )
                         }
                     }

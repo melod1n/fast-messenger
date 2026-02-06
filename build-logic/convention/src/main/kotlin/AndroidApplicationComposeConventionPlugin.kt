@@ -10,6 +10,7 @@ class AndroidApplicationComposeConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.application")
             apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+            apply(plugin = "com.github.skydoves.compose.stability.analyzer")
 
             val extension = extensions.getByType<ApplicationExtension>()
             configureAndroidCompose(extension)

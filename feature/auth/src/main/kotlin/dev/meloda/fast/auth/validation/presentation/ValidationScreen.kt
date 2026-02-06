@@ -3,6 +3,7 @@ package dev.meloda.fast.auth.validation.presentation
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,9 +55,11 @@ import dev.meloda.fast.auth.validation.ValidationViewModelImpl
 import dev.meloda.fast.auth.validation.model.ValidationScreenState
 import dev.meloda.fast.auth.validation.model.ValidationType
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
+import dev.meloda.fast.ui.theme.AppTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -301,14 +304,16 @@ fun ValidationScreen(
     }
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun ValidationScreenPreview() {
-    ValidationScreen(
-        screenState = ValidationScreenState.EMPTY.copy(
-            phoneMask = "+7 (***) ***-**-21",
-            code = "222222"
-        ),
-        validationType = ValidationType.SMS
-    )
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
+        ValidationScreen(
+            screenState = ValidationScreenState.EMPTY.copy(
+                phoneMask = "+7 (***) ***-**-21",
+                code = "222222"
+            ),
+            validationType = ValidationType.SMS
+        )
+    }
 }

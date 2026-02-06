@@ -27,6 +27,8 @@ fun VkConvo.asPresentation(
         monthShort = { resources.getString(R.string.month_short) },
         weekShort = { resources.getString(R.string.week_short) },
         dayShort = { resources.getString(R.string.day_short) },
+        minuteShort = { resources.getString(R.string.minute_short) },
+        secondShort = { resources.getString(R.string.second_short) },
         now = { resources.getString(R.string.time_now) },
     ),
     message = extractMessage(resources, lastMessage, id, peerType),

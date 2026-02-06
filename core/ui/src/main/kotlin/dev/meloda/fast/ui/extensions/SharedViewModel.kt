@@ -9,6 +9,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.qualifier.Qualifier
 
+@Suppress("ParamsComparedByRef")
 @Composable
 inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(
     navController: NavController,

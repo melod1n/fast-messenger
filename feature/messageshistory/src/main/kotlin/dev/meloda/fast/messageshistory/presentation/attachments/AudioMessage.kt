@@ -26,11 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FastIconButton
+import dev.meloda.fast.ui.util.ImmutableList
 import kotlin.collections.forEachIndexed
 
 @Composable
 fun AudioMessage(
-    waveform: List<WaveForm>,
+    waveform: ImmutableList<WaveForm>,
     isPlaying: Boolean,
     onPlayClick: () -> Unit,
     modifier: Modifier = Modifier,

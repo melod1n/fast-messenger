@@ -69,9 +69,7 @@ import dev.meloda.fast.ui.theme.LocalNavController
 import dev.meloda.fast.ui.theme.LocalNavRootController
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
-import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
-import dev.meloda.fast.ui.util.immutableListOf
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -309,7 +307,7 @@ fun RootScreen(
                     LocalNavController provides navController
                 ) {
                     var photoViewerInfo by rememberSaveable {
-                        mutableStateOf<Pair<ImmutableList<String>, Int?>?>(null)
+                        mutableStateOf<Pair<List<String>, Int?>?>(null)
                     }
 
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -333,7 +331,7 @@ fun RootScreen(
                                 onSettingsButtonClicked = navController::navigateToSettings,
                                 onNavigateToMessagesHistory = navController::navigateToMessagesHistory,
                                 onPhotoClicked = { url ->
-                                    photoViewerInfo = immutableListOf(url) to null
+                                    photoViewerInfo = listOf(url) to null
                                 },
                                 onMessageClicked = navController::navigateToMessagesHistory,
                                 onNavigateToCreateChat = navController::navigateToCreateChat
@@ -344,13 +342,13 @@ fun RootScreen(
                                 onBack = navController::navigateUp,
                                 onNavigateToChatMaterials = navController::navigateToChatMaterials,
                                 onNavigateToPhotoViewer = { photos, index ->
-                                    photoViewerInfo = photos.toImmutableList() to index
+                                    photoViewerInfo = photos to index
                                 }
                             )
                             chatMaterialsScreen(
                                 onBack = navController::navigateUp,
                                 onPhotoClicked = { url ->
-                                    photoViewerInfo = immutableListOf(url) to null
+                                    photoViewerInfo = listOf(url) to null
                                 }
                             )
                             createChatScreen(
@@ -378,7 +376,9 @@ fun RootScreen(
                         }
 
                         PhotoViewDialog(
-                            photoViewerInfo = photoViewerInfo,
+                            photoViewerInfo = photoViewerInfo?.let { info ->
+                                info.first.toImmutableList() to info.second
+                            },
                             onDismiss = { photoViewerInfo = null }
                         )
                     }

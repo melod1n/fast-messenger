@@ -3,12 +3,13 @@ agp = "9.0.0"
 retrofit = "3.0.0"
 eithernet = "2.0.0"
 haze = "1.7.1"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 ksp = "2.3.4"
 moduleGraph = "2.9.0"
 versions = "0.53.0"
+stability-analyzer = "0.6.6"
 
-compose-bom = "2026.01.00"
+compose-bom = "2026.01.01"
 koin = "4.1.1"
 
 accompanist = "0.37.3"
@@ -117,6 +118,7 @@ room = { id = "androidx.room", version.ref = "room" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 module-graph = { id = "com.jraska.module.graph.assertion", version.ref = "moduleGraph" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versions" }
+stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version.ref = "stability-analyzer" }
 
 #project plugins
 fast-android-application = { id = "fast.android.application", version = "unspecified" }

@@ -9,10 +9,6 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
 
     operator fun get(index: Int): T = values[index]
 
-    inline fun forEach(action: (T) -> Unit) {
-        for (element in values) action(element)
-    }
-
     inline fun <R> map(transform: (T) -> R): ImmutableList<R> {
         return values.map(transform).toImmutableList()
     }
@@ -49,6 +45,8 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
             if (elements.isNotEmpty()) copyOf(elements.asList()) else empty()
 
         fun <T> of(element: T) = ImmutableList(listOf(element))
+
+        fun <T> ImmutableList<T>?.orEmpty(): ImmutableList<T> = this ?: emptyImmutableList()
     }
 
     override fun iterator(): Iterator<T> = values.listIterator()
@@ -59,5 +57,3 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
 fun <T> emptyImmutableList(): ImmutableList<T> = ImmutableList(emptyList())
 
 fun <T> immutableListOf(vararg elements: T) = ImmutableList(listOf(elements = elements))
-
-fun <T> ImmutableList<T>?.orEmpty(): ImmutableList<T> = this ?: emptyImmutableList()

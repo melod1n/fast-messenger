@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.preference.PreferenceManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import com.skydoves.compose.stability.runtime.ComposeStabilityAnalyzer
+import dev.meloda.fast.auth.BuildConfig
 import dev.meloda.fast.common.di.applicationModule
 import dev.meloda.fast.datastore.AppSettings
 import org.koin.android.ext.android.get
@@ -20,6 +22,8 @@ class AppGlobal : Application(), ImageLoaderFactory {
         AppSettings.init(preferences)
 
         initKoin()
+
+        ComposeStabilityAnalyzer.setEnabled(BuildConfig.DEBUG)
     }
 
     private fun initKoin() {

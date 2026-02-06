@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name" translatable="false">Fast</string>
     <string name="fast_messenger" translatable="false">Fast Messenger</string>
 
@@ -297,6 +297,8 @@
     <string name="month_short">M</string>
     <string name="week_short">W</string>
     <string name="day_short">D</string>
+    <string name="minute_short">M</string>
+    <string name="second_short">S</string>
     <string name="time_now">Now</string>
 
     <string name="confirm_chat_create_with_title">Are you sure you want to create chat «%s»?</string>

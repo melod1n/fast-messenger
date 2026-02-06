@@ -1,6 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation.attachments
 
-import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,25 +33,12 @@ import dev.meloda.fast.ui.components.FastIconButton
 import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
-@Composable
-fun Previews(
-    modifier: Modifier = Modifier,
-    photos: ImmutableList<UiPreview>,
-    onClick: (index: Int) -> Unit = {},
-    onLongClick: (index: Int) -> Unit = {}
-) {
-    DynamicPreviewGrid(
-        modifier = modifier,
-        photos = photos,
-        onClick = onClick,
-        onLongClick = onLongClick
-    )
-}
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun DynamicPreviewGrid(
-    photos: ImmutableList<UiPreview>,
+    withText: Boolean,
+    withReply: Boolean,
+    previews: ImmutableList<UiPreview>,
     modifier: Modifier = Modifier,
     onClick: (index: Int) -> Unit = {},
     onLongClick: (index: Int) -> Unit = {}
@@ -60,16 +47,27 @@ fun DynamicPreviewGrid(
     val currentOnLongClick by rememberUpdatedState(onLongClick)
 
     val spacing = 2.dp
-    val shape = RoundedCornerShape(8.dp)
+    val cornerRadius = 20.dp
+    val insideRadius = 4.dp
 
-    BoxWithConstraints(modifier = modifier) {
+    val calculateShape by rememberUpdatedState { outer: Int, inner: Int, outLast: Int, inLast: Int ->
+        RoundedCornerShape(
+            topStart = if (!withText && !withReply && outer == 0 && inner == 0) cornerRadius else insideRadius,
+            topEnd = if (!withText && !withReply && outer == 0 && inner == inLast) cornerRadius else insideRadius,
+            bottomStart = if (outer == outLast && inner == 0) cornerRadius else insideRadius,
+            bottomEnd = if (outer == outLast && inner == inLast) cornerRadius else insideRadius
+        )
+    }
+
+    BoxWithConstraints(modifier = modifier.padding(4.dp)) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val spacingPx = with(LocalDensity.current) { spacing.toPx() }
 
-        val rows = photos.chunked(3)
+        val rows = previews.chunked(3)
+        Log.d("ROWS", "DynamicPreviewGrid: ${rows.size}")
 
         Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
-            rows.forEachIndexed { index, row ->
+            rows.forEachIndexed { outerIndex, row ->
                 val aspectRatios = row.map { it.width.toFloat() / it.height }
                 val totalAspect = aspectRatios.sum()
 
@@ -79,6 +77,8 @@ fun DynamicPreviewGrid(
                         val photoWidthPx = (maxWidthPx - spacingPx * (row.size - 1)) * weight
                         val height = photoWidthPx / aspectRatios[index]
                         val heightDp = with(LocalDensity.current) { height.toDp() }
+
+                        val shape = calculateShape(outerIndex, index, rows.lastIndex, row.lastIndex)
 
                         Box(
                             modifier = Modifier
@@ -95,14 +95,14 @@ fun DynamicPreviewGrid(
                                     .height(heightDp)
                                     .clip(shape)
                                     .combinedClickable(
-                                        onLongClick = { currentOnLongClick(index) },
-                                        onClick = { currentOnClick(index) }
+                                        onLongClick = { currentOnLongClick(outerIndex * 3 + index) },
+                                        onClick = { currentOnClick(outerIndex * 3 + index) }
                                     )
                             )
 
                             if (preview.isVideo) {
                                 FastIconButton(
-                                    onClick = { currentOnClick(index) },
+                                    onClick = { currentOnClick(outerIndex * 3 + index) },
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
@@ -146,6 +146,10 @@ fun PreviewDynamicPhotoGrid() {
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
-        DynamicPreviewGrid(photos = mockPhotos.take(10).toImmutableList())
+        DynamicPreviewGrid(
+            withText = false,
+            withReply = false,
+            previews = mockPhotos.take(10).toImmutableList()
+        )
     }
 }

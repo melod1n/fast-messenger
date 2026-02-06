@@ -16,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +52,8 @@ private val previewTypes = listOf(
 
 @Composable
 fun Attachments(
+    withText: Boolean,
+    withReply: Boolean,
     modifier: Modifier = Modifier,
     attachments: ImmutableList<out VkAttachment>,
     onClick: (VkAttachment) -> Unit = {},
@@ -64,23 +65,20 @@ fun Attachments(
     val currentOnLongClick by rememberUpdatedState(onLongClick)
 
     Column(modifier = modifier) {
-        val previewAttachments by remember(attachments) {
-            derivedStateOf {
-                attachments.values.filter { it.type in previewTypes }
-            }
+        val previewAttachments = remember(attachments) {
+            attachments.values.filter { it.type in previewTypes }
         }
 
-        val nonPreviewAttachments by remember(attachments) {
-            derivedStateOf {
-                attachments.values.filterNot { it.type in previewTypes }
-                    .sortedBy { it.type.ordinal }
-            }
+        val nonPreviewAttachments = remember(attachments) {
+            attachments.values.filterNot { it.type in previewTypes }.sortedBy { it.type.ordinal }
         }
 
         if (previewAttachments.isNotEmpty()) {
-            Previews(
+            DynamicPreviewGrid(
+                withText = withText,
+                withReply = withReply,
                 modifier = Modifier,
-                photos = previewAttachments
+                previews = previewAttachments
                     .map(VkAttachment::asUiPhoto)
                     .toImmutableList(),
                 onClick = { index ->
@@ -187,7 +185,8 @@ fun Attachments(
                             .let(::downsampleWaveform)
                             .let(::downsampleWaveform)
                             .let { amplifyWaveform(it, audioMessage.waveform.max()) }
-                            .map(::WaveForm),
+                            .map(::WaveForm)
+                            .toImmutableList(),
                         isPlaying = false,
                         onPlayClick = {}
                     )

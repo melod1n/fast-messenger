@@ -188,7 +188,9 @@ fun MessageOptionsDialog(
             }
 
             MessageOptionItem(
-                title = viewCount?.let { "$it views" } ?: "...",
+                title = viewCount?.let {
+                    if (it == 0) "No views" else "$it views"
+                } ?: "...",
                 iconResId = R.drawable.ic_visibility_round_24,
                 tintColor = primaryColor,
                 onClick = {}

@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +45,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -53,9 +53,11 @@ import dev.meloda.fast.auth.captcha.CaptchaViewModel
 import dev.meloda.fast.auth.captcha.CaptchaViewModelImpl
 import dev.meloda.fast.auth.captcha.model.CaptchaScreenState
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
+import dev.meloda.fast.ui.theme.AppTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -258,12 +260,14 @@ fun CaptchaScreen(
     }
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun CaptchaScreenPreview() {
-    CaptchaScreen(
-        screenState = CaptchaScreenState.EMPTY.copy(
-            code = "zcuecz"
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
+        CaptchaScreen(
+            screenState = CaptchaScreenState.EMPTY.copy(
+                code = "zcuecz"
+            )
         )
-    )
+    }
 }

@@ -1,7 +1,6 @@
 package dev.meloda.fast.common.util
 
 import com.conena.nanokt.jvm.util.dayOfMonth
-import com.conena.nanokt.jvm.util.hour
 import com.conena.nanokt.jvm.util.hourOfDay
 import com.conena.nanokt.jvm.util.millisecond
 import com.conena.nanokt.jvm.util.minute
@@ -12,6 +11,12 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 object TimeUtils {
 
@@ -56,37 +61,23 @@ object TimeUtils {
         monthShort: () -> String,
         weekShort: () -> String,
         dayShort: () -> String,
+        minuteShort: () -> String,
+        secondShort: () -> String,
         now: () -> String
     ): String {
-        val now = Calendar.getInstance()
-        val then = Calendar.getInstance().also { it.timeInMillis = date }
+        val now = Clock.System.now()
+        val then = Instant.fromEpochMilliseconds(date)
+        val diff = now - then
 
         return when {
-            now.year != then.year -> {
-                "${now.year - then.year}${yearShort().lowercase()}"
-            }
-
-            now.month != then.month -> {
-                "${now.month - then.month}${monthShort().lowercase()}"
-            }
-
-            now.dayOfMonth != then.dayOfMonth -> {
-                val change = now.dayOfMonth - then.dayOfMonth
-
-                if (change % 7 == 0) {
-                    "${change / 7}${weekShort().lowercase()}"
-                } else {
-                    "$change${dayShort().lowercase()}"
-                }
-            }
-
-            now.hour == then.hour && now.minute == then.minute -> {
-                now().lowercase()
-            }
-
-            else -> {
-                SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
-            }
+            diff > 365.days -> "${diff.inWholeDays / 365}${yearShort().lowercase()}"
+            diff > 30.days -> "${diff.inWholeDays / 30}${monthShort().lowercase()}"
+            diff > 7.days -> "${diff.inWholeDays / 7}${weekShort().lowercase()}"
+            diff > 1.days -> "${diff.inWholeDays}${dayShort().lowercase()}"
+            diff > 1.hours -> "${diff.inWholeHours}h"
+            diff > 1.minutes -> "${diff.inWholeMinutes}${minuteShort().lowercase()}"
+            diff > 1.seconds -> "${diff.inWholeSeconds}${secondShort().lowercase()}"
+            else -> now().lowercase()
         }
     }
 }

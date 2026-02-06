@@ -3,6 +3,7 @@ package dev.meloda.fast.messageshistory.presentation.attachments
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,12 +24,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.meloda.fast.domain.util.annotated
 import dev.meloda.fast.domain.util.orEmpty
+import dev.meloda.fast.ui.common.FastPreview
+import dev.meloda.fast.ui.theme.AppTheme
 
 @Composable
 fun Reply(
@@ -37,6 +41,8 @@ fun Reply(
     shape: Shape,
     backgroundColor: Color,
     innerBackgroundColor: Color,
+    titleColor: Color,
+    textColor: Color,
     title: String,
     summary: AnnotatedString?,
     modifier: Modifier = Modifier
@@ -47,7 +53,7 @@ fun Reply(
                 color = backgroundColor,
                 shape = shape
             )
-            .height(40.dp)
+            .height(48.dp)
             .padding(
                 top = 4.dp,
                 start = 4.dp,
@@ -66,7 +72,7 @@ fun Reply(
                 modifier = Modifier
                     .width(3.dp)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.onBackground)
+                    .background(MaterialTheme.colorScheme.primary)
             )
 
             Spacer(modifier = Modifier.width(6.dp))
@@ -77,17 +83,22 @@ fun Reply(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 16.sp,
+                    color = titleColor
                 )
 
                 AnimatedVisibility(summary != null) {
                     Text(
                         text = summary.orEmpty(),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Normal,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 20.sp,
+                        color = textColor
                     )
                 }
             }
@@ -98,7 +109,9 @@ fun Reply(
 @Composable
 private fun ReplyBasePreview(
     backgroundColor: Color,
-    innerBackgroundColor: Color
+    innerBackgroundColor: Color,
+    titleColor: Color,
+    textColor: Color
 ) {
     Reply(
         modifier = Modifier.width(120.dp),
@@ -111,24 +124,42 @@ private fun ReplyBasePreview(
         summary = "2 photos".annotated(),
         backgroundColor = backgroundColor,
         innerBackgroundColor = innerBackgroundColor,
-        bottomPadding = 0.dp
+        titleColor = titleColor,
+        textColor = textColor,
+        bottomPadding = 0.dp,
     )
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun IncomingReplyPreview() {
-    ReplyBasePreview(
-        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-        innerBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(20.dp)
-    )
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
+        ReplyBasePreview(
+            backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+            innerBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(20.dp),
+            titleColor = MaterialTheme.colorScheme.primary,
+            textColor = MaterialTheme.colorScheme.onBackground
+        )
+    }
 }
 
-@Preview
+@FastPreview
 @Composable
 private fun OutgoingReplyPreview() {
-    ReplyBasePreview(
-        backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-        innerBackgroundColor = MaterialTheme.colorScheme.inversePrimary
-    )
+    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
+        val bg = MaterialTheme.colorScheme.primaryContainer
+        val inner = MaterialTheme.colorScheme.background.copy(
+            if (isSystemInDarkTheme()) 0.3f else 0.6f
+        )
+        val title = MaterialTheme.colorScheme.primary
+        val text = MaterialTheme.colorScheme.onBackground
+
+
+        ReplyBasePreview(
+            backgroundColor = bg,
+            innerBackgroundColor = inner,
+            titleColor = title,
+            textColor = text
+        )
+    }
 }

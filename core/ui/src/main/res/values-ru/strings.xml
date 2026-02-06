@@ -232,8 +232,10 @@
     <string name="month_short">М</string>
     <string name="week_short">Н</string>
     <string name="day_short">Д</string>
+    <string name="second_short">С</string>
     <string name="time_now">Сейчас</string>
 
     <string name="confirm_chat_create_with_title">Вы действительно хотите создать чат «%s»?</string>
     <string name="confirm_chat_create_empty_with_title">Вы действительно хотите создать чат «%s» только с собой?</string>
+    <string name="minute_short">М</string>
 </resources>
