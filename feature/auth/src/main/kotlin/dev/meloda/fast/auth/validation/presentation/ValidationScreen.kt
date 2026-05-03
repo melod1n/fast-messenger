@@ -52,7 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.auth.validation.ValidationViewModel
 import dev.meloda.fast.auth.validation.ValidationViewModelImpl
 import dev.meloda.fast.auth.validation.model.ValidationScreenState
-import dev.meloda.fast.auth.validation.model.ValidationType
+import dev.meloda.fast.network.ValidationType
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
@@ -118,7 +118,7 @@ fun ValidationScreen(
     val validationText by remember(validationType) {
         mutableStateOf(
             when (validationType) {
-                ValidationType.SMS -> "SMS with the code is sent to ${screenState.phoneMask}"
+                ValidationType.SMS, ValidationType.SMS2 -> "SMS with the code is sent to ${screenState.phoneMask}"
                 ValidationType.APP -> "Enter the code from the code generator application"
 
                 null -> ""
