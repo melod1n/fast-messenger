@@ -11,6 +11,7 @@ import dev.meloda.fast.network.JsonConverter
 import dev.meloda.fast.network.MoshiConverter
 import dev.meloda.fast.network.OAuthResultCallFactory
 import dev.meloda.fast.network.ResponseConverterFactory
+import dev.meloda.fast.network.interceptor.Error14HandlingInterceptor
 import dev.meloda.fast.network.interceptor.LanguageInterceptor
 import dev.meloda.fast.network.interceptor.VersionInterceptor
 import dev.meloda.fast.network.service.account.AccountService
@@ -45,6 +46,7 @@ val networkModule = module {
     single { ChuckerInterceptor.Builder(get()).collector(get()).build() }
     singleOf(::VersionInterceptor)
     singleOf(::LanguageInterceptor)
+    singleOf(::Error14HandlingInterceptor)
 
     single<OkHttpClient>(named("auth")) {
         buildHttpClient(true)
@@ -101,6 +103,7 @@ private fun Scope.buildHttpClient(forAuth: Boolean): OkHttpClient {
                 addInterceptor(get(named("token_interceptor")) as Interceptor)
             }
         }
+        .addInterceptor(get<Error14HandlingInterceptor>())
         .addInterceptor(get<VersionInterceptor>())
         .addInterceptor(get<LanguageInterceptor>())
         .addInterceptor(get<ChuckerInterceptor>())

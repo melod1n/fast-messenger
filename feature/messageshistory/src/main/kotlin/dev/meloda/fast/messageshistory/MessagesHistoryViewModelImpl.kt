@@ -45,6 +45,7 @@ import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.domain.util.extractAvatar
 import dev.meloda.fast.domain.util.extractReplySummary
+import dev.meloda.fast.domain.util.extractReplyTitle
 import dev.meloda.fast.domain.util.extractTitle
 import dev.meloda.fast.messageshistory.model.ActionMode
 import dev.meloda.fast.messageshistory.model.MessageDialog
@@ -55,7 +56,6 @@ import dev.meloda.fast.messageshistory.navigation.MessagesHistory
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.FormatDataType
-import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.network.VkErrorCode
@@ -65,6 +65,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
@@ -73,7 +74,6 @@ import kotlinx.serialization.json.put
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -94,7 +94,7 @@ class MessagesHistoryViewModelImpl(
     override val dialog = MutableStateFlow<MessageDialog?>(null)
     override val selectedMessages = MutableStateFlow<List<VkMessage>>(emptyList())
 
-    override val inputFieldFocusRequester = MutableStateFlow(false)
+    override val showKeyboard = MutableStateFlow(false)
 
     override val isNeedToScrollToIndex = MutableStateFlow<Int?>(null)
 
@@ -114,6 +114,8 @@ class MessagesHistoryViewModelImpl(
     private val failedMessages: MutableList<VkMessage> = mutableListOf()
 
     private var replyToCmId: Long? = null
+
+    private var editMessage: VkMessage? = null
 
     init {
         val arguments = MessagesHistory.from(savedStateHandle).arguments
@@ -229,7 +231,7 @@ class MessagesHistoryViewModelImpl(
     override fun onDialogItemPicked(dialog: MessageDialog, bundle: Bundle) {
         when (dialog) {
             is MessageDialog.MessageOptions -> {
-                val messageId = bundle.getLong("messageId")
+//                val messageId = bundle.getLong("messageId")
                 val cmId = bundle.getLong("cmId")
 
                 when (val option = bundle.getParcelableCompat("option", MessageOption::class)) {
@@ -289,7 +291,10 @@ class MessagesHistoryViewModelImpl(
                         }
                     }
 
-                    MessageOption.Edit -> {}
+                    MessageOption.Edit -> {
+                        editMessage(cmId)
+                        syncUiMessages()
+                    }
 
                     MessageOption.Delete -> {
                         this.dialog.setValue {
@@ -313,7 +318,14 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onCloseButtonClicked() {
-        selectedMessages.setValue { emptyList() }
+        if (selectedMessages.value.isNotEmpty()) {
+            selectedMessages.setValue { emptyList() }
+        }
+
+        if (screenState.value.editCmId != null) {
+            stopEditMessage()
+        }
+
         syncUiMessages()
     }
 
@@ -329,8 +341,20 @@ class MessagesHistoryViewModelImpl(
         screenState.setValue { old ->
             old.copy(
                 message = newText,
-                actionMode = if (newText.text.isBlank()) ActionMode.RECORD_AUDIO
-                else ActionMode.SEND
+                actionMode =
+                    when {
+                        screenState.value.editCmId != null -> {
+                            // TODO: 13/03/2026, Danil Nikolaev: also check if attachments is empty
+                            if (newText.text.trim().isEmpty()) {
+                                ActionMode.DELETE
+                            } else {
+                                ActionMode.EDIT
+                            }
+                        }
+
+                        newText.text.trim().isEmpty() -> ActionMode.RECORD_AUDIO
+                        else -> ActionMode.SEND
+                    }
             )
         }
         updateStyles()
@@ -347,13 +371,9 @@ class MessagesHistoryViewModelImpl(
 
     override fun onActionButtonClicked() {
         when (screenState.value.actionMode) {
-            ActionMode.DELETE -> {
+            ActionMode.DELETE -> confirmDeleteCurrentEditMessage()
 
-            }
-
-            ActionMode.EDIT -> {
-
-            }
+            ActionMode.EDIT -> editCurrentEditMessage()
 
             ActionMode.RECORD_AUDIO -> {
                 screenState.setValue { it.copy(actionMode = ActionMode.RECORD_VIDEO) }
@@ -429,6 +449,16 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
+    override fun onEditSelectedMessageClicked() {
+        val cmId = selectedMessages.value.firstOrNull()?.cmId ?: return
+
+        selectedMessages.setValue { emptyList() }
+
+        editMessage(cmId)
+
+        syncUiMessages()
+    }
+
     override fun onDeleteSelectedMessagesClicked() {
         dialog.setValue {
             MessageDialog.MessagesDelete(selectedMessages.value)
@@ -438,12 +468,62 @@ class MessagesHistoryViewModelImpl(
     private fun replyToMessage(cmId: Long) {
         val messageToReply = messages.value.find { it.cmId == cmId } ?: return
 
-        inputFieldFocusRequester.setValue { true }
+        showKeyboard.setValue { true }
         replyToCmId = cmId
         screenState.setValue { old ->
             old.copy(
                 replyTitle = messageToReply.extractTitle(),
                 replyText = messageToReply.extractReplySummary(resourceProvider.resources)
+            )
+        }
+    }
+
+    private fun editMessage(cmId: Long) {
+        this.screenState.setValue { old ->
+            old.copy(editCmId = cmId)
+        }
+
+        val messageToEdit = messages.value.firstOrNull { it.cmId == cmId } ?: return
+        editMessage = messageToEdit
+
+        lastMessageText = screenState.value.message.text
+
+        var newState = screenState.value.copy(
+            message = TextFieldValue(
+                text = messageToEdit.text.orEmpty(),
+                selection = TextRange(messageToEdit.text.orEmpty().length)
+            ),
+            actionMode = ActionMode.EDIT
+        )
+
+        messageToEdit.replyMessage?.let { reply ->
+            replyToCmId = reply.cmId
+            newState = newState.copy(
+                replyTitle = reply.extractReplyTitle(),
+                replyText = reply.extractReplySummary(resourceProvider.resources)
+            )
+        }
+
+        showKeyboard.setValue { true }
+        screenState.setValue { newState }
+    }
+
+    private fun stopEditMessage() {
+        val lastText = lastMessageText.orEmpty().trim()
+
+        screenState.setValue { old ->
+            old.copy(
+                editCmId = null,
+                message = TextFieldValue(
+                    text = lastText,
+                    selection = TextRange(lastText.length)
+                ),
+                actionMode = if (lastText.isBlank()) ActionMode.RECORD_AUDIO
+                else ActionMode.SEND,
+
+                // TODO: 13/03/2026, Danil Nikolaev: use last reply
+                replyTitle = null,
+                replyText = null
             )
         }
     }
@@ -580,22 +660,27 @@ class MessagesHistoryViewModelImpl(
         replyToMessage(cmId)
     }
 
-    override suspend fun loadMessageReadPeers(peerId: Long, cmId: Long): Int = suspendCoroutine {
-        viewModelScope.launch {
-            getMessageReadPeersUseCase
-                .invoke(peerId = peerId, cmId = cmId)
-                .listenValue(viewModelScope) { state ->
-                    state.processState(
-                        error = { error ->
-                            it.resume(-1)
-                        },
-                        success = { count ->
-                            it.resume(count)
-                        }
-                    )
-                }
-        }
+    override fun onKeyboardShown() {
+        showKeyboard.setValue { false }
     }
+
+    override suspend fun loadMessageReadPeers(peerId: Long, cmId: Long): Int =
+        suspendCancellableCoroutine {
+            viewModelScope.launch {
+                getMessageReadPeersUseCase
+                    .invoke(peerId = peerId, cmId = cmId)
+                    .listenValue(viewModelScope) { state ->
+                        state.processState(
+                            error = { error ->
+                                it.resume(-1)
+                            },
+                            success = { count ->
+                                it.resume(count)
+                            }
+                        )
+                    }
+            }
+        }
 
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
         val message = event.message
@@ -988,11 +1073,13 @@ class MessagesHistoryViewModelImpl(
             message = newMessage.text,
             forward = forward,
             attachments = null,
-            formatData = newMessage.formatData
+            formatData = newMessage.formatData,
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 any = { sendingMessages.remove(newMessage) },
                 error = { error ->
+                    Log.d("MessagesHistoryViewModelImpl", "sendMessage: ERROR: $error")
+
                     val failedId = -500_000L - failedMessages.size
                     val newFailedMessage = newMessage.copy(id = failedId)
                     failedMessages += newFailedMessage
@@ -1013,6 +1100,51 @@ class MessagesHistoryViewModelImpl(
                 }
             )
         }
+    }
+
+    private fun confirmDeleteCurrentEditMessage() {
+        val currentMessage = editMessage ?: return
+
+        this.dialog.setValue {
+            MessageDialog.MessageDelete(currentMessage)
+        }
+    }
+
+    private fun editCurrentEditMessage() {
+        replyToCmId = null
+
+        val newText = screenState.value.message.text
+
+        val lastText = lastMessageText.orEmpty().trim()
+
+        screenState.setValue { old ->
+            old.copy(
+                editCmId = null,
+                message = TextFieldValue(
+                    text = lastText,
+                    selection = TextRange(lastText.length)
+                ),
+                actionMode = if (lastText.isBlank()) ActionMode.RECORD_AUDIO
+                else ActionMode.SEND,
+
+                // TODO: 13/03/2026, Danil Nikolaev: save last reply
+                replyTitle = null,
+                replyText = null
+            )
+        }
+
+        syncUiMessages()
+
+        // TODO: 13/03/2026, Danil Nikolaev: actually edit message
+
+        val newMessage = editMessage?.copy(
+            replyMessage = if (replyToCmId == null) null else editMessage?.replyMessage,
+            text = newText
+        ) ?: return
+
+        // TODO: 13/03/2026, Danil Nikolaev: check if message is exact same, then do not edit
+
+        Log.d("MessagesHistoryViewModelImpl", "editMessage: $newMessage")
     }
 
     private fun markAsImportant(
@@ -1118,29 +1250,6 @@ class MessagesHistoryViewModelImpl(
             }
     }
 
-    fun editMessage(
-        originalMessage: VkMessage,
-        peerid: Long,
-        messageid: Long,
-        newText: String? = null,
-        attachments: List<VkAttachment>? = null,
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-//            sendRequest {
-//                messagesRepository.edit(
-//                    MessagesEditRequest(
-//                        peerId = peerId,
-//                        messageId = messageId,
-//                        message = newText,
-//                        attachments = attachments
-//                    )
-//                )
-//            } ?: return@launch
-
-            // TODO: 25.08.2023, Danil Nikolaev: update message
-        }
-    }
-
     private fun readMessage(message: VkMessage) {
         messagesUseCase.markAsRead(
             peerId = screenState.value.convoId,
@@ -1237,7 +1346,8 @@ class MessagesHistoryViewModelImpl(
                 nextMessage = messages.getOrNull(index - 1),
                 showTimeInActionMessages = AppSettings.Experimental.showTimeInActionMessages,
                 convo = screenState.value.convo,
-                isSelected = selectedMessages.indexOfFirstOrNull { it.id == message.id } != null
+                isSelected = screenState.value.editCmId == message.cmId ||
+                        selectedMessages.indexOfFirstOrNull { it.id == message.id } != null
             )
         }
         uiMessages.setValue { newUiMessages }

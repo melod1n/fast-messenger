@@ -8,7 +8,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.auth.login.LoginViewModel
-import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
 import dev.meloda.fast.auth.login.model.LoginValidationArguments
 import dev.meloda.fast.auth.login.presentation.LoginRoute
@@ -19,7 +18,6 @@ import kotlinx.serialization.Serializable
 object Login
 
 fun NavGraphBuilder.loginScreen(
-    onNavigateToCaptcha: (CaptchaArguments) -> Unit,
     onNavigateToValidation: (LoginValidationArguments) -> Unit,
     onNavigateToMain: () -> Unit,
     onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
@@ -31,7 +29,6 @@ fun NavGraphBuilder.loginScreen(
             backStackEntry.sharedViewModel<LoginViewModel>(navController = navController)
 
         val clearValidationCode by viewModel.isNeedToClearValidationCode.collectAsStateWithLifecycle()
-        val clearCaptchaCode by viewModel.isNeedToClearCaptchaCode.collectAsStateWithLifecycle()
 
         LaunchedEffect(clearValidationCode) {
             if (clearValidationCode) {
@@ -40,24 +37,14 @@ fun NavGraphBuilder.loginScreen(
             }
         }
 
-        LaunchedEffect(clearCaptchaCode) {
-            if (clearCaptchaCode) {
-                backStackEntry.savedStateHandle["captcha_code"] = null
-                viewModel.onCaptchaCodeCleared()
-            }
-        }
-
         val validationCode = backStackEntry.getValidationResult()
-        val captchaCode = backStackEntry.getCaptchaResult()
 
         LoginRoute(
             onNavigateToUserBanned = onNavigateToUserBanned,
             onNavigateToMain = onNavigateToMain,
-            onNavigateToCaptcha = onNavigateToCaptcha,
             onNavigateToValidation = onNavigateToValidation,
             onNavigateToSettings = onNavigateToSettings,
             validationCode = validationCode,
-            captchaCode = captchaCode,
             viewModel = viewModel
         )
     }
@@ -65,8 +52,4 @@ fun NavGraphBuilder.loginScreen(
 
 fun NavBackStackEntry.getValidationResult(): String? {
     return savedStateHandle["validation_code"]
-}
-
-fun NavBackStackEntry.getCaptchaResult(): String? {
-    return savedStateHandle["captcha_code"]
 }

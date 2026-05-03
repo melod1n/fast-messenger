@@ -41,6 +41,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import dev.meloda.fast.MainViewModel
 import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.auth.authNavGraph
+import dev.meloda.fast.auth.captcha.presentation.CaptchaScreen
 import dev.meloda.fast.auth.navigateToAuth
 import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
 import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
@@ -48,6 +49,8 @@ import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.convos.navigation.createChatScreen
 import dev.meloda.fast.convos.navigation.navigateToCreateChat
+import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.datastore.CaptchaTokenResult
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.languagepicker.navigation.languagePickerScreen
 import dev.meloda.fast.languagepicker.navigation.navigateToLanguagePicker
@@ -310,6 +313,9 @@ fun RootScreen(
                         mutableStateOf<Pair<List<String>, Int?>?>(null)
                     }
 
+                    val captchaRedirectUri by AppSettings.getCaptchaRedirectUriFlow()
+                        .collectAsStateWithLifecycle()
+
                     Box(modifier = Modifier.fillMaxSize()) {
                         NavHost(
                             navController = navController,
@@ -334,7 +340,7 @@ fun RootScreen(
                                     photoViewerInfo = listOf(url) to null
                                 },
                                 onMessageClicked = navController::navigateToMessagesHistory,
-                                onNavigateToCreateChat = navController::navigateToCreateChat
+                                onNavigateToCreateChat = navController::navigateToCreateChat,
                             )
 
                             messagesHistoryScreen(
@@ -380,6 +386,18 @@ fun RootScreen(
                                 info.first.toImmutableList() to info.second
                             },
                             onDismiss = { photoViewerInfo = null }
+                        )
+
+                        CaptchaScreen(
+                            captchaRedirectUri = captchaRedirectUri,
+                            onBack = {
+                                AppSettings.setCaptchaResult(CaptchaTokenResult.Cancelled)
+                            },
+                            onResult = { result ->
+                                AppSettings.setCaptchaResult(
+                                    CaptchaTokenResult.Success(result)
+                                )
+                            },
                         )
                     }
                 }

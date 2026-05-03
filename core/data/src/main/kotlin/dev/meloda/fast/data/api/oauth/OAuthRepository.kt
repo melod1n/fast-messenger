@@ -23,5 +23,6 @@ interface OAuthRepository {
         validationCode: String?,
         captchaSid: String?,
         captchaKey: String?,
+        successToken: String?
     ): ApiResult<GetSilentTokenResponse, OAuthErrorDomain>
 }

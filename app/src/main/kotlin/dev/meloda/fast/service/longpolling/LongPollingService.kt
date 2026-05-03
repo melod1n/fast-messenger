@@ -32,10 +32,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration.Companion.seconds
 
 class LongPollingService : Service() {
@@ -204,7 +204,7 @@ class LongPollingService : Service() {
         }
     }
 
-    private suspend fun getServerInfo(): VkLongPollData? = suspendCoroutine {
+    private suspend fun getServerInfo(): VkLongPollData? = suspendCancellableCoroutine {
         longPollUseCase.getLongPollServer(
             needPts = true,
             version = VkConstants.LP_VERSION
@@ -224,7 +224,7 @@ class LongPollingService : Service() {
 
     private suspend fun getUpdatesResponse(
         server: VkLongPollData
-    ): LongPollUpdates? = suspendCoroutine {
+    ): LongPollUpdates? = suspendCancellableCoroutine {
         longPollUseCase.getLongPollUpdates(
             serverUrl = "https://${server.server}",
             key = server.key,

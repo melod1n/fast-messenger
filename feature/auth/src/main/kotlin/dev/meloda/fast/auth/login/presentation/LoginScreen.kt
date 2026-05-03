@@ -75,17 +75,14 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginRoute(
     onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
     onNavigateToMain: () -> Unit,
-    onNavigateToCaptcha: (CaptchaArguments) -> Unit,
     onNavigateToValidation: (LoginValidationArguments) -> Unit,
     onNavigateToSettings: () -> Unit,
     validationCode: String?,
-    captchaCode: String?,
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
     val userBannedArguments by viewModel.userBannedArguments.collectAsStateWithLifecycle()
-    val captchaArguments by viewModel.captchaArguments.collectAsStateWithLifecycle()
     val validationArguments by viewModel.validationArguments.collectAsStateWithLifecycle()
     val loginDialog by viewModel.loginDialog.collectAsStateWithLifecycle()
 
@@ -107,12 +104,6 @@ fun LoginRoute(
             onNavigateToUserBanned(arguments)
         }
     }
-    LaunchedEffect(captchaArguments) {
-        captchaArguments?.let { arguments ->
-            viewModel.onNavigatedToCaptcha()
-            onNavigateToCaptcha(arguments)
-        }
-    }
     LaunchedEffect(validationArguments) {
         validationArguments?.let { arguments ->
             viewModel.onNavigatedToValidation()
@@ -121,9 +112,6 @@ fun LoginRoute(
     }
     LaunchedEffect(validationCode) {
         viewModel.onValidationCodeReceived(validationCode)
-    }
-    LaunchedEffect(captchaCode) {
-        viewModel.onCaptchaCodeReceived(captchaCode)
     }
 
     LoginScreen(

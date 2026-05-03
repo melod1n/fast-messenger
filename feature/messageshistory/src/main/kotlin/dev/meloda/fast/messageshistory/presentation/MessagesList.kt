@@ -46,6 +46,7 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
@@ -60,6 +61,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MessagesList(
     modifier: Modifier = Modifier,
+    screenState: MessagesHistoryScreenState,
     hasPinnedMessage: Boolean,
     hazeState: HazeState,
     listState: LazyListState,
@@ -226,47 +228,55 @@ fun MessagesList(
                                     fadeOutSpec = null
                                 ) else Modifier
                             )
-                            .combinedClickable(
-                                onLongClick = {
-                                    if (AppSettings.General.enableHaptic) {
-                                        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                    }
-                                    onMessageLongClicked(item.id)
-                                },
-                                onClick = { onMessageClicked(item.id) }
-                            )
-                            .pointerInput(item.cmId) {
-                                detectHorizontalDragGestures(
-                                    onDragCancel = {
-                                        if (offsetX == -100f) {
-                                            onRequestMessageReply(item.cmId)
-                                        }
+                            .then(
+                                if (screenState.editCmId == null) {
+                                    Modifier
+                                        .combinedClickable(
+                                            onLongClick = {
+                                                if (AppSettings.General.enableHaptic) {
+                                                    view.performHapticFeedback(
+                                                        HapticFeedbackConstants.LONG_PRESS
+                                                    )
+                                                }
+                                                onMessageLongClicked(item.id)
+                                            },
+                                            onClick = { onMessageClicked(item.id) }
+                                        )
+                                        .pointerInput(item.cmId) {
+                                            detectHorizontalDragGestures(
+                                                onDragCancel = {
+                                                    if (offsetX == -100f) {
+                                                        onRequestMessageReply(item.cmId)
+                                                    }
 
-                                        scope.launch {
-                                            animate = true
-                                            offsetX = 0f
-                                            offsetAnimatable.animateTo(0f)
-                                            animate = false
-                                        }
-                                    },
-                                    onDragEnd = {
-                                        if (offsetX == -100f) {
-                                            onRequestMessageReply(item.cmId)
-                                        }
+                                                    scope.launch {
+                                                        animate = true
+                                                        offsetX = 0f
+                                                        offsetAnimatable.animateTo(0f)
+                                                        animate = false
+                                                    }
+                                                },
+                                                onDragEnd = {
+                                                    if (offsetX == -100f) {
+                                                        onRequestMessageReply(item.cmId)
+                                                    }
 
-                                        scope.launch {
-                                            animate = true
-                                            offsetX = 0f
-                                            offsetAnimatable.animateTo(0f)
-                                            animate = false
+                                                    scope.launch {
+                                                        animate = true
+                                                        offsetX = 0f
+                                                        offsetAnimatable.animateTo(0f)
+                                                        animate = false
+                                                    }
+                                                },
+                                                onHorizontalDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    offsetX =
+                                                        (offsetX + dragAmount).coerceIn(-100f, 0f)
+                                                }
+                                            )
                                         }
-                                    },
-                                    onHorizontalDrag = { change, dragAmount ->
-                                        change.consume()
-                                        offsetX = (offsetX + dragAmount).coerceIn(-100f, 0f)
-                                    }
-                                )
-                            },
+                                } else Modifier
+                            ),
                         color = backgroundColor
                     ) {
                         if (item.isOut) {

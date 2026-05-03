@@ -1,5 +1,6 @@
 import com.android.build.api.dsl.TestExtension
 import dev.meloda.fast.configureKotlinAndroid
+import dev.meloda.fast.getVersionInt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -13,7 +14,11 @@ class AndroidTestConventionPlugin : Plugin<Project> {
 
             extensions.configure<TestExtension> {
                 configureKotlinAndroid(this)
-                defaultConfig.targetSdk = 36
+                defaultConfig {
+                    minSdk = getVersionInt("minSdk")
+                    compileSdk = getVersionInt("compileSdk")
+                    targetSdk = getVersionInt("targetSdk")
+                }
             }
         }
     }

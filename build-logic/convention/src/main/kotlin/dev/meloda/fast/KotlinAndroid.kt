@@ -24,7 +24,7 @@ internal fun Project.configureKotlinAndroid(
     }
 
     commonExtension.apply {
-        compileSdk = 36
+        compileSdk = getVersionInt("compileSdk")
     }
 
     configureKotlin<KotlinAndroidProjectExtension>()
@@ -61,6 +61,7 @@ private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() =
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.coroutines.FlowPreview",
             "-Xannotation-default-target=param-property",
+            "-Xcontext-parameters"
         )
     }
 }

@@ -12,7 +12,8 @@ data class AuthDirectRequest(
     val validationCode: String? = null,
     val captchaSid: String? = null,
     val captchaKey: String? = null,
-    val trustedHash: String? = null
+    val trustedHash: String? = null,
+    val successToken: String? = null
 ) {
 
     val map
@@ -31,6 +32,7 @@ data class AuthDirectRequest(
                 captchaSid?.let { this["captcha_sid"] = it }
                 captchaKey?.let { this["captcha_key"] = it }
                 trustedHash?.let { this["trusted_hash"] = it }
+                successToken?.let { this["success_token"] = it }
             }
 }
 

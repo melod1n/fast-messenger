@@ -53,6 +53,7 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
                 },
                 onFailure = { failure ->
                     if (failure is JsonDataException) {
+                        Log.d("ResponseBodyConverter", "convertJsonDataException: $failure")
                         throw ApiException(
                             RestApiError(
                                 errorCode = -1,

@@ -7,9 +7,7 @@ import androidx.preference.PreferenceManager
 import coil.ImageLoader
 import coil.annotation.ExperimentalCoilApi
 import dev.meloda.fast.MainViewModelImpl
-import dev.meloda.fast.auth.captcha.di.captchaModule
-import dev.meloda.fast.auth.login.di.loginModule
-import dev.meloda.fast.auth.validation.di.validationModule
+import dev.meloda.fast.auth.authModule
 import dev.meloda.fast.chatmaterials.di.chatMaterialsModule
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.LongPollControllerImpl
@@ -38,9 +36,7 @@ import org.koin.dsl.module
 val applicationModule = module {
     includes(domainModule)
     includes(
-        loginModule,
-        validationModule,
-        captchaModule,
+        authModule,
         convosModule,
         settingsModule,
         messagesHistoryModule,

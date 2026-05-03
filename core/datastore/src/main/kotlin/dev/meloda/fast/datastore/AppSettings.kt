@@ -4,12 +4,31 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import dev.meloda.fast.common.model.DarkMode
 import dev.meloda.fast.common.model.LogLevel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
+
+sealed class CaptchaTokenResult {
+    data object Initial : CaptchaTokenResult()
+    data object Null : CaptchaTokenResult()
+    data object Cancelled : CaptchaTokenResult()
+    data class Success(val token: String) : CaptchaTokenResult()
+}
 
 object AppSettings {
 
     private var preferences: SharedPreferences by Delegates.notNull()
+
+    private val captchaResult = MutableStateFlow<CaptchaTokenResult>(CaptchaTokenResult.Initial)
+    fun getCaptchaResultFlow(): StateFlow<CaptchaTokenResult> = captchaResult.asStateFlow()
+    fun setCaptchaResult(result: CaptchaTokenResult) = captchaResult.update { result }
+
+    private val captchaRedirectUri = MutableStateFlow<String?>(null)
+    fun getCaptchaRedirectUriFlow() = captchaRedirectUri.asStateFlow()
+    fun setCaptchaRedirectUri(redirectUri: String?) = captchaRedirectUri.update { redirectUri }
 
     fun init(preferences: SharedPreferences) {
         this.preferences = preferences

@@ -48,7 +48,8 @@ class OAuthUseCaseImpl(
         forceSms: Boolean,
         validationCode: String?,
         captchaSid: String?,
-        captchaKey: String?
+        captchaKey: String?,
+        successToken: String?
     ): Flow<State<GetSilentTokenResponse>> = flow {
         emit(State.Loading)
 
@@ -58,7 +59,8 @@ class OAuthUseCaseImpl(
             forceSms = forceSms,
             validationCode = validationCode,
             captchaSid = captchaSid,
-            captchaKey = captchaKey
+            captchaKey = captchaKey,
+            successToken = successToken
         ).asState()
 
         emit(newState)

@@ -26,7 +26,8 @@ data class MessagesHistoryScreenState(
     val pinnedTitle: String?,
     val pinnedSummary: AnnotatedString?,
     val replyTitle: String?,
-    val replyText: AnnotatedString?
+    val replyText: AnnotatedString?,
+    val editCmId: Long?,
 ) {
 
     companion object {
@@ -48,6 +49,7 @@ data class MessagesHistoryScreenState(
             pinnedSummary = null,
             replyTitle = null,
             replyText = null,
+            editCmId = null,
         )
     }
 }

@@ -79,7 +79,8 @@ class OAuthRepositoryImpl(
                     VkOAuthError.NEED_CAPTCHA -> {
                         OAuthErrorDomain.CaptchaRequiredError(
                             captchaSid = response.captchaSid.orEmpty(),
-                            captchaImageUrl = response.captchaImage.orEmpty()
+                            captchaImageUrl = response.captchaImage.orEmpty(),
+                            redirectUri = response.redirectUri
                         )
                     }
 
@@ -122,6 +123,7 @@ class OAuthRepositoryImpl(
         validationCode: String?,
         captchaSid: String?,
         captchaKey: String?,
+        successToken: String?
     ): ApiResult<GetSilentTokenResponse, OAuthErrorDomain> =
         withContext(Dispatchers.IO) {
             val requestModel = AuthDirectRequest(
@@ -135,6 +137,7 @@ class OAuthRepositoryImpl(
                 validationCode = validationCode,
                 captchaSid = captchaSid,
                 captchaKey = captchaKey,
+                successToken = successToken
             )
 
             oAuthService.getSilentToken(requestModel.map).mapResult(
@@ -175,7 +178,8 @@ class OAuthRepositoryImpl(
                         VkOAuthError.NEED_CAPTCHA -> {
                             OAuthErrorDomain.CaptchaRequiredError(
                                 captchaSid = response.captchaSid.orEmpty(),
-                                captchaImageUrl = response.captchaImage.orEmpty()
+                                captchaImageUrl = response.captchaImage.orEmpty(),
+                                redirectUri = response.redirectUri
                             )
                         }
 

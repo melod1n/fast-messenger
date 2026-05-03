@@ -29,7 +29,7 @@ fun MessagesHistoryRoute(
     val baseError by viewModel.baseError.collectAsStateWithLifecycle()
     val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
     val scrollIndex by viewModel.isNeedToScrollToIndex.collectAsStateWithLifecycle()
-    val inputFieldFocusRequester by viewModel.inputFieldFocusRequester.collectAsStateWithLifecycle()
+    val showKeyboard by viewModel.showKeyboard.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigationEvent) {
         val needToConsume = when (val navigation = navigationEvent) {
@@ -55,7 +55,7 @@ fun MessagesHistoryRoute(
         canPaginate = canPaginate,
         showEmojiButton = AppSettings.General.showEmojiButton,
         showAttachmentButton = AppSettings.General.showAttachmentButton,
-        inputFieldFocusRequester = inputFieldFocusRequester,
+        showKeyboard = showKeyboard,
         onBack = onBack,
         onClose = viewModel::onCloseButtonClicked,
         onScrolledToIndex = viewModel::onScrolledToIndex,
@@ -72,6 +72,7 @@ fun MessagesHistoryRoute(
         onPhotoClicked = onNavigateToPhotoViewer,
         onPinnedMessageClicked = viewModel::onPinnedMessageClicked,
         onUnpinMessageButtonClicked = viewModel::onUnpinMessageClicked,
+        onEditSelectedMessageClicked = viewModel::onEditSelectedMessageClicked,
         onDeleteSelectedButtonClicked = viewModel::onDeleteSelectedMessagesClicked,
         onBoldRequested = viewModel::onBoldClicked,
         onItalicRequested = viewModel::onItalicClicked,
@@ -80,6 +81,7 @@ fun MessagesHistoryRoute(
         onRegularRequested = viewModel::onRegularClicked,
         onReplyCloseClicked = viewModel::onReplyCloseClicked,
         onRequestReplyToMessage = viewModel::onRequestReplyToMessage,
+        onKeyboardShown = viewModel::onKeyboardShown
     )
 
     HandleDialogs(

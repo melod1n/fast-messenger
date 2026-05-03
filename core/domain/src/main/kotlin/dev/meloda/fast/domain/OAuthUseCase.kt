@@ -21,7 +21,8 @@ interface OAuthUseCase {
         password: String,
         forceSms: Boolean,
         validationCode: String?,
-        captchaSid: String?,
-        captchaKey: String?
+        captchaSid: String? = null,
+        captchaKey: String? = null,
+        successToken: String? = null
     ): Flow<State<GetSilentTokenResponse>>
 }

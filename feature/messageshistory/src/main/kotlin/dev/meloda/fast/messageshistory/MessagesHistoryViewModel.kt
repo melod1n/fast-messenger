@@ -19,7 +19,7 @@ interface MessagesHistoryViewModel {
     val dialog: StateFlow<MessageDialog?>
     val selectedMessages: StateFlow<List<VkMessage>>
 
-    val inputFieldFocusRequester: StateFlow<Boolean>
+    val showKeyboard: StateFlow<Boolean>
 
     val isNeedToScrollToIndex: StateFlow<Int?>
 
@@ -54,6 +54,7 @@ interface MessagesHistoryViewModel {
     fun onPinnedMessageClicked(messageId: Long)
     fun onUnpinMessageClicked()
 
+    fun onEditSelectedMessageClicked()
     fun onDeleteSelectedMessagesClicked()
 
     fun onBoldClicked()
@@ -65,6 +66,8 @@ interface MessagesHistoryViewModel {
     fun onReplyCloseClicked()
 
     fun onRequestReplyToMessage(cmId: Long)
+
+    fun onKeyboardShown()
 
     suspend fun loadMessageReadPeers(peerId: Long, cmId: Long): Int
 }

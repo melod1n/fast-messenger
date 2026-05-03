@@ -81,7 +81,7 @@ fun InputBar(
     actionMode: ActionMode,
     replyTitle: String?,
     replyText: AnnotatedString?,
-    inputFieldFocusRequester: Boolean,
+    showKeyboard: Boolean,
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onBoldRequested: () -> Unit = {},
     onItalicRequested: () -> Unit = {},
@@ -92,7 +92,8 @@ fun InputBar(
     onEmojiButtonLongClicked: () -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {},
-    onReplyCloseClicked: () -> Unit = {}
+    onReplyCloseClicked: () -> Unit = {},
+    onKeyboardShown: () -> Unit
 ) {
     val view = LocalView.current
     val context = LocalContext.current
@@ -106,8 +107,9 @@ fun InputBar(
 
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(inputFieldFocusRequester) {
-        if (inputFieldFocusRequester) {
+    LaunchedEffect(showKeyboard) {
+        if (showKeyboard) {
+            onKeyboardShown()
             focusRequester.requestFocus()
         }
     }
@@ -360,6 +362,7 @@ private fun InputBarPreview() {
         actionMode = ActionMode.SEND,
         replyTitle = "Иннокентий Панфилович",
         replyText = "Ого, ром!".annotated(),
-        inputFieldFocusRequester = false
+        showKeyboard = false,
+        onKeyboardShown = {}
     )
 }

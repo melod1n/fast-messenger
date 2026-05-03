@@ -2,6 +2,7 @@ package dev.meloda.fast.messageshistory.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,11 +44,9 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.getImage
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -56,16 +54,20 @@ fun MessagesHistoryTopBar(
     modifier: Modifier = Modifier,
     hazeState: HazeState,
     showReplyAction: Boolean,
+    showEditAction: Boolean,
     isClickable: Boolean,
     isMessagesSelecting: Boolean,
     isPeerAccount: Boolean,
-    avatar: UiImage,
+    avatarUrl: String?,
+    avatarResourceId: Int?,
     title: String,
+    isEditing: Boolean,
     onTopBarClicked: () -> Unit = {},
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
     onDeleteSelectedButtonClicked: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onEditSelectedMessageClicked: () -> Unit = {}
 ) {
     val view = LocalView.current
     val theme = LocalThemeConfig.current
@@ -96,50 +98,55 @@ fun MessagesHistoryTopBar(
 //                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!isMessagesSelecting) {
-                    if (isPeerAccount) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(24.dp),
-                                painter = painterResource(id = R.drawable.ic_bookmark_round_24),
-                                contentDescription = "Favorites icon",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    } else {
-                        val actualAvatar = avatar.getImage()
-
-                        if (actualAvatar is Painter) {
-                            Image(
-                                painter = actualAvatar,
-                                contentDescription = null,
+                AnimatedVisibility(!isMessagesSelecting && !isEditing) {
+                    Row {
+                        if (isPeerAccount) {
+                            Box(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                            )
+                                    .background(MaterialTheme.colorScheme.primary)
+                            ) {
+                                Icon(
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(24.dp),
+                                    painter = painterResource(id = R.drawable.ic_bookmark_round_24),
+                                    contentDescription = "Favorites icon",
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
                         } else {
-                            AsyncImage(
-                                model = actualAvatar,
-                                contentDescription = "Profile Image",
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape),
-                                placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24),
-                            )
-                        }
-                    }
+                            when {
+                                avatarUrl != null -> {
+                                    AsyncImage(
+                                        model = avatarUrl,
+                                        contentDescription = "Profile Image",
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape),
+                                        placeholder = painterResource(id = R.drawable.ic_account_circle_fill_round_24),
+                                    )
+                                }
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                                avatarResourceId != null -> {
+                                    Image(
+                                        painter = painterResource(avatarResourceId),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
                 }
 
                 Text(
+                    modifier = Modifier.animateContentSize(),
                     text = title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -150,11 +157,11 @@ fun MessagesHistoryTopBar(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    if (!isMessagesSelecting) onBack()
+                    if (!isMessagesSelecting && !isEditing) onBack()
                     else onClose()
                 }
             ) {
-                Crossfade(targetState = !isMessagesSelecting) { state ->
+                Crossfade(targetState = !isMessagesSelecting && !isEditing) { state ->
                     Icon(
                         painter = painterResource(
                             if (state) {
@@ -210,6 +217,16 @@ fun MessagesHistoryTopBar(
                         contentDescription = null
                     )
                 }
+
+                AnimatedVisibility(showEditAction) {
+                    IconButton(onClick = onEditSelectedMessageClicked) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_edit_round_24),
+                            contentDescription = null
+                        )
+                    }
+                }
+
                 IconButton(onClick = onDeleteSelectedButtonClicked) {
                     Icon(
                         painter = painterResource(R.drawable.ic_delete_round_24),

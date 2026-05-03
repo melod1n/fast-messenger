@@ -16,7 +16,6 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.common.extensions.orDots
-import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 
@@ -26,13 +25,16 @@ fun MessagesHistoryTopBarContainer(
     modifier: Modifier = Modifier,
     hazeState: HazeState,
     showReplyAction: Boolean,
+    showEditAction: Boolean,
     topBarContainerColor: Color,
     topBarContainerColorAlpha: Float,
     isClickable: Boolean,
     isMessagesSelecting: Boolean,
     isPeerAccount: Boolean,
-    avatar: UiImage,
+    avatarUrl: String?,
+    avatarResourceId: Int?,
     title: String,
+    isEditing: Boolean,
     showHorizontalProgressBar: Boolean,
     showPinnedContainer: Boolean,
     pinnedMessage: VkMessage?,
@@ -44,6 +46,7 @@ fun MessagesHistoryTopBarContainer(
     onClose: () -> Unit = {},
     onDeleteSelectedButtonClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    onEditSelectedMessageClicked: () -> Unit = {},
     onPinnedMessageClicked: (Long) -> Unit = {},
     onUnpinMessageButtonClicked: () -> Unit = {}
 ) {
@@ -66,16 +69,20 @@ fun MessagesHistoryTopBarContainer(
             modifier = modifier,
             hazeState = hazeState,
             showReplyAction = showReplyAction,
+            showEditAction = showEditAction,
             isClickable = isClickable,
             isMessagesSelecting = isMessagesSelecting,
             isPeerAccount = isPeerAccount,
-            avatar = avatar,
+            avatarUrl = avatarUrl,
+            avatarResourceId = avatarResourceId,
             title = title,
+            isEditing = isEditing,
             onTopBarClicked = onTopBarClicked,
             onBack = onBack,
             onClose = onClose,
             onDeleteSelectedButtonClicked = onDeleteSelectedButtonClicked,
-            onRefresh = onRefresh
+            onRefresh = onRefresh,
+            onEditSelectedMessageClicked = onEditSelectedMessageClicked
         )
 
         if (showHorizontalProgressBar) {

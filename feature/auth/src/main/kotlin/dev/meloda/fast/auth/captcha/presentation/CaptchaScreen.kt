@@ -1,33 +1,22 @@
 package dev.meloda.fast.auth.captcha.presentation
 
+import android.graphics.Bitmap
+import android.util.Log
+import android.webkit.JavascriptInterface
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,237 +26,169 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import coil.compose.AsyncImage
-import dev.meloda.fast.auth.captcha.CaptchaViewModel
-import dev.meloda.fast.auth.captcha.CaptchaViewModelImpl
-import dev.meloda.fast.auth.captcha.model.CaptchaScreenState
+import androidx.compose.ui.viewinterop.AndroidView
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
+import dev.meloda.fast.ui.components.FullScreenDialog
 import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.components.TextFieldErrorText
-import dev.meloda.fast.ui.theme.AppTheme
-import org.koin.androidx.compose.koinViewModel
+import org.json.JSONObject
 
-@Composable
-fun CaptchaRoute(
-    onBack: () -> Unit,
-    onResult: (String) -> Unit,
-    viewModel: CaptchaViewModel = koinViewModel<CaptchaViewModelImpl>()
-) {
-    LocalViewModelStoreOwner.current
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val isNeedToOpenLogin by viewModel.isNeedToOpenLogin.collectAsStateWithLifecycle()
-
-    LaunchedEffect(isNeedToOpenLogin) {
-        if (isNeedToOpenLogin) {
-            viewModel.onNavigatedToLogin()
-            onResult(screenState.code)
-        }
-    }
-
-    CaptchaScreen(
-        screenState = screenState,
-        onBack = onBack,
-        onCodeInputChanged = viewModel::onCodeInputChanged,
-        onTextFieldDoneAction = viewModel::onTextFieldDoneAction,
-        onDoneButtonClicked = viewModel::onDoneButtonClicked
-    )
-}
+private const val TAG = "CaptchaScreen"
 
 @Composable
 fun CaptchaScreen(
-    screenState: CaptchaScreenState = CaptchaScreenState.EMPTY,
+    captchaRedirectUri: String?,
     onBack: () -> Unit = {},
-    onCodeInputChanged: (String) -> Unit = {},
-    onTextFieldDoneAction: () -> Unit = {},
-    onDoneButtonClicked: () -> Unit = {}
+    onResult: (String) -> Unit = {}
 ) {
-    var confirmedExit by remember {
-        mutableStateOf(false)
-    }
-
-    var showExitAlert by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    LaunchedEffect(confirmedExit) {
-        if (confirmedExit) {
-            onBack()
+    if (captchaRedirectUri != null) {
+        val focusManager = LocalFocusManager.current
+        val keyboardController = LocalSoftwareKeyboardController.current
+        LaunchedEffect(true) {
+            focusManager.clearFocus(true)
+            keyboardController?.hide()
         }
-    }
 
-    BackHandler(enabled = !confirmedExit) {
-        if (!confirmedExit) {
-            showExitAlert = true
+        var confirmedExit by remember {
+            mutableStateOf(false)
         }
-    }
 
-    if (showExitAlert) {
-        MaterialDialog(
-            onDismissRequest = { showExitAlert = false },
-            title = stringResource(id = R.string.warning_confirmation),
-            text = stringResource(id = R.string.captcha_exit_warning),
-            confirmAction = { confirmedExit = true },
-            confirmText = stringResource(id = R.string.yes),
-            cancelText = stringResource(id = R.string.no),
-            actionInvokeDismiss = ActionInvokeDismiss.Always
-        )
-    }
+        var showExitAlert by rememberSaveable {
+            mutableStateOf(false)
+        }
 
-    val focusManager = LocalFocusManager.current
+        var isWebViewLoading by remember {
+            mutableStateOf(true)
+        }
 
-    Scaffold(
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime)
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(30.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            ExtendedFloatingActionButton(
-                onClick = onBack,
-                text = {
-                    Text(
-                        text = "Cancel",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_close_round_24),
-                        contentDescription = "Close icon",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            )
+        LaunchedEffect(confirmedExit) {
+            if (confirmedExit) {
+                onBack()
+            }
+        }
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = "Captcha",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+        BackHandler(enabled = !confirmedExit) {
+            if (!confirmedExit) {
+                showExitAlert = true
+            }
+        }
+
+        FullScreenDialog(onDismiss = { showExitAlert = true }) {
+            if (showExitAlert) {
+                MaterialDialog(
+                    onDismissRequest = { showExitAlert = false },
+                    title = stringResource(id = R.string.warning_confirmation),
+                    text = stringResource(id = R.string.captcha_exit_warning),
+                    confirmAction = { confirmedExit = true },
+                    confirmText = stringResource(id = R.string.yes),
+                    cancelText = stringResource(id = R.string.no),
+                    actionInvokeDismiss = ActionInvokeDismiss.Always
                 )
-                Spacer(modifier = Modifier.height(38.dp))
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "To proceed with your action, enter a code from the picture",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(0.5f)
-                    )
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                    val imageModifier = Modifier
-                        .border(
-                            2.dp,
-                            MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .clip(RoundedCornerShape(10.dp))
-                        .height(48.dp)
-                        .width(130.dp)
-
-                    if (LocalView.current.isInEditMode) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_test_captcha),
-                            contentDescription = "Captcha image",
-                            modifier = imageModifier
-                        )
-                    } else {
-                        AsyncImage(
-                            model = screenState.captchaImageUrl,
-                            contentDescription = "Captcha image",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = imageModifier
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                var code by remember { mutableStateOf(TextFieldValue(screenState.code)) }
-                val showError = screenState.codeError
-
-                TextField(
-                    value = code,
-                    onValueChange = { newText ->
-                        code = newText
-                        onCodeInputChanged(newText.text)
-                    },
-                    label = { Text(text = "Code") },
-                    placeholder = { Text(text = "Code") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp)),
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_qr_code_round_24),
-                            contentDescription = "QR code icon",
-                            tint = if (showError) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            }
-                        )
-                    },
-                    shape = RoundedCornerShape(10.dp),
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            onTextFieldDoneAction()
-                        }
-                    ),
-                    isError = showError
-                )
-
-                AnimatedVisibility(visible = showError) {
-                    TextFieldErrorText(text = "Field must not be empty")
-                }
             }
 
-            FloatingActionButton(
-                onClick = onDoneButtonClicked,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { showExitAlert = true }
+                    )
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_check_round_24),
-                    contentDescription = "Done icon",
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.BottomCenter),
+                    factory = { context ->
+                        val webview = WebView(context)
+                        webview.setBackgroundColor(0)
+                        webview.settings.javaScriptEnabled = true
+                        webview.webViewClient = object : WebViewClient() {
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean {
+                                Log.i(TAG, "shouldOverrideUrlLoading: $request")
+                                return false
+                            }
+
+                            override fun onPageStarted(
+                                view: WebView?,
+                                url: String?,
+                                favicon: Bitmap?
+                            ) {
+                                super.onPageStarted(view, url, favicon)
+                                isWebViewLoading = true
+                            }
+
+                            override fun onPageFinished(view: WebView?, url: String?) {
+                                super.onPageFinished(view, url)
+                                isWebViewLoading = false
+                            }
+                        }
+                        webview.addJavascriptInterface(
+                            WebCaptchaListener(
+                                onSuccessTokenReceived = {
+                                    val response: String? = try {
+                                        JSONObject(it).getString("token")
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        null
+                                    }
+
+                                    if (response != null) {
+                                        onResult(response)
+                                    } else {
+                                        // TODO: 03/05/2026, Danil Nikolaev: show error
+                                    }
+                                },
+                                onCloseRequested = { showExitAlert = true }
+                            ),
+                            "AndroidBridge"
+                        )
+//                        webview.loadUrl("https://id.vk.ru/not_robot_captcha?variant=block&session_token=test&domain=test.com")
+                        webview.loadUrl(captchaRedirectUri)
+                        webview
+                    }
                 )
+
+                AnimatedVisibility(
+                    visible = isWebViewLoading,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.Center)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(50.dp),
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                }
             }
         }
     }
 }
 
-@FastPreview
-@Composable
-private fun CaptchaScreenPreview() {
-    AppTheme(useDarkTheme = isSystemInDarkTheme(), useDynamicColors = true) {
-        CaptchaScreen(
-            screenState = CaptchaScreenState.EMPTY.copy(
-                code = "zcuecz"
-            )
-        )
+class WebCaptchaListener(
+    private val onSuccessTokenReceived: (String) -> Unit,
+    private val onCloseRequested: (String) -> Unit
+) {
+    private val tag = "WebCaptchaListener"
+
+    @JavascriptInterface
+    fun VKCaptchaGetResult(arg: String) {
+        onSuccessTokenReceived(arg)
+        Log.i(tag, "VKCaptchaGetResult($arg)")
+    }
+
+    @JavascriptInterface
+    fun VKCaptchaCloseCaptcha(arg: String) {
+        onCloseRequested(arg)
+        Log.i(tag, "VKCaptchaCloseCaptcha($arg)")
     }
 }

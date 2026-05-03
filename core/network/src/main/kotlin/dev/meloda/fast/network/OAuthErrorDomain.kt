@@ -16,7 +16,8 @@ sealed class OAuthErrorDomain {
 
     data class CaptchaRequiredError(
         val captchaSid: String,
-        val captchaImageUrl: String
+        val captchaImageUrl: String,
+        val redirectUri: String?
     ) : OAuthErrorDomain()
 
     data class UserBannedError(

@@ -3,9 +3,6 @@ package dev.meloda.fast.auth
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
-import dev.meloda.fast.auth.captcha.navigation.captchaScreen
-import dev.meloda.fast.auth.captcha.navigation.navigateToCaptcha
-import dev.meloda.fast.auth.captcha.navigation.setCaptchaResult
 import dev.meloda.fast.auth.login.navigation.Login
 import dev.meloda.fast.auth.login.navigation.loginScreen
 import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
@@ -28,11 +25,6 @@ fun NavGraphBuilder.authNavGraph(
 ) {
     navigation<AuthGraph>(startDestination = Login) {
         loginScreen(
-            onNavigateToCaptcha = { arguments ->
-                navController.navigateToCaptcha(
-                    captchaImageUrl = URLEncoder.encode(arguments.captchaImageUrl, "utf-8")
-                )
-            },
             onNavigateToValidation = { arguments ->
                 navController.navigateToValidation(
                     ValidationArguments(
@@ -66,17 +58,6 @@ fun NavGraphBuilder.authNavGraph(
             },
             onResult = { code ->
                 navController.setValidationResult(code)
-                navController.popBackStack()
-            }
-        )
-
-        captchaScreen(
-            onBack = {
-                navController.setCaptchaResult(null)
-                navController.navigateUp()
-            },
-            onResult = { code ->
-                navController.setCaptchaResult(code)
                 navController.popBackStack()
             }
         )

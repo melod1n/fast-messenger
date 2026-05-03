@@ -31,12 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.util.indexOfMessageByCmId
@@ -69,13 +71,14 @@ fun MessagesHistoryScreen(
     canPaginate: Boolean = false,
     showEmojiButton: Boolean = false,
     showAttachmentButton: Boolean = false,
-    inputFieldFocusRequester: Boolean,
+    showKeyboard: Boolean,
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
     onScrolledToIndex: () -> Unit = {},
     onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onTopBarClicked: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    onEditSelectedMessageClicked: () -> Unit = {},
     onPaginationConditionsMet: () -> Unit = {},
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
@@ -93,7 +96,8 @@ fun MessagesHistoryScreen(
     onUnderlineRequested: () -> Unit = {},
     onRegularRequested: () -> Unit = {},
     onReplyCloseClicked: () -> Unit = {},
-    onRequestReplyToMessage: (cmId: Long) -> Unit = {}
+    onRequestReplyToMessage: (cmId: Long) -> Unit = {},
+    onKeyboardShown: () -> Unit
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -114,7 +118,7 @@ fun MessagesHistoryScreen(
     }
 
     BackHandler(
-        enabled = selectedMessages.isNotEmpty(),
+        enabled = selectedMessages.isNotEmpty() || screenState.editCmId != null,
         onBack = onClose
     )
 
@@ -162,6 +166,9 @@ fun MessagesHistoryScreen(
         derivedStateOf { selectedMessages.size == 1 }
     }
 
+    val isLoadingText = stringResource(R.string.title_loading)
+    val editMessageText = stringResource(R.string.title_edit_message)
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
@@ -169,7 +176,8 @@ fun MessagesHistoryScreen(
             val topBarTitle by remember(screenState, selectedMessages) {
                 derivedStateOf {
                     when {
-                        screenState.isLoading -> context.getString(R.string.title_loading)
+                        screenState.isLoading -> isLoadingText
+                        screenState.editCmId != null -> editMessageText
                         selectedMessages.isNotEmpty() -> "(${selectedMessages.size})"
                         else -> screenState.title
                     }
@@ -179,13 +187,16 @@ fun MessagesHistoryScreen(
             MessagesHistoryTopBarContainer(
                 hazeState = hazeState,
                 showReplyAction = showReplyAction,
+                showEditAction = selectedMessages.size == 1,
                 topBarContainerColor = topBarContainerColor,
                 topBarContainerColorAlpha = topBarContainerColorAlpha,
                 isClickable = !(screenState.isLoading && messages.isEmpty()),
                 isMessagesSelecting = selectedMessages.isNotEmpty(),
                 isPeerAccount = screenState.convoId == UserConfig.userId,
-                avatar = screenState.avatar,
+                avatarUrl = screenState.avatar.takeIf { it is UiImage.Url }?.extractUrl(),
+                avatarResourceId = screenState.avatar.takeIf { it is UiImage.Resource }?.extractResId(),
                 title = topBarTitle,
+                isEditing = screenState.editCmId != null,
                 showHorizontalProgressBar = screenState.isLoading && messages.isNotEmpty(),
                 showPinnedContainer = !screenState.isLoading && pinnedMessage != null,
                 pinnedMessage = pinnedMessage,
@@ -196,6 +207,7 @@ fun MessagesHistoryScreen(
                 onBack = onBack,
                 onClose = onClose,
                 onDeleteSelectedButtonClicked = onDeleteSelectedButtonClicked,
+                onEditSelectedMessageClicked = onEditSelectedMessageClicked,
                 onRefresh = onRefresh,
                 onPinnedMessageClicked = onPinnedMessageClicked,
                 onUnpinMessageButtonClicked = onUnpinMessageButtonClicked
@@ -211,6 +223,7 @@ fun MessagesHistoryScreen(
         ) {
             MessagesList(
                 modifier = Modifier.align(Alignment.BottomStart),
+                screenState = screenState,
                 hazeState = hazeState,
                 listState = listState,
                 hasPinnedMessage = pinnedMessage != null,
@@ -259,12 +272,13 @@ fun MessagesHistoryScreen(
                 actionMode = screenState.actionMode,
                 replyTitle = screenState.replyTitle,
                 replyText = screenState.replyText,
-                inputFieldFocusRequester = inputFieldFocusRequester,
+                showKeyboard = showKeyboard,
                 onSetMessageBarHeight = { messageBarHeight = it },
                 onEmojiButtonLongClicked = onEmojiButtonLongClicked,
                 onAttachmentButtonClicked = onAttachmentButtonClicked,
                 onActionButtonClicked = onActionButtonClicked,
-                onReplyCloseClicked = onReplyCloseClicked
+                onReplyCloseClicked = onReplyCloseClicked,
+                onKeyboardShown = onKeyboardShown
             )
 
             when {

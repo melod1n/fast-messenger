@@ -1,9 +1,10 @@
 import com.android.build.api.dsl.LibraryExtension
 import dev.meloda.fast.configureAndroidCompose
+import dev.meloda.fast.getVersionInt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.configure
 
 class AndroidLibraryComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -12,9 +13,14 @@ class AndroidLibraryComposeConventionPlugin : Plugin<Project> {
             apply(plugin = "org.jetbrains.kotlin.plugin.compose")
             apply(plugin = "com.github.skydoves.compose.stability.analyzer")
 
-            val extension = extensions.getByType<LibraryExtension>()
-            extension.androidResources.enable = false
-            configureAndroidCompose(extension)
+            extensions.configure<LibraryExtension> {
+                configureAndroidCompose(this)
+                androidResources.enable = false
+                defaultConfig {
+                    minSdk = getVersionInt("minSdk")
+                    compileSdk = getVersionInt("compileSdk")
+                }
+            }
         }
     }
 }

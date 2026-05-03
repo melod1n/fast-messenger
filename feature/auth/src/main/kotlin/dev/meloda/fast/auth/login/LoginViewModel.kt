@@ -59,17 +59,11 @@ class LoginViewModel(
     private val _validationArguments = MutableStateFlow<LoginValidationArguments?>(null)
     val validationArguments = _validationArguments.asStateFlow()
 
-    private val _captchaArguments = MutableStateFlow<CaptchaArguments?>(null)
-    val captchaArguments = _captchaArguments.asStateFlow()
-
     private val _userBannedArguments = MutableStateFlow<LoginUserBannedArguments?>(null)
     val userBannedArguments = _userBannedArguments.asStateFlow()
 
     private val _isNeedToOpenMain = MutableStateFlow(false)
     val isNeedToOpenMain = _isNeedToOpenMain.asStateFlow()
-
-    private val _isNeedToClearCaptchaCode = MutableStateFlow(false)
-    val isNeedToClearCaptchaCode = _isNeedToClearCaptchaCode.asStateFlow()
 
     private val _isNeedToClearValidationCode = MutableStateFlow(false)
     val isNeedToClearValidationCode = _isNeedToClearValidationCode.asStateFlow()
@@ -78,17 +72,10 @@ class LoginViewModel(
         screenState.map(loginValidator::validate)
             .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(LoginValidationResult.Empty))
 
-    private val captchaSid = MutableStateFlow<String?>(null)
-    private val captchaCode = MutableStateFlow<String?>(null)
     private val validationSid = MutableStateFlow<String?>(null)
     private val validationCode = MutableStateFlow<String?>(null)
 
     init {
-        captchaCode.listenValue(viewModelScope) {
-            if (it != null) {
-                login()
-            }
-        }
         validationCode.listenValue(viewModelScope) {
             if (it != null) {
                 login()
@@ -165,10 +152,6 @@ class LoginViewModel(
         _userBannedArguments.update { null }
     }
 
-    fun onNavigatedToCaptcha() {
-        _captchaArguments.update { null }
-    }
-
     fun onNavigatedToValidation() {
         _validationArguments.update { null }
     }
@@ -181,24 +164,8 @@ class LoginViewModel(
         _isNeedToClearValidationCode.update { false }
     }
 
-    fun onCaptchaCodeReceived(code: String?) {
-        captchaCode.update { code }
-    }
-
-    fun onCaptchaCodeCleared() {
-        _isNeedToClearCaptchaCode.update { false }
-    }
-
     private fun login(forceSms: Boolean = false) {
         val currentState = screenState.value.copy()
-
-        Log.d(
-            "LoginViewModel",
-            "auth: login: ${currentState.login}; " +
-                    "password: ${currentState.password}; " +
-                    "2fa code: ${validationCode.value}; " +
-                    "captcha code: ${captchaCode.value}"
-        )
 
         processValidation()
         if (!validationState.value.contains(LoginValidationResult.Valid)) return
@@ -207,23 +174,18 @@ class LoginViewModel(
 
         val currentValidationSid = validationSid.value
         val currentValidationCode = validationCode.value?.takeIf { currentValidationSid != null }
-        val currentCaptchaSid = captchaSid.value
-        val currentCaptchaCode = captchaCode.value?.takeIf { currentCaptchaSid != null }
 
         oAuthUseCase.getSilentToken(
             login = currentState.login,
             password = currentState.password,
             forceSms = forceSms,
             validationCode = currentValidationCode,
-            captchaSid = currentCaptchaSid,
-            captchaKey = currentCaptchaCode
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
                     Log.d("LoginViewModelImpl", "login: error: $error")
 
                     _screenState.updateValue { copy(isLoading = false) }
-                    captchaSid.setValue { null }
 
                     parseError(error)
                 },
@@ -286,7 +248,6 @@ class LoginViewModel(
 
                         startLongPoll()
 
-                        captchaSid.update { null }
                         validationSid.update { null }
 
                         loadUserByIdUseCase(
@@ -333,11 +294,8 @@ class LoginViewModel(
 
                     is OAuthErrorDomain.CaptchaRequiredError -> {
                         val arguments = CaptchaArguments(
-                            captchaSid = error.captchaSid,
-                            captchaImageUrl = error.captchaImageUrl
+                            redirectUri = error.redirectUri
                         )
-                        _captchaArguments.update { arguments }
-                        captchaSid.update { error.captchaSid }
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
