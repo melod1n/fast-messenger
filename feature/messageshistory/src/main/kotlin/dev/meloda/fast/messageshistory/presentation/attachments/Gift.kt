@@ -21,25 +21,24 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import dev.meloda.fast.model.api.domain.VkGiftDomain
 import dev.meloda.fast.ui.R
 
 @Composable
 fun Gift(
     modifier: Modifier = Modifier,
-    item: VkGiftDomain
+    url: String
 ) {
     Column(
-        modifier = modifier.width(192.dp),
+        modifier = modifier
+            .width(208.dp)
+            .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         AsyncImage(
-            model = item.getDefaultThumbSizeOrLess(),
+            model = url,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
+            modifier = Modifier.size(192.dp)
         )
 
         Row(

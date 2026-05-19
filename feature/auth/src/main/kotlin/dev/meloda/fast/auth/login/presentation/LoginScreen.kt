@@ -31,9 +31,13 @@ import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
@@ -58,7 +62,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.meloda.fast.auth.login.LoginViewModel
-import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
@@ -67,6 +70,8 @@ import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.common.LocalSizeConfig
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
+import dev.meloda.fast.ui.theme.AppTheme
+import dev.meloda.fast.ui.theme.ClassicColorScheme
 import dev.meloda.fast.ui.util.handleEnterKey
 import dev.meloda.fast.ui.util.handleTabKey
 import org.koin.androidx.compose.koinViewModel
@@ -114,17 +119,27 @@ fun LoginRoute(
         viewModel.onValidationCodeReceived(validationCode)
     }
 
-    LoginScreen(
-        screenState = screenState,
-        onLoginInputChanged = viewModel::onLoginInputChanged,
-        onPasswordInputChanged = viewModel::onPasswordInputChanged,
-        onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
-        onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
-        onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
-        onSignInButtonClicked = viewModel::onSignInButtonClicked,
-        onLogoClicked = viewModel::onLogoClicked,
-        onLogoLongClicked = onNavigateToSettings
-    )
+    var useClassic by rememberSaveable { mutableStateOf(true) }
+
+    AppTheme(
+        predefinedColorScheme = if (useClassic) ClassicColorScheme.lightScheme
+        else lightColorScheme(),
+    ) {
+        LoginScreen(
+            screenState = screenState,
+            onLoginInputChanged = viewModel::onLoginInputChanged,
+            onPasswordInputChanged = viewModel::onPasswordInputChanged,
+            onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
+            onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+            onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
+            onSignInButtonClicked = viewModel::onSignInButtonClicked,
+            onLogoClicked = {
+                viewModel.onLogoClicked()
+                useClassic = !useClassic
+            },
+            onLogoLongClicked = onNavigateToSettings
+        )
+    }
 
     HandleDialogs(
         loginDialog = loginDialog,

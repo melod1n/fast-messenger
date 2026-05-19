@@ -100,7 +100,13 @@ class LoginViewModel(
     }
 
     fun onBackPressed() {
-        _screenState.setValue { old -> old.copy(showLogo = true) }
+        _screenState.setValue { old ->
+            old.copy(
+                showLogo = true,
+                loginError = false,
+                passwordError = false
+            )
+        }
     }
 
     fun onPasswordVisibilityButtonClicked() {

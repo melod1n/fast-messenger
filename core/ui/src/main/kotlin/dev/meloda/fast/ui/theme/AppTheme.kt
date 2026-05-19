@@ -58,7 +58,7 @@ fun AppTheme(
 ) {
     val context = LocalContext.current
 
-    val colorScheme: ColorScheme = when {
+    val colorScheme: ColorScheme = predefinedColorScheme ?: when {
         useDynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (useDarkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
@@ -81,10 +81,6 @@ fun AppTheme(
             scheme
         }
     }
-
-    val colorPrimary by animateColorAsState(colorScheme.primary)
-    val colorSurface by animateColorAsState(colorScheme.surface)
-    val colorBackground by animateColorAsState(colorScheme.background)
 
     val typography = if (useSystemFont) {
         MaterialTheme.typography
@@ -118,12 +114,7 @@ fun AppTheme(
     }
 
     MaterialExpressiveTheme(
-        colorScheme = (predefinedColorScheme ?: colorScheme)
-            .copy(
-                primary = colorPrimary,
-                background = colorBackground,
-                surface = colorSurface
-            ),
+        colorScheme = colorScheme,
         typography = typography,
         content = content
     )

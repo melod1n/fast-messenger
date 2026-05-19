@@ -119,12 +119,15 @@ fun Attachments(
 
                 AttachmentType.STICKER -> {
                     Sticker(
-                        item = attachment as VkStickerDomain
+                        url = (attachment as VkStickerDomain).getUrl(
+                            width = 256,
+                            withBackground = false
+                        )
                     )
                 }
 
                 AttachmentType.GIFT -> {
-                    Gift(item = attachment as VkGiftDomain)
+                    Gift(url = (attachment as VkGiftDomain).getDefaultThumbSizeOrLess())
                 }
 
                 AttachmentType.VIDEO_MESSAGE -> {

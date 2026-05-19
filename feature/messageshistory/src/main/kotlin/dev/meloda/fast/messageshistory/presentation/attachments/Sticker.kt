@@ -10,27 +10,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import dev.meloda.fast.model.api.domain.VkStickerDomain
 
 @Composable
 fun Sticker(
     modifier: Modifier = Modifier,
-    item: VkStickerDomain
+    url: String?
 ) {
     Box(
-        modifier = modifier.size(192.dp),
+        modifier = modifier
+            .size(208.dp)
+            .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(
-            model = item.getUrl(
-                width = 256,
-                withBackground = false
-            ),
+            model = url,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
