@@ -14,7 +14,7 @@ kotlin = "2.3.21"
 ksp = "2.3.7"
 moduleGraph = "2.9.1"
 versions = "0.54.0"
-stability-analyzer = "0.7.4"
+stability-analyzer = "0.7.5"
 
 compose-bom = "2026.04.01"
 koin = "4.2.1"

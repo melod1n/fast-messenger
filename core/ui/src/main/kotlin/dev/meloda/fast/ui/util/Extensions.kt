@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -113,11 +114,12 @@ fun LazyListState.isScrollingUp(): Boolean {
 @Composable
 fun isNeedToEnableDarkMode(darkMode: DarkMode): Boolean {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
 
     val appForceDarkMode = darkMode == DarkMode.ENABLED
     val appBatterySaver = darkMode == DarkMode.AUTO_BATTERY
 
-    val systemUiNightMode = context.resources.configuration.uiMode
+    val systemUiNightMode = configuration.uiMode
 
     val isSystemBatterySaver = context.getSystemService<PowerManager>()?.isPowerSaveMode == true
     val isSystemUsingDarkTheme =

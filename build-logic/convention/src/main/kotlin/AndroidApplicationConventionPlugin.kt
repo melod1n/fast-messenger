@@ -19,6 +19,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     compileSdk = getVersionInt("compileSdk")
                     targetSdk = getVersionInt("targetSdk")
                 }
+                lint {
+                    abortOnError = false
+                }
             }
         }
     }

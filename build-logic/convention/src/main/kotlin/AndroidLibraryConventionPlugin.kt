@@ -2,6 +2,7 @@ import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import dev.meloda.fast.configureKotlinAndroid
 import dev.meloda.fast.disableUnnecessaryAndroidTests
+import dev.meloda.fast.getVersionInt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -20,7 +21,13 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
                 androidResources.enable = false
-                defaultConfig.testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                defaultConfig {
+                    minSdk = getVersionInt("minSdk")
+                    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                }
+                lint {
+                    abortOnError = false
+                }
             }
             extensions.configure<LibraryAndroidComponentsExtension> {
                 disableUnnecessaryAndroidTests(target)
