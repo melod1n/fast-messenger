@@ -1,36 +1,56 @@
 name: Android CI
 
 on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+  RELEASE_SIGN_KEY_ALIAS: ${{ secrets.RELEASE_SIGN_KEY_ALIAS }}
+  RELEASE_SIGN_KEY_PASSWORD: ${{ secrets.RELEASE_SIGN_KEY_PASSWORD }}
 
 jobs:
   android:
-    runs-on: android-kmp
+    runs-on: android-jdk21
+    name: Build artifacts
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.konan
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+      - name: Build and sign release APK
+        run: ./gradlew assembleRelease
 
-      - name: Build and test
+      - name: Find generated release APK name
+        id: find_apk_release
         run: |
-          ./gradlew \
-            check \
-            assembleDebug \
-            --no-daemon \
-            --max-workers=2 \
-            -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          echo "APK_PATH=$APK_PATH" >> $GITEA_ENV
+          echo "APK_NAME=$(basename $APK_PATH)" >> $GITEA_ENV
+
+      - name: Upload APK with original name
+        uses: christopherhx/gitea-upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_PATH }}
+
+      - name: Build and sign debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Find generated debug APK name
+        id: find_apk_debug
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          echo "APK_PATH=$APK_PATH" >> $GITEA_ENV
+          echo "APK_NAME=$(basename $APK_PATH)" >> $GITEA_ENV
+
+      - name: Upload APK with original name
+        uses: christopherhx/gitea-upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_PATH }}
