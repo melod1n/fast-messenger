@@ -43,6 +43,7 @@ Unofficial messenger for russian social network VKontakte
             - [ ] Forwarded messages
             - [ ] Wall post
             - [ ] Comment in wall post
+            - [ ] Comment in channel
             - [ ] Poll
             - [ ] TODO
     - [x] Send messages
