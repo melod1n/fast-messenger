@@ -43,10 +43,11 @@ android {
 
     buildTypes {
         named("debug") {
+            signingConfig = signingConfigs.getByName("debugSigning")
             applicationIdSuffix = ".debug"
         }
         named("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debugSigning")
 
             isMinifyEnabled = true
             isShrinkResources = true
