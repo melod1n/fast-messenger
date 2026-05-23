@@ -79,9 +79,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.acra.email)
-    implementation(libs.acra.dialog)
-
     implementation(projects.feature.auth)
 
     implementation(projects.feature.chatmaterials)

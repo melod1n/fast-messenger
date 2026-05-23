@@ -306,4 +306,7 @@
     <string name="confirm_chat_create_empty_with_title">Are you sure you want to create chat «%s» only with yourself?</string>
 
     <string name="title_edit_message">Edit message</string>
+    <string name="action_close">Close</string>
+    <string name="action_hide_stacktrace">Hide stacktrace</string>
+    <string name="action_show_stacktrace">Show stacktrace</string>
 </resources>

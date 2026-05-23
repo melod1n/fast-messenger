@@ -1,6 +1,8 @@
 package dev.meloda.fast.common
 
 import android.app.Application
+import android.content.Intent
+import android.net.Uri
 import androidx.preference.PreferenceManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -8,14 +10,14 @@ import com.skydoves.compose.stability.runtime.ComposeStabilityAnalyzer
 import dev.meloda.fast.auth.BuildConfig
 import dev.meloda.fast.common.di.applicationModule
 import dev.meloda.fast.datastore.AppSettings
-import org.acra.config.dialog
-import org.acra.config.mailSender
-import org.acra.data.StringFormat
-import org.acra.ktx.initAcra
+import dev.meloda.fast.presentation.CrashActivity
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
+import java.io.File
+import java.io.FileOutputStream
+import kotlin.system.exitProcess
 
 class AppGlobal : Application(), ImageLoaderFactory {
 
@@ -27,7 +29,7 @@ class AppGlobal : Application(), ImageLoaderFactory {
         ComposeStabilityAnalyzer.setEnabled(BuildConfig.DEBUG)
 
         initKoin()
-        initAcra()
+        initCrashHandler()
     }
 
     override fun newImageLoader(): ImageLoader = get()
@@ -40,20 +42,36 @@ class AppGlobal : Application(), ImageLoaderFactory {
         }
     }
 
-    private fun initAcra() {
-        initAcra {
-            buildConfigClass = BuildConfig::class.java
-            reportFormat = StringFormat.JSON
-
-            mailSender {
-                mailTo = "lischenkodev@gmail.com"
-                reportAsFile = true
-                reportFileName = "Crash.txt"
+    private fun initCrashHandler() {
+        val defaultExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            val crashLogsDirectory = File(filesDir.absolutePath + "/crashlogs")
+            if (!crashLogsDirectory.exists()) {
+                crashLogsDirectory.mkdirs()
             }
 
-            dialog {
-                text = "App crashed"
-                enabled = true
+            val crashLogFileName = "crash_" + System.currentTimeMillis() + ".txt"
+            val crashLogFile = File(crashLogsDirectory.absolutePath + "/" + crashLogFileName)
+
+            FileOutputStream(crashLogFile).use { stream ->
+                stream.write(throwable.stackTraceToString().toByteArray())
+            }
+
+            if (AppSettings.Debug.showAlertAfterCrash) {
+                try {
+                    val intent = Intent(this, CrashActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    intent.putExtra("CRASH_LOG_FILE_URI", Uri.fromFile(crashLogFile))
+                    startActivity(intent)
+
+                    exitProcess(0)
+                } catch (e: Exception) {
+                    if (e !is RuntimeException) {
+                        defaultExceptionHandler?.uncaughtException(thread, throwable)
+                    }
+                }
+            } else {
+                defaultExceptionHandler?.uncaughtException(thread, throwable)
             }
         }
     }
