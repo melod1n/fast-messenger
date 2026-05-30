@@ -21,12 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,8 +34,6 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.settings.model.HapticType
 import dev.meloda.fast.settings.model.SettingsIntent
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.UiItem
@@ -58,10 +54,7 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 fun SettingsScreen(
     handleIntent: (SettingsIntent) -> Unit,
     screenState: SettingsScreenState = SettingsScreenState.EMPTY,
-    hapticType: HapticType?
 ) {
-    val view = LocalView.current
-
     val onSettingsItemClicked by rememberUpdatedState { key: String ->
         handleIntent(SettingsIntent.ItemClick(key))
     }
@@ -72,15 +65,6 @@ fun SettingsScreen(
 
     val onSettingsItemValueChanged by rememberUpdatedState { key: String, newValue: Any? ->
         handleIntent(SettingsIntent.ItemValueChanged(key, newValue))
-    }
-
-    LaunchedEffect(hapticType) {
-        if (hapticType != null) {
-            if (AppSettings.General.enableHaptic) {
-                view.performHapticFeedback(hapticType.getHaptic())
-            }
-            handleIntent(SettingsIntent.ConsumePerformHaptic)
-        }
     }
 
     val themeConfig = LocalThemeConfig.current

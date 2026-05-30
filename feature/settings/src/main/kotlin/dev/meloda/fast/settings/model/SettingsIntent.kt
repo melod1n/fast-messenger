@@ -9,8 +9,6 @@ sealed class SettingsIntent {
     data class ItemLongClick(val key: String) : SettingsIntent()
     data class ItemValueChanged(val key: String, val newValue: Any?) : SettingsIntent()
 
-    data object ConsumePerformHaptic : SettingsIntent()
-
     sealed class Dialog : SettingsIntent() {
         data object Dismiss : Dialog()
         data class ConfirmClick(val bundle: Bundle? = null) : Dialog()

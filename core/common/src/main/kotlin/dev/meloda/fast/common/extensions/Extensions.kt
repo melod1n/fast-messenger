@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -45,6 +47,12 @@ fun <T> MutableList<T>.removeIfCompat(condition: (T) -> Boolean): Boolean {
 context(viewModel: ViewModel)
 fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit): Job =
     listenValue(viewModel.viewModelScope, action)
+
+context(viewModel: ViewModel)
+fun <T> MutableSharedFlow<T>.emitOnMain(value: T) {
+    val flow = this
+    viewModel.viewModelScope.launch { flow.emit(value) }
+}
 
 fun <T> Flow<T>.listenValue(
     coroutineScope: CoroutineScope,

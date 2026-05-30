@@ -29,6 +29,7 @@ import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.settings.model.HapticType
 import dev.meloda.fast.settings.model.SettingsDialog
+import dev.meloda.fast.settings.model.SettingsEffect
 import dev.meloda.fast.settings.model.SettingsIntent
 import dev.meloda.fast.settings.model.SettingsItem
 import dev.meloda.fast.settings.model.SettingsNavigationIntent
@@ -36,11 +37,10 @@ import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.TextProvider
 import dev.meloda.fast.ui.R
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
@@ -56,11 +56,8 @@ class SettingsViewModel(
     private val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
     val screenStateFlow get() = screenState.asStateFlow()
 
-    private val hapticType = MutableStateFlow<HapticType?>(null)
-    val hapticTypeFlow get() = hapticType.asStateFlow()
-
-    private val navigationIntent = MutableStateFlow<SettingsNavigationIntent?>(null)
-    val navigationIntentFlow get() = navigationIntent.asStateFlow()
+    private val screenEffect = MutableSharedFlow<SettingsEffect>(extraBufferCapacity = 1)
+    val screenEffectFlow = screenEffect.asSharedFlow()
 
     private val settings = mutableListOf<SettingsItem<*>>()
     private var showDebugCategory: Boolean = userSettings.showDebugCategory.value
@@ -72,11 +69,7 @@ class SettingsViewModel(
     fun handleIntent(intent: SettingsIntent) {
         when (intent) {
             SettingsIntent.BackClick -> {
-                navigationIntent.setValue { SettingsNavigationIntent.Back }
-            }
-
-            SettingsIntent.ConsumePerformHaptic -> {
-                hapticType.setValue { null }
+                screenEffect.tryEmit(SettingsEffect.Navigate(SettingsNavigationIntent.Back))
             }
 
             is SettingsIntent.ItemClick -> {
@@ -148,7 +141,10 @@ class SettingsViewModel(
                                 UserConfig.accessToken = oldToken
                             },
                             success = { user ->
-                                if (user == null) return@listenValue
+                                if (user == null) {
+                                    UserConfig.accessToken = oldToken
+                                    return@listenValue
+                                }
 
                                 UserConfig.currentUserId = user.id
 
@@ -169,7 +165,9 @@ class SettingsViewModel(
 
                                 accountsRepository.storeAccounts(listOf(account))
 
-                                navigationIntent.setValue { SettingsNavigationIntent.Restart }
+                                screenEffect.tryEmit(
+                                    SettingsEffect.Navigate(SettingsNavigationIntent.Restart)
+                                )
                             }
                         )
                     }
@@ -204,26 +202,21 @@ class SettingsViewModel(
 
     private fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
-            val tasks = listOf(
-                async {
-                    accountsRepository.storeAccounts(
-                        listOf(
-                            AccountEntity(
-                                userId = UserConfig.userId,
-                                accessToken = "",
-                                fastToken = UserConfig.fastToken,
-                                trustedHash = UserConfig.trustedHash,
-                                exchangeToken = null
-                            )
-                        )
+            accountsRepository.storeAccounts(
+                listOf(
+                    AccountEntity(
+                        userId = UserConfig.userId,
+                        accessToken = "",
+                        fastToken = UserConfig.fastToken,
+                        trustedHash = UserConfig.trustedHash,
+                        exchangeToken = null
                     )
-                },
-                async { UserConfig.clear() }
+                )
             )
 
-            tasks.awaitAll()
+            UserConfig.clear()
 
-            navigationIntent.setValue { SettingsNavigationIntent.LogOut }
+            screenEffect.tryEmit(SettingsEffect.Navigate(SettingsNavigationIntent.LogOut))
         }
     }
 
@@ -263,7 +256,7 @@ class SettingsViewModel(
 
                 createSettings()
 
-                hapticType.update { HapticType.REJECT }
+                screenEffect.tryEmit(SettingsEffect.PerformHaptic(HapticType.REJECT))
                 showDebugCategory = false
             }
         }
@@ -279,7 +272,7 @@ class SettingsViewModel(
 
                 createSettings()
 
-                hapticType.update { HapticType.LONG_PRESS }
+                screenEffect.tryEmit(SettingsEffect.PerformHaptic(HapticType.LONG_PRESS))
                 showDebugCategory = true
             }
         }
