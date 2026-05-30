@@ -19,12 +19,12 @@ fun ConvosRoute(
     onNavigateToArchive: (() -> Unit)? = null,
     onScrolledToTop: () -> Unit,
 ) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val navigationEvent by viewModel.navigation.collectAsStateWithLifecycle()
-    val convos by viewModel.uiConvos.collectAsStateWithLifecycle()
-    val dialog by viewModel.dialog.collectAsStateWithLifecycle()
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
+    val screenState by viewModel.screenStateFlow.collectAsStateWithLifecycle()
+    val navigationEvent by viewModel.navigationFlow.collectAsStateWithLifecycle()
+    val convos by viewModel.uiConvosFlow.collectAsStateWithLifecycle()
+    val dialog by viewModel.dialogFlow.collectAsStateWithLifecycle()
+    val baseError by viewModel.baseErrorFlow.collectAsStateWithLifecycle()
+    val canPaginate by viewModel.canPaginateFlow.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigationEvent) {
         val shouldBeConsumed: Boolean = when (val navigation = navigationEvent) {
