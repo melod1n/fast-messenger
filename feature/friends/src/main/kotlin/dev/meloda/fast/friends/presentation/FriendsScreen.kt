@@ -38,6 +38,7 @@ import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +48,6 @@ fun FriendsScreen(
     orderType: String,
     padding: PaddingValues,
     tabIndex: Int,
-    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
     onMessageClicked: (userid: Long) -> Unit = {},
     setCanScrollBackward: (Boolean) -> Unit = {},
@@ -100,13 +100,13 @@ fun FriendsScreen(
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
-            .debounce(250L)
+            .debounce(250L.milliseconds)
             .collectLatest(viewModel::setScrollIndex)
     }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
-            .debounce(250L)
+            .debounce(250L.milliseconds)
             .collectLatest(viewModel::setScrollOffset)
     }
 

@@ -9,12 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
@@ -34,7 +33,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,11 +45,14 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
+import dev.meloda.fast.ui.components.SegmentedButtonItem
+import dev.meloda.fast.ui.components.SegmentedButtonsRow
 import dev.meloda.fast.ui.components.SelectionType
 import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.buildImmutableList
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
@@ -189,16 +190,24 @@ fun FriendsRoute(
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     actions = {
-                        IconButton(
-                            onClick = {
-                                showOrderDialog = true
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_filter_list_round_24),
-                                contentDescription = null
+                        val items = buildImmutableList {
+                            add(
+                                SegmentedButtonItem(
+                                    "filter",
+                                    R.drawable.ic_filter_list_round_24
+                                )
                             )
                         }
+
+                        SegmentedButtonsRow(
+                            modifier = Modifier.padding(end = 8.dp),
+                            items = items,
+                            onClick = { index ->
+                                when (items[index].key) {
+                                    "filter" -> showOrderDialog = true
+                                }
+                            }
+                        )
                     }
                 )
                 PrimaryTabRow(
@@ -234,7 +243,6 @@ fun FriendsRoute(
                 orderType = orderType,
                 padding = padding,
                 tabIndex = index,
-                onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
                 onPhotoClicked = onPhotoClicked,
                 onMessageClicked = onMessageClicked,
                 setCanScrollBackward = { canScrollBackward = it },
