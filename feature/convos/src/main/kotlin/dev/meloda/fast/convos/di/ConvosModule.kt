@@ -25,7 +25,7 @@ val convosModule = module {
 private fun Scope.createConvosViewModel(filter: ConvosFilter): ConvosViewModel {
     return ConvosViewModel(
         filter = filter,
-        updatesParser = get(),
+        eventsHandler = get(),
         convoUseCase = get(),
         messagesUseCase = get(),
         resources = get(),

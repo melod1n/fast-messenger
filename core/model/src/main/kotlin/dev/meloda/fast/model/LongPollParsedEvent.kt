@@ -5,7 +5,7 @@ import dev.meloda.fast.model.api.domain.VkMessage
 
 sealed interface LongPollParsedEvent {
 
-    data class NewMessage(
+    data class MessageNew(
         val message: VkMessage,
         val inArchive: Boolean
     ) : LongPollParsedEvent

@@ -27,7 +27,7 @@ import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConvoUseCase
 import dev.meloda.fast.domain.LoadConvosByIdUseCase
-import dev.meloda.fast.domain.LongPollUpdatesParser
+import dev.meloda.fast.domain.LongPollEventsHandler
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.domain.util.extractAvatar
@@ -46,7 +46,7 @@ import kotlinx.coroutines.flow.launchIn
 
 @Immutable
 class ConvosViewModel(
-    updatesParser: LongPollUpdatesParser,
+    eventsHandler: LongPollEventsHandler,
     val filter: ConvosFilter,
     private val convoUseCase: ConvoUseCase,
     private val messagesUseCase: MessagesUseCase,
@@ -74,15 +74,15 @@ class ConvosViewModel(
     init {
         loadConvos()
 
-        updatesParser.onNewMessage(::handleNewMessage)
-        updatesParser.onMessageEdited(::handleEditedMessage)
-        updatesParser.onMessageIncomingRead(::handleReadIncomingMessage)
-        updatesParser.onMessageOutgoingRead(::handleReadOutgoingMessage)
-        updatesParser.onInteractions(::handleInteraction)
-        updatesParser.onChatMajorChanged(::handleChatMajorChanged)
-        updatesParser.onChatMinorChanged(::handleChatMinorChanged)
-        updatesParser.onChatCleared(::handleChatClearing)
-        updatesParser.onChatArchived(::handleChatArchived)
+        eventsHandler.onMessageNew(::handleNewMessage)
+        eventsHandler.onMessageEdit(::handleEditedMessage)
+        eventsHandler.onMessageIncomingRead(::handleReadIncomingMessage)
+        eventsHandler.onMessageOutgoingRead(::handleReadOutgoingMessage)
+        eventsHandler.onInteraction(::handleInteraction)
+        eventsHandler.onChatMajorChange(::handleChatMajorChanged)
+        eventsHandler.onChatMinorChange(::handleChatMinorChanged)
+        eventsHandler.onChatClear(::handleChatClearing)
+        eventsHandler.onChatArchive(::handleChatArchived)
 
         userSettings.useContactNames.listenValue(viewModelScope) {
             syncUiConvos()
@@ -382,7 +382,7 @@ class ConvosViewModel(
     }
 
     // TODO: 03-Apr-25, Danil Nikolaev: handle business messages
-    private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
+    private fun handleNewMessage(event: LongPollParsedEvent.MessageNew) {
         val message = event.message
 
         val newConvos = convos.toMutableList()

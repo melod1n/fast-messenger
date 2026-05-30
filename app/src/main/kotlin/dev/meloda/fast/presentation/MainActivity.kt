@@ -23,11 +23,13 @@ import dev.meloda.fast.MainViewModel
 import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.LongPollEventsHandler
 import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.service.OnlineService
 import dev.meloda.fast.service.longpolling.LongPollingService
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.common.LocalLogger
+import org.koin.android.ext.android.get
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -181,6 +183,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopServices()
+        get<LongPollEventsHandler>().onDestroy()
     }
 
     companion object {

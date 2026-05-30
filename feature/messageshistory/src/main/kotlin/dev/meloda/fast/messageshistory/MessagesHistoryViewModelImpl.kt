@@ -39,7 +39,7 @@ import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConvoUseCase
 import dev.meloda.fast.domain.GetMessageReadPeersUseCase
 import dev.meloda.fast.domain.LoadConvosByIdUseCase
-import dev.meloda.fast.domain.LongPollUpdatesParser
+import dev.meloda.fast.domain.LongPollEventsHandler
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.domain.util.extractAvatar
@@ -84,7 +84,7 @@ class MessagesHistoryViewModelImpl(
     private val userSettings: UserSettings,
     private val loadConvosByIdUseCase: LoadConvosByIdUseCase,
     private val getMessageReadPeersUseCase: GetMessageReadPeersUseCase,
-    updatesParser: LongPollUpdatesParser,
+    eventsHandler: LongPollEventsHandler,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
 
@@ -124,15 +124,15 @@ class MessagesHistoryViewModelImpl(
         loadConvo()
         loadMessagesHistory()
 
-        updatesParser.onNewMessage(::handleNewMessage)
-        updatesParser.onMessageEdited(::handleEditedMessage)
-        updatesParser.onMessageIncomingRead(::handleReadIncomingEvent)
-        updatesParser.onMessageOutgoingRead(::handleReadOutgoingEvent)
-        updatesParser.onMessageDeleted(::handleMessageDeleted)
-        updatesParser.onMessageRestored(::handleMessageRestored)
-        updatesParser.onMessageMarkedAsImportant(::handleMessageMarkedAsImportant)
-        updatesParser.onMessageMarkedAsSpam(::handleMessageMarkedAsSpam)
-        updatesParser.onMessageMarkedAsNotSpam(::handleMessageMarkedAsNotSpam)
+        eventsHandler.onMessageNew(::handleNewMessage)
+        eventsHandler.onMessageEdit(::handleEditedMessage)
+        eventsHandler.onMessageIncomingRead(::handleReadIncomingEvent)
+        eventsHandler.onMessageOutgoingRead(::handleReadOutgoingEvent)
+        eventsHandler.onMessageDelete(::handleMessageDeleted)
+        eventsHandler.onMessageRestore(::handleMessageRestored)
+        eventsHandler.onMessageMarkAsImportant(::handleMessageMarkedAsImportant)
+        eventsHandler.onMessageMarkAsSpam(::handleMessageMarkedAsSpam)
+        eventsHandler.onMessageMarkAsNotSpam(::handleMessageMarkedAsNotSpam)
     }
 
     override fun onNavigationConsumed() {
@@ -681,7 +681,7 @@ class MessagesHistoryViewModelImpl(
             }
         }
 
-    private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
+    private fun handleNewMessage(event: LongPollParsedEvent.MessageNew) {
         val message = event.message
 
         if (message.peerId != screenState.value.convoId) return

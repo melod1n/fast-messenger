@@ -11,7 +11,6 @@ import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.ApiEvent
 import dev.meloda.fast.model.ConvoFlags
 import dev.meloda.fast.model.InteractionType
-import dev.meloda.fast.model.LongPollEvent
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.MessageFlags
 import dev.meloda.fast.model.api.domain.VkConvo
@@ -42,9 +41,6 @@ class LongPollUpdatesParser(
         get() = Dispatchers.Default + job + exceptionHandler
 
     private val coroutineScope = CoroutineScope(coroutineContext)
-
-    private val listenersMap: MutableMap<LongPollEvent, MutableList<VkEventCallback<LongPollParsedEvent>>> =
-        mutableMapOf()
 
     suspend fun parseNextUpdate(event: List<Any>): List<LongPollParsedEvent> {
         val eventId = event.first().asInt()
@@ -101,9 +97,6 @@ class LongPollUpdatesParser(
                         marked = true
                     )
                     eventsToSend += eventToSend
-
-                    listenersMap[LongPollEvent.MARKED_AS_IMPORTANT]
-                        ?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.SPAM -> {
@@ -112,7 +105,6 @@ class LongPollUpdatesParser(
                         cmId = cmId
                     )
                     eventsToSend += eventToSend
-                    listenersMap[LongPollEvent.MARKED_AS_SPAM]?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.DELETED -> {
@@ -131,7 +123,6 @@ class LongPollUpdatesParser(
                             )
                         }
                     eventsToSend += eventToSend
-                    listenersMap[LongPollEvent.MESSAGE_DELETED]?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.AUDIO_LISTENED -> {
@@ -140,9 +131,6 @@ class LongPollUpdatesParser(
                         cmId = cmId
                     )
                     eventsToSend += eventToSend
-
-                    listenersMap[LongPollEvent.AUDIO_MESSAGE_LISTENED]
-                        ?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.UNREAD -> Unit
@@ -153,14 +141,6 @@ class LongPollUpdatesParser(
                 MessageFlags.DO_NOT_SHOW_NOTIFICATION -> Unit
                 MessageFlags.MESSAGE_WITH_REPLY -> Unit
                 MessageFlags.REACTION -> Unit
-            }
-        }
-
-        eventsToSend.forEach { eventToSend ->
-            listenersMap[LongPollEvent.MESSAGE_SET_FLAGS]?.let { listeners ->
-                listeners.forEach { vkEventCallback ->
-                    vkEventCallback.onEvent(eventToSend)
-                }
             }
         }
 
@@ -193,9 +173,6 @@ class LongPollUpdatesParser(
                             marked = false
                         )
                         eventsToSend += eventToSend
-
-                        listenersMap[LongPollEvent.MARKED_AS_IMPORTANT]
-                            ?.forEach { it.onEvent(eventToSend) }
                     }
 
                     MessageFlags.SPAM -> {
@@ -204,9 +181,6 @@ class LongPollUpdatesParser(
                                 val eventToSend =
                                     LongPollParsedEvent.MessageMarkedAsNotSpam(message = message)
                                 eventsToSend += eventToSend
-
-                                listenersMap[LongPollEvent.MARKED_AS_NOT_SPAM]
-                                    ?.forEach { it.onEvent(eventToSend) }
                             }
                         }
                     }
@@ -216,9 +190,6 @@ class LongPollUpdatesParser(
                             val eventToSend =
                                 LongPollParsedEvent.MessageRestored(message = message)
                             eventsToSend += eventToSend
-
-                            listenersMap[LongPollEvent.MESSAGE_RESTORED]
-                                ?.forEach { it.onEvent(eventToSend) }
                         }
                     }
 
@@ -232,10 +203,6 @@ class LongPollUpdatesParser(
                     MessageFlags.MESSAGE_WITH_REPLY -> Unit
                     MessageFlags.REACTION -> Unit
                 }
-            }
-
-            listenersMap[LongPollEvent.MESSAGE_CLEAR_FLAGS]?.forEach { listener ->
-                eventsToSend.forEach { listener.onEvent(it) }
             }
 
             continuation.resume(eventsToSend)
@@ -264,7 +231,7 @@ class LongPollUpdatesParser(
                 }.await()
 
             if (message != null) {
-                val event = LongPollParsedEvent.NewMessage(
+                val event = LongPollParsedEvent.MessageNew(
                     message = message,
                     inArchive = convo?.isArchived == true
                     // TODO: 03-Apr-25, Danil Nikolaev:
@@ -272,7 +239,6 @@ class LongPollUpdatesParser(
                     // enabled notifications from archive
                 )
 
-                listenersMap[LongPollEvent.MESSAGE_NEW]?.forEach { it.onEvent(event) }
                 continuation.resume(listOf(event))
             } else {
                 continuation.resume(emptyList())
@@ -293,7 +259,6 @@ class LongPollUpdatesParser(
             val message = loadMessage(peerId = peerId, cmId = cmId)
             if (message != null) {
                 val event = LongPollParsedEvent.MessageEdited(message)
-                listenersMap[LongPollEvent.MESSAGE_EDITED]?.forEach { it.onEvent(event) }
                 continuation.resume(listOf(event))
             } else {
                 continuation.resume(emptyList())
@@ -316,7 +281,6 @@ class LongPollUpdatesParser(
             cmId = cmId,
             unreadCount = unreadCount
         )
-        listenersMap[LongPollEvent.INCOMING_MESSAGE_READ]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -336,7 +300,6 @@ class LongPollUpdatesParser(
             unreadCount = unreadCount
         )
 
-        listenersMap[LongPollEvent.OUTGOING_MESSAGE_READ]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -373,8 +336,6 @@ class LongPollUpdatesParser(
                             archived = false
                         )
                         eventsToSend += eventToSend
-
-                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.forEach { it.onEvent(eventToSend) }
                     }
 
                     ConvoFlags.DISABLE_PUSH -> Unit
@@ -390,10 +351,6 @@ class LongPollUpdatesParser(
                     ConvoFlags.MARKED_AS_UNREAD -> Unit
                     ConvoFlags.CALL_IN_PROGRESS -> Unit
                 }
-            }
-
-            listenersMap[LongPollEvent.CHAT_CLEAR_FLAGS]?.forEach { listener ->
-                eventsToSend.forEach { listener.onEvent(it) }
             }
 
             continuation.resume(eventsToSend)
@@ -433,8 +390,6 @@ class LongPollUpdatesParser(
                             archived = true
                         )
                         eventsToSend += eventToSend
-
-                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.forEach { it.onEvent(eventToSend) }
                     }
 
                     ConvoFlags.DISABLE_PUSH -> Unit
@@ -450,10 +405,6 @@ class LongPollUpdatesParser(
                     ConvoFlags.MARKED_AS_UNREAD -> Unit
                     ConvoFlags.CALL_IN_PROGRESS -> Unit
                 }
-            }
-
-            listenersMap[LongPollEvent.CHAT_SET_FLAGS]?.forEach { listener ->
-                eventsToSend.forEach { listener.onEvent(it) }
             }
 
             continuation.resume(eventsToSend)
@@ -473,7 +424,6 @@ class LongPollUpdatesParser(
             peerId = peerId,
             toCmId = cmId
         )
-        listenersMap[LongPollEvent.CHAT_CLEARED]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -490,7 +440,6 @@ class LongPollUpdatesParser(
             peerId = peerId,
             majorId = majorId,
         )
-        listenersMap[LongPollEvent.CHAT_MAJOR_CHANGED]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -507,7 +456,6 @@ class LongPollUpdatesParser(
             peerId = peerId,
             minorId = minorId,
         )
-        listenersMap[LongPollEvent.CHAT_MINOR_CHANGED]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -526,14 +474,6 @@ class LongPollUpdatesParser(
             else -> return emptyList()
         }
 
-        val longPollEvent: LongPollEvent = when (eventType) {
-            ApiEvent.TYPING -> LongPollEvent.TYPING
-            ApiEvent.AUDIO_MESSAGE_RECORDING -> LongPollEvent.AUDIO_MESSAGE_RECORDING
-            ApiEvent.PHOTO_UPLOADING -> LongPollEvent.PHOTO_UPLOADING
-            ApiEvent.VIDEO_UPLOADING -> LongPollEvent.VIDEO_UPLOADING
-            ApiEvent.FILE_UPLOADING -> LongPollEvent.FILE_UPLOADING
-        }
-
         val peerId = event[1].asLong()
         val userIds = event[2].toList(Any::asLong).filter { it != UserConfig.userId }
         val totalCount = event[3].asInt()
@@ -550,7 +490,6 @@ class LongPollUpdatesParser(
             timestamp = timestamp
         )
 
-        listenersMap[longPollEvent]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -577,7 +516,6 @@ class LongPollUpdatesParser(
             archiveUnmuted = archiveUnreadUnmutedCount,
             archiveMentions = archiveMentionsCount
         )
-        listenersMap[LongPollEvent.UNREAD_COUNTER_UPDATE]?.forEach { it.onEvent(event) }
         return listOf(event)
     }
 
@@ -595,7 +533,6 @@ class LongPollUpdatesParser(
 
             if (message != null) {
                 val event = LongPollParsedEvent.MessageUpdated(message)
-                listenersMap[LongPollEvent.MESSAGE_UPDATED]?.forEach { it.onEvent(event) }
                 continuation.resume(listOf(event))
             } else {
                 continuation.resume(emptyList())
@@ -615,7 +552,6 @@ class LongPollUpdatesParser(
             val message = loadMessage(messageId = messageId)
             if (message != null) {
                 val event = LongPollParsedEvent.MessageCacheClear(message)
-                listenersMap[LongPollEvent.MESSAGE_CACHE_CLEAR]?.forEach { it.onEvent(event) }
                 continuation.resume(listOf(event))
             } else {
                 continuation.resume(emptyList())
@@ -641,7 +577,10 @@ class LongPollUpdatesParser(
             ).listenValue(this) { state ->
                 state.processState(
                     error = { error ->
-                        logger.error(this@LongPollUpdatesParser::class, "loadMessage(): ERROR: $error")
+                        logger.error(
+                            this@LongPollUpdatesParser::class,
+                            "loadMessage(): ERROR: $error"
+                        )
                         continuation.resume(null)
                     },
                     success = { response ->
@@ -670,7 +609,10 @@ class LongPollUpdatesParser(
             ).listenValue(coroutineScope) { state ->
                 state.processState(
                     error = { error ->
-                        logger.error(this@LongPollUpdatesParser::class, "loadConvo(): ERROR: $error")
+                        logger.error(
+                            this@LongPollUpdatesParser::class,
+                            "loadConvo(): ERROR: $error"
+                        )
                         continuation.resume(null)
                     },
                     success = { response ->
@@ -685,107 +627,4 @@ class LongPollUpdatesParser(
             }
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <T : LongPollParsedEvent> registerListener(
-        eventType: LongPollEvent,
-        listener: VkEventCallback<T>
-    ) {
-        listenersMap.let { map ->
-            map[eventType] = (map[eventType] ?: mutableListOf())
-                .also {
-                    it.add(listener as VkEventCallback<LongPollParsedEvent>)
-                }
-        }
-    }
-
-    private fun <T : LongPollParsedEvent> registerListeners(
-        eventTypes: List<LongPollEvent>,
-        listener: VkEventCallback<T>
-    ) {
-        eventTypes.forEach { eventType -> registerListener(eventType, listener) }
-    }
-
-    fun onMessageSetFlags(block: (LongPollParsedEvent) -> Unit) {
-        registerListener(LongPollEvent.MESSAGE_SET_FLAGS, assembleEventCallback(block))
-    }
-
-    fun onMessageMarkedAsImportant(block: (LongPollParsedEvent.MessageMarkedAsImportant) -> Unit) {
-        registerListener(LongPollEvent.MARKED_AS_IMPORTANT, assembleEventCallback(block))
-    }
-
-    fun onMessageMarkedAsSpam(block: (LongPollParsedEvent.MessageMarkedAsSpam) -> Unit) {
-        registerListener(LongPollEvent.MARKED_AS_SPAM, assembleEventCallback(block))
-    }
-
-    fun onMessageDeleted(block: (LongPollParsedEvent.MessageDeleted) -> Unit) {
-        registerListener(LongPollEvent.MESSAGE_DELETED, assembleEventCallback(block))
-    }
-
-    fun onMessageClearFlags(block: (LongPollParsedEvent) -> Unit) {
-        registerListener(LongPollEvent.MESSAGE_CLEAR_FLAGS, assembleEventCallback(block))
-    }
-
-    fun onMessageMarkedAsNotSpam(block: (LongPollParsedEvent.MessageMarkedAsNotSpam) -> Unit) {
-        registerListener(LongPollEvent.MARKED_AS_NOT_SPAM, assembleEventCallback(block))
-    }
-
-    fun onMessageRestored(block: (LongPollParsedEvent.MessageRestored) -> Unit) {
-        registerListener(LongPollEvent.MESSAGE_RESTORED, assembleEventCallback(block))
-    }
-
-    fun onNewMessage(block: (LongPollParsedEvent.NewMessage) -> Unit) {
-        registerListener(LongPollEvent.MESSAGE_NEW, assembleEventCallback(block))
-    }
-
-    fun onMessageEdited(block: (LongPollParsedEvent.MessageEdited) -> Unit) {
-        registerListener(LongPollEvent.MESSAGE_EDITED, assembleEventCallback(block))
-    }
-
-    fun onMessageIncomingRead(block: (LongPollParsedEvent.IncomingMessageRead) -> Unit) {
-        registerListener(LongPollEvent.INCOMING_MESSAGE_READ, assembleEventCallback(block))
-    }
-
-    fun onMessageOutgoingRead(block: (LongPollParsedEvent.OutgoingMessageRead) -> Unit) {
-        registerListener(LongPollEvent.OUTGOING_MESSAGE_READ, assembleEventCallback(block))
-    }
-
-    fun onChatCleared(block: (LongPollParsedEvent.ChatCleared) -> Unit) {
-        registerListener(LongPollEvent.CHAT_CLEARED, assembleEventCallback(block))
-    }
-
-    fun onChatMajorChanged(block: (LongPollParsedEvent.ChatMajorChanged) -> Unit) {
-        registerListener(LongPollEvent.CHAT_MAJOR_CHANGED, assembleEventCallback(block))
-    }
-
-    fun onChatMinorChanged(block: (LongPollParsedEvent.ChatMinorChanged) -> Unit) {
-        registerListener(LongPollEvent.CHAT_MINOR_CHANGED, assembleEventCallback(block))
-    }
-
-    fun onChatArchived(block: (LongPollParsedEvent.ChatArchived) -> Unit) {
-        registerListener(LongPollEvent.CHAT_ARCHIVED, assembleEventCallback(block))
-    }
-
-    fun onInteractions(block: (LongPollParsedEvent.Interaction) -> Unit) {
-        registerListeners(
-            eventTypes = listOf(
-                LongPollEvent.TYPING,
-                LongPollEvent.AUDIO_MESSAGE_RECORDING,
-                LongPollEvent.PHOTO_UPLOADING,
-                LongPollEvent.VIDEO_UPLOADING,
-                LongPollEvent.FILE_UPLOADING
-            ),
-            listener = assembleEventCallback(block)
-        )
-    }
-}
-
-internal inline fun <R : LongPollParsedEvent> assembleEventCallback(
-    crossinline block: (R) -> Unit,
-): VkEventCallback<R> {
-    return VkEventCallback { event -> block.invoke(event) }
-}
-
-fun interface VkEventCallback<in T : LongPollParsedEvent> {
-    fun onEvent(event: T)
 }
