@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,6 +36,9 @@ import dev.meloda.fast.profile.ProfileViewModel
 import dev.meloda.fast.profile.ProfileViewModelImpl
 import dev.meloda.fast.profile.model.ProfileScreenState
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.components.SegmentedButtonItem
+import dev.meloda.fast.ui.components.SegmentedButtonsRow
+import dev.meloda.fast.ui.util.buildImmutableList
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -72,12 +73,19 @@ fun ProfileScreen(
             TopAppBar(
                 title = {},
                 actions = {
-                    IconButton(onClick = onSettingsButtonClicked) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_settings_round_24),
-                            contentDescription = null
-                        )
+                    val items = buildImmutableList {
+                        add(SegmentedButtonItem("settings", R.drawable.ic_settings_round_24))
                     }
+
+                    SegmentedButtonsRow(
+                        modifier = Modifier.padding(end = 8.dp),
+                        items = items,
+                        onClick = { index ->
+                            when (items[index].key) {
+                                "settings" -> onSettingsButtonClicked()
+                            }
+                        }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
