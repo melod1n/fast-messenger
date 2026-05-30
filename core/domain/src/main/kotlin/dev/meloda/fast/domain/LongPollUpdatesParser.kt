@@ -641,7 +641,7 @@ class LongPollUpdatesParser(
             ).listenValue(this) { state ->
                 state.processState(
                     error = { error ->
-                        logger.error(this::class, "loadMessage(): ERROR: $error")
+                        logger.error(this@LongPollUpdatesParser::class, "loadMessage(): ERROR: $error")
                         continuation.resume(null)
                     },
                     success = { response ->
@@ -670,7 +670,7 @@ class LongPollUpdatesParser(
             ).listenValue(coroutineScope) { state ->
                 state.processState(
                     error = { error ->
-                        logger.error(this::class, "loadConvo(): ERROR: $error")
+                        logger.error(this@LongPollUpdatesParser::class, "loadConvo(): ERROR: $error")
                         continuation.resume(null)
                     },
                     success = { response ->

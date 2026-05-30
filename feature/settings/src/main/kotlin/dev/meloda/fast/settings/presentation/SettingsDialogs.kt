@@ -3,7 +3,6 @@ package dev.meloda.fast.settings.presentation
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,20 +25,18 @@ import androidx.core.os.bundleOf
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.settings.model.SettingsDialog
+import dev.meloda.fast.settings.model.SettingsIntent
 import dev.meloda.fast.settings.model.SettingsScreenState
+import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.R
 
 @Composable
 fun HandleDialogs(
+    handleIntent: (SettingsIntent.Dialog) -> Unit,
     screenState: SettingsScreenState,
-    dialog: SettingsDialog?,
-    onConfirmed: (SettingsDialog, Bundle) -> Unit = { _, _ -> },
-    onDismissed: (SettingsDialog) -> Unit = {},
-    onItemPicked: (SettingsDialog, Bundle) -> Unit = { _, _ -> }
 ) {
-    if (dialog == null) return
+    val dialog = screenState.dialog ?: return
 
     val context = LocalContext.current
 
@@ -48,13 +45,13 @@ fun HandleDialogs(
             val isEasterEgg = UserConfig.userId == SettingsKeys.ID_DMITRY
 
             MaterialDialog(
-                onDismissRequest = { onDismissed(dialog) },
+                onDismissRequest = { handleIntent(SettingsIntent.Dialog.Dismiss) },
                 title = stringResource(
                     id = if (isEasterEgg) R.string.easter_egg_log_out_dmitry
                     else R.string.sign_out_confirm_title
                 ),
                 text = stringResource(id = R.string.sign_out_confirm),
-                confirmAction = { onConfirmed(dialog, bundleOf()) },
+                confirmAction = { handleIntent(SettingsIntent.Dialog.ConfirmClick()) },
                 confirmText = stringResource(
                     id = if (isEasterEgg) R.string.easter_egg_log_out_dmitry
                     else R.string.action_sign_out
@@ -66,10 +63,10 @@ fun HandleDialogs(
 
         is SettingsDialog.PerformCrash -> {
             MaterialDialog(
-                onDismissRequest = { onDismissed(dialog) },
+                onDismissRequest = { handleIntent(SettingsIntent.Dialog.Dismiss) },
                 title = "Perform crash",
                 text = "App will be crashed. Are you sure?",
-                confirmAction = { onConfirmed(dialog, bundleOf()) },
+                confirmAction = { handleIntent(SettingsIntent.Dialog.ConfirmClick()) },
                 confirmText = stringResource(id = R.string.yes),
                 cancelText = stringResource(id = R.string.cancel),
                 actionInvokeDismiss = ActionInvokeDismiss.Always
@@ -88,15 +85,16 @@ fun HandleDialogs(
             }
 
             MaterialDialog(
-                onDismissRequest = { onDismissed(dialog) },
+                onDismissRequest = { handleIntent(SettingsIntent.Dialog.Dismiss) },
                 title = "Import auth data",
                 confirmAction = {
-                    onConfirmed(
-                        dialog,
-                        bundleOf(
-                            "ACCESS_TOKEN" to accessToken,
-                            "EXCHANGE_TOKEN" to exchangeToken.ifEmpty { null },
-                            "TRUSTED_HASH" to trustedHash.ifEmpty { null }
+                    handleIntent(
+                        SettingsIntent.Dialog.ConfirmClick(
+                            bundleOf(
+                                "ACCESS_TOKEN" to accessToken,
+                                "EXCHANGE_TOKEN" to exchangeToken.ifEmpty { null },
+                                "TRUSTED_HASH" to trustedHash.ifEmpty { null }
+                            )
                         )
                     )
                 },
@@ -198,15 +196,16 @@ fun HandleDialogs(
             }
 
             MaterialDialog(
-                onDismissRequest = { onDismissed(dialog) },
+                onDismissRequest = { handleIntent(SettingsIntent.Dialog.Dismiss) },
                 title = "Export auth data",
                 confirmAction = {
-                    onConfirmed(
-                        dialog,
-                        bundleOf(
-                            "ACCESS_TOKEN" to accessToken,
-                            "EXCHANGE_TOKEN" to exchangeToken.ifEmpty { null },
-                            "TRUSTED_HASH" to trustedHash.ifEmpty { null }
+                    handleIntent(
+                        SettingsIntent.Dialog.ConfirmClick(
+                            bundleOf(
+                                "ACCESS_TOKEN" to accessToken,
+                                "EXCHANGE_TOKEN" to exchangeToken.ifEmpty { null },
+                                "TRUSTED_HASH" to trustedHash.ifEmpty { null }
+                            )
                         )
                     )
                 },
@@ -269,7 +268,8 @@ fun HandleDialogs(
                                 "Auth data copied to clipboard. Be careful with this data. If another person gets it, your account will be at risk",
                                 Toast.LENGTH_LONG
                             ).show()
-                            onDismissed(dialog)
+
+                            handleIntent(SettingsIntent.Dialog.Dismiss)
                         },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {

@@ -6,13 +6,13 @@ import dev.meloda.fast.datastore.AppSettings
 @Immutable
 data class SettingsScreenState(
     val settings: List<UiItem>,
-    val showDebugOptions: Boolean
+    val dialog: SettingsDialog?
 ) {
 
     companion object {
         val EMPTY: SettingsScreenState = SettingsScreenState(
             settings = emptyList(),
-            showDebugOptions = AppSettings.Debug.showDebugCategory
+            dialog = null
         )
     }
 }

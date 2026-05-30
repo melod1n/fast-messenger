@@ -22,7 +22,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -36,6 +38,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.settings.model.HapticType
+import dev.meloda.fast.settings.model.SettingsIntent
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.UiItem
 import dev.meloda.fast.settings.presentation.item.ListItem
@@ -43,8 +46,8 @@ import dev.meloda.fast.settings.presentation.item.SwitchItem
 import dev.meloda.fast.settings.presentation.item.TextFieldItem
 import dev.meloda.fast.settings.presentation.item.TitleItem
 import dev.meloda.fast.settings.presentation.item.TitleTextItem
-import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.theme.LocalThemeConfig
 
 
 @OptIn(
@@ -53,22 +56,30 @@ import dev.meloda.fast.ui.R
 )
 @Composable
 fun SettingsScreen(
+    handleIntent: (SettingsIntent) -> Unit,
     screenState: SettingsScreenState = SettingsScreenState.EMPTY,
-    hapticType: HapticType? = null,
-    onBack: () -> Unit = {},
-    onHapticPerformed: () -> Unit = {},
-    onSettingsItemClicked: (key: String) -> Unit = {},
-    onSettingsItemLongClicked: (key: String) -> Unit = {},
-    onSettingsItemValueChanged: (key: String, newValue: Any?) -> Unit = { _, _ -> }
+    hapticType: HapticType?
 ) {
     val view = LocalView.current
+
+    val onSettingsItemClicked by rememberUpdatedState { key: String ->
+        handleIntent(SettingsIntent.ItemClick(key))
+    }
+
+    val onSettingsItemLongClicked by rememberUpdatedState { key: String ->
+        handleIntent(SettingsIntent.ItemLongClick(key))
+    }
+
+    val onSettingsItemValueChanged by rememberUpdatedState { key: String, newValue: Any? ->
+        handleIntent(SettingsIntent.ItemValueChanged(key, newValue))
+    }
 
     LaunchedEffect(hapticType) {
         if (hapticType != null) {
             if (AppSettings.General.enableHaptic) {
                 view.performHapticFeedback(hapticType.getHaptic())
             }
-            onHapticPerformed()
+            handleIntent(SettingsIntent.ConsumePerformHaptic)
         }
     }
 
@@ -90,7 +101,7 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { handleIntent(SettingsIntent.BackClick) }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back_round_24),
                             contentDescription = "Back button"

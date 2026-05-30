@@ -11,9 +11,10 @@ import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
+import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.common.model.DarkMode
-import dev.meloda.fast.common.model.NetworkLogLevel
 import dev.meloda.fast.common.model.LongPollState
+import dev.meloda.fast.common.model.NetworkLogLevel
 import dev.meloda.fast.common.model.UiText
 import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.data.UserConfig
@@ -24,10 +25,13 @@ import dev.meloda.fast.datastore.SettingsKeys
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.GetCurrentAccountUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.settings.model.HapticType
 import dev.meloda.fast.settings.model.SettingsDialog
+import dev.meloda.fast.settings.model.SettingsIntent
 import dev.meloda.fast.settings.model.SettingsItem
+import dev.meloda.fast.settings.model.SettingsNavigationIntent
 import dev.meloda.fast.settings.model.SettingsScreenState
 import dev.meloda.fast.settings.model.TextProvider
 import dev.meloda.fast.ui.R
@@ -45,35 +49,83 @@ class SettingsViewModel(
     private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
     private val userSettings: UserSettings,
     private val resources: Resources,
-    private val longPollController: LongPollController
+    private val longPollController: LongPollController,
+    private val logger: FastLogger
 ) : ViewModel() {
 
-    private val _screenState = MutableStateFlow(SettingsScreenState.EMPTY)
-    val screenState = _screenState.asStateFlow()
+    private val screenState = MutableStateFlow(SettingsScreenState.EMPTY)
+    val screenStateFlow get() = screenState.asStateFlow()
 
-    private val _hapticType = MutableStateFlow<HapticType?>(null)
-    val hapticType = _hapticType.asStateFlow()
+    private val hapticType = MutableStateFlow<HapticType?>(null)
+    val hapticTypeFlow get() = hapticType.asStateFlow()
 
-    private val _dialog = MutableStateFlow<SettingsDialog?>(null)
-    val dialog = _dialog.asStateFlow()
+    private val navigationIntent = MutableStateFlow<SettingsNavigationIntent?>(null)
+    val navigationIntentFlow get() = navigationIntent.asStateFlow()
 
-    private val _isNeedToRestart = MutableStateFlow(false)
-    val isNeedToRestart = _isNeedToRestart.asStateFlow()
-
-    private val settings = MutableStateFlow<List<SettingsItem<*>>>(emptyList())
+    private val settings = mutableListOf<SettingsItem<*>>()
+    private var showDebugCategory: Boolean = userSettings.showDebugCategory.value
 
     init {
         createSettings()
     }
 
-    fun onDialogConfirmed(dialog: SettingsDialog, bundle: Bundle) {
-        onDialogDismissed(dialog)
+    fun handleIntent(intent: SettingsIntent) {
+        when (intent) {
+            SettingsIntent.BackClick -> {
+                navigationIntent.setValue { SettingsNavigationIntent.Back }
+            }
+
+            SettingsIntent.ConsumePerformHaptic -> {
+                hapticType.setValue { null }
+            }
+
+            is SettingsIntent.ItemClick -> {
+                onSettingsItemClicked(intent.key)
+            }
+
+            is SettingsIntent.ItemLongClick -> {
+                onSettingsItemLongClicked(intent.key)
+            }
+
+            is SettingsIntent.ItemValueChanged -> {
+                onSettingsItemChanged(intent.key, intent.newValue)
+            }
+
+            is SettingsIntent.Dialog -> {
+                when (intent) {
+                    SettingsIntent.Dialog.CancelClick -> Unit
+
+                    is SettingsIntent.Dialog.ConfirmClick -> {
+                        onDialogConfirmed(intent.bundle)
+                    }
+
+                    SettingsIntent.Dialog.Dismiss -> {
+                        onDialogDismissed()
+                    }
+
+                    is SettingsIntent.Dialog.ItemPick -> {
+                        onDialogItemPicked(intent.bundle)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setDialog(dialog: SettingsDialog?) {
+        screenState.updateValue { copy(dialog = dialog) }
+    }
+
+    private fun onDialogConfirmed(bundle: Bundle?) {
+        val dialog = screenState.value.dialog ?: return
+        onDialogDismissed()
 
         when (dialog) {
             is SettingsDialog.LogOut -> onLogOutAlertPositiveClick()
             is SettingsDialog.PerformCrash -> onPerformCrashPositiveButtonClicked()
 
             is SettingsDialog.ImportAuthData -> {
+                if (bundle == null) return
+
                 val accessToken = bundle.getString("ACCESS_TOKEN") ?: return
                 val exchangeToken = bundle.getString("EXCHANGE_TOKEN")
                 val trustedHash = bundle.getString("TRUSTED_HASH")
@@ -89,6 +141,10 @@ class SettingsViewModel(
                     ).listenValue(viewModelScope) { state ->
                         state.processState(
                             error = { error ->
+                                logger.error(
+                                    this@SettingsViewModel::class,
+                                    "importAuthInfo(): loadUserById(): ERROR: $error"
+                                )
                                 UserConfig.accessToken = oldToken
                             },
                             success = { user ->
@@ -113,7 +169,7 @@ class SettingsViewModel(
 
                                 accountsRepository.storeAccounts(listOf(account))
 
-                                _isNeedToRestart.setValue { true }
+                                navigationIntent.setValue { SettingsNavigationIntent.Restart }
                             }
                         )
                     }
@@ -124,7 +180,8 @@ class SettingsViewModel(
         }
     }
 
-    fun onDialogDismissed(dialog: SettingsDialog) {
+    private fun onDialogDismissed() {
+        val dialog = screenState.value.dialog ?: return
         when (dialog) {
             is SettingsDialog.LogOut -> Unit
             is SettingsDialog.PerformCrash -> Unit
@@ -132,10 +189,11 @@ class SettingsViewModel(
             is SettingsDialog.ExportAuthData -> Unit
         }
 
-        _dialog.setValue { null }
+        setDialog(null)
     }
 
-    fun onDialogItemPicked(dialog: SettingsDialog, bundle: Bundle) {
+    private fun onDialogItemPicked(bundle: Bundle?) {
+        val dialog = screenState.value.dialog ?: return
         when (dialog) {
             is SettingsDialog.LogOut -> Unit
             is SettingsDialog.PerformCrash -> Unit
@@ -144,7 +202,7 @@ class SettingsViewModel(
         }
     }
 
-    fun onLogOutAlertPositiveClick() {
+    private fun onLogOutAlertPositiveClick() {
         viewModelScope.launch(Dispatchers.IO) {
             val tasks = listOf(
                 async {
@@ -164,35 +222,37 @@ class SettingsViewModel(
             )
 
             tasks.awaitAll()
+
+            navigationIntent.setValue { SettingsNavigationIntent.LogOut }
         }
     }
 
-    fun onPerformCrashPositiveButtonClicked() {
+    private fun onPerformCrashPositiveButtonClicked() {
         throw Exception("Test exception")
     }
 
-    fun onSettingsItemClicked(key: String) {
+    private fun onSettingsItemClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_ACCOUNT_LOGOUT -> {
-                _dialog.setValue { SettingsDialog.LogOut }
+                setDialog(SettingsDialog.LogOut)
             }
 
             SettingsKeys.KEY_DEBUG_PERFORM_CRASH -> {
-                _dialog.setValue { SettingsDialog.PerformCrash }
+                setDialog(SettingsDialog.PerformCrash)
             }
 
             SettingsKeys.KEY_DEBUG_IMPORT_AUTH_DATA -> {
-                _dialog.setValue { SettingsDialog.ImportAuthData }
+                setDialog(SettingsDialog.ImportAuthData)
             }
 
             SettingsKeys.KEY_DEBUG_EXPORT_AUTH_DATA -> {
-                _dialog.setValue {
+                setDialog(
                     SettingsDialog.ExportAuthData(
                         accessToken = UserConfig.accessToken,
                         exchangeToken = UserConfig.exchangeToken,
                         trustedHash = UserConfig.trustedHash
                     )
-                }
+                )
             }
 
             SettingsKeys.KEY_DEBUG_HIDE_DEBUG_LIST -> {
@@ -203,13 +263,13 @@ class SettingsViewModel(
 
                 createSettings()
 
-                _hapticType.update { HapticType.REJECT }
-                _screenState.setValue { old -> old.copy(showDebugOptions = false) }
+                hapticType.update { HapticType.REJECT }
+                showDebugCategory = false
             }
         }
     }
 
-    fun onSettingsItemLongClicked(key: String) {
+    private fun onSettingsItemLongClicked(key: String) {
         when (key) {
             SettingsKeys.KEY_ACTIVITY_SEND_ONLINE_STATUS -> {
                 if (AppSettings.Debug.showDebugCategory) return
@@ -219,18 +279,18 @@ class SettingsViewModel(
 
                 createSettings()
 
-                _hapticType.update { HapticType.LONG_PRESS }
-                _screenState.setValue { old -> old.copy(showDebugOptions = true) }
+                hapticType.update { HapticType.LONG_PRESS }
+                showDebugCategory = true
             }
         }
     }
 
-    fun onSettingsItemChanged(key: String, newValue: Any?) {
-        settings.value.findWithIndex { it.key == key }?.let { (index, item) ->
+    private fun onSettingsItemChanged(key: String, newValue: Any?) {
+        settings.findWithIndex { it.key == key }?.let { (index, item) ->
             item.updateValue(newValue)
             item.updateText()
 
-            _screenState.setValue { old ->
+            screenState.setValue { old ->
                 old.copy(
                     settings = old.settings.toMutableList().apply {
                         this[index] = item.asPresentation(resources)
@@ -309,10 +369,6 @@ class SettingsViewModel(
                 userSettings.onShowDebugCategoryChanged(show)
             }
         }
-    }
-
-    fun onHapticPerformed() {
-        _hapticType.update { null }
     }
 
     private fun createSettings() {
@@ -512,7 +568,8 @@ class SettingsViewModel(
             values = logLevelValues.keys.toList().map(NetworkLogLevel::value)
         ).apply {
             textProvider = TextProvider { item ->
-                val textValue = logLevelValues[NetworkLogLevel.parse(item.value)].parseString(resources)
+                val textValue =
+                    logLevelValues[NetworkLogLevel.parse(item.value)].parseString(resources)
 
                 UiText.Simple("Current value: $textValue")
             }
@@ -602,12 +659,10 @@ class SettingsViewModel(
     }
 
     private fun emitSettings(newSettings: List<SettingsItem<*>>) {
-        settings.update { newSettings }
+        settings.clear()
+        settings.addAll(newSettings)
 
-        val uiSettings = newSettings.map { item ->
-            item.asPresentation(resources)
-        }
-
-        _screenState.setValue { old -> old.copy(settings = uiSettings) }
+        val uiSettings = newSettings.map { it.asPresentation(resources) }
+        screenState.setValue { old -> old.copy(settings = uiSettings) }
     }
 }

@@ -1,13 +1,13 @@
 package dev.meloda.fast.settings.model
 
 import android.content.res.Resources
-import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import dev.meloda.fast.common.model.UiText
 import dev.meloda.fast.common.model.parseString
 import dev.meloda.fast.datastore.AppSettings
 import kotlin.reflect.KClass
 
-@Immutable
+@Stable
 sealed class SettingsItem<T>(
     val key: String,
     value: T,

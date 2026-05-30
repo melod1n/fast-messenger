@@ -59,6 +59,7 @@ import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.navigation.mainScreen
 import dev.meloda.fast.photoviewer.presentation.PhotoViewDialog
+import dev.meloda.fast.settings.model.SettingsNavigationIntent
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
 import dev.meloda.fast.ui.R
@@ -362,18 +363,31 @@ fun RootScreen(
                             )
 
                             settingsScreen(
-                                onBack = navController::navigateUp,
-                                onLogOutButtonClicked = { navController.navigateToAuth(true) },
-                                onLanguageItemClicked = navController::navigateToLanguagePicker,
-                                onRestartRequired = {
-                                    activity?.let {
-                                        val intent = Intent(activity, MainActivity::class.java)
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                        activity.startActivity(intent)
-                                        activity.finish()
+                                handleNavigationIntent = { intent ->
+                                    when (intent) {
+                                        SettingsNavigationIntent.Back -> navController.navigateUp()
+                                        SettingsNavigationIntent.Language -> navController.navigateToLanguagePicker()
+                                        SettingsNavigationIntent.Restart -> {
+                                            activity?.let {
+                                                val intent =
+                                                    Intent(activity, MainActivity::class.java)
+                                                intent.setFlags(
+                                                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                                                            Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                                                            Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                                )
+                                                activity.finish()
+                                                activity.startActivity(intent)
+                                            }
+                                        }
+
+                                        SettingsNavigationIntent.LogOut -> {
+                                            navController.navigateToAuth(true)
+                                        }
                                     }
                                 }
                             )
+
                             languagePickerScreen(onBack = navController::navigateUp)
                         }
 
