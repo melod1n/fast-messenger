@@ -52,7 +52,7 @@ fun VkConvo.extractTitle(
         } else {
             val userName = user?.let { user ->
                 if (useContactName) {
-                    VkMemoryCache.getContact(user.id)?.name
+                    VkMemoryCache.getContact(user.id)?.name ?: user.fullName
                 } else {
                     user.fullName
                 }
