@@ -210,7 +210,6 @@ fun MainScreen(
                         )
                         profileScreen(
                             activity = activity,
-                            onError = onError,
                             onSettingsButtonClicked = onSettingsButtonClicked,
                             onPhotoClicked = onPhotoClicked
                         )

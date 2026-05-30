@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,31 +28,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.profile.ProfileViewModel
-import dev.meloda.fast.profile.ProfileViewModelImpl
 import dev.meloda.fast.profile.model.ProfileScreenState
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.SegmentedButtonItem
 import dev.meloda.fast.ui.components.SegmentedButtonsRow
 import dev.meloda.fast.ui.util.buildImmutableList
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileRoute(
-    onError: (BaseError) -> Unit,
+    screenState: ProfileScreenState,
     onSettingsButtonClicked: () -> Unit,
     onPhotoClicked: (url: String) -> Unit,
-    viewModel: ProfileViewModel = koinViewModel<ProfileViewModelImpl>()
 ) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-
     ProfileScreen(
         screenState = screenState,
-        baseError = baseError,
         onSettingsButtonClicked = onSettingsButtonClicked,
         onPhotoClicked = onPhotoClicked
     )
@@ -64,7 +53,6 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     screenState: ProfileScreenState = ProfileScreenState.EMPTY,
-    baseError: BaseError? = null,
     onSettingsButtonClicked: () -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {}
 ) {
