@@ -62,9 +62,9 @@ val BirthdayColor = Color(0xffb00b69)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConvoItem(
-    onItemClick: (UiConvo) -> Unit,
-    onItemLongClick: (convo: UiConvo) -> Unit,
-    onOptionClicked: (UiConvo, ConvoOption) -> Unit,
+    onItemClick: (convoId: Long) -> Unit,
+    onItemLongClick: (convoId: Long) -> Unit,
+    onOptionClicked: (ConvoOption) -> Unit,
     maxLines: Int,
     isUserAccount: Boolean,
     convo: UiConvo,
@@ -81,9 +81,9 @@ fun ConvoItem(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { onItemClick(convo) },
+                onClick = { onItemClick(convo.id) },
                 onLongClick = {
-                    onItemLongClick(convo)
+                    onItemLongClick(convo.id)
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                 }
             )
@@ -281,7 +281,7 @@ fun ConvoItem(
                                         val builder =
                                             AnnotatedString.Builder(convo.message.text)
 
-                                        convo.message.spanStyles.map { spanStyleRange ->
+                                        convo.message.spanStyles.forEach { spanStyleRange ->
                                             val updatedSpanStyle =
                                                 if (spanStyleRange.item.color == Color.Red) {
                                                     spanStyleRange.item.copy(color = MaterialTheme.colorScheme.primary)
@@ -378,7 +378,7 @@ fun ConvoItem(
                             }
 
                             ElevatedAssistChip(
-                                onClick = { onOptionClicked(convo, option) },
+                                onClick = { onOptionClicked(option) },
                                 leadingIcon = {
                                     option.icon.getResourcePainter()?.let { painter ->
                                         Icon(

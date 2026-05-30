@@ -3,6 +3,7 @@ package dev.meloda.fast.convos
 import android.content.Context
 import android.content.res.Resources
 import android.os.Bundle
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
@@ -15,10 +16,12 @@ import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.extensions.updateValue
 import dev.meloda.fast.convos.model.ConvoDialog
-import dev.meloda.fast.convos.model.ConvoNavigation
+import dev.meloda.fast.convos.model.ConvoIntent
+import dev.meloda.fast.convos.model.ConvoNavigationIntent
 import dev.meloda.fast.convos.model.ConvosScreenState
 import dev.meloda.fast.convos.model.InteractionJob
 import dev.meloda.fast.convos.model.NewInteractionException
+import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkUtils
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.UserSettings
@@ -28,25 +31,23 @@ import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.domain.util.extractAvatar
-import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.ConvosFilter
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.ui.model.vk.ConvoOption
 import dev.meloda.fast.ui.model.vk.UiConvo
+import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.ui.util.buildImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 
+@Immutable
 class ConvosViewModel(
     updatesParser: LongPollUpdatesParser,
-    private val filter: ConvosFilter,
+    val filter: ConvosFilter,
     private val convoUseCase: ConvoUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val resources: Resources,
@@ -59,40 +60,18 @@ class ConvosViewModel(
     private val screenState = MutableStateFlow(ConvosScreenState.EMPTY)
     val screenStateFlow get() = screenState.asStateFlow()
 
-    private val navigation = MutableStateFlow<ConvoNavigation?>(null)
-    val navigationFlow get() = navigation.asStateFlow()
+    private val navigationIntent = MutableStateFlow<ConvoNavigationIntent?>(null)
+    val navigationIntentFlow get() = navigationIntent.asStateFlow()
 
-    private val dialog = MutableStateFlow<ConvoDialog?>(null)
-    val dialogFlow get() = dialog.asStateFlow()
+    private val convos: MutableList<VkConvo> = mutableListOf()
 
-    private val convos = MutableStateFlow<List<VkConvo>>(emptyList())
-    val convosFlow get() = convos.asStateFlow()
+    private val pinnedConvosCount get() = convos.count(VkConvo::isPinned)
 
-    private val uiConvos = MutableStateFlow<List<UiConvo>>(emptyList())
-    val uiConvosFlow get() = uiConvos.asStateFlow()
-
-    private val pinnedConvosCount = convosFlow.map { convos ->
-        convos.count(VkConvo::isPinned)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
-
-    private val baseError = MutableStateFlow<BaseError?>(null)
-    val baseErrorFlow get() = baseError.asStateFlow()
-
-    private val currentOffset = MutableStateFlow(0)
-    val currentOffsetFlow get() = currentOffset.asStateFlow()
-
-    private val canPaginate = MutableStateFlow(false)
-    val canPaginateFlow get() = canPaginate.asStateFlow()
-
-    private val expandedConvoId = MutableStateFlow(0L)
-
-    private val useContactNames: Boolean get() = userSettings.useContactNames.value
+    private var currentOffset = 0
 
     private val interactionsTimers = hashMapOf<Long, InteractionJob?>()
 
     init {
-        screenState.updateValue { copy(isArchive = filter == ConvosFilter.ARCHIVE) }
-
         loadConvos()
 
         updatesParser.onNewMessage(::handleNewMessage)
@@ -110,100 +89,143 @@ class ConvosViewModel(
         }
     }
 
-    fun onNavigationConsumed() {
-        navigation.setValue { null }
+    fun handleIntent(intent: ConvoIntent) {
+        when (intent) {
+            ConvoIntent.ArchiveClick -> {
+                navigationIntent.setValue { ConvoNavigationIntent.Archive }
+            }
+
+            ConvoIntent.Back -> {
+                navigationIntent.setValue { ConvoNavigationIntent.Back }
+            }
+
+            ConvoIntent.ConsumeScrollToTop -> Unit
+            ConvoIntent.CreateChatClick -> {
+                navigationIntent.setValue { ConvoNavigationIntent.CreateChat }
+            }
+
+            ConvoIntent.ErrorActionButtonClick -> {
+                onRefresh()
+            }
+
+            is ConvoIntent.ItemClick -> {
+                onConvoItemClick(intent.convoId)
+            }
+
+            is ConvoIntent.ItemLongClick -> {
+                onConvoItemLongClick(intent.convoId)
+            }
+
+            is ConvoIntent.OptionItemClick -> {
+                onOptionClicked(intent.option)
+            }
+
+            ConvoIntent.PaginationConditionsMet -> {
+                onPaginationConditionsMet()
+            }
+
+            ConvoIntent.Refresh -> {
+                onRefresh()
+            }
+
+            is ConvoIntent.SetScrollIndex -> {
+                setScrollIndex(intent.index)
+            }
+
+            is ConvoIntent.SetScrollOffset -> {
+                setScrollOffset(intent.offset)
+            }
+
+            is ConvoIntent.Dialog -> {
+                when (intent) {
+                    is ConvoIntent.Dialog.Cancel -> Unit
+                    is ConvoIntent.Dialog.Confirm -> onDialogConfirmed(intent.bundle)
+                    ConvoIntent.Dialog.Dismiss -> onDialogDismissed()
+                }
+            }
+        }
     }
 
-    fun onDialogConfirmed(dialog: ConvoDialog, bundle: Bundle) {
-        onDialogDismissed(dialog)
+    fun onNavigationConsumed() {
+        navigationIntent.setValue { null }
+    }
+
+    private fun onDialogConfirmed(bundle: Bundle?) {
+        val dialog = screenState.value.dialog ?: return
+        onDialogDismissed()
+
+        val convo = with(screenState.value) {
+            convos.find { it.id == expandedConvoId }
+        } ?: return
 
         when (dialog) {
-            is ConvoDialog.ConvoDelete -> {
-                deleteConvo(dialog.convoId)
+            is ConvoDialog.Delete -> {
+                deleteConvo(convo.id)
             }
 
-            is ConvoDialog.ConvoPin -> {
-                pinConvo(dialog.convoId, true)
+            is ConvoDialog.Pin -> {
+                pinConvo(convo.id, true)
             }
 
-            is ConvoDialog.ConvoUnpin -> {
-                pinConvo(dialog.convoId, false)
+            is ConvoDialog.Unpin -> {
+                pinConvo(convo.id, false)
             }
 
-            is ConvoDialog.ConvoArchive -> {
-                archiveConvo(dialog.convoId, true)
+            is ConvoDialog.Archive -> {
+                archiveConvo(convo.id, true)
             }
 
-            is ConvoDialog.ConvoUnarchive -> {
-                archiveConvo(dialog.convoId, false)
+            is ConvoDialog.Unarchive -> {
+                archiveConvo(convo.id, false)
             }
         }
 
-        expandedConvoId.setValue { 0 }
+        collapseConvos(false)
         syncUiConvos()
     }
 
-    fun onDialogDismissed(dialog: ConvoDialog) {
-        this.dialog.setValue { null }
+    private fun onDialogDismissed() {
+        screenState.updateValue { copy(dialog = null) }
     }
 
-    fun onDialogItemPicked(dialog: ConvoDialog, bundle: Bundle) {
-        when (dialog) {
-            is ConvoDialog.ConvoDelete -> Unit
-            is ConvoDialog.ConvoPin -> Unit
-            is ConvoDialog.ConvoUnpin -> Unit
-            is ConvoDialog.ConvoArchive -> Unit
-            is ConvoDialog.ConvoUnarchive -> Unit
-        }
-    }
-
-    fun onErrorButtonClicked() {
-        when (baseErrorFlow.value) {
-            null -> Unit
-
-            is BaseError.ConnectionError,
-            is BaseError.InternalError,
-            is BaseError.SimpleError,
-            is BaseError.UnknownError -> onRefresh()
-
-            else -> Unit
-        }
-    }
-
-    fun onPaginationConditionsMet() {
-        currentOffset.update { convosFlow.value.size }
+    private fun onPaginationConditionsMet() {
+        currentOffset = convos.size
         loadConvos()
     }
 
-    fun onRefresh() {
+    private fun onErrorConsumed() {
+        screenState.updateValue { copy(error = null) }
+    }
+
+    private fun onRefresh() {
         onErrorConsumed()
         loadConvos(offset = 0)
     }
 
-    fun onConvoItemClick(convo: UiConvo) {
+    private fun onConvoItemClick(convoId: Long) {
         collapseConvos()
-        navigation.setValue { ConvoNavigation.MessagesHistory(peerId = convo.id) }
+        navigationIntent.setValue { ConvoNavigationIntent.MessagesHistory(convoId) }
     }
 
-    fun onConvoItemLongClick(convo: UiConvo) {
-        expandedConvoId.setValue {
-            if (convo.isExpanded) 0
-            else convo.id
-        }
+    private fun onConvoItemLongClick(convoId: Long) {
+        val isExpanded = screenState.value.convos.find { it.id == convoId }?.isExpanded == true
+
+        screenState.updateValue { copy(expandedConvoId = if (isExpanded) 0L else convoId) }
         syncUiConvos()
     }
 
-    fun onOptionClicked(
-        convo: UiConvo,
-        option: ConvoOption
-    ) {
+    private fun onOptionClicked(option: ConvoOption) {
+        val convo =
+            screenState.value.convos.find { it.id == screenState.value.expandedConvoId } ?: return
+
         when (option) {
-            ConvoOption.Delete -> {
-                dialog.setValue { ConvoDialog.ConvoDelete(convo.id) }
-            }
+            ConvoOption.Delete -> setDialog(ConvoDialog.Delete)
 
             ConvoOption.MarkAsRead -> {
-                convo.lastMessageId?.let { lastMessageId ->
+                val lastMessageId =
+                    screenState.value.convos.find { it.id == screenState.value.expandedConvoId }?.lastMessageId
+
+                if (lastMessageId != null) {
                     readConvo(
                         peerId = convo.id,
                         startMessageId = lastMessageId
@@ -212,48 +234,39 @@ class ConvosViewModel(
                 }
             }
 
-            ConvoOption.Pin -> {
-                dialog.setValue { ConvoDialog.ConvoPin(convo.id) }
-            }
-
-            ConvoOption.Unpin -> {
-                dialog.setValue { ConvoDialog.ConvoUnpin(convo.id) }
-            }
-
-            ConvoOption.Archive -> {
-                dialog.setValue { ConvoDialog.ConvoArchive(convo.id) }
-            }
-
-            ConvoOption.Unarchive -> {
-                dialog.setValue { ConvoDialog.ConvoUnarchive(convo.id) }
-            }
+            ConvoOption.Pin -> setDialog(ConvoDialog.Pin)
+            ConvoOption.Unpin -> setDialog(ConvoDialog.Unpin)
+            ConvoOption.Archive -> setDialog(ConvoDialog.Archive)
+            ConvoOption.Unarchive -> setDialog(ConvoDialog.Unarchive)
         }
     }
 
-    fun onErrorConsumed() {
-        baseError.setValue { null }
-    }
-
-    fun setScrollIndex(index: Int) {
+    private fun setScrollIndex(index: Int) {
         screenState.setValue { old -> old.copy(scrollIndex = index) }
     }
 
-    fun setScrollOffset(offset: Int) {
+    private fun setScrollOffset(offset: Int) {
         screenState.setValue { old -> old.copy(scrollOffset = offset) }
     }
 
-    fun onCreateChatButtonClicked() {
-        navigation.setValue { ConvoNavigation.CreateChat }
+    private fun setDialog(dialog: ConvoDialog?) {
+        screenState.updateValue { copy(dialog = dialog) }
     }
 
-    private fun collapseConvos() {
-        expandedConvoId.setValue { 0 }
-        syncUiConvos()
+    private fun replaceConvos(newConvos: List<VkConvo>) {
+        convos.clear()
+        convos.addAll(newConvos)
     }
 
-    private fun loadConvos(
-        offset: Int = currentOffsetFlow.value
-    ) {
+    private fun collapseConvos(sync: Boolean = true) {
+        screenState.updateValue { copy(expandedConvoId = null) }
+
+        if (sync) {
+            syncUiConvos()
+        }
+    }
+
+    private fun loadConvos(offset: Int = currentOffset) {
         convoUseCase.getConvos(
             count = LOAD_COUNT,
             offset = offset,
@@ -261,21 +274,18 @@ class ConvosViewModel(
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
-                    val newBaseError = VkUtils.parseError(error)
-                    baseError.update { newBaseError }
+                    screenState.updateValue { copy(error = VkUtils.parseError(error)) }
                 },
                 success = { response ->
-                    val convos = response
-                    val fullConvos = if (offset == 0) {
-                        convos
+                    val newConvos = if (offset == 0) {
+                        response
                     } else {
-                        this.convosFlow.value.plus(convos)
+                        convos.plus(response)
                     }
 
                     val itemsCountSufficient = response.size == LOAD_COUNT
 
-                    val paginationExhausted = !itemsCountSufficient &&
-                            this.convosFlow.value.isNotEmpty()
+                    val paginationExhausted = !itemsCountSufficient && convos.isNotEmpty()
 
                     screenState.updateValue {
                         copy(isPaginationExhausted = paginationExhausted)
@@ -294,9 +304,10 @@ class ConvosViewModel(
 
                     convoUseCase.storeConvos(response)
 
-                    this.convos.emit(fullConvos)
+                    replaceConvos(newConvos)
+
+                    screenState.updateValue { copy(canPaginate = itemsCountSufficient) }
                     syncUiConvos()
-                    canPaginate.setValue { itemsCountSufficient }
                 }
             )
 
@@ -314,13 +325,13 @@ class ConvosViewModel(
             state.processState(
                 error = {},
                 success = {
-                    val newConvos = convosFlow.value.toMutableList()
+                    val newConvos = convos.toMutableList()
                     val convoIndex =
                         newConvos.indexOfFirstOrNull { it.id == peerId }
                             ?: return@processState
 
                     newConvos.removeAt(convoIndex)
-                    convos.update { newConvos.sorted() }
+                    replaceConvos(newConvos.sorted())
                     syncUiConvos()
                 }
             )
@@ -338,7 +349,7 @@ class ConvosViewModel(
                             LongPollParsedEvent.ChatMajorChanged(
                                 peerId = peerId,
                                 majorId = if (pin) {
-                                    pinnedConvosCount.value.plus(1) * 16
+                                    pinnedConvosCount.plus(1) * 16
                                 } else {
                                     0
                                 }
@@ -357,7 +368,7 @@ class ConvosViewModel(
                 state.processState(
                     error = {},
                     success = {
-                        convosFlow.value.find { it.id == peerId }?.let { convo ->
+                        convos.find { it.id == peerId }?.let { convo ->
                             handleChatArchived(
                                 LongPollParsedEvent.ChatArchived(
                                     convo = convo,
@@ -374,7 +385,7 @@ class ConvosViewModel(
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
         val message = event.message
 
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
         val convoIndex =
             newConvos.indexOfFirstOrNull { it.id == message.peerId }
 
@@ -392,8 +403,8 @@ class ConvosViewModel(
                         val convo = (response.firstOrNull() ?: return@listenValue)
                             .copy(lastMessage = message)
 
-                        newConvos.add(pinnedConvosCount.value, convo)
-                        convos.update { newConvos.sorted() }
+                        newConvos.add(pinnedConvosCount, convo)
+                        replaceConvos(newConvos.sorted())
                         syncUiConvos()
                     }
                 )
@@ -429,19 +440,17 @@ class ConvosViewModel(
                 newConvos[convoIndex] = newConvo
             } else {
                 newConvos.removeAt(convoIndex)
-
-                val toPosition = pinnedConvosCount.value
-                newConvos.add(toPosition, newConvo)
+                newConvos.add(pinnedConvosCount, newConvo)
             }
 
-            convos.update { newConvos.sorted() }
+            replaceConvos(newConvos.sorted())
             syncUiConvos()
         }
     }
 
     private fun handleEditedMessage(event: LongPollParsedEvent.MessageEdited) {
         val message = event.message
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
 
         val convoIndex = newConvos.indexOfFirstOrNull { it.id == message.peerId }
         if (convoIndex == null) { // диалога нет в списке
@@ -453,13 +462,14 @@ class ConvosViewModel(
                 lastMessageId = message.id,
                 lastCmId = message.cmId
             )
-            convos.update { newConvos }
+
+            replaceConvos(newConvos)
             syncUiConvos()
         }
     }
 
     private fun handleReadIncomingMessage(event: LongPollParsedEvent.IncomingMessageRead) {
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
 
         val convoIndex =
             newConvos.indexOfFirstOrNull { it.id == event.peerId }
@@ -473,13 +483,13 @@ class ConvosViewModel(
                     unreadCount = event.unreadCount
                 )
 
-            convos.update { newConvos }
+            replaceConvos(newConvos)
             syncUiConvos()
         }
     }
 
     private fun handleReadOutgoingMessage(event: LongPollParsedEvent.OutgoingMessageRead) {
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
 
         val convoIndex =
             newConvos.indexOfFirstOrNull { it.id == event.peerId }
@@ -493,7 +503,7 @@ class ConvosViewModel(
                     unreadCount = event.unreadCount
                 )
 
-            convos.update { newConvos }
+            replaceConvos(newConvos)
             syncUiConvos()
         }
     }
@@ -503,7 +513,7 @@ class ConvosViewModel(
         val peerId = event.peerId
         val userIds = event.userIds
 
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
         val convoAndIndex =
             newConvos.findWithIndex { it.id == peerId }
 
@@ -514,7 +524,7 @@ class ConvosViewModel(
                     interactionIds = userIds
                 )
 
-            convos.update { newConvos }
+            replaceConvos(newConvos)
             syncUiConvos()
 
             interactionsTimers[peerId]?.let { interactionJob ->
@@ -546,7 +556,7 @@ class ConvosViewModel(
     private fun stopInteraction(peerId: Long, interactionJob: InteractionJob) {
         interactionsTimers[peerId] ?: return
 
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
         val convoAndIndex =
             newConvos.findWithIndex { it.id == peerId } ?: return
 
@@ -556,7 +566,7 @@ class ConvosViewModel(
                 interactionIds = emptyList()
             )
 
-        convos.update { newConvos }
+        replaceConvos(newConvos)
         syncUiConvos()
 
         interactionJob.timerJob.cancel()
@@ -564,7 +574,7 @@ class ConvosViewModel(
     }
 
     private fun handleChatMajorChanged(event: LongPollParsedEvent.ChatMajorChanged) {
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
         val convoIndex =
             newConvos.indexOfFirstOrNull { it.id == event.peerId }
 
@@ -574,13 +584,13 @@ class ConvosViewModel(
             newConvos[convoIndex] =
                 newConvos[convoIndex].copy(majorId = event.majorId)
 
-            convos.setValue { newConvos.sorted() }
+            replaceConvos(newConvos.sorted())
             syncUiConvos()
         }
     }
 
     private fun handleChatMinorChanged(event: LongPollParsedEvent.ChatMinorChanged) {
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
         val convoIndex =
             newConvos.indexOfFirstOrNull { it.id == event.peerId }
 
@@ -590,13 +600,13 @@ class ConvosViewModel(
             newConvos[convoIndex] =
                 newConvos[convoIndex].copy(minorId = event.minorId)
 
-            convos.setValue { newConvos.sorted() }
+            replaceConvos(newConvos.sorted())
             syncUiConvos()
         }
     }
 
     private fun handleChatClearing(event: LongPollParsedEvent.ChatCleared) {
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
 
         val convoIndex = newConvos.indexOfFirstOrNull { it.id == event.peerId }
 
@@ -605,7 +615,7 @@ class ConvosViewModel(
         } else {
             newConvos.removeAt(convoIndex)
 
-            convos.setValue { newConvos.sorted() }
+            replaceConvos(newConvos.sorted())
             syncUiConvos()
         }
     }
@@ -613,7 +623,7 @@ class ConvosViewModel(
     private fun handleChatArchived(event: LongPollParsedEvent.ChatArchived) {
         val convo = event.convo
 
-        val newConvos = convosFlow.value.toMutableList()
+        val newConvos = convos.toMutableList()
 
         when (filter) {
             ConvosFilter.BUSINESS_NOTIFY -> Unit
@@ -628,7 +638,7 @@ class ConvosViewModel(
                     newConvos.removeAt(index)
                 }
 
-                convos.update { newConvos }
+                replaceConvos(newConvos)
                 syncUiConvos()
             }
 
@@ -639,10 +649,10 @@ class ConvosViewModel(
 
                     newConvos.removeAt(index)
                 } else {
-                    newConvos.add(pinnedConvosCount.value, convo)
+                    newConvos.add(pinnedConvosCount, convo)
                 }
 
-                convos.update { newConvos.sorted() }
+                replaceConvos(newConvos.sorted())
                 syncUiConvos()
             }
         }
@@ -656,7 +666,7 @@ class ConvosViewModel(
             state.processState(
                 error = {},
                 success = {
-                    val newConvos = convosFlow.value.toMutableList()
+                    val newConvos = convos.toMutableList()
                     val convoIndex =
                         newConvos.indexOfFirstOrNull { it.id == peerId }
                             ?: return@listenValue
@@ -664,7 +674,7 @@ class ConvosViewModel(
                     newConvos[convoIndex] =
                         newConvos[convoIndex].copy(inRead = startMessageId)
 
-                    convos.update { newConvos }
+                    replaceConvos(newConvos)
                     syncUiConvos()
                 }
             )
@@ -696,47 +706,44 @@ class ConvosViewModel(
     }
 
     private fun syncUiConvos(): List<UiConvo> {
-        val convos = convosFlow.value
-
         val newUiConvos = convos.map { convo ->
-            val options = mutableListOf<ConvoOption>()
-            convo.lastMessage?.run {
-                if (!convo.isRead() && !this.isOut) {
-                    options += ConvoOption.MarkAsRead
+            val options: ImmutableList<ConvoOption> = buildImmutableList {
+                if (!convo.isRead() && convo.lastMessage != null && convo.lastMessage?.isOut == false) {
+                    add(ConvoOption.MarkAsRead)
                 }
+
+                if (convo.isPinned()) {
+                    add(ConvoOption.Unpin)
+                }
+
+                if (convos.size > 4 && pinnedConvosCount < 5 && !convo.isPinned()) {
+                    add(ConvoOption.Pin)
+                }
+
+                when (filter) {
+                    ConvosFilter.BUSINESS_NOTIFY -> Unit
+                    ConvosFilter.ARCHIVE -> add(ConvoOption.Unarchive)
+
+                    ConvosFilter.ALL,
+                    ConvosFilter.UNREAD -> {
+                        if (convo.id != UserConfig.userId) {
+                            add(ConvoOption.Archive)
+                        }
+                    }
+                }
+
+                add(ConvoOption.Delete)
             }
-
-            val convosSize = this.convosFlow.value.size
-            val pinnedCount = pinnedConvosCount.value
-
-            val canPinOneMoreDialog =
-                convosSize > 4 && pinnedCount < 5 && !convo.isPinned()
-
-            if (convo.isPinned()) {
-                options += ConvoOption.Unpin
-            } else if (canPinOneMoreDialog) {
-                options += ConvoOption.Pin
-            }
-
-            when (filter) {
-                ConvosFilter.ARCHIVE -> ConvoOption.Unarchive
-
-                ConvosFilter.UNREAD,
-                ConvosFilter.ALL -> ConvoOption.Archive
-
-                ConvosFilter.BUSINESS_NOTIFY -> null
-            }?.let(options::add)
-
-            options += ConvoOption.Delete
 
             convo.asPresentation(
                 resources = resources,
-                useContactName = useContactNames,
-                isExpanded = expandedConvoId.value == convo.id,
-                options = options.toImmutableList()
+                useContactName = userSettings.useContactNames.value,
+                isExpanded = screenState.value.expandedConvoId == convo.id,
+                options = options
             )
         }
-        uiConvos.setValue { newUiConvos }
+
+        screenState.updateValue { copy(convos = newUiConvos.toImmutableList()) }
 
         return newUiConvos
     }

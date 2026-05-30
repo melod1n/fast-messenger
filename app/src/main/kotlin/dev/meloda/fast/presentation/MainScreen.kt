@@ -38,7 +38,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.convos.navigation.ConvoGraph
+import dev.meloda.fast.convos.model.ConvoNavigationIntent
 import dev.meloda.fast.convos.navigation.convosGraph
 import dev.meloda.fast.friends.navigation.Friends
 import dev.meloda.fast.friends.navigation.friendsScreen
@@ -198,15 +198,17 @@ fun MainScreen(
                             },
                         )
                         convosGraph(
-                            activity = activity,
-                            onError = onError,
-                            onNavigateToMessagesHistory = onNavigateToMessagesHistory,
-                            onNavigateToCreateChat = onNavigateToCreateChat,
-                            onScrolledToTop = {
-                                tabReselected = tabReselected.toMutableMap().also {
-                                    it[ConvoGraph] = false
+                            handleNavigationIntent = { intent ->
+                                when (intent) {
+                                    ConvoNavigationIntent.Back -> {}
+                                    ConvoNavigationIntent.Archive -> {}
+                                    ConvoNavigationIntent.CreateChat -> onNavigateToCreateChat()
+                                    is ConvoNavigationIntent.MessagesHistory -> {
+                                        onNavigateToMessagesHistory(intent.convoId)
+                                    }
                                 }
-                            }
+                            },
+                            activity = activity,
                         )
                         profileScreen(
                             activity = activity,

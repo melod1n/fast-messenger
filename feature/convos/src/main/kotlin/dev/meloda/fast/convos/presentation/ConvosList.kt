@@ -36,12 +36,12 @@ import kotlinx.coroutines.launch
 fun ConvosList(
     modifier: Modifier = Modifier,
     convos: ImmutableList<UiConvo>,
-    onConvosClick: (UiConvo) -> Unit,
-    onConvosLongClick: (UiConvo) -> Unit,
+    onConvosClick: (Long) -> Unit,
+    onConvosLongClick: (Long) -> Unit,
     screenState: ConvosScreenState,
     state: LazyListState,
     maxLines: Int,
-    onOptionClicked: (UiConvo, ConvoOption) -> Unit,
+    onOptionClicked: (ConvoOption) -> Unit,
     padding: PaddingValues
 ) {
     val theme = LocalThemeConfig.current

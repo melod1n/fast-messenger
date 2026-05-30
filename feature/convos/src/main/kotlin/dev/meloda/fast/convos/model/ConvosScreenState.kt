@@ -1,6 +1,10 @@
 package dev.meloda.fast.convos.model
 
 import androidx.compose.runtime.Immutable
+import dev.meloda.fast.model.BaseError
+import dev.meloda.fast.ui.model.vk.UiConvo
+import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.emptyImmutableList
 
 @Immutable
 data class ConvosScreenState(
@@ -10,7 +14,13 @@ data class ConvosScreenState(
     val profileImageUrl: String?,
     val scrollIndex: Int,
     val scrollOffset: Int,
-    val isArchive: Boolean
+    val canPaginate: Boolean,
+    val expandedConvoId: Long?,
+    val convos: ImmutableList<UiConvo>,
+    val dialog: ConvoDialog?,
+
+    // TODO: 30.05.2026, Danil Nikolaev: remove
+    val error: BaseError?
 ) {
 
     companion object {
@@ -21,7 +31,11 @@ data class ConvosScreenState(
             profileImageUrl = null,
             scrollIndex = 0,
             scrollOffset = 0,
-            isArchive = false
+            canPaginate = false,
+            expandedConvoId = null,
+            convos = emptyImmutableList(),
+            dialog = null,
+            error = null
         )
     }
 }

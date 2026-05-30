@@ -56,25 +56,20 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.convos.model.ConvoIntent
 import dev.meloda.fast.convos.model.ConvosScreenState
 import dev.meloda.fast.convos.navigation.ConvoGraph
 import dev.meloda.fast.datastore.AppSettings
-import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.SegmentedButtonItem
 import dev.meloda.fast.ui.components.SegmentedButtonsRow
-import dev.meloda.fast.ui.components.VkErrorView
-import dev.meloda.fast.ui.model.vk.ConvoOption
-import dev.meloda.fast.ui.model.vk.UiConvo
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.buildImmutableList
-import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
@@ -82,26 +77,14 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalHazeMaterialsApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun ConvosScreen(
-    screenState: ConvosScreenState = ConvosScreenState.EMPTY,
-    convos: ImmutableList<UiConvo> = emptyImmutableList(),
-    baseError: BaseError? = null,
-    canPaginate: Boolean = false,
-    onBack: () -> Unit = {},
-    onConvoItemClicked: (convo: UiConvo) -> Unit = {},
-    onConvoItemLongClicked: (convo: UiConvo) -> Unit = {},
-    onOptionClicked: (UiConvo, ConvoOption) -> Unit = { _, _ -> },
-    onPaginationConditionsMet: () -> Unit = {},
-    onRefresh: () -> Unit = {},
-    onCreateChatButtonClicked: () -> Unit = {},
-    onArchiveActionClicked: () -> Unit = {},
-    setScrollIndex: (Int) -> Unit = {},
-    setScrollOffset: (Int) -> Unit = {},
-    onConsumeReselection: () -> Unit = {},
-    onErrorViewButtonClicked: () -> Unit = {}
+    handleIntent: (ConvoIntent) -> Unit,
+    screenState: ConvosScreenState,
+    isArchive: Boolean,
 ) {
     val currentTheme = LocalThemeConfig.current
     val maxLines = if (currentTheme.enableMultiline) 2 else 1
@@ -114,14 +97,14 @@ fun ConvosScreen(
     val currentTabReselected = LocalReselectedTab.current[ConvoGraph] == true
     LaunchedEffect(currentTabReselected) {
         if (currentTabReselected) {
-            if (screenState.isArchive) {
-                onBack.invoke()
+            if (isArchive) {
+                handleIntent(ConvoIntent.Back)
             } else {
                 if (listState.firstVisibleItemIndex > 14) {
                     listState.scrollToItem(14)
                 }
                 listState.animateScrollToItem(0)
-                onConsumeReselection()
+                handleIntent(ConvoIntent.ConsumeScrollToTop)
             }
         }
     }
@@ -129,18 +112,18 @@ fun ConvosScreen(
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .debounce(500L.milliseconds)
-            .collectLatest(setScrollIndex)
+            .collectLatest { handleIntent(ConvoIntent.SetScrollIndex(it)) }
     }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .debounce(500L.milliseconds)
-            .collectLatest(setScrollOffset)
+            .collectLatest { handleIntent(ConvoIntent.SetScrollOffset(it)) }
     }
 
-    val paginationConditionMet by remember(canPaginate, listState) {
+    val paginationConditionMet by remember(screenState.canPaginate, listState) {
         derivedStateOf {
-            canPaginate &&
+            screenState.canPaginate &&
                     (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                         ?: -9) >= (listState.layoutInfo.totalItemsCount - 6)
         }
@@ -148,7 +131,7 @@ fun ConvosScreen(
 
     LaunchedEffect(paginationConditionMet) {
         if (paginationConditionMet && !screenState.isPaginating) {
-            onPaginationConditionsMet()
+            handleIntent(ConvoIntent.PaginationConditionsMet)
         }
     }
 
@@ -183,7 +166,7 @@ fun ConvosScreen(
                             text = stringResource(
                                 id = when {
                                     screenState.isLoading -> R.string.title_loading
-                                    screenState.isArchive -> R.string.title_archive
+                                    isArchive -> R.string.title_archive
                                     else -> R.string.title_convos
                                 }
                             ),
@@ -193,8 +176,8 @@ fun ConvosScreen(
                         )
                     },
                     navigationIcon = {
-                        if (screenState.isArchive) {
-                            IconButton(onClick = onBack) {
+                        if (isArchive) {
+                            IconButton(onClick = { handleIntent(ConvoIntent.Back) }) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_arrow_back_round_24),
                                     contentDescription = null
@@ -206,7 +189,7 @@ fun ConvosScreen(
                         val dropDownItems: List<@Composable () -> Unit> = buildList {}
 
                         val items = buildImmutableList {
-                            if (!screenState.isArchive) {
+                            if (!isArchive) {
                                 add(SegmentedButtonItem("archive", R.drawable.ic_archive_round_24))
                             }
 
@@ -225,8 +208,8 @@ fun ConvosScreen(
                             items = items,
                             onClick = { index ->
                                 when (items[index].key) {
-                                    "archive" -> onArchiveActionClicked()
-                                    "refresh" -> onRefresh()
+                                    "archive" -> handleIntent(ConvoIntent.ArchiveClick)
+                                    "refresh" -> handleIntent(ConvoIntent.Refresh)
                                     "more" -> dropDownMenuExpanded = true
 
                                     else -> Unit
@@ -263,7 +246,7 @@ fun ConvosScreen(
                 )
 
                 val showHorizontalProgressBar by remember(screenState) {
-                    derivedStateOf { screenState.isLoading && convos.isNotEmpty() }
+                    derivedStateOf { screenState.isLoading && screenState.convos.isNotEmpty() }
                 }
                 AnimatedVisibility(showHorizontalProgressBar) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -274,14 +257,14 @@ fun ConvosScreen(
             }
         },
         floatingActionButton = {
-            if (!screenState.isArchive) {
+            if (!isArchive) {
                 val offsetY by animateIntAsState(
                     targetValue = if (listState.isScrollingUp()) 0 else 600
                 )
 
                 Column {
                     FloatingActionButton(
-                        onClick = onCreateChatButtonClicked,
+                        onClick = { handleIntent(ConvoIntent.CreateChatClick) },
                         modifier = Modifier.offset {
                             IntOffset(0, offsetY)
                         }
@@ -298,14 +281,15 @@ fun ConvosScreen(
         }
     ) { padding ->
         when {
-            baseError != null -> {
-                VkErrorView(
-                    baseError = baseError,
-                    onButtonClick = onErrorViewButtonClicked
-                )
-            }
+            // TODO: 30.05.2026, Danil Nikolaev: move to UI State
+//            baseError != null -> {
+//                VkErrorView(
+//                    baseError = baseError,
+//                    onButtonClick = onErrorViewButtonClicked
+//                )
+//            }
 
-            screenState.isLoading && convos.isEmpty() -> FullScreenContainedLoader()
+            screenState.isLoading && screenState.convos.isEmpty() -> FullScreenContainedLoader()
 
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()
@@ -318,7 +302,7 @@ fun ConvosScreen(
                         .padding(bottom = padding.calculateBottomPadding()),
                     state = pullToRefreshState,
                     isRefreshing = screenState.isLoading,
-                    onRefresh = onRefresh,
+                    onRefresh = { handleIntent(ConvoIntent.Refresh) },
                     indicator = {
                         PullToRefreshDefaults.Indicator(
                             state = pullToRefreshState,
@@ -330,9 +314,9 @@ fun ConvosScreen(
                     }
                 ) {
                     ConvosList(
-                        convos = convos,
-                        onConvosClick = onConvoItemClicked,
-                        onConvosLongClick = onConvoItemLongClicked,
+                        convos = screenState.convos,
+                        onConvosClick = { handleIntent(ConvoIntent.ItemClick(it)) },
+                        onConvosLongClick = { handleIntent(ConvoIntent.ItemLongClick(it)) },
                         screenState = screenState,
                         state = listState,
                         maxLines = maxLines,
@@ -341,14 +325,14 @@ fun ConvosScreen(
                         } else {
                             Modifier
                         }.fillMaxSize(),
-                        onOptionClicked = onOptionClicked,
+                        onOptionClicked = { handleIntent(ConvoIntent.OptionItemClick(it)) },
                         padding = padding
                     )
 
-                    if (convos.isEmpty()) {
+                    if (screenState.convos.isEmpty()) {
                         NoItemsView(
                             buttonText = stringResource(R.string.action_refresh),
-                            onButtonClick = onRefresh
+                            onButtonClick = { handleIntent(ConvoIntent.Refresh) }
                         )
                     }
                 }
