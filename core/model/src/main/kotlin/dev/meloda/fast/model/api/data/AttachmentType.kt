@@ -1,7 +1,5 @@
 package dev.meloda.fast.model.api.data
 
-import android.util.Log
-
 enum class AttachmentType(var value: String) {
     UNKNOWN("unknown"),
     PHOTO("photo"),
@@ -41,10 +39,6 @@ enum class AttachmentType(var value: String) {
             val parsedValue = entries.firstOrNull {
                 it.value == value
             } ?: UNKNOWN
-
-            if (parsedValue == UNKNOWN) {
-                Log.e("AttachmentType", "Unknown attachment type: $value")
-            }
 
             return parsedValue
         }

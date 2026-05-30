@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.conena.nanokt.android.app.stopForegroundCompat
@@ -22,6 +21,7 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.LongPollEventsHandler
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.LongPollUseCase
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.api.data.LongPollUpdates
 import dev.meloda.fast.model.api.data.VkLongPollData
 import dev.meloda.fast.ui.R
@@ -40,6 +40,8 @@ import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.seconds
 
 class LongPollingService : Service() {
+
+    private val logger: FastLogger by inject()
 
     private val longPollController: LongPollController by inject()
 
@@ -65,20 +67,21 @@ class LongPollingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(STATE_TAG, "onCreate()")
+        logger.debug(this::class, "STATE: onCreate()")
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        Log.d(STATE_TAG, "onBind: intent: $intent")
+        logger.debug(this::class, "STATE: onBind(): intent: $intent")
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        Log.d(
-            STATE_TAG,
-            "onStartCommand: asForeground: $inBackground; flags: $flags; startId: $startId;\ninstance: $this"
+        logger.debug(
+            this::class,
+            "STATE: onStartCommand(): asForeground: %s; flags: %s; startId: %s;\ninstance: %s"
+                .format("$inBackground", "$flags", "$startId", "$this")
         )
 
         startJob()
@@ -133,11 +136,15 @@ class LongPollingService : Service() {
 
     private fun startPolling(): Job {
         if (job.isCompleted || job.isCancelled) {
-            Log.d(STATE_TAG, "Job is completed or cancelled")
+            logger.debug(
+                this::class,
+                "startPolling(): Job is already done. isCompleted: %s; isCancelled: %s"
+                    .format("${job.isCompleted}", "${job.isCancelled}")
+            )
             throw Exception("Job is over")
         }
 
-        Log.d(STATE_TAG, "Starting job...")
+        logger.debug(this::class, "startPolling(): Starting job.")
 
         return coroutineScope.launch(coroutineContext) {
             longPollController.updateCurrentState(
@@ -213,11 +220,11 @@ class LongPollingService : Service() {
         ).listenValue(coroutineScope) { state ->
             state.processState(
                 success = { response ->
-                    Log.d(TAG, "getServerInfo: serverInfoResponse: $response")
+                    logger.debug(this::class, "getServerInfo(): response: $response")
                     it.resume(response)
                 },
                 error = { error ->
-                    Log.e(TAG, "getServerInfo: $error")
+                    logger.error(this::class, "getServerInfo(): ERROR: $error")
                     it.resume(null)
                 }
             )
@@ -237,11 +244,11 @@ class LongPollingService : Service() {
         ).listenValue(coroutineScope) { state ->
             state.processState(
                 success = { response ->
-                    Log.d(TAG, "lastUpdateResponse: $response")
+                    logger.debug(this::class, "getUpdatesResponse(): response: $response")
                     it.resume(response)
                 },
                 error = { error ->
-                    Log.d(TAG, "getUpdatesResponse: error: $error")
+                    logger.debug(this::class, "getUpdatesResponse(): error: $error")
                     it.resume(null)
                 }
             )
@@ -254,7 +261,7 @@ class LongPollingService : Service() {
     }
 
     private fun handleError(throwable: Throwable) {
-        Log.e(TAG, "error: $throwable")
+        logger.error(this::class, "CoroutineException", throwable)
 
         if (throwable !is NoAccessTokenException) {
             throwable.printStackTrace()
@@ -269,7 +276,7 @@ class LongPollingService : Service() {
     }
 
     override fun onDestroy() {
-        Log.d(STATE_TAG, "onDestroy")
+        logger.debug(this::class, "STATE: onDestroy()")
         longPollController.updateCurrentState(LongPollState.Stopped)
         try {
             AppSettings.edit { putBoolean(KEY_LONG_POLL_WAS_DESTROYED, true) }
@@ -281,7 +288,7 @@ class LongPollingService : Service() {
     }
 
     override fun onTrimMemory(level: Int) {
-        Log.d(STATE_TAG, "onTrimMemory. Level: $level")
+        logger.debug(this::class, "STATE: onTrimMemory(): Level: $level")
         super.onTrimMemory(level)
     }
 

@@ -1,6 +1,5 @@
 package dev.meloda.fast.chatmaterials.util
 
-import android.util.Log
 import dev.meloda.fast.chatmaterials.model.UiChatMaterial
 import dev.meloda.fast.common.util.AndroidUtils
 import dev.meloda.fast.model.api.data.AttachmentType
@@ -135,8 +134,5 @@ fun VkAttachmentHistoryMessage.asPresentation(): UiChatMaterial? =
             )
         }
 
-        else -> {
-            Log.w("ChatMaterialMapper", "Unsupported type: $type")
-            null
-        }
+        else -> null
     }

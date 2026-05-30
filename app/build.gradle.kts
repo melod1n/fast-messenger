@@ -92,6 +92,7 @@ dependencies {
     implementation(projects.feature.photoviewer)
     implementation(projects.feature.createchat)
 
+    implementation(projects.core.logger)
     implementation(projects.core.common)
     implementation(projects.core.ui)
     implementation(projects.core.data)

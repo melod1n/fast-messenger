@@ -15,6 +15,7 @@ dependencies {
     api(projects.core.common)
     api(projects.core.model)
     api(projects.core.datastore)
+    api(projects.core.logger)
 
     implementation(libs.moshi.kotlin)
     implementation(libs.koin.android)

@@ -64,7 +64,6 @@ fun DynamicPreviewGrid(
         val spacingPx = with(LocalDensity.current) { spacing.toPx() }
 
         val rows = previews.chunked(3)
-        Log.d("ROWS", "DynamicPreviewGrid: ${rows.size}")
 
         Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
             rows.forEachIndexed { outerIndex, row ->

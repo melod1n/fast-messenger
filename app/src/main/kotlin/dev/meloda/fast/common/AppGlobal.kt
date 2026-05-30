@@ -10,6 +10,8 @@ import com.skydoves.compose.stability.runtime.ComposeStabilityAnalyzer
 import dev.meloda.fast.auth.BuildConfig
 import dev.meloda.fast.common.di.applicationModule
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.logger.FastLogLevel
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.presentation.CrashActivity
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
@@ -30,6 +32,14 @@ class AppGlobal : Application(), ImageLoaderFactory {
 
         initKoin()
         initCrashHandler()
+
+        val logLevel =
+            if (BuildConfig.DEBUG) FastLogLevel.DEBUG
+            else FastLogLevel.ERROR
+
+        get<FastLogger>()
+            .apply { setLogLevel(logLevel) }
+            .also { FastLogger.setInstance(it) }
     }
 
     override fun newImageLoader(): ImageLoader = get()

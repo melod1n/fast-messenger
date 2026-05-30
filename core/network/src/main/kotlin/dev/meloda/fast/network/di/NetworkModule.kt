@@ -7,6 +7,7 @@ import com.slack.eithernet.integration.retrofit.ApiResultConverterFactory
 import com.squareup.moshi.Moshi
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.network.JsonConverter
 import dev.meloda.fast.network.MoshiConverter
 import dev.meloda.fast.network.OAuthResultCallFactory
@@ -123,7 +124,12 @@ private fun Scope.buildRetrofit(client: OkHttpClient): Retrofit {
         .baseUrl("${AppConstants.URL_API}/")
         .addConverterFactory(ApiResultConverterFactory)
         .addCallAdapterFactory(ApiResultCallAdapterFactory)
-        .addConverterFactory(ResponseConverterFactory(get<JsonConverter>()))
+        .addConverterFactory(
+            ResponseConverterFactory(
+                get<JsonConverter>(),
+                get<FastLogger>()
+            )
+        )
         .addConverterFactory(MoshiConverterFactory.create(get()))
         .client(client)
         .build()

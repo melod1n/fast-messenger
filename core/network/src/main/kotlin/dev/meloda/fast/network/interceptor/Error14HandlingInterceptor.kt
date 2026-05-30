@@ -1,9 +1,9 @@
 package dev.meloda.fast.network.interceptor
 
-import android.util.Log
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.CaptchaTokenResult
+import dev.meloda.fast.logger.FastLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,17 +14,15 @@ import org.json.JSONObject
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
 
-class Error14HandlingInterceptor(
-//    private val domains: Set<String> = emptySet(),
-) : Interceptor {
-
-    private val cookie = AtomicReference<String?>(null)
+class Error14HandlingInterceptor(private val logger: FastLogger) : Interceptor {
 
     private companion object {
         private const val CAPTCHA_ERROR_CODE = 14
         private const val CAPTCHA_ERROR_KIND = "need_captcha"
         private val executor = Executors.newSingleThreadExecutor()
     }
+
+    private val cookie = AtomicReference<String?>(null)
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().withCookie()
@@ -41,23 +39,23 @@ class Error14HandlingInterceptor(
 
         executor.submit {
             AppSettings.setCaptchaRedirectUri(redirectUri)
-            Log.d("Error14Interceptor", "passCaptchaAndGetToken: $redirectUri")
+            logger.debug(this::class, "passCaptchaAndGetToken: $redirectUri")
 
             var job: Job? = null
             job = AppSettings.getCaptchaResultFlow()
                 .listenValue(CoroutineScope(Dispatchers.IO)) {
-                    Log.d("Error14Interceptor", "passCaptchaAndGetToken: $it")
+                    logger.debug(this::class, "passCaptchaAndGetToken: $it")
                     if (it != CaptchaTokenResult.Initial) {
                         synchronized(tokenResult) {
-                            Log.d(
-                                "Error14Interceptor",
+                            logger.debug(
+                                this::class,
                                 "passCaptchaAndGetToken: SYNCHRONIZED: $it"
                             )
                             tokenResult.set(wrapResult(it))
                             tokenResult.notifyAll()
                             job?.cancel()
-                            Log.d(
-                                "Error14Interceptor",
+                            logger.debug(
+                                this::class,
                                 "passCaptchaAndGetToken: NULL RESULT"
                             )
                             AppSettings.setCaptchaResult(CaptchaTokenResult.Initial)
@@ -71,7 +69,7 @@ class Error14HandlingInterceptor(
                 tokenResult.wait()
             }
 
-            Log.d("Error14Interceptor", "passCaptchaAndGetToken: GET VALUE")
+            logger.debug(this::class, "passCaptchaAndGetToken: GET VALUE")
             tokenResult.get().getOrThrow()
         }
     }

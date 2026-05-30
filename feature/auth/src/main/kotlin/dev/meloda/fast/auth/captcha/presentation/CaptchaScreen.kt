@@ -1,7 +1,6 @@
 package dev.meloda.fast.auth.captcha.presentation
 
 import android.graphics.Bitmap
-import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -32,7 +31,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.LocalLogger
 import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.FullScreenDialog
 import dev.meloda.fast.ui.components.MaterialDialog
@@ -46,6 +47,8 @@ fun CaptchaScreen(
     onBack: () -> Unit = {},
     onResult: (String) -> Unit = {}
 ) {
+    val logger = LocalLogger.current
+
     if (captchaRedirectUri != null) {
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
@@ -114,7 +117,10 @@ fun CaptchaScreen(
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): Boolean {
-                                Log.i(TAG, "shouldOverrideUrlLoading: $request")
+                                logger.info(
+                                    "CaptchaScreen",
+                                    "WebViewClient(): shouldOverrideUrlLoading(): request: $request"
+                                )
                                 return false
                             }
 
@@ -148,7 +154,8 @@ fun CaptchaScreen(
                                         // TODO: 03/05/2026, Danil Nikolaev: show error
                                     }
                                 },
-                                onCloseRequested = { showExitAlert = true }
+                                onCloseRequested = { showExitAlert = true },
+                                logger = logger
                             ),
                             "AndroidBridge"
                         )
@@ -176,19 +183,18 @@ fun CaptchaScreen(
 
 class WebCaptchaListener(
     private val onSuccessTokenReceived: (String) -> Unit,
-    private val onCloseRequested: (String) -> Unit
+    private val onCloseRequested: (String) -> Unit,
+    private val logger: FastLogger
 ) {
-    private val tag = "WebCaptchaListener"
-
     @JavascriptInterface
     fun VKCaptchaGetResult(arg: String) {
         onSuccessTokenReceived(arg)
-        Log.i(tag, "VKCaptchaGetResult($arg)")
+        logger.info(this::class, "VKCaptchaGetResult(): arg: $arg")
     }
 
     @JavascriptInterface
     fun VKCaptchaCloseCaptcha(arg: String) {
         onCloseRequested(arg)
-        Log.i(tag, "VKCaptchaCloseCaptcha($arg)")
+        logger.info(this::class, "VKCaptchaCloseCaptcha(): arg: $arg")
     }
 }

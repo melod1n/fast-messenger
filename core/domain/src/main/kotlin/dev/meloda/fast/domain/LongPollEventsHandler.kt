@@ -1,8 +1,8 @@
 package dev.meloda.fast.domain
 
-import android.util.Log
 import dev.meloda.fast.database.dao.ConvoDao
 import dev.meloda.fast.database.dao.MessageDao
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.LongPollParsedEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -11,6 +11,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlin.coroutines.CoroutineContext
 
 class LongPollEventsHandler(
+    private val logger: FastLogger,
     private val convoUseCase: ConvoUseCase,
     private val messagesUseCase: MessagesUseCase,
     private val convoDao: ConvoDao,
@@ -20,8 +21,7 @@ class LongPollEventsHandler(
 
     private val exceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
-            Log.e("LongPollUpdatesParser", "error: $throwable")
-            throwable.printStackTrace()
+            logger.error(this::class, "CoroutineException", throwable)
         }
 
     private val coroutineContext: CoroutineContext
@@ -45,8 +45,8 @@ class LongPollEventsHandler(
                     isArchived = event.convo.isArchived
                 )
 
-                Log.d(
-                    "LongPollEventsHandler",
+                logger.debug(
+                    this::class,
                     "isArchived ${event.convo.isArchived}: updated $affectedRows rows."
                 )
             }
@@ -57,7 +57,10 @@ class LongPollEventsHandler(
                     cmId = event.toCmId
                 )
 
-                Log.d("LongPollEventsHandler", "updateLastCmId: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "updateLastCmId: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.ChatMajorChanged -> {
@@ -66,7 +69,10 @@ class LongPollEventsHandler(
                     majorId = event.majorId
                 )
 
-                Log.d("LongPollEventsHandler", "updateMajorId: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "updateMajorId: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.ChatMinorChanged -> {
@@ -75,7 +81,10 @@ class LongPollEventsHandler(
                     minorId = event.minorId
                 )
 
-                Log.d("LongPollEventsHandler", "updateMinorId: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "updateMinorId: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.Interaction -> {
@@ -93,7 +102,10 @@ class LongPollEventsHandler(
                     isDeleted = true
                 )
 
-                Log.d("LongPollEventsHandler", "markDeleted: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "markDeleted: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.MessageEdited -> {
@@ -107,7 +119,10 @@ class LongPollEventsHandler(
                     isImportant = event.marked
                 )
 
-                Log.d("LongPollEventsHandler", "markImportant: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "markImportant: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.MessageMarkedAsNotSpam -> {
@@ -121,7 +136,10 @@ class LongPollEventsHandler(
                     isSpam = true
                 )
 
-                Log.d("LongPollEventsHandler", "markSpam: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "markSpam: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.MessageRestored -> {
@@ -143,7 +161,10 @@ class LongPollEventsHandler(
                     unreadCount = event.unreadCount
                 )
 
-                Log.d("LongPollEventsHandler", "inMessageRead: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "inMessageRead: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.OutgoingMessageRead -> {
@@ -153,7 +174,10 @@ class LongPollEventsHandler(
                     unreadCount = event.unreadCount
                 )
 
-                Log.d("LongPollEventsHandler", "outMessageRead: updated $affectedRows rows.")
+                logger.debug(
+                    this::class,
+                    "outMessageRead: updated $affectedRows rows."
+                )
             }
 
             is LongPollParsedEvent.UnreadCounter -> {

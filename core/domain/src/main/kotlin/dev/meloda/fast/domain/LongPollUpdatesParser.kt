@@ -1,6 +1,5 @@
 package dev.meloda.fast.domain
 
-import android.util.Log
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.asInt
 import dev.meloda.fast.common.extensions.asLong
@@ -8,6 +7,7 @@ import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.toList
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.ApiEvent
 import dev.meloda.fast.model.ConvoFlags
 import dev.meloda.fast.model.InteractionType
@@ -27,6 +27,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 
 class LongPollUpdatesParser(
+    private val logger: FastLogger,
     private val convoUseCase: ConvoUseCase,
     private val messagesUseCase: MessagesUseCase
 ) {
@@ -34,8 +35,7 @@ class LongPollUpdatesParser(
 
     private val exceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
-            Log.e("LongPollUpdatesParser", "error: $throwable")
-            throwable.printStackTrace()
+            logger.error(this::class, "CoroutineException", throwable)
         }
 
     private val coroutineContext: CoroutineContext
@@ -51,7 +51,7 @@ class LongPollUpdatesParser(
 
         return when (val eventType = ApiEvent.parseOrNull(eventId)) {
             null -> {
-                Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
+                logger.debug(this::class, "parseNextUpdate(): unknownEvent: $event")
                 emptyList()
             }
 
@@ -83,7 +83,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessageSetFlags(): $eventType: $event")
 
         val cmId = event[1].asLong()
         val flags = event[2].asInt()
@@ -171,7 +171,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessageClearFlags(): $eventType: $event")
 
         val cmId = event[1].asLong()
         val flags = event[2].asInt()
@@ -246,7 +246,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessageNew(): $eventType: $event")
 
         val cmId = event[1].asLong()
         val peerId = event[4].asLong()
@@ -284,7 +284,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessageEdit(): $eventType: $event")
 
         val cmId = event[1].asLong()
         val peerId = event[3].asLong()
@@ -305,7 +305,8 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessageReadIncoming(): $eventType: $event")
+
         val peerId = event[1].asLong()
         val cmId = event[2].asLong()
         val unreadCount = event[3].asInt()
@@ -323,7 +324,8 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessageReadOutgoing(): $eventType: $event")
+
         val peerId = event[1].asLong()
         val cmId = event[2].asLong()
         val unreadCount = event[3].asInt()
@@ -342,7 +344,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseChatClearFlags(): $eventType: $event")
 
         val peerId = event[1].asLong()
         val flags = event[2].asInt()
@@ -402,7 +404,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseChatSetFlags(): $eventType: $event")
 
         val peerId = event[1].asLong()
         val flags = event[2].asInt()
@@ -462,7 +464,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseMessagesDeleted(): $eventType: $event")
 
         val peerId = event[1].asLong()
         val cmId = event[2].asLong()
@@ -479,7 +481,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseChatMajorChanged(): $eventType: $event")
 
         val peerId = event[1].asLong()
         val majorId = event[2].asInt()
@@ -496,7 +498,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseChatMinorChanged(): $eventType: $event")
 
         val peerId = event[1].asLong()
         val minorId = event[2].asInt()
@@ -513,7 +515,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType: $event")
+        logger.debug(this::class, "parseInteraction(): $eventType: $event")
 
         val interactionType = when (eventType) {
             ApiEvent.TYPING -> InteractionType.Typing
@@ -556,7 +558,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> {
-        Log.d("LongPollUpdatesParser", "$eventType $event")
+        logger.debug(this::class, "parseUnreadCounterUpdate(): $eventType: $event")
 
         val unreadCount = event[1].asInt()
         val unreadUnmutedCount = event[2].asInt()
@@ -583,7 +585,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType $event")
+        logger.debug(this::class, "parseMessageUpdated(): $eventType: $event")
 
         val cmId = event[1].asLong()
         val peerId = event[4].asLong()
@@ -605,7 +607,7 @@ class LongPollUpdatesParser(
         eventType: ApiEvent,
         event: List<Any>
     ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
-        Log.d("LongPollUpdatesParser", "$eventType $event")
+        logger.debug(this::class, "parseMessageCacheClear(): $eventType: $event")
 
         val messageId = event[1].asLong()
 
@@ -639,7 +641,7 @@ class LongPollUpdatesParser(
             ).listenValue(this) { state ->
                 state.processState(
                     error = { error ->
-                        Log.e("LongPollUpdatesParser", "loadMessage: error: $error")
+                        logger.error(this::class, "loadMessage(): ERROR: $error")
                         continuation.resume(null)
                     },
                     success = { response ->
@@ -668,7 +670,7 @@ class LongPollUpdatesParser(
             ).listenValue(coroutineScope) { state ->
                 state.processState(
                     error = { error ->
-                        Log.e("LongPollUpdatesParser", "loadConvo: error: $error")
+                        logger.error(this::class, "loadConvo(): ERROR: $error")
                         continuation.resume(null)
                     },
                     success = { response ->

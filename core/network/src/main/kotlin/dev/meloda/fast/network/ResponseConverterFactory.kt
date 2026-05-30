@@ -1,10 +1,10 @@
 package dev.meloda.fast.network
 
-import android.util.Log
 import com.slack.eithernet.ApiException
 import com.slack.eithernet.errorType
 import com.slack.eithernet.toType
 import com.squareup.moshi.JsonDataException
+import dev.meloda.fast.logger.FastLogger
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
@@ -16,7 +16,10 @@ import java.lang.reflect.Type
  *
  * допускает Unit как SuccessType в случае невозможности каста ответа в ErrorType
  */
-class ResponseConverterFactory(private val converter: JsonConverter) : Converter.Factory() {
+class ResponseConverterFactory(
+    private val converter: JsonConverter,
+    private val logger: FastLogger
+) : Converter.Factory() {
 
     override fun responseBodyConverter(
         type: Type,
@@ -29,6 +32,7 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
             successType = type,
             errorRaw = errorRaw,
             converter = converter,
+            logger = logger
         )
     }
 
@@ -36,6 +40,7 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
         private val successType: Type,
         private val errorRaw: Class<*>,
         private val converter: JsonConverter,
+        private val logger: FastLogger
     ) : Converter<ResponseBody, Any?> {
         override fun convert(value: ResponseBody): Any? {
             val string = value.string()
@@ -53,7 +58,7 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
                 },
                 onFailure = { failure ->
                     if (failure is JsonDataException) {
-                        Log.d("ResponseBodyConverter", "convertJsonDataException: $failure")
+                        logger.error(this::class, "convert(): ERROR", failure)
                         throw ApiException(
                             RestApiError(
                                 errorCode = -1,
@@ -68,10 +73,11 @@ class ResponseConverterFactory(private val converter: JsonConverter) : Converter
                         converter.fromJson(errorRaw, string)
                     }.fold(
                         onSuccess = { errorModel ->
-                            Log.d("ResponseBodyConverter", "convert: $errorModel")
+                            logger.debug(this::class, "convert(): errorModel: $errorModel")
                             throw ApiException(errorModel)
                         },
                         onFailure = { exception ->
+                            logger.error(this::class, "convert(): INNER: ERROR", exception)
                             if (!isUnit) {
                                 throw exception
                             } else {

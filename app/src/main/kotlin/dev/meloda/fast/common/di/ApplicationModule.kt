@@ -19,6 +19,7 @@ import dev.meloda.fast.convos.di.createChatModule
 import dev.meloda.fast.domain.di.domainModule
 import dev.meloda.fast.friends.di.friendsModule
 import dev.meloda.fast.languagepicker.di.languagePickerModule
+import dev.meloda.fast.logger.loggerModule
 import dev.meloda.fast.messageshistory.di.messagesHistoryModule
 import dev.meloda.fast.photoviewer.di.photoViewModule
 import dev.meloda.fast.profile.di.profileModule
@@ -48,6 +49,8 @@ val applicationModule = module {
         chatMaterialsModule,
         createChatModule
     )
+
+    includes(loggerModule)
 
     // TODO: 14/05/2024, Danil Nikolaev: extract all operations with preferences to standalone class
     singleOf(PreferenceManager::getDefaultSharedPreferences)

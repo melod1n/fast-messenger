@@ -3,7 +3,7 @@ package dev.meloda.fast.datastore
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import dev.meloda.fast.common.model.DarkMode
-import dev.meloda.fast.common.model.LogLevel
+import dev.meloda.fast.common.model.NetworkLogLevel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -238,11 +238,11 @@ object AppSettings {
             )
             set(value) = put(SettingsKeys.KEY_DEBUG_SHOW_CRASH_ALERT, value)
 
-        var networkLogLevel: LogLevel
+        var networkLogLevel: NetworkLogLevel
             get() = get(
                 SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL,
                 SettingsKeys.DEFAULT_NETWORK_LOG_LEVEL
-            ).let(LogLevel::parse)
+            ).let(NetworkLogLevel::parse)
             set(level) = put(SettingsKeys.KEY_DEBUG_NETWORK_LOG_LEVEL, level.value)
 
         var showDebugCategory: Boolean

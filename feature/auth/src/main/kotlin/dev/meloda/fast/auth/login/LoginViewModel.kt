@@ -2,7 +2,6 @@ package dev.meloda.fast.auth.login
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.auth.login.model.CaptchaArguments
@@ -28,6 +27,7 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.network.OAuthErrorDomain
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -48,7 +48,8 @@ class LoginViewModel(
     private val accountsRepository: AccountsRepository,
     private val loginValidator: LoginValidator,
     private val longPollController: LongPollController,
-    private val userSettings: UserSettings
+    private val userSettings: UserSettings,
+    private val logger: FastLogger
 ) : ViewModel() {
     private val _screenState = MutableStateFlow(LoginScreenState.EMPTY)
     val screenState = _screenState.asStateFlow()
@@ -189,7 +190,7 @@ class LoginViewModel(
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 error = { error ->
-                    Log.d("LoginViewModelImpl", "login: error: $error")
+                    logger.error(this::class, "getSilentToken(): ERROR: $error")
 
                     _screenState.updateValue { copy(isLoading = false) }
 

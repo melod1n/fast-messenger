@@ -6,8 +6,9 @@ import android.os.IBinder
 import android.util.Log
 import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.data.UserConfig
-import dev.meloda.fast.domain.AccountUseCase
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.domain.AccountUseCase
+import dev.meloda.fast.logger.FastLogger
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,11 +25,12 @@ import kotlin.time.Duration.Companion.minutes
 
 class OnlineService : Service() {
 
+    private val logger: FastLogger by inject()
+
     private val job = SupervisorJob()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.d(TAG, "error: $throwable")
-        throwable.printStackTrace()
+        logger.error(this::class.java, "CoroutineException", throwable)
     }
 
     private val coroutineContext: CoroutineContext
@@ -42,17 +44,20 @@ class OnlineService : Service() {
     private var onlineJob: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? {
-        Log.d(STATE_TAG, "onBind: intent: $intent")
+        logger.debug(this::class, "STATE: onBind(): intent: $intent")
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (startId > 1) return START_STICKY
 
-        Log.d(STATE_TAG, "onStartCommand: flags: $flags; startId: $startId\ninstance: $this")
+        logger.debug(
+            this::class,
+            "STATE: onStartCommand(): flags: %s; startId: %s;\ninstance: %s"
+                .format("$flags", "$startId", "$this")
+        )
 
         createTimer()
-
         return START_STICKY
     }
 
@@ -68,13 +73,13 @@ class OnlineService : Service() {
     private fun setOnline() {
         if (onlineJob != null) return
 
-        Log.d(TAG, "setOnline()")
+        logger.debug(this::class, "setOnline()")
 
         onlineJob = coroutineScope.launch {
             val token = UserConfig.fastToken ?: UserConfig.accessToken
 
             if (token.isBlank()) {
-                Log.d(TAG, "setOnline: token is empty")
+                logger.debug(this::class, "setOnline(): token is empty")
                 return@launch
             }
 
@@ -84,10 +89,10 @@ class OnlineService : Service() {
             ).onEach { state ->
                 state.processState(
                     error = { error ->
-                        Log.w(TAG, "setOnline(): error: $error")
+                        logger.error(this@OnlineService::class, "setOnline(): ERROR: $error")
                     },
                     success = { response ->
-                        Log.d(TAG, "setOnline(): success: $response")
+                        logger.debug(this@OnlineService::class, "setOnline(): response: $response")
                     }
                 )
             }.collect()
@@ -96,7 +101,7 @@ class OnlineService : Service() {
     }
 
     override fun onDestroy() {
-        Log.d(STATE_TAG, "onDestroy")
+        logger.debug(this::class, "onDestroy()")
 
         timerJob?.cancel("OnlineService destroyed")
         onlineJob?.cancel("OnlineService destroyed")

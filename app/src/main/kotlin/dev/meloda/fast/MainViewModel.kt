@@ -2,7 +2,6 @@ package dev.meloda.fast
 
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import androidx.core.os.LocaleListCompat
@@ -23,6 +22,7 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.GetCurrentAccountUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.navigation.Main
@@ -67,7 +67,8 @@ class MainViewModelImpl(
     private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val userSettings: UserSettings,
-    private val longPollController: LongPollController
+    private val longPollController: LongPollController,
+    private val logger: FastLogger
 ) : MainViewModel, ViewModel() {
 
     override val startDestination = MutableStateFlow<Any?>(null)
@@ -203,7 +204,10 @@ class MainViewModelImpl(
         viewModelScope.launch(Dispatchers.IO) {
             val currentAccount = getCurrentAccountUseCase()
 
-            Log.d("MainViewModel", "currentAccount: $currentAccount")
+            logger.debug(
+                this@MainViewModelImpl::class,
+                "loadAccounts(): currentAccount: $currentAccount"
+            )
 
             listenLongPollState()
 

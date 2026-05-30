@@ -9,12 +9,11 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
@@ -24,10 +23,13 @@ import dev.meloda.fast.MainViewModel
 import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.service.OnlineService
 import dev.meloda.fast.service.longpolling.LongPollingService
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.LocalLogger
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 class MainActivity : AppCompatActivity() {
 
@@ -64,25 +66,26 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissions()
 
         setContent {
-            val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
-            LaunchedEffect(viewModel) {
-                Log.d("VM_CREATE", "onCreate: viewModel: $viewModel")
-            }
+            val logger: FastLogger = koinInject()
 
+            val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
             LifecycleResumeEffect(true) {
                 viewModel.onAppResumed(intent)
                 onPauseOrDispose {}
             }
 
-            RootScreen(
-                toggleLongPollService = { enable, inBackground ->
-                    toggleLongPollService(
-                        enable = enable,
-                        inBackground = inBackground ?: AppSettings.Experimental.longPollInBackground
-                    )
-                },
-                toggleOnlineService = ::toggleOnlineService
-            )
+            CompositionLocalProvider(LocalLogger provides logger) {
+                RootScreen(
+                    toggleLongPollService = { enable, inBackground ->
+                        toggleLongPollService(
+                            enable = enable,
+                            inBackground = inBackground
+                                ?: AppSettings.Experimental.longPollInBackground
+                        )
+                    },
+                    toggleOnlineService = ::toggleOnlineService
+                )
+            }
         }
     }
 

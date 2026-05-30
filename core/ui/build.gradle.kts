@@ -12,6 +12,7 @@ android {
 dependencies {
     api(projects.core.common)
     api(projects.core.model)
+    api(projects.core.logger)
     implementation(projects.core.presentation)
 
     implementation(libs.haze)

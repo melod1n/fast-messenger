@@ -1,7 +1,6 @@
 package dev.meloda.fast.messageshistory.presentation
 
 import android.content.Intent
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -129,7 +128,6 @@ fun MessagesList(
             when (attachment) {
                 is VkPhotoDomain -> {
                     val maxSize = attachment.getMaxSize()
-                    Log.d("MessagesList", "onPhotoLongClicked. Max size: ${maxSize?.url}")
                 }
             }
         }

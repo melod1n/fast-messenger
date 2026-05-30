@@ -12,7 +12,7 @@ import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.model.DarkMode
-import dev.meloda.fast.common.model.LogLevel
+import dev.meloda.fast.common.model.NetworkLogLevel
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.common.model.UiText
 import dev.meloda.fast.common.model.parseString
@@ -497,10 +497,10 @@ class SettingsViewModel(
         )
 
         val logLevelValues = listOf(
-            LogLevel.NONE to UiText.Simple("None"),
-            LogLevel.BASIC to UiText.Simple("Basic"),
-            LogLevel.HEADERS to UiText.Simple("Headers"),
-            LogLevel.BODY to UiText.Simple("Body")
+            NetworkLogLevel.NONE to UiText.Simple("None"),
+            NetworkLogLevel.BASIC to UiText.Simple("Basic"),
+            NetworkLogLevel.HEADERS to UiText.Simple("Headers"),
+            NetworkLogLevel.BODY to UiText.Simple("Body")
         ).toMap()
 
         val debugNetworkLogLevel = SettingsItem.ListItem(
@@ -509,10 +509,10 @@ class SettingsViewModel(
             valueClass = Int::class,
             defaultValue = SettingsKeys.DEFAULT_NETWORK_LOG_LEVEL,
             titles = logLevelValues.values.toList(),
-            values = logLevelValues.keys.toList().map(LogLevel::value)
+            values = logLevelValues.keys.toList().map(NetworkLogLevel::value)
         ).apply {
             textProvider = TextProvider { item ->
-                val textValue = logLevelValues[LogLevel.parse(item.value)].parseString(resources)
+                val textValue = logLevelValues[NetworkLogLevel.parse(item.value)].parseString(resources)
 
                 UiText.Simple("Current value: $textValue")
             }

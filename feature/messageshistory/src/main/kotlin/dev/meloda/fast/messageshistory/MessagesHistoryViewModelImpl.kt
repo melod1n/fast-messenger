@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -685,8 +684,6 @@ class MessagesHistoryViewModelImpl(
     private fun handleNewMessage(event: LongPollParsedEvent.NewMessage) {
         val message = event.message
 
-        Log.d("MessagesHistoryViewModel", "handleNewMessage: $message")
-
         if (message.peerId != screenState.value.convoId) return
         if (messages.value.indexOfFirstOrNull { it.id == message.id } != null) return
 
@@ -835,8 +832,6 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun loadConvo() {
-        Log.d("MessagesHistoryViewModelImpl", "loadConvo()")
-
         loadConvosByIdUseCase(
             peerIds = listOf(screenState.value.convoId),
             extended = true,
@@ -904,8 +899,6 @@ class MessagesHistoryViewModelImpl(
     }
 
     private fun loadMessagesHistory(offset: Int = currentOffset.value) {
-        Log.d("MessagesHistoryViewModel", "loadMessagesHistory: $offset")
-
         messagesUseCase.getMessagesHistory(
             convoId = screenState.value.convoId,
             count = MESSAGES_LOAD_COUNT,
@@ -1079,8 +1072,6 @@ class MessagesHistoryViewModelImpl(
             state.processState(
                 any = { sendingMessages.remove(newMessage) },
                 error = { error ->
-                    Log.d("MessagesHistoryViewModelImpl", "sendMessage: ERROR: $error")
-
                     val failedId = -500_000L - failedMessages.size
                     val newFailedMessage = newMessage.copy(id = failedId)
                     failedMessages += newFailedMessage
@@ -1144,8 +1135,6 @@ class MessagesHistoryViewModelImpl(
         ) ?: return
 
         // TODO: 13/03/2026, Danil Nikolaev: check if message is exact same, then do not edit
-
-        Log.d("MessagesHistoryViewModelImpl", "editMessage: $newMessage")
     }
 
     private fun markAsImportant(

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -63,6 +62,7 @@ import dev.meloda.fast.photoviewer.presentation.PhotoViewDialog
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.LocalLogger
 import dev.meloda.fast.ui.common.LocalSizeConfig
 import dev.meloda.fast.ui.model.DeviceSize
 import dev.meloda.fast.ui.model.SizeConfig
@@ -83,6 +83,7 @@ fun RootScreen(
     toggleLongPollService: (enable: Boolean, inBackground: Boolean?) -> Unit,
     toggleOnlineService: (enable: Boolean) -> Unit
 ) {
+    val logger = LocalLogger.current
     val resources = LocalResources.current
 
     val userSettings: UserSettings = koinInject()
@@ -92,10 +93,6 @@ fun RootScreen(
     val longPollStateToApply by longPollController.stateToApply.collectAsStateWithLifecycle()
 
     val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
-    LaunchedEffect(viewModel) {
-        Log.d("VM_CREATE", "RootScreen(): viewModel: $viewModel")
-    }
-
     val currentUser: VkUser? by viewModel.currentUser.collectAsStateWithLifecycle()
 
     val permissionState =
@@ -126,13 +123,12 @@ fun RootScreen(
     }
 
     LifecycleResumeEffect(longPollStateToApply) {
-        Log.d("LongPollMainActivity", "longPollStateToApply: $longPollStateToApply")
+        logger.debug("RootScreen", "longPollStateToApply: $longPollStateToApply")
         if (longPollStateToApply != LongPollState.Background) {
             if (longPollStateToApply.isLaunched() && longPollCurrentState.isLaunched()
                 && longPollCurrentState != longPollStateToApply
             ) {
                 toggleLongPollService(false, null)
-                Log.d("LongPoll", "recreate()")
             }
 
             toggleLongPollService(
