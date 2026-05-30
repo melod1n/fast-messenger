@@ -9,47 +9,54 @@ import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.domain.GetLocalUserByIdUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.profile.model.ProfileScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ProfileViewModel(
     private val getLocalUserByIdUseCase: GetLocalUserByIdUseCase,
-    private val loadUserByIdUseCase: LoadUserByIdUseCase
+    private val loadUserByIdUseCase: LoadUserByIdUseCase,
+    private val logger: FastLogger
 ) : ViewModel() {
 
     private val screenState = MutableStateFlow(ProfileScreenState.EMPTY)
+    val screenStateFlow get() = screenState.asStateFlow()
 
     init {
         getLocalAccountInfo()
     }
 
-    fun screenStateFlow(): StateFlow<ProfileScreenState> = screenState.asStateFlow()
-
     private fun getLocalAccountInfo() {
-        getLocalUserByIdUseCase(UserConfig.userId)
-            .listenValue(viewModelScope) { state ->
-                state.processState(
-                    error = {
-                        screenState.setValue { old ->
-                            old.copy(
-                                avatarUrl = null,
-                                fullName = null
-                            )
-                        }
-                    },
-                    success = { user ->
-                        screenState.setValue { old ->
-                            old.copy(
-                                avatarUrl = user?.photo200,
-                                fullName = user?.fullName
-                            )
-                        }
-                    },
-                    any = ::loadAccountInfo
-                )
-            }
+        logger.debug(this@ProfileViewModel::class, "START")
+        emit(screenState.value.copy(isLoading = true))
+
+        getLocalUserByIdUseCase(UserConfig.userId).listenValue { state ->
+            logger.debug(this@ProfileViewModel::class, "LOADED: $state")
+
+            emit(screenState.value.copy(isLoading = false))
+
+            state.processState(
+                error = {
+                    logger.debug(this@ProfileViewModel::class, "ERROR")
+                    emit(screenState.value.copy(avatarUrl = null, fullName = null))
+                },
+                success = { user ->
+                    logger.debug(this@ProfileViewModel::class, "SUCCESS")
+                    emit(
+                        screenState.value.copy(
+                            avatarUrl = user?.photo200,
+                            fullName = user?.fullName
+                        )
+                    )
+                },
+                any = ::loadAccountInfo
+            )
+        }
+    }
+
+    private fun emit(state: ProfileScreenState) {
+        screenState.setValue { state }
     }
 
     private fun loadAccountInfo() {

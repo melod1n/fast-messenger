@@ -18,10 +18,9 @@ fun NavGraphBuilder.profileScreen(
     onSettingsButtonClicked: () -> Unit,
     onPhotoClicked: (url: String) -> Unit
 ) {
-    val viewModel: ProfileViewModel = with(activity) { getViewModel() }
-
     composable<Profile> {
-        val screenState by viewModel.screenStateFlow().collectAsStateWithLifecycle()
+        val viewModel: ProfileViewModel = activity.getViewModel()
+        val screenState by viewModel.screenStateFlow.collectAsStateWithLifecycle()
 
         ProfileRoute(
             screenState = screenState,

@@ -129,6 +129,10 @@ class ConvosRepositoryImpl(
                 val groupsList = response.groups.orEmpty().map(VkGroupData::mapToDomain)
                 val contactsList = response.contacts.orEmpty().map(VkContactData::mapToDomain)
 
+                VkMemoryCache.appendUsers(profilesList)
+                VkMemoryCache.appendGroups(groupsList)
+                VkMemoryCache.appendContacts(contactsList)
+
                 val usersMap = VkUsersMap.forUsers(profilesList)
                 val groupsMap = VkGroupsMap.forGroups(groupsList)
 
@@ -146,10 +150,6 @@ class ConvosRepositoryImpl(
                     userDao.insertAll(profilesList.map(VkUser::asEntity))
                     groupDao.insertAll(groupsList.map(VkGroupDomain::asEntity))
                 }
-
-                VkMemoryCache.appendUsers(profilesList)
-                VkMemoryCache.appendGroups(groupsList)
-                VkMemoryCache.appendContacts(contactsList)
 
                 convos
             },

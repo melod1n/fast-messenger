@@ -2,6 +2,8 @@ package dev.meloda.fast.common.extensions
 
 import android.os.Build
 import android.os.Bundle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -39,6 +41,10 @@ fun <T> MutableList<T>.removeIfCompat(condition: (T) -> Boolean): Boolean {
 
     return removed
 }
+
+context(viewModel: ViewModel)
+fun <T> Flow<T>.listenValue(action: suspend (T) -> Unit): Job =
+    listenValue(viewModel.viewModelScope, action)
 
 fun <T> Flow<T>.listenValue(
     coroutineScope: CoroutineScope,

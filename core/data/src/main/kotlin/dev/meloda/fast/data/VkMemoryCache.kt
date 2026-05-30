@@ -35,7 +35,7 @@ object VkMemoryCache {
     }
 
     fun appendContacts(contacts: List<VkContactDomain>) {
-        contacts.forEach { contact -> VkMemoryCache.contacts[contact.userId] = contact }
+        contacts.forEach { contact -> VkMemoryCache[contact.userId] = contact }
     }
 
     operator fun set(userid: Long, user: VkUser) {

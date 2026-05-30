@@ -1,9 +1,12 @@
 package dev.meloda.fast.data.api.friends
 
+import com.slack.eithernet.ApiResult
+import com.slack.eithernet.successOrElse
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.data.VkMemoryCache
 import dev.meloda.fast.database.dao.UserDao
 import dev.meloda.fast.model.FriendsInfo
+import dev.meloda.fast.model.api.data.VkContactData
 import dev.meloda.fast.model.api.data.VkUserData
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.model.api.domain.asEntity
@@ -13,8 +16,6 @@ import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.network.mapApiResult
 import dev.meloda.fast.network.service.friends.FriendsService
-import com.slack.eithernet.ApiResult
-import com.slack.eithernet.successOrElse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -51,14 +52,18 @@ class FriendsRepositoryImpl(
             order = order,
             count = count,
             offset = offset,
-            fields = VkConstants.USER_FIELDS
+            fields = VkConstants.USER_FIELDS,
+            extended = true
         )
         service.getFriends(requestModel.map).mapApiResult(
             successMapper = { apiResponse ->
                 val response = apiResponse.requireResponse()
+
                 val users = response.items.map(VkUserData::mapToDomain)
+                val contactsList = response.contacts.orEmpty().map(VkContactData::mapToDomain)
 
                 VkMemoryCache.appendUsers(users)
+                VkMemoryCache.appendContacts(contactsList)
 
                 users
             },

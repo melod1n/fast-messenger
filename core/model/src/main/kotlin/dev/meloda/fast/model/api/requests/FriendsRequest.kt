@@ -4,7 +4,8 @@ data class GetFriendsRequest(
     val order: String?,
     val count: Int?,
     val offset: Int?,
-    val fields: String?
+    val fields: String?,
+    val extended: Boolean?
 ) {
 
     val map
@@ -14,6 +15,7 @@ data class GetFriendsRequest(
                 count?.let { this["count"] = it.toString() }
                 offset?.let { this["offset"] = it.toString() }
                 fields?.let { this["fields"] = it }
+                extended?.let { this["extended"] = it.toString() }
             }
 }
 

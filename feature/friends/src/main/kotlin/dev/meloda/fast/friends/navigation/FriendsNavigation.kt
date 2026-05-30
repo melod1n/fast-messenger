@@ -21,11 +21,11 @@ fun NavGraphBuilder.friendsScreen(
     onMessageClicked: (userId: Long) -> Unit,
     onScrolledToTop: () -> Unit
 ) {
-    val friendsViewModel: FriendsViewModel = activity.getViewModel<FriendsViewModelImpl>()
-    val onlineFriendsViewModel =
-        activity.getViewModel<OnlineFriendsViewModelImpl>()
-
     composable<Friends> {
+        val friendsViewModel: FriendsViewModel = activity.getViewModel<FriendsViewModelImpl>()
+        val onlineFriendsViewModel =
+            activity.getViewModel<OnlineFriendsViewModelImpl>()
+
         FriendsRoute(
             friendsViewModel = friendsViewModel,
             onlineFriendsViewModel = onlineFriendsViewModel,
