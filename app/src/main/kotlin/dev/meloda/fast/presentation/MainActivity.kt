@@ -184,6 +184,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         stopServices()
         get<LongPollEventsHandler>().onDestroy()
+        get<NetworkObserver>().onDestroy()
     }
 
     companion object {

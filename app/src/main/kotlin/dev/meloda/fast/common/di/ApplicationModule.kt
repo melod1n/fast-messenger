@@ -22,6 +22,7 @@ import dev.meloda.fast.languagepicker.di.languagePickerModule
 import dev.meloda.fast.logger.loggerModule
 import dev.meloda.fast.messageshistory.di.messagesHistoryModule
 import dev.meloda.fast.photoviewer.di.photoViewModule
+import dev.meloda.fast.presentation.NetworkObserver
 import dev.meloda.fast.profile.di.profileModule
 import dev.meloda.fast.provider.ApiLanguageProvider
 import dev.meloda.fast.service.longpolling.di.longPollModule
@@ -72,4 +73,6 @@ val applicationModule = module {
 
     singleOf(::LongPollControllerImpl) bind LongPollController::class
     singleOf(::ResourceProviderImpl) bind ResourceProvider::class
+
+    singleOf(::NetworkObserver)
 }
