@@ -1,0 +1,164 @@
+package dev.meloda.fast.domain
+
+import android.util.Log
+import dev.meloda.fast.database.dao.ConvoDao
+import dev.meloda.fast.database.dao.MessageDao
+import dev.meloda.fast.model.LongPollParsedEvent
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlin.coroutines.CoroutineContext
+
+class LongPollEventsHandler(
+    private val convoUseCase: ConvoUseCase,
+    private val messagesUseCase: MessagesUseCase,
+    private val convoDao: ConvoDao,
+    private val messageDao: MessageDao,
+) {
+    private val job = SupervisorJob()
+
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            Log.e("LongPollUpdatesParser", "error: $throwable")
+            throwable.printStackTrace()
+        }
+
+    private val coroutineContext: CoroutineContext
+        get() = Dispatchers.Default + job + exceptionHandler
+
+    private val coroutineScope = CoroutineScope(coroutineContext)
+
+    suspend fun handleEvents(events: List<LongPollParsedEvent>) {
+        events.forEach { handleNextEvent(it) }
+    }
+
+    private suspend fun handleNextEvent(event: LongPollParsedEvent) {
+        when (event) {
+            is LongPollParsedEvent.AudioMessageListened -> {
+
+            }
+
+            is LongPollParsedEvent.ChatArchived -> {
+                val affectedRows = convoDao.updateIsArchived(
+                    convoId = event.convo.id,
+                    isArchived = event.convo.isArchived
+                )
+
+                Log.d(
+                    "LongPollEventsHandler",
+                    "isArchived ${event.convo.isArchived}: updated $affectedRows rows."
+                )
+            }
+
+            is LongPollParsedEvent.ChatCleared -> {
+                val affectedRows = convoDao.updateLastCmId(
+                    convoId = event.peerId,
+                    cmId = event.toCmId
+                )
+
+                Log.d("LongPollEventsHandler", "updateLastCmId: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.ChatMajorChanged -> {
+                val affectedRows = convoDao.updateMajorId(
+                    convoId = event.peerId,
+                    majorId = event.majorId
+                )
+
+                Log.d("LongPollEventsHandler", "updateMajorId: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.ChatMinorChanged -> {
+                val affectedRows = convoDao.updateMinorId(
+                    convoId = event.peerId,
+                    minorId = event.minorId
+                )
+
+                Log.d("LongPollEventsHandler", "updateMinorId: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.Interaction -> {
+
+            }
+
+            is LongPollParsedEvent.MessageCacheClear -> {
+                messagesUseCase.storeMessage(event.message)
+            }
+
+            is LongPollParsedEvent.MessageDeleted -> {
+                val affectedRows = messageDao.markAsDeleted(
+                    convoId = event.peerId,
+                    cmId = event.cmId,
+                    isDeleted = true
+                )
+
+                Log.d("LongPollEventsHandler", "markDeleted: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.MessageEdited -> {
+                messagesUseCase.storeMessage(event.message)
+            }
+
+            is LongPollParsedEvent.MessageMarkedAsImportant -> {
+                val affectedRows = messageDao.markAsImportant(
+                    convoId = event.peerId,
+                    cmId = event.cmId,
+                    isImportant = event.marked
+                )
+
+                Log.d("LongPollEventsHandler", "markImportant: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.MessageMarkedAsNotSpam -> {
+                messagesUseCase.storeMessage(event.message)
+            }
+
+            is LongPollParsedEvent.MessageMarkedAsSpam -> {
+                val affectedRows = messageDao.markAsSpam(
+                    convoId = event.peerId,
+                    cmId = event.cmId,
+                    isSpam = true
+                )
+
+                Log.d("LongPollEventsHandler", "markSpam: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.MessageRestored -> {
+                messagesUseCase.storeMessage(event.message)
+            }
+
+            is LongPollParsedEvent.MessageUpdated -> {
+                messagesUseCase.storeMessage(event.message)
+            }
+
+            is LongPollParsedEvent.NewMessage -> {
+                messagesUseCase.storeMessage(event.message)
+            }
+
+            is LongPollParsedEvent.IncomingMessageRead -> {
+                val affectedRows = convoDao.updateReadIncoming(
+                    convoId = event.peerId,
+                    cmId = event.cmId,
+                    unreadCount = event.unreadCount
+                )
+
+                Log.d("LongPollEventsHandler", "inMessageRead: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.OutgoingMessageRead -> {
+                val affectedRows = convoDao.updateReadOutgoing(
+                    convoId = event.peerId,
+                    cmId = event.cmId,
+                    unreadCount = event.unreadCount
+                )
+
+                Log.d("LongPollEventsHandler", "outMessageRead: updated $affectedRows rows.")
+            }
+
+            is LongPollParsedEvent.UnreadCounter -> {
+
+            }
+        }
+    }
+}

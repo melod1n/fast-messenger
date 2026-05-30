@@ -56,5 +56,6 @@ data class VkPinnedMessageData(
         isPinned = true,
         isSpam = false,
         formatData = null,
+        isDeleted = false
     )
 }

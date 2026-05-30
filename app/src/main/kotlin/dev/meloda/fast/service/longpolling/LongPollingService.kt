@@ -19,6 +19,7 @@ import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.processState
 import dev.meloda.fast.datastore.AppSettings
+import dev.meloda.fast.domain.LongPollEventsHandler
 import dev.meloda.fast.domain.LongPollUpdatesParser
 import dev.meloda.fast.domain.LongPollUseCase
 import dev.meloda.fast.model.api.data.LongPollUpdates
@@ -56,6 +57,7 @@ class LongPollingService : Service() {
 
     private val longPollUseCase: LongPollUseCase by inject()
     private val updatesParser: LongPollUpdatesParser by inject()
+    private val eventsHandler: LongPollEventsHandler by inject()
 
     private var currentJob: Job? = null
 
@@ -193,7 +195,7 @@ class LongPollingService : Service() {
                             if (updates == null) {
                                 failCount++
                             } else {
-                                updates.forEach(updatesParser::parseNextUpdate)
+                                parseUpdates(updates)
                             }
 
                             lastUpdatesResponse = getUpdatesResponse(serverInfo.copy(ts = newTs))
@@ -244,6 +246,11 @@ class LongPollingService : Service() {
                 }
             )
         }
+    }
+
+    private suspend fun parseUpdates(updates: List<List<Any>>) {
+        val parsedUpdates = updates.flatMap { updatesParser.parseNextUpdate(it) }
+        eventsHandler.handleEvents(parsedUpdates)
     }
 
     private fun handleError(throwable: Throwable) {

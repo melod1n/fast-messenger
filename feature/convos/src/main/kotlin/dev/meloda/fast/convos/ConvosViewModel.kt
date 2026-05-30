@@ -613,6 +613,7 @@ class ConvosViewModel(
         if (convoIndex == null) { // диалога нет в списке
             // pizdets
         } else {
+            // TODO: 30.05.2026, Danil Nikolaev: reimplement
             newConvos.removeAt(convoIndex)
 
             replaceConvos(newConvos.sorted())

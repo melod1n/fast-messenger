@@ -117,5 +117,6 @@ fun VkMessageData.asDomain(): VkMessage = VkMessage(
     pinnedAt = pinnedAt,
     isPinned = isPinned == true,
     formatData = formatData?.asDomain(),
-    isSpam = false
+    isSpam = false,
+    isDeleted = false
 )

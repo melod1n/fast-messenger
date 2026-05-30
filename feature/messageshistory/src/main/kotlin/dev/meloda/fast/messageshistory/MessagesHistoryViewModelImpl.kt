@@ -1037,6 +1037,7 @@ class MessagesHistoryViewModelImpl(
             isSpam = false,
             pinnedAt = null,
             formatData = formatData,
+            isDeleted = false
         )
         formatData = formatData.copy(items = emptyList())
         sendingMessages += newMessage

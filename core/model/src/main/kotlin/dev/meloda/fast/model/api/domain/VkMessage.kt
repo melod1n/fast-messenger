@@ -36,6 +36,8 @@ data class VkMessage(
     val group: VkGroupDomain?,
     val actionUser: VkUser?,
     val actionGroup: VkGroupDomain?,
+
+    val isDeleted: Boolean
 ) {
 
     fun isPeerChat() = peerId > 2_000_000_000
@@ -111,7 +113,7 @@ fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     actionCmId = actionCmId,
     actionMessage = actionMessage,
     updateTime = updateTime,
-    important = isImportant,
+    isImportant = isImportant,
     forwardIds = forwards.orEmpty().map(VkMessage::id),
     // TODO: 05/05/2024, Danil Nikolaev: save attachments
     attachments = emptyList(),
@@ -119,4 +121,6 @@ fun VkMessage.asEntity(): VkMessageEntity = VkMessageEntity(
     geoType = geoType,
     pinnedAt = pinnedAt,
     isPinned = isPinned,
+    isDeleted = isDeleted,
+    isSpam = isSpam
 )

@@ -22,10 +22,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class LongPollUpdatesParser(
     private val convoUseCase: ConvoUseCase,
@@ -47,11 +46,14 @@ class LongPollUpdatesParser(
     private val listenersMap: MutableMap<LongPollEvent, MutableList<VkEventCallback<LongPollParsedEvent>>> =
         mutableMapOf()
 
-    fun parseNextUpdate(event: List<Any>) {
+    suspend fun parseNextUpdate(event: List<Any>): List<LongPollParsedEvent> {
         val eventId = event.first().asInt()
 
-        when (val eventType = ApiEvent.parseOrNull(eventId)) {
-            null -> Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
+        return when (val eventType = ApiEvent.parseOrNull(eventId)) {
+            null -> {
+                Log.d("LongPollUpdatesParser", "parseNextUpdate: unknownEvent: $event")
+                emptyList()
+            }
 
             ApiEvent.MESSAGE_SET_FLAGS -> parseMessageSetFlags(eventType, event)
             ApiEvent.MESSAGE_CLEAR_FLAGS -> parseMessageClearFlags(eventType, event)
@@ -77,7 +79,10 @@ class LongPollUpdatesParser(
         }
     }
 
-    private fun parseMessageSetFlags(eventType: ApiEvent, event: List<Any>) {
+    private fun parseMessageSetFlags(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val cmId = event[1].asLong()
@@ -97,12 +102,8 @@ class LongPollUpdatesParser(
                     )
                     eventsToSend += eventToSend
 
-                    listenersMap[LongPollEvent.MARKED_AS_IMPORTANT]?.let { listeners ->
-                        listeners.map { vkEventCallback ->
-                            (vkEventCallback as? VkEventCallback<LongPollParsedEvent.MessageMarkedAsImportant>)
-                                ?.onEvent(eventToSend)
-                        }
-                    }
+                    listenersMap[LongPollEvent.MARKED_AS_IMPORTANT]
+                        ?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.SPAM -> {
@@ -111,13 +112,7 @@ class LongPollUpdatesParser(
                         cmId = cmId
                     )
                     eventsToSend += eventToSend
-
-                    listenersMap[LongPollEvent.MARKED_AS_SPAM]?.let { listeners ->
-                        listeners.map { vkEventCallback ->
-                            (vkEventCallback as? VkEventCallback<LongPollParsedEvent.MessageMarkedAsSpam>)
-                                ?.onEvent(eventToSend)
-                        }
-                    }
+                    listenersMap[LongPollEvent.MARKED_AS_SPAM]?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.DELETED -> {
@@ -136,13 +131,7 @@ class LongPollUpdatesParser(
                             )
                         }
                     eventsToSend += eventToSend
-
-                    listenersMap[LongPollEvent.MESSAGE_DELETED]?.let { listeners ->
-                        listeners.map { vkEventCallback ->
-                            (vkEventCallback as? VkEventCallback<LongPollParsedEvent.MessageDeleted>)
-                                ?.onEvent(eventToSend)
-                        }
-                    }
+                    listenersMap[LongPollEvent.MESSAGE_DELETED]?.forEach { it.onEvent(eventToSend) }
                 }
 
                 MessageFlags.AUDIO_LISTENED -> {
@@ -152,28 +141,36 @@ class LongPollUpdatesParser(
                     )
                     eventsToSend += eventToSend
 
-                    listenersMap[LongPollEvent.AUDIO_MESSAGE_LISTENED]?.let { listeners ->
-                        listeners.map { vkEventCallback ->
-                            (vkEventCallback as? VkEventCallback<LongPollParsedEvent.AudioMessageListened>)
-                                ?.onEvent(eventToSend)
-                        }
-                    }
+                    listenersMap[LongPollEvent.AUDIO_MESSAGE_LISTENED]
+                        ?.forEach { it.onEvent(eventToSend) }
                 }
 
-                else -> Unit
+                MessageFlags.UNREAD -> Unit
+                MessageFlags.OUTGOING -> Unit
+                MessageFlags.FROM_GROUP_CHAT -> Unit
+                MessageFlags.CANCEL_SPAM -> Unit
+                MessageFlags.DELETED_FOR_ALL -> Unit
+                MessageFlags.DO_NOT_SHOW_NOTIFICATION -> Unit
+                MessageFlags.MESSAGE_WITH_REPLY -> Unit
+                MessageFlags.REACTION -> Unit
             }
         }
 
         eventsToSend.forEach { eventToSend ->
             listenersMap[LongPollEvent.MESSAGE_SET_FLAGS]?.let { listeners ->
-                listeners.map { vkEventCallback ->
-                    (vkEventCallback as? VkEventCallback<LongPollParsedEvent>)?.onEvent(eventToSend)
+                listeners.forEach { vkEventCallback ->
+                    vkEventCallback.onEvent(eventToSend)
                 }
             }
         }
+
+        return eventsToSend
     }
 
-    private fun parseMessageClearFlags(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseMessageClearFlags(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val cmId = event[1].asLong()
@@ -184,7 +181,9 @@ class LongPollUpdatesParser(
 
         val parsedFlags = MessageFlags.parse(flags)
 
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
+            val message = loadMessage(peerId = peerId, cmId = cmId)
+
             parsedFlags.forEach { flag ->
                 when (flag) {
                     MessageFlags.IMPORTANT -> {
@@ -195,81 +194,65 @@ class LongPollUpdatesParser(
                         )
                         eventsToSend += eventToSend
 
-                        listenersMap[LongPollEvent.MARKED_AS_IMPORTANT]?.let { listeners ->
-                            listeners.map { vkEventCallback ->
-                                (vkEventCallback as? VkEventCallback<LongPollParsedEvent.MessageMarkedAsImportant>)
-                                    ?.onEvent(eventToSend)
-                            }
-                        }
+                        listenersMap[LongPollEvent.MARKED_AS_IMPORTANT]
+                            ?.forEach { it.onEvent(eventToSend) }
                     }
 
                     MessageFlags.SPAM -> {
                         if (parsedFlags.contains(MessageFlags.CANCEL_SPAM)) {
-                            withContext(Dispatchers.IO) {
-                                val message = loadMessage(
-                                    peerId = peerId,
-                                    cmId = cmId
-                                )
-                                message?.let {
-                                    val eventToSend =
-                                        LongPollParsedEvent.MessageMarkedAsNotSpam(message = message)
-                                    eventsToSend += eventToSend
+                            if (message != null) {
+                                val eventToSend =
+                                    LongPollParsedEvent.MessageMarkedAsNotSpam(message = message)
+                                eventsToSend += eventToSend
 
-                                    listenersMap[LongPollEvent.MARKED_AS_NOT_SPAM]?.let { listeners ->
-                                        listeners.map { vkEventCallback ->
-                                            (vkEventCallback as? VkEventCallback<LongPollParsedEvent.MessageMarkedAsNotSpam>)
-                                                ?.onEvent(eventToSend)
-                                        }
-                                    }
-                                }
+                                listenersMap[LongPollEvent.MARKED_AS_NOT_SPAM]
+                                    ?.forEach { it.onEvent(eventToSend) }
                             }
                         }
                     }
 
                     MessageFlags.DELETED -> {
-                        withContext(Dispatchers.IO) {
-                            val message = loadMessage(
-                                peerId = peerId,
-                                cmId = cmId
-                            )
-                            message?.let {
-                                val eventToSend =
-                                    LongPollParsedEvent.MessageRestored(message = message)
-                                eventsToSend += eventToSend
+                        if (message != null) {
+                            val eventToSend =
+                                LongPollParsedEvent.MessageRestored(message = message)
+                            eventsToSend += eventToSend
 
-                                listenersMap[LongPollEvent.MESSAGE_RESTORED]?.let { listeners ->
-                                    listeners.map { vkEventCallback ->
-                                        (vkEventCallback as? VkEventCallback<LongPollParsedEvent.MessageRestored>)
-                                            ?.onEvent(eventToSend)
-                                    }
-                                }
-                            }
+                            listenersMap[LongPollEvent.MESSAGE_RESTORED]
+                                ?.forEach { it.onEvent(eventToSend) }
                         }
                     }
 
-                    else -> Unit
+                    MessageFlags.UNREAD -> Unit
+                    MessageFlags.OUTGOING -> Unit
+                    MessageFlags.AUDIO_LISTENED -> Unit
+                    MessageFlags.FROM_GROUP_CHAT -> Unit
+                    MessageFlags.CANCEL_SPAM -> Unit
+                    MessageFlags.DELETED_FOR_ALL -> Unit
+                    MessageFlags.DO_NOT_SHOW_NOTIFICATION -> Unit
+                    MessageFlags.MESSAGE_WITH_REPLY -> Unit
+                    MessageFlags.REACTION -> Unit
                 }
             }
 
-            eventsToSend.forEach { eventToSend ->
-                listenersMap[LongPollEvent.MESSAGE_CLEAR_FLAGS]?.let { listeners ->
-                    listeners.map { vkEventCallback ->
-                        vkEventCallback.onEvent(eventToSend)
-                    }
-                }
+            listenersMap[LongPollEvent.MESSAGE_CLEAR_FLAGS]?.forEach { listener ->
+                eventsToSend.forEach { listener.onEvent(it) }
             }
+
+            continuation.resume(eventsToSend)
         }
     }
 
-    private fun parseMessageNew(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseMessageNew(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val cmId = event[1].asLong()
         val peerId = event[4].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
-            val message =
-                async { loadMessage(peerId = peerId, cmId = cmId) }.await()
+            val message = async { loadMessage(peerId = peerId, cmId = cmId) }.await()
 
             val convo =
                 async {
@@ -280,87 +263,85 @@ class LongPollUpdatesParser(
                     )
                 }.await()
 
-            message?.let {
-                listenersMap[LongPollEvent.MESSAGE_NEW]?.let {
-                    it.map { vkEventCallback ->
-                        (vkEventCallback as VkEventCallback<LongPollParsedEvent.NewMessage>)
-                            .onEvent(
-                                LongPollParsedEvent.NewMessage(
-                                    message = message,
-                                    inArchive = convo?.isArchived == true
-                                    // TODO: 03-Apr-25, Danil Nikolaev:
-                                    // load user settings about restoring chats with
-                                    // enabled notifications from archive
-                                )
-                            )
-                    }
-                }
+            if (message != null) {
+                val event = LongPollParsedEvent.NewMessage(
+                    message = message,
+                    inArchive = convo?.isArchived == true
+                    // TODO: 03-Apr-25, Danil Nikolaev:
+                    // load user settings about restoring chats with
+                    // enabled notifications from archive
+                )
+
+                listenersMap[LongPollEvent.MESSAGE_NEW]?.forEach { it.onEvent(event) }
+                continuation.resume(listOf(event))
+            } else {
+                continuation.resume(emptyList())
             }
         }
     }
 
-    private fun parseMessageEdit(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseMessageEdit(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val cmId = event[1].asLong()
         val peerId = event[3].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
-            loadMessage(
-                peerId = peerId,
-                cmId = cmId
-            )?.let { message ->
-                listenersMap[LongPollEvent.MESSAGE_EDITED]?.let {
-                    it.map { vkEventCallback ->
-                        (vkEventCallback as VkEventCallback<LongPollParsedEvent.MessageEdited>)
-                            .onEvent(LongPollParsedEvent.MessageEdited(message))
-                    }
-                }
+            val message = loadMessage(peerId = peerId, cmId = cmId)
+            if (message != null) {
+                val event = LongPollParsedEvent.MessageEdited(message)
+                listenersMap[LongPollEvent.MESSAGE_EDITED]?.forEach { it.onEvent(event) }
+                continuation.resume(listOf(event))
+            } else {
+                continuation.resume(emptyList())
             }
         }
     }
 
-    private fun parseMessageReadIncoming(eventType: ApiEvent, event: List<Any>) {
+    private fun parseMessageReadIncoming(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val peerId = event[1].asLong()
         val cmId = event[2].asLong()
         val unreadCount = event[3].asInt()
 
-        listenersMap[LongPollEvent.INCOMING_MESSAGE_READ]?.let { listeners ->
-            listeners.map { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.IncomingMessageRead>)
-                    .onEvent(
-                        LongPollParsedEvent.IncomingMessageRead(
-                            peerId = peerId,
-                            cmId = cmId,
-                            unreadCount = unreadCount
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.IncomingMessageRead(
+            peerId = peerId,
+            cmId = cmId,
+            unreadCount = unreadCount
+        )
+        listenersMap[LongPollEvent.INCOMING_MESSAGE_READ]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseMessageReadOutgoing(eventType: ApiEvent, event: List<Any>) {
+    private fun parseMessageReadOutgoing(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
         val peerId = event[1].asLong()
         val cmId = event[2].asLong()
         val unreadCount = event[3].asInt()
 
-        listenersMap[LongPollEvent.OUTGOING_MESSAGE_READ]?.let { listeners ->
-            listeners.map { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.OutgoingMessageRead>)
-                    .onEvent(
-                        LongPollParsedEvent.OutgoingMessageRead(
-                            peerId = peerId,
-                            cmId = cmId,
-                            unreadCount = unreadCount
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.OutgoingMessageRead(
+            peerId = peerId,
+            cmId = cmId,
+            unreadCount = unreadCount
+        )
+
+        listenersMap[LongPollEvent.OUTGOING_MESSAGE_READ]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseChatClearFlags(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseChatClearFlags(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val peerId = event[1].asLong()
@@ -391,31 +372,36 @@ class LongPollUpdatesParser(
                         )
                         eventsToSend += eventToSend
 
-                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.let { listeners ->
-                            listeners.map { vkEventCallback ->
-                                (vkEventCallback as? VkEventCallback<LongPollParsedEvent.ChatArchived>)
-                                    ?.onEvent(eventToSend)
-                            }
-                        }
+                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.forEach { it.onEvent(eventToSend) }
                     }
 
-                    else -> Unit
+                    ConvoFlags.DISABLE_PUSH -> Unit
+                    ConvoFlags.DISABLE_SOUND -> Unit
+                    ConvoFlags.INCOMING_CHAT_REQUEST -> Unit
+                    ConvoFlags.DECLINED_CHAT_REQUEST -> Unit
+                    ConvoFlags.MENTION -> Unit
+                    ConvoFlags.HIDE_CHAT_FROM_SEARCH -> Unit
+                    ConvoFlags.BUSINESS_CHAT -> Unit
+                    ConvoFlags.MARKED_MESSAGE -> Unit
+                    ConvoFlags.DO_NOT_NOTIFY_MENTIONS_ALL_ONLINE -> Unit
+                    ConvoFlags.DO_NOT_NOTIFY_ALL_MENTIONS -> Unit
+                    ConvoFlags.MARKED_AS_UNREAD -> Unit
+                    ConvoFlags.CALL_IN_PROGRESS -> Unit
                 }
             }
 
-            eventsToSend.forEach { eventToSend ->
-                listenersMap[LongPollEvent.CHAT_CLEAR_FLAGS]?.let { listeners ->
-                    listeners.map { vkEventCallback ->
-                        (vkEventCallback as? VkEventCallback<LongPollParsedEvent>)?.onEvent(
-                            eventToSend
-                        )
-                    }
-                }
+            listenersMap[LongPollEvent.CHAT_CLEAR_FLAGS]?.forEach { listener ->
+                eventsToSend.forEach { listener.onEvent(it) }
             }
+
+            continuation.resume(eventsToSend)
         }
     }
 
-    private fun parseChatSetFlags(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseChatSetFlags(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val peerId = event[1].asLong()
@@ -446,88 +432,87 @@ class LongPollUpdatesParser(
                         )
                         eventsToSend += eventToSend
 
-                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.let { listeners ->
-                            listeners.map { vkEventCallback ->
-                                (vkEventCallback as? VkEventCallback<LongPollParsedEvent.ChatArchived>)
-                                    ?.onEvent(eventToSend)
-                            }
-                        }
+                        listenersMap[LongPollEvent.CHAT_ARCHIVED]?.forEach { it.onEvent(eventToSend) }
                     }
 
-                    else -> Unit
+                    ConvoFlags.DISABLE_PUSH -> Unit
+                    ConvoFlags.DISABLE_SOUND -> Unit
+                    ConvoFlags.INCOMING_CHAT_REQUEST -> Unit
+                    ConvoFlags.DECLINED_CHAT_REQUEST -> Unit
+                    ConvoFlags.MENTION -> Unit
+                    ConvoFlags.HIDE_CHAT_FROM_SEARCH -> Unit
+                    ConvoFlags.BUSINESS_CHAT -> Unit
+                    ConvoFlags.MARKED_MESSAGE -> Unit
+                    ConvoFlags.DO_NOT_NOTIFY_MENTIONS_ALL_ONLINE -> Unit
+                    ConvoFlags.DO_NOT_NOTIFY_ALL_MENTIONS -> Unit
+                    ConvoFlags.MARKED_AS_UNREAD -> Unit
+                    ConvoFlags.CALL_IN_PROGRESS -> Unit
                 }
             }
 
-            eventsToSend.forEach { eventToSend ->
-                listenersMap[LongPollEvent.CHAT_SET_FLAGS]?.let { listeners ->
-                    listeners.map { vkEventCallback ->
-                        (vkEventCallback as? VkEventCallback<LongPollParsedEvent>)?.onEvent(
-                            eventToSend
-                        )
-                    }
-                }
+            listenersMap[LongPollEvent.CHAT_SET_FLAGS]?.forEach { listener ->
+                eventsToSend.forEach { listener.onEvent(it) }
             }
+
+            continuation.resume(eventsToSend)
         }
     }
 
-    private fun parseMessagesDeleted(eventType: ApiEvent, event: List<Any>) {
+    private fun parseMessagesDeleted(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val peerId = event[1].asLong()
         val cmId = event[2].asLong()
 
-        listenersMap[LongPollEvent.CHAT_CLEARED]?.let { listeners ->
-            listeners.forEach { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.ChatCleared>)
-                    .onEvent(
-                        LongPollParsedEvent.ChatCleared(
-                            peerId = peerId,
-                            toCmId = cmId
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.ChatCleared(
+            peerId = peerId,
+            toCmId = cmId
+        )
+        listenersMap[LongPollEvent.CHAT_CLEARED]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseChatMajorChanged(eventType: ApiEvent, event: List<Any>) {
+    private fun parseChatMajorChanged(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val peerId = event[1].asLong()
         val majorId = event[2].asInt()
 
-        listenersMap[LongPollEvent.CHAT_MAJOR_CHANGED]?.let { listeners ->
-            listeners.forEach { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.ChatMajorChanged>)
-                    .onEvent(
-                        LongPollParsedEvent.ChatMajorChanged(
-                            peerId = peerId,
-                            majorId = majorId,
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.ChatMajorChanged(
+            peerId = peerId,
+            majorId = majorId,
+        )
+        listenersMap[LongPollEvent.CHAT_MAJOR_CHANGED]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseChatMinorChanged(eventType: ApiEvent, event: List<Any>) {
+    private fun parseChatMinorChanged(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val peerId = event[1].asLong()
         val minorId = event[2].asInt()
 
-        listenersMap[LongPollEvent.CHAT_MINOR_CHANGED]?.let { listeners ->
-            listeners.forEach { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.ChatMinorChanged>)
-                    .onEvent(
-                        LongPollParsedEvent.ChatMinorChanged(
-                            peerId = peerId,
-                            minorId = minorId,
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.ChatMinorChanged(
+            peerId = peerId,
+            minorId = minorId,
+        )
+        listenersMap[LongPollEvent.CHAT_MINOR_CHANGED]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseInteraction(eventType: ApiEvent, event: List<Any>) {
+    private fun parseInteraction(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType: $event")
 
         val interactionType = when (eventType) {
@@ -536,7 +521,7 @@ class LongPollUpdatesParser(
             ApiEvent.PHOTO_UPLOADING -> InteractionType.Photo
             ApiEvent.VIDEO_UPLOADING -> InteractionType.Video
             ApiEvent.FILE_UPLOADING -> InteractionType.File
-            else -> return
+            else -> return emptyList()
         }
 
         val longPollEvent: LongPollEvent = when (eventType) {
@@ -545,7 +530,6 @@ class LongPollUpdatesParser(
             ApiEvent.PHOTO_UPLOADING -> LongPollEvent.PHOTO_UPLOADING
             ApiEvent.VIDEO_UPLOADING -> LongPollEvent.VIDEO_UPLOADING
             ApiEvent.FILE_UPLOADING -> LongPollEvent.FILE_UPLOADING
-            else -> return
         }
 
         val peerId = event[1].asLong()
@@ -554,25 +538,24 @@ class LongPollUpdatesParser(
         val timestamp = event[4].asInt()
 
         // if userIds contains only account's id, then we don't need to show our status
-        if (userIds.isEmpty()) return
+        if (userIds.isEmpty()) return emptyList()
 
-        listenersMap[longPollEvent]?.let { listeners ->
-            listeners.forEach { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.Interaction>)
-                    .onEvent(
-                        LongPollParsedEvent.Interaction(
-                            interactionType = interactionType,
-                            peerId = peerId,
-                            userIds = userIds,
-                            totalCount = totalCount,
-                            timestamp = timestamp
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.Interaction(
+            interactionType = interactionType,
+            peerId = peerId,
+            userIds = userIds,
+            totalCount = totalCount,
+            timestamp = timestamp
+        )
+
+        listenersMap[longPollEvent]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseUnreadCounterUpdate(eventType: ApiEvent, event: List<Any>) {
+    private fun parseUnreadCounterUpdate(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> {
         Log.d("LongPollUpdatesParser", "$eventType $event")
 
         val unreadCount = event[1].asInt()
@@ -583,58 +566,57 @@ class LongPollUpdatesParser(
         val archiveUnreadUnmutedCount = event[8].asInt()
         val archiveMentionsCount = event[9].asInt()
 
-        listenersMap[LongPollEvent.UNREAD_COUNTER_UPDATE]?.let { listeners ->
-            listeners.forEach { vkEventCallback ->
-                (vkEventCallback as VkEventCallback<LongPollParsedEvent.UnreadCounter>)
-                    .onEvent(
-                        LongPollParsedEvent.UnreadCounter(
-                            unread = unreadCount,
-                            unreadUnmuted = unreadUnmutedCount,
-                            showOnlyMuted = showOnlyMuted,
-                            business = businessNotifyUnreadCount,
-                            archive = archiveUnreadCount,
-                            archiveUnmuted = archiveUnreadUnmutedCount,
-                            archiveMentions = archiveMentionsCount
-                        )
-                    )
-            }
-        }
+        val event = LongPollParsedEvent.UnreadCounter(
+            unread = unreadCount,
+            unreadUnmuted = unreadUnmutedCount,
+            showOnlyMuted = showOnlyMuted,
+            business = businessNotifyUnreadCount,
+            archive = archiveUnreadCount,
+            archiveUnmuted = archiveUnreadUnmutedCount,
+            archiveMentions = archiveMentionsCount
+        )
+        listenersMap[LongPollEvent.UNREAD_COUNTER_UPDATE]?.forEach { it.onEvent(event) }
+        return listOf(event)
     }
 
-    private fun parseMessageUpdated(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseMessageUpdated(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType $event")
 
         val cmId = event[1].asLong()
         val peerId = event[4].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
-            loadMessage(
-                peerId = peerId,
-                cmId = cmId
-            )?.let { message ->
-                listenersMap[LongPollEvent.MESSAGE_UPDATED]?.let {
-                    it.map { vkEventCallback ->
-                        (vkEventCallback as VkEventCallback<LongPollParsedEvent.MessageUpdated>)
-                            .onEvent(LongPollParsedEvent.MessageUpdated(message))
-                    }
-                }
+            val message = loadMessage(peerId = peerId, cmId = cmId)
+
+            if (message != null) {
+                val event = LongPollParsedEvent.MessageUpdated(message)
+                listenersMap[LongPollEvent.MESSAGE_UPDATED]?.forEach { it.onEvent(event) }
+                continuation.resume(listOf(event))
+            } else {
+                continuation.resume(emptyList())
             }
         }
     }
 
-    private fun parseMessageCacheClear(eventType: ApiEvent, event: List<Any>) {
+    private suspend fun parseMessageCacheClear(
+        eventType: ApiEvent,
+        event: List<Any>
+    ): List<LongPollParsedEvent> = suspendCancellableCoroutine { continuation ->
         Log.d("LongPollUpdatesParser", "$eventType $event")
 
         val messageId = event[1].asLong()
 
         coroutineScope.launch(Dispatchers.IO) {
-            loadMessage(messageId = messageId)?.let { message ->
-                listenersMap[LongPollEvent.MESSAGE_CACHE_CLEAR]?.let {
-                    it.map { vkEventCallback ->
-                        (vkEventCallback as VkEventCallback<LongPollParsedEvent.MessageCacheClear>)
-                            .onEvent(LongPollParsedEvent.MessageCacheClear(message))
-                    }
-                }
+            val message = loadMessage(messageId = messageId)
+            if (message != null) {
+                val event = LongPollParsedEvent.MessageCacheClear(message)
+                listenersMap[LongPollEvent.MESSAGE_CACHE_CLEAR]?.forEach { it.onEvent(event) }
+                continuation.resume(listOf(event))
+            } else {
+                continuation.resume(emptyList())
             }
         }
     }
@@ -643,7 +625,7 @@ class LongPollUpdatesParser(
         peerId: Long? = null,
         cmId: Long? = null,
         messageId: Long? = null
-    ): VkMessage? = suspendCoroutine { continuation ->
+    ): VkMessage? = suspendCancellableCoroutine { continuation ->
         require((peerId != null && cmId != null) || messageId != null)
 
         coroutineScope.launch(Dispatchers.IO) {
@@ -677,7 +659,7 @@ class LongPollUpdatesParser(
         peerId: Long,
         extended: Boolean = false,
         fields: String? = null
-    ): VkConvo? = suspendCoroutine { continuation ->
+    ): VkConvo? = suspendCancellableCoroutine { continuation ->
         coroutineScope.launch(Dispatchers.IO) {
             convoUseCase.getById(
                 peerIds = listOf(peerId),
