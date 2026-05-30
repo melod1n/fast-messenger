@@ -65,6 +65,7 @@ import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.SegmentedButtonItem
 import dev.meloda.fast.ui.components.SegmentedButtonsRow
+import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalReselectedTab
@@ -282,12 +283,12 @@ fun ConvosScreen(
     ) { padding ->
         when {
             // TODO: 30.05.2026, Danil Nikolaev: move to UI State
-//            baseError != null -> {
-//                VkErrorView(
-//                    baseError = baseError,
-//                    onButtonClick = onErrorViewButtonClicked
-//                )
-//            }
+            screenState.error != null -> {
+                VkErrorView(
+                    baseError = screenState.error,
+                    onButtonClick = { handleIntent(ConvoIntent.ErrorActionButtonClick) }
+                )
+            }
 
             screenState.isLoading && screenState.convos.isEmpty() -> FullScreenContainedLoader()
 
