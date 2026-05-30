@@ -1,6 +1,7 @@
 package dev.meloda.fast.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -30,27 +33,32 @@ fun FastIconButton(
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+    containerColor: Color = colors.containerColor(enabled),
+    contentColor: Color = colors.contentColor(enabled),
+    size: Dp = IconButtonTokens.StateLayerSize,
+    shape: Shape = IconButtonTokens.StateLayerShape,
+    alignment: Alignment = Alignment.Center,
     interactionSource: MutableInteractionSource? = null,
+    indication: Indication = ripple(),
     content: @Composable () -> Unit
 ) {
     Box(
         modifier =
             modifier
                 .minimumInteractiveComponentSize()
-                .size(IconButtonTokens.StateLayerSize)
-                .clip(IconButtonTokens.StateLayerShape)
-                .background(color = colors.containerColor(enabled))
+                .size(size)
+                .clip(shape)
+                .background(containerColor)
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
                     enabled = enabled,
                     interactionSource = interactionSource,
-                    indication = ripple()
+                    indication = indication
                 ),
-        contentAlignment = Alignment.Center
+        contentAlignment = alignment
     ) {
-        val contentColor = colors.contentColor(enabled)
-        CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+        CompositionLocalProvider(LocalContentColor provides contentColor) { content() }
     }
 }
 

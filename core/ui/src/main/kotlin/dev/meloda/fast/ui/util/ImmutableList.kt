@@ -1,6 +1,7 @@
 package dev.meloda.fast.ui.util
 
 import androidx.compose.runtime.Immutable
+import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 
 @Immutable
 class ImmutableList<T>(val values: List<T>) : Collection<T> {
@@ -57,3 +58,9 @@ class ImmutableList<T>(val values: List<T>) : Collection<T> {
 fun <T> emptyImmutableList(): ImmutableList<T> = ImmutableList(emptyList())
 
 fun <T> immutableListOf(vararg elements: T) = ImmutableList(listOf(elements = elements))
+
+inline fun <T> buildImmutableList(builderAction: MutableList<T>.() -> Unit): ImmutableList<T> {
+    val mutableList = mutableListOf<T>()
+    mutableList.apply(builderAction)
+    return mutableList.toImmutableList()
+}

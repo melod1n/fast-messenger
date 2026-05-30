@@ -16,3 +16,4 @@ local.properties
 .idea
 /.kotlin
 .hotswan/
+.java-version

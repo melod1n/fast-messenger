@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -53,7 +52,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.skydoves.compose.stability.runtime.TraceRecomposition
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -65,6 +63,8 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
+import dev.meloda.fast.ui.components.SegmentedButtonItem
+import dev.meloda.fast.ui.components.SegmentedButtonsRow
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.model.vk.ConvoOption
 import dev.meloda.fast.ui.model.vk.UiConvo
@@ -73,10 +73,12 @@ import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.ui.util.buildImmutableList
 import dev.meloda.fast.ui.util.emptyImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -126,13 +128,13 @@ fun ConvosScreen(
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
-            .debounce(500L)
+            .debounce(500L.milliseconds)
             .collectLatest(setScrollIndex)
     }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
-            .debounce(500L)
+            .debounce(500L.milliseconds)
             .collectLatest(setScrollOffset)
     }
 
@@ -201,53 +203,46 @@ fun ConvosScreen(
                         }
                     },
                     actions = {
-                        if (!screenState.isArchive) {
-                            IconButton(onClick = onArchiveActionClicked) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_archive_round_24),
-                                    contentDescription = null
-                                )
+                        val dropDownItems: List<@Composable () -> Unit> = buildList {}
+
+                        val items = buildImmutableList {
+                            if (!screenState.isArchive) {
+                                add(SegmentedButtonItem("archive", R.drawable.ic_archive_round_24))
+                            }
+
+                            if (AppSettings.General.showManualRefreshOptions) {
+                                add(SegmentedButtonItem("refresh", R.drawable.ic_refresh_round_24))
+                            }
+
+                            if (dropDownItems.isNotEmpty()) {
+                                add(SegmentedButtonItem("more", R.drawable.ic_more_vert_round_24))
                             }
                         }
 
-                        val dropDownItems = mutableListOf<@Composable () -> Unit>()
 
-                        if (AppSettings.General.showManualRefreshOptions) {
-                            dropDownItems += {
-                                DropdownMenuItem(
-                                    onClick = {
-                                        onRefresh()
-                                        dropDownMenuExpanded = false
-                                    },
-                                    text = {
-                                        Text(text = stringResource(id = R.string.action_refresh))
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_refresh_round_24),
-                                            contentDescription = null
-                                        )
-                                    }
-                                )
+                        SegmentedButtonsRow(
+                            modifier = Modifier.padding(end = 8.dp),
+                            items = items,
+                            onClick = { index ->
+                                when (items[index].key) {
+                                    "archive" -> onArchiveActionClicked()
+                                    "refresh" -> onRefresh()
+                                    "more" -> dropDownMenuExpanded = true
+
+                                    else -> Unit
+                                }
                             }
-                        }
+                        )
 
                         if (dropDownItems.isNotEmpty()) {
-                            IconButton(onClick = { dropDownMenuExpanded = true }) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_more_vert_round_24),
-                                    contentDescription = null
-                                )
+                            DropdownMenu(
+                                modifier = Modifier.defaultMinSize(minWidth = 140.dp),
+                                expanded = dropDownMenuExpanded,
+                                onDismissRequest = { dropDownMenuExpanded = false },
+                                offset = DpOffset(x = (-4).dp, y = (-60).dp)
+                            ) {
+                                dropDownItems.forEach { it.invoke() }
                             }
-                        }
-
-                        DropdownMenu(
-                            modifier = Modifier.defaultMinSize(minWidth = 140.dp),
-                            expanded = dropDownMenuExpanded,
-                            onDismissRequest = { dropDownMenuExpanded = false },
-                            offset = DpOffset(x = (-4).dp, y = (-60).dp)
-                        ) {
-                            dropDownItems.forEach { it.invoke() }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
