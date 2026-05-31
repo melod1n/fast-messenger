@@ -1,23 +1,24 @@
-package dev.meloda.fast.model.database
+package dev.meloda.fast.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import dev.meloda.fast.model.AccountDto
+import dev.meloda.fast.model.database.AccountEntity
 
-@Entity(tableName = "accounts")
-data class AccountEntity(
-    @PrimaryKey(autoGenerate = false)
+data class AccountDto(
     val userId: Long,
     val accessToken: String,
     val fastToken: String?,
     val trustedHash: String?,
     val exchangeToken: String?
 ) {
-    fun mapToDto(): AccountDto = AccountDto(
+
+    fun mapToEntity(): AccountEntity = AccountEntity(
         userId = userId,
         accessToken = accessToken,
         fastToken = fastToken,
         trustedHash = trustedHash,
         exchangeToken = exchangeToken
     )
+
+    override fun toString(): String {
+        return super.toString()
+    }
 }

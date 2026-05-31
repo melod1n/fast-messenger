@@ -56,11 +56,13 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.common.model.NetworkState
 import dev.meloda.fast.convos.model.ConvoIntent
 import dev.meloda.fast.convos.model.ConvosScreenState
 import dev.meloda.fast.convos.navigation.ConvoGraph
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.ui.R
+import dev.meloda.fast.ui.common.LocalNetworkState
 import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.SegmentedButtonItem
@@ -156,6 +158,8 @@ fun ConvosScreen(
         animationSpec = tween(durationMillis = 50)
     )
 
+    val networkState = LocalNetworkState.current
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
@@ -166,6 +170,7 @@ fun ConvosScreen(
                         Text(
                             text = stringResource(
                                 id = when {
+                                    networkState == NetworkState.DISCONNECTED -> R.string.title_no_network
                                     screenState.isLoading -> R.string.title_loading
                                     isArchive -> R.string.title_archive
                                     else -> R.string.title_convos

@@ -20,7 +20,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dev.meloda.fast.MainViewModel
-import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.LongPollEventsHandler
@@ -70,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val logger: FastLogger = koinInject()
 
-            val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+            val viewModel: MainViewModel = koinViewModel()
             LifecycleResumeEffect(true) {
                 viewModel.onAppResumed(intent)
                 onPauseOrDispose {}
@@ -184,7 +183,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         stopServices()
         get<LongPollEventsHandler>().onDestroy()
-        get<NetworkObserver>().onDestroy()
     }
 
     companion object {

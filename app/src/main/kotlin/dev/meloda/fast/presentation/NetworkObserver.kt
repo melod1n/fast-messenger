@@ -1,29 +1,23 @@
 package dev.meloda.fast.presentation
 
-import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
+import dev.meloda.fast.common.NetworkStateListener
+import dev.meloda.fast.common.model.NetworkState
+import dev.meloda.fast.common.model.NetworkStatus
+import dev.meloda.fast.common.model.NetworkType
 import dev.meloda.fast.logger.FastLogger
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.ConcurrentHashMap
 
-class NetworkObserver(
-    context: Context,
-    private val logger: FastLogger
+internal class NetworkObserver(
+    private val connectivityManager: ConnectivityManager,
+    private val logger: FastLogger,
+    private val networkStateListener: NetworkStateListener
 ) {
-
-    private val connectivityManager =
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    private val networkStatus = MutableStateFlow(NetworkStatus.UNAVAILABLE)
-    val networkStatusFlow = networkStatus.asStateFlow()
-
-    private val networkState = MutableStateFlow(NetworkState.DISCONNECTED)
-    val networkStateFlow = networkState.asStateFlow()
 
     private val networks = ConcurrentHashMap<Network, NetworkModel>()
 
@@ -40,12 +34,7 @@ class NetworkObserver(
             NetworkState.DISCONNECTED
         }
 
-        networkState.value = state
-        networkStatus.value = when (state) {
-            NetworkState.CONNECTED -> NetworkStatus.AVAILABLE
-            NetworkState.DISCONNECTED -> NetworkStatus.UNAVAILABLE
-        }
-
+        networkStateListener.updateNetworkState(state)
         log("STATE: $state")
     }
 
@@ -58,7 +47,8 @@ class NetworkObserver(
                     network = network,
                     capabilities = connectivityManager.getNetworkCapabilities(network),
                     properties = connectivityManager.getLinkProperties(network),
-                    status = NetworkStatus.AVAILABLE
+                    status = NetworkStatus.AVAILABLE,
+                    assumeInternet = true
                 )
 
                 syncNetworkState()
@@ -156,6 +146,10 @@ class NetworkObserver(
         refreshActiveNetwork()
     }
 
+    private fun log(text: String) {
+        logger.debug(this::class, text)
+    }
+
     private fun refreshActiveNetwork() {
         val network = connectivityManager.activeNetwork
         if (network == null) {
@@ -177,17 +171,14 @@ class NetworkObserver(
         syncNetworkState()
     }
 
-    private fun log(text: String) {
-        logger.debug(this::class, text)
-    }
-
     private fun mapNetworkModel(
         network: Network,
         capabilities: NetworkCapabilities? = null,
         properties: LinkProperties? = null,
         status: NetworkStatus? = null,
         maxMsToLive: Long? = null,
-        from: NetworkModel? = null
+        from: NetworkModel? = null,
+        assumeInternet: Boolean = false
     ): NetworkModel {
         val caps = capabilities
             ?: from?.networkCapabilities
@@ -199,12 +190,15 @@ class NetworkObserver(
             else -> from?.type ?: NetworkType.UNKNOWN
         }
 
-        val hasInternet = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            ?: from?.hasInternet
-            ?: false
+        val hasInternet = if (caps != null) {
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
+                    caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } else {
+            from?.hasInternet ?: assumeInternet
+        }
 
         val signalStrength =
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 caps?.signalStrength
             } else {
                 null
@@ -224,27 +218,8 @@ class NetworkObserver(
                 ?: connectivityManager.getLinkProperties(network)
         )
     }
-
-    fun onDestroy() {
-        clearCallbacks?.let { unregisterCallback ->
-            runCatching { unregisterCallback() }
-                .onFailure { throwable ->
-                    logger.error(
-                        this::class.java,
-                        "Failed to unregister network callback",
-                        throwable
-                    )
-                }
-        }
-        clearCallbacks = null
-        networks.clear()
-        syncNetworkState()
-    }
 }
 
-enum class NetworkType {
-    CELLULAR, WIFI, UNKNOWN
-}
 
 data class NetworkModel(
     val id: Int,
@@ -261,14 +236,3 @@ data class NetworkModel(
 
     fun isInternetAvailable(): Boolean = hasInternet && isStatusOk()
 }
-
-enum class NetworkStatus {
-    AVAILABLE, UNAVAILABLE, LOST, BLOCKED, UNBLOCKED;
-
-    fun isOk(): Boolean = when (this) {
-        AVAILABLE, UNBLOCKED -> true
-        UNAVAILABLE, LOST, BLOCKED -> false
-    }
-}
-
-enum class NetworkState { CONNECTED, DISCONNECTED }

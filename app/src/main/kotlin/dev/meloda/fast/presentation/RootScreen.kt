@@ -38,13 +38,13 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dev.meloda.fast.MainViewModel
-import dev.meloda.fast.MainViewModelImpl
 import dev.meloda.fast.auth.authNavGraph
 import dev.meloda.fast.auth.captcha.presentation.CaptchaScreen
 import dev.meloda.fast.auth.navigateToAuth
 import dev.meloda.fast.chatmaterials.navigation.chatMaterialsScreen
 import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
 import dev.meloda.fast.common.LongPollController
+import dev.meloda.fast.common.NetworkStateListener
 import dev.meloda.fast.common.model.LongPollState
 import dev.meloda.fast.convos.navigation.createChatScreen
 import dev.meloda.fast.convos.navigation.navigateToCreateChat
@@ -64,6 +64,7 @@ import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.common.LocalLogger
+import dev.meloda.fast.ui.common.LocalNetworkState
 import dev.meloda.fast.ui.common.LocalSizeConfig
 import dev.meloda.fast.ui.model.DeviceSize
 import dev.meloda.fast.ui.model.SizeConfig
@@ -93,7 +94,7 @@ fun RootScreen(
     val longPollCurrentState by longPollController.currentState.collectAsStateWithLifecycle()
     val longPollStateToApply by longPollController.stateToApply.collectAsStateWithLifecycle()
 
-    val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+    val viewModel: MainViewModel = koinViewModel()
     val currentUser: VkUser? by viewModel.currentUser.collectAsStateWithLifecycle()
 
     val permissionState =
@@ -221,10 +222,17 @@ fun RootScreen(
         }
     }
 
+    val networkStateListener: NetworkStateListener = koinInject()
+    val networkState by networkStateListener.networkStateFlow.collectAsStateWithLifecycle()
+    LaunchedEffect(networkState) {
+        logger.debug("RootScreen", "NetworkState: $networkState")
+    }
+
     CompositionLocalProvider(
         LocalThemeConfig provides themeConfig,
         LocalSizeConfig provides sizeConfig,
-        LocalUser provides currentUser
+        LocalUser provides currentUser,
+        LocalNetworkState provides networkState
     ) {
         AppTheme(
             useDarkTheme = themeConfig.darkMode,

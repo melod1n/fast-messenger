@@ -9,12 +9,14 @@ import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.conena.nanokt.collections.indexOfFirstOrNull
+import dev.meloda.fast.common.NetworkStateListener
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.createTimerFlow
 import dev.meloda.fast.common.extensions.findWithIndex
 import dev.meloda.fast.common.extensions.listenValue
 import dev.meloda.fast.common.extensions.setValue
 import dev.meloda.fast.common.extensions.updateValue
+import dev.meloda.fast.common.model.NetworkState
 import dev.meloda.fast.convos.model.ConvoDialog
 import dev.meloda.fast.convos.model.ConvoIntent
 import dev.meloda.fast.convos.model.ConvoNavigationIntent
@@ -31,6 +33,7 @@ import dev.meloda.fast.domain.LongPollEventsHandler
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
 import dev.meloda.fast.domain.util.extractAvatar
+import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.ConvosFilter
 import dev.meloda.fast.model.InteractionType
 import dev.meloda.fast.model.LongPollParsedEvent
@@ -54,7 +57,9 @@ class ConvosViewModel(
     private val userSettings: UserSettings,
     private val imageLoader: ImageLoader,
     private val applicationContext: Context,
-    private val loadConvosByIdUseCase: LoadConvosByIdUseCase
+    private val loadConvosByIdUseCase: LoadConvosByIdUseCase,
+    private val networkStateListener: NetworkStateListener,
+    private val logger: FastLogger
 ) : ViewModel() {
 
     private val screenState = MutableStateFlow(ConvosScreenState.EMPTY)
@@ -86,6 +91,16 @@ class ConvosViewModel(
 
         userSettings.useContactNames.listenValue(viewModelScope) {
             syncUiConvos()
+        }
+
+        networkStateListener.networkStateFlow.listenValue { state ->
+            logger.debug(this@ConvosViewModel::class, "network state changed: $state")
+
+            if (state == NetworkState.CONNECTED) {
+                if (screenState.value.error != null) {
+                    onRefresh()
+                }
+            }
         }
     }
 
@@ -193,12 +208,12 @@ class ConvosViewModel(
         loadConvos()
     }
 
-    private fun onErrorConsumed() {
+    private fun clearError() {
         screenState.updateValue { copy(error = null) }
     }
 
     private fun onRefresh() {
-        onErrorConsumed()
+        clearError()
         loadConvos(offset = 0)
     }
 

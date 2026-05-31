@@ -1,16 +1,13 @@
 package dev.meloda.fast.common.di
 
-import android.content.Context
-import android.content.res.Resources
-import android.os.PowerManager
-import androidx.preference.PreferenceManager
 import coil.ImageLoader
 import coil.annotation.ExperimentalCoilApi
-import dev.meloda.fast.MainViewModelImpl
+import dev.meloda.fast.MainViewModel
 import dev.meloda.fast.auth.authModule
 import dev.meloda.fast.chatmaterials.di.chatMaterialsModule
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.LongPollControllerImpl
+import dev.meloda.fast.common.NetworkStateListener
 import dev.meloda.fast.common.provider.Provider
 import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.common.provider.ResourceProviderImpl
@@ -27,7 +24,7 @@ import dev.meloda.fast.profile.di.profileModule
 import dev.meloda.fast.provider.ApiLanguageProvider
 import dev.meloda.fast.service.longpolling.di.longPollModule
 import dev.meloda.fast.settings.di.settingsModule
-import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.qualifier
@@ -52,27 +49,24 @@ val applicationModule = module {
     )
 
     includes(loggerModule)
+    includes(androidModule)
 
-    // TODO: 14/05/2024, Danil Nikolaev: extract all operations with preferences to standalone class
-    singleOf(PreferenceManager::getDefaultSharedPreferences)
-    single<Resources> { androidContext().resources }
-    factory<PowerManager> { androidContext().getSystemService(Context.POWER_SERVICE) as PowerManager }
+    factoryOf(::ApiLanguageProvider) bind Provider::class
 
-    singleOf(::ApiLanguageProvider) bind Provider::class
-
-    viewModelOf(::MainViewModelImpl) {
-        qualifier = qualifier("main")
-    }
+    viewModelOf(::MainViewModel) { qualifier = qualifier("main") }
 
     single<ImageLoader> {
         ImageLoader.Builder(get())
             .crossfade(true)
             .build()
-            .also { it.diskCache?.directory?.toFile()?.listFiles() }
+            .also {
+                it.diskCache?.directory?.toFile()?.listFiles()
+            }
     }
 
     singleOf(::LongPollControllerImpl) bind LongPollController::class
     singleOf(::ResourceProviderImpl) bind ResourceProvider::class
 
-    singleOf(::NetworkObserver)
+    singleOf(::NetworkStateListener)
+    singleOf(::NetworkObserver) { qualifier = qualifier("main") }
 }

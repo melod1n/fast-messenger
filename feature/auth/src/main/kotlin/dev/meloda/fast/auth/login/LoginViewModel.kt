@@ -28,7 +28,7 @@ import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.logger.FastLogger
-import dev.meloda.fast.model.database.AccountEntity
+import dev.meloda.fast.model.AccountDto
 import dev.meloda.fast.network.OAuthErrorDomain
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -236,7 +236,7 @@ class LoginViewModel(
 
                         // TODO: 30-Mar-25, Danil Nikolaev: get fast's app token
 
-                        val currentAccount = AccountEntity(
+                        val currentAccount = AccountDto(
                             userId = userId,
                             accessToken = accessToken,
                             fastToken = null,
@@ -251,7 +251,7 @@ class LoginViewModel(
                             UserConfig.exchangeToken = account.exchangeToken
                         }
 
-                        accountsRepository.storeAccounts(listOf(currentAccount))
+                        accountsRepository.storeAccounts(listOf(currentAccount.mapToEntity()))
 
                         startLongPoll()
 

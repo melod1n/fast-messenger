@@ -32,6 +32,8 @@ private fun Scope.createConvosViewModel(filter: ConvosFilter): ConvosViewModel {
         userSettings = get(),
         imageLoader = get(),
         applicationContext = get(),
-        loadConvosByIdUseCase = get()
+        loadConvosByIdUseCase = get(),
+        networkStateListener = get(),
+        logger = get()
     )
 }

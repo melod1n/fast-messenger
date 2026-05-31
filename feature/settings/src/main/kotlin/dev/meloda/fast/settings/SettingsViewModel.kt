@@ -26,6 +26,7 @@ import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.GetCurrentAccountUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.logger.FastLogger
+import dev.meloda.fast.model.AccountDto
 import dev.meloda.fast.model.database.AccountEntity
 import dev.meloda.fast.settings.model.HapticType
 import dev.meloda.fast.settings.model.SettingsDialog
@@ -149,13 +150,14 @@ class SettingsViewModel(
                                 UserConfig.currentUserId = user.id
 
                                 val account = getCurrentAccountUseCase()
+                                    ?.mapToDto()
                                     ?.copy(
                                         userId = user.id,
                                         accessToken = accessToken,
                                         fastToken = null,
                                         exchangeToken = exchangeToken,
                                         trustedHash = trustedHash
-                                    ) ?: AccountEntity(
+                                    ) ?: AccountDto(
                                     userId = user.id,
                                     accessToken = accessToken,
                                     fastToken = null,
@@ -163,7 +165,7 @@ class SettingsViewModel(
                                     exchangeToken = exchangeToken
                                 )
 
-                                accountsRepository.storeAccounts(listOf(account))
+                                accountsRepository.storeAccounts(listOf(account.mapToEntity()))
 
                                 screenEffect.tryEmit(
                                     SettingsEffect.Navigate(SettingsNavigationIntent.Restart)

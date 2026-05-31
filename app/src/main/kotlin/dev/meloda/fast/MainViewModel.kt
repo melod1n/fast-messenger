@@ -29,61 +29,30 @@ import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.settings.navigation.Settings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-interface MainViewModel {
-
-    val startDestination: StateFlow<Any?>
-    val isNeedToReplaceWithAuth: StateFlow<Boolean>
-    val currentUser: StateFlow<VkUser?>
-
-    val isNeedToShowNotificationsDeniedDialog: StateFlow<Boolean>
-    val isNeedToShowNotificationsRationaleDialog: StateFlow<Boolean>
-    val isNeedToCheckNotificationsPermission: StateFlow<Boolean>
-    val isNeedToRequestNotifications: StateFlow<Boolean>
-
-    fun onError(error: BaseError)
-
-    fun onNavigatedToAuth()
-
-    fun onAppResumed(intent: Intent)
-
-    @OptIn(ExperimentalPermissionsApi::class)
-    fun onPermissionCheckStatus(status: PermissionStatus)
-    fun onPermissionsRequested()
-
-    fun onNotificationsDeniedDialogConfirmClicked()
-    fun onNotificationsDeniedDialogCancelClicked()
-    fun onNotificationsDeniedDialogDismissed()
-    fun onNotificationsRationaleDialogDismissed()
-    fun onNotificationsRationaleDialogCancelClicked()
-
-    fun onUserAuthenticated()
-}
-
-class MainViewModelImpl(
+class MainViewModel(
     private val getCurrentAccountUseCase: GetCurrentAccountUseCase,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val userSettings: UserSettings,
     private val longPollController: LongPollController,
     private val logger: FastLogger
-) : MainViewModel, ViewModel() {
+) : ViewModel() {
 
-    override val startDestination = MutableStateFlow<Any?>(null)
-    override val isNeedToReplaceWithAuth = MutableStateFlow(false)
-    override val currentUser = MutableStateFlow<VkUser?>(null)
+    val startDestination = MutableStateFlow<Any?>(null)
+    val isNeedToReplaceWithAuth = MutableStateFlow(false)
+    val currentUser = MutableStateFlow<VkUser?>(null)
 
-    override val isNeedToShowNotificationsDeniedDialog = MutableStateFlow(false)
-    override val isNeedToShowNotificationsRationaleDialog = MutableStateFlow(false)
-    override val isNeedToCheckNotificationsPermission = MutableStateFlow(false)
-    override val isNeedToRequestNotifications = MutableStateFlow(false)
+    val isNeedToShowNotificationsDeniedDialog = MutableStateFlow(false)
+    val isNeedToShowNotificationsRationaleDialog = MutableStateFlow(false)
+    val isNeedToCheckNotificationsPermission = MutableStateFlow(false)
+    val isNeedToRequestNotifications = MutableStateFlow(false)
 
     private var openNotificationsSettings = false
     private var openAppSettings = false
 
-    override fun onError(error: BaseError) {
+    fun onError(error: BaseError) {
         when (error) {
             BaseError.SessionExpired,
             BaseError.AccountBlocked -> {
@@ -94,11 +63,11 @@ class MainViewModelImpl(
         }
     }
 
-    override fun onNavigatedToAuth() {
+    fun onNavigatedToAuth() {
         isNeedToReplaceWithAuth.update { false }
     }
 
-    override fun onAppResumed(intent: Intent) {
+    fun onAppResumed(intent: Intent) {
         openNotificationsSettings =
             intent.hasCategory(NotificationCompat.INTENT_CATEGORY_NOTIFICATION_PREFERENCES)
         openAppSettings =
@@ -125,7 +94,7 @@ class MainViewModelImpl(
     }
 
     @ExperimentalPermissionsApi
-    override fun onPermissionCheckStatus(status: PermissionStatus) {
+    fun onPermissionCheckStatus(status: PermissionStatus) {
         isNeedToCheckNotificationsPermission.update { false }
 
         when (status) {
@@ -147,33 +116,33 @@ class MainViewModelImpl(
         }
     }
 
-    override fun onPermissionsRequested() {
+    fun onPermissionsRequested() {
         isNeedToRequestNotifications.update { false }
     }
 
-    override fun onNotificationsDeniedDialogConfirmClicked() {
+    fun onNotificationsDeniedDialogConfirmClicked() {
         isNeedToRequestNotifications.update { true }
     }
 
-    override fun onNotificationsDeniedDialogCancelClicked() {
+    fun onNotificationsDeniedDialogCancelClicked() {
         isNeedToShowNotificationsDeniedDialog.update { false }
         disableBackgroundLongPoll()
     }
 
-    override fun onNotificationsDeniedDialogDismissed() {
+    fun onNotificationsDeniedDialogDismissed() {
         isNeedToShowNotificationsDeniedDialog.update { false }
     }
 
-    override fun onNotificationsRationaleDialogDismissed() {
+    fun onNotificationsRationaleDialogDismissed() {
         isNeedToShowNotificationsRationaleDialog.update { false }
     }
 
-    override fun onNotificationsRationaleDialogCancelClicked() {
+    fun onNotificationsRationaleDialogCancelClicked() {
         isNeedToShowNotificationsRationaleDialog.update { false }
         disableBackgroundLongPoll()
     }
 
-    override fun onUserAuthenticated() {
+    fun onUserAuthenticated() {
         loadProfile()
     }
 
@@ -202,11 +171,17 @@ class MainViewModelImpl(
 
     private fun loadAccounts() {
         viewModelScope.launch(Dispatchers.IO) {
-            val currentAccount = getCurrentAccountUseCase()
+            val currentAccount = getCurrentAccountUseCase()?.mapToDto()
 
             logger.debug(
-                this@MainViewModelImpl::class,
-                "loadAccounts(): currentAccount: $currentAccount"
+                this@MainViewModel::class,
+                "loadAccounts(): currentAccount: %s"
+                    .format(
+                        currentAccount?.copy(
+                            accessToken = if (currentAccount.accessToken.isNotEmpty()) "<redacted>"
+                            else "null"
+                        )
+                    )
             )
 
             listenLongPollState()
