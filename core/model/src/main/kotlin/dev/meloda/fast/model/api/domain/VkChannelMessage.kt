@@ -8,7 +8,7 @@ data class VkChannelMessage(
     val authorId: Long,
     val channelInfo: ChannelInfo,
     val channelType: String,
-    val guid: String,
+    val guid: String?,
     val text: String?,
     val time: Long,
     val attachments: List<VkAttachment>?,

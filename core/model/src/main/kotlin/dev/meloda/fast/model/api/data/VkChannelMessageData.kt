@@ -11,7 +11,7 @@ data class VkChannelMessageData(
     @Json(name = "author_id") val authorId: Long,
     @Json(name = "channel_info") val channelInfo: ChannelInfo,
     @Json(name = "channel_type") val channelType: String,
-    @Json(name = "guid") val guid: String,
+    @Json(name = "guid") val guid: String?,
     @Json(name = "text") val text: String?,
     @Json(name = "time") val time: Long,
     @Json(name = "attachments") val attachments: List<VkAttachmentItemData> = emptyList(),
