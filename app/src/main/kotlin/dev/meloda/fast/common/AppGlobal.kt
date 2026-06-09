@@ -13,6 +13,7 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.logger.FastLogLevel
 import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.presentation.CrashActivity
+import dev.meloda.fast.presentation.NetworkObserver
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -40,6 +41,8 @@ class AppGlobal : Application(), ImageLoaderFactory {
         get<FastLogger>()
             .apply { setLogLevel(logLevel) }
             .also { FastLogger.setInstance(it) }
+
+        get<NetworkObserver>().start()
     }
 
     override fun newImageLoader(): ImageLoader = get()

@@ -23,7 +23,7 @@ internal class NetworkObserver(
 
     private var clearCallbacks: (() -> Unit)? = null
 
-    init {
+    fun start() {
         startListener()
     }
 
