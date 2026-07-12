@@ -119,27 +119,17 @@ fun LoginRoute(
         viewModel.onValidationCodeReceived(validationCode)
     }
 
-    var useClassic by rememberSaveable { mutableStateOf(true) }
-
-    AppTheme(
-        predefinedColorScheme = if (useClassic) ClassicColorScheme.lightScheme
-        else lightColorScheme(),
-    ) {
-        LoginScreen(
-            screenState = screenState,
-            onLoginInputChanged = viewModel::onLoginInputChanged,
-            onPasswordInputChanged = viewModel::onPasswordInputChanged,
-            onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
-            onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
-            onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
-            onSignInButtonClicked = viewModel::onSignInButtonClicked,
-            onLogoClicked = {
-                viewModel.onLogoClicked()
-                useClassic = !useClassic
-            },
-            onLogoLongClicked = onNavigateToSettings
-        )
-    }
+    LoginScreen(
+        screenState = screenState,
+        onLoginInputChanged = viewModel::onLoginInputChanged,
+        onPasswordInputChanged = viewModel::onPasswordInputChanged,
+        onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
+        onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
+        onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
+        onSignInButtonClicked = viewModel::onSignInButtonClicked,
+        onLogoClicked = viewModel::onLogoClicked,
+        onLogoLongClicked = onNavigateToSettings
+    )
 
     HandleDialogs(
         loginDialog = loginDialog,
