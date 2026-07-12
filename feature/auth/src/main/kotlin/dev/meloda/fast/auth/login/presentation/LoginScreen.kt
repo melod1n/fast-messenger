@@ -1,7 +1,6 @@
 package dev.meloda.fast.auth.login.presentation
 
 import android.content.Intent
-import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -31,13 +30,8 @@ import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
@@ -60,95 +54,41 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.meloda.fast.auth.login.LoginViewModel
 import dev.meloda.fast.auth.login.model.LoginDialog
+import dev.meloda.fast.auth.login.model.LoginIntent
 import dev.meloda.fast.auth.login.model.LoginScreenState
-import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
-import dev.meloda.fast.auth.login.model.LoginValidationArguments
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.common.LocalSizeConfig
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.TextFieldErrorText
-import dev.meloda.fast.ui.theme.AppTheme
-import dev.meloda.fast.ui.theme.ClassicColorScheme
 import dev.meloda.fast.ui.util.handleEnterKey
 import dev.meloda.fast.ui.util.handleTabKey
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LoginRoute(
-    onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
-    onNavigateToMain: () -> Unit,
-    onNavigateToValidation: (LoginValidationArguments) -> Unit,
-    onNavigateToSettings: () -> Unit,
-    validationCode: String?,
-    viewModel: LoginViewModel = koinViewModel()
+    handleIntent: (LoginIntent) -> Unit,
+    screenState: LoginScreenState
 ) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val isNeedToOpenMain by viewModel.isNeedToOpenMain.collectAsStateWithLifecycle()
-    val userBannedArguments by viewModel.userBannedArguments.collectAsStateWithLifecycle()
-    val validationArguments by viewModel.validationArguments.collectAsStateWithLifecycle()
-    val loginDialog by viewModel.loginDialog.collectAsStateWithLifecycle()
-
     BackHandler(
         enabled = !screenState.showLogo,
-        onBack = viewModel::onBackPressed
+        onBack = { handleIntent(LoginIntent.Back) }
     )
 
-    LaunchedEffect(isNeedToOpenMain) {
-        if (isNeedToOpenMain) {
-            viewModel.onNavigatedToMain()
-            onNavigateToMain()
-        }
-
-    }
-    LaunchedEffect(userBannedArguments) {
-        userBannedArguments?.let { arguments ->
-            viewModel.onNavigatedToUserBanned()
-            onNavigateToUserBanned(arguments)
-        }
-    }
-    LaunchedEffect(validationArguments) {
-        validationArguments?.let { arguments ->
-            viewModel.onNavigatedToValidation()
-            onNavigateToValidation(arguments)
-        }
-    }
-    LaunchedEffect(validationCode) {
-        viewModel.onValidationCodeReceived(validationCode)
-    }
-
     LoginScreen(
-        screenState = screenState,
-        onLoginInputChanged = viewModel::onLoginInputChanged,
-        onPasswordInputChanged = viewModel::onPasswordInputChanged,
-        onPasswordFieldEnterKeyClicked = viewModel::onSignInButtonClicked,
-        onPasswordVisibilityButtonClicked = viewModel::onPasswordVisibilityButtonClicked,
-        onPasswordFieldGoAction = viewModel::onSignInButtonClicked,
-        onSignInButtonClicked = viewModel::onSignInButtonClicked,
-        onLogoClicked = viewModel::onLogoClicked,
-        onLogoLongClicked = onNavigateToSettings
+        handleIntent = handleIntent,
+        screenState = screenState
     )
 
     HandleDialogs(
-        loginDialog = loginDialog,
-        onConfirmed = viewModel::onDialogConfirmed,
-        onDismissed = viewModel::onDialogDismissed
+        screenState = screenState,
+        onDismissed = { handleIntent(LoginIntent.Dialog.Dismiss) }
     )
 }
 
 @Composable
 fun LoginScreen(
-    screenState: LoginScreenState = LoginScreenState.EMPTY,
-    onLoginInputChanged: (String) -> Unit = {},
-    onPasswordInputChanged: (String) -> Unit = {},
-    onPasswordFieldEnterKeyClicked: () -> Unit = {},
-    onPasswordVisibilityButtonClicked: () -> Unit = {},
-    onPasswordFieldGoAction: () -> Unit = {},
-    onSignInButtonClicked: () -> Unit = {},
-    onLogoClicked: () -> Unit = {},
-    onLogoLongClicked: () -> Unit = {}
+    handleIntent: (LoginIntent) -> Unit,
+    screenState: LoginScreenState
 ) {
     val context = LocalContext.current
     val size = LocalSizeConfig.current
@@ -183,8 +123,8 @@ fun LoginScreen(
                 label = "Logo visibility"
             ) {
                 Logo(
-                    onLogoClicked = onLogoClicked,
-                    onLogoLongClicked = onLogoLongClicked
+                    onLogoClicked = { handleIntent(LoginIntent.LogoClicked) },
+                    onLogoLongClicked = { handleIntent(LoginIntent.LogoLongClicked) }
                 )
             }
 
@@ -228,7 +168,7 @@ fun LoginScreen(
                                 contentType = ContentType.Username + ContentType.EmailAddress
                             },
                         value = screenState.login,
-                        onValueChange = onLoginInputChanged,
+                        onValueChange = { handleIntent(LoginIntent.LoginInputChange(it)) },
                         label = { Text(text = stringResource(id = R.string.login_hint)) },
                         placeholder = { Text(text = stringResource(id = R.string.login_hint)) },
                         leadingIcon = {
@@ -266,13 +206,13 @@ fun LoginScreen(
                             .clip(RoundedCornerShape(10.dp))
                             .handleEnterKey {
                                 focusManager.clearFocus()
-                                onPasswordFieldEnterKeyClicked()
+                                handleIntent(LoginIntent.PasswordFieldEnterKeyClick)
                                 true
                             }
                             .focusRequester(passwordFocusable)
                             .semantics { contentType = ContentType.Password },
                         value = screenState.password,
-                        onValueChange = onPasswordInputChanged,
+                        onValueChange = { handleIntent(LoginIntent.PasswordInputChange(it)) },
                         label = { Text(text = stringResource(id = R.string.password_login_hint)) },
                         placeholder = { Text(text = stringResource(id = R.string.password_login_hint)) },
                         leadingIcon = {
@@ -292,7 +232,7 @@ fun LoginScreen(
                                 else R.drawable.ic_visibility_round_24
                             )
 
-                            IconButton(onClick = onPasswordVisibilityButtonClicked) {
+                            IconButton(onClick = { handleIntent(LoginIntent.PasswordVisibilityButtonClick) }) {
                                 Icon(
                                     painter = imagePainter,
                                     contentDescription = if (screenState.passwordVisible) "Password visible icon"
@@ -307,7 +247,7 @@ fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onGo = {
                                 focusManager.clearFocus()
-                                onPasswordFieldGoAction()
+                                handleIntent(LoginIntent.PasswordFieldGoKeyClick)
                             }
                         ),
                         isError = screenState.passwordError,
@@ -335,7 +275,7 @@ fun LoginScreen(
                     onClick = {
                         if (!screenState.isLoading) {
                             focusManager.clearFocus()
-                            onSignInButtonClicked()
+                            handleIntent(LoginIntent.SignInButtonClick)
                         }
                     },
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -416,19 +356,18 @@ fun LoginScreen(
 
 @Composable
 fun HandleDialogs(
-    loginDialog: LoginDialog?,
-    onConfirmed: (LoginDialog, Bundle) -> Unit = { _, _ -> },
+    screenState: LoginScreenState,
     onDismissed: (LoginDialog) -> Unit = {},
 ) {
-    when (loginDialog) {
+    when (val dialog = screenState.dialog) {
         null -> Unit
 
         is LoginDialog.Error -> {
             MaterialDialog(
-                onDismissRequest = { onDismissed(loginDialog) },
+                onDismissRequest = { onDismissed(dialog) },
                 title = stringResource(R.string.title_error),
-                text = loginDialog.errorTextResId?.let { stringResource(it) }
-                    ?: loginDialog.errorText
+                text = dialog.errorTextResId?.let { stringResource(it) }
+                    ?: dialog.errorText
                     ?: stringResource(R.string.unknown_error_occurred),
                 confirmText = stringResource(id = R.string.ok)
             )
@@ -440,6 +379,7 @@ fun HandleDialogs(
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
+        handleIntent = {},
         screenState = LoginScreenState.EMPTY.copy(
             showLogo = false
         )

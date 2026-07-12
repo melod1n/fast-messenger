@@ -3,53 +3,51 @@ package dev.meloda.fast.auth.login.navigation
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.auth.login.LoginViewModel
-import dev.meloda.fast.auth.login.model.LoginUserBannedArguments
-import dev.meloda.fast.auth.login.model.LoginValidationArguments
+import dev.meloda.fast.auth.login.model.LoginEffect
+import dev.meloda.fast.auth.login.model.LoginNavigationIntent
 import dev.meloda.fast.auth.login.presentation.LoginRoute
 import dev.meloda.fast.ui.extensions.sharedViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.Serializable
 
 @Serializable
 object Login
 
 fun NavGraphBuilder.loginScreen(
-    onNavigateToValidation: (LoginValidationArguments) -> Unit,
-    onNavigateToMain: () -> Unit,
-    onNavigateToUserBanned: (LoginUserBannedArguments) -> Unit,
-    onNavigateToSettings: () -> Unit,
+    handleNavigationIntent: (LoginNavigationIntent) -> Unit,
     navController: NavController
 ) {
     composable<Login> { backStackEntry ->
         val viewModel: LoginViewModel =
             backStackEntry.sharedViewModel<LoginViewModel>(navController = navController)
 
-        val clearValidationCode by viewModel.isNeedToClearValidationCode.collectAsStateWithLifecycle()
+        val screenState by viewModel.screenStateFlow.collectAsStateWithLifecycle()
 
-        LaunchedEffect(clearValidationCode) {
-            if (clearValidationCode) {
-                backStackEntry.savedStateHandle["validation_code"] = null
-                viewModel.onValidationCodeCleared()
-            }
+        LaunchedEffect(Unit) {
+            viewModel.screenEffectFlow.onEach { effect ->
+                when (effect) {
+                    LoginEffect.ClearValidationCode -> {
+                        backStackEntry.savedStateHandle["validation_code"] = null
+                    }
+
+                    is LoginEffect.Navigate -> handleNavigationIntent(effect.intent)
+                }
+            }.collect()
         }
 
-        val validationCode = backStackEntry.getValidationResult()
+        LaunchedEffect(true) {
+            val validationCode: String? = backStackEntry.savedStateHandle["validation_code"]
+            viewModel.onValidationCodeReceived(validationCode)
+        }
 
         LoginRoute(
-            onNavigateToUserBanned = onNavigateToUserBanned,
-            onNavigateToMain = onNavigateToMain,
-            onNavigateToValidation = onNavigateToValidation,
-            onNavigateToSettings = onNavigateToSettings,
-            validationCode = validationCode,
-            viewModel = viewModel
+            handleIntent = viewModel::handleIntent,
+            screenState = screenState
         )
     }
-}
-
-fun NavBackStackEntry.getValidationResult(): String? {
-    return savedStateHandle["validation_code"]
 }

@@ -11,6 +11,8 @@ data class LoginScreenState(
     val loginError: Boolean,
     val passwordError: Boolean,
     val passwordVisible: Boolean,
+
+    val dialog: LoginDialog?
 ) {
 
     companion object {
@@ -21,7 +23,8 @@ data class LoginScreenState(
             isLoading = false,
             loginError = false,
             passwordError = false,
-            passwordVisible = false
+            passwordVisible = false,
+            dialog = null
         )
     }
 }

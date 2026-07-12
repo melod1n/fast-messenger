@@ -3,17 +3,15 @@ package dev.meloda.fast.auth
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
+import dev.meloda.fast.auth.login.model.LoginNavigationIntent
 import dev.meloda.fast.auth.login.navigation.Login
 import dev.meloda.fast.auth.login.navigation.loginScreen
-import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
 import dev.meloda.fast.auth.userbanned.navigation.navigateToUserBanned
 import dev.meloda.fast.auth.userbanned.navigation.userBannedRoute
-import dev.meloda.fast.auth.validation.model.ValidationArguments
 import dev.meloda.fast.auth.validation.navigation.navigateToValidation
 import dev.meloda.fast.auth.validation.navigation.setValidationResult
 import dev.meloda.fast.auth.validation.navigation.validationScreen
 import kotlinx.serialization.Serializable
-import java.net.URLEncoder
 
 @Serializable
 object AuthGraph
@@ -25,29 +23,15 @@ fun NavGraphBuilder.authNavGraph(
 ) {
     navigation<AuthGraph>(startDestination = Login) {
         loginScreen(
-            onNavigateToValidation = { arguments ->
-                navController.navigateToValidation(
-                    ValidationArguments(
-                        validationSid = arguments.validationSid,
-                        redirectUri = URLEncoder.encode(arguments.redirectUri, "utf-8"),
-                        phoneMask = arguments.phoneMask,
-                        validationType = arguments.validationType,
-                        canResendSms = arguments.canResendSms
-                    )
-                )
+            handleNavigationIntent = { intent ->
+                when (intent) {
+                    LoginNavigationIntent.Back -> navController.navigateUp()
+                    LoginNavigationIntent.Main -> onNavigateToMain()
+                    LoginNavigationIntent.Settings -> onNavigateToSettings()
+                    is LoginNavigationIntent.UserBanned -> navController.navigateToUserBanned(intent.arguments)
+                    is LoginNavigationIntent.Validation -> navController.navigateToValidation(intent.arguments)
+                }
             },
-            onNavigateToMain = onNavigateToMain,
-            onNavigateToUserBanned = { arguments ->
-                navController.navigateToUserBanned(
-                    UserBannedArguments(
-                        userName = arguments.name,
-                        message = arguments.message,
-                        restoreUrl = arguments.restoreUrl,
-                        accessToken = arguments.accessToken
-                    )
-                )
-            },
-            onNavigateToSettings = onNavigateToSettings,
             navController = navController
         )
 
