@@ -232,6 +232,12 @@ class SettingsViewModel(
                 setDialog(SettingsDialog.LogOut)
             }
 
+            SettingsKeys.KEY_APPEARANCE_LANGUAGE -> {
+                screenEffect.tryEmit(
+                    SettingsEffect.Navigate(SettingsNavigationIntent.Language)
+                )
+            }
+
             SettingsKeys.KEY_DEBUG_PERFORM_CRASH -> {
                 setDialog(SettingsDialog.PerformCrash)
             }
