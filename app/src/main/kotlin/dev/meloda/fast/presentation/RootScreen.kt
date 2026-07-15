@@ -46,6 +46,7 @@ import dev.meloda.fast.chatmaterials.navigation.navigateToChatMaterials
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.NetworkStateListener
 import dev.meloda.fast.common.model.LongPollState
+import dev.meloda.fast.convos.model.CreateChatNavigationIntent
 import dev.meloda.fast.convos.navigation.createChatScreen
 import dev.meloda.fast.convos.navigation.navigateToCreateChat
 import dev.meloda.fast.datastore.AppSettings
@@ -375,11 +376,15 @@ fun RootScreen(
                                 }
                             )
                             createChatScreen(
-                                onChatCreated = { convoId ->
-                                    navController.popBackStack()
-                                    navController.navigateToMessagesHistory(convoId)
-                                },
-                                navController = navController
+                                handleNavigationIntent = { intent ->
+                                    when (intent) {
+                                        CreateChatNavigationIntent.Back -> navController.navigateUp()
+                                        is CreateChatNavigationIntent.ToNewChat -> {
+                                            navController.navigateUp()
+                                            navController.navigateToMessagesHistory(intent.id)
+                                        }
+                                    }
+                                }
                             )
 
                             settingsScreen(

@@ -1,6 +1,7 @@
 package dev.meloda.fast.convos.model
 
 import androidx.compose.runtime.Immutable
+import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.model.vk.UiFriend
 
 @Immutable
@@ -11,7 +12,10 @@ data class CreateChatScreenState(
     val friends: List<UiFriend>,
     val selectedFriendsIds: List<Long>,
     val chatTitle: String,
-    val showConfirmDialog: Boolean
+    val finalChatTitle: String,
+    val showConfirmDialog: Boolean,
+    val error: BaseError?,
+    val canPaginate: Boolean
 ) {
     companion object {
         val EMPTY: CreateChatScreenState = CreateChatScreenState(
@@ -21,7 +25,10 @@ data class CreateChatScreenState(
             friends = emptyList(),
             selectedFriendsIds = emptyList(),
             chatTitle = "",
-            showConfirmDialog = false
+            finalChatTitle = "",
+            showConfirmDialog = false,
+            error = null,
+            canPaginate = false
         )
     }
 }

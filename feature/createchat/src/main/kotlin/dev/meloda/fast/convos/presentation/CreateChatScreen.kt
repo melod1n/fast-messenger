@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -53,17 +54,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import dev.meloda.fast.convos.CreateChatViewModel
+import dev.meloda.fast.convos.model.CreateChatIntent
 import dev.meloda.fast.convos.model.CreateChatScreenState
-import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.FastIconButton
+import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
@@ -73,55 +72,33 @@ import dev.meloda.fast.ui.util.isScrollingUp
 
 @Composable
 fun CreateChatRoute(
-    onError: (BaseError) -> Unit,
-    onBack: () -> Unit,
-    onChatCreated: (Long) -> Unit,
-    viewModel: CreateChatViewModel
+    handleIntent: (CreateChatIntent) -> Unit,
+    screenState: CreateChatScreenState,
 ) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val baseError by viewModel.baseError.collectAsStateWithLifecycle()
-    val canPaginate by viewModel.canPaginate.collectAsStateWithLifecycle()
-    val isChatCreated by viewModel.isChatCreated.collectAsStateWithLifecycle()
-
-    LaunchedEffect(isChatCreated) {
-        if (isChatCreated != null) {
-            onChatCreated(isChatCreated ?: -1L)
-            viewModel.onNavigatedBack()
-        }
-    }
-
     if (screenState.showConfirmDialog) {
         MaterialDialog(
-            onDismissRequest = viewModel::onConfirmDialogDismissed,
+            onDismissRequest = { handleIntent(CreateChatIntent.Dialog.Dismiss) },
             title = stringResource(R.string.confirm),
             text = when {
                 screenState.selectedFriendsIds.isEmpty() -> stringResource(
                     R.string.confirm_chat_create_empty_with_title,
-                    viewModel.finalChatTitle.value
+                    screenState.finalChatTitle
                 )
 
                 else -> stringResource(
                     R.string.confirm_chat_create_with_title,
-                    viewModel.finalChatTitle.value
+                    screenState.finalChatTitle
                 )
             },
-            confirmAction = viewModel::onConfirmDialogConfirmed,
+            confirmAction = { handleIntent(CreateChatIntent.Dialog.ConfirmClick) },
             confirmText = stringResource(R.string.action_create),
             cancelText = stringResource(R.string.cancel)
         )
     }
 
     CreateChatScreen(
-        screenState = screenState,
-        baseError = baseError,
-        canPaginate = canPaginate,
-        onSessionExpiredLogOutButtonClicked = { onError(BaseError.SessionExpired) },
-        onPaginationConditionsMet = viewModel::onPaginationConditionsMet,
-        onBack = onBack,
-        onRefresh = viewModel::onRefresh,
-        onCreateChatButtonClicked = viewModel::onCreateChatButtonClicked,
-        onItemClicked = viewModel::toggleFriendSelection,
-        onTitleTextInputChanged = viewModel::onTitleTextInputChanged
+        handleIntent = handleIntent,
+        screenState = screenState
     )
 }
 
@@ -131,16 +108,8 @@ fun CreateChatRoute(
 )
 @Composable
 fun CreateChatScreen(
-    screenState: CreateChatScreenState = CreateChatScreenState.EMPTY,
-    baseError: BaseError? = null,
-    canPaginate: Boolean = false,
-    onSessionExpiredLogOutButtonClicked: () -> Unit = {},
-    onPaginationConditionsMet: () -> Unit = {},
-    onBack: () -> Unit = {},
-    onRefresh: () -> Unit = {},
-    onCreateChatButtonClicked: () -> Unit = {},
-    onItemClicked: (Long) -> Unit = {},
-    onTitleTextInputChanged: (String) -> Unit = {}
+    handleIntent: (CreateChatIntent) -> Unit,
+    screenState: CreateChatScreenState,
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -150,9 +119,9 @@ fun CreateChatScreen(
 
     val listState = rememberLazyListState()
 
-    val paginationConditionMet by remember(canPaginate, listState) {
+    val paginationConditionMet by remember(screenState.canPaginate, listState) {
         derivedStateOf {
-            canPaginate &&
+            screenState.canPaginate &&
                     (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                         ?: -9) >= (listState.layoutInfo.totalItemsCount - 6)
         }
@@ -160,7 +129,7 @@ fun CreateChatScreen(
 
     LaunchedEffect(paginationConditionMet) {
         if (paginationConditionMet && !screenState.isPaginating) {
-            onPaginationConditionsMet()
+            handleIntent(CreateChatIntent.PaginationConditionsMet)
         }
     }
 
@@ -205,7 +174,7 @@ fun CreateChatScreen(
             ) {
                 TopAppBar(
                     navigationIcon = {
-                        FastIconButton(onClick = onBack) {
+                        FastIconButton(onClick = { handleIntent(CreateChatIntent.Back) }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back_round_24),
                                 contentDescription = null
@@ -250,7 +219,7 @@ fun CreateChatScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .onFocusChanged { isTextFieldFocused = it.hasFocus },
                     value = screenState.chatTitle,
-                    onValueChange = onTitleTextInputChanged,
+                    onValueChange = { handleIntent(CreateChatIntent.TitleInput(it)) },
                     label = { Text(text = stringResource(R.string.create_chat_title)) },
                     placeholder = { Text(text = stringResource(R.string.create_chat_title)) },
                     singleLine = true,
@@ -263,14 +232,14 @@ fun CreateChatScreen(
             }
         },
         floatingActionButton = {
-            if (baseError == null) {
+            if (screenState.error == null) {
                 Column(
                     modifier = Modifier
                         .imePadding()
                         .navigationBarsPadding()
                 ) {
                     ExtendedFloatingActionButton(
-                        onClick = onCreateChatButtonClicked,
+                        onClick = { handleIntent(CreateChatIntent.CreateChatButtonClick) },
                         expanded = listState.isScrollingUp(),
                         text = { Text(text = stringResource(R.string.action_create)) },
                         icon = {
@@ -285,8 +254,8 @@ fun CreateChatScreen(
         }
     ) { padding ->
         when {
-            baseError != null -> {
-                VkErrorView(baseError = baseError)
+            screenState.error != null -> {
+                VkErrorView(baseError = screenState.error)
             }
 
             screenState.isLoading && screenState.friends.isEmpty() -> FullScreenContainedLoader()
@@ -302,7 +271,7 @@ fun CreateChatScreen(
                         .padding(bottom = padding.calculateBottomPadding()),
                     state = pullToRefreshState,
                     isRefreshing = screenState.isLoading,
-                    onRefresh = onRefresh,
+                    onRefresh = { handleIntent(CreateChatIntent.Refresh) },
                     indicator = {
                         PullToRefreshDefaults.Indicator(
                             state = pullToRefreshState,
@@ -323,14 +292,13 @@ fun CreateChatScreen(
                             Modifier
                         }.fillMaxSize(),
                         padding = padding,
-                        onItemClicked = onItemClicked,
-                        onTitleTextInputChanged = onTitleTextInputChanged
+                        onItemClicked = { handleIntent(CreateChatIntent.ListItemClick(it)) },
                     )
 
                     if (screenState.friends.isEmpty()) {
                         NoItemsView(
                             buttonText = stringResource(R.string.action_refresh),
-                            onButtonClick = onRefresh
+                            onButtonClick = { handleIntent(CreateChatIntent.Refresh) }
                         )
                     }
                 }

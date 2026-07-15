@@ -33,7 +33,6 @@ fun CreateChatList(
     modifier: Modifier,
     padding: PaddingValues,
     onItemClicked: (Long) -> Unit,
-    onTitleTextInputChanged: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
