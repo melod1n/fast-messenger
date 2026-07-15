@@ -12,5 +12,6 @@ data class UiFriend(
     val lastName: String,
     val title: String,
     val onlineStatus: OnlineStatus,
-    val photo400Orig: UiImage?
+    val photo400Orig: UiImage?,
+    val photo50: UiImage?
 )

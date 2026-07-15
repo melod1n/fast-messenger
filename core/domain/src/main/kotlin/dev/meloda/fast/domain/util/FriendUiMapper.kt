@@ -18,5 +18,6 @@ fun VkUser.asPresentation(
     onlineStatus = onlineStatus,
     photo400Orig = photo400Orig?.let(UiImage::Url),
     firstName = firstName,
-    lastName = lastName
+    lastName = lastName,
+    photo50 = photo50?.let(UiImage::Url)
 )

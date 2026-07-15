@@ -3,7 +3,9 @@ package dev.meloda.fast.common.model
 import android.content.res.Resources
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 
+@Immutable
 sealed class UiText {
 
     data object Empty : UiText()

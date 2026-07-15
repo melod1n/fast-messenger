@@ -24,6 +24,8 @@ fun NavGraphBuilder.createChatScreen(
     composable<CreateChat> {
         val viewModel: CreateChatViewModel = koinViewModel()
         val screenState by viewModel.screenStateFlow.collectAsStateWithLifecycle()
+        val nonSelectedFriends by viewModel.nonSelectedFriendsFlow.collectAsStateWithLifecycle()
+        val selectedFriends by viewModel.selectedFriendsFlow.collectAsStateWithLifecycle()
 
         LaunchedEffect(Unit) {
             viewModel.screenEffectFlow.onEach { effect ->
@@ -35,7 +37,9 @@ fun NavGraphBuilder.createChatScreen(
 
         CreateChatRoute(
             handleIntent = viewModel::handleIntent,
-            screenState = screenState
+            screenState = screenState,
+            nonSelectedFriends = nonSelectedFriends,
+            selectedFriends = selectedFriends
         )
     }
 }

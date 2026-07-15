@@ -1,12 +1,16 @@
 package dev.meloda.fast.convos.presentation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
@@ -16,15 +20,19 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,8 +57,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -58,6 +68,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.meloda.fast.common.ImmutableList
 import dev.meloda.fast.convos.model.CreateChatIntent
 import dev.meloda.fast.convos.model.CreateChatScreenState
 import dev.meloda.fast.ui.R
@@ -66,6 +77,7 @@ import dev.meloda.fast.ui.components.FullScreenContainedLoader
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.NoItemsView
 import dev.meloda.fast.ui.components.VkErrorView
+import dev.meloda.fast.ui.model.vk.UiFriend
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.util.isScrollingUp
@@ -74,13 +86,15 @@ import dev.meloda.fast.ui.util.isScrollingUp
 fun CreateChatRoute(
     handleIntent: (CreateChatIntent) -> Unit,
     screenState: CreateChatScreenState,
+    nonSelectedFriends: ImmutableList<UiFriend>,
+    selectedFriends: ImmutableList<UiFriend>
 ) {
     if (screenState.showConfirmDialog) {
         MaterialDialog(
             onDismissRequest = { handleIntent(CreateChatIntent.Dialog.Dismiss) },
             title = stringResource(R.string.confirm),
             text = when {
-                screenState.selectedFriendsIds.isEmpty() -> stringResource(
+                selectedFriends.isEmpty() -> stringResource(
                     R.string.confirm_chat_create_empty_with_title,
                     screenState.finalChatTitle
                 )
@@ -98,7 +112,9 @@ fun CreateChatRoute(
 
     CreateChatScreen(
         handleIntent = handleIntent,
-        screenState = screenState
+        screenState = screenState,
+        nonSelectedFriends = nonSelectedFriends,
+        selectedFriends = selectedFriends
     )
 }
 
@@ -110,6 +126,8 @@ fun CreateChatRoute(
 fun CreateChatScreen(
     handleIntent: (CreateChatIntent) -> Unit,
     screenState: CreateChatScreenState,
+    nonSelectedFriends: ImmutableList<UiFriend>,
+    selectedFriends: ImmutableList<UiFriend>
 ) {
     val currentTheme = LocalThemeConfig.current
 
@@ -194,6 +212,16 @@ fun CreateChatScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     modifier = Modifier.fillMaxWidth(),
+                    actions = {
+                        AnimatedVisibility(selectedFriends.isNotEmpty()) {
+                            IconButton(onClick = { handleIntent(CreateChatIntent.ClearItemsButtonClick) }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.ic_delete_round_24),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
                 )
 
                 var isTextFieldFocused by remember {
@@ -221,14 +249,56 @@ fun CreateChatScreen(
                     value = screenState.chatTitle,
                     onValueChange = { handleIntent(CreateChatIntent.TitleInput(it)) },
                     label = { Text(text = stringResource(R.string.create_chat_title)) },
-                    placeholder = { Text(text = stringResource(R.string.create_chat_title)) },
+                    placeholder = { Text(text = screenState.finalChatTitle) },
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                     )
                 )
-                Spacer(Modifier.height(16.dp))
+
+                AnimatedVisibility(selectedFriends.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                }
+
+                val scrollState = rememberScrollState()
+                LaunchedEffect(scrollState.maxValue) {
+                    scrollState.animateScrollTo(scrollState.maxValue)
+                }
+
+                AnimatedVisibility(selectedFriends.isNotEmpty()) {
+                    FlowRow(
+                        modifier = Modifier
+                            .animateContentSize()
+                            .fillMaxWidth()
+                            .heightIn(max = 210.dp)
+                            .verticalScroll(scrollState)
+                            .padding(horizontal = 16.dp)
+                            .clickable(
+                                interactionSource = null,
+                                indication = null,
+                                onClick = {}
+                            ),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        selectedFriends.forEach { friend ->
+                            UserChip(
+                                image = friend.photo50,
+                                userName = friend.firstName,
+                                onCloseClick = {
+                                    handleIntent(
+                                        CreateChatIntent.RemoveUserClick(
+                                            friend.userId
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
             }
         },
         floatingActionButton = {
@@ -283,6 +353,8 @@ fun CreateChatScreen(
                     }
                 ) {
                     CreateChatList(
+                        friends = nonSelectedFriends,
+                        selectedFriends = selectedFriends,
                         screenState = screenState,
                         state = listState,
                         maxLines = maxLines,

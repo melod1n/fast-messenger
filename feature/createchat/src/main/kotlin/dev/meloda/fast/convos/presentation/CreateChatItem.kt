@@ -97,12 +97,14 @@ fun CreateChatItem(
             modifier = Modifier.weight(1f)
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        if (false) {
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Checkbox(
-            checked = isSelected,
-            onCheckedChange = { onItemClicked(friend.userId) },
-        )
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = { onItemClicked(friend.userId) },
+            )
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
     }

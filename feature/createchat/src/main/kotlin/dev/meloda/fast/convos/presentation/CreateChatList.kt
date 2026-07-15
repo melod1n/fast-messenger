@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import dev.meloda.fast.common.ImmutableList
 import dev.meloda.fast.convos.model.CreateChatScreenState
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.UiFriend
@@ -27,6 +28,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CreateChatList(
+    friends: ImmutableList<UiFriend>,
+    selectedFriends: ImmutableList<UiFriend>,
     screenState: CreateChatScreenState,
     state: LazyListState,
     maxLines: Int,
@@ -42,17 +45,16 @@ fun CreateChatList(
     ) {
         item {
             Spacer(modifier = Modifier.height(padding.calculateTopPadding()))
-
         }
         items(
-            items = screenState.friends,
+            items = friends.toList(),
             key = UiFriend::userId,
         ) { friend ->
             CreateChatItem(
                 maxLines = maxLines,
                 modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                 friend = friend,
-                isSelected = screenState.selectedFriendsIds.contains(friend.userId),
+                isSelected = selectedFriends.firstOrNull { it.userId == friend.userId } != null,
                 onItemClicked = onItemClicked
             )
         }
