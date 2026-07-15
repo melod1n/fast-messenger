@@ -47,14 +47,17 @@ internal fun Project.configureKotlinJvm() {
 private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() = configure<T> {
     // Treat all Kotlin warnings as errors (disabled by default)
     // Override by setting warningsAsErrors=true in your ~/.gradle/gradle.properties
-    val warningsAsErrors: String? by project
+    val warningsAsErrors =
+        providers.gradleProperty("warningsAsErrors")
+            .map { it.toBooleanStrict() }
+            .orElse(false)
     when (this) {
         is KotlinAndroidProjectExtension -> compilerOptions
         is KotlinJvmProjectExtension -> compilerOptions
         else -> throw IllegalArgumentException("Unsupported project extension $this ${T::class}")
     }.apply {
         jvmTarget = JvmTarget.JVM_21
-        allWarningsAsErrors = warningsAsErrors.toBoolean()
+        allWarningsAsErrors = warningsAsErrors
         freeCompilerArgs.addAll(
             "-opt-in=kotlin.RequiresOptIn",
             // Enable experimental coroutines APIs, including Flow
