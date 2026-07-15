@@ -1,6 +1,5 @@
 package dev.meloda.fast.photoviewer.presentation
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -43,7 +42,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,104 +50,62 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import dev.meloda.fast.photoviewer.PhotoViewViewModel
-import dev.meloda.fast.photoviewer.PhotoViewViewModelImpl
 import dev.meloda.fast.photoviewer.model.PhotoViewArguments
+import dev.meloda.fast.photoviewer.model.PhotoViewEffect
+import dev.meloda.fast.photoviewer.model.PhotoViewIntent
+import dev.meloda.fast.photoviewer.model.PhotoViewNavigationIntent
 import dev.meloda.fast.photoviewer.model.PhotoViewScreenState
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FullScreenDialog
 import dev.meloda.fast.ui.components.Loader
-import dev.meloda.fast.ui.util.ImmutableList
 import dev.meloda.fast.ui.util.getImage
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import java.net.URLEncoder
 import kotlin.math.abs
 
 @Composable
 fun PhotoViewDialog(
-    photoViewerInfo: Pair<ImmutableList<String>, Int?>?,
-    modifier: Modifier = Modifier,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    arguments: PhotoViewArguments?
 ) {
-    val applicationContext = LocalContext.current.applicationContext
-
-    if (photoViewerInfo != null) {
+    if (arguments != null) {
         FullScreenDialog(
-            modifier = modifier,
+            modifier = Modifier,
             onDismiss = onDismiss
         ) {
-            val viewModel = remember(true) {
-                PhotoViewViewModelImpl(
-                    arguments = PhotoViewArguments(
-                        imageUrls = photoViewerInfo.first.map {
-                            URLEncoder.encode(it, "utf-8")
-                        }.toList(),
-                        selectedIndex = photoViewerInfo.second
-                    ),
-                    applicationContext = applicationContext
-                )
+            val viewModel: PhotoViewViewModel = koinViewModel()
+            val screenState by viewModel.screenStateFlow.collectAsStateWithLifecycle()
+
+            LaunchedEffect(true) {
+                viewModel.setArguments(arguments)
             }
 
-            PhotoViewRoute(
-                onBack = onDismiss,
-                viewModel = viewModel
+            LaunchedEffect(Unit) {
+                viewModel.screenEffectFlow.onEach { effect ->
+                    when (effect) {
+                        is PhotoViewEffect.Navigate -> {
+                            when (effect.intent) {
+                                PhotoViewNavigationIntent.Back -> onDismiss()
+                            }
+                        }
+                    }
+                }.collect()
+            }
+
+            PhotoViewScreen(
+                handleIntent = viewModel::handleIntent,
+                screenState = screenState
             )
         }
     }
 }
 
 @Composable
-private fun PhotoViewRoute(
-    onBack: () -> Unit,
-    viewModel: PhotoViewViewModel = koinViewModel<PhotoViewViewModelImpl>()
-) {
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-    val shareRequestIntent by viewModel.shareRequest.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(shareRequestIntent) {
-        if (shareRequestIntent!= null) {
-            viewModel.onImageShared()
-
-            try {
-                context.startActivity(shareRequestIntent)
-            } catch (e: Exception) {
-                e.printStackTrace()
-
-                scope.launch(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        R.string.error_occurred,
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-    }
-
-    PhotoViewScreen(
-        screenState = screenState,
-        onBack = onBack,
-        onPageChanged = viewModel::onPageChanged,
-        onShareClicked = viewModel::onShareClicked,
-        onOpenInClicked = viewModel::onOpenInClicked,
-        onCopyLinkClicked = viewModel::onCopyLinkClicked,
-        onCopyClicked = viewModel::onCopyClicked
-    )
-}
-
-@Composable
 private fun PhotoViewScreen(
-    screenState: PhotoViewScreenState = PhotoViewScreenState.EMPTY,
-    onBack: () -> Unit = {},
-    onPageChanged: (index: Int) -> Unit = {},
-    onShareClicked: () -> Unit = {},
-    onOpenInClicked: () -> Unit = {},
-    onCopyLinkClicked: () -> Unit = {},
-    onCopyClicked: () -> Unit = {}
+    handleIntent: (PhotoViewIntent) -> Unit,
+    screenState: PhotoViewScreenState
 ) {
     val pagerState = rememberPagerState(
         pageCount = { screenState.images.size },
@@ -160,7 +116,7 @@ private fun PhotoViewScreen(
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
-            .collect(onPageChanged)
+            .collect { handleIntent(PhotoViewIntent.PageChange(it)) }
     }
 
     var offsetY by remember { mutableFloatStateOf(0f) }
@@ -177,11 +133,11 @@ private fun PhotoViewScreen(
     Scaffold(
         topBar = {
             TopBar(
-                onBack = onBack,
-                onShareClicked = onShareClicked,
-                onOpenInClicked = onOpenInClicked,
-                onCopyClicked = onCopyClicked,
-                onCopyLinkClicked = onCopyLinkClicked,
+                onBack = { handleIntent(PhotoViewIntent.Back) },
+                onShareClicked = { handleIntent(PhotoViewIntent.ShareClick) },
+                onOpenInClicked = { handleIntent(PhotoViewIntent.OpenInClick) },
+                onCopyClicked = { handleIntent(PhotoViewIntent.CopyClick) },
+                onCopyLinkClicked = { handleIntent(PhotoViewIntent.CopyLinkClick) },
             )
         },
         containerColor = Color.Black.copy(alpha = alpha)
@@ -191,7 +147,7 @@ private fun PhotoViewScreen(
                 pagerState = pagerState,
                 state = screenState,
                 padding = padding,
-                onBack = onBack,
+                onBack = { handleIntent(PhotoViewIntent.Back) },
                 onVerticalDrag = { offset -> offsetY = offset },
             )
 

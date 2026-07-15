@@ -76,6 +76,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
 compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose-bom" }
+compose-runtime = { module = "androidx.compose.runtime:runtime" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }

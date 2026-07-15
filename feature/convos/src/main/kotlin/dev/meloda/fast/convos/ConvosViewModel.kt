@@ -40,9 +40,9 @@ import dev.meloda.fast.model.LongPollParsedEvent
 import dev.meloda.fast.model.api.domain.VkConvo
 import dev.meloda.fast.ui.model.vk.ConvoOption
 import dev.meloda.fast.ui.model.vk.UiConvo
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
-import dev.meloda.fast.ui.util.buildImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.buildImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn

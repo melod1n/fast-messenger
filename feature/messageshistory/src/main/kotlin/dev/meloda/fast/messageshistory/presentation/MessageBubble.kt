@@ -43,8 +43,8 @@ import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.model.vk.SendingStatus
 import dev.meloda.fast.ui.theme.AppTheme
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.emptyImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.emptyImmutableList
 
 @Composable
 fun MessageBubble(

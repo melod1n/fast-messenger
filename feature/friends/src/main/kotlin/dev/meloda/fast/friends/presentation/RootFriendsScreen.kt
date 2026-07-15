@@ -51,8 +51,8 @@ import dev.meloda.fast.ui.components.SelectionType
 import dev.meloda.fast.ui.model.TabItem
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.buildImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.buildImmutableList
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)

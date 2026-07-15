@@ -33,8 +33,8 @@ import dev.meloda.fast.ui.components.ActionInvokeDismiss
 import dev.meloda.fast.ui.components.MaterialDialog
 import dev.meloda.fast.ui.components.SelectionType
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

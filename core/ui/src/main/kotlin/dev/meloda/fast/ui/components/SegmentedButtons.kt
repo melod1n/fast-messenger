@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 
 data class SegmentedButtonItem(
     val key: String,

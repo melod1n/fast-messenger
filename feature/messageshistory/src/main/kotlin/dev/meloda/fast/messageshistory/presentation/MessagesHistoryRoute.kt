@@ -9,7 +9,7 @@ import dev.meloda.fast.messageshistory.MessagesHistoryViewModel
 import dev.meloda.fast.messageshistory.MessagesHistoryViewModelImpl
 import dev.meloda.fast.messageshistory.model.MessageNavigation
 import dev.meloda.fast.model.BaseError
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

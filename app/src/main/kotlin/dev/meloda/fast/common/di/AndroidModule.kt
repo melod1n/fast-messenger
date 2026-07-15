@@ -1,5 +1,6 @@
 package dev.meloda.fast.common.di
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Resources
 import android.net.ConnectivityManager
@@ -15,4 +16,5 @@ val androidModule = module {
     factory<Resources> { androidContext().resources }
     factory<PowerManager> { androidContext().getSystemService(Context.POWER_SERVICE) as PowerManager }
     factory<ConnectivityManager> { androidContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager }
+    factory<ClipboardManager> { androidContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
 }

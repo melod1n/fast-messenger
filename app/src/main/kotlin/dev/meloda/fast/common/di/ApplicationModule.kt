@@ -51,6 +51,8 @@ val applicationModule = module {
     includes(loggerModule)
     includes(androidModule)
 
+    includes(platformModule)
+
     factoryOf(::ApiLanguageProvider) bind Provider::class
 
     viewModelOf(::MainViewModel) { qualifier = qualifier("main") }

@@ -7,8 +7,8 @@ import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.ActionState
 import dev.meloda.fast.ui.model.vk.ConvoOption
 import dev.meloda.fast.ui.model.vk.UiConvo
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.emptyImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.emptyImmutableList
 
 fun VkConvo.asPresentation(
     resources: Resources,

@@ -72,7 +72,7 @@ import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.buildImmutableList
+import dev.meloda.fast.common.buildImmutableList
 import dev.meloda.fast.ui.util.isScrollingUp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce

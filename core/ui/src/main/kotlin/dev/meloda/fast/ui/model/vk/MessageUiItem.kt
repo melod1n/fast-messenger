@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.AnnotatedString
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.domain.VkAttachment
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 
 @Stable
 sealed class MessageUiItem(

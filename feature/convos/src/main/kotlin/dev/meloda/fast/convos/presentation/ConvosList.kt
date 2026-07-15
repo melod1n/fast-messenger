@@ -28,7 +28,7 @@ import dev.meloda.fast.ui.model.vk.ConvoOption
 import dev.meloda.fast.ui.model.vk.UiConvo
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

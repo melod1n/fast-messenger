@@ -58,6 +58,7 @@ import dev.meloda.fast.messageshistory.navigation.navigateToMessagesHistory
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.navigation.mainScreen
+import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.presentation.PhotoViewDialog
 import dev.meloda.fast.settings.model.SettingsNavigationIntent
 import dev.meloda.fast.settings.navigation.navigateToSettings
@@ -74,7 +75,6 @@ import dev.meloda.fast.ui.theme.LocalNavController
 import dev.meloda.fast.ui.theme.LocalNavRootController
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
 import dev.meloda.fast.ui.util.isNeedToEnableDarkMode
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -314,8 +314,8 @@ fun RootScreen(
                     LocalNavRootController provides navController,
                     LocalNavController provides navController
                 ) {
-                    var photoViewerInfo by rememberSaveable {
-                        mutableStateOf<Pair<List<String>, Int?>?>(null)
+                    var photoViewerInfo: PhotoViewArguments? by rememberSaveable {
+                        mutableStateOf(null)
                     }
 
                     val captchaRedirectUri by AppSettings.getCaptchaRedirectUriFlow()
@@ -342,7 +342,11 @@ fun RootScreen(
                                 onSettingsButtonClicked = navController::navigateToSettings,
                                 onNavigateToMessagesHistory = navController::navigateToMessagesHistory,
                                 onPhotoClicked = { url ->
-                                    photoViewerInfo = listOf(url) to null
+                                    photoViewerInfo = PhotoViewArguments(
+                                        imageUrls = listOf(url),
+                                        selectedIndex = null,
+                                        cacheDirPath = context.applicationContext.cacheDir.path
+                                    )
                                 },
                                 onMessageClicked = navController::navigateToMessagesHistory,
                                 onNavigateToCreateChat = navController::navigateToCreateChat,
@@ -353,13 +357,21 @@ fun RootScreen(
                                 onBack = navController::navigateUp,
                                 onNavigateToChatMaterials = navController::navigateToChatMaterials,
                                 onNavigateToPhotoViewer = { photos, index ->
-                                    photoViewerInfo = photos to index
+                                    photoViewerInfo = PhotoViewArguments(
+                                        imageUrls = photos,
+                                        selectedIndex = index,
+                                        cacheDirPath = context.applicationContext.cacheDir.path
+                                    )
                                 }
                             )
                             chatMaterialsScreen(
                                 onBack = navController::navigateUp,
                                 onPhotoClicked = { url ->
-                                    photoViewerInfo = listOf(url) to null
+                                    photoViewerInfo = PhotoViewArguments(
+                                        imageUrls = listOf(url),
+                                        selectedIndex = null,
+                                        cacheDirPath = context.applicationContext.cacheDir.path
+                                    )
                                 }
                             )
                             createChatScreen(
@@ -400,10 +412,8 @@ fun RootScreen(
                         }
 
                         PhotoViewDialog(
-                            photoViewerInfo = photoViewerInfo?.let { info ->
-                                info.first.toImmutableList() to info.second
-                            },
-                            onDismiss = { photoViewerInfo = null }
+                            onDismiss = { photoViewerInfo = null },
+                            arguments = photoViewerInfo,
                         )
 
                         CaptchaScreen(

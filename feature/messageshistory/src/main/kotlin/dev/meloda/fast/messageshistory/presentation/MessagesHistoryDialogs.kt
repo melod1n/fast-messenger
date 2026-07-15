@@ -38,9 +38,9 @@ import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.basic.ContentAlpha
 import dev.meloda.fast.ui.basic.LocalContentAlpha
 import dev.meloda.fast.ui.components.MaterialDialog
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
-import dev.meloda.fast.ui.util.immutableListOf
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.immutableListOf
 import java.util.concurrent.TimeUnit
 
 @Composable

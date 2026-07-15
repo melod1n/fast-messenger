@@ -24,7 +24,7 @@ import dev.meloda.fast.friends.model.FriendsScreenState
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.UiFriend
 import dev.meloda.fast.ui.theme.LocalBottomPadding
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

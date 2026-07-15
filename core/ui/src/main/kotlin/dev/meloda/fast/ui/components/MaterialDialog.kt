@@ -46,18 +46,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewDynamicColors
-import androidx.compose.ui.tooling.preview.PreviewFontScale
-import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.common.FastPreview
 import dev.meloda.fast.ui.theme.AppTheme
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

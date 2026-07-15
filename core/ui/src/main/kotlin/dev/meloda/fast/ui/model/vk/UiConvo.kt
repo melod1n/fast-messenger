@@ -5,7 +5,7 @@ import androidx.compose.ui.text.AnnotatedString
 import dev.meloda.fast.common.model.UiImage
 import dev.meloda.fast.model.api.PeerType
 import dev.meloda.fast.model.api.domain.VkMessage
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 
 @Immutable
 data class UiConvo(

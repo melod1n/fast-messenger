@@ -33,7 +33,7 @@ import dev.meloda.fast.profile.model.ProfileScreenState
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.SegmentedButtonItem
 import dev.meloda.fast.ui.components.SegmentedButtonsRow
-import dev.meloda.fast.ui.util.buildImmutableList
+import dev.meloda.fast.common.buildImmutableList
 
 @Composable
 fun ProfileRoute(

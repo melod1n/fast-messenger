@@ -52,7 +52,7 @@ import dev.meloda.fast.ui.theme.LocalNavController
 import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.ui.theme.LocalUser
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable

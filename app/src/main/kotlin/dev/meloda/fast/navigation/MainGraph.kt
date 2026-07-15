@@ -9,7 +9,7 @@ import dev.meloda.fast.model.BottomNavigationItem
 import dev.meloda.fast.presentation.MainScreen
 import dev.meloda.fast.profile.navigation.Profile
 import dev.meloda.fast.ui.R
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 import kotlinx.serialization.Serializable
 
 @Serializable

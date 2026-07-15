@@ -35,7 +35,7 @@ import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalReselectedTab
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlin.time.Duration.Companion.milliseconds

@@ -1,6 +1,5 @@
 package dev.meloda.fast.messageshistory.presentation.attachments
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FastIconButton
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
 
 
 @Composable

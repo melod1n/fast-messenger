@@ -1,14 +1,20 @@
-package dev.meloda.fast.ui.util
+package dev.meloda.fast.common
 
 import androidx.compose.runtime.Immutable
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Immutable
 class ImmutableList<T>(val values: List<T>) : Collection<T> {
 
     constructor(size: Int, init: (index: Int) -> T) : this(MutableList(size, init))
 
     operator fun get(index: Int): T = values[index]
+
+    fun getOrNull(index: Int): T? {
+        return if (index in indices) get(index) else null
+    }
 
     inline fun <R> map(transform: (T) -> R): ImmutableList<R> {
         return values.map(transform).toImmutableList()

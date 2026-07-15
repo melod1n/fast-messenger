@@ -42,8 +42,8 @@ import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.model.api.domain.VkStickerDomain
 import dev.meloda.fast.model.api.domain.VkVideoDomain
 import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
 
 private val previewTypes = listOf(
     AttachmentType.PHOTO,

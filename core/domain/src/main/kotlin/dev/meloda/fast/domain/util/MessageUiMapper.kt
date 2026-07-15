@@ -7,7 +7,7 @@ import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.MessageUiItem
 import dev.meloda.fast.ui.model.vk.SendingStatus
-import dev.meloda.fast.ui.util.ImmutableList.Companion.toImmutableList
+import dev.meloda.fast.common.ImmutableList.Companion.toImmutableList
 
 fun VkMessage.asPresentation(
     convo: VkConvo,

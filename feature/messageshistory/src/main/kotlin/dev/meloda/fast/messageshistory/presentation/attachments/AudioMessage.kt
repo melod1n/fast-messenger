@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FastIconButton
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 import kotlin.collections.forEachIndexed
 
 @Composable

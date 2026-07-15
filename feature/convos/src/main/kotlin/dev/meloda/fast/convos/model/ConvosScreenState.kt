@@ -3,8 +3,8 @@ package dev.meloda.fast.convos.model
 import androidx.compose.runtime.Immutable
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.ui.model.vk.UiConvo
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.emptyImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.emptyImmutableList
 
 @Immutable
 data class ConvosScreenState(

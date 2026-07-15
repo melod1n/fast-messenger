@@ -50,8 +50,8 @@ import dev.meloda.fast.ui.components.Loader
 import dev.meloda.fast.ui.components.VkErrorView
 import dev.meloda.fast.ui.model.vk.MessageUiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
-import dev.meloda.fast.ui.util.emptyImmutableList
+import dev.meloda.fast.common.ImmutableList
+import dev.meloda.fast.common.emptyImmutableList
 import kotlinx.coroutines.launch
 
 @OptIn(

@@ -52,7 +52,7 @@ import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
 import dev.meloda.fast.ui.model.vk.MessageUiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
-import dev.meloda.fast.ui.util.ImmutableList
+import dev.meloda.fast.common.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
