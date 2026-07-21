@@ -60,11 +60,8 @@ private inline fun <reified T : KotlinBaseExtension> Project.configureKotlin() =
         allWarningsAsErrors = warningsAsErrors
         freeCompilerArgs.addAll(
             "-opt-in=kotlin.RequiresOptIn",
-            // Enable experimental coroutines APIs, including Flow
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.coroutines.FlowPreview",
-            "-Xannotation-default-target=param-property",
-            "-Xcontext-parameters"
         )
     }
 }

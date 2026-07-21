@@ -1,3 +1,7 @@
+<p align="right">                                                                                        
+  <a href="README.md">Русская версия</a>                                                                                
+</p>
+
 <div align="center">
 
 # Fast Messenger
