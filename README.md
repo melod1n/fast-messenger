@@ -1,5 +1,5 @@
 <p align="right">                                                                                        
-  <a href="README.md">Русская версия</a>                                                                                
+  <a href="README_RU.md">Русская версия</a>                                                                                
 </p>
 
 <div align="center">
