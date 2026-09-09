@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dev.meloda.fast.MainViewModel
+import dev.meloda.fast.common.ActiveChatTracker
 import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.LongPollEventsHandler
@@ -90,6 +91,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ActiveChatTracker.onAppStarted()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        ActiveChatTracker.onAppStopped()
+    }
+
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val noCategoryName = getString(R.string.notification_channel_no_category_name)
@@ -116,13 +132,28 @@ class MainActivity : AppCompatActivity() {
                     description = longPollDescriptionText
                 }
 
+            val messagesChannelName = getString(R.string.notification_channel_messages_name)
+            val messagesChannelDescriptionText =
+                getString(R.string.notification_channel_messages_description)
+            val messagesChannel =
+                NotificationChannel(
+                    AppConstants.NOTIFICATION_CHANNEL_MESSAGES,
+                    messagesChannelName,
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = messagesChannelDescriptionText
+                    enableVibration(true)
+                    enableLights(true)
+                }
+
             val notificationManager: NotificationManager =
                 getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
             notificationManager.createNotificationChannels(
                 listOf(
                     noCategoryChannel,
-                    longPollChannel
+                    longPollChannel,
+                    messagesChannel
                 )
             )
         }
@@ -181,8 +212,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopServices()
-        get<LongPollEventsHandler>().onDestroy()
+
+        if (isFinishing) {
+            stopServices()
+            get<LongPollEventsHandler>().onDestroy()
+        }
     }
 
     companion object {

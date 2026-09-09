@@ -41,7 +41,13 @@ data class VkAttachmentItemData(
     fun toDomain(): VkAttachment = when (AttachmentType.parse(type)) {
         AttachmentType.UNKNOWN -> VkUnknownAttachment
         AttachmentType.PHOTO -> photo?.toDomain()
-        AttachmentType.VIDEO -> video?.toDomain()
+        AttachmentType.VIDEO -> {
+            if (video != null && video.isSquareVideoMessage()) {
+                video.toVideoMessageDomain()
+            } else {
+                video?.toDomain()
+            }
+        }
         AttachmentType.AUDIO -> audio?.toDomain()
         AttachmentType.FILE -> file?.toDomain()
         AttachmentType.LINK -> link?.toDomain()

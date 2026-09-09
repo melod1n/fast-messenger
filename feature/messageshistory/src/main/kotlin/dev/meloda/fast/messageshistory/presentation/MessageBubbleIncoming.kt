@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import com.conena.nanokt.android.content.dpInPx
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.MessageUiItem
@@ -48,6 +49,7 @@ fun IncomingMessageBubble(
     modifier: Modifier = Modifier,
     message: MessageUiItem.Message,
     offsetX: Float = 0f,
+    voicePlayback: VoicePlaybackState = VoicePlaybackState.IDLE,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {},
     onReplyClick: () -> Unit = {}
@@ -138,6 +140,7 @@ fun IncomingMessageBubble(
                         attachments = message.attachments,
                         replyTitle = message.replyTitle,
                         replySummary = message.replySummary,
+                        voicePlayback = voicePlayback,
                         onClick = currentOnClick,
                         onLongClick = currentOnLongClick,
                         onReplyClick = currentOnReplyClick,

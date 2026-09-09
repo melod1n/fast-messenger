@@ -35,7 +35,8 @@ interface MessagesRepository {
         message: String?,
         forward: String?,
         attachments: List<VkAttachment>?,
-        formatData: VkMessage.FormatData?
+        formatData: VkMessage.FormatData?,
+        stickerId: Long? = null
     ): ApiResult<MessagesSendResponse, RestApiErrorDomain>
 
     suspend fun markAsRead(

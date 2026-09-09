@@ -5,4 +5,5 @@ import dev.meloda.fast.common.AppConstants
 object VideosUrls {
 
     const val SAVE = "${AppConstants.URL_API}/video.save"
+    const val GET = "${AppConstants.URL_API}/video.get"
 }

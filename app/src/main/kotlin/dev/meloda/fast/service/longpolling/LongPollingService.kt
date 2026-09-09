@@ -89,7 +89,7 @@ class LongPollingService : Service() {
         val openCategorySettingsIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
                 .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                .putExtra(Settings.EXTRA_CHANNEL_ID, "long_polling")
+                .putExtra(Settings.EXTRA_CHANNEL_ID, AppConstants.NOTIFICATION_CHANNEL_LONG_POLLING)
         } else {
             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 .setData(Uri.fromParts("package", packageName, null))

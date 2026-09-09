@@ -40,9 +40,15 @@ data class VkVideoMessageData(
 
     @JsonClass(generateAdapter = true)
     data class Files(
-        val failover_host: String?,
-        val mp4_240: String?,
-        val mp4_480: String?,
+        val failover_host: String? = null,
+        val mp4_240: String? = null,
+        val mp4_360: String? = null,
+        val mp4_480: String? = null,
+        val mp4_720: String? = null,
+        val mp4_1080: String? = null,
+        val mp4_1440: String? = null,
+        val mp4_2160: String? = null,
+        val hls: String? = null,
     )
 
     @JsonClass(generateAdapter = true)
@@ -74,6 +80,18 @@ data class VkVideoMessageData(
 
     fun toDomain(): VkVideoMessageDomain = VkVideoMessageDomain(
         id = id,
-        image = image.orEmpty().filter { it.width / it.height == 1 }.maxByOrNull { it.width }?.url
+        ownerId = owner_id,
+        accessKey = access_key,
+        duration = duration ?: 0,
+        image = image.orEmpty().maxByOrNull { it.width }?.url
+            ?: first_frame?.firstOrNull()?.url,
+        link = files?.mp4_2160
+            ?: files?.mp4_1440
+            ?: files?.mp4_1080
+            ?: files?.mp4_720
+            ?: files?.mp4_480
+            ?: files?.mp4_360
+            ?: files?.mp4_240
+            ?: files?.hls
     )
 }

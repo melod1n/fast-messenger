@@ -2,7 +2,6 @@ package dev.meloda.fast.auth.validation.presentation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -115,15 +114,16 @@ fun ValidationScreen(
         mutableStateOf(false)
     }
 
-    val validationText by remember(validationType) {
-        mutableStateOf(
-            when (validationType) {
-                ValidationType.SMS, ValidationType.SMS2 -> "SMS with the code is sent to ${screenState.phoneMask}"
-                ValidationType.APP -> "Enter the code from the code generator application"
+    val phoneMask = screenState.phoneMask
+    val smsText = stringResource(R.string.validation_sms_sent, phoneMask)
+    val appHintText = stringResource(R.string.validation_app_hint)
 
-                null -> ""
-            }
-        )
+    val validationText: String = when (validationType) {
+        ValidationType.SMS, ValidationType.SMS2 ->
+            if (phoneMask.isNotBlank()) smsText else ""
+
+        ValidationType.APP -> appHintText
+        null -> ""
     }
 
     LaunchedEffect(confirmedExit) {
@@ -166,7 +166,7 @@ fun ValidationScreen(
                 onClick = onBack,
                 text = {
                     Text(
-                        text = "Cancel",
+                        text = stringResource(R.string.cancel),
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
@@ -183,7 +183,7 @@ fun ValidationScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    text = "Two-Factor\nAuthentication",
+                    text = stringResource(R.string.validation_title),
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -200,7 +200,7 @@ fun ValidationScreen(
                 }
                 AnimatedVisibility(visible = isResendTextVisible) {
                     Text(
-                        text = "Can resend after ${screenState.delayTime} seconds",
+                        text = stringResource(R.string.validation_resend_delay, screenState.delayTime),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -214,8 +214,8 @@ fun ValidationScreen(
                         code = newText
                         onCodeInputChanged(newText.text)
                     },
-                    label = { Text(text = "Code") },
-                    placeholder = { Text(text = "Code") },
+                    label = { Text(text = stringResource(R.string.validation_code_hint)) },
+                    placeholder = { Text(text = stringResource(R.string.validation_code_hint)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
@@ -246,7 +246,7 @@ fun ValidationScreen(
                 )
 
                 AnimatedVisibility(screenState.codeError) {
-                    TextFieldErrorText(text = "Field must not be empty")
+                    TextFieldErrorText(text = stringResource(R.string.validation_code_empty_error))
                 }
             }
 
@@ -255,16 +255,16 @@ fun ValidationScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                val canResendSms = screenState.isSmsButtonVisible
+                val canResendSms = screenState.isSmsButtonVisible && screenState.delayTime <= 0
 
                 AnimatedVisibility(
-                    visible = true,
+                    visible = canResendSms,
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = onRequestSmsButtonClicked,
                         text = {
                             Text(
-                                text = "Request SMS",
+                                text = stringResource(R.string.validation_request_sms),
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         },
@@ -290,13 +290,6 @@ fun ValidationScreen(
                         contentDescription = "Done icon",
                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
-                }
-
-                AnimatedVisibility(
-                    visible = !canResendSms,
-                    exit = shrinkHorizontally()
-                ) {
-                    Spacer(modifier = Modifier.width(16.dp))
                 }
             }
         }

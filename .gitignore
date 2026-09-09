@@ -17,3 +17,9 @@ local.properties
 /.kotlin
 .hotswan/
 .java-version
+.mcp.json
+.agentsroom/
+.claude/
+*.exe
+*.bak
+.agents/

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,16 +23,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
 import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.model.api.domain.VkAudioDomain
@@ -56,6 +63,7 @@ fun Attachments(
     withReply: Boolean,
     modifier: Modifier = Modifier,
     attachments: ImmutableList<out VkAttachment>,
+    voicePlayback: VoicePlaybackState = VoicePlaybackState.IDLE,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {}
 ) {
@@ -131,37 +139,62 @@ fun Attachments(
                 }
 
                 AttachmentType.VIDEO_MESSAGE -> {
-                    var isPlaying by remember {
-                        mutableStateOf(false)
-                    }
-
-                    val imageSize by animateDpAsState(
-                        targetValue = if (isPlaying) 256.dp else 192.dp,
-                        label = "video message preview animation",
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    )
-
+                    val videoMessage = attachment as VkVideoMessageDomain
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
-                            .padding(1.dp)
+                            .padding(2.dp)
+                            .clickable { currentOnClick(attachment) },
+                        contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
-                            model = (attachment as VkVideoMessageDomain).image,
+                            model = videoMessage.image,
                             contentDescription = null,
                             modifier = Modifier
-                                .size(imageSize)
+                                .size(192.dp)
                                 .aspectRatio(1f)
                                 .clip(CircleShape)
-                                .clickable {
-                                    isPlaying = !isPlaying
-                                },
+                                .background(Color.Black.copy(alpha = 0.25f)),
                             contentScale = ContentScale.Crop
                         )
+
+                        // Center play button
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.55f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(dev.meloda.fast.ui.R.drawable.ic_play_arrow_fill_round_24),
+                                contentDescription = "Play video note",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        // Duration badge
+                        if (videoMessage.duration > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = 12.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color.Black.copy(alpha = 0.6f))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                val mins = videoMessage.duration / 60
+                                val secs = videoMessage.duration % 60
+                                Text(
+                                    text = String.format(java.util.Locale.getDefault(), "%d:%02d", mins, secs),
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -183,15 +216,33 @@ fun Attachments(
                     }
 
                     val audioMessage = attachment as VkAudioMessageDomain
+                    val audioKey = audioMessage.linkMp3.ifBlank { audioMessage.linkOgg }
+                    val isCurrentAudio = voicePlayback.key == audioKey
+                    val progress = if (isCurrentAudio) voicePlayback.progress else 0f
+
+                    val displayedWaveform = if (audioMessage.waveform.isNotEmpty()) {
+                        val downsampled = if (audioMessage.waveform.size > 50) {
+                            downsampleWaveform(audioMessage.waveform)
+                        } else {
+                            audioMessage.waveform
+                        }
+                        amplifyWaveform(downsampled, audioMessage.waveform.maxOrNull() ?: 1)
+                    } else {
+                        emptyList()
+                    }
+
+                    val playedCount = (displayedWaveform.size * progress).toInt()
+
                     AudioMessage(
-                        waveform = audioMessage.waveform
-                            .let(::downsampleWaveform)
-                            .let(::downsampleWaveform)
-                            .let { amplifyWaveform(it, audioMessage.waveform.max()) }
-                            .map(::WaveForm)
+                        waveform = displayedWaveform
+                            .mapIndexed { index, value ->
+                                WaveForm(value = value, played = index < playedCount)
+                            }
                             .toImmutableList(),
-                        isPlaying = false,
-                        onPlayClick = {}
+                        isPlaying = isCurrentAudio && voicePlayback.isPlaying,
+                        durationSec = audioMessage.duration,
+                        currentProgress = progress,
+                        onPlayClick = { currentOnClick(attachment) }
                     )
                 }
 
@@ -243,7 +294,8 @@ fun VkAttachment.asUiPhoto(): UiPreview {
                 url = size.url,
                 width = size.width,
                 height = size.height,
-                isVideo = true
+                isVideo = true,
+                durationSec = this.duration
             )
         }
 
@@ -287,5 +339,6 @@ data class UiPreview(
     val url: String,
     val width: Int,
     val height: Int,
-    val isVideo: Boolean
+    val isVideo: Boolean,
+    val durationSec: Int = 0
 )

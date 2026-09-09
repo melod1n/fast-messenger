@@ -1,9 +1,12 @@
 package dev.meloda.fast.model.api.domain
 
+import android.os.Parcelable
 import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.data.AttachmentType
 import dev.meloda.fast.model.api.data.VkVideoData
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @JsonClass(generateAdapter = true)
 data class VkVideoDomain(
     val id: Long,
@@ -14,8 +17,10 @@ data class VkVideoDomain(
     val title: String,
     val views: Int,
     val duration: Int,
-    val isShortVideo: Boolean
-) : VkAttachment {
+    val isShortVideo: Boolean,
+    val player: String? = null,
+    val directUrl: String? = null
+) : VkAttachment, Parcelable {
 
     override val type: AttachmentType = AttachmentType.VIDEO
 
@@ -25,6 +30,15 @@ data class VkVideoDomain(
 
     fun getDefault(): VideoImage? {
         return imageForWidthAtLeast(720)
+            ?: images.maxByOrNull { it.width }
+            ?: firstFrames?.firstOrNull()?.let {
+                VideoImage(
+                    width = it.width,
+                    height = it.height,
+                    url = it.url,
+                    withPadding = false
+                )
+            }
     }
 
     fun imageForWidthAtLeast(width: Int): VideoImage? {
@@ -48,18 +62,19 @@ data class VkVideoDomain(
             .firstOrNull()
     }
 
+    @Parcelize
     @JsonClass(generateAdapter = true)
     data class VideoImage(
         val width: Int,
         val height: Int,
         val url: String,
         val withPadding: Boolean,
-    ) {
+    ) : Parcelable {
 
         var shapeKind: ShapeKind? = null
 
         init {
-            val ratio = width.toFloat() / height.toFloat()
+            val ratio = if (height > 0) width.toFloat() / height.toFloat() else 1f
 
             shapeKind = when {
                 ratio > 1 -> ShapeKind.Horizontal
@@ -75,8 +90,6 @@ data class VkVideoDomain(
         data object Horizontal : ShapeKind(2)
 
         companion object {
-
-
             fun parse(value: Int) = when (value) {
                 0 -> Square
                 1 -> Vertical
@@ -90,6 +103,8 @@ data class VkVideoDomain(
         val result = StringBuilder(type.value).append(ownerId).append('_').append(id)
         if (!accessKey.isNullOrBlank()) {
             result.append('_')
+        }
+        if (!accessKey.isNullOrBlank()) {
             result.append(accessKey)
         }
         return result.toString()

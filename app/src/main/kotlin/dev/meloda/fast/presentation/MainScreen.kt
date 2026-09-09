@@ -63,6 +63,7 @@ fun MainScreen(
     onNavigateToMessagesHistory: (convoId: Long) -> Unit = {},
     onPhotoClicked: (url: String) -> Unit = {},
     onMessageClicked: (userid: Long) -> Unit = {},
+    onFriendClicked: (userid: Long) -> Unit = {},
     onNavigateToCreateChat: () -> Unit = {}
 ) {
     val activity = LocalActivity.current as? AppCompatActivity ?: return
@@ -191,6 +192,7 @@ fun MainScreen(
                             onError = onError,
                             onPhotoClicked = onPhotoClicked,
                             onMessageClicked = onMessageClicked,
+                            onFriendClicked = onFriendClicked,
                             onScrolledToTop = {
                                 tabReselected = tabReselected.toMutableMap().also {
                                     it[Friends] = false
@@ -211,7 +213,6 @@ fun MainScreen(
                             activity = activity,
                         )
                         profileScreen(
-                            activity = activity,
                             onSettingsButtonClicked = onSettingsButtonClicked,
                             onPhotoClicked = onPhotoClicked
                         )

@@ -63,6 +63,7 @@ fun MaterialDialog(
     iconTint: Color = MaterialTheme.colorScheme.primary,
     title: String? = null,
     text: String? = null,
+    detailsText: String? = null,
     selectionType: SelectionType = SelectionType.None,
     items: ImmutableList<String> = ImmutableList.empty(),
     preSelectedItems: ImmutableList<Int> = ImmutableList.empty(),
@@ -171,6 +172,19 @@ fun MaterialDialog(
                     }
 
                     if (text != null || title != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    if (detailsText != null) {
+                        Text(
+                            modifier = Modifier
+                                .padding(horizontal = 24.dp)
+                                .fillMaxWidth(),
+                            text = detailsText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 

@@ -202,13 +202,15 @@ class MessagesRepositoryImpl(
         message: String?,
         forward: String?,
         attachments: List<VkAttachment>?,
-        formatData: VkMessage.FormatData?
+        formatData: VkMessage.FormatData?,
+        stickerId: Long?
     ): ApiResult<MessagesSendResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = MessagesSendRequest(
             peerId = peerId,
             randomId = randomId,
             message = message,
             forward = forward,
+            stickerId = stickerId,
             attachments = attachments,
             formatData = formatData
         )

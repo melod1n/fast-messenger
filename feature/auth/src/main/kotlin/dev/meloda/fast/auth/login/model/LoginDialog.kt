@@ -7,6 +7,7 @@ sealed class LoginDialog {
 
     data class Error(
         val errorText: String? = null,
-        val errorTextResId: Int? = null
+        val errorTextResId: Int? = null,
+        val errorDetails: String? = null
     ) : LoginDialog()
 }

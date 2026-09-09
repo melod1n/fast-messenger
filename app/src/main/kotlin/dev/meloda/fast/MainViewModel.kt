@@ -11,6 +11,7 @@ import com.conena.nanokt.android.os.isMinSdk
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import dev.meloda.fast.auth.AuthGraph
+import dev.meloda.fast.common.AppConstants
 import dev.meloda.fast.common.LongPollController
 import dev.meloda.fast.common.extensions.ifEmpty
 import dev.meloda.fast.common.extensions.listenValue
@@ -43,6 +44,7 @@ class MainViewModel(
     val startDestination = MutableStateFlow<Any?>(null)
     val isNeedToReplaceWithAuth = MutableStateFlow(false)
     val currentUser = MutableStateFlow<VkUser?>(null)
+    val pendingChatPeerId = MutableStateFlow<Long?>(null)
 
     val isNeedToShowNotificationsDeniedDialog = MutableStateFlow(false)
     val isNeedToShowNotificationsRationaleDialog = MutableStateFlow(false)
@@ -67,7 +69,17 @@ class MainViewModel(
         isNeedToReplaceWithAuth.update { false }
     }
 
+    fun onPendingChatConsumed() {
+        pendingChatPeerId.update { null }
+    }
+
     fun onAppResumed(intent: Intent) {
+        val peerId = intent.getLongExtra(AppConstants.EXTRA_PEER_ID, 0L).takeIf { it != 0L }
+        if (peerId != null) {
+            intent.removeExtra(AppConstants.EXTRA_PEER_ID)
+            pendingChatPeerId.update { peerId }
+        }
+
         openNotificationsSettings =
             intent.hasCategory(NotificationCompat.INTENT_CATEGORY_NOTIFICATION_PREFERENCES)
         openAppSettings =

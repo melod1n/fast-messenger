@@ -43,6 +43,8 @@ import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.domain.util.indexOfMessageByCmId
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
+import dev.meloda.fast.model.api.domain.VkAudioMessageDomain
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.ui.R
@@ -72,6 +74,11 @@ fun MessagesHistoryScreen(
     showEmojiButton: Boolean = false,
     showAttachmentButton: Boolean = false,
     showKeyboard: Boolean,
+    voicePlayback: VoicePlaybackState = VoicePlaybackState.IDLE,
+    isRecordingVoice: Boolean = false,
+    voiceRecordingDurationSec: Int = 0,
+    onPlayVoiceMessageClicked: (VkAudioMessageDomain) -> Unit = {},
+    onMessageSeen: (messageId: Long, cmId: Long) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
     onScrolledToIndex: () -> Unit = {},
@@ -83,6 +90,10 @@ fun MessagesHistoryScreen(
     onMessageInputChanged: (TextFieldValue) -> Unit = {},
     onAttachmentButtonClicked: () -> Unit = {},
     onActionButtonClicked: () -> Unit = {},
+    onRecordStart: () -> Unit = {},
+    onRecordFinish: () -> Unit = {},
+    onRecordCancel: () -> Unit = {},
+    onEmojiButtonClicked: () -> Unit = {},
     onEmojiButtonLongClicked: () -> Unit = {},
     onMessageClicked: (Long) -> Unit = {},
     onMessageLongClicked: (Long) -> Unit = {},
@@ -232,6 +243,9 @@ fun MessagesHistoryScreen(
                 isPaginating = screenState.isPaginating,
                 isReplying = screenState.replyTitle != null,
                 messageBarHeight = messageBarHeight,
+                voicePlayback = voicePlayback,
+                onPlayVoiceMessageClicked = onPlayVoiceMessageClicked,
+                onMessageSeen = onMessageSeen,
                 onRequestScrollToCmId = { cmId ->
                     val index = uiMessages.values.indexOfMessageByCmId(cmId)
                     if (index == null) { // сообщения нет в списке
@@ -273,10 +287,16 @@ fun MessagesHistoryScreen(
                 replyTitle = screenState.replyTitle,
                 replyText = screenState.replyText,
                 showKeyboard = showKeyboard,
+                isRecordingVoice = isRecordingVoice,
+                voiceRecordingDurationSec = voiceRecordingDurationSec,
                 onSetMessageBarHeight = { messageBarHeight = it },
+                onEmojiButtonClicked = onEmojiButtonClicked,
                 onEmojiButtonLongClicked = onEmojiButtonLongClicked,
                 onAttachmentButtonClicked = onAttachmentButtonClicked,
                 onActionButtonClicked = onActionButtonClicked,
+                onRecordStart = onRecordStart,
+                onRecordFinish = onRecordFinish,
+                onRecordCancel = onRecordCancel,
                 onReplyCloseClicked = onReplyCloseClicked,
                 onKeyboardShown = onKeyboardShown
             )

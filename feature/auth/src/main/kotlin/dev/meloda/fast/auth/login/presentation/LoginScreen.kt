@@ -369,6 +369,7 @@ fun HandleDialogs(
                 text = dialog.errorTextResId?.let { stringResource(it) }
                     ?: dialog.errorText
                     ?: stringResource(R.string.unknown_error_occurred),
+                detailsText = dialog.errorDetails,
                 confirmText = stringResource(id = R.string.ok)
             )
         }
