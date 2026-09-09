@@ -71,6 +71,11 @@ class LoginViewModel(
         logger.debug(this::class, "VALIDATION CODE: $code")
         if (code != null) {
             login(code = code)
+        } else {
+            // The validation screen was dismissed without a code.
+            // Without resetting the loading flag the sign in button stays disabled forever.
+            validationSid = null
+            screenState.updateValue { copy(isLoading = false) }
         }
     }
 
@@ -175,9 +180,14 @@ class LoginViewModel(
         val currentState = screenState.value.copy()
 
         processValidation()
-        if (!validationState.value.contains(LoginValidationResult.Valid)) return
+        if (!validationState.value.contains(LoginValidationResult.Valid)) {
+            // Nothing is being sent, so the loading state must not stay enabled
+            screenState.updateValue { copy(isLoading = false) }
+            return
+        }
 
-        screenState.updateValue { copy(isLoading = true) }
+        // Hide the error from the previous attempt
+        screenState.updateValue { copy(isLoading = true, dialog = null) }
 
         val currentValidationSid = validationSid
         val currentValidationCode = code.takeIf { currentValidationSid != null }
@@ -198,7 +208,8 @@ class LoginViewModel(
                 },
                 success = { response ->
                     val exceptionHandler =
-                        CoroutineExceptionHandler { _, _ ->
+                        CoroutineExceptionHandler { _, throwable ->
+                            logger.error(this::class, "login(): ERROR: $throwable")
                             screenState.updateValue { copy(isLoading = false) }
                             setDialog(LoginDialog.Error())
                         }
@@ -288,6 +299,9 @@ class LoginViewModel(
     }
 
     private fun parseError(stateError: State.Error) {
+        // Any error ends the current attempt
+        screenState.updateValue { copy(isLoading = false) }
+
         when (stateError) {
             is State.Error.OAuthError -> {
                 when (val error = stateError.error) {
@@ -310,9 +324,19 @@ class LoginViewModel(
                         val arguments = CaptchaArguments(
                             redirectUri = error.redirectUri
                         )
+                        logger.error(this::class, "captcha required: $arguments")
+
+                        // There is no captcha screen yet, so at least tell the user
+                        // what happened instead of failing silently
+                        setDialog(
+                            LoginDialog.Error(
+                                errorText = "Captcha required. Please try again later."
+                            )
+                        )
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
+                        validationSid = null
                         setDialog(
                             LoginDialog.Error(errorText = "Wrong login or password.")
                         )
@@ -359,7 +383,24 @@ class LoginViewModel(
                 }
             }
 
-            else -> Unit
+            is State.Error.ApiError -> {
+                setDialog(
+                    LoginDialog.Error(errorText = stateError.errorMessage)
+                )
+            }
+
+            State.Error.ConnectionError -> {
+                setDialog(
+                    LoginDialog.Error(
+                        errorText = "No internet connection. Check your network and try again."
+                    )
+                )
+            }
+
+            State.Error.InternalError,
+            State.Error.UnknownError -> {
+                setDialog(LoginDialog.Error())
+            }
         }
     }
 

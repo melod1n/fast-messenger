@@ -18,6 +18,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Login
 
+private const val VALIDATION_CODE_KEY = "validation_code"
+
 fun NavGraphBuilder.loginScreen(
     handleNavigationIntent: (LoginNavigationIntent) -> Unit,
     navController: NavController
@@ -32,7 +34,7 @@ fun NavGraphBuilder.loginScreen(
             viewModel.screenEffectFlow.onEach { effect ->
                 when (effect) {
                     LoginEffect.ClearValidationCode -> {
-                        backStackEntry.savedStateHandle["validation_code"] = null
+                        backStackEntry.savedStateHandle.remove<String>(VALIDATION_CODE_KEY)
                     }
 
                     is LoginEffect.Navigate -> handleNavigationIntent(effect.intent)
@@ -41,7 +43,12 @@ fun NavGraphBuilder.loginScreen(
         }
 
         LaunchedEffect(true) {
-            val validationCode: String? = backStackEntry.savedStateHandle["validation_code"]
+            val validationCode: String? = backStackEntry.savedStateHandle[VALIDATION_CODE_KEY]
+
+            // Consume the code, otherwise a stale one is resent on the next entry
+            // and the login fails with "Wrong validation code"
+            backStackEntry.savedStateHandle.remove<String>(VALIDATION_CODE_KEY)
+
             viewModel.onValidationCodeReceived(validationCode)
         }
 
