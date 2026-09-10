@@ -88,11 +88,8 @@ fun QrScannerScreen(
     var hintWrongQr by remember { mutableStateOf(false) }
     var acceptedQr by remember { mutableStateOf(false) }
 
-    // Флаги живут в анализаторе фонового потока — только atomic, не compose-state.
     val scannedFlag = remember { AtomicBoolean(false) }
     val lastRejectAt = remember { AtomicLong(0L) }
-    // Серия одинаковых кадров: принимаем только устоявшийся код,
-    // как в ориг. апк (фокус/экспозиция + подтверждение).
     val lastValue = remember { AtomicReference<String?>(null) }
     val matchCount = remember { AtomicInteger(0) }
     val requiredFrames = 4
@@ -134,7 +131,7 @@ fun QrScannerScreen(
                     IconButton(onClick = onBackClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back_round_24),
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.qr_scanner_back)
                         )
                     }
                 },
@@ -151,7 +148,7 @@ fun QrScannerScreen(
                                 id = if (isTorchOn) R.drawable.ic_star_fill_round_24
                                 else R.drawable.ic_star_round_24
                             ),
-                            contentDescription = "Torch"
+                            contentDescription = stringResource(R.string.qr_scanner_torch)
                         )
                     }
                 }
@@ -203,7 +200,6 @@ fun QrScannerScreen(
                                             val rawValue = barcode.rawValue
                                             if (rawValue.isNullOrBlank()) continue
 
-                                            // 1. ROI: только центр рамки, края кадра игнорим.
                                             val box = barcode.boundingBox
                                             if (box != null && !QrCodeAuthParser.isInCenter(
                                                     boxLeft = box.left,
@@ -217,8 +213,6 @@ fun QrScannerScreen(
                                                 continue
                                             }
 
-                                            // 2. Gate по формату: мусор не закрывает экран,
-                                            // только обновляет хинт (с троттлингом).
                                             if (!QrCodeAuthParser.isScannable(rawValue)) {
                                                 val now = System.currentTimeMillis()
                                                 if (now - lastRejectAt.get() > 1500L) {
@@ -232,7 +226,6 @@ fun QrScannerScreen(
                                             break
                                         }
                                         if (candidate == null) {
-                                            // Пусто или мусор — сбрасываем серию, продолжаем искать.
                                             lastValue.set(null)
                                             matchCount.set(0)
                                             return@addOnSuccessListener
@@ -249,7 +242,6 @@ fun QrScannerScreen(
                                                 acceptedQr = true
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             }
-                                            // Пауза: видно, что код принят, потом переход.
                                             mainHandler.postDelayed({ onQrCodeScanned(accepted) }, acceptDelayMs)
                                         }
                                     }
@@ -280,8 +272,6 @@ fun QrScannerScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Viewfinder 180dp, radius 18dp, padding 18dp — как QR-карточка в вебе.
-                // Шаги как на сайте VK: открыть приложение -> Вход по QR-коду -> свое устройство.
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -304,19 +294,6 @@ fun QrScannerScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Откройте приложение ВКонтакте\nНажмите «Вход по QR-коду»\nУбедитесь, что входите со своего устройства",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .background(
-                                androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f),
-                                RoundedCornerShape(18.dp)
-                            )
-                            .padding(horizontal = 18.dp, vertical = 12.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
                         text = stringResource(
                             if (acceptedQr) R.string.qr_scanner_accepted
                             else if (hintWrongQr) R.string.qr_scanner_hint_wrong
@@ -337,7 +314,7 @@ fun QrScannerScreen(
                 }
             } else {
                 Text(
-                    text = "Camera permission is required to scan QR codes",
+                    text = stringResource(R.string.qr_scanner_camera_permission),
                     modifier = Modifier.align(Alignment.Center)
                 )
             }

@@ -404,7 +404,6 @@ class LoginViewModel(
     private var qrLoginJob: Job? = null
 
     private fun onQrCodeScanned(qrText: String) {
-        // QR с сайта (web2app) — обмен как в ориг. апк, а не неверный код.
         QrCodeAuthParser.extractWeb2AppCode(qrText)?.let { code ->
             loginViaWeb2App(code)
             return
@@ -419,19 +418,12 @@ class LoginViewModel(
         finishTokenLogin(token, extractUserId(qrText))
     }
 
-    /**
-     * Вход по QR с сайта, как ориг. апк (QrWebToApp):
-     * setAuthCodeStatus подтверждает код, затем поллим getAuthCodeStatus,
-     * пока не придет status 2 с access_token (или истечение).
-     */
+    // Вход по QR с сайта: setAuthCodeStatus + поллинг getAuthCodeStatus до status 2.
     private fun loginViaWeb2App(authCode: String) {
         qrLoginJob?.cancel()
         screenState.updateValue { copy(isLoading = true) }
         qrLoginJob = viewModelScope.launch(Dispatchers.IO) {
-            // Методы QR требуют access_token: разлогинены — берем анонимный.
-            // set/getAuthCodeStatus разрешены только офиц. приложению
-            // (анонимка мессенджера дает 100 application not allowed),
-            // поэтому пара VK_APP_ID/VK_SECRET, как в ориг. апк.
+            // QR-методы требуют токен: анонимный офиц. приложения (пара VK_APP_ID/VK_SECRET).
             val anonymToken = runCatching {
                 authRepository.getAnonymToken(
                     VkConstants.VK_APP_ID,
@@ -463,7 +455,7 @@ class LoginViewModel(
                         }
                         return@launch
                     }
-                    0, 1 -> Unit // ждем, как ориг. апк
+                    0, 1 -> Unit
                     else -> {
                         qrLoginFailed(R.string.qr_login_error_expired)
                         return@launch

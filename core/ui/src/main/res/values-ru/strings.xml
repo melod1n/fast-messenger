@@ -131,6 +131,9 @@
     <string name="qr_scanner_hint">Наведите камеру на QR для входа, чтобы он был внутри рамки</string>
     <string name="qr_scanner_hint_wrong">Это не QR для входа. Нужен QR с токеном доступа</string>
     <string name="qr_scanner_accepted">Код принят, входим...</string>
+    <string name="qr_scanner_back">Назад</string>
+    <string name="qr_scanner_torch">Фонарик</string>
+    <string name="qr_scanner_camera_permission">Для сканирования QR-кодов нужен доступ к камере</string>
 
     <string name="settings_dark_theme">Тёмная тема</string>
     <string name="settings_dark_theme_value_enabled">Включена</string>

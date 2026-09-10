@@ -159,6 +159,9 @@
     <string name="qr_scanner_hint">Point the camera at the login QR so it fits inside the frame</string>
     <string name="qr_scanner_hint_wrong">This QR is not for login. Point at the QR with the access token</string>
     <string name="qr_scanner_accepted">Code accepted, signing in...</string>
+    <string name="qr_scanner_back">Back</string>
+    <string name="qr_scanner_torch">Torch</string>
+    <string name="qr_scanner_camera_permission">Camera permission is required to scan QR codes</string>
 
 
 

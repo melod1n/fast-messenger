@@ -1,15 +1,5 @@
 package dev.meloda.fast.auth.login
 
-/**
- * Единая точка парсинга QR для входа.
- *
- * Сканер принимает только то, что здесь распознается:
- *  - QR с готовым access_token (кейт-подобный),
- *  - QR с сайта (web2app, qr.vk.com/w2a?q=...) — как в ориг. апк.
- * Мусорные QR (ссылки, wifi, визитки) молча игнорируются
- * и не закрывают экран с ошибкой.
- * Финальную проверку делает LoginViewModel.onQrCodeScanned.
- */
 object QrCodeAuthParser {
 
     private val tokenParamRegex = Regex("""[?&#]?access_token=([a-zA-Z0-9._\-]+)""")
@@ -17,7 +7,6 @@ object QrCodeAuthParser {
     private val userIdParamRegex = Regex("""[?&#]?user_id=([0-9]+)""")
     private val jsonUserIdRegex = Regex(""""user_id"\s*:\s*([0-9]+)"""")
 
-    // Хост офиц. QR с сайта, как в ориг. апк (b380 case 10).
     private val web2appHostRegex = Regex("qr[.]vk[.](com|ru)", RegexOption.IGNORE_CASE)
 
     fun decode(rawQrText: String): String {
@@ -55,14 +44,8 @@ object QrCodeAuthParser {
         return null
     }
 
-    /** QR подходит для входа — только тогда сканер его принимает и закрывается. */
     fun isAuthQr(rawQrText: String): Boolean = !extractToken(rawQrText).isNullOrBlank()
 
-    /**
-     * Код web2app (q) из QR с сайта, как в ориг. апк:
-     * строгий вариант (s44) — хост qr.vk.com|qr.vk.ru, путь /w2a, параметр q;
-     * мягкий (ModalAuthHostActivity, разлогиненный экран) — любой URI с непустым q.
-     */
     fun extractWeb2AppCode(rawQrText: String): String? {
         val text = rawQrText.trim()
         if (text.isEmpty()) return null
@@ -73,22 +56,15 @@ object QrCodeAuthParser {
         if (host.isNotBlank() && web2appHostRegex.matches(host)) {
             return if (uri.path == "/w2a") q else null
         }
-        // Мягкий вариант разлогиненного экрана ориг. апк: любой URI с q.
         return when (uri.scheme.orEmpty().lowercase()) {
             "http", "https", "vk", "vklink", "vkontakte" -> q
             else -> null
         }
     }
 
-    /** Сканер принимает QR с токеном ИЛИ QR с сайта (web2app) — как ориг. апк. */
     fun isScannable(rawQrText: String): Boolean =
         isAuthQr(rawQrText) || !extractWeb2AppCode(rawQrText).isNullOrBlank()
 
-    /**
-     * QR в центре рамки? boundingBox от MLKit в координатах кадра.
-     * Отсекает коды по краям/вдали — раньше рамка была декорацией
-     * и сканилось все подряд.
-     */
     fun isInCenter(
         boxLeft: Int,
         boxTop: Int,

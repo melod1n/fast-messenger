@@ -3,11 +3,7 @@ package dev.meloda.fast.model.api.responses
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-/**
- * Ответ auth.getAuthCodeStatus. Как в ориг. апк (QrWebToApp):
- * status 2 = подтвержден, сразу лежат access_token + user_id.
- * status 0/1 = ожидание (продолжать поллить), 3/4 = ошибка/истек.
- */
+/** Ответ auth.getAuthCodeStatus: status 2 = access_token + user_id, 0/1 = ждать, 3/4 = ошибка. */
 @JsonClass(generateAdapter = true)
 data class GetAuthCodeStatusResponse(
     @Json(name = "status") val status: Int?,
@@ -24,10 +20,7 @@ data class GetAuthCodeStatusResponse(
     )
 }
 
-/**
- * Ответ auth.setAuthCodeStatus. polling_delay/expires_in задают цикл опроса,
- * как в CheckSignInFeature ориг. апк.
- */
+/** Ответ auth.setAuthCodeStatus: задает цикл опроса. */
 @JsonClass(generateAdapter = true)
 data class SetAuthCodeStatusResponse(
     @Json(name = "status") val status: Int?,
