@@ -32,6 +32,7 @@ import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.AccountDto
 import dev.meloda.fast.network.OAuthErrorDomain
+import dev.meloda.fast.ui.R
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -42,6 +43,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
@@ -90,6 +93,14 @@ class LoginViewModel(
             LoginIntent.PasswordVisibilityButtonClick -> onPasswordVisibilityButtonClicked()
 
             LoginIntent.SignInButtonClick -> onSignInButtonClicked()
+
+            LoginIntent.QrScannerButtonClick -> {
+                screenEffect.tryEmit(LoginEffect.Navigate(LoginNavigationIntent.QrScanner))
+            }
+
+            is LoginIntent.QrCodeScanned -> {
+                onQrCodeScanned(intent.qrText)
+            }
 
             is LoginIntent.Dialog -> {
                 when (intent) {
@@ -389,4 +400,147 @@ class LoginViewModel(
             }
         )
     }
+
+    private var qrLoginJob: Job? = null
+
+    private fun onQrCodeScanned(qrText: String) {
+        // QR с сайта (web2app) — обмен как в ориг. апк, а не неверный код.
+        QrCodeAuthParser.extractWeb2AppCode(qrText)?.let { code ->
+            loginViaWeb2App(code)
+            return
+        }
+
+        val token = extractToken(qrText)
+        if (token.isNullOrBlank()) {
+            setDialog(LoginDialog.Error(errorTextResId = R.string.qr_login_error_invalid))
+            return
+        }
+
+        finishTokenLogin(token, extractUserId(qrText))
+    }
+
+    /**
+     * Вход по QR с сайта, как ориг. апк (QrWebToApp):
+     * setAuthCodeStatus подтверждает код, затем поллим getAuthCodeStatus,
+     * пока не придет status 2 с access_token (или истечение).
+     */
+    private fun loginViaWeb2App(authCode: String) {
+        qrLoginJob?.cancel()
+        screenState.updateValue { copy(isLoading = true) }
+        qrLoginJob = viewModelScope.launch(Dispatchers.IO) {
+            // Методы QR требуют access_token: разлогинены — берем анонимный.
+            // set/getAuthCodeStatus разрешены только офиц. приложению
+            // (анонимка мессенджера дает 100 application not allowed),
+            // поэтому пара VK_APP_ID/VK_SECRET, как в ориг. апк.
+            val anonymToken = runCatching {
+                authRepository.getAnonymToken(
+                    VkConstants.VK_APP_ID,
+                    VkConstants.VK_SECRET
+                ).success().token
+            }.getOrNull()
+            if (anonymToken.isNullOrBlank()) {
+                qrLoginFailed(R.string.qr_login_error_failed)
+                return@launch
+            }
+            val opened = runCatching { authRepository.setAuthCodeStatus(anonymToken, authCode).success() }.getOrNull()
+            if (opened == null) {
+                qrLoginFailed(R.string.qr_login_error_failed)
+                return@launch
+            }
+            val pollDelayMs = (opened.pollingDelay ?: 2).coerceIn(1, 10) * 1000L
+            val deadlineMs = System.currentTimeMillis() + (opened.expiresIn ?: 300).coerceIn(30, 900) * 1000L
+            while (System.currentTimeMillis() < deadlineMs) {
+                delay(pollDelayMs)
+                val status = runCatching { authRepository.getAuthCodeStatus(anonymToken, authCode).success() }.getOrNull()
+                    ?: continue
+                when (status.status) {
+                    2 -> {
+                        val token = status.accessToken
+                        if (token.isNullOrBlank()) {
+                            qrLoginFailed(R.string.qr_login_error_failed)
+                        } else {
+                            finishTokenLogin(token, status.userId)
+                        }
+                        return@launch
+                    }
+                    0, 1 -> Unit // ждем, как ориг. апк
+                    else -> {
+                        qrLoginFailed(R.string.qr_login_error_expired)
+                        return@launch
+                    }
+                }
+            }
+            qrLoginFailed(R.string.qr_login_error_expired)
+        }
+    }
+
+    private fun qrLoginFailed(errorResId: Int) {
+        screenState.updateValue { copy(isLoading = false) }
+        setDialog(LoginDialog.Error(errorTextResId = errorResId))
+    }
+
+    private fun finishTokenLogin(token: String, parsedUserId: Long?) {
+        screenState.updateValue { copy(isLoading = true) }
+
+        // Set token for AccessTokenInterceptor so subsequent API calls use it
+        UserConfig.accessToken = token
+
+        loadUserByIdUseCase(
+            userId = parsedUserId,
+            fields = VkConstants.USER_FIELDS,
+            nomCase = null
+        ).listenValue(viewModelScope) { state ->
+            state.processState(
+                any = {
+                    screenState.updateValue { copy(isLoading = false) }
+                },
+                error = { error ->
+                    logger.error(this::class, "QR Login loadUser error: $error")
+                    setDialog(LoginDialog.Error(errorTextResId = R.string.qr_login_error_failed))
+                },
+                success = { user ->
+                    if (user == null) {
+                        setDialog(LoginDialog.Error(errorTextResId = R.string.qr_login_error_failed))
+                    } else {
+                        val realUserId = user.id
+                        viewModelScope.launch(Dispatchers.IO) {
+                            val exchangeToken = runCatching {
+                                authRepository.getExchangeToken(token).success().usersTokens.firstOrNull { it.userId == realUserId }?.commonToken
+                            }.getOrNull()
+
+                            val currentAccount = AccountDto(
+                                userId = realUserId,
+                                accessToken = token,
+                                fastToken = null,
+                                trustedHash = null,
+                                exchangeToken = exchangeToken
+                            ).also { account ->
+                                UserConfig.currentUserId = account.userId
+                                UserConfig.userId = account.userId
+                                UserConfig.accessToken = account.accessToken
+                                UserConfig.fastToken = account.fastToken
+                                UserConfig.trustedHash = account.trustedHash
+                                UserConfig.exchangeToken = account.exchangeToken
+                            }
+
+                            accountsRepository.storeAccounts(listOf(currentAccount.mapToEntity()))
+
+                            startLongPoll()
+
+                            screenState.updateValue { copy(login = "", password = "") }
+                            screenEffect.tryEmit(
+                                LoginEffect.Navigate(
+                                    LoginNavigationIntent.Main
+                                )
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    private fun extractToken(rawQrText: String): String? = QrCodeAuthParser.extractToken(rawQrText)
+
+    private fun extractUserId(rawQrText: String): Long? = QrCodeAuthParser.extractUserId(rawQrText)
 }

@@ -26,7 +26,6 @@
     <string name="message_input_hint">Message&#8230;</string>
     <string name="unknown_error_occurred">Unknown error occurred</string>
 
-
     <string name="message_action_chat_created">%1$s created «%2$s»</string>
     <string name="message_action_chat_renamed">%1$s renamed chat to «%2$s»</string>
     <string name="message_action_chat_photo_update">%1$s updated the chat photo</string>
@@ -42,7 +41,6 @@
     <string name="message_action_chat_unpin_message">%1$s unpinned message</string>
     <string name="message_action_chat_screenshot">%1$s took a screenshot</string>
     <string name="message_action_chat_style_update">%1$s changed chat theme</string>
-
 
     <string name="message_attachments_photo_one">Photo</string>
     <string name="message_attachments_photo_few">%1$d photos</string>
@@ -154,6 +152,15 @@
     <string name="account_temporarily_blocked">Account temporarily blocked</string>
     <string name="user_name">User name</string>
     <string name="sign_in_to_vk">Sign in to VK</string>
+    <string name="scan_qr_code">Scan QR code</string>
+    <string name="qr_login_error_invalid">Invalid QR code. Access token not found.</string>
+    <string name="qr_login_error_failed">Failed to log in with this QR code.</string>
+    <string name="qr_login_error_expired">The QR code has expired. Generate a new one on the site.</string>
+    <string name="qr_scanner_hint">Point the camera at the login QR so it fits inside the frame</string>
+    <string name="qr_scanner_hint_wrong">This QR is not for login. Point at the QR with the access token</string>
+    <string name="qr_scanner_accepted">Code accepted, signing in...</string>
+
+
 
     <string name="easter_egg_log_out_dmitry" translatable="false">Выйти внаружу?</string>
 

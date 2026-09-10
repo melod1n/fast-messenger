@@ -13,4 +13,7 @@ object AuthUrls {
     const val GET_ANONYM_TOKEN = "$URL/auth.getAnonymToken"
     const val EXCHANGE_SILENT_TOKEN = "$URL/auth.exchangeSilentAuthToken"
     const val GET_EXCHANGE_TOKEN = "$URL/auth.getExchangeToken"
+
+    const val GET_AUTH_CODE_STATUS = "$URL/auth.getAuthCodeStatus"
+    const val SET_AUTH_CODE_STATUS = "$URL/auth.setAuthCodeStatus"
 }

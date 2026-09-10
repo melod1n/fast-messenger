@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -117,6 +118,24 @@ fun LoginScreen(
                 .fillMaxSize()
         ) {
             AnimatedVisibility(
+                modifier = Modifier.align(Alignment.TopEnd),
+                visible = screenState.showLogo,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                label = "QR scanner button visibility"
+            ) {
+                IconButton(
+                    onClick = { handleIntent(LoginIntent.QrScannerButtonClick) }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_qr_code_round_24),
+                        contentDescription = stringResource(id = R.string.scan_qr_code),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            AnimatedVisibility(
                 visible = screenState.showLogo,
                 enter = fadeIn(),
                 exit = fadeOut(),
@@ -142,11 +161,28 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .align(Alignment.Center)
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.sign_in_to_vk),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.displayMedium
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.sign_in_to_vk),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            style = MaterialTheme.typography.displayMedium,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+
+                        IconButton(
+                            onClick = { handleIntent(LoginIntent.QrScannerButtonClick) }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_qr_code_round_24),
+                                contentDescription = stringResource(id = R.string.scan_qr_code),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(titleSpacerSize))
 

@@ -72,4 +72,11 @@ dependencies {
     implementation(libs.eithernet)
 
     androidTestImplementation(libs.bundles.compose.ui.test)
+
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+    implementation(libs.zxing.core)
+    implementation(libs.mlkit.barcode)
 }

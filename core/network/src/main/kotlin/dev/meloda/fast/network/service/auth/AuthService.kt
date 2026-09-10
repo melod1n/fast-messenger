@@ -3,7 +3,9 @@ package dev.meloda.fast.network.service.auth
 import com.slack.eithernet.ApiResult
 import dev.meloda.fast.model.api.responses.ExchangeSilentTokenResponse
 import dev.meloda.fast.model.api.responses.GetAnonymTokenResponse
+import dev.meloda.fast.model.api.responses.GetAuthCodeStatusResponse
 import dev.meloda.fast.model.api.responses.GetExchangeTokenResponse
+import dev.meloda.fast.model.api.responses.SetAuthCodeStatusResponse
 import dev.meloda.fast.model.api.responses.ValidateLoginResponse
 import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
 import dev.meloda.fast.network.ApiResponse
@@ -50,4 +52,16 @@ interface AuthService {
     suspend fun getExchangeToken(
         @FieldMap param: Map<String, String>
     ): ApiResult<ApiResponse<GetExchangeTokenResponse>, RestApiError>
+
+    @GET(AuthUrls.GET_AUTH_CODE_STATUS)
+    suspend fun getAuthCodeStatus(
+        @Query("access_token") accessToken: String,
+        @Query("auth_code") authCode: String
+    ): ApiResult<ApiResponse<GetAuthCodeStatusResponse>, RestApiError>
+
+    @FormUrlEncoded
+    @POST(AuthUrls.SET_AUTH_CODE_STATUS)
+    suspend fun setAuthCodeStatus(
+        @FieldMap param: Map<String, String>
+    ): ApiResult<ApiResponse<SetAuthCodeStatusResponse>, RestApiError>
 }
