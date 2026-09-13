@@ -10,9 +10,9 @@ object SettingsKeys {
     const val KEY_USE_CONTACT_NAMES = "use_contact_names"
     const val DEFAULT_VALUE_USE_CONTACT_NAMES = false
     const val KEY_SHOW_EMOJI_BUTTON = "show_emoji_button"
-    const val DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON = false
+    const val DEFAULT_VALUE_KEY_SHOW_EMOJI_BUTTON = true
     const val KEY_SHOW_ATTACHMENT_BUTTON = "show_attachment_button"
-    const val DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON = false
+    const val DEFAULT_VALUE_SHOW_ATTACHMENT_BUTTON = true
     const val KEY_SHOW_MANUAL_REFRESH_OPTIONS = "show_manual_refresh_options"
     const val DEFAULT_VALUE_SHOW_MANUAL_REFRESH_OPTIONS = false
 

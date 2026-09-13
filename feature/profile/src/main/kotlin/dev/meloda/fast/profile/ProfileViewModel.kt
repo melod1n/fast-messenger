@@ -1,5 +1,6 @@
 package dev.meloda.fast.profile
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.meloda.fast.common.VkConstants
@@ -11,46 +12,57 @@ import dev.meloda.fast.domain.GetLocalUserByIdUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.profile.model.ProfileScreenState
+import dev.meloda.fast.profile.navigation.Profile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ProfileViewModel(
     private val getLocalUserByIdUseCase: GetLocalUserByIdUseCase,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
-    private val logger: FastLogger
+    private val logger: FastLogger,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val screenState = MutableStateFlow(ProfileScreenState.EMPTY)
+    val targetUserId: Long = runCatching {
+        Profile.from(savedStateHandle).userId
+    }.getOrNull() ?: UserConfig.userId
+
+    val isCurrentUser: Boolean = (targetUserId == UserConfig.userId)
+
+    private val screenState = MutableStateFlow(
+        ProfileScreenState(isLoading = true, isCurrentUser = isCurrentUser)
+    )
     val screenStateFlow get() = screenState.asStateFlow()
 
     init {
-        getLocalAccountInfo()
+        loadProfile()
     }
 
-    private fun getLocalAccountInfo() {
-        logger.debug(this@ProfileViewModel::class, "START")
-        emit(screenState.value.copy(isLoading = true))
+    fun onRefresh() {
+        fetchRemoteProfile()
+    }
 
-        getLocalUserByIdUseCase(UserConfig.userId).listenValue { state ->
-            logger.debug(this@ProfileViewModel::class, "LOADED: $state")
+    private fun loadProfile() {
+        logger.debug("ProfileViewModel", "loadProfile: targetUserId=$targetUserId, isCurrentUser=$isCurrentUser")
+        emit(screenState.value.copy(isLoading = true, isCurrentUser = isCurrentUser, isError = false))
 
-            emit(screenState.value.copy(isLoading = false))
+        getLocalUserByIdUseCase(targetUserId).listenValue { state ->
+            logger.debug("ProfileViewModel", "Local profile loaded: $state")
 
             state.processState(
-                error = {
-                    logger.debug(this@ProfileViewModel::class, "ERROR")
-                    emit(screenState.value.copy(avatarUrl = null, fullName = null))
-                },
+                error = { _ -> },
                 success = { user ->
-                    logger.debug(this@ProfileViewModel::class, "SUCCESS")
-                    emit(
-                        screenState.value.copy(
-                            avatarUrl = user?.photo200,
-                            fullName = user?.fullName
+                    if (user != null) {
+                        emit(
+                            screenState.value.copy(
+                                user = user,
+                                isCurrentUser = isCurrentUser,
+                                isLoading = false
+                            )
                         )
-                    )
+                    }
                 },
-                any = ::loadAccountInfo
+                any = ::fetchRemoteProfile
             )
         }
     }
@@ -59,29 +71,35 @@ class ProfileViewModel(
         screenState.setValue { state }
     }
 
-    private fun loadAccountInfo() {
+    private fun fetchRemoteProfile() {
         loadUserByIdUseCase(
-            userId = null,
+            userId = if (isCurrentUser) null else targetUserId,
             fields = VkConstants.USER_FIELDS,
             nomCase = null
         ).listenValue(viewModelScope) { state ->
             state.processState(
-                error = { error ->
-                    // TODO: 12/07/2024, Danil Nikolaev: if local info is null then show error view
+                error = { err ->
+                    logger.debug("ProfileViewModel", "fetchRemoteProfile error: $err")
+                    if (screenState.value.user == null) {
+                        screenState.setValue { it.copy(isLoading = false, isError = true) }
+                    } else {
+                        screenState.setValue { it.copy(isLoading = false) }
+                    }
                 },
                 success = { response ->
-                    val user = requireNotNull(response)
-
-                    screenState.setValue { old ->
-                        old.copy(
-                            avatarUrl = user.photo200,
-                            fullName = user.fullName
-                        )
+                    val user = response
+                    if (user != null) {
+                        screenState.setValue { old ->
+                            old.copy(
+                                user = user,
+                                isCurrentUser = isCurrentUser,
+                                isLoading = false,
+                                isError = false
+                            )
+                        }
                     }
                 }
             )
-
-            screenState.setValue { old -> old.copy(isLoading = state.isLoading()) }
         }
     }
 }

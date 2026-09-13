@@ -66,7 +66,7 @@ class OAuthRepositoryImpl(
                             OAuthErrorDomain.ValidationRequiredError(
                                 description = response.errorDescription.orEmpty(),
                                 validationType = response.validationType.orEmpty()
-                                    .let(ValidationType::parse),
+                                    .let(ValidationType::parse) ?: ValidationType.SMS,
                                 validationSid = response.validationSid.orEmpty(),
                                 phoneMask = response.phoneMask.orEmpty(),
                                 redirectUri = response.redirectUri.orEmpty(),
@@ -90,8 +90,6 @@ class OAuthRepositoryImpl(
 
                     VkOAuthError.INVALID_REQUEST -> {
                         when (errorType) {
-                            null -> OAuthErrorDomain.UnknownError
-
                             VkOAuthErrorType.WRONG_OTP -> {
                                 OAuthErrorDomain.WrongValidationCode
                             }
@@ -104,7 +102,8 @@ class OAuthRepositoryImpl(
                                 OAuthErrorDomain.TooManyTriesError
                             }
 
-                            VkOAuthErrorType.USERNAME_OR_PASSWORD_IS_INCORRECT -> {
+                            VkOAuthErrorType.USERNAME_OR_PASSWORD_IS_INCORRECT,
+                            null -> {
                                 OAuthErrorDomain.InvalidCredentialsError
                             }
                         }
@@ -165,7 +164,7 @@ class OAuthRepositoryImpl(
                                 OAuthErrorDomain.ValidationRequiredError(
                                     description = response.errorDescription.orEmpty(),
                                     validationType = response.validationType.orEmpty()
-                                        .let(ValidationType::parse),
+                                        .let(ValidationType::parse) ?: ValidationType.SMS,
                                     validationSid = response.validationSid.orEmpty(),
                                     phoneMask = response.phoneMask.orEmpty(),
                                     redirectUri = response.redirectUri.orEmpty(),
@@ -187,31 +186,30 @@ class OAuthRepositoryImpl(
                             OAuthErrorDomain.InvalidCredentialsError
                         }
 
-                        VkOAuthError.INVALID_REQUEST -> {
-                            when (errorType) {
-                                null -> OAuthErrorDomain.UnknownError
+                    VkOAuthError.INVALID_REQUEST -> {
+                        when (errorType) {
+                            VkOAuthErrorType.WRONG_OTP -> {
+                                OAuthErrorDomain.WrongValidationCode
+                            }
 
-                                VkOAuthErrorType.WRONG_OTP -> {
-                                    OAuthErrorDomain.WrongValidationCode
-                                }
+                            VkOAuthErrorType.WRONG_OTP_FORMAT -> {
+                                OAuthErrorDomain.WrongValidationCodeFormat
+                            }
 
-                                VkOAuthErrorType.WRONG_OTP_FORMAT -> {
-                                    OAuthErrorDomain.WrongValidationCodeFormat
-                                }
+                            VkOAuthErrorType.PASSWORD_BRUTEFORCE_ATTEMPT -> {
+                                OAuthErrorDomain.TooManyTriesError
+                            }
 
-                                VkOAuthErrorType.PASSWORD_BRUTEFORCE_ATTEMPT -> {
-                                    OAuthErrorDomain.TooManyTriesError
-                                }
-
-                                VkOAuthErrorType.USERNAME_OR_PASSWORD_IS_INCORRECT -> {
-                                    OAuthErrorDomain.InvalidCredentialsError
-                                }
+                            VkOAuthErrorType.USERNAME_OR_PASSWORD_IS_INCORRECT,
+                            null -> {
+                                OAuthErrorDomain.InvalidCredentialsError
                             }
                         }
-
-                        VkOAuthError.UNKNOWN -> OAuthErrorDomain.UnknownError
                     }
+
+                    VkOAuthError.UNKNOWN -> OAuthErrorDomain.UnknownError
                 }
-            )
-        }
+            }
+        )
+    }
 }

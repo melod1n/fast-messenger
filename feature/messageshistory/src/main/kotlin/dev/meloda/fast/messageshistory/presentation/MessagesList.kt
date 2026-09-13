@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -46,10 +47,14 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkAudioMessageDomain
 import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkLinkDomain
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
+import dev.meloda.fast.model.api.domain.VkVideoDomain
+import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
 import dev.meloda.fast.ui.model.vk.MessageUiItem
 import dev.meloda.fast.ui.theme.LocalThemeConfig
 import dev.meloda.fast.common.ImmutableList
@@ -69,11 +74,14 @@ fun MessagesList(
     isPaginating: Boolean,
     isReplying: Boolean,
     messageBarHeight: Dp,
+    voicePlayback: VoicePlaybackState = VoicePlaybackState.IDLE,
     onRequestScrollToCmId: (cmId: Long) -> Unit = {},
     onMessageClicked: (Long) -> Unit = {},
     onMessageLongClicked: (Long) -> Unit = {},
     onPhotoClicked: (images: List<String>, index: Int) -> Unit = { _, _ -> },
-    onRequestMessageReply: (cmId: Long) -> Unit = {}
+    onRequestMessageReply: (cmId: Long) -> Unit = {},
+    onPlayVoiceMessageClicked: (VkAudioMessageDomain) -> Unit = {},
+    onMessageSeen: (messageId: Long, cmId: Long) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val theme = LocalThemeConfig.current
@@ -81,11 +89,45 @@ fun MessagesList(
 
     val scope = rememberCoroutineScope()
 
+    var videoMessageToPlay by rememberSaveable { mutableStateOf<VkVideoMessageDomain?>(null) }
+    var videoToPlay by rememberSaveable { mutableStateOf<VkVideoDomain?>(null) }
+
+    val currentOnMessageSeen by rememberUpdatedState(onMessageSeen)
+
+    LaunchedEffect(listState, uiMessages) {
+        snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo
+        }.collect { visibleItems ->
+            val maxVisibleIncoming = visibleItems.mapNotNull { item ->
+                uiMessages.getOrNull(item.index) as? MessageUiItem.Message
+            }.filter { !it.isOut && it.id > 0 }
+            .maxByOrNull { it.cmId }
+
+            if (maxVisibleIncoming != null) {
+                currentOnMessageSeen(maxVisibleIncoming.id, maxVisibleIncoming.cmId)
+            }
+        }
+    }
+
     val onAttachmentClick by rememberUpdatedState { message: MessageUiItem.Message, attachment: VkAttachment ->
         if (isSelectedAtLeastOne) {
             onMessageClicked(message.id)
         } else {
             when (attachment) {
+                is VkAudioMessageDomain -> {
+                    if (attachment.linkMp3.isNotBlank() || attachment.linkOgg.isNotBlank()) {
+                        onPlayVoiceMessageClicked(attachment)
+                    }
+                }
+
+                is VkVideoMessageDomain -> {
+                    videoMessageToPlay = attachment
+                }
+
+                is VkVideoDomain -> {
+                    videoToPlay = attachment
+                }
+
                 is VkPhotoDomain -> {
                     val photos = message.attachments
                         .orEmpty()
@@ -96,13 +138,6 @@ fun MessagesList(
                         photos,
                         photos.indexOfFirst { it == attachment.getMaxSize()?.url }
                     )
-
-//                        val maxSize = attachment.getMaxSize()
-//                        maxSize?.let {
-//                            context.startActivity(
-//                                Intent(Intent.ACTION_VIEW, maxSize.url.toUri())
-//                            )
-//                        }
                 }
 
                 is VkFileDomain -> {
@@ -291,6 +326,7 @@ fun MessagesList(
                                         ),
                                 enableAnimations = theme.enableAnimations,
                                 message = item,
+                                voicePlayback = voicePlayback,
                                 onClick = { attachment ->
                                     onAttachmentClick(item, attachment)
                                 },
@@ -318,6 +354,7 @@ fun MessagesList(
                                         ),
                                 enableAnimations = theme.enableAnimations,
                                 message = item,
+                                voicePlayback = voicePlayback,
                                 onClick = { attachment ->
                                     onAttachmentClick(item, attachment)
                                 },
@@ -364,4 +401,14 @@ fun MessagesList(
             )
         }
     }
+
+    VideoMessagePlayerDialog(
+        videoMessage = videoMessageToPlay,
+        onDismiss = { videoMessageToPlay = null }
+    )
+
+    VideoPlayerDialog(
+        video = videoToPlay,
+        onDismiss = { videoToPlay = null }
+    )
 }

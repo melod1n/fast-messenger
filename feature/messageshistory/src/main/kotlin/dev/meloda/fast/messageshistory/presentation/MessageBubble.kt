@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import dev.meloda.fast.domain.util.annotated
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
 import dev.meloda.fast.messageshistory.presentation.attachments.Attachments
 import dev.meloda.fast.messageshistory.presentation.attachments.Reply
 import dev.meloda.fast.model.api.domain.VkAttachment
@@ -61,6 +62,7 @@ fun MessageBubble(
     attachments: ImmutableList<VkAttachment>?,
     replyTitle: String?,
     replySummary: AnnotatedString? = null,
+    voicePlayback: VoicePlaybackState = VoicePlaybackState.IDLE,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {},
     onReplyClick: () -> Unit = {},
@@ -228,6 +230,7 @@ fun MessageBubble(
                         withReply = replyTitle != null,
                         modifier = Modifier,
                         attachments = attachments,
+                        voicePlayback = voicePlayback,
                         onClick = currentOnClick,
                         onLongClick = currentOnLongClick
                     )

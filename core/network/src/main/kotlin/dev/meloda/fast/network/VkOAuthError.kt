@@ -10,7 +10,7 @@ enum class VkOAuthError(val value: String) {
     FLOOD_CONTROL("9;Flood control");
 
     companion object {
-        fun parse(value: String): VkOAuthError = entries.firstOrNull { it.value == value }
-            ?: throw IllegalArgumentException("Unknown error with value: $value")
+        fun parse(value: String): VkOAuthError =
+            entries.firstOrNull { it.value == value } ?: UNKNOWN
     }
 }

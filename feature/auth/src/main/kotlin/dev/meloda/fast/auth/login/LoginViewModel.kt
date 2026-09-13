@@ -3,6 +3,7 @@ package dev.meloda.fast.auth.login
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.slack.eithernet.ApiResult
 import dev.meloda.fast.auth.login.model.CaptchaArguments
 import dev.meloda.fast.auth.login.model.LoginDialog
 import dev.meloda.fast.auth.login.model.LoginEffect
@@ -32,6 +33,7 @@ import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.AccountDto
 import dev.meloda.fast.network.OAuthErrorDomain
+import dev.meloda.fast.ui.R
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -71,6 +73,11 @@ class LoginViewModel(
         logger.debug(this::class, "VALIDATION CODE: $code")
         if (code != null) {
             login(code = code)
+        } else {
+            // The validation screen was dismissed without a code.
+            // Without resetting the loading flag the sign in button stays disabled forever.
+            validationSid = null
+            screenState.updateValue { copy(isLoading = false) }
         }
     }
 
@@ -175,9 +182,14 @@ class LoginViewModel(
         val currentState = screenState.value.copy()
 
         processValidation()
-        if (!validationState.value.contains(LoginValidationResult.Valid)) return
+        if (!validationState.value.contains(LoginValidationResult.Valid)) {
+            // Nothing is being sent, so the loading state must not stay enabled
+            screenState.updateValue { copy(isLoading = false) }
+            return
+        }
 
-        screenState.updateValue { copy(isLoading = true) }
+        // Hide the error from the previous attempt
+        screenState.updateValue { copy(isLoading = true, dialog = null) }
 
         val currentValidationSid = validationSid
         val currentValidationCode = code.takeIf { currentValidationSid != null }
@@ -198,27 +210,50 @@ class LoginViewModel(
                 },
                 success = { response ->
                     val exceptionHandler =
-                        CoroutineExceptionHandler { _, _ ->
+                        CoroutineExceptionHandler { _, throwable ->
+                            logger.error(
+                                this@LoginViewModel::class,
+                                "tokenExchange(): ERROR",
+                                throwable
+                            )
                             screenState.updateValue { copy(isLoading = false) }
-                            setDialog(LoginDialog.Error())
+                            setDialog(
+                                LoginDialog.Error(errorDetails = throwable.message)
+                            )
                         }
 
                     viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
-                        val (anonymToken) = authRepository.getAnonymToken(
+                        val anonymTokenResult = authRepository.getAnonymToken(
                             VkConstants.MESSENGER_APP_ID.toString(),
                             VkConstants.MESSENGER_APP_SECRET
-                        ).success()
+                        )
 
-                        val exchangeSilentTokenResponse = authRepository.exchangeSilentToken(
+                        val anonymToken = when (anonymTokenResult) {
+                            is ApiResult.Success -> anonymTokenResult.value.token
+                            is ApiResult.Failure ->
+                                throw IllegalStateException("getAnonymToken failed: $anonymTokenResult")
+                        }
+
+                        val exchangeSilentTokenResult = authRepository.exchangeSilentToken(
                             anonymToken = anonymToken,
                             silentToken = response.silentToken,
                             silentUuid = response.silentTokenUuid
-                        ).success()
+                        )
 
+                        val exchangeSilentTokenResponse = when (exchangeSilentTokenResult) {
+                            is ApiResult.Success -> exchangeSilentTokenResult.value
+                            is ApiResult.Failure ->
+                                throw IllegalStateException("exchangeSilentToken failed: $exchangeSilentTokenResult")
+                        }
 
-                        val getExchangeTokenResponse =
+                        val getExchangeTokenResult =
                             authRepository.getExchangeToken(exchangeSilentTokenResponse.accessToken)
-                                .success()
+
+                        val getExchangeTokenResponse = when (getExchangeTokenResult) {
+                            is ApiResult.Success -> getExchangeTokenResult.value
+                            is ApiResult.Failure ->
+                                throw IllegalStateException("getExchangeToken failed: $getExchangeTokenResult")
+                        }
 
                         val exchangeToken =
                             getExchangeTokenResponse.usersTokens.firstOrNull {
@@ -226,8 +261,16 @@ class LoginViewModel(
                             }
 
                         if (exchangeToken == null) {
+                            logger.error(
+                                this@LoginViewModel::class,
+                                "tokenExchange(): exchange token not found for user ${exchangeSilentTokenResponse.userId}"
+                            )
                             screenState.updateValue { copy(isLoading = false) }
-                            setDialog(LoginDialog.Error())
+                            setDialog(
+                                LoginDialog.Error(
+                                    errorDetails = "exchange token not found for user ${exchangeSilentTokenResponse.userId}"
+                                )
+                            )
                             return@launch
                         }
 
@@ -269,7 +312,15 @@ class LoginViewModel(
                                 error = ::parseError,
                                 success = { user ->
                                     if (user == null) {
-                                        setDialog(LoginDialog.Error())
+                                        logger.error(
+                                            this@LoginViewModel::class,
+                                            "loadUser(): user is null after login"
+                                        )
+                                        setDialog(
+                                            LoginDialog.Error(
+                                                errorDetails = "loadUser(): user is null after login"
+                                            )
+                                        )
                                     } else {
                                         screenState.updateValue { copy(login = "", password = "") }
                                         screenEffect.tryEmit(
@@ -288,6 +339,9 @@ class LoginViewModel(
     }
 
     private fun parseError(stateError: State.Error) {
+        // Any error ends the current attempt
+        screenState.updateValue { copy(isLoading = false) }
+
         when (stateError) {
             is State.Error.OAuthError -> {
                 when (val error = stateError.error) {
@@ -310,11 +364,21 @@ class LoginViewModel(
                         val arguments = CaptchaArguments(
                             redirectUri = error.redirectUri
                         )
+                        logger.error(this::class, "captcha required: $arguments")
+
+                        // There is no captcha screen yet, so at least tell the user
+                        // what happened instead of failing silently
+                        setDialog(
+                            LoginDialog.Error(
+                                errorText = "Captcha required. Please try again later."
+                            )
+                        )
                     }
 
                     OAuthErrorDomain.InvalidCredentialsError -> {
+                        validationSid = null
                         setDialog(
-                            LoginDialog.Error(errorText = "Wrong login or password.")
+                            LoginDialog.Error(errorTextResId = R.string.error_wrong_login_or_password)
                         )
                     }
 
@@ -334,20 +398,20 @@ class LoginViewModel(
                     OAuthErrorDomain.WrongValidationCode -> {
                         screenEffect.tryEmit(LoginEffect.ClearValidationCode)
                         setDialog(
-                            LoginDialog.Error(errorText = "Wrong validation code.")
+                            LoginDialog.Error(errorTextResId = R.string.error_wrong_validation_code)
                         )
                     }
 
                     OAuthErrorDomain.WrongValidationCodeFormat -> {
                         screenEffect.tryEmit(LoginEffect.ClearValidationCode)
                         setDialog(
-                            LoginDialog.Error(errorText = "Wrong validation code format.")
+                            LoginDialog.Error(errorTextResId = R.string.error_wrong_validation_code_format)
                         )
                     }
 
                     OAuthErrorDomain.TooManyTriesError -> {
                         setDialog(
-                            LoginDialog.Error(errorText = "Too many tries. Try in another hour or later.")
+                            LoginDialog.Error(errorTextResId = R.string.error_too_many_tries)
                         )
                     }
 
@@ -359,7 +423,24 @@ class LoginViewModel(
                 }
             }
 
-            else -> Unit
+            is State.Error.ApiError -> {
+                setDialog(
+                    LoginDialog.Error(errorText = stateError.errorMessage)
+                )
+            }
+
+            State.Error.ConnectionError -> {
+                setDialog(
+                    LoginDialog.Error(
+                        errorText = "No internet connection. Check your network and try again."
+                    )
+                )
+            }
+
+            State.Error.InternalError,
+            State.Error.UnknownError -> {
+                setDialog(LoginDialog.Error())
+            }
         }
     }
 

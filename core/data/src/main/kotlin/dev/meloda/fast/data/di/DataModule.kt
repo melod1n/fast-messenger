@@ -18,6 +18,7 @@ import dev.meloda.fast.data.api.messages.MessagesRepositoryImpl
 import dev.meloda.fast.data.api.oauth.OAuthRepository
 import dev.meloda.fast.data.api.oauth.OAuthRepositoryImpl
 import dev.meloda.fast.data.api.photos.PhotosRepository
+import dev.meloda.fast.data.api.stickers.StickersRepository
 import dev.meloda.fast.data.api.users.UsersRepository
 import dev.meloda.fast.data.api.users.UsersRepositoryImpl
 import dev.meloda.fast.data.api.videos.VideosRepository
@@ -56,6 +57,8 @@ val dataModule = module {
     singleOf(::OAuthRepositoryImpl) bind OAuthRepository::class
 
     singleOf(::PhotosRepository)
+
+    singleOf(::StickersRepository)
 
     singleOf(::UsersRepositoryImpl) bind UsersRepository::class
 

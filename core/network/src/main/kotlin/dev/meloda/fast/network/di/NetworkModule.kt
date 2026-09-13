@@ -25,6 +25,7 @@ import dev.meloda.fast.network.service.longpoll.LongPollService
 import dev.meloda.fast.network.service.messages.MessagesService
 import dev.meloda.fast.network.service.oauth.OAuthService
 import dev.meloda.fast.network.service.photos.PhotosService
+import dev.meloda.fast.network.service.stickers.StickersService
 import dev.meloda.fast.network.service.users.UsersService
 import dev.meloda.fast.network.service.videos.VideosService
 import okhttp3.Interceptor
@@ -88,6 +89,7 @@ val networkModule = module {
     single { service(LongPollService::class.java) }
     single { service(MessagesService::class.java) }
     single { service(PhotosService::class.java) }
+    single { service(StickersService::class.java) }
     single { service(UsersService::class.java) }
     single { service(VideosService::class.java) }
     single { service(FriendsService::class.java) }

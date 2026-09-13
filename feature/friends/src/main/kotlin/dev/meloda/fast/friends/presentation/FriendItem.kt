@@ -34,10 +34,13 @@ fun FriendItem(
     friend: UiFriend,
     maxLines: Int,
     onPhotoClicked: (url: String) -> Unit,
-    onMessageClicked: (userid: Long) -> Unit
+    onMessageClicked: (userid: Long) -> Unit,
+    onFriendClicked: (userid: Long) -> Unit = {}
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onFriendClicked(friend.userId) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Spacer(modifier = Modifier.width(16.dp))

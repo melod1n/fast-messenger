@@ -24,6 +24,7 @@ fun NavGraphBuilder.mainScreen(
     onNavigateToMessagesHistory: (convoId: Long) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
+    onFriendClicked: (userid: Long) -> Unit = {},
     onNavigateToCreateChat: () -> Unit
 ) {
     val navigationItems = ImmutableList.of(
@@ -43,7 +44,7 @@ fun NavGraphBuilder.mainScreen(
             titleResId = R.string.title_profile,
             selectedIconResId = R.drawable.ic_account_circle_fill_round_24,
             unselectedIconResId = R.drawable.ic_account_circle_round_24,
-            route = Profile
+            route = Profile()
         )
     )
 
@@ -55,6 +56,7 @@ fun NavGraphBuilder.mainScreen(
             onNavigateToMessagesHistory = onNavigateToMessagesHistory,
             onPhotoClicked = onPhotoClicked,
             onMessageClicked = onMessageClicked,
+            onFriendClicked = onFriendClicked,
             onNavigateToCreateChat = onNavigateToCreateChat
         )
     }

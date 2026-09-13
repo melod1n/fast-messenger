@@ -63,15 +63,20 @@ class ValidationViewModelImpl(
 
         validationSid = arguments.validationSid
 
-        validationType.setValue {
-            ValidationType.parse(arguments.validationType)
-        }
+        val parsedType = ValidationType.parse(arguments.validationType)
+        validationType.setValue { parsedType }
 
         screenState.setValue { old ->
             old.copy(
                 isSmsButtonVisible = arguments.canResendSms,
                 phoneMask = arguments.phoneMask
             )
+        }
+
+        startTickTimer(INITIAL_RESEND_DELAY_SEC)
+
+        if (parsedType == ValidationType.SMS || parsedType == ValidationType.SMS2) {
+            sendValidationCode()
         }
     }
 
@@ -158,7 +163,9 @@ class ValidationViewModelImpl(
     }
 
     private fun startTickTimer(delay: Int?) {
-        if (delay == null || delayJob?.isActive == true) return
+        if (delay == null || delay <= 0) return
+
+        delayJob?.cancel()
 
         delayJob = createTimerFlow(
             time = delay,
@@ -172,5 +179,9 @@ class ValidationViewModelImpl(
                 screenState.setValue { old -> old.copy(isSmsButtonVisible = true) }
             },
         ).launchIn(viewModelScope)
+    }
+
+    private companion object {
+        const val INITIAL_RESEND_DELAY_SEC = 60
     }
 }

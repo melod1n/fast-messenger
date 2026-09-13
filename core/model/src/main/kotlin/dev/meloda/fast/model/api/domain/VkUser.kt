@@ -14,6 +14,16 @@ data class VkUser(
     val lastSeen: Int?,
     val lastSeenStatus: String?,
     val birthday: String?,
+    val status: String? = null,
+    val screenName: String? = null,
+    val city: String? = null,
+    val country: String? = null,
+    val site: String? = null,
+    val about: String? = null,
+    val verified: Boolean = false,
+    val followersCount: Int? = null,
+    val canWrite: Boolean = true,
+    val sex: Int? = null
 ) {
     override fun toString() = fullName
 

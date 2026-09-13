@@ -61,6 +61,8 @@ import dev.meloda.fast.navigation.Main
 import dev.meloda.fast.navigation.mainScreen
 import dev.meloda.fast.photoviewer.model.PhotoViewArguments
 import dev.meloda.fast.photoviewer.presentation.PhotoViewDialog
+import dev.meloda.fast.profile.navigation.navigateToProfile
+import dev.meloda.fast.profile.navigation.profileScreen
 import dev.meloda.fast.settings.model.SettingsNavigationIntent
 import dev.meloda.fast.settings.navigation.navigateToSettings
 import dev.meloda.fast.settings.navigation.settingsScreen
@@ -249,11 +251,20 @@ fun RootScreen(
             val isNeedToOpenAuth by viewModel.isNeedToReplaceWithAuth.collectAsStateWithLifecycle()
             val isNeedToShowDeniedDialog by viewModel.isNeedToShowNotificationsDeniedDialog.collectAsStateWithLifecycle()
             val isNeedToShowRationaleDialog by viewModel.isNeedToShowNotificationsRationaleDialog.collectAsStateWithLifecycle()
+            val pendingChatPeerId by viewModel.pendingChatPeerId.collectAsStateWithLifecycle()
 
             LaunchedEffect(isNeedToOpenAuth) {
                 if (isNeedToOpenAuth) {
                     viewModel.onNavigatedToAuth()
                     navController.navigateToAuth(clearBackStack = true)
+                }
+            }
+
+            LaunchedEffect(pendingChatPeerId, startDestination) {
+                val peerId = pendingChatPeerId
+                if (peerId != null && startDestination != null) {
+                    viewModel.onPendingChatConsumed()
+                    navController.navigateToMessagesHistory(peerId)
                 }
             }
 
@@ -350,6 +361,7 @@ fun RootScreen(
                                     )
                                 },
                                 onMessageClicked = navController::navigateToMessagesHistory,
+                                onFriendClicked = navController::navigateToProfile,
                                 onNavigateToCreateChat = navController::navigateToCreateChat,
                             )
 
@@ -361,6 +373,20 @@ fun RootScreen(
                                     photoViewerInfo = PhotoViewArguments(
                                         imageUrls = photos,
                                         selectedIndex = index,
+                                        cacheDirPath = context.applicationContext.cacheDir.path
+                                    )
+                                },
+                                onNavigateToProfile = navController::navigateToProfile
+                            )
+
+                            profileScreen(
+                                onBack = navController::navigateUp,
+                                onSendMessageClicked = navController::navigateToMessagesHistory,
+                                onSettingsButtonClicked = navController::navigateToSettings,
+                                onPhotoClicked = { url ->
+                                    photoViewerInfo = PhotoViewArguments(
+                                        imageUrls = listOf(url),
+                                        selectedIndex = null,
                                         cacheDirPath = context.applicationContext.cacheDir.path
                                     )
                                 }

@@ -22,8 +22,9 @@ data class VkFileData(
 
     @JsonClass(generateAdapter = true)
     data class Preview(
-        val photo: Photo?,
-        val video: Video?
+        val photo: Photo? = null,
+        val video: Video? = null,
+        @Json(name = "audio_msg") val audioMessage: VkAudioMessageData? = null
     ) {
 
         @JsonClass(generateAdapter = true)

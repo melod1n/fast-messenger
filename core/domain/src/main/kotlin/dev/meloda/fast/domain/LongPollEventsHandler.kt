@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import dev.meloda.fast.domain.notifier.MessageNotifier
 import kotlin.coroutines.CoroutineContext
 
 typealias EventListener = (event: LongPollParsedEvent) -> Unit
@@ -23,6 +24,7 @@ class LongPollEventsHandler(
     private val messagesUseCase: MessagesUseCase,
     private val convoDao: ConvoDao,
     private val messageDao: MessageDao,
+    private val messageNotifier: MessageNotifier? = null
 ) {
     private val job = SupervisorJob()
 
@@ -192,6 +194,7 @@ class LongPollEventsHandler(
                 messagesUseCase.storeMessage(event.message)
 
                 emitEvent(LongPollEvent.MESSAGE_NEW, event)
+                messageNotifier?.notifyNewMessage(event.message)
             }
 
             is LongPollParsedEvent.IncomingMessageRead -> {
@@ -200,6 +203,10 @@ class LongPollEventsHandler(
                     cmId = event.cmId,
                     unreadCount = event.unreadCount
                 )
+
+                if (event.unreadCount <= 0) {
+                    messageNotifier?.cancelNotification(event.peerId)
+                }
 
                 logger.debug(
                     this::class,

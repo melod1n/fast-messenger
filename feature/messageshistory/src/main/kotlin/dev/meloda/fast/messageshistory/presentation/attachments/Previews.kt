@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -24,8 +25,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.components.FastIconButton
@@ -102,16 +105,36 @@ fun DynamicPreviewGrid(
                                 FastIconButton(
                                     onClick = { currentOnClick(outerIndex * 3 + index) },
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(40.dp)
                                         .clip(CircleShape)
-                                        .background(Color.Black.copy(alpha = 0.5f))
+                                        .background(Color.Black.copy(alpha = 0.55f))
                                 ) {
                                     Icon(
-                                        modifier = Modifier,
+                                        modifier = Modifier.size(24.dp),
                                         painter = painterResource(R.drawable.ic_play_arrow_fill_round_24),
                                         contentDescription = null,
                                         tint = Color.White
                                     )
+                                }
+
+                                if (preview.durationSec > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(6.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(Color.Black.copy(alpha = 0.65f))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        val mins = preview.durationSec / 60
+                                        val secs = preview.durationSec % 60
+                                        Text(
+                                            text = String.format(java.util.Locale.getDefault(), "%d:%02d", mins, secs),
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
                                 }
                             }
                         }

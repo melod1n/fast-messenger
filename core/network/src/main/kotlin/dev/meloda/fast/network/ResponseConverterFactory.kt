@@ -57,6 +57,15 @@ class ResponseConverterFactory(
                     return successModel
                 },
                 onFailure = { failure ->
+                    val errorModel = kotlin.runCatching {
+                        converter.fromJson(errorRaw, string)
+                    }.getOrNull()
+
+                    if (errorModel != null) {
+                        logger.debug(this::class, "convert(): errorModel: $errorModel")
+                        throw ApiException(errorModel)
+                    }
+
                     if (failure is JsonDataException) {
                         logger.error(this::class, "convert(): ERROR", failure)
                         throw ApiException(
@@ -69,22 +78,11 @@ class ResponseConverterFactory(
 
                     val isUnit = successType == Unit::class.java
 
-                    kotlin.runCatching {
-                        converter.fromJson(errorRaw, string)
-                    }.fold(
-                        onSuccess = { errorModel ->
-                            logger.debug(this::class, "convert(): errorModel: $errorModel")
-                            throw ApiException(errorModel)
-                        },
-                        onFailure = { exception ->
-                            logger.error(this::class, "convert(): INNER: ERROR", exception)
-                            if (!isUnit) {
-                                throw exception
-                            } else {
-                                return Unit
-                            }
-                        }
-                    )
+                    if (!isUnit) {
+                        throw failure
+                    } else {
+                        return Unit
+                    }
                 }
             )
         }

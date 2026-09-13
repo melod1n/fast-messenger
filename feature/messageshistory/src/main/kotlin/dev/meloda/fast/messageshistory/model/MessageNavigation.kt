@@ -9,4 +9,8 @@ sealed class MessageNavigation {
         val peerId: Long,
         val cmId: Long
     ) : MessageNavigation()
+
+    data class Profile(
+        val userId: Long
+    ) : MessageNavigation()
 }
