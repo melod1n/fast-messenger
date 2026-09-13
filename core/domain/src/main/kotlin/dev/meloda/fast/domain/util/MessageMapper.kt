@@ -16,14 +16,16 @@ import dev.meloda.fast.ui.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+import dev.meloda.fast.model.api.domain.photo
+
 fun VkMessage.extractAvatar() = when {
     isUser() -> {
         if (isAccount(id)) null
-        else user?.photo200
+        else user?.photo(200)
     }
 
     isGroup() -> {
-        group?.photo200
+        group?.photo(200)
     }
 
     else -> null

@@ -46,6 +46,7 @@ import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.BottomNavigationItem
 import dev.meloda.fast.navigation.MainGraph
 import dev.meloda.fast.profile.navigation.profileScreen
+import dev.meloda.fast.model.api.domain.photo
 import dev.meloda.fast.ui.theme.LocalBottomPadding
 import dev.meloda.fast.ui.theme.LocalHazeState
 import dev.meloda.fast.ui.theme.LocalNavController
@@ -85,7 +86,7 @@ fun MainScreen(
         }
     }
 
-    val profileImageUrl = LocalUser.current?.photo100
+    val profileImageUrl = LocalUser.current?.photo(100)
 
     var tabReselected by remember {
         mutableStateOf(navigationItems.associate { it.route to false })

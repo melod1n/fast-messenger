@@ -11,6 +11,7 @@ data class VkConvo(
     val photo50: String?,
     val photo100: String?,
     val photo200: String?,
+    val photoBase: String? = null,
     val isCallInProgress: Boolean,
     val isPhantom: Boolean,
     val lastCmId: Long,
@@ -62,6 +63,7 @@ data class VkConvo(
             photo50 = null,
             photo100 = null,
             photo200 = null,
+            photoBase = null,
             isCallInProgress = false,
             isPhantom = false,
             lastCmId = -1,
@@ -98,6 +100,7 @@ fun VkConvo.asEntity(): VkConvoEntity = VkConvoEntity(
     photo50 = photo50,
     photo100 = photo100,
     photo200 = photo200,
+    photoBase = photoBase,
     isPhantom = isPhantom,
     lastCmId = lastCmId,
     inReadCmId = inReadCmId,
@@ -115,3 +118,16 @@ fun VkConvo.asEntity(): VkConvoEntity = VkConvoEntity(
     peerType = peerType.value,
     isArchived = isArchived
 )
+
+fun VkConvo.photoUrl(size: Int = 200): String? = resolvePhotoUrl(
+    photoBase = photoBase,
+    size = size,
+    preferred = when {
+        size <= 50 -> photo50
+        size <= 100 -> photo100
+        else -> photo200
+    },
+    photo200, photo100, photo50
+)
+
+fun VkConvo.photo(size: Int = 200): String? = photoUrl(size)

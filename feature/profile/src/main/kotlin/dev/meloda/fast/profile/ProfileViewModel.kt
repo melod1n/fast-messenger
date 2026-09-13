@@ -14,6 +14,8 @@ import dev.meloda.fast.profile.model.ProfileScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+import dev.meloda.fast.model.api.domain.photo
+
 class ProfileViewModel(
     private val getLocalUserByIdUseCase: GetLocalUserByIdUseCase,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
@@ -45,7 +47,7 @@ class ProfileViewModel(
                     logger.debug(this@ProfileViewModel::class, "SUCCESS")
                     emit(
                         screenState.value.copy(
-                            avatarUrl = user?.photo200,
+                            avatarUrl = user?.photo(200),
                             fullName = user?.fullName
                         )
                     )
@@ -74,7 +76,7 @@ class ProfileViewModel(
 
                     screenState.setValue { old ->
                         old.copy(
-                            avatarUrl = user.photo200,
+                            avatarUrl = user.photo(200),
                             fullName = user.fullName
                         )
                     }
