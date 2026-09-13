@@ -124,6 +124,16 @@
     <string name="account_temporarily_blocked">Обліковий запис тимчасово заблоковано</string>
     <string name="user_name">Ім\'я користувача</string>
     <string name="sign_in_to_vk">Увійдіть до ВК</string>
+    <string name="scan_qr_code">Сканувати QR-код</string>
+    <string name="qr_login_error_invalid">Невірний QR-код. Токен доступу не знайдено.</string>
+    <string name="qr_login_error_failed">Не вдалося увійти за цим QR-кодом.</string>
+    <string name="qr_login_error_expired">Строк QR-коду сплив. Створи новий на сайті.</string>
+    <string name="qr_scanner_hint">Наведи камеру на QR для входу, щоб він був всередині рамки</string>
+    <string name="qr_scanner_hint_wrong">Це не QR для входу. Потрібен QR з токеном доступу</string>
+    <string name="qr_scanner_accepted">Код прийнято, входимо...</string>
+    <string name="qr_scanner_back">Назад</string>
+    <string name="qr_scanner_torch">Ліхтарик</string>
+    <string name="qr_scanner_camera_permission">Для сканування QR-кодів потрібен доступ до камери</string>
     <string name="settings_dark_theme">Темна тема</string>
     <string name="settings_dark_theme_value_enabled">Увімкнена</string>
     <string name="settings_dark_theme_value_follow_system">Системна</string>

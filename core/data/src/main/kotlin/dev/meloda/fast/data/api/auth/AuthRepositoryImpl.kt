@@ -7,7 +7,9 @@ import dev.meloda.fast.model.api.requests.GetAnonymTokenRequest
 import dev.meloda.fast.model.api.requests.GetExchangeTokenRequest
 import dev.meloda.fast.model.api.responses.ExchangeSilentTokenResponse
 import dev.meloda.fast.model.api.responses.GetAnonymTokenResponse
+import dev.meloda.fast.model.api.responses.GetAuthCodeStatusResponse
 import dev.meloda.fast.model.api.responses.GetExchangeTokenResponse
+import dev.meloda.fast.model.api.responses.SetAuthCodeStatusResponse
 import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
 import dev.meloda.fast.network.RestApiErrorDomain
 import dev.meloda.fast.network.mapApiDefault
@@ -64,5 +66,19 @@ class AuthRepositoryImpl(
     ): ApiResult<GetExchangeTokenResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
         val requestModel = GetExchangeTokenRequest(accessToken = accessToken)
         service.getExchangeToken(requestModel.map).mapApiDefault()
+    }
+
+    override suspend fun getAuthCodeStatus(
+        accessToken: String,
+        authCode: String
+    ): ApiResult<GetAuthCodeStatusResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        service.getAuthCodeStatus(accessToken, authCode).mapApiDefault()
+    }
+
+    override suspend fun setAuthCodeStatus(
+        accessToken: String,
+        authCode: String
+    ): ApiResult<SetAuthCodeStatusResponse, RestApiErrorDomain> = withContext(Dispatchers.IO) {
+        service.setAuthCodeStatus(mapOf("access_token" to accessToken, "auth_code" to authCode)).mapApiDefault()
     }
 }

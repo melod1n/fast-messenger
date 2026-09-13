@@ -18,6 +18,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Login
 
+@Serializable
+object QrScannerRoute
+
 fun NavGraphBuilder.loginScreen(
     handleNavigationIntent: (LoginNavigationIntent) -> Unit,
     navController: NavController
@@ -45,9 +48,31 @@ fun NavGraphBuilder.loginScreen(
             viewModel.onValidationCodeReceived(validationCode)
         }
 
+        val savedStateHandle = backStackEntry.savedStateHandle
+        val scannedQr by savedStateHandle.getStateFlow<String?>("scanned_qr", null).collectAsStateWithLifecycle()
+
+        LaunchedEffect(scannedQr) {
+            if (scannedQr != null) {
+                viewModel.handleIntent(dev.meloda.fast.auth.login.model.LoginIntent.QrCodeScanned(scannedQr!!))
+                savedStateHandle["scanned_qr"] = null
+            }
+        }
+
         LoginRoute(
             handleIntent = viewModel::handleIntent,
             screenState = screenState
+        )
+    }
+}
+
+fun NavGraphBuilder.qrScannerScreen(
+    onQrCodeScanned: (String) -> Unit,
+    onBackClicked: () -> Unit
+) {
+    composable<QrScannerRoute> {
+        dev.meloda.fast.auth.login.presentation.QrScannerScreen(
+            onQrCodeScanned = onQrCodeScanned,
+            onBackClicked = onBackClicked
         )
     }
 }
