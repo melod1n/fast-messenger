@@ -5,7 +5,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import dev.meloda.fast.auth.login.model.LoginNavigationIntent
 import dev.meloda.fast.auth.login.navigation.Login
+import dev.meloda.fast.auth.login.navigation.QrScannerRoute
 import dev.meloda.fast.auth.login.navigation.loginScreen
+import dev.meloda.fast.auth.login.navigation.qrScannerScreen
 import dev.meloda.fast.auth.userbanned.navigation.navigateToUserBanned
 import dev.meloda.fast.auth.userbanned.navigation.userBannedRoute
 import dev.meloda.fast.auth.validation.navigation.navigateToValidation
@@ -28,11 +30,24 @@ fun NavGraphBuilder.authNavGraph(
                     LoginNavigationIntent.Back -> navController.navigateUp()
                     LoginNavigationIntent.Main -> onNavigateToMain()
                     LoginNavigationIntent.Settings -> onNavigateToSettings()
+                    LoginNavigationIntent.QrScanner -> navController.navigate(QrScannerRoute)
                     is LoginNavigationIntent.UserBanned -> navController.navigateToUserBanned(intent.arguments)
                     is LoginNavigationIntent.Validation -> navController.navigateToValidation(intent.arguments)
                 }
             },
             navController = navController
+        )
+        
+        qrScannerScreen(
+            onQrCodeScanned = { qrText: String ->
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("scanned_qr", qrText)
+                navController.popBackStack()
+            },
+            onBackClicked = {
+                navController.popBackStack()
+            }
         )
 
         validationScreen(

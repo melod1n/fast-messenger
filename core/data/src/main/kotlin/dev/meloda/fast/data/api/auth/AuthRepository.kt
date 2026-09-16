@@ -3,7 +3,9 @@ package dev.meloda.fast.data.api.auth
 import com.slack.eithernet.ApiResult
 import dev.meloda.fast.model.api.responses.ExchangeSilentTokenResponse
 import dev.meloda.fast.model.api.responses.GetAnonymTokenResponse
+import dev.meloda.fast.model.api.responses.GetAuthCodeStatusResponse
 import dev.meloda.fast.model.api.responses.GetExchangeTokenResponse
+import dev.meloda.fast.model.api.responses.SetAuthCodeStatusResponse
 import dev.meloda.fast.model.api.responses.ValidatePhoneResponse
 import dev.meloda.fast.network.RestApiErrorDomain
 
@@ -29,4 +31,14 @@ interface AuthRepository {
     suspend fun getExchangeToken(
         accessToken: String
     ): ApiResult<GetExchangeTokenResponse, RestApiErrorDomain>
+
+    suspend fun getAuthCodeStatus(
+        accessToken: String,
+        authCode: String
+    ): ApiResult<GetAuthCodeStatusResponse, RestApiErrorDomain>
+
+    suspend fun setAuthCodeStatus(
+        accessToken: String,
+        authCode: String
+    ): ApiResult<SetAuthCodeStatusResponse, RestApiErrorDomain>
 }

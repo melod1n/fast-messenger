@@ -14,6 +14,8 @@ sealed class LoginIntent {
     data object PasswordVisibilityButtonClick : LoginIntent()
 
     data object SignInButtonClick : LoginIntent()
+    data object QrScannerButtonClick : LoginIntent()
+    data class QrCodeScanned(val qrText: String) : LoginIntent()
 
     sealed class Dialog : LoginIntent() {
         data object Dismiss : Dialog()
