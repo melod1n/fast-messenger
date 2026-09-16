@@ -12,6 +12,7 @@ data class VkGroupEntity(
     val photo50: String?,
     val photo100: String?,
     val photo200: String?,
+    val photoBase: String? = null,
     val membersCount: Int?
 )
 
@@ -22,5 +23,6 @@ fun VkGroupEntity.asDomain(): VkGroupDomain = VkGroupDomain(
     photo50 = photo50,
     photo100 = photo100,
     photo200 = photo200,
+    photoBase = photoBase,
     membersCount = membersCount
 )

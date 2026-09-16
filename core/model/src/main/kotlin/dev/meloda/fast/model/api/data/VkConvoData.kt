@@ -92,7 +92,8 @@ data class VkConvoData(
             @Json(name = "photo_50") val photo50: String?,
             @Json(name = "photo_100") val photo100: String?,
             @Json(name = "photo_200") val photo200: String?,
-            @Json(name = "is_default_photo") val isDefaultPhoto: Boolean,
+            @Json(name = "photo_base") val photoBase: String?,
+            @Json(name = "is_default_photo") val isDefaultPhoto: Boolean = false,
         )
     }
 
@@ -118,6 +119,7 @@ data class VkConvoData(
         photo50 = chatSettings?.photo?.photo50,
         photo100 = chatSettings?.photo?.photo100,
         photo200 = chatSettings?.photo?.photo200,
+        photoBase = chatSettings?.photo?.photoBase,
         isCallInProgress = callInProgress != null,
         isPhantom = chatSettings?.isDisappearing == true,
         lastCmId = lastCmId,

@@ -27,18 +27,20 @@ import java.util.Locale
 import kotlin.math.ln
 import kotlin.math.pow
 
+import dev.meloda.fast.model.api.domain.photo
+
 fun VkConvo.extractAvatar(): UiImage = when (peerType) {
     PeerType.USER -> {
         if (isAccount(id)) null
-        else user?.photo200
+        else user?.photo(200)
     }
 
     PeerType.GROUP -> {
-        group?.photo200
+        group?.photo(200)
     }
 
     PeerType.CHAT -> {
-        photo200
+        photo(200)
     }
 }?.let(UiImage::Url) ?: UiImage.Resource(R.drawable.ic_account_circle_fill_round_24)
 

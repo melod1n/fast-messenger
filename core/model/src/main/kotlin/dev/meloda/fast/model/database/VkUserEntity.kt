@@ -19,7 +19,8 @@ data class VkUserEntity(
     val photo50: String?,
     val photo100: String?,
     val photo200: String?,
-    val photo400Orig: String?
+    val photo400Orig: String?,
+    val photoBase: String? = null
 )
 
 fun VkUserEntity.asExternalModel(): VkUser = VkUser(
@@ -36,6 +37,7 @@ fun VkUserEntity.asExternalModel(): VkUser = VkUser(
     photo100 = photo100,
     photo200 = photo200,
     photo400Orig = photo400Orig,
+    photoBase = photoBase,
     lastSeen = lastSeen,
     lastSeenStatus = lastSeenStatus,
     birthday = birthday

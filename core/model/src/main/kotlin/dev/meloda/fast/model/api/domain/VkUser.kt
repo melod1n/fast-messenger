@@ -11,6 +11,7 @@ data class VkUser(
     val photo100: String?,
     val photo200: String?,
     val photo400Orig: String?,
+    val photoBase: String? = null,
     val lastSeen: Int?,
     val lastSeenStatus: String?,
     val birthday: String?,
@@ -45,5 +46,20 @@ fun VkUser.asEntity(): VkUserEntity = VkUserEntity(
     photo50 = photo50,
     photo100 = photo100,
     photo200 = photo200,
-    photo400Orig = photo400Orig
+    photo400Orig = photo400Orig,
+    photoBase = photoBase
 )
+
+fun VkUser.photoUrl(size: Int = 200): String? = resolvePhotoUrl(
+    photoBase = photoBase,
+    size = size,
+    preferred = when {
+        size <= 50 -> photo50
+        size <= 100 -> photo100
+        size <= 200 -> photo200
+        else -> photo400Orig ?: photo200
+    },
+    photo200, photo100, photo50, photo400Orig
+)
+
+fun VkUser.photo(size: Int = 200): String? = photoUrl(size)

@@ -2,10 +2,10 @@ package dev.meloda.fast.common
 
 object VkConstants {
 
-    const val GROUP_FIELDS = "description,members_count,counters,status,verified"
+    const val GROUP_FIELDS = "description,members_count,counters,status,verified,photo_base"
 
     const val USER_FIELDS =
-        "photo_50,photo_100,photo_200,photo_400_orig,status,screen_name,online_info,last_seen,verified,sex,bdate"
+        "photo_50,photo_100,photo_200,photo_400_orig,photo_base,status,screen_name,online_info,last_seen,verified,sex,bdate"
 
     const val ALL_FIELDS =
         "$USER_FIELDS,$GROUP_FIELDS"

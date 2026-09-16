@@ -24,6 +24,7 @@ import dev.meloda.fast.domain.FriendsUseCase
 import dev.meloda.fast.domain.GetLocalUserByIdUseCase
 import dev.meloda.fast.domain.MessagesUseCase
 import dev.meloda.fast.domain.util.asPresentation
+import dev.meloda.fast.model.api.domain.photo
 import dev.meloda.fast.model.api.domain.VkUser
 import dev.meloda.fast.ui.model.vk.UiFriend
 import kotlinx.coroutines.Dispatchers
@@ -219,12 +220,12 @@ class CreateChatViewModel(
                                 screenState.value.friends.isNotEmpty()
 
                         val imagesToPreload =
-                            response.flatMap {
+                            response.flatMap { friend ->
                                 listOfNotNull(
-                                    it.photo100.takeIf { p -> !p.isNullOrEmpty() },
-                                    it.photo50.takeIf { p -> !p.isNullOrEmpty() }
+                                    friend.photo(100),
+                                    friend.photo(50)
                                 )
-                            }
+                            }.distinct()
 
                         imagesToPreload.forEach { url ->
                             imageLoader.enqueue(

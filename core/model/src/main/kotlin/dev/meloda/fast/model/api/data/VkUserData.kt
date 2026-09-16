@@ -18,6 +18,7 @@ data class VkUserData(
     @Json(name = "photo_100") val photo100: String?,
     @Json(name = "photo_200") val photo200: String?,
     @Json(name = "photo_400_orig") val photo400Orig: String?,
+    @Json(name = "photo_base") val photoBase: String?,
     @Json(name = "online_info") val onlineInfo: OnlineInfo?,
     @Json(name = "last_seen") val lastSeen: LastSeen?,
     @Json(name = "screen_name") val screenName: String,
@@ -55,6 +56,7 @@ data class VkUserData(
         photo100 = photo100,
         photo200 = photo200,
         photo400Orig = photo400Orig,
+        photoBase = photoBase,
         lastSeen = onlineInfo?.lastSeen,
         lastSeenStatus = onlineInfo?.status,
         birthday = birthday
