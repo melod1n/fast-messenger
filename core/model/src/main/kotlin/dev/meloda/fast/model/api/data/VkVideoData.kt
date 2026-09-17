@@ -1,13 +1,16 @@
 package dev.meloda.fast.model.api.data
 
+import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import dev.meloda.fast.model.api.domain.VkVideoDomain
+import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
+import kotlinx.parcelize.Parcelize
 
 @JsonClass(generateAdapter = true)
 data class VkVideoData(
     @Json(name = "id") val id: Long,
-    @Json(name = "title") val title: String,
+    @Json(name = "title") val title: String = "",
     @Json(name = "width") val width: Int?,
     @Json(name = "height") val height: Int?,
     @Json(name = "duration") val duration: Int,
@@ -42,12 +45,13 @@ data class VkVideoData(
         )
     }
 
+    @Parcelize
     @JsonClass(generateAdapter = true)
     data class FirstFrame(
         @Json(name = "height") val height: Int,
         @Json(name = "width") val width: Int,
         @Json(name = "url") val url: String
-    )
+    ) : Parcelable
 
     @JsonClass(generateAdapter = true)
     data class File(
@@ -74,6 +78,36 @@ data class VkVideoData(
         title = title,
         views = views,
         duration = duration,
-        isShortVideo = type == "short_video"
+        isShortVideo = type == "short_video",
+        player = player,
+        directUrl = files?.mp41440
+            ?: files?.mp41080
+            ?: files?.mp4720
+            ?: files?.mp4480
+            ?: files?.mp4360
+            ?: files?.mp4240
+            ?: files?.hls
+    )
+
+    fun isSquareVideoMessage(): Boolean {
+        return width != null && height != null &&
+                width == height &&
+                duration in 1..60
+    }
+
+    fun toVideoMessageDomain() = VkVideoMessageDomain(
+        id = id,
+        ownerId = ownerId,
+        accessKey = accessKey,
+        duration = duration,
+        image = image.orEmpty().maxByOrNull { it.width }?.url
+            ?: firstFrame?.firstOrNull()?.url,
+        link = files?.mp41440
+            ?: files?.mp41080
+            ?: files?.mp4720
+            ?: files?.mp4480
+            ?: files?.mp4360
+            ?: files?.mp4240
+            ?: files?.hls
     )
 }

@@ -50,6 +50,7 @@ fun FriendsScreen(
     tabIndex: Int,
     onPhotoClicked: (url: String) -> Unit = {},
     onMessageClicked: (userid: Long) -> Unit = {},
+    onFriendClicked: (userid: Long) -> Unit = {},
     setCanScrollBackward: (Boolean) -> Unit = {},
     onScrolledToTop: () -> Unit = {}
 ) {
@@ -169,6 +170,7 @@ fun FriendsScreen(
                     padding = padding,
                     onPhotoClicked = onPhotoClicked,
                     onMessageClicked = onMessageClicked,
+                    onFriendClicked = onFriendClicked,
                     setCanScrollBackward = setCanScrollBackward
                 )
 

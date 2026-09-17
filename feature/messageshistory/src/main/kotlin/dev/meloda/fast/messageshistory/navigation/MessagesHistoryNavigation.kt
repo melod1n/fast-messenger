@@ -29,13 +29,15 @@ fun NavGraphBuilder.messagesHistoryScreen(
     onBack: () -> Unit,
     onNavigateToChatMaterials: (peerId: Long, cmId: Long) -> Unit,
     onNavigateToPhotoViewer: (images: List<String>, index: Int) -> Unit,
+    onNavigateToProfile: (userId: Long) -> Unit = {}
 ) {
     composable<MessagesHistory>(typeMap = MessagesHistory.typeMap) {
         MessagesHistoryRoute(
             onError = onError,
             onBack = onBack,
             onNavigateToChatMaterials = onNavigateToChatMaterials,
-            onNavigateToPhotoViewer = onNavigateToPhotoViewer
+            onNavigateToPhotoViewer = onNavigateToPhotoViewer,
+            onNavigateToProfile = onNavigateToProfile
         )
     }
 }

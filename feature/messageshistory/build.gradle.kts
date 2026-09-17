@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.model)
     implementation(projects.core.ui)
+    implementation(projects.core.logger)
 
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)
@@ -34,4 +35,21 @@ dependencies {
     implementation(libs.kotlin.serialization)
 
     implementation(libs.androidx.navigation.compose)
+
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
+
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.video)
+    implementation(libs.camera.view)
+
+    implementation(libs.accompanist.permissions)
+
+    implementation(libs.androidx.emoji2.emojipicker)
 }

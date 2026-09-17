@@ -43,11 +43,14 @@ android {
 
     buildTypes {
         named("debug") {
-            signingConfig = signingConfigs.getByName("debugSigning")
+            signingConfig = signingConfigs.getByName("debug")
             applicationIdSuffix = ".debug"
         }
         named("release") {
-            signingConfig = signingConfigs.getByName("debugSigning")
+            val releaseConfig = signingConfigs.findByName("release")
+            if (releaseConfig?.storePassword != null) {
+                signingConfig = releaseConfig
+            }
 
             isMinifyEnabled = true
             isShrinkResources = true

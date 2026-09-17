@@ -10,8 +10,16 @@ import java.net.URLEncoder
 class LanguageInterceptor(private val provider: Provider<ApiLanguage>) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val builder = chain.request().url.newBuilder()
+        val request = chain.request()
+        val host = request.url.host
+        val path = request.url.encodedPath
 
+        // Do not alter upload server URLs (pu.vk.ru / upload.php) which have strict signatures
+        if (!host.startsWith("api.vk.") || path.contains("upload.php")) {
+            return chain.proceed(request)
+        }
+
+        val builder = request.url.newBuilder()
         val uri = builder.build().toUri().toString().toUri()
 
         val apiLanguage = provider.provide()?.value ?: "ru"
@@ -23,6 +31,6 @@ class LanguageInterceptor(private val provider: Provider<ApiLanguage>) : Interce
             )
         }
 
-        return chain.proceed(chain.request().newBuilder().apply { url(builder.build()) }.build())
+        return chain.proceed(request.newBuilder().apply { url(builder.build()) }.build())
     }
 }

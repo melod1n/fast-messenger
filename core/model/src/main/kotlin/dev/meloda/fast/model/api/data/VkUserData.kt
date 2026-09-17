@@ -10,20 +10,33 @@ data class VkUserData(
     @Json(name = "id") val id: Long,
     @Json(name = "first_name") val firstName: String,
     @Json(name = "last_name") val lastName: String,
-    @Json(name = "can_access_closed") val canAccessClosed: Boolean,
-    @Json(name = "is_closed") val isClosed: Boolean,
+    @Json(name = "can_access_closed") val canAccessClosed: Boolean = true,
+    @Json(name = "is_closed") val isClosed: Boolean = false,
     @Json(name = "can_invite_to_chats") val canInviteToChats: Boolean = false,
-    @Json(name = "sex") val sex: Int?,
-    @Json(name = "photo_50") val photo50: String?,
-    @Json(name = "photo_100") val photo100: String?,
-    @Json(name = "photo_200") val photo200: String?,
-    @Json(name = "photo_400_orig") val photo400Orig: String?,
-    @Json(name = "online_info") val onlineInfo: OnlineInfo?,
-    @Json(name = "last_seen") val lastSeen: LastSeen?,
-    @Json(name = "screen_name") val screenName: String,
-    @Json(name = "bdate") val birthday: String?
-    //...other fields
+    @Json(name = "sex") val sex: Int? = null,
+    @Json(name = "photo_50") val photo50: String? = null,
+    @Json(name = "photo_100") val photo100: String? = null,
+    @Json(name = "photo_200") val photo200: String? = null,
+    @Json(name = "photo_400_orig") val photo400Orig: String? = null,
+    @Json(name = "online_info") val onlineInfo: OnlineInfo? = null,
+    @Json(name = "last_seen") val lastSeen: LastSeen? = null,
+    @Json(name = "screen_name") val screenName: String? = null,
+    @Json(name = "bdate") val birthday: String? = null,
+    @Json(name = "status") val status: String? = null,
+    @Json(name = "verified") val verified: Int? = null,
+    @Json(name = "city") val city: TitleObject? = null,
+    @Json(name = "country") val country: TitleObject? = null,
+    @Json(name = "about") val about: String? = null,
+    @Json(name = "site") val site: String? = null,
+    @Json(name = "followers_count") val followersCount: Int? = null,
+    @Json(name = "can_write_private_message") val canWritePrivateMessage: Int? = null
 ) {
+
+    @JsonClass(generateAdapter = true)
+    data class TitleObject(
+        @Json(name = "id") val id: Long? = null,
+        @Json(name = "title") val title: String? = null
+    )
 
     @JsonClass(generateAdapter = true)
     data class OnlineInfo(
@@ -57,7 +70,17 @@ data class VkUserData(
         photo400Orig = photo400Orig,
         lastSeen = onlineInfo?.lastSeen,
         lastSeenStatus = onlineInfo?.status,
-        birthday = birthday
+        birthday = birthday,
+        status = status,
+        screenName = screenName,
+        city = city?.title,
+        country = country?.title,
+        about = about,
+        site = site,
+        verified = verified == 1,
+        followersCount = followersCount,
+        canWrite = canWritePrivateMessage != 0,
+        sex = sex
     )
 }
 

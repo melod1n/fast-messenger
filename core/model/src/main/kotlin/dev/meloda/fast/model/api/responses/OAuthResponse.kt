@@ -66,7 +66,9 @@ data class GetSilentTokenResponse(
 @JsonClass(generateAdapter = true)
 data class Error(
     @Json(name = "error_code") val errorCode: Int,
-    @Json(name = "error_msg") val errorMessage: Int,
+    // VK returns error_msg as a string; parsing it as Int made every OAuth error
+    // fail with a Moshi JsonDataException instead of showing the real message
+    @Json(name = "error_msg") val errorMessage: String,
     @Json(name = "redirect_uri") val redirectUri: String?
 )
 

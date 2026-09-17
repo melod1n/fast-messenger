@@ -3,6 +3,7 @@ package dev.meloda.fast.auth.login
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.presentation.LoginScreen
 import org.junit.Rule
 import org.junit.Test
@@ -15,7 +16,10 @@ class LoginScreenTest {
     @Test
     fun singInButton_isClickable() {
         composeTestRule.setContent {
-            LoginScreen()
+            LoginScreen(
+                handleIntent = {},
+                screenState = LoginScreenState.EMPTY
+            )
         }
 
         composeTestRule.onNodeWithTag(testTag = "sing_in_fab").assertHasClickAction()

@@ -36,4 +36,8 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     implementation(libs.guava)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.kotlinx.coroutines.core)
 }

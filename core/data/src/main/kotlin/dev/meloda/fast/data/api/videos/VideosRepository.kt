@@ -7,8 +7,15 @@ class VideosRepository(
     private val videosService: VideosService
 ) {
 
-    suspend fun save() = videosService.save()
+    suspend fun save(
+        isVideoMessage: Boolean = false,
+        name: String? = null
+    ) = videosService.save(
+        isVideoMessage = if (isVideoMessage) 1 else null,
+        name = name
+    )
 
-    // TODO: 05/05/2024, Danil Nikolaev: research, maybe remove multipart.body
+    suspend fun get(videos: String) = videosService.get(videos = videos)
+
     suspend fun upload(url: String, file: MultipartBody.Part) = videosService.upload(url, file)
 }

@@ -2,7 +2,90 @@ package dev.meloda.fast.model.api.requests
 
 import dev.meloda.fast.model.api.asInt
 import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkAudioDomain
+import dev.meloda.fast.model.api.domain.VkAudioMessageDomain
+import dev.meloda.fast.model.api.domain.VkFileDomain
 import dev.meloda.fast.model.api.domain.VkMessage
+import dev.meloda.fast.model.api.domain.VkPhotoDomain
+import dev.meloda.fast.model.api.domain.VkVideoDomain
+import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
+
+internal fun VkAttachment.asAttachmentString(): String? = when (this) {
+    is VkAudioMessageDomain -> buildString {
+        append("doc")
+        append(ownerId)
+        append('_')
+        append(id)
+        if (accessKey.isNotBlank()) {
+            append('_')
+            append(accessKey)
+        }
+    }
+
+    is VkVideoMessageDomain -> ownerId?.let { ownerId ->
+        buildString {
+            append("video_message")
+            append(ownerId)
+            append('_')
+            append(id)
+            if (!accessKey.isNullOrBlank()) {
+                append('_')
+                append(accessKey)
+            }
+        }
+    }
+
+    is VkFileDomain -> buildString {
+        append("doc")
+        append(ownerId)
+        append('_')
+        append(id)
+        if (!accessKey.isNullOrBlank()) {
+            append('_')
+            append(accessKey)
+        }
+    }
+
+    is VkPhotoDomain -> buildString {
+        append("photo")
+        append(ownerId)
+        append('_')
+        append(id)
+        if (!accessKey.isNullOrBlank()) {
+            append('_')
+            append(accessKey)
+        }
+    }
+
+    is VkVideoDomain -> buildString {
+        append("video")
+        append(ownerId)
+        append('_')
+        append(id)
+        if (!accessKey.isNullOrBlank()) {
+            append('_')
+            append(accessKey)
+        }
+    }
+
+    is VkAudioDomain -> buildString {
+        append("audio")
+        append(ownerId)
+        append('_')
+        append(id)
+        if (!accessKey.isNullOrBlank()) {
+            append('_')
+            append(accessKey)
+        }
+    }
+
+    else -> null
+}
+
+internal fun List<VkAttachment>.toAttachmentsString(): String? =
+    mapNotNull(VkAttachment::asAttachmentString)
+        .takeIf(List<String>::isNotEmpty)
+        ?.joinToString(separator = ",")
 
 data class MessagesGetHistoryRequest(
     val count: Int? = null,
@@ -64,12 +147,9 @@ data class MessagesSendRequest(
                         "]}"
             }
 
-            // TODO: 05/05/2024, Danil Nikolaev: add attachments
-//            attachments?.let {
-//                this["attachment"] = it.joinToString() { attachment ->
-//                    attachment.asString(true)
-//                }
-//            }
+            attachments?.let { attachments ->
+                attachments.toAttachmentsString()?.let { this["attachment"] = it }
+            }
         }
 }
 
@@ -181,13 +261,9 @@ data class MessagesEditRequest(
             lat?.let { this["lat"] = it.toString() }
             long?.let { this["long"] = it.toString() }
 
-            // TODO: 05/05/2024, Danil Nikolaev: add attachments
-//            attachments?.let {
-//                val attachments =
-//                    if (it.isEmpty()) ""
-//                    else it.joinToString() { it.asString() }
-//                this["attachment"] = attachments
-//            }
+            attachments?.let { attachments ->
+                attachments.toAttachmentsString()?.let { this["attachment"] = it }
+            }
         }
 
 }

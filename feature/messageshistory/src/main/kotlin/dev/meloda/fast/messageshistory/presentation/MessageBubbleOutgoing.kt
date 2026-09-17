@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.conena.nanokt.android.content.dpInPx
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
 import dev.meloda.fast.model.api.domain.VkAttachment
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.MessageUiItem
@@ -29,6 +30,7 @@ fun OutgoingMessageBubble(
     enableAnimations: Boolean,
     message: MessageUiItem.Message,
     offsetX: Float = 0f,
+    voicePlayback: VoicePlaybackState = VoicePlaybackState.IDLE,
     onClick: (VkAttachment) -> Unit = {},
     onLongClick: (VkAttachment) -> Unit = {},
     onReplyClick: () -> Unit = {}
@@ -82,6 +84,7 @@ fun OutgoingMessageBubble(
                     attachments = message.attachments,
                     replyTitle = message.replyTitle,
                     replySummary = message.replySummary,
+                    voicePlayback = voicePlayback,
                     onClick = currentOnClick,
                     onLongClick = currentOnLongClick,
                     onReplyClick = currentOnReplyClick

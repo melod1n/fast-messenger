@@ -8,13 +8,13 @@ import com.squareup.moshi.JsonClass
 data class VkAudioMessageData(
     @Json(name = "id") val id: Long,
     @Json(name = "owner_id") val ownerId: Long,
-    @Json(name = "duration") val duration: Int,
-    @Json(name = "waveform") val waveform: List<Int>,
-    @Json(name = "link_ogg") val linkOgg: String,
-    @Json(name = "link_mp3") val linkMp3: String,
-    @Json(name = "access_key") val accessKey: String,
-    @Json(name = "transcript_state") val transcriptState: String?,
-    @Json(name = "transcript") val transcript: String?
+    @Json(name = "duration") val duration: Int = 0,
+    @Json(name = "waveform") val waveform: List<Int> = emptyList(),
+    @Json(name = "link_ogg") val linkOgg: String? = null,
+    @Json(name = "link_mp3") val linkMp3: String? = null,
+    @Json(name = "access_key") val accessKey: String? = null,
+    @Json(name = "transcript_state") val transcriptState: String? = null,
+    @Json(name = "transcript") val transcript: String? = null
 ) {
 
     fun toDomain() = VkAudioMessageDomain(
@@ -22,9 +22,9 @@ data class VkAudioMessageData(
         ownerId = ownerId,
         duration = duration,
         waveform = waveform,
-        linkOgg = linkOgg,
-        linkMp3 = linkMp3,
-        accessKey = accessKey,
+        linkOgg = linkOgg.orEmpty(),
+        linkMp3 = linkMp3.orEmpty(),
+        accessKey = accessKey.orEmpty(),
         transcriptState = transcriptState,
         transcript = transcript
     )

@@ -22,6 +22,7 @@ accompanist = "0.37.3"
 coil = "2.7.0"
 coroutines = "1.11.0"
 junit = "4.13.2"
+mockwebserver = "5.4.0"
 chucker = "4.3.1"
 guava = "33.6.0-jre"
 lifecycle = "2.11.0"
@@ -33,6 +34,9 @@ preference-ktx = "1.2.1"
 nanokt = "1.3.0"
 androidx-navigation = "2.9.8"
 serialization = "1.11.0"
+media3 = "1.8.0"
+camerax = "1.4.1"
+emoji2 = "1.6.0"
 
 okhttp = "5.4.0"
 
@@ -48,6 +52,7 @@ eithernet-integration-retrofit = { module = "com.slack.eithernet:eithernet-integ
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 junit = { module = "junit:junit", version.ref = "junit" }
+mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 chucker = { module = "com.github.chuckerteam.chucker:library", version.ref = "chucker" }
 chucker-noop = { module = "com.github.chuckerteam.chucker:library-no-op", version.ref = "chucker" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -72,6 +77,21 @@ nanokt-jvm = { module = "com.conena.nanokt:nanokt-jvm", version.ref = "nanokt" }
 
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
+media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
+media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3" }
+media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
+media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
+media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
+
+camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+camera-video = { module = "androidx.camera:camera-video", version.ref = "camerax" }
+camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
+
+androidx-emoji2-emojipicker = { module = "androidx.emoji2:emoji2-emojipicker", version.ref = "emoji2" }
 
 compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose-bom" }
 compose-runtime = { module = "androidx.compose.runtime:runtime" }

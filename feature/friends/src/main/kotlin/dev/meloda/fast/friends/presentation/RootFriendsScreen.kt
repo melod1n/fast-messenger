@@ -63,6 +63,7 @@ fun FriendsRoute(
     onError: (BaseError) -> Unit,
     onPhotoClicked: (url: String) -> Unit,
     onMessageClicked: (userid: Long) -> Unit,
+    onFriendClicked: (userid: Long) -> Unit = {},
     onScrolledToTop: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -245,6 +246,7 @@ fun FriendsRoute(
                 tabIndex = index,
                 onPhotoClicked = onPhotoClicked,
                 onMessageClicked = onMessageClicked,
+                onFriendClicked = onFriendClicked,
                 setCanScrollBackward = { canScrollBackward = it },
                 onScrolledToTop = onScrolledToTop
             )

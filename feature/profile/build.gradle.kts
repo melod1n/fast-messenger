@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.model)
     implementation(projects.core.ui)
+    implementation(projects.core.logger)
 
     implementation(libs.nanokt.android)
     implementation(libs.nanokt.jvm)

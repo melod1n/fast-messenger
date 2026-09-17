@@ -4,6 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -17,12 +19,23 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
+import androidx.media3.effect.Presentation
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.Effects
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.Transformer
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.conena.nanokt.collections.indexOfFirstOrNull
+import com.slack.eithernet.ApiResult
+import dev.meloda.fast.common.ActiveChatTracker
 import dev.meloda.fast.common.VkConstants
 import dev.meloda.fast.common.extensions.getParcelableCompat
 import dev.meloda.fast.common.extensions.listenValue
@@ -33,7 +46,12 @@ import dev.meloda.fast.common.provider.ResourceProvider
 import dev.meloda.fast.data.State
 import dev.meloda.fast.data.UserConfig
 import dev.meloda.fast.data.VkMemoryCache
+import dev.meloda.fast.data.api.files.FilesRepository
+import dev.meloda.fast.data.api.photos.PhotosRepository
+import dev.meloda.fast.data.api.stickers.StickersRepository
+import dev.meloda.fast.data.api.videos.VideosRepository
 import dev.meloda.fast.data.processState
+import dev.meloda.fast.data.success
 import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.ConvoUseCase
@@ -51,20 +69,41 @@ import dev.meloda.fast.messageshistory.model.MessageDialog
 import dev.meloda.fast.messageshistory.model.MessageNavigation
 import dev.meloda.fast.messageshistory.model.MessageOption
 import dev.meloda.fast.messageshistory.model.MessagesHistoryScreenState
+import dev.meloda.fast.messageshistory.model.VoicePlaybackState
 import dev.meloda.fast.messageshistory.navigation.MessagesHistory
+import dev.meloda.fast.messageshistory.player.VoiceMessagesPlayer
+import dev.meloda.fast.messageshistory.recorder.VoiceRecorder
 import dev.meloda.fast.model.BaseError
 import dev.meloda.fast.model.LongPollParsedEvent
+import dev.meloda.fast.model.PhotoSize
 import dev.meloda.fast.model.api.domain.FormatDataType
+import dev.meloda.fast.model.api.domain.VkAttachment
+import dev.meloda.fast.model.api.domain.VkAudioMessageDomain
 import dev.meloda.fast.model.api.domain.VkMessage
 import dev.meloda.fast.model.api.domain.VkPhotoDomain
+import dev.meloda.fast.model.api.domain.VkStickerDomain
+import dev.meloda.fast.model.api.domain.VkStickerPackDomain
+import dev.meloda.fast.model.api.domain.VkVideoDomain
+import dev.meloda.fast.model.api.domain.VkVideoMessageDomain
+import dev.meloda.fast.model.api.requests.PhotosSaveMessagePhotoRequest
 import dev.meloda.fast.network.VkErrorCode
+import dev.meloda.fast.network.mapApiDefault
 import dev.meloda.fast.ui.R
 import dev.meloda.fast.ui.model.vk.MessageUiItem
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import dev.meloda.fast.logger.FastLogger
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
@@ -79,11 +118,16 @@ import kotlin.random.Random
 class MessagesHistoryViewModelImpl(
     private val applicationContext: Context,
     private val messagesUseCase: MessagesUseCase,
+    private val filesRepository: FilesRepository,
+    private val videosRepository: VideosRepository,
+    private val stickersRepository: StickersRepository,
+    private val photosRepository: PhotosRepository,
     private val convoUseCase: ConvoUseCase,
     private val resourceProvider: ResourceProvider,
     private val userSettings: UserSettings,
     private val loadConvosByIdUseCase: LoadConvosByIdUseCase,
     private val getMessageReadPeersUseCase: GetMessageReadPeersUseCase,
+    private val logger: FastLogger,
     eventsHandler: LongPollEventsHandler,
     savedStateHandle: SavedStateHandle
 ) : MessagesHistoryViewModel, ViewModel() {
@@ -107,6 +151,28 @@ class MessagesHistoryViewModelImpl(
     override val messages = MutableStateFlow<List<VkMessage>>(emptyList())
     override val uiMessages = MutableStateFlow<List<MessageUiItem>>(emptyList())
 
+    override val voicePlayback: StateFlow<VoicePlaybackState> get() = voicePlayer.state
+
+    override val isRecordingVoice: StateFlow<Boolean> get() = voiceRecorder.isRecording
+    override val voiceRecordingDurationSec: StateFlow<Int> get() = voiceRecorder.durationSec
+
+    private val _isRecordingVideoMessage = MutableStateFlow(false)
+    override val isRecordingVideoMessage: StateFlow<Boolean> = _isRecordingVideoMessage.asStateFlow()
+
+    private val _stickerPacks = MutableStateFlow<List<VkStickerPackDomain>>(emptyList())
+    override val stickerPacks: StateFlow<List<VkStickerPackDomain>> = _stickerPacks.asStateFlow()
+
+    private val _isStickerPickerOpen = MutableStateFlow(false)
+    override val isStickerPickerOpen: StateFlow<Boolean> = _isStickerPickerOpen.asStateFlow()
+
+    private var stickerPacksLoaded = false
+
+    private val _isAttachmentPickerOpen = MutableStateFlow(false)
+    override val isAttachmentPickerOpen: StateFlow<Boolean> = _isAttachmentPickerOpen.asStateFlow()
+
+    private val _pickPhotoRequest = MutableStateFlow(0)
+    override val pickPhotoRequest: StateFlow<Int> = _pickPhotoRequest.asStateFlow()
+
     private var lastMessageText: String? = null
 
     private val sendingMessages: MutableList<VkMessage> = mutableListOf()
@@ -116,10 +182,15 @@ class MessagesHistoryViewModelImpl(
 
     private var editMessage: VkMessage? = null
 
+    private val voicePlayer = VoiceMessagesPlayer(applicationContext, viewModelScope)
+    private val voiceRecorder = VoiceRecorder(applicationContext, viewModelScope)
+
     init {
         val arguments = MessagesHistory.from(savedStateHandle).arguments
 
         screenState.setValue { old -> old.copy(convoId = arguments.convoId) }
+
+        ActiveChatTracker.onChatOpened(arguments.convoId)
 
         loadConvo()
         loadMessagesHistory()
@@ -140,13 +211,19 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onTopBarClicked() {
-        val cmId = messages.value.firstOrNull()?.cmId ?: return
-
-        navigation.setValue {
-            MessageNavigation.ChatMaterials(
-                peerId = screenState.value.convoId,
-                cmId = cmId
-            )
+        val convoId = screenState.value.convoId
+        if (convoId in 1 until 2_000_000_000L) {
+            navigation.setValue {
+                MessageNavigation.Profile(userId = convoId)
+            }
+        } else {
+            val cmId = messages.value.firstOrNull()?.cmId ?: 0L
+            navigation.setValue {
+                MessageNavigation.ChatMaterials(
+                    peerId = convoId,
+                    cmId = cmId
+                )
+            }
         }
     }
 
@@ -333,15 +410,37 @@ class MessagesHistoryViewModelImpl(
     }
 
     override fun onAttachmentButtonClicked() {
+        _isAttachmentPickerOpen.value = true
+    }
 
+    override fun onAttachmentPickerDismissed() {
+        _isAttachmentPickerOpen.value = false
+    }
+
+    override fun onPickPhotoClicked() {
+        _isAttachmentPickerOpen.value = false
+        _pickPhotoRequest.update { it + 1 }
+    }
+
+    override fun onEmojiSelected(emoji: String) {
+        val current = screenState.value.message
+        val start = current.selection.min
+        val end = current.selection.max
+        val newText = current.text.replaceRange(start, end, emoji)
+        onMessageInputChanged(
+            TextFieldValue(text = newText, selection = TextRange(start + emoji.length))
+        )
     }
 
     override fun onMessageInputChanged(newText: TextFieldValue) {
+        if (voiceRecorder.isRecording.value) return
+
         screenState.setValue { old ->
             old.copy(
                 message = newText,
                 actionMode =
                     when {
+                        voiceRecorder.isRecording.value -> ActionMode.RECORD_AUDIO
                         screenState.value.editCmId != null -> {
                             // TODO: 13/03/2026, Danil Nikolaev: also check if attachments is empty
                             if (newText.text.trim().isEmpty()) {
@@ -375,14 +474,580 @@ class MessagesHistoryViewModelImpl(
             ActionMode.EDIT -> editCurrentEditMessage()
 
             ActionMode.RECORD_AUDIO -> {
-                screenState.setValue { it.copy(actionMode = ActionMode.RECORD_VIDEO) }
+                if (voiceRecorder.isRecording.value) {
+                    sendVoiceRecording()
+                } else {
+                    screenState.setValue { it.copy(actionMode = ActionMode.RECORD_VIDEO) }
+                }
             }
+
+            ActionMode.RECORDING -> sendVoiceRecording()
 
             ActionMode.RECORD_VIDEO -> {
                 screenState.setValue { it.copy(actionMode = ActionMode.RECORD_AUDIO) }
             }
 
             ActionMode.SEND -> sendMessage()
+        }
+    }
+
+    override fun onRecordStart() {
+        when (screenState.value.actionMode) {
+            ActionMode.RECORD_AUDIO -> {
+                if (!voiceRecorder.isRecording.value) {
+                    startVoiceRecording()
+                }
+            }
+
+            ActionMode.RECORD_VIDEO -> {
+                onStartVideoMessageRecord()
+            }
+
+            else -> Unit
+        }
+    }
+
+    override fun onRecordFinish() {
+        if (voiceRecorder.isRecording.value) {
+            sendVoiceRecording()
+        }
+    }
+
+    override fun onRecordCancel() {
+        if (voiceRecorder.isRecording.value) {
+            cancelVoiceRecording()
+        }
+    }
+
+    override fun onStartVideoMessageRecord() {
+        _isRecordingVideoMessage.value = true
+    }
+
+    override fun onCancelVideoMessageRecord() {
+        _isRecordingVideoMessage.value = false
+    }
+
+    override fun onEmojiButtonClicked() {
+        _isStickerPickerOpen.value = true
+        if (!stickerPacksLoaded) {
+            loadStickerPacks()
+        }
+    }
+
+    override fun onStickerPickerDismissed() {
+        _isStickerPickerOpen.value = false
+    }
+
+    private fun loadStickerPacks() {
+        viewModelScope.launch {
+            val items = withContext(Dispatchers.IO) {
+                runCatching {
+                    stickersRepository.getProducts().mapApiDefault()
+                }.getOrNull()
+                    ?.let { result -> (result as? ApiResult.Success)?.value }
+                    ?.items
+                    .orEmpty()
+                    .map { it.toDomain() }
+                    .filter { it.stickerIds.isNotEmpty() }
+            }
+
+            _stickerPacks.value = items
+            stickerPacksLoaded = items.isNotEmpty()
+        }
+    }
+
+    override fun onSendSticker(stickerId: Long) {
+        _isStickerPickerOpen.value = false
+
+        val stickerAttachment = VkStickerDomain(
+            id = stickerId,
+            productId = 0,
+            images = null,
+            backgroundImages = null
+        )
+
+        sendMessage(
+            attachments = listOf(stickerAttachment),
+            stickerId = stickerId
+        )
+    }
+
+    override fun onSendPhoto(uri: Uri) {
+        viewModelScope.launch {
+            val file = withContext(Dispatchers.IO) { copyUriToCache(uri) }
+            if (file == null) {
+                Toast.makeText(applicationContext, "Не удалось прочитать фото", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val placeholderPhoto = VkPhotoDomain(
+                albumId = 0,
+                date = null,
+                id = -1L - sendingMessages.size,
+                ownerId = UserConfig.userId,
+                hasTags = false,
+                accessKey = null,
+                sizes = listOf(
+                    PhotoSize(
+                        height = 604,
+                        width = 604,
+                        type = VkPhotoDomain.SIZE_TYPE_604.toString(),
+                        url = file.absolutePath
+                    )
+                ),
+                text = null,
+                userId = UserConfig.userId
+            )
+
+            val newMessage = VkMessage(
+                id = -1L - sendingMessages.size,
+                cmId = -1L - sendingMessages.size,
+                text = "",
+                isOut = true,
+                peerId = screenState.value.convoId,
+                fromId = UserConfig.userId,
+                date = (System.currentTimeMillis() / 1000).toInt(),
+                randomId = Random.nextInt().toLong(),
+                action = null,
+                actionMemberId = null,
+                actionText = null,
+                actionCmId = null,
+                actionMessage = null,
+                updateTime = null,
+                isImportant = false,
+                forwards = null,
+                attachments = listOf(placeholderPhoto),
+                replyMessage = when {
+                    replyToCmId != null -> messages.value.find { it.cmId == replyToCmId }
+                    else -> null
+                },
+                geoType = null,
+                user = VkMemoryCache.getUser(UserConfig.userId),
+                group = null,
+                actionUser = null,
+                actionGroup = null,
+                isPinned = false,
+                isSpam = false,
+                pinnedAt = null,
+                formatData = null,
+                isDeleted = false
+            )
+
+            sendingMessages += newMessage
+            messages.setValue { old -> listOf(newMessage).plus(old) }
+            syncUiMessages()
+
+            val replyCmId = replyToCmId
+            replyToCmId = null
+
+            screenState.setValue { old ->
+                old.copy(replyTitle = null, replyText = null)
+            }
+
+            val forward = when {
+                replyCmId != null -> {
+                    buildJsonObject {
+                        put("peer_id", screenState.value.convoId)
+                        put("conversation_message_ids", buildJsonArray { add(replyCmId) })
+                        put("is_reply", true)
+                    }.toString()
+                }
+
+                else -> null
+            }
+
+            val uploadedPhoto = withContext(Dispatchers.IO) {
+                runCatching {
+                    uploadPhotoMessage(file)
+                }.onFailure { error ->
+                    logger.error(this@MessagesHistoryViewModelImpl::class, "uploadPhotoMessage failed", error)
+                }.getOrNull()
+            }
+
+            file.delete()
+
+            if (uploadedPhoto == null) {
+                sendingMessages.remove(newMessage)
+                markMessageAsFailed(newMessage)
+                return@launch
+            }
+
+            val messageWithRealAttachment = newMessage.copy(attachments = listOf(uploadedPhoto))
+            messages.setValue { list ->
+                list.toMutableList().also { mutable ->
+                    val index = mutable.indexOf(newMessage)
+                    if (index != -1) {
+                        mutable[index] = messageWithRealAttachment
+                    }
+                }
+            }
+            syncUiMessages()
+
+            messagesUseCase.sendMessage(
+                peerId = screenState.value.convoId,
+                randomId = newMessage.randomId,
+                message = "",
+                forward = forward,
+                attachments = listOf(uploadedPhoto),
+                formatData = null,
+            ).listenValue(viewModelScope) { state ->
+                state.processState(
+                    any = { sendingMessages.remove(messageWithRealAttachment) },
+                    error = { _ ->
+                        markMessageAsFailed(messageWithRealAttachment)
+                    },
+                    success = { response ->
+                        updateSentMessage(
+                            messageWithRealAttachment,
+                            response.messageId,
+                            response.cmId
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadPhotoMessage(file: File): VkPhotoDomain {
+        val uploadServerResponse = photosRepository
+            .getMessagesUploadServer(peerId = screenState.value.convoId)
+            .mapApiDefault()
+            .success()
+
+        val mimeType = applicationContext.contentResolver.getType(file.toUri()) ?: "image/jpeg"
+        val requestBody = file.asRequestBody(mimeType.toMediaType())
+        val body = MultipartBody.Part.createFormData("photo", file.name, requestBody)
+
+        val uploadResponse = photosRepository
+            .uploadPhoto(url = uploadServerResponse.uploadUrl, photo = body)
+            .success()
+
+        val saveResponse = photosRepository
+            .saveMessagePhoto(
+                PhotosSaveMessagePhotoRequest(
+                    photo = uploadResponse.photo,
+                    server = uploadResponse.server,
+                    hash = uploadResponse.hash
+                )
+            )
+            .mapApiDefault()
+            .success()
+
+        return saveResponse.first().toDomain()
+    }
+
+    private fun copyUriToCache(uri: Uri): File? = runCatching {
+        val inputStream = applicationContext.contentResolver.openInputStream(uri)
+            ?: return@runCatching null
+        val file = File(applicationContext.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+        file.outputStream().use { output -> inputStream.copyTo(output) }
+        inputStream.close()
+        file
+    }.getOrNull()
+
+    override fun onSendVideoMessage(file: File, durationSec: Int) {
+        _isRecordingVideoMessage.value = false
+
+        val placeholderAttachment = VkVideoMessageDomain(
+            id = -1L,
+            ownerId = UserConfig.userId,
+            accessKey = null,
+            duration = durationSec,
+            image = null,
+            link = file.absolutePath
+        )
+
+        val newMessage = VkMessage(
+            id = -1L - sendingMessages.size,
+            cmId = -1L - sendingMessages.size,
+            text = "",
+            isOut = true,
+            peerId = screenState.value.convoId,
+            fromId = UserConfig.userId,
+            date = (System.currentTimeMillis() / 1000).toInt(),
+            randomId = Random.nextInt().toLong(),
+            action = null,
+            actionMemberId = null,
+            actionText = null,
+            actionCmId = null,
+            actionMessage = null,
+            updateTime = null,
+            isImportant = false,
+            forwards = null,
+            attachments = listOf(placeholderAttachment),
+            replyMessage = when {
+                replyToCmId != null -> messages.value.find { it.cmId == replyToCmId }
+                else -> null
+            },
+            geoType = null,
+            user = VkMemoryCache.getUser(UserConfig.userId),
+            group = null,
+            actionUser = null,
+            actionGroup = null,
+            isPinned = false,
+            isSpam = false,
+            pinnedAt = null,
+            formatData = null,
+            isDeleted = false
+        )
+
+        sendingMessages += newMessage
+        messages.setValue { old -> listOf(newMessage).plus(old) }
+        syncUiMessages()
+
+        val replyCmId = replyToCmId
+        replyToCmId = null
+
+        screenState.setValue { old ->
+            old.copy(replyTitle = null, replyText = null)
+        }
+
+        val forward = when {
+            replyCmId != null -> {
+                buildJsonObject {
+                    put("peer_id", screenState.value.convoId)
+                    put("conversation_message_ids", buildJsonArray { add(replyCmId) })
+                    put("is_reply", true)
+                }.toString()
+            }
+            else -> null
+        }
+
+        viewModelScope.launch {
+            val squareFile = cropVideoToSquare(file)
+            if (squareFile != file) {
+                file.delete()
+                val localAttachment = placeholderAttachment.copy(link = squareFile.absolutePath)
+                messages.setValue { list ->
+                    list.map { message ->
+                        if (message.id == newMessage.id) {
+                            message.copy(attachments = listOf(localAttachment))
+                        } else {
+                            message
+                        }
+                    }
+                }
+                syncUiMessages()
+            }
+
+            val uploadedAttachment = withContext(Dispatchers.IO) {
+                runCatching {
+                    uploadVideoMessage(file = squareFile, durationSec = durationSec)
+                }.onFailure { error ->
+                    logger.error(this@MessagesHistoryViewModelImpl::class, "uploadVideoMessage failed", error)
+                }.getOrNull()
+            }
+
+            val attachment = uploadedAttachment
+            if (attachment == null) {
+                squareFile.delete()
+                sendingMessages.remove(newMessage)
+                markMessageAsFailed(newMessage)
+                return@launch
+            }
+
+            messagesUseCase.sendMessage(
+                peerId = screenState.value.convoId,
+                randomId = newMessage.randomId,
+                message = "",
+                forward = forward,
+                attachments = listOf(attachment),
+                formatData = null,
+            ).listenValue(viewModelScope) { state ->
+                state.processState(
+                    any = { sendingMessages.remove(newMessage) },
+                    error = { _ ->
+                        squareFile.delete()
+                        markMessageAsFailed(newMessage)
+                    },
+                    success = { response ->
+                        updateSentMessage(
+                            newMessage,
+                            response.messageId,
+                            response.cmId
+                        )
+                        pollVideoMessageAttachment(
+                            messageId = response.messageId,
+                            cmId = response.cmId,
+                            localFile = squareFile
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadVideoMessage(
+        file: File,
+        durationSec: Int
+    ): VkAttachment {
+        logger.debug(this::class, "uploadVideoMessage: file=${file.path}, size=${file.length()}")
+        val saveResponse = videosRepository.save(
+            isVideoMessage = true,
+            name = "Видеосообщение"
+        ).mapApiDefault().success()
+
+        val requestBody = file.asRequestBody("video/mp4".toMediaType())
+        val body = MultipartBody.Part.createFormData("video_file", file.name, requestBody)
+
+        videosRepository.upload(url = saveResponse.uploadUrl, file = body)
+
+        return VkVideoDomain(
+            id = saveResponse.videoid,
+            ownerId = saveResponse.ownerid,
+            accessKey = saveResponse.accessKey,
+            images = emptyList(),
+            firstFrames = null,
+            title = "Видеосообщение",
+            views = 0,
+            duration = durationSec,
+            isShortVideo = false
+        )
+    }
+
+    private suspend fun cropVideoToSquare(input: File): File {
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(input.absolutePath)
+            val width = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                ?.toIntOrNull() ?: 0
+            val height = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                ?.toIntOrNull() ?: 0
+            val rotation = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                ?.toIntOrNull() ?: 0
+            retriever.release()
+
+            val frameWidth = if (rotation % 180 != 0) height else width
+            val frameHeight = if (rotation % 180 != 0) width else height
+
+            if (frameWidth <= 0 || frameHeight <= 0 || frameWidth == frameHeight) {
+                return input
+            }
+
+            val output = File(input.parentFile, "square_${input.name}")
+
+            suspendCancellableCoroutine { continuation ->
+                val transformer = Transformer.Builder(applicationContext)
+                    .addListener(object : Transformer.Listener {
+                        override fun onCompleted(
+                            composition: Composition,
+                            exportResult: ExportResult
+                        ) {
+                            if (continuation.isActive) {
+                                continuation.resume(output)
+                            }
+                        }
+
+                        override fun onError(
+                            composition: Composition,
+                            exportResult: ExportResult,
+                            exportException: ExportException
+                        ) {
+                            logger.error(
+                                this@MessagesHistoryViewModelImpl::class,
+                                "cropVideoToSquare failed",
+                                exportException
+                            )
+                            output.delete()
+                            if (continuation.isActive) {
+                                continuation.resume(input)
+                            }
+                        }
+                    })
+                    .build()
+
+                val effects = Effects(
+                    emptyList(),
+                    listOf(
+                        Presentation.createForAspectRatio(
+                            1f,
+                            Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP
+                        )
+                    )
+                )
+                val editedMediaItem = EditedMediaItem
+                    .Builder(MediaItem.fromUri(input.absolutePath))
+                    .setEffects(effects)
+                    .build()
+
+                transformer.start(editedMediaItem, output.absolutePath)
+
+                continuation.invokeOnCancellation {
+                    runCatching { transformer.cancel() }
+                    output.delete()
+                }
+            }
+        } catch (error: Exception) {
+            logger.error(this::class, "cropVideoToSquare failed", error)
+            input
+        }
+    }
+
+    private fun pollVideoMessageAttachment(
+        messageId: Long,
+        cmId: Long,
+        localFile: File?
+    ) {
+        viewModelScope.launch {
+            for (attempt in 0 until 30) {
+                delay(2000L)
+
+                val serverMessage = runCatching {
+                    val state = messagesUseCase.getById(
+                        peerCmIds = null,
+                        peerId = null,
+                        messageIds = listOf(messageId),
+                        cmIds = null,
+                        extended = null,
+                        fields = null
+                    ).first()
+                    (state as? State.Success)?.data?.firstOrNull()
+                }.getOrNull() ?: continue
+
+                val attachment = serverMessage.attachments?.firstOrNull()
+
+                val videoMessageAttachment = when (attachment) {
+                    is VkVideoMessageDomain -> {
+                        if (attachment.link.isNullOrBlank()) {
+                            continue
+                        }
+                        attachment
+                    }
+
+                    is VkVideoDomain -> {
+                        val link = attachment.directUrl
+                        if (link.isNullOrBlank()) {
+                            continue
+                        }
+                        VkVideoMessageDomain(
+                            id = attachment.id,
+                            ownerId = attachment.ownerId,
+                            accessKey = attachment.accessKey,
+                            duration = attachment.duration,
+                            image = attachment.getDefault()?.url,
+                            link = link
+                        )
+                    }
+
+                    else -> continue
+                }
+
+                messages.setValue { list ->
+                    list.map { message ->
+                        if (message.id == messageId && message.cmId == cmId) {
+                            message.copy(attachments = listOf(videoMessageAttachment))
+                        } else {
+                            message
+                        }
+                    }
+                }
+                syncUiMessages()
+                localFile?.delete()
+                return@launch
+            }
         }
     }
 
@@ -996,8 +1661,11 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
-    private fun sendMessage() {
-        lastMessageText = screenState.value.message.text
+    private fun sendMessage(
+        attachments: List<VkAttachment>? = null,
+        stickerId: Long? = null
+    ) {
+        lastMessageText = if (stickerId != null) "" else screenState.value.message.text
 
         val newMessage = VkMessage(
             id = -1L - sendingMessages.size,
@@ -1016,7 +1684,7 @@ class MessagesHistoryViewModelImpl(
             updateTime = null,
             isImportant = false,
             forwards = null,
-            attachments = null,
+            attachments = attachments,
             replyMessage = when {
                 replyToCmId != null -> messages.value.find { it.cmId == replyToCmId }
                 else -> null
@@ -1066,32 +1734,242 @@ class MessagesHistoryViewModelImpl(
             randomId = newMessage.randomId,
             message = newMessage.text,
             forward = forward,
-            attachments = null,
+            attachments = attachments,
             formatData = newMessage.formatData,
+            stickerId = stickerId,
         ).listenValue(viewModelScope) { state ->
             state.processState(
                 any = { sendingMessages.remove(newMessage) },
                 error = { error ->
-                    val failedId = -500_000L - failedMessages.size
-                    val newFailedMessage = newMessage.copy(id = failedId)
-                    failedMessages += newFailedMessage
-
-                    val newMessages = messages.value.toMutableList()
-                    newMessages[newMessages.indexOf(newMessage)] = newFailedMessage
-                    messages.setValue { newMessages }
-                    syncUiMessages()
+                    markMessageAsFailed(newMessage)
                 },
                 success = { response ->
-                    val newMessages = messages.value.toMutableList()
-                    newMessages[newMessages.indexOf(newMessage)] = newMessage.copy(
-                        id = response.messageId,
-                        cmId = response.cmId
-                    )
-                    messages.setValue { newMessages }
-                    syncUiMessages()
+                    updateSentMessage(newMessage, response.messageId, response.cmId)
                 }
             )
         }
+    }
+
+    private fun markMessageAsFailed(newMessage: VkMessage) {
+        val failedId = -500_000L - failedMessages.size
+        val newFailedMessage = newMessage.copy(id = failedId)
+        failedMessages += newFailedMessage
+
+        val newMessages = messages.value.toMutableList()
+        val index = newMessages.indexOf(newMessage)
+        if (index != -1) {
+            newMessages[index] = newFailedMessage
+            messages.setValue { newMessages }
+            syncUiMessages()
+        }
+    }
+
+    private fun updateSentMessage(
+        old: VkMessage,
+        messageId: Long,
+        cmId: Long
+    ) {
+        val newMessages = messages.value.toMutableList()
+        val index = newMessages.indexOf(old)
+        if (index != -1) {
+            newMessages[index] = old.copy(id = messageId, cmId = cmId)
+            messages.setValue { newMessages }
+            syncUiMessages()
+        }
+    }
+
+    private fun startVoiceRecording() {
+        if (!screenState.value.message.text.isBlank()) return
+        if (voiceRecorder.isRecording.value) return
+
+        val started = voiceRecorder.start()
+        if (!started) {
+            Toast.makeText(
+                applicationContext,
+                R.string.unknown_error_occurred,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun cancelVoiceRecording() {
+        voiceRecorder.cancel()
+    }
+
+    private fun sendVoiceRecording() {
+        val durationSec = voiceRecorder.durationSec.value
+        val recordedFile = voiceRecorder.stop() ?: return
+
+        val placeholderAttachment = VkAudioMessageDomain(
+            id = -1L,
+            ownerId = UserConfig.userId,
+            duration = durationSec,
+            waveform = emptyList(),
+            linkOgg = "",
+            linkMp3 = "",
+            accessKey = "",
+            transcriptState = null,
+            transcript = null
+        )
+
+        lastMessageText = ""
+
+        val newMessage = VkMessage(
+            id = -1L - sendingMessages.size,
+            cmId = -1L - sendingMessages.size,
+            text = "",
+            isOut = true,
+            peerId = screenState.value.convoId,
+            fromId = UserConfig.userId,
+            date = (System.currentTimeMillis() / 1000).toInt(),
+            randomId = Random.nextInt().toLong(),
+            action = null,
+            actionMemberId = null,
+            actionText = null,
+            actionCmId = null,
+            actionMessage = null,
+            updateTime = null,
+            isImportant = false,
+            forwards = null,
+            attachments = listOf(placeholderAttachment),
+            replyMessage = when {
+                replyToCmId != null -> messages.value.find { it.cmId == replyToCmId }
+                else -> null
+            },
+            geoType = null,
+            user = VkMemoryCache.getUser(UserConfig.userId),
+            group = null,
+            actionUser = null,
+            actionGroup = null,
+            isPinned = false,
+            isSpam = false,
+            pinnedAt = null,
+            formatData = null,
+            isDeleted = false
+        )
+
+        sendingMessages += newMessage
+        messages.setValue { old -> listOf(newMessage).plus(old) }
+        syncUiMessages()
+
+        screenState.setValue { old ->
+            old.copy(actionMode = ActionMode.RECORD_AUDIO)
+        }
+
+        val replyCmId = replyToCmId
+        replyToCmId = null
+
+        screenState.setValue { old ->
+            old.copy(replyTitle = null, replyText = null)
+        }
+
+        val forward = when {
+            replyCmId != null -> {
+                buildJsonObject {
+                    put("peer_id", screenState.value.convoId)
+                    put("conversation_message_ids", buildJsonArray { add(replyCmId) })
+                    put("is_reply", true)
+                }.toString()
+            }
+
+            else -> null
+        }
+
+        viewModelScope.launch {
+            val uploadedAttachment = withContext(Dispatchers.IO) {
+                runCatching {
+                    uploadVoiceMessage(peerId = screenState.value.convoId, file = recordedFile)
+                }.onFailure { error ->
+                    logger.error(this@MessagesHistoryViewModelImpl::class, "uploadVoiceMessage failed", error)
+                }.getOrNull()
+            }
+
+            recordedFile.delete()
+
+            val attachment = uploadedAttachment
+            if (attachment == null) {
+                sendingMessages.remove(newMessage)
+                markMessageAsFailed(newMessage)
+                return@launch
+            }
+
+            val messageWithRealAttachment = newMessage.copy(attachments = listOf(attachment))
+            messages.setValue { list ->
+                list.toMutableList().also { mutable ->
+                    val index = mutable.indexOf(newMessage)
+                    if (index != -1) {
+                        mutable[index] = messageWithRealAttachment
+                    }
+                }
+            }
+            syncUiMessages()
+
+            messagesUseCase.sendMessage(
+                peerId = screenState.value.convoId,
+                randomId = newMessage.randomId,
+                message = "",
+                forward = forward,
+                attachments = listOf(attachment),
+                formatData = null,
+            ).listenValue(viewModelScope) { state ->
+                state.processState(
+                    any = { sendingMessages.remove(messageWithRealAttachment) },
+                    error = { _ ->
+                        markMessageAsFailed(messageWithRealAttachment)
+                    },
+                    success = { response ->
+                        updateSentMessage(
+                            messageWithRealAttachment,
+                            response.messageId,
+                            response.cmId
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadVoiceMessage(
+        peerId: Long,
+        file: File
+    ): VkAudioMessageDomain {
+        logger.debug(this::class, "uploadVoiceMessage: start peerId=$peerId, file=${file.path}, size=${file.length()}")
+        val uploadServerResponse = filesRepository
+            .getMessagesUploadServer(
+                peerId = peerId,
+                type = FilesRepository.FileType.AUDIO_MESSAGE
+            )
+            .mapApiDefault()
+            .success()
+
+        val mimeType = if (file.name.endsWith(".ogg", ignoreCase = true)) "audio/ogg" else "audio/mp4"
+        val requestBody = file.asRequestBody(mimeType.toMediaType())
+        val body = MultipartBody.Part.createFormData("file", file.name, requestBody)
+
+        val uploadResponse = filesRepository
+            .uploadFile(url = uploadServerResponse.uploadUrl, file = body)
+
+        val uploadSuccess = uploadResponse.success()
+        val savedFile = uploadSuccess.file ?: uploadSuccess.audioMessage
+            ?: error("Uploaded file is null: error=${uploadSuccess.error}")
+
+        val saveResponse = filesRepository
+            .saveMessageFile(savedFile)
+            .mapApiDefault()
+            .success()
+
+        val voiceMessage = saveResponse.voiceMessage
+            ?: saveResponse.file?.preview?.audioMessage
+            ?: error("Neither voiceMessage nor file.preview.audioMessage in save response: $saveResponse")
+
+        return voiceMessage.toDomain()
+    }
+
+    override fun onVoiceMessageClicked(attachment: VkAudioMessageDomain) {
+        val url = attachment.linkMp3.ifBlank { attachment.linkOgg }
+        if (url.isBlank()) return
+
+        voicePlayer.toggle(url)
     }
 
     private fun confirmDeleteCurrentEditMessage() {
@@ -1268,6 +2146,45 @@ class MessagesHistoryViewModelImpl(
         }
     }
 
+    private var lastMarkedReadCmId: Long = 0L
+    private var markAsReadJob: Job? = null
+
+    override fun onMessageSeen(messageId: Long, cmId: Long) {
+        if (cmId <= 0 || messageId <= 0) return
+        val currentInReadCmId = screenState.value.convo.inReadCmId
+        if (cmId <= currentInReadCmId || cmId <= lastMarkedReadCmId) return
+
+        lastMarkedReadCmId = cmId
+
+        val oldConvo = screenState.value.convo
+        val newConvo = oldConvo.copy(
+            inReadCmId = maxOf(currentInReadCmId, cmId),
+            inRead = maxOf(oldConvo.inRead ?: 0L, messageId)
+        )
+
+        screenState.setValue { old ->
+            old.copy(convo = newConvo)
+        }
+
+        syncUiMessages()
+
+        markAsReadJob?.cancel()
+        markAsReadJob = viewModelScope.launch {
+            delay(350L)
+            messagesUseCase.markAsRead(
+                peerId = screenState.value.convoId,
+                startMessageId = messageId
+            ).listenValue(this) { state ->
+                state.processState(
+                    error = { _ -> },
+                    success = {
+                        // Mark as read acknowledged on VK API
+                    }
+                )
+            }
+        }
+    }
+
     private fun copyMessage(message: VkMessage) {
         val clipboardManager =
             applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -1343,6 +2260,13 @@ class MessagesHistoryViewModelImpl(
         uiMessages.setValue { newUiMessages }
 
         return newUiMessages
+    }
+
+    override fun onCleared() {
+        ActiveChatTracker.onChatClosed(screenState.value.convoId)
+        voicePlayer.release()
+        voiceRecorder.release()
+        super.onCleared()
     }
 
     companion object {

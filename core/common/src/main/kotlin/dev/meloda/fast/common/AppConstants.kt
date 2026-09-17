@@ -10,4 +10,7 @@ object AppConstants {
 
     const val NOTIFICATION_CHANNEL_UNCATEGORIZED = "uncategorized"
     const val NOTIFICATION_CHANNEL_LONG_POLLING = "long_polling"
+    const val NOTIFICATION_CHANNEL_MESSAGES = "messages"
+
+    const val EXTRA_PEER_ID = "peer_id"
 }
