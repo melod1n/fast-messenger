@@ -6,7 +6,7 @@ compileSdk = "37"
 #noinspection UnusedVersionCatalogEntry
 targetSdk = "37"
 
-agp = "9.2.1"
+agp = "9.4.0"
 retrofit = "3.0.0"
 eithernet = "2.0.0"
 haze = "1.7.2"
