@@ -1,15 +1,19 @@
 package dev.meloda.fast.auth.login.navigation
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.meloda.fast.auth.login.LoginViewModel
+import dev.meloda.fast.auth.login.model.LoginIntent
 import dev.meloda.fast.auth.login.model.LoginEffect
 import dev.meloda.fast.auth.login.model.LoginNavigationIntent
+import dev.meloda.fast.auth.login.model.QrLoginState
 import dev.meloda.fast.auth.login.presentation.LoginRoute
+import dev.meloda.fast.auth.login.presentation.QrScannerScreen
 import dev.meloda.fast.ui.extensions.sharedViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -48,16 +52,6 @@ fun NavGraphBuilder.loginScreen(
             viewModel.onValidationCodeReceived(validationCode)
         }
 
-        val savedStateHandle = backStackEntry.savedStateHandle
-        val scannedQr by savedStateHandle.getStateFlow<String?>("scanned_qr", null).collectAsStateWithLifecycle()
-
-        LaunchedEffect(scannedQr) {
-            if (scannedQr != null) {
-                viewModel.handleIntent(dev.meloda.fast.auth.login.model.LoginIntent.QrCodeScanned(scannedQr!!))
-                savedStateHandle["scanned_qr"] = null
-            }
-        }
-
         LoginRoute(
             handleIntent = viewModel::handleIntent,
             screenState = screenState
@@ -66,12 +60,27 @@ fun NavGraphBuilder.loginScreen(
 }
 
 fun NavGraphBuilder.qrScannerScreen(
-    onQrCodeScanned: (String) -> Unit,
+    onAuthorized: () -> Unit,
+    navController: NavController,
     onBackClicked: () -> Unit
 ) {
-    composable<QrScannerRoute> {
-        dev.meloda.fast.auth.login.presentation.QrScannerScreen(
-            onQrCodeScanned = onQrCodeScanned,
+    composable<QrScannerRoute> { backStackEntry ->
+        val viewModel: LoginViewModel = backStackEntry.sharedViewModel(navController = navController)
+        val qrLoginState by viewModel.qrLoginStateFlow.collectAsStateWithLifecycle()
+
+        DisposableEffect(viewModel) {
+            viewModel.onQrScannerOpened()
+            onDispose(viewModel::onQrScannerClosed)
+        }
+
+        LaunchedEffect(qrLoginState) {
+            if (qrLoginState == QrLoginState.Authorized) onAuthorized()
+        }
+
+        QrScannerScreen(
+            loginState = qrLoginState,
+            onQrCodeScanned = { viewModel.handleIntent(LoginIntent.QrCodeScanned(it)) },
+            onRetry = viewModel::retryQrScan,
             onBackClicked = onBackClicked
         )
     }

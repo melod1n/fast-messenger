@@ -153,15 +153,19 @@
     <string name="user_name">User name</string>
     <string name="sign_in_to_vk">Sign in to VK</string>
     <string name="scan_qr_code">Scan QR code</string>
-    <string name="qr_login_error_invalid">Invalid QR code. Access token not found.</string>
+    <string name="qr_login_error_invalid">Invalid VK login QR code.</string>
     <string name="qr_login_error_failed">Failed to log in with this QR code.</string>
+    <string name="qr_login_error_connection">Connection lost. Check your internet connection and try again.</string>
     <string name="qr_login_error_expired">The QR code has expired. Generate a new one on the site.</string>
     <string name="qr_scanner_hint">Point the camera at the login QR so it fits inside the frame</string>
-    <string name="qr_scanner_hint_wrong">This QR is not for login. Point at the QR with the access token</string>
-    <string name="qr_scanner_accepted">Code accepted, signing in...</string>
+    <string name="qr_scanner_hint_wrong">This is not a VK login QR code</string>
+    <string name="qr_scanner_accepted">Checking the QR code and waiting for confirmation…</string>
     <string name="qr_scanner_back">Back</string>
     <string name="qr_scanner_torch">Torch</string>
     <string name="qr_scanner_camera_permission">Camera permission is required to scan QR codes</string>
+    <string name="qr_scanner_camera_permission_title">Camera access is needed</string>
+    <string name="qr_scanner_grant_camera">Allow camera access</string>
+    <string name="qr_scanner_open_settings">Open app settings</string>
 
 
 

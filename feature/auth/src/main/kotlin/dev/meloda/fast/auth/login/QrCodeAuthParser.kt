@@ -1,69 +1,39 @@
 package dev.meloda.fast.auth.login
 
-object QrCodeAuthParser {
+class QrCodeAuthParser {
 
-    private val tokenParamRegex = Regex("""[?&#]?access_token=([a-zA-Z0-9._\-]+)""")
-    private val jsonTokenRegex = Regex(""""access_token"\s*:\s*"([^"]+)"""")
-    private val userIdParamRegex = Regex("""[?&#]?user_id=([0-9]+)""")
-    private val jsonUserIdRegex = Regex(""""user_id"\s*:\s*([0-9]+)"""")
-
-    private val web2appHostRegex = Regex("qr[.]vk[.](com|ru)", RegexOption.IGNORE_CASE)
-
-    fun decode(rawQrText: String): String {
-        return try {
-            java.net.URLDecoder.decode(rawQrText.trim(), "UTF-8")
-        } catch (_: Exception) {
-            rawQrText.trim()
-        }
-    }
-
-    fun extractToken(rawQrText: String): String? {
-        val qrText = decode(rawQrText)
-        if (qrText.isEmpty()) return null
-
-        tokenParamRegex.find(qrText)?.let { return it.groupValues[1] }
-        jsonTokenRegex.find(qrText)?.let { return it.groupValues[1] }
-
-        if (qrText.startsWith("vk1.")) {
-            return qrText.split('&', ' ', '\n', '\r', '?', '#').firstOrNull()?.trim()
-        }
-
-        if (!qrText.contains(" ") && !qrText.contains("/") &&
-            !qrText.contains("?") && !qrText.contains("#") && qrText.length >= 20
-        ) {
-            return qrText
-        }
-
-        return null
-    }
-
-    fun extractUserId(rawQrText: String): Long? {
-        val qrText = decode(rawQrText)
-        userIdParamRegex.find(qrText)?.let { return it.groupValues[1].toLongOrNull() }
-        jsonUserIdRegex.find(qrText)?.let { return it.groupValues[1].toLongOrNull() }
-        return null
-    }
-
-    fun isAuthQr(rawQrText: String): Boolean = !extractToken(rawQrText).isNullOrBlank()
+    private val allowedHosts = setOf("qr.vk.com", "qr.vk.ru")
 
     fun extractWeb2AppCode(rawQrText: String): String? {
         val text = rawQrText.trim()
         if (text.isEmpty()) return null
-        val uri = runCatching { android.net.Uri.parse(text) }.getOrNull() ?: return null
-        val q = uri.getQueryParameter("q")
-        if (q.isNullOrBlank()) return null
-        val host = uri.host.orEmpty()
-        if (host.isNotBlank() && web2appHostRegex.matches(host)) {
-            return if (uri.path == "/w2a") q else null
-        }
-        return when (uri.scheme.orEmpty().lowercase()) {
-            "http", "https", "vk", "vklink", "vkontakte" -> q
-            else -> null
-        }
+
+        val uri = runCatching { java.net.URI(text) }.getOrNull() ?: return null
+        if (!uri.scheme.equals("https", ignoreCase = true)) return null
+        if (uri.host?.lowercase() !in allowedHosts) return null
+        if (uri.path != "/w2a") return null
+
+        return uri.rawQuery
+            ?.split('&')
+            ?.asSequence()
+            ?.mapNotNull { parameter ->
+                val separator = parameter.indexOf('=')
+                if (separator < 0) return@mapNotNull null
+
+                val name = decodeQueryPart(parameter.substring(0, separator))
+                if (name != "q") return@mapNotNull null
+
+                decodeQueryPart(parameter.substring(separator + 1)).takeIf(String::isNotBlank)
+            }
+            ?.firstOrNull()
     }
 
     fun isScannable(rawQrText: String): Boolean =
-        isAuthQr(rawQrText) || !extractWeb2AppCode(rawQrText).isNullOrBlank()
+        !extractWeb2AppCode(rawQrText).isNullOrBlank()
+
+    private fun decodeQueryPart(value: String): String =
+        runCatching { java.net.URLDecoder.decode(value, Charsets.UTF_8.name()) }
+            .getOrDefault(value)
 
     fun isInCenter(
         boxLeft: Int,

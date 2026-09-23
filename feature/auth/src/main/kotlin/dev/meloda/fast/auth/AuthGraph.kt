@@ -39,12 +39,8 @@ fun NavGraphBuilder.authNavGraph(
         )
         
         qrScannerScreen(
-            onQrCodeScanned = { qrText: String ->
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.set("scanned_qr", qrText)
-                navController.popBackStack()
-            },
+            onAuthorized = onNavigateToMain,
+            navController = navController,
             onBackClicked = {
                 navController.popBackStack()
             }
