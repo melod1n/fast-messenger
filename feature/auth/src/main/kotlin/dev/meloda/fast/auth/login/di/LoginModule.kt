@@ -1,6 +1,7 @@
 package dev.meloda.fast.auth.login.di
 
 import dev.meloda.fast.auth.login.LoginViewModel
+import dev.meloda.fast.auth.login.QrCodeAuthParser
 import dev.meloda.fast.auth.login.validation.LoginValidator
 import dev.meloda.fast.domain.OAuthUseCase
 import dev.meloda.fast.domain.OAuthUseCaseImpl
@@ -11,6 +12,7 @@ import org.koin.dsl.module
 
 val loginModule = module {
     singleOf(::LoginValidator)
+    singleOf(::QrCodeAuthParser)
     viewModelOf(::LoginViewModel)
     singleOf(::OAuthUseCaseImpl) bind OAuthUseCase::class
 }

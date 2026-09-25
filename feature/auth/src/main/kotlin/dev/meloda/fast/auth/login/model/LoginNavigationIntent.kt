@@ -10,4 +10,5 @@ sealed class LoginNavigationIntent {
     data class UserBanned(val arguments: UserBannedArguments) : LoginNavigationIntent()
     data object Main : LoginNavigationIntent()
     data object Settings: LoginNavigationIntent()
+    data object QrScanner : LoginNavigationIntent()
 }

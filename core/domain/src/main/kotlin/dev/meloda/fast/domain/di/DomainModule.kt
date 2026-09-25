@@ -10,6 +10,7 @@ import dev.meloda.fast.domain.GetMessageReadPeersUseCase
 import dev.meloda.fast.domain.LoadConvosByIdUseCase
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.LoadUsersByIdsUseCase
+import dev.meloda.fast.domain.QrLoginUseCase
 import dev.meloda.fast.domain.StoreUsersUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -30,4 +31,6 @@ val domainModule = module {
     singleOf(::LoadConvosByIdUseCase)
 
     singleOf(::GetMessageReadPeersUseCase)
+
+    singleOf(::QrLoginUseCase)
 }

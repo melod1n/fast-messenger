@@ -10,6 +10,7 @@ import dev.meloda.fast.auth.login.model.LoginIntent
 import dev.meloda.fast.auth.login.model.LoginNavigationIntent
 import dev.meloda.fast.auth.login.model.LoginScreenState
 import dev.meloda.fast.auth.login.model.LoginValidationResult
+import dev.meloda.fast.auth.login.model.QrLoginState
 import dev.meloda.fast.auth.login.validation.LoginValidator
 import dev.meloda.fast.auth.userbanned.model.UserBannedArguments
 import dev.meloda.fast.auth.validation.model.ValidationArguments
@@ -29,9 +30,12 @@ import dev.meloda.fast.datastore.AppSettings
 import dev.meloda.fast.datastore.UserSettings
 import dev.meloda.fast.domain.LoadUserByIdUseCase
 import dev.meloda.fast.domain.OAuthUseCase
+import dev.meloda.fast.domain.QrLoginResult
+import dev.meloda.fast.domain.QrLoginUseCase
 import dev.meloda.fast.logger.FastLogger
 import dev.meloda.fast.model.AccountDto
 import dev.meloda.fast.network.OAuthErrorDomain
+import dev.meloda.fast.ui.R
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -42,10 +46,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val oAuthUseCase: OAuthUseCase,
+    private val qrLoginUseCase: QrLoginUseCase,
+    private val qrCodeAuthParser: QrCodeAuthParser,
     private val authRepository: AuthRepository,
     private val loadUserByIdUseCase: LoadUserByIdUseCase,
     private val accountsRepository: AccountsRepository,
@@ -90,6 +98,14 @@ class LoginViewModel(
             LoginIntent.PasswordVisibilityButtonClick -> onPasswordVisibilityButtonClicked()
 
             LoginIntent.SignInButtonClick -> onSignInButtonClicked()
+
+            LoginIntent.QrScannerButtonClick -> {
+                screenEffect.tryEmit(LoginEffect.Navigate(LoginNavigationIntent.QrScanner))
+            }
+
+            is LoginIntent.QrCodeScanned -> {
+                onQrCodeScanned(intent.qrText)
+            }
 
             is LoginIntent.Dialog -> {
                 when (intent) {
@@ -388,5 +404,100 @@ class LoginViewModel(
                 LongPollState.InApp
             }
         )
+    }
+
+    private var qrLoginJob: Job? = null
+    private val qrLoginState = MutableStateFlow<QrLoginState>(QrLoginState.Scanning)
+    val qrLoginStateFlow: StateFlow<QrLoginState> get() = qrLoginState.asStateFlow()
+
+    fun onQrScannerOpened() {
+        qrLoginJob?.cancel()
+        qrLoginState.value = QrLoginState.Scanning
+        screenState.updateValue { copy(isLoading = false) }
+    }
+
+    fun onQrScannerClosed() {
+        qrLoginJob?.cancel()
+        qrLoginState.value = QrLoginState.Scanning
+        screenState.updateValue { copy(isLoading = false) }
+    }
+
+    fun retryQrScan() {
+        if (qrLoginState.value is QrLoginState.Error) {
+            qrLoginState.value = QrLoginState.Scanning
+        }
+    }
+
+    private fun onQrCodeScanned(qrText: String) {
+        val authCode = qrCodeAuthParser.extractWeb2AppCode(qrText)
+        if (authCode == null) {
+            qrLoginState.value = QrLoginState.Error(R.string.qr_login_error_invalid)
+            return
+        }
+
+        loginViaWeb2App(authCode)
+    }
+
+    private fun loginViaWeb2App(authCode: String) {
+        qrLoginJob?.cancel()
+        screenState.updateValue { copy(isLoading = true) }
+        qrLoginState.value = QrLoginState.Processing
+        qrLoginJob = viewModelScope.launch(Dispatchers.IO) {
+            when (val result = qrLoginUseCase(authCode)) {
+                is QrLoginResult.Authorized -> {
+                    finishTokenLogin(result.accessToken, result.userId)
+                }
+
+                QrLoginResult.Expired -> qrLoginFailed(R.string.qr_login_error_expired)
+                QrLoginResult.ConnectionError -> qrLoginFailed(R.string.qr_login_error_connection)
+                QrLoginResult.Declined,
+                QrLoginResult.Failed -> qrLoginFailed(R.string.qr_login_error_failed)
+            }
+        }
+    }
+
+    private fun qrLoginFailed(errorResId: Int) {
+        screenState.updateValue { copy(isLoading = false) }
+        qrLoginState.value = QrLoginState.Error(errorResId)
+    }
+
+    private suspend fun finishTokenLogin(token: String, userId: Long) {
+        try {
+            val exchangeToken = authRepository.getExchangeToken(token)
+                .success()
+                .usersTokens
+                .firstOrNull { it.userId == userId }
+                ?.commonToken
+                ?.takeIf(String::isNotBlank)
+                ?: run {
+                    qrLoginFailed(R.string.qr_login_error_failed)
+                    return
+                }
+
+            val account = AccountDto(
+                userId = userId,
+                accessToken = token,
+                fastToken = null,
+                trustedHash = null,
+                exchangeToken = exchangeToken
+            )
+            accountsRepository.storeAccounts(listOf(account.mapToEntity()))
+
+            UserConfig.currentUserId = account.userId
+            UserConfig.userId = account.userId
+            UserConfig.accessToken = account.accessToken
+            UserConfig.fastToken = account.fastToken
+            UserConfig.trustedHash = account.trustedHash
+            UserConfig.exchangeToken = account.exchangeToken
+
+            startLongPoll()
+            screenState.updateValue { copy(isLoading = false, login = "", password = "") }
+            qrLoginState.value = QrLoginState.Authorized
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.error(this::class, "QR Login account setup failed: $e")
+            qrLoginFailed(R.string.qr_login_error_failed)
+        }
     }
 }
